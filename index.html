@@ -51,7 +51,7 @@
   "inLanguage": ["ar", "en"],
   "potentialAction": {
     "@type": "SearchAction",
-    "target": "https://iraqsm.com/#/c/{search_term_string}",
+    "target": "https://iraqsm.com/c/{search_term_string}",
     "query-input": "required name=search_term_string"
   }
 }
@@ -321,12 +321,12 @@ footer{background:var(--bg2);border-top:1px solid var(--border);padding:44px 24p
    <span class="ar">بورصة العراق</span><span class="en">ISX Market</span>
   </div>
   <ul class="nav-links">
-   <li><a href="#/" onclick="navHome();scrollToSection('#hero');return false;" class="ar">السوق</a><a href="#/" onclick="navHome();scrollToSection('#hero');return false;" class="en">Market</a></li>
-   <li><a href="#/" onclick="navHome();scrollToSection('#indices');return false;" class="ar">المؤشرات</a><a href="#/" onclick="navHome();scrollToSection('#indices');return false;" class="en">Indices</a></li>
-   <li><a href="#/" onclick="navHome();scrollToSection('#news');return false;" class="ar">الأخبار</a><a href="#/" onclick="navHome();scrollToSection('#news');return false;" class="en">News</a></li>
-   <li><a href="#/" onclick="navHome();scrollToSection('#brokers');return false;" class="ar">الوسطاء</a><a href="#/" onclick="navHome();scrollToSection('#brokers');return false;" class="en">Brokers</a></li>
-   <li><a href="#/" onclick="navHome();scrollToSection('#research');return false;" class="ar">الأبحاث</a><a href="#/" onclick="navHome();scrollToSection('#research');return false;" class="en">Research</a></li>
-   <li><a href="#/fx" onclick="navFX();return false;" class="ar">بيش الدولار</a><a href="#/fx" onclick="navFX();return false;" class="en">IQD ⇄ USD</a></li>
+   <li><a href="/" onclick="navHome();scrollToSection('#hero');return false;" class="ar">السوق</a><a href="/" onclick="navHome();scrollToSection('#hero');return false;" class="en">Market</a></li>
+   <li><a href="/" onclick="navHome();scrollToSection('#indices');return false;" class="ar">المؤشرات</a><a href="/" onclick="navHome();scrollToSection('#indices');return false;" class="en">Indices</a></li>
+   <li><a href="/" onclick="navHome();scrollToSection('#news');return false;" class="ar">الأخبار</a><a href="/" onclick="navHome();scrollToSection('#news');return false;" class="en">News</a></li>
+   <li><a href="/" onclick="navHome();scrollToSection('#brokers');return false;" class="ar">الوسطاء</a><a href="/" onclick="navHome();scrollToSection('#brokers');return false;" class="en">Brokers</a></li>
+   <li><a href="/" onclick="navHome();scrollToSection('#research');return false;" class="ar">الأبحاث</a><a href="/" onclick="navHome();scrollToSection('#research');return false;" class="en">Research</a></li>
+   <li><a href="/fx" onclick="navFX();return false;" class="ar">بيش الدولار</a><a href="/fx" onclick="navFX();return false;" class="en">IQD ⇄ USD</a></li>
   </ul>
   <div class="nav-right">
    <div class="search-wrap">
@@ -663,6 +663,53 @@ footer{background:var(--bg2);border-top:1px solid var(--border);padding:44px 24p
    <!-- populated by JS -->
   </div>
  </div>
+ <div class="psec cp-psec" id="cp-about-section" style="display:none">
+  <div class="sec-hdr">
+   <h2 class="sec-ttl ar">عن الشركة</h2><h2 class="sec-ttl en">About</h2>
+  </div>
+  <div id="cp-about-body" style="font-size:14px;line-height:1.9;color:var(--t2);padding:4px 0"></div>
+  <section class="psec" id="site-map-section" style="border-top:1px solid var(--brd);padding-top:40px;margin-top:40px">
+  <div class="sec-hdr">
+   <h2 class="sec-ttl ar">خريطة الموقع</h2>
+   <h2 class="sec-ttl en">Site Map</h2>
+  </div>
+  <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:32px;margin-top:24px">
+   <div>
+    <div style="font-size:12px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:1px;margin-bottom:12px">
+     <span class="ar">الأقسام</span><span class="en">Pages</span>
+    </div>
+    <ul style="list-style:none;display:flex;flex-direction:column;gap:8px">
+     <li><a href="/" onclick="navHome();return false;" style="color:var(--t2);text-decoration:none;font-size:14px"><span class="ar">السوق الرئيسي</span><span class="en">Market Home</span></a></li>
+     <li><a href="/fx" onclick="navFX();return false;" style="color:var(--t2);text-decoration:none;font-size:14px"><span class="ar">سعر الدولار</span><span class="en">IQD / USD</span></a></li>
+     <li><a href="/about" style="color:var(--t2);text-decoration:none;font-size:14px"><span class="ar">عن الموقع</span><span class="en">About</span></a></li>
+     <li><a href="/privacy" style="color:var(--t2);text-decoration:none;font-size:14px"><span class="ar">سياسة الخصوصية</span><span class="en">Privacy Policy</span></a></li>
+     <li><a href="/research" style="color:var(--t2);text-decoration:none;font-size:14px"><span class="ar">أبحاث السوق</span><span class="en">Market Research</span></a></li>
+    </ul>
+   </div>
+   <div>
+    <div style="font-size:12px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:1px;margin-bottom:12px">
+     <span class="ar">قطاع المصارف</span><span class="en">Banks</span>
+    </div>
+    <ul id="sm-banks" style="list-style:none;display:flex;flex-direction:column;gap:6px;font-size:13px"></ul>
+   </div>
+   <div>
+    <div style="font-size:12px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:1px;margin-bottom:12px">
+     <span class="ar">الصناعة والاتصالات</span><span class="en">Industry & Telecom</span>
+    </div>
+    <ul id="sm-ind" style="list-style:none;display:flex;flex-direction:column;gap:6px;font-size:13px"></ul>
+   </div>
+   <div>
+    <div style="font-size:12px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:1px;margin-bottom:12px">
+     <span class="ar">قطاعات أخرى</span><span class="en">Other Sectors</span>
+    </div>
+    <ul id="sm-other" style="list-style:none;display:flex;flex-direction:column;gap:6px;font-size:13px"></ul>
+   </div>
+  </div>
+  <p style="margin-top:24px;font-size:12px;color:var(--t3);text-align:center">
+   <span class="ar">© 2026 ISX Market · بيانات بورصة العراق · المصدر: ربيع للأوراق المالية وهيئة الأوراق المالية العراقية</span>
+   <span class="en">© 2026 ISX Market · Iraq Stock Exchange Data · Source: Rabee Securities & ISC</span>
+  </p>
+ </section>
 </div>
 
 
@@ -1729,9 +1776,9 @@ function openCompany(sym) {
   const _est = _inf.est ? ' (est. '+_inf.est+')' : '';
   const _mcap = co.mcap ? ', market cap '+co.mcap.toLocaleString()+' M IQD' : '';
   document.title = sym + ' — ' + _nameAr + ' | سعر السهم في بورصة العراق | ISX Market';
-  const _can=document.getElementById('canonical-url'); if(_can) _can.href='https://iraqsm.com/#/c/'+sym;
+  const _can=document.getElementById('canonical-url'); if(_can) _can.href='https://iraqsm.com/c/'+sym;
   const _ld=document.getElementById('ld-company');
-  if(_ld) _ld.textContent=JSON.stringify({"@context":"https://schema.org","@type":"WebPage","name":sym+' — '+_nameEn+' | ISX Market',"description":sym+' '+_nameEn+(_inf.est?' est. '+_inf.est:'')+'. '+_sec+' sector. Iraq Stock Exchange.','url':'https://iraqsm.com/#/c/'+sym,"isPartOf":{"@type":"WebSite","name":"ISX Market","url":"https://iraqsm.com/"},"about":{"@type":"Organization","name":_nameEn,"alternateName":_nameAr,"description":_nameEn+' ('+sym+') is listed on the Iraq Stock Exchange in the '+_sec+' sector.'}});
+  if(_ld) _ld.textContent=JSON.stringify({"@context":"https://schema.org","@type":"WebPage","name":sym+' — '+_nameEn+' | ISX Market',"description":sym+' '+_nameEn+(_inf.est?' est. '+_inf.est:'')+'. '+_sec+' sector. Iraq Stock Exchange.','url':'https://iraqsm.com/c/'+sym,"isPartOf":{"@type":"WebSite","name":"ISX Market","url":"https://iraqsm.com/"},"about":{"@type":"Organization","name":_nameEn,"alternateName":_nameAr,"description":_nameEn+' ('+sym+') is listed on the Iraq Stock Exchange in the '+_sec+' sector.'}});
   const _metaDesc = document.querySelector('meta[name="description"]');
   if (_metaDesc) _metaDesc.content = sym + ' ' + _nameEn + _est + '. ' + _sec + ' sector, listed on the Iraq Stock Exchange (ISX). Current price: ' + (co.close>0?co.close.toFixed(3)+' IQD':'N/T') + _mcap + '. سعر سهم ' + _nameAr + ' في بورصة العراق.';
   const _seo = document.getElementById('cp-seo');
@@ -1748,6 +1795,26 @@ function openCompany(sym) {
    + '. Ticker: '+sym+'.'
    + (_inf.addr ? ' Address: '+_inf.addr+'.' : '')
    + '</p>';
+  // Visible company description card
+  const _ab=document.getElementById('cp-about-section');
+  const _abbody=document.getElementById('cp-about-body');
+  if(_ab && _abbody && _inf.ne) {
+   const _capB = co.cap ? (co.cap/1e9).toFixed(0)+' B IQD' : '';
+   const _capBAr = co.cap ? (co.cap/1e9).toFixed(0)+' مليار دينار عراقي' : '';
+   _abbody.innerHTML =
+    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px 32px;margin-bottom:16px">'
+    +(_inf.sa ? '<div><span style="color:var(--t3);font-size:12px" class="ar">القطاع</span><span style="color:var(--t3);font-size:12px" class="en">Sector</span><br><b>'+_inf.sa+'</b><span class="en" style="display:none"><b>'+_inf.se+'</b></span></div>' : '')
+    +(_inf.est ? '<div><span style="color:var(--t3);font-size:12px" class="ar">سنة التأسيس</span><span style="color:var(--t3);font-size:12px" class="en">Established</span><br><b>'+_inf.est+'</b></div>' : '')
+    +(_capB ? '<div><span style="color:var(--t3);font-size:12px" class="ar">رأس المال</span><span style="color:var(--t3);font-size:12px" class="en">Capital</span><br><b class="ar">'+_capBAr+'</b><b class="en">'+_capB+'</b></div>' : '')
+    +(_inf.addr ? '<div><span style="color:var(--t3);font-size:12px" class="ar">العنوان</span><span style="color:var(--t3);font-size:12px" class="en">Address</span><br><b>'+_inf.addr+'</b></div>' : '')
+    +(_inf.email ? '<div><span style="color:var(--t3);font-size:12px">Email</span><br><a href="mailto:'+_inf.email+'" style="color:var(--ac)">'+_inf.email+'</a></div>' : '')
+    +'</div>'
+    +'<p class="ar" style="color:var(--t2);line-height:1.8">'+_nameAr+' ('+sym+') شركة مدرجة في سوق العراق للأوراق المالية (بورصة العراق / ISX) ضمن قطاع '+(_inf.sa||_sec)+'.'
+    +(_inf.est?' تأسست عام '+_inf.est+'.':'')+(_capBAr?' رأس المال المدفوع: '+_capBAr+'.':'')+' يمكنك متابعة سعر السهم والرسوم البيانية والتحليل الفني لسهم '+sym+' على منصة ISX Market.</p>'
+    +'<p class="en" style="color:var(--t2);line-height:1.8">'+_nameEn+' ('+sym+') is listed on the Iraq Stock Exchange (ISX / بورصة العراق) in the '+_sec+' sector.'
+    +(_inf.est?' Established in '+_inf.est+'.':'')+(_capB?' Paid-up capital: '+_capB+'.':'')+(_inf.addr?' Headquarters: '+_inf.addr+'.':'')+'</p>';
+   _ab.style.display='';
+  } else if(_ab) { _ab.style.display='none'; }
  showPage('company');
  loadHist().then(() => {
   setTimeout(() => {
@@ -2117,23 +2184,47 @@ window.addEventListener('scroll',()=>{
 
 
 // ===================== ROUTER =====================
-function navCompany(s){ location.hash='#/c/'+s; }
+function navCompany(s){ history.pushState({},'','/c/'+s); route(); }
 function navHome(){
  document.title='بورصة العراق | ISX Market — أسعار الأسهم العراقية مباشرة';
  const _c=document.getElementById('canonical-url');if(_c)_c.href='https://iraqsm.com/';
  const _m=document.querySelector('meta[name="description"]');
  if(_m) _m.content='بورصة العراق للأوراق المالية — أسعار الأسهم العراقية مباشرة، مؤشر ربيع RSISX، الشركات المدرجة في سوق العراق للأوراق المالية (ISX). Iraq Stock Exchange live prices, charts, and market data.';
- if(location.hash){ location.hash='#/'; } else { showPage('home'); }
+ history.pushState({},'','/'); showPage('home');
 }
-function navFX(){ location.hash='#/fx'; }
+function navFX(){ history.pushState({},'','/fx'); route(); }
 function route(){
- const h=location.hash||'';
- const m=h.match(/^#\/c\/([A-Za-z0-9]+)/);
+ // Handle SPA redirect from 404.html via sessionStorage
+ const _sp=sessionStorage.getItem('spaPath');
+ if(_sp){ sessionStorage.removeItem('spaPath'); history.replaceState({},'',_sp); }
+ const p=location.pathname;
+ const m=p.match(/^\/c\/([A-Za-z0-9]+)$/);
  if(m){ if(COMPANIES.find(c=>c.sym===m[1])) openCompany(m[1]); else showPage('home'); return; }
- if(h.indexOf('#/fx')===0){ showPage('fx'); renderFX(); window.scrollTo({top:0}); return; }
+ if(p==='/fx'){ showPage('fx'); renderFX(); window.scrollTo({top:0}); return; }
  showPage('home');
 }
-window.addEventListener('hashchange', route);
+window.addEventListener('popstate', route);
+
+// Populate footer sitemap lists
+(function(){
+ const banks=document.getElementById('sm-banks');
+ const ind=document.getElementById('sm-ind');
+ const other=document.getElementById('sm-other');
+ if(!banks||!ind||!other) return;
+ COMPANIES.forEach(co=>{
+  const li=document.createElement('li');
+  const a=document.createElement('a');
+  a.href='/c/'+co.sym;
+  a.onclick=function(e){e.preventDefault();navCompany(co.sym);};
+  a.style.cssText='color:var(--t2);text-decoration:none';
+  a.textContent=co.sym+' — '+(document.documentElement.getAttribute('data-lang')==='ar'?co.ar:co.en);
+  li.appendChild(a);
+  const sec=(ISC_INFO[co.sym]||{}).se||'';
+  if(sec==='Banks') banks.appendChild(li);
+  else if(sec==='Industrial'||sec==='Communications') ind.appendChild(li);
+  else other.appendChild(li);
+ });
+})();
 
 // ===================== CURRENCY PAGE =====================
 function renderFX(){
