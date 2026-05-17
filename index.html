@@ -183,20 +183,13 @@ a{color:inherit;text-decoration:none}button{cursor:pointer;border:none;backgroun
 .show-all-btn{padding:8px 22px;border-radius:9px;background:var(--acbg);border:1px solid var(--ac);color:var(--ac);font-size:13px;font-weight:700;transition:all var(--tr)}
 .show-all-btn:hover{background:var(--ac);color:#0C0C0E}
 .hidden-row{display:none!important}.hidden-row.shown{display:table-row!important}
-.news-grid{display:grid;grid-template-columns:2fr 1fr;gap:18px;margin-bottom:24px}
-.news-main{display:flex;flex-direction:column;gap:1px}
-.news-img{width:60px;height:52px;border-radius:8px;flex-shrink:0;background-size:cover;background-position:center;background-color:var(--bd)}
-.news-img-placeholder{width:60px;height:52px;border-radius:8px;flex-shrink:0;background:var(--bd)}
-.news-card{background:var(--bg3);border:1px solid var(--border);padding:16px 18px;display:flex;align-items:flex-start;gap:14px;transition:background var(--tr);cursor:pointer}
-.news-card:first-child{border-radius:14px 14px 0 0}.news-card:last-child{border-radius:0 0 14px 14px}.news-card:only-child{border-radius:14px}.news-card:hover{background:var(--bg4)}
-.news-n{font-family:var(--font-display);font-size:22px;font-weight:900;color:var(--border2);min-width:30px;line-height:1}
+.news-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-bottom:24px}
+.news-card{background:var(--bg3);border:1px solid var(--border);border-radius:14px;padding:14px 16px;display:flex;align-items:flex-start;gap:12px;transition:background var(--tr);cursor:pointer}
+.news-card:hover{background:var(--bg4);border-color:var(--border2)}
+.news-n{font-family:var(--font-display);font-size:18px;font-weight:900;color:var(--border2);min-width:26px;line-height:1}
 .news-type{font-size:10px;font-weight:700;color:var(--ac);letter-spacing:.5px;text-transform:uppercase;margin-bottom:3px}
-.news-ttl{font-size:14px;font-weight:600;color:var(--t1);line-height:1.4;margin-bottom:6px}
+.news-ttl{font-size:13px;font-weight:600;color:var(--t1);line-height:1.4;margin-bottom:5px}
 .news-meta{font-size:11px;color:var(--t3)}
-.news-side{background:var(--bg3);border:1px solid var(--border);border-radius:14px;padding:18px;overflow:hidden}
-.news-side-ttl{font-family:var(--font-display);font-size:15px;font-weight:700;color:var(--t1);margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid var(--border)}
-.nsi{padding:11px 0;border-bottom:1px solid var(--border);cursor:pointer;transition:all var(--tr)}.nsi:last-child{border-bottom:none}.nsi:hover .nsi-txt{color:var(--ac)}
-.nsi-txt{font-size:12px;color:var(--t1);line-height:1.4;font-weight:500;transition:color var(--tr)}.nsi-date{font-size:10px;color:var(--t3);margin-top:3px}
 .brokers-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(255px,1fr));gap:12px;margin-bottom:24px}
 .broker-card{background:var(--bg3);border:1px solid var(--border);border-radius:14px;padding:18px;transition:all var(--tr);cursor:pointer;display:flex;flex-direction:column;gap:11px}
 .broker-card:hover{border-color:var(--ac);box-shadow:0 0 0 1px var(--ac),var(--sh2);transform:translateY(-2px)}
@@ -273,8 +266,42 @@ footer{background:var(--bg2);border-top:1px solid var(--border);padding:44px 24p
 .status-bar{display:flex;gap:7px;align-items:center;padding:7px 14px;border-radius:9px;background:var(--bg4);border:1px solid var(--border);margin-bottom:18px;font-size:12px;color:var(--t2)}
 .psec{margin-bottom:22px}
 [data-lang="en"] .ar{display:none!important}[data-lang="ar"] .en{display:none!important}
-@media(max-width:1100px){.hero{grid-template-columns:1fr}.cp-top{grid-template-columns:1fr}.news-grid{grid-template-columns:1fr}.footer-top{grid-template-columns:1fr 1fr}}
-@media(max-width:768px){.nav-links{display:none}.search-wrap{min-width:120px}.footer-top{grid-template-columns:1fr}}
+@media(max-width:1100px){.hero{grid-template-columns:1fr}.cp-top{grid-template-columns:1fr}.footer-top{grid-template-columns:1fr 1fr}}
+@media(max-width:768px){
+  .nav-links{display:none}
+  .mob-menu-btn{display:flex!important}
+  .search-wrap{display:none}
+  .nav-inner{padding:0 14px;gap:6px}
+  .main-wrap{padding:12px 12px 40px}
+  .cp-body{padding:12px 12px 40px}
+  .hero{grid-template-columns:1fr;gap:12px}
+  .news-grid{grid-template-columns:1fr}
+  .footer-top{grid-template-columns:1fr}
+  .footer-bot{flex-direction:column;align-items:flex-start;gap:8px}
+  .tbl-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
+  .dtbl{min-width:620px}
+  .idx-value{font-size:34px}
+  .idx-grid{grid-template-columns:repeat(2,1fr)}
+  .cp-price{font-size:30px}
+  .chart-toolbar{gap:3px;padding:8px 10px}
+  .ct-btn{padding:4px 7px;font-size:10px}
+  .pbtn{padding:4px 8px;font-size:10px}
+  .sec-ttl{font-size:17px}
+  .brokers-grid{grid-template-columns:1fr}
+  .research-grid{grid-template-columns:1fr}
+  .cp-header{padding:0 12px}
+  .cp-header-inner{gap:8px;height:52px}
+  .cp-sym{font-size:15px}
+  .cp-isx-link span{display:none}
+  footer{padding:28px 14px 16px}
+  .scroll-top{bottom:14px;right:14px;width:36px;height:36px;font-size:14px}
+  #mob-nav{display:none;position:fixed;top:62px;left:0;right:0;z-index:999;background:var(--bg2);border-bottom:1px solid var(--border);padding:10px 14px;flex-direction:column;gap:2px}
+  #mob-nav.open{display:flex}
+  #mob-nav a{padding:11px 14px;border-radius:9px;font-size:14px;font-weight:600;color:var(--t2);display:block}
+  #mob-nav a:hover,#mob-nav a:active{background:var(--bg4);color:var(--t1)}
+  .mob-search{display:flex!important;margin:6px 0 4px;background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:9px 13px;gap:8px;align-items:center}
+  .mob-search input{background:none;border:none;outline:none;color:var(--t1);font-family:var(--font-text);font-size:14px;flex:1;min-width:0}
+}
 
 /* ─── TECHNICAL ANALYSIS ─── */
 .ta-signal-wrap{display:flex;gap:24px;flex-wrap:wrap;align-items:flex-start}
@@ -339,9 +366,25 @@ footer{background:var(--bg2);border-top:1px solid var(--border);padding:44px 24p
    <button class="icon-btn" id="theme-btn" onclick="toggleTheme()">🌙</button>
    <button class="cur-btn" id="cur-btn" onclick="toggleCurrency()" title="Toggle IQD/USD">USD</button>
    <button class="lang-btn" id="lang-btn" onclick="toggleLang()">EN</button>
+   <button class="icon-btn mob-menu-btn" id="mob-menu-btn" onclick="toggleMobNav()" style="display:none" aria-label="Menu">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+   </button>
   </div>
  </div>
 </nav>
+<div id="mob-nav">
+ <div class="mob-search">
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+  <input type="text" placeholder="" oninput="handleSearch(this.value);document.getElementById('search-inp').value=this.value">
+ </div>
+ <a href="/" onclick="navHome();closeMobNav();return false;"><span class="ar">السوق</span><span class="en">Market</span></a>
+ <a href="/" onclick="navHome();scrollToSection('#indices');closeMobNav();return false;"><span class="ar">المؤشرات</span><span class="en">Indices</span></a>
+ <a href="/" onclick="navHome();scrollToSection('#news');closeMobNav();return false;"><span class="ar">الأخبار</span><span class="en">News</span></a>
+ <a href="/" onclick="navHome();scrollToSection('#brokers');closeMobNav();return false;"><span class="ar">الوسطاء</span><span class="en">Brokers</span></a>
+ <a href="/" onclick="navHome();scrollToSection('#research');closeMobNav();return false;"><span class="ar">الأبحاث</span><span class="en">Research</span></a>
+ <a href="/fx" onclick="navFX();closeMobNav();return false;"><span class="ar">بيش الدولار</span><span class="en">IQD ⇄ USD</span></a>
+ <a href="/about"><span class="ar">عن الموقع</span><span class="en">About</span></a>
+</div>
 
 <!-- TICKER -->
 <div class="ticker-bar">
@@ -479,14 +522,7 @@ footer{background:var(--bg2);border-top:1px solid var(--border);padding:44px 24p
      <span class="ar">المزيد ↗</span><span class="en">More ↗</span>
     </a>
    </div>
-   <div class="news-grid">
-    <div class="news-main" id="news-main"></div>
-    <div class="news-side">
-     <div class="news-side-ttl ar">إعلانات الشركات</div>
-     <div class="news-side-ttl en">Company Disclosures</div>
-     <div id="news-disc"></div>
-    </div>
-   </div>
+   <div class="news-grid" id="news-main"></div>
   </div>
 
   <!-- BROKERS -->
@@ -1213,6 +1249,20 @@ function showPage(p) {
  if (p === 'home') { if (cpChart) { cpChart.remove(); cpChart = null; } }
 }
 
+function toggleMobNav(){
+ const m=document.getElementById('mob-nav');
+ const btn=document.getElementById('mob-menu-btn');
+ m.classList.toggle('open');
+ btn.innerHTML=m.classList.contains('open')
+  ?'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>'
+  :'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>';
+}
+function closeMobNav(){
+ const m=document.getElementById('mob-nav');
+ const btn=document.getElementById('mob-menu-btn');
+ m.classList.remove('open');
+ if(btn) btn.innerHTML='<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>';
+}
 function scrollToSection(id) {
  setTimeout(() => {
   const el = document.querySelector(id);
@@ -1983,25 +2033,17 @@ document.querySelectorAll('.stab').forEach(t=>{
 // ===================== NEWS =====================
 function buildNews() {
  const main=document.getElementById('news-main');
- const disc=document.getElementById('news-disc');
- if(!main||!disc) return;
+ if(!main) return;
  const a=ar();
  const SRC={alsumaria:{ar:'السومرية',en:'Alsumaria'},isc:{ar:'هيئة الأوراق',en:'ISC'},isx:{ar:'البورصة',en:'ISX'},mawazin:{ar:'موازين',en:'Mawazin'}};
- main.innerHTML=NEWS.map((n,i)=>{
+ main.innerHTML=NEWS.slice(0,4).map((n,i)=>{
   const src=SRC[n.src]?(a?SRC[n.src].ar:SRC[n.src].en):(a?n.tar:n.ten);
   const url=n.url||'https://rs.iq/isx-news-list/';
-  const imgHtml=n.img?`<div class="news-img" style="background-image:url('${n.img}')"></div>`:'<div class="news-img-placeholder"></div>';
   return `<div class="news-card" onclick="window.open('${url}','_blank')">
-   ${imgHtml}
    <div class="news-n">0${i+1}</div>
    <div style="flex:1"><div class="news-type">${src}</div><div class="news-ttl">${a?n.ttlar:n.ttlen}</div><div class="news-meta">${n.date}</div></div>
   </div>`;
  }).join('');
- disc.innerHTML=DISCS.map(d=>`
-  <div class="nsi" onclick="window.open('http://www.isx-iq.net/isxportal/portal/storyList.html','_blank')">
-   <div class="nsi-txt">${a?d.tar:d.ten}</div>
-   <div class="nsi-date">${d.date}</div>
-  </div>`).join('');
 }
 
 // ===================== BROKERS =====================
