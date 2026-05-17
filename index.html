@@ -2061,14 +2061,46 @@ document.addEventListener('keydown',e=>{if(e.key==='Escape') closeFullscreen();}
 // ===================== LIVE DATA =====================
 let lastLiveUpdate = null;
 async function fetchLive() {
- // Data is embedded from authoritative sources (Rabee Securities API for
- // prices/RSISX index, ISC for names/logos/capital — snapshot 17/05/2026).
- // The old live scrape via a CORS proxy was unreliable and would overwrite
- // good data with regex noise, so it's disabled in favour of the static snapshot.
  const bar = document.getElementById('status-bar');
- if (bar) bar.innerHTML = '<span style="color:var(--ac)">⚡</span>'
-  + '<span class="ar"> بيانات سوق العراق — آخر تحديث: 17/05/2026 (المصدر: ربيع للأوراق المالية)</span>'
-  + '<span class="en"> ISX market data — Last update: 17/05/2026 (Source: Rabee Securities)</span>';
+ try {
+  const res = await fetch('./data/live.json?t=' + Date.now());
+  if (!res.ok) throw new Error('no data');
+  const d = await res.json();
+  // Update prices in COMPANIES
+  let updated = 0;
+  (d.stocks || []).forEach(s => {
+   const co = COMPANIES.find(c => c.sym === s.code);
+   if (co && s.close > 0) {
+    co.close = s.close;
+    co.change = s.change;
+    co.pct = s.pct;
+    co.vol = s.vol;
+    co.mcap = Math.round(co.cap * s.close / 1e6); // millions IQD
+    updated++;
+   }
+  });
+  // Update RSISX index display
+  if (d.rsisx && d.rsisx.value) {
+   document.querySelectorAll('.idx-val').forEach(el => {
+    if (el.closest('[data-idx="RSISX"]') || el.id === 'main-idx-val') {
+     el.textContent = Number(d.rsisx.value).toLocaleString('en', {minimumFractionDigits:2, maximumFractionDigits:2});
+    }
+   });
+  }
+  // Rebuild table and ticker with fresh data
+  buildTable();
+  buildTicker();
+  // Update status bar
+  const ts = new Date(d.updated);
+  const fmt = ts.toLocaleTimeString('en-GB', {hour:'2-digit', minute:'2-digit', timeZone:'Asia/Baghdad'});
+  if (bar) bar.innerHTML = '<span style="color:#22c55e;animation:pulse 2s infinite">●</span>'
+   + `<span class="ar"> بيانات حية — آخر تحديث: ${fmt} (بغداد) · ${updated} شركة</span>`
+   + `<span class="en"> Live data — Last update: ${fmt} Baghdad · ${updated} stocks</span>`;
+ } catch(e) {
+  if (bar) bar.innerHTML = '<span style="color:var(--ac)">⚡</span>'
+   + '<span class="ar"> بيانات سوق العراق — آخر تحديث: 17/05/2026 (المصدر: ربيع للأوراق المالية)</span>'
+   + '<span class="en"> ISX market data — Last update: 17/05/2026 (Source: Rabee Securities)</span>';
+ }
 }
 
 // Scroll top
