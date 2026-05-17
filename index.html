@@ -2145,11 +2145,12 @@ async function fetchLive() {
   (d.stocks || []).forEach(s => {
    const co = COMPANIES.find(c => c.sym === s.code);
    if (co && s.close > 0) {
+    const prevClose = co.close;
     co.close = s.close;
     co.change = s.change;
     co.pct = s.pct;
     co.vol = s.vol;
-    co.mcap = Math.round(co.cap * s.close / 1e6); // millions IQD
+    if (prevClose > 0) co.mcap = Math.round(co.mcap * s.close / prevClose);
     updated++;
    }
   });
