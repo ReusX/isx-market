@@ -531,6 +531,26 @@ footer{background:var(--bg2);border-top:1px solid var(--border);padding:44px 24p
      <ul><li><a href="mailto:info@isx-iq.net">info@isx-iq.net</a></li><li><a href="http://www.isx-iq.net/isxportal/portal/contactus.html" target="_blank"><span class="ar">اتصل بنا</span><span class="en">Contact Us</span></a></li></ul>
     </div>
    </div>
+   <!-- Site map -->
+   <div style="border-top:1px solid var(--border);padding-top:32px;margin-top:8px">
+    <div style="font-size:11px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:20px">
+     <span class="ar">خريطة الموقع — جميع الشركات المدرجة</span><span class="en">Site Map — All Listed Companies</span>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:28px">
+     <div>
+      <div style="font-size:11px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px"><span class="ar">المصارف</span><span class="en">Banks</span></div>
+      <ul id="f-sm-banks" style="list-style:none;display:flex;flex-direction:column;gap:5px;font-size:12px"></ul>
+     </div>
+     <div>
+      <div style="font-size:11px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px"><span class="ar">الصناعة والاتصالات</span><span class="en">Industry & Telecom</span></div>
+      <ul id="f-sm-ind" style="list-style:none;display:flex;flex-direction:column;gap:5px;font-size:12px"></ul>
+     </div>
+     <div>
+      <div style="font-size:11px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px"><span class="ar">قطاعات أخرى</span><span class="en">Other Sectors</span></div>
+      <ul id="f-sm-other" style="list-style:none;display:flex;flex-direction:column;gap:5px;font-size:12px"></ul>
+     </div>
+    </div>
+   </div>
    <div class="f-disc"><span class="ar">إخلاء المسؤولية: البيانات للأغراض المعلوماتية فقط وليست نصيحة استثمارية. يُرجى مراجعة وسيط مرخص قبل اتخاذ أي قرار.</span><span class="en">Disclaimer: Data for informational purposes only. Not investment advice. Consult a licensed broker before any investment decision.</span></div>
    <div class="footer-bot"><span>© 2026 بورصة العراق / ISX Market</span><span class="ar">مصدر البيانات: سوق العراق للأوراق المالية</span><span class="en">Data: Iraq Stock Exchange (ISX)</span></div>
   </div>
@@ -2211,21 +2231,22 @@ window.addEventListener('popstate', route);
 
 // Populate footer sitemap lists
 (function(){
- const banks=document.getElementById('sm-banks');
- const ind=document.getElementById('sm-ind');
- const other=document.getElementById('sm-other');
+ const banks=document.getElementById('f-sm-banks');
+ const ind=document.getElementById('f-sm-ind');
+ const other=document.getElementById('f-sm-other');
  if(!banks||!ind||!other) return;
+ const isAr=document.documentElement.getAttribute('data-lang')==='ar';
  COMPANIES.forEach(co=>{
   const li=document.createElement('li');
   const a=document.createElement('a');
   a.href='/c/'+co.sym;
   a.onclick=function(e){e.preventDefault();navCompany(co.sym);};
   a.style.cssText='color:var(--t2);text-decoration:none';
-  a.textContent=co.sym+' — '+(document.documentElement.getAttribute('data-lang')==='ar'?co.ar:co.en);
+  a.textContent=co.sym+' — '+(isAr&&co.ar?co.ar:co.en);
   li.appendChild(a);
-  const sec=(ISC_INFO[co.sym]||{}).se||'';
-  if(sec==='Banks') banks.appendChild(li);
-  else if(sec==='Industrial'||sec==='Communications') ind.appendChild(li);
+  const sec=(ISC_INFO[co.sym]||{}).se||co.sec||'';
+  if(sec==='Banks'||co.sec==='BANK') banks.appendChild(li);
+  else if(sec==='Industrial'||sec==='Communications'||co.sec==='IND'||co.sec==='TEL') ind.appendChild(li);
   else other.appendChild(li);
  });
 })();
