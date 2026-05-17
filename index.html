@@ -248,16 +248,16 @@ footer{background:var(--bg2);border-top:1px solid var(--border);padding:44px 24p
 <!-- NAVBAR -->
 <nav class="navbar">
  <div class="nav-inner">
-  <div class="nav-logo" onclick="showPage('home')">
+  <div class="nav-logo" onclick="navHome()">
    <div class="logo-icon">ب</div>
    <span class="ar">بورصة العراق</span><span class="en">ISX Market</span>
   </div>
   <ul class="nav-links">
-   <li><a href="#" onclick="showPage('home');scrollToSection('#hero')" class="ar">السوق</a><a href="#" onclick="showPage('home');scrollToSection('#hero')" class="en">Market</a></li>
-   <li><a href="#" onclick="showPage('home');scrollToSection('#indices')" class="ar">المؤشرات</a><a href="#" onclick="showPage('home');scrollToSection('#indices')" class="en">Indices</a></li>
-   <li><a href="#" onclick="showPage('home');scrollToSection('#news')" class="ar">الأخبار</a><a href="#" onclick="showPage('home');scrollToSection('#news')" class="en">News</a></li>
-   <li><a href="#" onclick="showPage('home');scrollToSection('#brokers')" class="ar">الوسطاء</a><a href="#" onclick="showPage('home');scrollToSection('#brokers')" class="en">Brokers</a></li>
-   <li><a href="#" onclick="showPage('home');scrollToSection('#research')" class="ar">الأبحاث</a><a href="#" onclick="showPage('home');scrollToSection('#research')" class="en">Research</a></li>
+   <li><a href="#/" onclick="navHome();scrollToSection('#hero');return false;" class="ar">السوق</a><a href="#/" onclick="navHome();scrollToSection('#hero');return false;" class="en">Market</a></li>
+   <li><a href="#/" onclick="navHome();scrollToSection('#indices');return false;" class="ar">المؤشرات</a><a href="#/" onclick="navHome();scrollToSection('#indices');return false;" class="en">Indices</a></li>
+   <li><a href="#/" onclick="navHome();scrollToSection('#news');return false;" class="ar">الأخبار</a><a href="#/" onclick="navHome();scrollToSection('#news');return false;" class="en">News</a></li>
+   <li><a href="#/" onclick="navHome();scrollToSection('#brokers');return false;" class="ar">الوسطاء</a><a href="#/" onclick="navHome();scrollToSection('#brokers');return false;" class="en">Brokers</a></li>
+   <li><a href="#/" onclick="navHome();scrollToSection('#research');return false;" class="ar">الأبحاث</a><a href="#/" onclick="navHome();scrollToSection('#research');return false;" class="en">Research</a></li>
    <li><a href="#/fx" onclick="navFX();return false;" class="ar">بيش الدولار</a><a href="#/fx" onclick="navFX();return false;" class="en">IQD ⇄ USD</a></li>
   </ul>
   <div class="nav-right">
