@@ -26,6 +26,9 @@
 <meta property="og:title" content="بورصة العراق | ISX Market — أسعار الأسهم العراقية مباشرة">
 <meta property="og:description" content="أسعار الأسهم العراقية مباشرة، مؤشر ربيع RSISX، الشركات المدرجة في سوق العراق للأوراق المالية. Iraq Stock Exchange live prices and charts.">
 <meta property="og:image" content="https://iraqsm.com/og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="ISX Market — بورصة العراق للأوراق المالية">
 <meta property="og:locale" content="ar_IQ">
 <meta property="og:locale:alternate" content="en_US">
 
@@ -2137,7 +2140,7 @@ async function fetchLive() {
  loadHist(); // prefetch in background
  const bar = document.getElementById('status-bar');
  try {
-  const res = await fetch('./data/live.json?t=' + Date.now());
+  const res = await fetch('./data/live.json?t=' + Math.floor(Date.now()/300000));
   if (!res.ok) throw new Error('no data');
   const d = await res.json();
   // Update prices in COMPANIES
