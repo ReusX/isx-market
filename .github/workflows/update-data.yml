@@ -1,0 +1,26 @@
+name: Update Live Market Data
+
+on:
+  schedule:
+    - cron: '0,30 5-12 * * 0-4'
+  workflow_dispatch:
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Fetch live data
+        run: |
+          pip install requests -q
+          python3 fetch_live.py
+
+      - name: Commit
+        run: |
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git config user.name "github-actions[bot]"
+          git add data/live.json
+          git diff --cached --quiet && echo "No changes" || (git commit -m "chore: live data update [skip ci]" && git push)
