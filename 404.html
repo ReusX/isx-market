@@ -33,6 +33,14 @@
 </style>
 </head>
 <body>
+<script>
+  // SPA routing: redirect /c/SYM and /fx to homepage, which will pick up the path
+  var p = window.location.pathname;
+  if (p && p !== '/' && p !== '/index.html') {
+    sessionStorage.setItem('spaPath', p);
+    window.location.replace('/');
+  }
+</script>
   <div class="code">404</div>
   <div class="accent"></div>
   <div class="title-ar">الصفحة غير موجودة</div>
