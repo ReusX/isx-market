@@ -52,4 +52,44 @@ out = {
 }
 with open('data/live.json', 'w') as f:
     json.dump(out, f, separators=(',', ':'))
-print(f"Done — {len(live_stocks)} stocks, RSISX={out['rsisx']}")
+print(f"live.json written — {len(live_stocks)} stocks, RSISX={out['rsisx']}")
+
+# ── Update hist.json with today's closing prices ──
+# Timestamp convention: midnight Baghdad (UTC+3) = 21:00 UTC previous day
+baghdad = datetime.timezone(datetime.timedelta(hours=3))
+now_baghdad = datetime.datetime.now(baghdad)
+today_midnight_baghdad = now_baghdad.replace(hour=0, minute=0, second=0, microsecond=0)
+today_ts = int(today_midnight_baghdad.astimezone(datetime.timezone.utc).timestamp())
+
+# Skip on weekends (Fri=4, Sat=5 in Baghdad)
+weekday = today_midnight_baghdad.weekday()  # Mon=0 … Sun=6
+if weekday in (4, 5):  # Friday or Saturday
+    print(f"Weekend ({today_midnight_baghdad.strftime('%A')}) — skipping hist update")
+else:
+    hist_path = 'data/hist.json'
+    if os.path.exists(hist_path):
+        with open(hist_path) as f:
+            hist = json.load(f)
+    else:
+        hist = {'s': {}, 'l': {}}
+
+    price_map = {s['code']: s['close'] for s in live_stocks}
+    updated_count = 0
+
+    for sym, price in price_map.items():
+        if price <= 0:
+            continue
+        for key, max_pts in [('s', 252), ('l', None)]:
+            arr = hist[key].get(sym, [])
+            # Only append if this timestamp isn't already there
+            if not arr or arr[-1][0] != today_ts:
+                arr.append([today_ts, round(price, 4)])
+                if max_pts and len(arr) > max_pts:
+                    arr = arr[-max_pts:]
+                hist[key][sym] = arr
+                if key == 's':
+                    updated_count += 1
+
+    with open(hist_path, 'w') as f:
+        json.dump(hist, f, separators=(',', ':'))
+    print(f"hist.json updated — {updated_count} symbols appended for {today_midnight_baghdad.date()}")
