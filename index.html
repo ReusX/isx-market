@@ -1471,10 +1471,22 @@ function initMainChart(days=7) {
   lineColor:'#C8973D', topColor:'rgba(200,151,61,0.35)',
   bottomColor:'rgba(200,151,61,0.02)', lineWidth:2, priceLineVisible:false
  });
- mainSeries.setData(genIndex(days));
+ const data = genIndex(days);
+ mainSeries.setData(data);
  mainChart.timeScale().fitContent();
  const ro = new ResizeObserver(() => mainChart && mainChart.applyOptions({width:cont.clientWidth}));
  ro.observe(cont);
+ // Auto-advance to next timeframe when user zooms out past the data
+ let _switching = false;
+ mainChart.timeScale().subscribeVisibleLogicalRangeChange(range => {
+  if (_switching || !range || days >= MAIN_PERIODS[MAIN_PERIODS.length-1]) return;
+  const total = data.length;
+  if (range.from < -(total * 0.15)) {
+   _switching = true;
+   const next = MAIN_PERIODS[MAIN_PERIODS.indexOf(days) + 1];
+   if (next) setTimeout(() => setMainPeriod(next), 50);
+  }
+ });
 }
 
 // ===================== COMPANY CHART =====================
@@ -2223,11 +2235,12 @@ document.querySelectorAll('[data-fsind]').forEach(b=>b.addEventListener('click',
 }));
 
 // Period buttons for main chart
-document.querySelectorAll('[data-p]').forEach(b=>b.addEventListener('click',()=>{
- document.querySelectorAll('[data-p]').forEach(x=>x.classList.remove('active'));
- b.classList.add('active');
- initMainChart(+b.dataset.p);
-}));
+const MAIN_PERIODS = [7,30,90,180,365,1825,3650];
+function setMainPeriod(days){
+ document.querySelectorAll('[data-p]').forEach(x=>x.classList.toggle('active',+x.dataset.p===days));
+ initMainChart(days);
+}
+document.querySelectorAll('[data-p]').forEach(b=>b.addEventListener('click',()=>setMainPeriod(+b.dataset.p)));
 
 // ESC to close fullscreen
 document.addEventListener('keydown',e=>{if(e.key==='Escape') closeFullscreen();});
