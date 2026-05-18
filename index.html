@@ -2316,7 +2316,7 @@ function navHome(){
  if(_m) _m.content='بورصة العراق للأوراق المالية — أسعار الأسهم العراقية مباشرة، مؤشر ربيع RSISX، الشركات المدرجة في سوق العراق للأوراق المالية (ISX). Iraq Stock Exchange live prices, charts, and market data.';
  history.pushState({},'','/'); showPage('home');
 }
-function navFX(){ history.pushState({},'','/fx'); route(); }
+function navFX(){ window.location.href='/fx'; }
 function route(){
  // Handle SPA redirect from 404.html via sessionStorage
  const _sp=sessionStorage.getItem('spaPath');

@@ -4,96 +4,97 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>IQD ⇄ USD | بيش الدولار | بورصة العراق ISX</title>
-<meta name="description" content="أسعار صرف الدينار العراقي مقابل الدولار والعملات الرئيسية. سعر الدولار السوق الموازية والرسمي. Iraqi Dinar IQD exchange rates vs USD and major currencies.">
+<meta name="description" content="أسعار صرف الدينار العراقي مقابل الدولار والعملات الرئيسية. سعر الدولار السوق الموازية والرسمي. Iraqi Dinar IQD exchange rates vs USD.">
 <meta name="robots" content="index, follow">
 <link rel="canonical" href="https://iraqsm.com/fx">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://iraqsm.com/fx">
 <meta property="og:title" content="IQD ⇄ USD | بيش الدولار | ISX Market">
-<meta property="og:description" content="Iraqi Dinar exchange rates. USD black market & official rate. سعر الدولار مقابل الدينار العراقي.">
 <meta property="og:image" content="https://iraqsm.com/og-image.png">
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23f59e0b'/%3E%3Ctext x='50%25' y='54%25' dominant-baseline='middle' text-anchor='middle' font-family='Arial,sans-serif' font-size='38' font-weight='900' fill='%230C0C0E'%3E%D8%A8%3C/text%3E%3C/svg%3E">
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
-:root{
-  --bg:#0f1117;--bg2:#13161e;--bg3:#1a1f2e;--bg4:#222840;
-  --border:#2a2f3e;--t1:#e2e8f0;--t2:#94a3b8;--t3:#64748b;
-  --ac:#f59e0b;--acbg:#f59e0b18;
-}
-body{background:var(--bg);color:var(--t1);font-family:'Segoe UI',Arial,sans-serif;min-height:100vh}
-
-.nav{background:var(--bg2);border-bottom:1px solid var(--border);padding:0 24px;height:62px;display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:100}
-.nav-logo{display:flex;align-items:center;gap:10px;text-decoration:none;flex-shrink:0}
-.nav-icon{width:34px;height:34px;border-radius:8px;background:var(--ac);display:flex;align-items:center;justify-content:center;font-size:17px;font-weight:900;color:#0C0C0E}
-.nav-name{font-size:17px;font-weight:800;color:var(--t1)}
-.nav-sep{color:var(--border)}
-.nav-page{font-size:14px;color:var(--t3)}
+:root{--bg:#0f1117;--bg2:#13161e;--bg3:#1a1f2e;--bg4:#222840;--border:#2a2f3e;--t1:#e2e8f0;--t2:#94a3b8;--t3:#64748b;--ac:#f59e0b;--acbg:rgba(245,158,11,.12);--tr:.18s}
+body{background:var(--bg);color:var(--t1);font-family:'Segoe UI',system-ui,Arial,sans-serif;min-height:100vh;line-height:1.7}
+/* NAV */
+.nav{height:62px;background:var(--bg2);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 28px;gap:14px;position:sticky;top:0;z-index:200}
+.logo{display:flex;align-items:center;gap:10px;text-decoration:none;flex-shrink:0}
+.logo-icon{width:34px;height:34px;border-radius:8px;background:var(--ac);display:flex;align-items:center;justify-content:center;font-size:17px;font-weight:900;color:#0C0C0E}
+.logo-name{font-size:16px;font-weight:800;color:var(--t1)}
+.nav-div{width:1px;height:20px;background:var(--border)}
+.nav-page{font-size:13px;color:var(--t3)}
 .nav-end{margin-right:auto;display:flex;align-items:center;gap:8px}
-.lang-btn{background:var(--bg3);border:1px solid var(--border);color:var(--t2);padding:5px 11px;border-radius:7px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;transition:.15s}
-.lang-btn:hover,.lang-btn.active{background:var(--acbg);color:var(--ac);border-color:#f59e0b55}
-.back-btn{display:flex;align-items:center;gap:6px;color:var(--t2);text-decoration:none;font-size:13px;font-weight:600;padding:6px 12px;border-radius:8px;border:1px solid var(--border);background:var(--bg3);transition:.15s}
-.back-btn:hover{background:var(--bg4);color:var(--t1)}
-
-.wrap{max-width:960px;margin:0 auto;padding:32px 20px 80px}
-
+.lang-btn{background:transparent;border:1px solid var(--border);color:var(--t3);padding:4px 10px;border-radius:7px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;transition:var(--tr)}
+.lang-btn:hover{color:var(--t2);border-color:var(--t3)}
+.lang-btn.on{background:var(--acbg);color:var(--ac);border-color:rgba(245,158,11,.4)}
+.back{display:inline-flex;align-items:center;gap:6px;background:var(--bg3);border:1px solid var(--border);color:var(--t2);padding:7px 14px;border-radius:9px;font-size:13px;font-weight:600;text-decoration:none;transition:var(--tr)}
+.back:hover{background:var(--bg4);color:var(--t1)}
+/* WRAP */
+.wrap{max-width:960px;margin:0 auto;padding:36px 24px 80px}
+/* RATE CARDS */
 .rate-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px;margin-bottom:20px}
-.rate-card{background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:20px}
-.rate-card.gold{background:var(--acbg);border-color:#f59e0b44}
-.rate-lbl{font-size:12px;color:var(--t3);margin-bottom:8px;font-weight:600}
-.rate-val{font-size:28px;font-weight:900;line-height:1}
-.rate-card.gold .rate-val{color:var(--ac)}
-.rate-sub{font-size:12px;color:var(--t3);margin-top:6px}
-
-.section{background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:22px;margin-bottom:18px}
-.sec-title{font-size:12px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.8px;margin-bottom:18px}
-
-.conv-row{display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end}
-.field{display:flex;flex-direction:column;gap:6px}
-.field-lbl{font-size:12px;font-weight:600;color:var(--t3)}
-.field-inp{background:var(--bg3);border:1px solid var(--border);color:var(--t1);padding:12px 14px;border-radius:10px;font-size:15px;width:155px;font-family:inherit;outline:none;transition:.15s}
-.field-inp:focus{border-color:var(--ac)}
-select.field-inp{cursor:pointer}
-.eq{font-size:22px;color:var(--t3);padding-bottom:10px}
-.result-wrap{flex:1;min-width:180px}
-.result-out{font-size:30px;font-weight:900;color:var(--ac);margin-bottom:4px}
-.result-rate{font-size:12px;color:var(--t3)}
-
-table{width:100%;border-collapse:collapse;font-size:14px}
-thead th{padding:10px 12px;color:var(--t3);font-weight:600;font-size:12px;border-bottom:1px solid var(--border);text-align:start}
-thead th.r{text-align:end}
-tbody td{padding:12px;border-bottom:1px solid var(--border)}
-tbody tr:last-child td{border-bottom:none}
-tbody tr:hover td{background:var(--bg3);transition:.1s}
-.ccode{font-weight:800;margin-inline-end:6px}
-.cname{color:var(--t2);font-size:13px}
-.rnum{font-weight:700;text-align:end}
+.rc{background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:20px 22px}
+.rc.gold{background:var(--acbg);border-color:rgba(245,158,11,.35)}
+.rc-lbl{font-size:11px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.6px;margin-bottom:10px}
+.rc-val{font-size:30px;font-weight:900;color:var(--t1);line-height:1}
+.rc.gold .rc-val{color:var(--ac)}
+.rc-unit{font-size:13px;font-weight:600;color:var(--t3);margin-inline-start:4px}
+.rc-sub{font-size:12px;color:var(--t3);margin-top:7px}
+/* SECTION */
+.psec{background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:22px;margin-bottom:18px}
+.sec-hdr{display:flex;align-items:center;gap:10px;margin-bottom:20px;padding-bottom:14px;border-bottom:1px solid var(--border)}
+.sec-ico{width:30px;height:30px;border-radius:8px;background:var(--acbg);display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0}
+.sec-ttl{font-size:14px;font-weight:700;color:var(--t1)}
+/* CONVERTER */
+.conv-row{display:flex;gap:14px;flex-wrap:wrap;align-items:flex-end}
+.cf{display:flex;flex-direction:column;gap:7px}
+.cf-lbl{font-size:11px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.5px}
+.cf-inp{background:var(--bg3);border:1px solid var(--border);color:var(--t1);padding:11px 14px;border-radius:10px;font-size:15px;width:150px;font-family:inherit;outline:none;transition:var(--tr)}
+.cf-inp:focus{border-color:var(--ac);background:var(--bg4)}
+select.cf-inp{cursor:pointer}
+.eq{font-size:22px;color:var(--t3);padding-bottom:8px;align-self:flex-end}
+.res{flex:1;min-width:180px}
+.res-out{font-size:32px;font-weight:900;color:var(--ac);margin-top:6px;margin-bottom:4px;line-height:1}
+.res-rate{font-size:12px;color:var(--t3)}
+/* TABLE */
+.tbl{width:100%;border-collapse:collapse;font-size:14px}
+.tbl th{padding:10px 12px;text-align:start;color:var(--t3);font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.5px;border-bottom:1px solid var(--border)}
+.tbl td{padding:12px;border-bottom:1px solid var(--border);color:var(--t2)}
+.tbl tr:last-child td{border-bottom:none}
+.tbl tbody tr:hover td{background:var(--bg3);transition:.1s}
+.ccode{font-weight:800;color:var(--t1);margin-inline-end:6px}
+.cname{color:var(--t3);font-size:13px}
+.rnum{font-weight:700;color:var(--t1);text-align:end}
 .rinv{color:var(--t3);font-size:13px;text-align:end}
-
-.note{font-size:12px;color:var(--t3);margin-top:14px;line-height:1.7}
-
-@media(max-width:600px){
-  .wrap{padding:16px 12px 60px}
-  .section,.rate-card{padding:16px}
-  .nav{padding:0 12px;gap:8px}
-  .nav-name{font-size:14px}
-  .field-inp{width:130px}
-  .result-out{font-size:24px}
+.note{font-size:12px;color:var(--t3);margin-top:14px;line-height:1.7;padding-top:14px;border-top:1px solid var(--border)}
+/* FOOTER */
+.foot{text-align:center;padding:28px;border-top:1px solid var(--border);margin-top:20px;font-size:12px;color:var(--t3)}
+.foot a{color:var(--t2);text-decoration:none}
+.foot a:hover{color:var(--t1)}
+@media(max-width:768px){
+  .wrap{padding:20px 14px 60px}
+  .psec{padding:16px}
+  .nav{padding:0 14px}
+  .logo-name{font-size:14px}
+  .cf-inp{width:130px}
+  .res-out{font-size:26px}
+  .rate-grid{grid-template-columns:1fr 1fr}
 }
 </style>
 </head>
 <body>
 
 <nav class="nav">
-  <a href="/" class="nav-logo">
-    <div class="nav-icon">ب</div>
-    <span class="nav-name" id="t-sitename">بورصة العراق</span>
+  <a href="/" class="logo">
+    <div class="logo-icon">ب</div>
+    <span class="logo-name" id="t-site">بورصة العراق</span>
   </a>
-  <span class="nav-sep">/</span>
-  <span class="nav-page" id="t-pagetitle">بيش الدولار</span>
+  <div class="nav-div"></div>
+  <span class="nav-page" id="t-page">بيش الدولار</span>
   <div class="nav-end">
-    <button class="lang-btn active" id="btn-ar" onclick="setLang('ar')">AR</button>
+    <button class="lang-btn on" id="btn-ar" onclick="setLang('ar')">AR</button>
     <button class="lang-btn" id="btn-en" onclick="setLang('en')">EN</button>
-    <a href="/" class="back-btn">
+    <a href="/" class="back">
       <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
       <span id="t-back">رجوع</span>
     </a>
@@ -103,53 +104,57 @@ tbody tr:hover td{background:var(--bg3);transition:.1s}
 <div class="wrap">
 
   <div class="rate-grid">
-    <div class="rate-card gold">
-      <div class="rate-lbl" id="t-lbl-black">السوق الموازية — الدولار</div>
-      <div class="rate-val">1,518 <span style="font-size:15px;font-weight:600;color:#f59e0baa">IQD</span></div>
-      <div class="rate-sub" id="t-per-usd">لكل دولار أمريكي</div>
+    <div class="rc gold">
+      <div class="rc-lbl" id="t-black">السوق الموازية — الدولار</div>
+      <div class="rc-val">1,518<span class="rc-unit">IQD</span></div>
+      <div class="rc-sub" id="t-perusd">لكل دولار أمريكي</div>
     </div>
-    <div class="rate-card">
-      <div class="rate-lbl" id="t-lbl-official">السعر الرسمي — البنك المركزي</div>
-      <div class="rate-val" style="color:var(--t1)">1,320 <span style="font-size:15px;font-weight:600;color:var(--t3)">IQD</span></div>
-      <div class="rate-sub" id="t-per-usd2">لكل دولار أمريكي</div>
+    <div class="rc">
+      <div class="rc-lbl" id="t-official">السعر الرسمي — البنك المركزي</div>
+      <div class="rc-val" style="font-size:26px">1,320<span class="rc-unit">IQD</span></div>
+      <div class="rc-sub" id="t-perusd2">لكل دولار أمريكي</div>
     </div>
-    <div class="rate-card">
-      <div class="rate-lbl" id="t-lbl-updated">آخر تحديث</div>
-      <div class="rate-val" style="font-size:19px;color:var(--t2);padding-top:4px">17/05/2026</div>
+    <div class="rc">
+      <div class="rc-lbl" id="t-updated">آخر تحديث</div>
+      <div class="rc-val" style="font-size:20px;color:var(--t2);padding-top:4px">17/05/2026</div>
     </div>
   </div>
 
-  <div class="section">
-    <div class="sec-title" id="t-conv-title">المحوّل</div>
+  <div class="psec">
+    <div class="sec-hdr">
+      <div class="sec-ico">⇄</div>
+      <div><div class="sec-ttl" id="t-conv">المحوّل</div></div>
+    </div>
     <div class="conv-row">
-      <div class="field">
-        <span class="field-lbl" id="t-amount">المبلغ</span>
-        <input class="field-inp" id="c-amt" type="number" value="100" oninput="calc()">
+      <div class="cf">
+        <span class="cf-lbl" id="t-amt">المبلغ</span>
+        <input class="cf-inp" id="c-amt" type="number" value="100" oninput="calc()">
       </div>
-      <div class="field">
-        <span class="field-lbl" id="t-currency">العملة</span>
-        <select class="field-inp" id="c-cur" onchange="calc()"></select>
+      <div class="cf">
+        <span class="cf-lbl" id="t-cur">العملة</span>
+        <select class="cf-inp" id="c-cur" onchange="calc()"></select>
       </div>
       <div class="eq">=</div>
-      <div class="result-wrap">
-        <div class="field-lbl" id="t-in-iqd">بالدينار العراقي</div>
-        <div class="result-out" id="c-out" style="margin-top:6px">—</div>
-        <div class="result-rate" id="c-rate"></div>
+      <div class="res">
+        <div class="cf-lbl" id="t-iniqd">بالدينار العراقي</div>
+        <div class="res-out" id="c-out">—</div>
+        <div class="res-rate" id="c-rate"></div>
       </div>
     </div>
   </div>
 
-  <div class="section">
-    <div class="sec-title" id="t-table-title">أهم العملات مقابل الدينار</div>
+  <div class="psec">
+    <div class="sec-hdr">
+      <div class="sec-ico">🌍</div>
+      <div><div class="sec-ttl" id="t-tbl">أهم العملات مقابل الدينار</div></div>
+    </div>
     <div style="overflow-x:auto">
-      <table>
-        <thead>
-          <tr>
-            <th id="th-cur">العملة</th>
-            <th class="r" id="th-rate">1 وحدة = دينار</th>
-            <th class="r" id="th-inv">1000 دينار =</th>
-          </tr>
-        </thead>
+      <table class="tbl">
+        <thead><tr>
+          <th id="th-cur">العملة</th>
+          <th style="text-align:end" id="th-rate">1 وحدة = دينار</th>
+          <th style="text-align:end" id="th-inv">1000 دينار =</th>
+        </tr></thead>
         <tbody id="t-body"></tbody>
       </table>
     </div>
@@ -157,6 +162,10 @@ tbody tr:hover td{background:var(--bg3);transition:.1s}
   </div>
 
 </div>
+
+<footer class="foot">
+  <a href="/">iraqsm.com</a> · © 2026 ISX Market · بورصة العراق
+</footer>
 
 <script>
 const CUR=[
@@ -174,91 +183,44 @@ const CUR=[
   {code:'CNY',ar:'يوان صيني',      en:'Chinese Yuan',    flag:'🇨🇳',iqd:222.4},
   {code:'CAD',ar:'دولار كندي',     en:'Canadian Dollar', flag:'🇨🇦',iqd:1104.55},
 ];
-
 const T={
-  ar:{
-    sitename:'بورصة العراق',pagetitle:'بيش الدولار',back:'رجوع',
-    black:'السوق الموازية — الدولار',official:'السعر الرسمي — البنك المركزي',updated:'آخر تحديث',
-    perUsd:'لكل دولار أمريكي',conv:'المحوّل',amount:'المبلغ',currency:'العملة',
-    inIqd:'بالدينار العراقي',table:'أهم العملات مقابل الدينار',
-    thCur:'العملة',thRate:'1 وحدة = دينار',thInv:'1000 دينار =',
-    note:'المصدر: السوق الموازية للدولار من egcurrency.com، وبقية العملات محتسبة عبر أسعار الصرف الدولية. للأغراض المعلوماتية فقط.',
-    rate:(code,iqd)=>`سعر الصرف: 1 ${code} = ${iqd.toLocaleString()} دينار`,
-    name:(c)=>c.ar,
-  },
-  en:{
-    sitename:'ISX Market',pagetitle:'IQD ⇄ USD',back:'Back',
-    black:'USD — Black Market',official:'Official Rate (CBI)',updated:'Last Updated',
-    perUsd:'per US Dollar',conv:'Converter',amount:'Amount',currency:'Currency',
-    inIqd:'In Iraqi Dinar',table:'Top Currencies vs IQD',
-    thCur:'Currency',thRate:'1 unit = IQD',thInv:'1,000 IQD =',
-    note:'Source: USD black-market rate from egcurrency.com. Other currencies derived via international FX rates. For informational purposes only.',
-    rate:(code,iqd)=>`Rate: 1 ${code} = ${iqd.toLocaleString()} IQD`,
-    name:(c)=>c.en,
-  }
+  ar:{site:'بورصة العراق',page:'بيش الدولار',back:'رجوع',black:'السوق الموازية — الدولار',official:'السعر الرسمي — البنك المركزي',updated:'آخر تحديث',perusd:'لكل دولار أمريكي',conv:'المحوّل',amt:'المبلغ',cur:'العملة',iniqd:'بالدينار العراقي',tbl:'أهم العملات مقابل الدينار',thCur:'العملة',thRate:'1 وحدة = دينار',thInv:'1000 دينار =',note:'المصدر: السوق الموازية للدولار من egcurrency.com، وبقية العملات محتسبة عبر أسعار الصرف الدولية. للأغراض المعلوماتية فقط.',rate:(c,v)=>`سعر الصرف: 1 ${c} = ${v.toLocaleString()} دينار`,name:c=>c.ar},
+  en:{site:'ISX Market',page:'IQD ⇄ USD',back:'Back',black:'USD — Black Market',official:'Official Rate (CBI)',updated:'Last Updated',perusd:'per US Dollar',conv:'Converter',amt:'Amount',cur:'Currency',iniqd:'In Iraqi Dinar',tbl:'Top Currencies vs IQD',thCur:'Currency',thRate:'1 unit = IQD',thInv:'1,000 IQD =',note:'Source: USD black-market rate from egcurrency.com. Other currencies via international FX rates. Informational only.',rate:(c,v)=>`Rate: 1 ${c} = ${v.toLocaleString()} IQD`,name:c=>c.en},
 };
-
-let lang='ar';
-
+let L='ar';
 function setLang(l){
-  lang=l;
+  L=l;
   document.documentElement.lang=l;
   document.documentElement.dir=l==='ar'?'rtl':'ltr';
-  document.getElementById('btn-ar').classList.toggle('active',l==='ar');
-  document.getElementById('btn-en').classList.toggle('active',l==='en');
+  document.getElementById('btn-ar').classList.toggle('on',l==='ar');
+  document.getElementById('btn-en').classList.toggle('on',l==='en');
   const t=T[l];
-  document.getElementById('t-sitename').textContent=t.sitename;
-  document.getElementById('t-pagetitle').textContent=t.pagetitle;
-  document.getElementById('t-back').textContent=t.back;
-  document.getElementById('t-lbl-black').textContent=t.black;
-  document.getElementById('t-lbl-official').textContent=t.official;
-  document.getElementById('t-lbl-updated').textContent=t.updated;
-  document.getElementById('t-per-usd').textContent=t.perUsd;
-  document.getElementById('t-per-usd2').textContent=t.perUsd;
-  document.getElementById('t-conv-title').textContent=t.conv;
-  document.getElementById('t-amount').textContent=t.amount;
-  document.getElementById('t-currency').textContent=t.currency;
-  document.getElementById('t-in-iqd').textContent=t.inIqd;
-  document.getElementById('t-table-title').textContent=t.table;
+  ['site','page','back','black','official','updated','conv','amt','cur','iniqd','tbl','note'].forEach(k=>{ const el=document.getElementById('t-'+k); if(el) el.textContent=t[k]; });
+  ['perusd','perusd2'].forEach(id=>{ const el=document.getElementById('t-'+id); if(el) el.textContent=t.perusd; });
   document.getElementById('th-cur').textContent=t.thCur;
   document.getElementById('th-rate').textContent=t.thRate;
   document.getElementById('th-inv').textContent=t.thInv;
-  document.getElementById('t-note').textContent=t.note;
-  buildSelect();
-  buildTable();
-  calc();
+  buildSelect(); buildTable(); calc();
 }
-
 function buildSelect(){
-  const sel=document.getElementById('c-cur');
-  const prev=sel.value||'USD';
-  sel.innerHTML=CUR.map(c=>`<option value="${c.code}">${c.code} — ${T[lang].name(c)}</option>`).join('');
+  const sel=document.getElementById('c-cur'), prev=sel.value||'USD';
+  sel.innerHTML=CUR.map(c=>`<option value="${c.code}">${c.code} — ${T[L].name(c)}</option>`).join('');
   sel.value=prev;
 }
-
 function buildTable(){
   document.getElementById('t-body').innerHTML=CUR.map(c=>{
-    const inv=1000/c.iqd;
-    const invFmt=inv<1?inv.toFixed(4):inv<10?inv.toFixed(3):inv.toFixed(2);
-    return `<tr>
-      <td><span style="font-size:18px;margin-inline-end:8px">${c.flag}</span><span class="ccode">${c.code}</span><span class="cname">${T[lang].name(c)}</span></td>
-      <td class="rnum">${c.iqd.toLocaleString()}</td>
-      <td class="rinv">${invFmt}</td>
-    </tr>`;
+    const inv=1000/c.iqd, f=inv<1?inv.toFixed(4):inv<10?inv.toFixed(3):inv.toFixed(2);
+    return `<tr><td><span style="font-size:18px;margin-inline-end:8px">${c.flag}</span><span class="ccode">${c.code}</span><span class="cname">${T[L].name(c)}</span></td><td class="rnum">${c.iqd.toLocaleString()}</td><td class="rinv">${f}</td></tr>`;
   }).join('');
 }
-
 function calc(){
   const amt=parseFloat(document.getElementById('c-amt').value)||0;
   const code=document.getElementById('c-cur').value||'USD';
   const c=CUR.find(x=>x.code===code)||CUR[0];
   document.getElementById('c-out').textContent=(amt*c.iqd).toLocaleString(undefined,{maximumFractionDigits:0})+' IQD';
-  document.getElementById('c-rate').textContent=T[lang].rate(c.code,c.iqd);
+  document.getElementById('c-rate').textContent=T[L].rate(c.code,c.iqd);
 }
-
-buildSelect();
-buildTable();
-calc();
+buildSelect(); buildTable(); calc();
 </script>
 </body>
 </html>

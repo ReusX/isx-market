@@ -6,63 +6,139 @@
 <title>سياسة الخصوصية | ISX Market</title>
 <meta name="description" content="سياسة الخصوصية لمنصة ISX Market لبورصة العراق. نحن لا نجمع بياناتك الشخصية.">
 <link rel="canonical" href="https://iraqsm.com/privacy">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23f59e0b'/%3E%3Ctext x='50%25' y='54%25' dominant-baseline='middle' text-anchor='middle' font-family='Arial,sans-serif' font-size='38' font-weight='900' fill='%230C0C0E'%3E%D8%A8%3C/text%3E%3C/svg%3E">
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
-body{background:#0f1117;color:#e2e8f0;font-family:'Segoe UI',Arial,sans-serif;line-height:1.8}
-.nav{background:#0f1117;border-bottom:1px solid #1e293b;padding:16px 32px;display:flex;align-items:center;gap:16px}
-.nav a{color:#f59e0b;text-decoration:none;font-weight:700;font-size:18px}
-.nav span{color:#64748b;font-size:14px}
-.container{max-width:860px;margin:0 auto;padding:48px 24px}
-h1{font-size:32px;font-weight:800;margin-bottom:8px;color:#fff}
-h2{font-size:18px;font-weight:700;margin:32px 0 10px;color:#f59e0b}
-p,li{color:#94a3b8;font-size:15px;margin-bottom:12px}
-ul{padding-right:20px;margin-bottom:16px}
-.date{color:#64748b;font-size:13px;margin-bottom:32px}
-footer{text-align:center;padding:32px;color:#334155;font-size:13px;border-top:1px solid #1e293b;margin-top:48px}
+:root{--bg:#0f1117;--bg2:#13161e;--bg3:#1a1f2e;--bg4:#222840;--border:#2a2f3e;--t1:#e2e8f0;--t2:#94a3b8;--t3:#64748b;--ac:#f59e0b;--acbg:rgba(245,158,11,.12);--tr:.18s}
+body{background:var(--bg);color:var(--t1);font-family:'Segoe UI',system-ui,Arial,sans-serif;min-height:100vh;line-height:1.7}
+.nav{height:62px;background:var(--bg2);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 28px;gap:14px;position:sticky;top:0;z-index:200}
+.logo{display:flex;align-items:center;gap:10px;text-decoration:none;flex-shrink:0}
+.logo-icon{width:34px;height:34px;border-radius:8px;background:var(--ac);display:flex;align-items:center;justify-content:center;font-size:17px;font-weight:900;color:#0C0C0E}
+.logo-name{font-size:16px;font-weight:800;color:var(--t1)}
+.nav-div{width:1px;height:20px;background:var(--border)}
+.nav-page{font-size:13px;color:var(--t3)}
+.nav-end{margin-right:auto}
+.back{display:inline-flex;align-items:center;gap:6px;background:var(--bg3);border:1px solid var(--border);color:var(--t2);padding:7px 14px;border-radius:9px;font-size:13px;font-weight:600;text-decoration:none;transition:var(--tr)}
+.back:hover{background:var(--bg4);color:var(--t1)}
+.wrap{max-width:900px;margin:0 auto;padding:40px 24px 80px}
+.hero{margin-bottom:28px}
+.badge{display:inline-flex;align-items:center;gap:6px;background:var(--acbg);border:1px solid rgba(245,158,11,.3);color:var(--ac);padding:5px 14px;border-radius:20px;font-size:12px;font-weight:700;margin-bottom:16px}
+.hero-title{font-size:28px;font-weight:800;color:var(--t1);margin-bottom:6px}
+.hero-date{font-size:13px;color:var(--t3)}
+.psec{background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:24px;margin-bottom:18px}
+.sec-hdr{display:flex;align-items:center;gap:10px;margin-bottom:16px;padding-bottom:12px;border-bottom:1px solid var(--border)}
+.sec-num{width:26px;height:26px;border-radius:7px;background:var(--acbg);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;color:var(--ac);flex-shrink:0}
+.sec-ttl{font-size:14px;font-weight:700;color:var(--t1)}
+p{color:var(--t2);font-size:14px;margin-bottom:10px;line-height:1.7}
+p:last-child{margin-bottom:0}
+ul{color:var(--t2);font-size:14px;padding-inline-start:18px;margin-bottom:10px}
+li{margin-bottom:5px;line-height:1.6}
+strong{color:var(--t1)}
+a{color:var(--ac);text-decoration:none}
+a:hover{text-decoration:underline}
+.foot{text-align:center;padding:28px;border-top:1px solid var(--border);margin-top:20px;font-size:12px;color:var(--t3)}
+.foot a{color:var(--t2);text-decoration:none}
+.foot a:hover{color:var(--t1)}
+@media(max-width:768px){.wrap{padding:20px 14px 60px}.psec{padding:16px}.nav{padding:0 14px}.logo-name{font-size:14px}}
 </style>
 </head>
 <body>
+
 <nav class="nav">
-  <a href="/">← ISX Market</a>
-  <span>/ سياسة الخصوصية / Privacy Policy</span>
+  <a href="/" class="logo">
+    <div class="logo-icon">ب</div>
+    <span class="logo-name">بورصة العراق</span>
+  </a>
+  <div class="nav-div"></div>
+  <span class="nav-page">سياسة الخصوصية · Privacy</span>
+  <div class="nav-end">
+    <a href="/" class="back">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+      رجوع · Back
+    </a>
+  </div>
 </nav>
-<div class="container">
-  <h1>سياسة الخصوصية · Privacy Policy</h1>
-  <p class="date">آخر تحديث · Last updated: مايو 2026</p>
 
-  <h2>1. المعلومات التي نجمعها · Information We Collect</h2>
-  <p>لا تجمع منصة ISX Market أي معلومات شخصية تعريفية. الموقع لا يتطلب تسجيل أو تسجيل دخول.</p>
-  <p>ISX Market does not collect any personally identifiable information. The site requires no registration or login.</p>
+<div class="wrap">
 
-  <h2>2. ملفات تعريف الارتباط · Cookies</h2>
-  <p>يستخدم الموقع ذاكرة التصفح المحلية (localStorage / sessionStorage) لحفظ تفضيلات اللغة والوضع المظلم فقط. لا يتم إرسال هذه البيانات إلى أي خادم.</p>
-  <p>The site uses browser localStorage/sessionStorage to save language and dark mode preferences only. This data is never sent to any server.</p>
+  <div class="hero">
+    <div class="badge">🔒 الخصوصية · Privacy</div>
+    <h1 class="hero-title">سياسة الخصوصية · Privacy Policy</h1>
+    <div class="hero-date">آخر تحديث · Last updated: مايو 2026</div>
+  </div>
 
-  <h2>3. بيانات الاستخدام · Usage Data</h2>
-  <p>قد يتم جمع بيانات مجهولة الهوية عن الزيارات (عدد الزوار، الصفحات المشاهدة) عبر GitHub Pages infrastructure. لا نستخدم Google Analytics أو أي أداة تتبع من طرف ثالث.</p>
-  <p>Anonymous visit data (visitor counts, pages viewed) may be collected by GitHub Pages infrastructure. We do not use Google Analytics or any third-party tracking tool.</p>
+  <div class="psec">
+    <div class="sec-hdr">
+      <div class="sec-num">1</div>
+      <div class="sec-ttl">المعلومات التي نجمعها · Information We Collect</div>
+    </div>
+    <p>لا تجمع منصة ISX Market أي معلومات شخصية تعريفية. الموقع لا يتطلب تسجيل أو تسجيل دخول.</p>
+    <p>ISX Market does not collect any personally identifiable information. The site requires no registration or login.</p>
+  </div>
 
-  <h2>4. مصادر البيانات المالية · Financial Data Sources</h2>
-  <p>البيانات المالية المعروضة مصدرها:</p>
-  <ul>
-    <li>ربيع للأوراق المالية (Rabee Securities) — أسعار الأسهم والمؤشرات</li>
-    <li>هيئة الأوراق المالية العراقية (ISC) — بيانات الشركات</li>
-  </ul>
-  <p>نحن لا ننتج هذه البيانات ولسنا مسؤولين عن دقتها. للاطلاع على البيانات الرسمية يرجى مراجعة isc.gov.iq أو rs.iq.</p>
+  <div class="psec">
+    <div class="sec-hdr">
+      <div class="sec-num">2</div>
+      <div class="sec-ttl">ملفات تعريف الارتباط · Cookies</div>
+    </div>
+    <p>يستخدم الموقع ذاكرة التصفح المحلية (localStorage / sessionStorage) لحفظ تفضيلات اللغة والوضع المظلم فقط. لا يتم إرسال هذه البيانات إلى أي خادم.</p>
+    <p>The site uses browser localStorage/sessionStorage to save language and dark mode preferences only. This data is never sent to any server.</p>
+  </div>
 
-  <h2>5. حقوق الملكية الفكرية · Intellectual Property</h2>
-  <p>جميع بيانات الأسعار والمؤشرات هي ملك لأصحابها الأصليين (ربيع للأوراق المالية، هيئة الأوراق المالية العراقية). يُحظر إعادة نشر البيانات لأغراض تجارية.</p>
+  <div class="psec">
+    <div class="sec-hdr">
+      <div class="sec-num">3</div>
+      <div class="sec-ttl">بيانات الاستخدام · Usage Data</div>
+    </div>
+    <p>قد يتم جمع بيانات مجهولة الهوية عن الزيارات عبر GitHub Pages infrastructure. لا نستخدم Google Analytics أو أي أداة تتبع من طرف ثالث.</p>
+    <p>Anonymous visit data may be collected by GitHub Pages infrastructure. We do not use Google Analytics or any third-party tracking tool.</p>
+  </div>
 
-  <h2>6. إخلاء المسؤولية · Disclaimer</h2>
-  <p>المعلومات المقدمة هي لأغراض إعلامية فقط ولا تُعدّ نصيحة استثمارية. ISX Market غير مسؤول عن أي خسائر ناجمة عن الاعتماد على هذه البيانات.</p>
-  <p>Information provided is for informational purposes only and does not constitute investment advice. ISX Market is not responsible for any losses resulting from reliance on this data.</p>
+  <div class="psec">
+    <div class="sec-hdr">
+      <div class="sec-num">4</div>
+      <div class="sec-ttl">مصادر البيانات المالية · Financial Data Sources</div>
+    </div>
+    <p>البيانات المالية المعروضة مصدرها:</p>
+    <ul>
+      <li>ربيع للأوراق المالية (Rabee Securities) — أسعار الأسهم والمؤشرات</li>
+      <li>هيئة الأوراق المالية العراقية (ISC) — بيانات الشركات</li>
+    </ul>
+    <p>نحن لا ننتج هذه البيانات ولسنا مسؤولين عن دقتها. للاطلاع على البيانات الرسمية: <a href="https://isc.gov.iq" target="_blank">isc.gov.iq</a> أو <a href="https://rs.iq" target="_blank">rs.iq</a>.</p>
+  </div>
 
-  <h2>7. التواصل · Contact</h2>
-  <p>لأي استفسار: <a href="mailto:info@iraqsm.com" style="color:#f59e0b">info@iraqsm.com</a></p>
+  <div class="psec">
+    <div class="sec-hdr">
+      <div class="sec-num">5</div>
+      <div class="sec-ttl">حقوق الملكية الفكرية · Intellectual Property</div>
+    </div>
+    <p>جميع بيانات الأسعار والمؤشرات هي ملك لأصحابها الأصليين (ربيع للأوراق المالية، هيئة الأوراق المالية العراقية). يُحظر إعادة نشر البيانات لأغراض تجارية.</p>
+    <p>All price and index data belongs to their respective owners. Redistribution for commercial purposes is prohibited.</p>
+  </div>
+
+  <div class="psec">
+    <div class="sec-hdr">
+      <div class="sec-num">6</div>
+      <div class="sec-ttl">إخلاء المسؤولية · Disclaimer</div>
+    </div>
+    <p>المعلومات المقدمة هي لأغراض إعلامية فقط ولا تُعدّ نصيحة استثمارية. ISX Market غير مسؤول عن أي خسائر ناجمة عن الاعتماد على هذه البيانات.</p>
+    <p>Information provided is for informational purposes only and does not constitute investment advice. ISX Market is not responsible for any losses resulting from reliance on this data.</p>
+  </div>
+
+  <div class="psec">
+    <div class="sec-hdr">
+      <div class="sec-num">7</div>
+      <div class="sec-ttl">التواصل · Contact</div>
+    </div>
+    <p>لأي استفسار: <a href="mailto:info@iraqsm.com">info@iraqsm.com</a></p>
+  </div>
+
 </div>
-<footer>
-  <a href="/" style="color:#f59e0b;text-decoration:none">← العودة للرئيسية · Back to Home</a><br><br>
-  © 2026 ISX Market · iraqsm.com
+
+<footer class="foot">
+  <a href="/">← العودة للرئيسية · Back to Home</a>
+  <br><br>© 2026 ISX Market · iraqsm.com
 </footer>
+
 </body>
 </html>

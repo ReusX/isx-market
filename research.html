@@ -5,90 +5,183 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Iraq Stock Exchange Research & Market Analysis | ISX Market</title>
 <meta name="description" content="Iraq Stock Exchange (ISX) market research, sector analysis, and company data. RSISX index performance, top companies by capital, sector breakdown for all 104 ISX-listed companies.">
-<meta name="keywords" content="Iraq Stock Exchange research, ISX market analysis, بورصة العراق تحليل, RSISX index, Iraqi stocks research, ISX sector analysis">
+<meta name="keywords" content="Iraq Stock Exchange research, ISX market analysis, بورصة العراق تحليل, RSISX index, Iraqi stocks research">
 <link rel="canonical" href="https://iraqsm.com/research">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23f59e0b'/%3E%3Ctext x='50%25' y='54%25' dominant-baseline='middle' text-anchor='middle' font-family='Arial,sans-serif' font-size='38' font-weight='900' fill='%230C0C0E'%3E%D8%A8%3C/text%3E%3C/svg%3E">
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
-body{background:#0f1117;color:#e2e8f0;font-family:'Segoe UI',Arial,sans-serif;line-height:1.8}
-.nav{background:#0f1117;border-bottom:1px solid #1e293b;padding:16px 32px;display:flex;align-items:center;gap:16px}
-.nav a{color:#f59e0b;text-decoration:none;font-weight:700;font-size:18px}
-.nav span{color:#64748b;font-size:14px}
-.container{max-width:960px;margin:0 auto;padding:48px 24px}
-h1{font-size:32px;font-weight:800;margin-bottom:8px;color:#fff}
-h2{font-size:20px;font-weight:700;margin:40px 0 16px;color:#f59e0b;border-bottom:1px solid #1e293b;padding-bottom:8px}
-h3{font-size:16px;font-weight:700;margin:24px 0 10px;color:#e2e8f0}
-p{color:#94a3b8;font-size:15px;margin-bottom:14px}
-table{width:100%;border-collapse:collapse;margin:16px 0;font-size:14px}
-th{text-align:left;padding:10px 16px 10px 0;font-size:12px;text-transform:uppercase;letter-spacing:1px;color:#64748b;border-bottom:1px solid #1e293b}
-tr:hover td{background:#1e293b22}
-.badge{display:inline-block;background:#f59e0b18;border:1px solid #f59e0b44;color:#f59e0b;padding:4px 12px;border-radius:20px;font-size:13px;margin-bottom:24px}
-.stat-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:16px;margin:24px 0}
-.stat{background:#1e293b;border-radius:10px;padding:18px;border:1px solid #334155}
-.stat-lbl{font-size:12px;color:#64748b;margin-bottom:4px}
-.stat-val{font-size:22px;font-weight:700;color:#fff}
-.stat-sub{font-size:12px;color:#f59e0b;margin-top:2px}
-.article{background:#1e293b;border-radius:12px;padding:24px;border:1px solid #334155;margin-bottom:24px}
-.article-date{font-size:12px;color:#64748b;margin-bottom:8px}
-.article h3{margin:0 0 12px;font-size:18px;color:#fff}
-footer{text-align:center;padding:32px;color:#334155;font-size:13px;border-top:1px solid #1e293b;margin-top:48px}
+:root{--bg:#0f1117;--bg2:#13161e;--bg3:#1a1f2e;--bg4:#222840;--border:#2a2f3e;--t1:#e2e8f0;--t2:#94a3b8;--t3:#64748b;--ac:#f59e0b;--acbg:rgba(245,158,11,.12);--tr:.18s}
+body{background:var(--bg);color:var(--t1);font-family:'Segoe UI',system-ui,Arial,sans-serif;min-height:100vh;line-height:1.7}
+.nav{height:62px;background:var(--bg2);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 28px;gap:14px;position:sticky;top:0;z-index:200}
+.logo{display:flex;align-items:center;gap:10px;text-decoration:none;flex-shrink:0}
+.logo-icon{width:34px;height:34px;border-radius:8px;background:var(--ac);display:flex;align-items:center;justify-content:center;font-size:17px;font-weight:900;color:#0C0C0E}
+.logo-name{font-size:16px;font-weight:800;color:var(--t1)}
+.nav-div{width:1px;height:20px;background:var(--border)}
+.nav-page{font-size:13px;color:var(--t3)}
+.nav-end{margin-right:auto}
+.back{display:inline-flex;align-items:center;gap:6px;background:var(--bg3);border:1px solid var(--border);color:var(--t2);padding:7px 14px;border-radius:9px;font-size:13px;font-weight:600;text-decoration:none;transition:var(--tr)}
+.back:hover{background:var(--bg4);color:var(--t1)}
+.wrap{max-width:960px;margin:0 auto;padding:40px 24px 80px}
+.hero{margin-bottom:28px}
+.badge{display:inline-flex;align-items:center;gap:6px;background:var(--acbg);border:1px solid rgba(245,158,11,.3);color:var(--ac);padding:5px 14px;border-radius:20px;font-size:12px;font-weight:700;margin-bottom:16px}
+.hero-title{font-size:28px;font-weight:800;color:var(--t1);margin-bottom:8px}
+.hero-sub{font-size:15px;color:var(--t2);line-height:1.6}
+.stat-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px;margin-bottom:20px}
+.stat{background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:18px 16px}
+.stat-lbl{font-size:11px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px}
+.stat-val{font-size:20px;font-weight:800;color:var(--t1);line-height:1.1}
+.stat-hint{font-size:11px;color:var(--t3);margin-top:5px}
+.psec{background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:24px;margin-bottom:18px}
+.sec-hdr{display:flex;align-items:center;gap:10px;margin-bottom:18px;padding-bottom:14px;border-bottom:1px solid var(--border)}
+.sec-ico{width:30px;height:30px;border-radius:8px;background:var(--acbg);display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0}
+.sec-ttl{font-size:14px;font-weight:700;color:var(--t1)}
+.sec-sub{font-size:12px;color:var(--t3);margin-top:2px}
+p{color:var(--t2);font-size:14px;margin-bottom:11px;line-height:1.7}
+p:last-child{margin-bottom:0}
+strong{color:var(--t1)}
+a{color:var(--ac);text-decoration:none}
+a:hover{text-decoration:underline}
+.tbl{width:100%;border-collapse:collapse;font-size:13px}
+.tbl th{padding:10px 12px;text-align:start;color:var(--t3);font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.5px;border-bottom:1px solid var(--border)}
+.tbl td{padding:11px 12px;border-bottom:1px solid var(--border);color:var(--t2)}
+.tbl tr:last-child td{border-bottom:none}
+.tbl tbody tr:hover td{background:var(--bg3);transition:.1s}
+.ticker{font-weight:800;color:var(--ac)}
+.sector-bar{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border)}
+.sector-bar:last-child{border-bottom:none}
+.sector-name{width:130px;font-size:13px;color:var(--t1);font-weight:600;flex-shrink:0}
+.sector-ar{font-size:12px;color:var(--t3);width:110px;flex-shrink:0}
+.sector-track{flex:1;height:6px;background:var(--bg4);border-radius:3px;overflow:hidden}
+.sector-fill{height:100%;background:var(--ac);border-radius:3px;opacity:.7}
+.sector-count{font-size:13px;font-weight:700;color:var(--t1);width:28px;text-align:end;flex-shrink:0}
+.foot{text-align:center;padding:28px;border-top:1px solid var(--border);margin-top:20px;font-size:12px;color:var(--t3)}
+.foot a{color:var(--t2);text-decoration:none}
+.foot a:hover{color:var(--t1)}
+@media(max-width:768px){.wrap{padding:20px 14px 60px}.psec{padding:16px}.nav{padding:0 14px}.logo-name{font-size:14px}.stat-grid{grid-template-columns:1fr 1fr 1fr}.sector-ar{display:none}}
 </style>
 </head>
 <body>
-<nav class="nav">
-  <a href="/">← ISX Market</a>
-  <span>/ Research & Analysis</span>
-</nav>
-<div class="container">
-  <span class="badge">أبحاث السوق · Market Research</span>
-  <h1>Iraq Stock Exchange — Research & Analysis</h1>
-  <p>Comprehensive market data, sector analysis, and company information for the Iraq Stock Exchange (ISX / بورصة العراق). Data sourced from Rabee Securities and the Iraq Securities Commission.</p>
 
-  <h2>Market Overview — May 2026</h2>
-  <div class="stat-grid">
-    <div class="stat"><div class="stat-lbl">Listed Companies</div><div class="stat-val">104</div><div class="stat-sub">across 9 sectors</div></div>
-    <div class="stat"><div class="stat-lbl">RSISX Index</div><div class="stat-val">~2,670</div><div class="stat-sub">Rabee Securities Index</div></div>
-    <div class="stat"><div class="stat-lbl">Trading Days</div><div class="stat-val">Sun–Thu</div><div class="stat-sub">Baghdad time (UTC+3)</div></div>
-    <div class="stat"><div class="stat-lbl">Currency</div><div class="stat-val">IQD</div><div class="stat-sub">Iraqi Dinar · الدينار العراقي</div></div>
-    <div class="stat"><div class="stat-lbl">Par Value</div><div class="stat-val">1 IQD</div><div class="stat-sub">per share (all companies)</div></div>
-    <div class="stat"><div class="stat-lbl">Data Source</div><div class="stat-val">Rabee</div><div class="stat-sub">rs.iq · Real-time</div></div>
+<nav class="nav">
+  <a href="/" class="logo">
+    <div class="logo-icon">ب</div>
+    <span class="logo-name">ISX Market</span>
+  </a>
+  <div class="nav-div"></div>
+  <span class="nav-page">Research & Analysis · أبحاث السوق</span>
+  <div class="nav-end">
+    <a href="/" class="back">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+      Back · رجوع
+    </a>
+  </div>
+</nav>
+
+<div class="wrap">
+
+  <div class="hero">
+    <div class="badge">📈 أبحاث السوق · Market Research</div>
+    <h1 class="hero-title">Iraq Stock Exchange — Research & Analysis</h1>
+    <p class="hero-sub">Comprehensive market data, sector analysis, and company information for the Iraq Stock Exchange (ISX / بورصة العراق). Data sourced from Rabee Securities and the Iraq Securities Commission.</p>
   </div>
 
-  <h2>Sector Breakdown — قطاعات السوق</h2>
-  <p>The Iraq Stock Exchange lists companies across 9 sectors. The banking sector is the largest by number of companies, while telecommunications (Asiacell/TASC and Zain Iraq/TZNI) dominates by market capitalization.</p>
-  <table>
-    <thead><tr><th>Sector</th><th>القطاع</th><th>Companies</th></tr></thead>
-    <tbody><tr><td style="padding:8px 16px 8px 0">Banks</td><td style="padding:8px 16px 8px 0;color:#64748b">المصارف</td><td style="padding:8px 0;color:#f59e0b;font-weight:700">40</td></tr><tr><td style="padding:8px 16px 8px 0">Industrial</td><td style="padding:8px 16px 8px 0;color:#64748b">الصناعة</td><td style="padding:8px 0;color:#f59e0b;font-weight:700">16</td></tr><tr><td style="padding:8px 16px 8px 0">Money Transfer</td><td style="padding:8px 16px 8px 0;color:#64748b">تحويل الأموال</td><td style="padding:8px 0;color:#f59e0b;font-weight:700">14</td></tr><tr><td style="padding:8px 16px 8px 0">Hotels & Tourism</td><td style="padding:8px 16px 8px 0;color:#64748b">الفنادق والسياحة</td><td style="padding:8px 0;color:#f59e0b;font-weight:700">9</td></tr><tr><td style="padding:8px 16px 8px 0">Agricultural</td><td style="padding:8px 16px 8px 0;color:#64748b">الزراعة</td><td style="padding:8px 0;color:#f59e0b;font-weight:700">7</td></tr><tr><td style="padding:8px 16px 8px 0">Services</td><td style="padding:8px 16px 8px 0;color:#64748b">الخدمات</td><td style="padding:8px 0;color:#f59e0b;font-weight:700">7</td></tr><tr><td style="padding:8px 16px 8px 0">Insurance</td><td style="padding:8px 16px 8px 0;color:#64748b">التأمين</td><td style="padding:8px 0;color:#f59e0b;font-weight:700">6</td></tr><tr><td style="padding:8px 16px 8px 0">Investment</td><td style="padding:8px 16px 8px 0;color:#64748b">الاستثمار</td><td style="padding:8px 0;color:#f59e0b;font-weight:700">3</td></tr><tr><td style="padding:8px 16px 8px 0">Communications</td><td style="padding:8px 16px 8px 0;color:#64748b">الاتصالات</td><td style="padding:8px 0;color:#f59e0b;font-weight:700">2</td></tr></tbody>
-  </table>
+  <div class="stat-grid">
+    <div class="stat"><div class="stat-lbl">Listed Companies</div><div class="stat-val">104</div><div class="stat-hint">across 9 sectors</div></div>
+    <div class="stat"><div class="stat-lbl">RSISX Index</div><div class="stat-val">~2,670</div><div class="stat-hint">Rabee Securities</div></div>
+    <div class="stat"><div class="stat-lbl">Trading Days</div><div class="stat-val">Sun–Thu</div><div class="stat-hint">Baghdad · UTC+3</div></div>
+    <div class="stat"><div class="stat-lbl">Currency</div><div class="stat-val">IQD</div><div class="stat-hint">Iraqi Dinar</div></div>
+    <div class="stat"><div class="stat-lbl">Par Value</div><div class="stat-val">1 IQD</div><div class="stat-hint">per share</div></div>
+    <div class="stat"><div class="stat-lbl">Data Source</div><div class="stat-val">Rabee</div><div class="stat-hint">rs.iq · Real-time</div></div>
+  </div>
 
-  <h2>Top 10 Companies by Paid-Up Capital</h2>
-  <p>Capital figures represent paid-up capital in Iraqi Dinars. Since ISX par value is 1 IQD per share, paid-up capital equals the number of shares outstanding.</p>
-  <table>
-    <thead><tr><th>Ticker</th><th>Company</th><th>Sector</th><th>Capital</th></tr></thead>
-    <tbody><tr><td style="padding:8px 16px 8px 0;font-weight:700;color:#f59e0b">TZNI</td><td style="padding:8px 16px 8px 0">Al-Khatem Telecommunication</td><td style="padding:8px 16px 8px 0;color:#64748b">Communications</td><td style="padding:8px 0;font-weight:600">1,829 B IQD</td></tr><tr><td style="padding:8px 16px 8px 0;font-weight:700;color:#f59e0b">BMNS</td><td style="padding:8px 16px 8px 0">AL-Mansour bank for Investment /private shareholding company</td><td style="padding:8px 16px 8px 0;color:#64748b">Banks</td><td style="padding:8px 0;font-weight:600">585 B IQD</td></tr><tr><td style="padding:8px 16px 8px 0;font-weight:700;color:#f59e0b">BNOI</td><td style="padding:8px 16px 8px 0">National Bank of Iraq</td><td style="padding:8px 16px 8px 0;color:#64748b">Banks</td><td style="padding:8px 0;font-weight:600">520 B IQD</td></tr><tr><td style="padding:8px 16px 8px 0;font-weight:700;color:#f59e0b">BJAB</td><td style="padding:8px 16px 8px 0">Al-Janoob Islamic Bank for Investment and Finance</td><td style="padding:8px 16px 8px 0;color:#64748b">Banks</td><td style="padding:8px 0;font-weight:600">510 B IQD</td></tr><tr><td style="padding:8px 16px 8px 0;font-weight:700;color:#f59e0b">BCIH</td><td style="padding:8px 16px 8px 0">Cihan Bank for Islamic</td><td style="padding:8px 16px 8px 0;color:#64748b">Banks</td><td style="padding:8px 0;font-weight:600">400 B IQD</td></tr><tr><td style="padding:8px 16px 8px 0;font-weight:700;color:#f59e0b">BNAI</td><td style="padding:8px 16px 8px 0">National Islamic Bank</td><td style="padding:8px 16px 8px 0;color:#64748b">Banks</td><td style="padding:8px 0;font-weight:600">400 B IQD</td></tr><tr><td style="padding:8px 16px 8px 0;font-weight:700;color:#f59e0b">BKUI</td><td style="padding:8px 16px 8px 0">Kurdistan International Bank</td><td style="padding:8px 16px 8px 0;color:#64748b">Banks</td><td style="padding:8px 0;font-weight:600">400 B IQD</td></tr><tr><td style="padding:8px 16px 8px 0;font-weight:700;color:#f59e0b">BIIB</td><td style="padding:8px 16px 8px 0">Iraqi Islamic Bank for Investment and Development</td><td style="padding:8px 16px 8px 0;color:#64748b">Banks</td><td style="padding:8px 0;font-weight:600">400 B IQD</td></tr><tr><td style="padding:8px 16px 8px 0;font-weight:700;color:#f59e0b">BBOB</td><td style="padding:8px 16px 8px 0">Bank of Baghdad</td><td style="padding:8px 16px 8px 0;color:#64748b">Banks</td><td style="padding:8px 0;font-weight:600">400 B IQD</td></tr><tr><td style="padding:8px 16px 8px 0;font-weight:700;color:#f59e0b">BRTB</td><td style="padding:8px 16px 8px 0">Rrgion Trade Bank For InvesTment and Finance</td><td style="padding:8px 16px 8px 0;color:#64748b">Banks</td><td style="padding:8px 0;font-weight:600">400 B IQD</td></tr></tbody>
-  </table>
+  <div class="psec">
+    <div class="sec-hdr">
+      <div class="sec-ico">🏛️</div>
+      <div>
+        <div class="sec-ttl">Sector Breakdown — قطاعات السوق</div>
+        <div class="sec-sub">104 companies across 9 sectors · May 2026</div>
+      </div>
+    </div>
+    <div class="sector-bar"><span class="sector-name">Banks</span><span class="sector-ar">المصارف</span><div class="sector-track"><div class="sector-fill" style="width:100%"></div></div><span class="sector-count">40</span></div>
+    <div class="sector-bar"><span class="sector-name">Industrial</span><span class="sector-ar">الصناعة</span><div class="sector-track"><div class="sector-fill" style="width:40%"></div></div><span class="sector-count">16</span></div>
+    <div class="sector-bar"><span class="sector-name">Money Transfer</span><span class="sector-ar">تحويل الأموال</span><div class="sector-track"><div class="sector-fill" style="width:35%"></div></div><span class="sector-count">14</span></div>
+    <div class="sector-bar"><span class="sector-name">Hotels & Tourism</span><span class="sector-ar">الفنادق</span><div class="sector-track"><div class="sector-fill" style="width:22%"></div></div><span class="sector-count">9</span></div>
+    <div class="sector-bar"><span class="sector-name">Agricultural</span><span class="sector-ar">الزراعة</span><div class="sector-track"><div class="sector-fill" style="width:17%"></div></div><span class="sector-count">7</span></div>
+    <div class="sector-bar"><span class="sector-name">Services</span><span class="sector-ar">الخدمات</span><div class="sector-track"><div class="sector-fill" style="width:17%"></div></div><span class="sector-count">7</span></div>
+    <div class="sector-bar"><span class="sector-name">Insurance</span><span class="sector-ar">التأمين</span><div class="sector-track"><div class="sector-fill" style="width:15%"></div></div><span class="sector-count">6</span></div>
+    <div class="sector-bar"><span class="sector-name">Investment</span><span class="sector-ar">الاستثمار</span><div class="sector-track"><div class="sector-fill" style="width:7%"></div></div><span class="sector-count">3</span></div>
+    <div class="sector-bar"><span class="sector-name">Communications</span><span class="sector-ar">الاتصالات</span><div class="sector-track"><div class="sector-fill" style="width:5%"></div></div><span class="sector-count">2</span></div>
+  </div>
 
-  <h2>About the RSISX Index — مؤشر ربيع للأوراق المالية</h2>
-  <p>The Rabee Securities ISX Index (RSISX) is the primary benchmark for the Iraq Stock Exchange. Published by Rabee Securities, it tracks the performance of ISX-listed stocks weighted by market capitalization. The index is denominated in Iraqi Dinars (IQD) and is updated daily during trading sessions.</p>
-  <p>Related indices published by Rabee Securities include RSISXTR (total return), RSIHX (hospitality), and RSIBX (banking sector).</p>
+  <div class="psec">
+    <div class="sec-hdr">
+      <div class="sec-ico">🏆</div>
+      <div>
+        <div class="sec-ttl">Top 10 Companies by Paid-Up Capital</div>
+        <div class="sec-sub">Capital = number of shares (par value 1 IQD/share)</div>
+      </div>
+    </div>
+    <div style="overflow-x:auto">
+      <table class="tbl">
+        <thead><tr><th>Ticker</th><th>Company</th><th>Sector</th><th style="text-align:end">Capital</th></tr></thead>
+        <tbody>
+          <tr><td><span class="ticker">TZNI</span></td><td>Al-Khatem Telecommunication (Zain Iraq)</td><td style="color:var(--t3)">Communications</td><td style="text-align:end;font-weight:600">1,829 B IQD</td></tr>
+          <tr><td><span class="ticker">BMNS</span></td><td>Al-Mansour Bank for Investment</td><td style="color:var(--t3)">Banks</td><td style="text-align:end;font-weight:600">585 B IQD</td></tr>
+          <tr><td><span class="ticker">BNOI</span></td><td>National Bank of Iraq</td><td style="color:var(--t3)">Banks</td><td style="text-align:end;font-weight:600">520 B IQD</td></tr>
+          <tr><td><span class="ticker">BJAB</span></td><td>Al-Janoob Islamic Bank</td><td style="color:var(--t3)">Banks</td><td style="text-align:end;font-weight:600">510 B IQD</td></tr>
+          <tr><td><span class="ticker">BCIH</span></td><td>Cihan Bank for Islamic Finance</td><td style="color:var(--t3)">Banks</td><td style="text-align:end;font-weight:600">400 B IQD</td></tr>
+          <tr><td><span class="ticker">BNAI</span></td><td>National Islamic Bank</td><td style="color:var(--t3)">Banks</td><td style="text-align:end;font-weight:600">400 B IQD</td></tr>
+          <tr><td><span class="ticker">BKUI</span></td><td>Kurdistan International Bank</td><td style="color:var(--t3)">Banks</td><td style="text-align:end;font-weight:600">400 B IQD</td></tr>
+          <tr><td><span class="ticker">BIIB</span></td><td>Iraqi Islamic Bank for Investment</td><td style="color:var(--t3)">Banks</td><td style="text-align:end;font-weight:600">400 B IQD</td></tr>
+          <tr><td><span class="ticker">BBOB</span></td><td>Bank of Baghdad</td><td style="color:var(--t3)">Banks</td><td style="text-align:end;font-weight:600">400 B IQD</td></tr>
+          <tr><td><span class="ticker">BRTB</span></td><td>Region Trade Bank for Investment</td><td style="color:var(--t3)">Banks</td><td style="text-align:end;font-weight:600">400 B IQD</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
 
-  <h2>About the Iraq Stock Exchange (ISX)</h2>
-  <p>The Iraq Stock Exchange (بورصة العراق للأوراق المالية / ISX) is the official securities market of Iraq, headquartered in Baghdad. It operates under the supervision of the Iraq Securities Commission (هيئة الأوراق المالية العراقية / ISC). Trading sessions run Sunday through Thursday, reflecting the Iraqi work week.</p>
-  <p>The market was established in its modern form in 2004, replacing the Baghdad Stock Exchange (BSE). It has grown to list 104 companies across banking, telecommunications, industry, tourism, insurance, agricultural, and services sectors.</p>
+  <div class="psec">
+    <div class="sec-hdr">
+      <div class="sec-ico">📉</div>
+      <div><div class="sec-ttl">About the RSISX Index — مؤشر ربيع للأوراق المالية</div></div>
+    </div>
+    <p>The Rabee Securities ISX Index (RSISX) is the primary benchmark for the Iraq Stock Exchange. Published by Rabee Securities, it tracks ISX-listed stocks weighted by market capitalization, denominated in Iraqi Dinars (IQD) and updated daily during trading sessions.</p>
+    <p>Related indices: <strong>RSISXTR</strong> (total return), <strong>RSIHX</strong> (hospitality), <strong>RSIBX</strong> (banking sector).</p>
+  </div>
 
-  <h2>Banking Sector — قطاع المصارف</h2>
-  <p>The banking sector is the most active on the ISX with 40 listed banks, including conventional and Islamic banks. Key players include Asiacell's parent company structure, Baghdad Bank, and various investment banks. The sector is regulated by the Central Bank of Iraq (البنك المركزي العراقي / CBI) in addition to ISC oversight.</p>
+  <div class="psec">
+    <div class="sec-hdr">
+      <div class="sec-ico">🏦</div>
+      <div><div class="sec-ttl">About the Iraq Stock Exchange (ISX)</div></div>
+    </div>
+    <p>The Iraq Stock Exchange (بورصة العراق / ISX) is Iraq's official securities market, headquartered in Baghdad and operating under the Iraq Securities Commission (ISC). Trading runs Sunday–Thursday, reflecting the Iraqi work week.</p>
+    <p>Established in its modern form in 2004, replacing the Baghdad Stock Exchange (BSE). It lists 104 companies across banking, telecom, industry, tourism, insurance, agriculture, and services.</p>
+  </div>
 
-  <h2>Telecommunications — قطاع الاتصالات</h2>
-  <p>Two major telecom companies are listed on the ISX:</p>
-  <p><strong>Asiacell (TASC)</strong> — One of Iraq's three major mobile operators, Asiacell is majority-owned by Ooredoo (Qatar). It is among the largest companies by market capitalization on the ISX.</p>
-  <p><strong>Al-Khatem Telecom / Zain Iraq (TZNI)</strong> — The Iraqi subsidiary of Zain Group (Kuwait), operating under the brand Zain Iraq. It holds the largest paid-up capital on the ISX at over 1.8 trillion IQD.</p>
+  <div class="psec">
+    <div class="sec-hdr">
+      <div class="sec-ico">📡</div>
+      <div><div class="sec-ttl">Telecommunications — قطاع الاتصالات</div></div>
+    </div>
+    <p><strong>Asiacell (TASC)</strong> — One of Iraq's three major mobile operators, majority-owned by Ooredoo (Qatar). Among the largest companies by market cap on the ISX.</p>
+    <p><strong>Al-Khatem Telecom / Zain Iraq (TZNI)</strong> — Iraqi subsidiary of Zain Group (Kuwait). Holds the largest paid-up capital on the ISX at over 1.8 trillion IQD.</p>
+  </div>
 
-  <h2>Live Data — البيانات المباشرة</h2>
-  <p>ISX Market provides real-time prices updated every 30 minutes during trading hours (Sunday–Thursday, approximately 10:00–14:00 Baghdad time). Historical price data extends back to 2015 for most companies. View live charts and technical analysis at <a href="/" style="color:#f59e0b">iraqsm.com</a>.</p>
+  <div class="psec">
+    <div class="sec-hdr">
+      <div class="sec-ico">⚡</div>
+      <div><div class="sec-ttl">Live Data — البيانات المباشرة</div></div>
+    </div>
+    <p>ISX Market provides real-time prices updated every 30 minutes during trading hours (Sunday–Thursday, ~10:00–14:00 Baghdad time). Historical price data extends back to 2015 for most companies.</p>
+    <p>View live charts and technical analysis at <a href="/">iraqsm.com</a>.</p>
+  </div>
+
 </div>
-<footer>
-  <a href="/" style="color:#f59e0b;text-decoration:none">← Back to Live Market Data</a><br><br>
-  © 2026 ISX Market · iraqsm.com · Data: Rabee Securities & ISC
+
+<footer class="foot">
+  <a href="/">← Back to Live Market Data</a>
+  <br><br>© 2026 ISX Market · iraqsm.com · Data: Rabee Securities & ISC
 </footer>
+
 </body>
 </html>
