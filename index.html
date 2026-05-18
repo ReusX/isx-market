@@ -1477,8 +1477,9 @@ function initMainChart(days=7) {
  const ro = new ResizeObserver(() => mainChart && mainChart.applyOptions({width:cont.clientWidth}));
  ro.observe(cont);
  // Auto-advance timeframe on zoom-out, or snap back if already at ALL
+ // Skip if container is hidden (home page not active) to avoid infinite loop
  setTimeout(() => {
-  if (!mainChart) return;
+  if (!mainChart || cont.clientWidth < 10) return;
   let _switching = false;
   const atMax = days >= MAIN_PERIODS[MAIN_PERIODS.length-1];
   mainChart.timeScale().subscribeVisibleLogicalRangeChange(range => {
