@@ -3,10 +3,11 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>سياسة الخصوصية | ISX Market</title>
-<meta name="description" content="سياسة الخصوصية لمنصة ISX Market لبورصة العراق. نحن لا نجمع بياناتك الشخصية.">
+<title>سياسة الخصوصية | Privacy Policy | ISX Market</title>
+<meta name="description" content="ISX Market privacy policy. We do not collect personal data. سياسة الخصوصية لمنصة ISX Market.">
 <link rel="canonical" href="https://iraqsm.com/privacy">
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23C8973D'/%3E%3Ctext x='50%25' y='54%25' dominant-baseline='middle' text-anchor='middle' font-family='Arial,sans-serif' font-size='38' font-weight='900' fill='%230C0C0E'%3E%D8%A8%3C/text%3E%3C/svg%3E">
+<script>(function(){var l=localStorage.getItem('lang')||'ar';var d=document.documentElement;d.setAttribute('data-lang',l);d.lang=l;d.dir=l==='ar'?'rtl':'ltr';})();</script>
 <style>
 @font-face{font-family:'ThmanyahText';src:url('/fonts/ThmanyahText-400-normal.woff2') format('woff2')}
 @font-face{font-family:'ThmanyahText';font-weight:500;src:url('/fonts/ThmanyahText-500-normal.woff2') format('woff2')}
@@ -16,6 +17,8 @@
 @font-face{font-family:'ThmanyahDisplay';font-weight:900;src:url('/fonts/ThmanyahDisplay-900-normal.woff2') format('woff2')}
 *{margin:0;padding:0;box-sizing:border-box}
 :root{--bg:#0C0C0E;--bg2:#131316;--bg3:#1A1A1F;--bg4:#222228;--bg5:#2A2A32;--border:#2E2E38;--border2:#3A3A46;--t1:#EDE8DC;--t2:#A09A8E;--t3:#6A6560;--ac:#C8973D;--ac2:#E8B86D;--acbg:rgba(200,151,61,.12);--gr:#2DD87A;--rd:#F05252;--font-text:'ThmanyahText','Segoe UI',Arial,sans-serif;--font-display:'ThmanyahDisplay','Segoe UI',Arial,sans-serif;--tr:.18s}
+[data-lang="en"] .ar{display:none!important}
+[data-lang="ar"] .en{display:none!important}
 body{background:var(--bg);color:var(--t1);font-family:var(--font-text);min-height:100vh;line-height:1.7}
 .nav{height:62px;background:var(--bg2);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 28px;gap:14px;position:sticky;top:0;z-index:200}
 .logo{display:flex;align-items:center;gap:10px;text-decoration:none;flex-shrink:0}
@@ -23,12 +26,14 @@ body{background:var(--bg);color:var(--t1);font-family:var(--font-text);min-heigh
 .logo-name{font-size:16px;font-weight:800;color:var(--t1)}
 .nav-div{width:1px;height:20px;background:var(--border)}
 .nav-page{font-size:13px;color:var(--t3)}
-.nav-end{margin-right:auto}
+.nav-end{margin-right:auto;display:flex;align-items:center;gap:8px}
+.lang-btn{background:transparent;border:1px solid var(--border);color:var(--t3);padding:4px 10px;border-radius:7px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;transition:var(--tr)}
+.lang-btn:hover{color:var(--t2);border-color:var(--t3)}
 .back{display:inline-flex;align-items:center;gap:6px;background:var(--bg3);border:1px solid var(--border);color:var(--t2);padding:7px 14px;border-radius:9px;font-size:13px;font-weight:600;text-decoration:none;transition:var(--tr)}
 .back:hover{background:var(--bg4);color:var(--t1)}
 .wrap{max-width:900px;margin:0 auto;padding:40px 24px 80px}
 .hero{margin-bottom:28px}
-.badge{display:inline-flex;align-items:center;gap:6px;background:var(--acbg);border:1px solid rgba(245,158,11,.3);color:var(--ac);padding:5px 14px;border-radius:20px;font-size:12px;font-weight:700;margin-bottom:16px}
+.badge{display:inline-flex;align-items:center;gap:6px;background:var(--acbg);border:1px solid rgba(200,151,61,.3);color:var(--ac);padding:5px 14px;border-radius:20px;font-size:12px;font-weight:700;margin-bottom:16px}
 .hero-title{font-size:28px;font-weight:800;color:var(--t1);margin-bottom:6px}
 .hero-date{font-size:13px;color:var(--t3)}
 .psec{background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:24px;margin-bottom:18px}
@@ -53,14 +58,17 @@ a:hover{text-decoration:underline}
 <nav class="nav">
   <a href="/" class="logo">
     <div class="logo-icon">ب</div>
-    <span class="logo-name">بورصة العراق</span>
+    <span class="logo-name ar">بورصة العراق</span>
+    <span class="logo-name en">ISX Market</span>
   </a>
   <div class="nav-div"></div>
-  <span class="nav-page">سياسة الخصوصية · Privacy</span>
+  <span class="nav-page ar">سياسة الخصوصية</span>
+  <span class="nav-page en">Privacy Policy</span>
   <div class="nav-end">
+    <button class="lang-btn" id="lang-btn" onclick="toggleLang()">EN</button>
     <a href="/" class="back">
       <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
-      رجوع · Back
+      <span class="ar">رجوع</span><span class="en">Back</span>
     </a>
   </div>
 </nav>
@@ -68,83 +76,114 @@ a:hover{text-decoration:underline}
 <div class="wrap">
 
   <div class="hero">
-    <div class="badge">🔒 الخصوصية · Privacy</div>
-    <h1 class="hero-title">سياسة الخصوصية · Privacy Policy</h1>
-    <div class="hero-date">آخر تحديث · Last updated: مايو 2026</div>
+    <div class="badge ar">🔒 الخصوصية</div>
+    <div class="badge en">🔒 Privacy</div>
+    <h1 class="hero-title ar">سياسة الخصوصية</h1>
+    <h1 class="hero-title en">Privacy Policy</h1>
+    <div class="hero-date ar">آخر تحديث: مايو 2026</div>
+    <div class="hero-date en">Last updated: May 2026</div>
   </div>
 
   <div class="psec">
     <div class="sec-hdr">
       <div class="sec-num">1</div>
-      <div class="sec-ttl">المعلومات التي نجمعها · Information We Collect</div>
+      <div class="sec-ttl ar">المعلومات التي نجمعها</div>
+      <div class="sec-ttl en">Information We Collect</div>
     </div>
-    <p>لا تجمع منصة ISX Market أي معلومات شخصية تعريفية. الموقع لا يتطلب تسجيل أو تسجيل دخول.</p>
-    <p>ISX Market does not collect any personally identifiable information. The site requires no registration or login.</p>
+    <p class="ar">لا تجمع منصة ISX Market أي معلومات شخصية تعريفية. الموقع لا يتطلب تسجيل أو تسجيل دخول.</p>
+    <p class="en">ISX Market does not collect any personally identifiable information. The site requires no registration or login.</p>
   </div>
 
   <div class="psec">
     <div class="sec-hdr">
       <div class="sec-num">2</div>
-      <div class="sec-ttl">ملفات تعريف الارتباط · Cookies</div>
+      <div class="sec-ttl ar">ملفات تعريف الارتباط</div>
+      <div class="sec-ttl en">Cookies</div>
     </div>
-    <p>يستخدم الموقع ذاكرة التصفح المحلية (localStorage / sessionStorage) لحفظ تفضيلات اللغة والوضع المظلم فقط. لا يتم إرسال هذه البيانات إلى أي خادم.</p>
-    <p>The site uses browser localStorage/sessionStorage to save language and dark mode preferences only. This data is never sent to any server.</p>
+    <p class="ar">يستخدم الموقع ذاكرة التصفح المحلية (localStorage / sessionStorage) لحفظ تفضيلات اللغة والوضع المظلم فقط. لا يتم إرسال هذه البيانات إلى أي خادم.</p>
+    <p class="en">The site uses browser localStorage/sessionStorage to save language and dark mode preferences only. This data is never sent to any server.</p>
   </div>
 
   <div class="psec">
     <div class="sec-hdr">
       <div class="sec-num">3</div>
-      <div class="sec-ttl">بيانات الاستخدام · Usage Data</div>
+      <div class="sec-ttl ar">بيانات الاستخدام</div>
+      <div class="sec-ttl en">Usage Data</div>
     </div>
-    <p>قد يتم جمع بيانات مجهولة الهوية عن الزيارات عبر GitHub Pages infrastructure. لا نستخدم Google Analytics أو أي أداة تتبع من طرف ثالث.</p>
-    <p>Anonymous visit data may be collected by GitHub Pages infrastructure. We do not use Google Analytics or any third-party tracking tool.</p>
+    <p class="ar">قد يتم جمع بيانات مجهولة الهوية عن الزيارات عبر GitHub Pages infrastructure. لا نستخدم Google Analytics أو أي أداة تتبع من طرف ثالث.</p>
+    <p class="en">Anonymous visit data may be collected by GitHub Pages infrastructure. We do not use Google Analytics or any third-party tracking tool.</p>
   </div>
 
   <div class="psec">
     <div class="sec-hdr">
       <div class="sec-num">4</div>
-      <div class="sec-ttl">مصادر البيانات المالية · Financial Data Sources</div>
+      <div class="sec-ttl ar">مصادر البيانات المالية</div>
+      <div class="sec-ttl en">Financial Data Sources</div>
     </div>
-    <p>البيانات المالية المعروضة مصدرها:</p>
-    <ul>
+    <p class="ar">البيانات المالية المعروضة مصدرها:</p>
+    <p class="en">The financial data displayed is sourced from:</p>
+    <ul class="ar">
       <li>ربيع للأوراق المالية (Rabee Securities) — أسعار الأسهم والمؤشرات</li>
       <li>هيئة الأوراق المالية العراقية (ISC) — بيانات الشركات</li>
     </ul>
-    <p>نحن لا ننتج هذه البيانات ولسنا مسؤولين عن دقتها. للاطلاع على البيانات الرسمية: <a href="https://isc.gov.iq" target="_blank">isc.gov.iq</a> أو <a href="https://rs.iq" target="_blank">rs.iq</a>.</p>
+    <ul class="en">
+      <li>Rabee Securities — stock prices and indices</li>
+      <li>Iraq Securities Commission (ISC) — company data</li>
+    </ul>
+    <p class="ar">نحن لا ننتج هذه البيانات ولسنا مسؤولين عن دقتها. للاطلاع على البيانات الرسمية: <a href="https://isc.gov.iq" target="_blank">isc.gov.iq</a> أو <a href="https://rs.iq" target="_blank">rs.iq</a>.</p>
+    <p class="en">We do not produce this data and are not responsible for its accuracy. For official data: <a href="https://isc.gov.iq" target="_blank">isc.gov.iq</a> or <a href="https://rs.iq" target="_blank">rs.iq</a>.</p>
   </div>
 
   <div class="psec">
     <div class="sec-hdr">
       <div class="sec-num">5</div>
-      <div class="sec-ttl">حقوق الملكية الفكرية · Intellectual Property</div>
+      <div class="sec-ttl ar">حقوق الملكية الفكرية</div>
+      <div class="sec-ttl en">Intellectual Property</div>
     </div>
-    <p>جميع بيانات الأسعار والمؤشرات هي ملك لأصحابها الأصليين (ربيع للأوراق المالية، هيئة الأوراق المالية العراقية). يُحظر إعادة نشر البيانات لأغراض تجارية.</p>
-    <p>All price and index data belongs to their respective owners. Redistribution for commercial purposes is prohibited.</p>
+    <p class="ar">جميع بيانات الأسعار والمؤشرات هي ملك لأصحابها الأصليين (ربيع للأوراق المالية، هيئة الأوراق المالية العراقية). يُحظر إعادة نشر البيانات لأغراض تجارية.</p>
+    <p class="en">All price and index data belongs to their respective owners (Rabee Securities, Iraq Securities Commission). Redistribution for commercial purposes is prohibited.</p>
   </div>
 
   <div class="psec">
     <div class="sec-hdr">
       <div class="sec-num">6</div>
-      <div class="sec-ttl">إخلاء المسؤولية · Disclaimer</div>
+      <div class="sec-ttl ar">إخلاء المسؤولية</div>
+      <div class="sec-ttl en">Disclaimer</div>
     </div>
-    <p>المعلومات المقدمة هي لأغراض إعلامية فقط ولا تُعدّ نصيحة استثمارية. ISX Market غير مسؤول عن أي خسائر ناجمة عن الاعتماد على هذه البيانات.</p>
-    <p>Information provided is for informational purposes only and does not constitute investment advice. ISX Market is not responsible for any losses resulting from reliance on this data.</p>
+    <p class="ar">المعلومات المقدمة هي لأغراض إعلامية فقط ولا تُعدّ نصيحة استثمارية. ISX Market غير مسؤول عن أي خسائر ناجمة عن الاعتماد على هذه البيانات.</p>
+    <p class="en">Information provided is for informational purposes only and does not constitute investment advice. ISX Market is not responsible for any losses resulting from reliance on this data.</p>
   </div>
 
   <div class="psec">
     <div class="sec-hdr">
       <div class="sec-num">7</div>
-      <div class="sec-ttl">التواصل · Contact</div>
+      <div class="sec-ttl ar">التواصل</div>
+      <div class="sec-ttl en">Contact</div>
     </div>
-    <p>لأي استفسار: <a href="mailto:info@iraqsm.com">info@iraqsm.com</a></p>
+    <p class="ar">لأي استفسار: <a href="mailto:info@iraqsm.com">info@iraqsm.com</a></p>
+    <p class="en">For any inquiries: <a href="mailto:info@iraqsm.com">info@iraqsm.com</a></p>
   </div>
 
 </div>
 
 <footer class="foot">
-  <a href="/">← العودة للرئيسية · Back to Home</a>
+  <span class="ar"><a href="/">← العودة للرئيسية</a></span>
+  <span class="en"><a href="/">← Back to Home</a></span>
   <br><br>© 2026 ISX Market · iraqsm.com
 </footer>
 
+<script>
+function toggleLang(){
+  var d=document.documentElement;
+  var l=d.getAttribute('data-lang')==='ar'?'en':'ar';
+  localStorage.setItem('lang',l);
+  d.setAttribute('data-lang',l);d.lang=l;d.dir=l==='ar'?'rtl':'ltr';
+  document.getElementById('lang-btn').textContent=l==='ar'?'EN':'عر';
+}
+(function(){
+  var l=localStorage.getItem('lang')||'ar';
+  document.getElementById('lang-btn').textContent=l==='ar'?'EN':'عر';
+})();
+</script>
 </body>
 </html>

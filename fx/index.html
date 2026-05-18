@@ -193,11 +193,13 @@ const T={
   ar:{site:'بورصة العراق',page:'بيش الدولار',back:'رجوع',black:'السوق الموازية — الدولار',official:'السعر الرسمي — البنك المركزي',updated:'آخر تحديث',perusd:'لكل دولار أمريكي',conv:'المحوّل',amt:'المبلغ',cur:'العملة',iniqd:'بالدينار العراقي',tbl:'أهم العملات مقابل الدينار',thCur:'العملة',thRate:'1 وحدة = دينار',thInv:'1000 دينار =',note:'المصدر: السوق الموازية للدولار من egcurrency.com، وبقية العملات محتسبة عبر أسعار الصرف الدولية. للأغراض المعلوماتية فقط.',rate:(c,v)=>`سعر الصرف: 1 ${c} = ${v.toLocaleString()} دينار`,name:c=>c.ar},
   en:{site:'ISX Market',page:'IQD ⇄ USD',back:'Back',black:'USD — Black Market',official:'Official Rate (CBI)',updated:'Last Updated',perusd:'per US Dollar',conv:'Converter',amt:'Amount',cur:'Currency',iniqd:'In Iraqi Dinar',tbl:'Top Currencies vs IQD',thCur:'Currency',thRate:'1 unit = IQD',thInv:'1,000 IQD =',note:'Source: USD black-market rate from egcurrency.com. Other currencies via international FX rates. Informational only.',rate:(c,v)=>`Rate: 1 ${c} = ${v.toLocaleString()} IQD`,name:c=>c.en},
 };
-let L='ar';
+let L=localStorage.getItem('lang')||'ar';
 function setLang(l){
   L=l;
+  localStorage.setItem('lang',l);
   document.documentElement.lang=l;
   document.documentElement.dir=l==='ar'?'rtl':'ltr';
+  document.documentElement.setAttribute('data-lang',l);
   document.getElementById('btn-ar').classList.toggle('on',l==='ar');
   document.getElementById('btn-en').classList.toggle('on',l==='en');
   const t=T[l];
@@ -226,7 +228,7 @@ function calc(){
   document.getElementById('c-out').textContent=(amt*c.iqd).toLocaleString(undefined,{maximumFractionDigits:0})+' IQD';
   document.getElementById('c-rate').textContent=T[L].rate(c.code,c.iqd);
 }
-buildSelect(); buildTable(); calc();
+setLang(L);
 </script>
 </body>
 </html>
