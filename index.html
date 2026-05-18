@@ -1476,17 +1476,22 @@ function initMainChart(days=7) {
  mainChart.timeScale().fitContent();
  const ro = new ResizeObserver(() => mainChart && mainChart.applyOptions({width:cont.clientWidth}));
  ro.observe(cont);
- // Auto-advance to next timeframe when user zooms out past the data
- // Delay listener so fitContent() animation doesn't falsely trigger it
+ // Auto-advance timeframe on zoom-out, or snap back if already at ALL
  setTimeout(() => {
   if (!mainChart) return;
   let _switching = false;
+  const atMax = days >= MAIN_PERIODS[MAIN_PERIODS.length-1];
   mainChart.timeScale().subscribeVisibleLogicalRangeChange(range => {
-   if (_switching || !range || days >= MAIN_PERIODS[MAIN_PERIODS.length-1]) return;
+   if (_switching || !range) return;
    if (range.from < -2) {
     _switching = true;
-    const next = MAIN_PERIODS[MAIN_PERIODS.indexOf(days) + 1];
-    if (next) setTimeout(() => setMainPeriod(next), 50);
+    if (atMax) {
+     mainChart.timeScale().fitContent();
+     setTimeout(() => { _switching = false; }, 400);
+    } else {
+     const next = MAIN_PERIODS[MAIN_PERIODS.indexOf(days) + 1];
+     if (next) setTimeout(() => setMainPeriod(next), 50);
+    }
    }
   });
  }, 400);
