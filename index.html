@@ -98,8 +98,15 @@ a{color:inherit;text-decoration:none}button{cursor:pointer;border:none;backgroun
 .nav-logo{display:flex;align-items:center;gap:10px;font-family:var(--font-display);font-weight:900;font-size:19px;color:var(--t1);margin-inline-end:28px;flex-shrink:0;cursor:pointer}
 .logo-icon{width:34px;height:34px;border-radius:8px;background:var(--ac);display:flex;align-items:center;justify-content:center;font-size:17px;font-weight:900;color:#0C0C0E}
 .nav-links{display:flex;align-items:center;gap:2px;flex:1;list-style:none}
-.nav-links a{padding:6px 13px;border-radius:8px;font-size:13px;font-weight:500;color:var(--t2);transition:all var(--tr);white-space:nowrap}
-.nav-links a:hover,.nav-links a.active{background:var(--bg4);color:var(--t1)}.nav-links a.active{color:var(--ac)}
+.nav-links a,.nav-dd-btn{padding:6px 13px;border-radius:8px;font-size:13px;font-weight:700;color:var(--t1);transition:all var(--tr);white-space:nowrap;background:none;border:none;cursor:pointer;font-family:inherit;display:inline-flex;align-items:center;gap:5px}
+.nav-links a:hover,.nav-links a.active,.nav-dd-btn:hover{background:var(--bg4)}.nav-links a.active{color:var(--ac)}
+.has-dd{position:relative}.nav-dd-btn{padding:6px 13px}
+.dd-chev{width:10px;height:10px;flex-shrink:0;opacity:.55;transition:transform var(--tr)}
+.has-dd:hover .dd-chev{transform:rotate(180deg)}
+.nav-dd{position:absolute;top:calc(100% + 6px);inset-inline-start:0;background:var(--bg3);border:1px solid var(--border);border-radius:12px;padding:6px;min-width:175px;opacity:0;visibility:hidden;transform:translateY(-6px);transition:all var(--tr);z-index:500;box-shadow:0 8px 32px rgba(0,0,0,.4)}
+.has-dd:hover .nav-dd,.has-dd.open .nav-dd{opacity:1;visibility:visible;transform:translateY(0)}
+.nav-dd a{display:block;padding:9px 13px;border-radius:8px;color:var(--t2);font-size:13px;font-weight:600;transition:var(--tr);white-space:nowrap}
+.nav-dd a:hover{background:var(--bg4);color:var(--t1)}
 .nav-right{display:flex;align-items:center;gap:6px;margin-inline-start:auto}
 .search-wrap{display:flex;align-items:center;gap:8px;background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:7px 13px;min-width:200px;transition:all var(--tr)}
 .search-wrap:focus-within{border-color:var(--ac);box-shadow:0 0 0 3px var(--acbg)}
@@ -161,7 +168,7 @@ a{color:inherit;text-decoration:none}button{cursor:pointer;border:none;backgroun
 .idx-ch{margin-top:3px;font-size:12px;font-weight:600}
 .stabs{display:flex;gap:5px;overflow-x:auto;padding-bottom:2px;margin-bottom:14px;scrollbar-width:none}
 .stabs::-webkit-scrollbar{display:none}
-.stab{padding:7px 15px;border-radius:9px;white-space:nowrap;font-size:12px;font-weight:700;flex-shrink:0;background:var(--bg3);border:1px solid var(--border);color:var(--t2);transition:all var(--tr)}
+.stab{padding:7px 15px;border-radius:9px;white-space:nowrap;font-size:12px;font-weight:700;flex-shrink:0;background:var(--bg3);border:1px solid var(--border);color:var(--t1);transition:all var(--tr)}
 .stab:hover{color:var(--t1);border-color:var(--border2)}.stab.active{background:var(--acbg);border-color:var(--ac);color:var(--ac)}
 .tbl-wrap{background:var(--bg3);border:1px solid var(--border);border-radius:16px;overflow:hidden}
 .dtbl{width:100%;border-collapse:collapse;font-size:13px}
@@ -275,7 +282,7 @@ footer{background:var(--bg2);border-top:1px solid var(--border);padding:44px 24p
   .nav-logo{margin-inline-end:0}
   .search-wrap{display:none}
   .cur-btn{display:none}
-  .lang-btn{display:none}
+  /* lang-btn visible on mobile */
   #theme-btn{display:none}
   .mob-menu-btn{display:flex!important}
   .nav-inner{padding:0 12px;gap:8px;justify-content:space-between}
@@ -398,12 +405,23 @@ footer{background:var(--bg2);border-top:1px solid var(--border);padding:44px 24p
    <span class="ar">بورصة العراق</span><span class="en">ISX Market</span>
   </div>
   <ul class="nav-links">
-   <li><a href="/" onclick="navHome();scrollToSection('#hero');return false;" class="ar">السوق</a><a href="/" onclick="navHome();scrollToSection('#hero');return false;" class="en">Market</a></li>
-   <li><a href="/" onclick="navHome();scrollToSection('#indices');return false;" class="ar">المؤشرات</a><a href="/" onclick="navHome();scrollToSection('#indices');return false;" class="en">Indices</a></li>
-   <li><a href="/" onclick="navHome();scrollToSection('#news');return false;" class="ar">الأخبار</a><a href="/" onclick="navHome();scrollToSection('#news');return false;" class="en">News</a></li>
-   <li><a href="/" onclick="navHome();scrollToSection('#brokers');return false;" class="ar">الوسطاء</a><a href="/" onclick="navHome();scrollToSection('#brokers');return false;" class="en">Brokers</a></li>
-   <li><a href="/research" onclick="window.location.href='/research';return false;" class="ar">الأبحاث</a><a href="/research" onclick="window.location.href='/research';return false;" class="en">Research</a></li>
-   <li><a href="/fx" onclick="navFX();return false;" class="ar">بيش الدولار</a><a href="/fx" onclick="navFX();return false;" class="en">IQD ⇄ USD</a></li>
+   <li><a href="/brokers" onclick="window.location.href='/brokers';return false;" class="ar">أفضل الوسطاء</a><a href="/brokers" onclick="window.location.href='/brokers';return false;" class="en">Best Brokers</a></li>
+   <li class="has-dd">
+    <button class="nav-dd-btn"><span class="ar">مقالات</span><span class="en">Articles</span><svg class="dd-chev" viewBox="0 0 10 6" fill="none"><path d="M1 1l4 4 4-4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+    <div class="nav-dd">
+     <a href="/learn" onclick="window.location.href='/learn';return false;"><span class="ar">تعلّم</span><span class="en">Learn</span></a>
+     <a href="/news" onclick="window.location.href='/news';return false;"><span class="ar">الأخبار</span><span class="en">News</span></a>
+     <a href="/research" onclick="window.location.href='/research';return false;"><span class="ar">الأبحاث</span><span class="en">Research</span></a>
+    </div>
+   </li>
+   <li class="has-dd">
+    <button class="nav-dd-btn"><span class="ar">السوق</span><span class="en">Market</span><svg class="dd-chev" viewBox="0 0 10 6" fill="none"><path d="M1 1l4 4 4-4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+    <div class="nav-dd">
+     <a href="/" onclick="navHome();return false;"><span class="ar">بورصة العراق</span><span class="en">Iraqi Stock Market</span></a>
+     <a href="/us-market" onclick="window.location.href='/us-market';return false;"><span class="ar">السوق الأمريكي</span><span class="en">US Stock Market</span></a>
+    </div>
+   </li>
+   <li><a href="/fx" onclick="navFX();return false;">IQD ⇄ USD</a></li>
   </ul>
   <div class="nav-right">
    <div class="search-wrap">
@@ -424,15 +442,19 @@ footer{background:var(--bg2);border-top:1px solid var(--border);padding:44px 24p
   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
   <input type="text" placeholder="" oninput="handleSearch(this.value);document.getElementById('search-inp').value=this.value">
  </div>
- <a href="/" onclick="navHome();closeMobNav();scrollToSection('#hero');return false;"><span class="ar">السوق</span><span class="en">Market</span></a>
- <a href="/" onclick="navHome();scrollToSection('#indices');closeMobNav();return false;"><span class="ar">المؤشرات</span><span class="en">Indices</span></a>
- <a href="/" onclick="navHome();scrollToSection('#news');closeMobNav();return false;"><span class="ar">الأخبار</span><span class="en">News</span></a>
- <a href="/" onclick="navHome();scrollToSection('#brokers');closeMobNav();return false;"><span class="ar">الوسطاء</span><span class="en">Brokers</span></a>
- <a href="/research" onclick="window.location.href='/research';return false;"><span class="ar">الأبحاث</span><span class="en">Research</span></a>
- <a href="/fx" onclick="navFX();closeMobNav();return false;"><span class="ar">بيش الدولار</span><span class="en">IQD ⇄ USD</span></a>
+ <a href="/brokers" onclick="window.location.href='/brokers';closeMobNav();return false;"><span class="ar">أفضل الوسطاء</span><span class="en">Best Brokers</span></a>
+ <div class="mob-nav-divider"></div>
+ <div style="padding:6px 16px 2px;font-size:11px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.5px"><span class="ar">مقالات</span><span class="en">Articles</span></div>
+ <a href="/learn" onclick="window.location.href='/learn';closeMobNav();return false;"><span class="ar">تعلّم</span><span class="en">Learn</span></a>
+ <a href="/news" onclick="window.location.href='/news';closeMobNav();return false;"><span class="ar">الأخبار</span><span class="en">News</span></a>
+ <a href="/research" onclick="window.location.href='/research';closeMobNav();return false;"><span class="ar">الأبحاث</span><span class="en">Research</span></a>
+ <div class="mob-nav-divider"></div>
+ <div style="padding:6px 16px 2px;font-size:11px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.5px"><span class="ar">السوق</span><span class="en">Market</span></div>
+ <a href="/" onclick="navHome();closeMobNav();return false;"><span class="ar">بورصة العراق</span><span class="en">Iraqi Stock Market</span></a>
+ <a href="/us-market" onclick="window.location.href='/us-market';closeMobNav();return false;"><span class="ar">السوق الأمريكي</span><span class="en">US Stock Market</span></a>
+ <a href="/fx" onclick="navFX();closeMobNav();return false;">IQD ⇄ USD</a>
  <div class="mob-nav-divider"></div>
  <a href="/about"><span class="ar">عن الموقع</span><span class="en">About</span></a>
- <a href="/research"><span class="ar">أبحاث السوق</span><span class="en">Market Research</span></a>
  <a href="/privacy"><span class="ar">سياسة الخصوصية</span><span class="en">Privacy</span></a>
  <div class="mob-nav-divider"></div>
  <div class="mob-nav-controls">
@@ -574,28 +596,21 @@ footer{background:var(--bg2);border-top:1px solid var(--border);padding:44px 24p
   <div class="psec" id="news">
    <div class="sec-hdr">
     <h2 class="sec-ttl ar">أخبار السوق</h2><h2 class="sec-ttl en">Market News</h2>
-    <a href="https://rs.iq/isx-news-list/" target="_blank" style="font-size:12px;color:var(--ac);font-weight:700;padding:6px 13px;border:1px solid var(--ac);border-radius:8px;background:var(--acbg)">
-     <span class="ar">المزيد ↗</span><span class="en">More ↗</span>
+    <a href="/news" onclick="window.location.href='/news';return false;" style="font-size:12px;color:var(--ac);font-weight:700;padding:6px 13px;border:1px solid var(--ac);border-radius:8px;background:var(--acbg)">
+     <span class="ar">جميع الأخبار ↗</span><span class="en">All News ↗</span>
     </a>
    </div>
    <div class="news-grid" id="news-main"></div>
   </div>
 
-  <!-- BROKERS -->
-  <div class="psec" id="brokers">
-   <div class="sec-hdr">
-    <h2 class="sec-ttl ar">وسطاء معتمدون</h2><h2 class="sec-ttl en">Trusted Brokers</h2>
-    <a href="http://www.isx-iq.net/isxportal/portal/brokerListContainer.html" target="_blank" style="font-size:12px;color:var(--ac);font-weight:700;padding:6px 13px;border:1px solid var(--ac);border-radius:8px;background:var(--acbg)">
-     <span class="ar">جميع الوسطاء ↗</span><span class="en">All Brokers ↗</span>
-    </a>
-   </div>
-   <div class="brokers-grid" id="brokers-grid"></div>
-  </div>
 
   <!-- RESEARCH -->
   <div class="psec" id="research">
    <div class="sec-hdr">
     <h2 class="sec-ttl ar">مركز الأبحاث</h2><h2 class="sec-ttl en">Research Center</h2>
+    <a href="/research" onclick="window.location.href='/research';return false;" style="font-size:12px;color:var(--ac);font-weight:700;padding:6px 13px;border:1px solid var(--ac);border-radius:8px;background:var(--acbg)">
+     <span class="ar">جميع الأبحاث ↗</span><span class="en">All Research ↗</span>
+    </a>
    </div>
    <div class="research-grid" id="research-grid"></div>
   </div>
@@ -612,15 +627,15 @@ footer{background:var(--bg2);border-top:1px solid var(--border);padding:44px 24p
     </div>
     <div class="f-col">
      <h4 class="ar">روابط سريعة</h4><h4 class="en">Quick Links</h4>
-     <ul><li><a href="#" onclick="showPage('home')"><span class="ar">الرئيسية</span><span class="en">Home</span></a></li><li><a href="#" onclick="scrollToSection('#indices')"><span class="ar">المؤشرات</span><span class="en">Indices</span></a></li><li><a href="#" onclick="scrollToSection('#news')"><span class="ar">الأخبار</span><span class="en">News</span></a></li><li><a href="#" onclick="scrollToSection('#brokers')"><span class="ar">الوسطاء</span><span class="en">Brokers</span></a></li><li><a href="/research"><span class="ar">أبحاث السوق</span><span class="en">Market Research</span></a></li><li><a href="/about"><span class="ar">عن الموقع</span><span class="en">About</span></a></li><li><a href="/privacy"><span class="ar">سياسة الخصوصية</span><span class="en">Privacy Policy</span></a></li></ul>
+     <ul><li><a href="/" onclick="navHome();return false;"><span class="ar">الرئيسية</span><span class="en">Home</span></a></li><li><a href="/brokers"><span class="ar">أفضل الوسطاء</span><span class="en">Best Brokers</span></a></li><li><a href="/fx"><span class="ar">IQD ⇄ USD</span><span class="en">IQD ⇄ USD</span></a></li><li><a href="/about"><span class="ar">عن الموقع</span><span class="en">About</span></a></li><li><a href="/privacy"><span class="ar">الخصوصية</span><span class="en">Privacy</span></a></li></ul>
     </div>
     <div class="f-col">
-     <h4 class="ar">روابط خارجية</h4><h4 class="en">External Links</h4>
-     <ul><li><a href="http://www.isx-iq.net" target="_blank">ISX Portal</a></li><li><a href="https://www.isc.gov.iq" target="_blank">Iraqi Securities Commission</a></li><li><a href="http://www.cbi.iq" target="_blank">Central Bank of Iraq</a></li><li><a href="https://rs.iq" target="_blank">Rabee Securities</a></li></ul>
+     <h4 class="ar">مقالات</h4><h4 class="en">Articles</h4>
+     <ul><li><a href="/learn"><span class="ar">تعلّم</span><span class="en">Learn</span></a></li><li><a href="/news"><span class="ar">الأخبار</span><span class="en">News</span></a></li><li><a href="/research"><span class="ar">الأبحاث</span><span class="en">Research</span></a></li></ul>
     </div>
     <div class="f-col">
-     <h4 class="ar">تواصل</h4><h4 class="en">Contact</h4>
-     <ul><li><a href="mailto:info@isx-iq.net">info@isx-iq.net</a></li><li><a href="http://www.isx-iq.net/isxportal/portal/contactus.html" target="_blank"><span class="ar">اتصل بنا</span><span class="en">Contact Us</span></a></li></ul>
+     <h4 class="ar">مصادر البيانات</h4><h4 class="en">Data Sources</h4>
+     <ul><li><a href="https://rs.iq" target="_blank">Rabee Securities</a></li><li><a href="https://isc.gov.iq" target="_blank">Iraq Securities Commission</a></li><li><a href="http://www.isx-iq.net" target="_blank">ISX Portal</a></li><li><a href="http://www.cbi.iq" target="_blank">Central Bank of Iraq</a></li></ul>
     </div>
    </div>
    <div class="f-disc"><span class="ar">إخلاء المسؤولية: البيانات للأغراض المعلوماتية فقط وليست نصيحة استثمارية. يُرجى مراجعة وسيط مرخص قبل اتخاذ أي قرار.</span><span class="en">Disclaimer: Data for informational purposes only. Not investment advice. Consult a licensed broker before any investment decision.</span></div>
@@ -2126,6 +2141,7 @@ function buildNews() {
 // ===================== BROKERS =====================
 function buildBrokers() {
  const g=document.getElementById('brokers-grid');
+ if(!g) return;
  if(!g) return;
  const a=ar();
  g.innerHTML=BROKERS.map(b=>`
