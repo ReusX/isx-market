@@ -402,7 +402,7 @@ footer{background:var(--bg2);border-top:1px solid var(--border);padding:44px 24p
    <li><a href="/" onclick="navHome();scrollToSection('#indices');return false;" class="ar">المؤشرات</a><a href="/" onclick="navHome();scrollToSection('#indices');return false;" class="en">Indices</a></li>
    <li><a href="/" onclick="navHome();scrollToSection('#news');return false;" class="ar">الأخبار</a><a href="/" onclick="navHome();scrollToSection('#news');return false;" class="en">News</a></li>
    <li><a href="/" onclick="navHome();scrollToSection('#brokers');return false;" class="ar">الوسطاء</a><a href="/" onclick="navHome();scrollToSection('#brokers');return false;" class="en">Brokers</a></li>
-   <li><a href="/research" class="ar">الأبحاث</a><a href="/research" class="en">Research</a></li>
+   <li><a href="/research" onclick="window.location.href='/research';return false;" class="ar">الأبحاث</a><a href="/research" onclick="window.location.href='/research';return false;" class="en">Research</a></li>
    <li><a href="/fx" onclick="navFX();return false;" class="ar">بيش الدولار</a><a href="/fx" onclick="navFX();return false;" class="en">IQD ⇄ USD</a></li>
   </ul>
   <div class="nav-right">
@@ -428,7 +428,7 @@ footer{background:var(--bg2);border-top:1px solid var(--border);padding:44px 24p
  <a href="/" onclick="navHome();scrollToSection('#indices');closeMobNav();return false;"><span class="ar">المؤشرات</span><span class="en">Indices</span></a>
  <a href="/" onclick="navHome();scrollToSection('#news');closeMobNav();return false;"><span class="ar">الأخبار</span><span class="en">News</span></a>
  <a href="/" onclick="navHome();scrollToSection('#brokers');closeMobNav();return false;"><span class="ar">الوسطاء</span><span class="en">Brokers</span></a>
- <a href="/research"><span class="ar">الأبحاث</span><span class="en">Research</span></a>
+ <a href="/research" onclick="window.location.href='/research';return false;"><span class="ar">الأبحاث</span><span class="en">Research</span></a>
  <a href="/fx" onclick="navFX();closeMobNav();return false;"><span class="ar">بيش الدولار</span><span class="en">IQD ⇄ USD</span></a>
  <div class="mob-nav-divider"></div>
  <a href="/about"><span class="ar">عن الموقع</span><span class="en">About</span></a>
@@ -2430,7 +2430,7 @@ document.addEventListener('DOMContentLoaded',()=>{
  buildResearch();
  // Apply saved language preference
  const _sl=localStorage.getItem('lang');
- if(_sl&&_sl!=='ar') applyLang(_sl);
+ if(_sl&&_sl!=='ar'){ applyLang(_sl); if(location.pathname==='/'||location.pathname==='') history.replaceState({},'','/en'); }
  setTimeout(initMainChart,200);
  fetchLive();
  setInterval(fetchLive,1800000); // refresh every 30 minutes
