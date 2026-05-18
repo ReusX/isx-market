@@ -268,39 +268,84 @@ footer{background:var(--bg2);border-top:1px solid var(--border);padding:44px 24p
 [data-lang="en"] .ar{display:none!important}[data-lang="ar"] .en{display:none!important}
 @media(max-width:1100px){.hero{grid-template-columns:1fr}.cp-top{grid-template-columns:1fr}.footer-top{grid-template-columns:1fr 1fr}}
 @media(max-width:768px){
+  /* ── Nav: logo icon only + hamburger, hide everything else ── */
   .nav-links{display:none}
-  .mob-menu-btn{display:flex!important}
+  .nav-logo span{display:none}
+  .nav-logo{margin-inline-end:0}
   .search-wrap{display:none}
-  .nav-inner{padding:0 14px;gap:6px}
-  .main-wrap{padding:12px 12px 40px}
-  .cp-body{padding:12px 12px 40px}
-  .hero{grid-template-columns:1fr;gap:12px}
-  .news-grid{grid-template-columns:1fr}
-  .footer-top{grid-template-columns:1fr}
-  .footer-bot{flex-direction:column;align-items:flex-start;gap:8px}
+  .cur-btn{display:none}
+  .lang-btn{display:none}
+  #theme-btn{display:none}
+  .mob-menu-btn{display:flex!important}
+  .nav-inner{padding:0 12px;gap:8px;justify-content:space-between}
+  .nav-right{gap:4px}
+
+  /* ── Mobile nav dropdown ── */
+  #mob-nav{display:none;position:fixed;top:62px;left:0;right:0;z-index:999;background:var(--bg2);border-bottom:2px solid var(--border);padding:12px;flex-direction:column;gap:2px;max-height:calc(100vh - 62px);overflow-y:auto}
+  #mob-nav.open{display:flex}
+  #mob-nav a{padding:12px 16px;border-radius:10px;font-size:15px;font-weight:600;color:var(--t2);display:block}
+  #mob-nav a:active{background:var(--bg4);color:var(--t1)}
+  .mob-nav-divider{height:1px;background:var(--border);margin:6px 0}
+  .mob-nav-controls{display:flex;gap:8px;padding:8px 0 4px}
+  .mob-search{display:flex!important;background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:10px 14px;gap:8px;align-items:center;margin-bottom:6px}
+  .mob-search input{background:none;border:none;outline:none;color:var(--t1);font-family:var(--font-text);font-size:15px;flex:1;min-width:0}
+
+  /* ── Layout ── */
+  .main-wrap{padding:10px 10px 40px}
+  .cp-body{padding:10px 10px 40px}
+  .hero{grid-template-columns:1fr;gap:10px}
+  .hero-stats{padding:16px}
+  .idx-value{font-size:36px}
+  .metrics-grid{grid-template-columns:1fr 1fr}
+  #main-chart{min-height:220px}
+
+  /* ── Sector indices ── */
+  .idx-grid{grid-template-columns:repeat(2,1fr);gap:8px}
+  .idx-v{font-size:18px}
+
+  /* ── Table ── */
   .tbl-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
-  .dtbl{min-width:620px}
-  .idx-value{font-size:34px}
-  .idx-grid{grid-template-columns:repeat(2,1fr)}
-  .cp-price{font-size:30px}
-  .chart-toolbar{gap:3px;padding:8px 10px}
-  .ct-btn{padding:4px 7px;font-size:10px}
-  .pbtn{padding:4px 8px;font-size:10px}
-  .sec-ttl{font-size:17px}
-  .brokers-grid{grid-template-columns:1fr}
-  .research-grid{grid-template-columns:1fr}
-  .cp-header{padding:0 12px}
+  .dtbl{min-width:600px}
+  .stabs{gap:4px}
+  .stab{padding:6px 12px;font-size:11px}
+
+  /* ── News ── */
+  .news-grid{grid-template-columns:1fr}
+
+  /* ── Company page ── */
+  .cp-header{padding:0 10px}
   .cp-header-inner{gap:8px;height:52px}
   .cp-sym{font-size:15px}
+  .cp-name{display:none}
+  .cp-isx-link{padding:5px 10px;font-size:11px}
   .cp-isx-link span{display:none}
-  footer{padding:28px 14px 16px}
-  .scroll-top{bottom:14px;right:14px;width:36px;height:36px;font-size:14px}
-  #mob-nav{display:none;position:fixed;top:62px;left:0;right:0;z-index:999;background:var(--bg2);border-bottom:1px solid var(--border);padding:10px 14px;flex-direction:column;gap:2px}
-  #mob-nav.open{display:flex}
-  #mob-nav a{padding:11px 14px;border-radius:9px;font-size:14px;font-weight:600;color:var(--t2);display:block}
-  #mob-nav a:hover,#mob-nav a:active{background:var(--bg4);color:var(--t1)}
-  .mob-search{display:flex!important;margin:6px 0 4px;background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:9px 13px;gap:8px;align-items:center}
-  .mob-search input{background:none;border:none;outline:none;color:var(--t1);font-family:var(--font-text);font-size:14px;flex:1;min-width:0}
+  .cp-top{grid-template-columns:1fr;gap:10px}
+  .cp-price{font-size:28px}
+  .cp-stats{padding:14px}
+  .chart-toolbar{gap:3px;padding:8px 10px;overflow-x:auto;flex-wrap:nowrap}
+  .chart-toolbar::-webkit-scrollbar{display:none}
+  .ct-btn{padding:4px 8px;font-size:10px;white-space:nowrap}
+  .ind-btn{padding:4px 8px;font-size:10px}
+  .fullscreen-btn{display:none}
+  #cp-chart-container{height:280px}
+  .pbtn{padding:4px 8px;font-size:10px}
+  .sec-ttl{font-size:16px}
+  .psec{margin-bottom:16px}
+
+  /* ── Brokers / Research ── */
+  .brokers-grid{grid-template-columns:1fr}
+  .research-grid{grid-template-columns:1fr}
+
+  /* ── Footer ── */
+  footer{padding:24px 12px 14px}
+  .footer-top{grid-template-columns:1fr;gap:20px}
+  .footer-bot{flex-direction:column;align-items:flex-start;gap:8px}
+  .f-desc{max-width:100%}
+
+  /* ── Misc ── */
+  .scroll-top{bottom:12px;right:12px;width:36px;height:36px;font-size:14px}
+  .status-bar{font-size:11px;padding:6px 10px}
+  .sec-hdr{margin-bottom:10px}
 }
 
 /* ─── TECHNICAL ANALYSIS ─── */
@@ -377,13 +422,22 @@ footer{background:var(--bg2);border-top:1px solid var(--border);padding:44px 24p
   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
   <input type="text" placeholder="" oninput="handleSearch(this.value);document.getElementById('search-inp').value=this.value">
  </div>
- <a href="/" onclick="navHome();closeMobNav();return false;"><span class="ar">السوق</span><span class="en">Market</span></a>
+ <a href="/" onclick="navHome();closeMobNav();scrollToSection('#hero');return false;"><span class="ar">السوق</span><span class="en">Market</span></a>
  <a href="/" onclick="navHome();scrollToSection('#indices');closeMobNav();return false;"><span class="ar">المؤشرات</span><span class="en">Indices</span></a>
  <a href="/" onclick="navHome();scrollToSection('#news');closeMobNav();return false;"><span class="ar">الأخبار</span><span class="en">News</span></a>
  <a href="/" onclick="navHome();scrollToSection('#brokers');closeMobNav();return false;"><span class="ar">الوسطاء</span><span class="en">Brokers</span></a>
  <a href="/" onclick="navHome();scrollToSection('#research');closeMobNav();return false;"><span class="ar">الأبحاث</span><span class="en">Research</span></a>
  <a href="/fx" onclick="navFX();closeMobNav();return false;"><span class="ar">بيش الدولار</span><span class="en">IQD ⇄ USD</span></a>
+ <div class="mob-nav-divider"></div>
  <a href="/about"><span class="ar">عن الموقع</span><span class="en">About</span></a>
+ <a href="/research"><span class="ar">أبحاث السوق</span><span class="en">Market Research</span></a>
+ <a href="/privacy"><span class="ar">سياسة الخصوصية</span><span class="en">Privacy</span></a>
+ <div class="mob-nav-divider"></div>
+ <div class="mob-nav-controls">
+  <button class="lang-btn" onclick="toggleLang()">EN / عربي</button>
+  <button class="cur-btn" onclick="toggleCurrency()">IQD / USD</button>
+  <button class="icon-btn" onclick="toggleTheme()">🌙</button>
+ </div>
 </div>
 
 <!-- TICKER -->
