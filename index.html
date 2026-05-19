@@ -167,8 +167,12 @@ a{color:inherit;text-decoration:none}button{cursor:pointer;border:none;backgroun
 .idx-card{background:var(--bg3);border:1px solid var(--border);border-radius:14px;padding:16px;transition:all var(--tr);cursor:pointer}
 .idx-card:hover{border-color:var(--ac);box-shadow:0 0 0 1px var(--ac),var(--sh2);transform:translateY(-1px)}
 .idx-nm{font-size:12px;color:var(--t1);font-weight:700;margin-bottom:5px}
-.idx-v{font-family:var(--font-display);font-size:22px;font-weight:700;color:var(--t1)}
+.idx-v{font-family:var(--font-display);font-size:20px;font-weight:700;color:var(--t1);line-height:1.2}
+.idx-mcap-lbl{font-size:10px;color:var(--t3);font-weight:600;text-transform:uppercase;letter-spacing:.4px;margin-bottom:2px}
 .idx-ch{margin-top:3px;font-size:12px;font-weight:600}
+#tbl-body{transition:opacity .35s}
+#tbl-body.loading{opacity:.25}
+#ticker-inner.loading{opacity:.25}
 .stabs{display:flex;gap:5px;overflow-x:auto;padding-bottom:2px;margin-bottom:14px;scrollbar-width:none}
 .stabs::-webkit-scrollbar{display:none}
 .stab{padding:7px 15px;border-radius:9px;white-space:nowrap;font-size:12px;font-weight:700;flex-shrink:0;background:var(--bg3);border:1px solid var(--border);color:var(--t1);transition:all var(--tr)}
@@ -1035,8 +1039,15 @@ function loadHist(){
  _histReady=fetch('./data/hist.json?t='+Math.floor(Date.now()/86400000))
   .then(r=>r.json()).then(d=>{
    HIST=d.s; HISTL=d.l;
-   if(d.rsisx_s && d.rsisx_s.length) { IDX_REAL.length=0; d.rsisx_s.forEach(p=>IDX_REAL.push(p)); }
-   if(d.rsisx_l && d.rsisx_l.length) { IDXL.length=0; d.rsisx_l.forEach(p=>IDXL.push(p)); }
+   // Only append NEW points — preserves pre-API historical data and skips bad out-of-order API points
+   if(d.rsisx_s && d.rsisx_s.length) {
+    const lastTs=IDX_REAL.length?IDX_REAL[IDX_REAL.length-1][0]:0;
+    d.rsisx_s.filter(p=>p[0]>lastTs).forEach(p=>IDX_REAL.push(p));
+   }
+   if(d.rsisx_l && d.rsisx_l.length) {
+    const lastTs=IDXL.length?IDXL[IDXL.length-1][0]:0;
+    d.rsisx_l.filter(p=>p[0]>lastTs).forEach(p=>IDXL.push(p));
+   }
   }).catch(()=>{HIST={};HISTL={};});
  return _histReady;
 }
@@ -1318,6 +1329,8 @@ function toggleCurrency() {
   const v = parseFloat(el.dataset.vol);
   el.textContent = fmtMoney(v, 'vol');
  });
+ // Refresh sector cards
+ buildIdxGrid();
 }
 
 function fmtMoney(v, field) {
@@ -2027,7 +2040,8 @@ function buildIdxGrid() {
   const cl = cc(s.chg);
   return `<div class="idx-card" onclick="filterSector('${s.id}')">
    <div class="idx-nm">${a?s.ar:s.en}</div>
-   <div class="idx-v">${s.val>=1e9?(s.val/1e9).toFixed(2)+'B':s.val>=1e6?(s.val/1e6).toFixed(2)+'M':s.val.toFixed(2)}</div>
+   <div class="idx-mcap-lbl">${a?'القيمة السوقية':'Market Cap'}</div>
+   <div class="idx-v">${fmtMoney(s.val,'mcap')}</div>
    <div class="idx-ch ${cl}">${ci(s.chg)} ${Math.abs(s.chg).toFixed(2)}%</div>
    <canvas width="180" height="44" id="spark-sec-${s.id}"></canvas>
   </div>`;
@@ -2380,6 +2394,9 @@ async function fetchLive() {
   buildTable();
   buildTicker();
   buildIdxGrid();
+  // Remove loading dim now that live prices are in
+  const _tb=document.getElementById('tbl-body'),_ti=document.getElementById('ticker-inner');
+  if(_tb)_tb.classList.remove('loading'); if(_ti)_ti.classList.remove('loading');
   // Update status bar
   const ts = new Date(d.updated);
   const fmt = ts.toLocaleTimeString('en-GB', {hour:'2-digit', minute:'2-digit', timeZone:'Asia/Baghdad'});
@@ -2511,6 +2528,9 @@ document.addEventListener('DOMContentLoaded',()=>{
  buildTicker();
  buildIdxGrid();
  buildTable();
+ // Dim prices until live data loads to avoid flash of stale values
+ const _tb=document.getElementById('tbl-body'),_ti=document.getElementById('ticker-inner');
+ if(_tb)_tb.classList.add('loading'); if(_ti)_ti.classList.add('loading');
  buildNews();
  buildBrokers();
  buildResearch();
