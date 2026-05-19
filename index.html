@@ -402,6 +402,98 @@ footer{background:var(--bg2);border-top:1px solid var(--border);padding:44px 24p
 .cp-psec{margin:0 auto;max-width:1300px;padding:24px 20px 0}
 #mob-nav{display:none}
 
+/* ── CMC-style stats strip ── */
+.mkt-stats{display:flex;gap:10px;overflow-x:auto;padding-bottom:4px;margin-bottom:16px;scrollbar-width:none}
+.mkt-stats::-webkit-scrollbar{display:none}
+.mstat{background:var(--bg3);border:1px solid var(--border);border-radius:14px;padding:13px 16px;display:flex;align-items:center;gap:12px;cursor:pointer;transition:all var(--tr);flex:1;min-width:168px;color:inherit;text-decoration:none}
+.mstat:hover{border-color:var(--border2);background:var(--bg4)}
+.mstat.no-click{cursor:default}.mstat.no-click:hover{border-color:var(--border);background:var(--bg3)}
+.mstat-info{flex:1;min-width:0}
+.mstat-lbl{font-size:10px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.4px;margin-bottom:3px}
+.mstat-val{font-family:var(--font-display);font-size:18px;font-weight:800;color:var(--t1);line-height:1.1;white-space:nowrap}
+.mstat-pct{font-size:11px;font-weight:700;margin-top:2px}
+.mstat-cv{width:88px;height:40px;flex-shrink:0}
+.mstat-bbar{display:flex;gap:3px;width:100%;margin-top:5px;height:5px}
+.mstat-bseg{border-radius:3px;height:5px}
+.mstat-bleg{display:flex;gap:10px;font-size:10px;color:var(--t3);margin-top:6px}
+
+/* ── Market table tabs (Top / Trending / Watchlist / Gainers / All) ── */
+.mkt-tabs-row{display:flex;align-items:center;justify-content:space-between;border-bottom:2px solid var(--border);margin-bottom:0;gap:6px}
+.mkt-tabs{display:flex;gap:0;overflow-x:auto;scrollbar-width:none;flex-shrink:0}
+.mkt-tabs::-webkit-scrollbar{display:none}
+.mtab{padding:9px 18px;font-size:13px;font-weight:700;color:var(--t3);background:none;border:none;border-bottom:3px solid transparent;margin-bottom:-2px;white-space:nowrap;transition:all var(--tr);cursor:pointer;font-family:inherit}
+.mtab:hover{color:var(--t2)}.mtab.active{color:var(--t1);border-bottom-color:var(--ac)}
+.sec-filter{display:flex;gap:4px;overflow-x:auto;scrollbar-width:none;padding:12px 0 0;margin-bottom:12px;flex-wrap:wrap}
+.sec-filter::-webkit-scrollbar{display:none}
+.sflt{padding:4px 10px;border-radius:7px;font-size:11px;font-weight:700;color:var(--t2);background:var(--bg3);border:1px solid var(--border);transition:all var(--tr);cursor:pointer;white-space:nowrap;font-family:inherit}
+.sflt:hover{color:var(--t1)}.sflt.active{background:var(--acbg);border-color:var(--ac);color:var(--ac)}
+
+/* ── Watchlist star ── */
+.star-btn{background:none;border:none;font-size:12px;color:var(--t3);cursor:pointer;padding:3px 5px;transition:color var(--tr);line-height:1;flex-shrink:0}
+.star-btn:hover{color:#F59E0B}.star-btn.starred{color:#F59E0B}
+
+/* ── CMC-style table ── */
+.dtbl .rank-col{width:36px;color:var(--t3);font-size:11px;text-align:center!important}
+.dtbl .star-col{width:28px;padding:0!important;text-align:center!important}
+.dtbl .spark7d{width:80px;height:32px;cursor:default}
+
+/* ── Nav action buttons ── */
+.nav-login-btn{padding:6px 16px;border-radius:9px;background:var(--ac);color:#0C0C0E;font-size:12px;font-weight:800;transition:all var(--tr);border:none;cursor:pointer;font-family:inherit;white-space:nowrap}
+.nav-login-btn:hover{background:var(--ac2)}
+.nav-act-btn{padding:5px 11px;border-radius:9px;background:var(--bg3);border:1px solid var(--border);color:var(--t2);font-size:12px;font-weight:700;transition:all var(--tr);cursor:pointer;font-family:inherit;display:inline-flex;align-items:center;gap:5px;white-space:nowrap}
+.nav-act-btn:hover{background:var(--bg4);color:var(--t1)}
+.nav-act-btn svg{flex-shrink:0;opacity:.7}
+.soon-dot{display:inline-block;width:5px;height:5px;border-radius:50%;background:var(--ac);vertical-align:middle;margin-inline-start:4px}
+
+/* ── Charts page ── */
+#charts-page{background:var(--bg)}
+.charts-layout{display:grid;grid-template-columns:225px 1fr;min-height:calc(100vh - 98px)}
+.charts-sidebar{background:var(--bg2);border-inline-end:1px solid var(--border);padding:14px 10px;position:sticky;top:98px;align-self:start;max-height:calc(100vh - 98px);overflow-y:auto}
+.charts-main{padding:22px 28px 60px;min-width:0}
+.csb-cat{font-size:10px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.5px;padding:12px 8px 5px;display:block}
+.csb-item{padding:8px 12px;border-radius:9px;font-size:13px;font-weight:600;color:var(--t2);cursor:pointer;transition:all var(--tr);margin-bottom:1px;display:flex;align-items:center;gap:8px}
+.csb-item:hover{background:var(--bg3);color:var(--t1)}.csb-item.active{background:var(--acbg);color:var(--ac)}
+.csb-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;border:2px solid currentColor}
+.chart-panel{background:var(--bg3);border:1px solid var(--border);border-radius:16px;overflow:hidden;margin-bottom:18px}
+.chart-panel-hdr{padding:16px 20px 0;display:flex;align-items:flex-start;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.chart-panel-ttl{font-family:var(--font-display);font-size:16px;font-weight:800;color:var(--t1)}
+.chart-panel-sub{font-size:11px;color:var(--t3);margin-top:2px}
+.chart-panel-kpis{display:flex;gap:20px;flex-wrap:wrap;padding:10px 20px 4px}
+.cpk-lbl{font-size:9px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.4px;display:block}
+.cpk-val{font-size:16px;font-weight:700;color:var(--t1);display:block;margin-top:1px}
+.cpk-pct{font-size:11px;font-weight:700;display:block}
+.chart-panel-body{padding:4px 0 14px}
+.charts-main .period-btns{flex-wrap:wrap}
+.sectors-grid-mini{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:10px;padding:14px 20px}
+.sct-mini{background:var(--bg4);border:1px solid var(--border);border-radius:12px;padding:12px 14px;cursor:pointer;transition:all var(--tr)}
+.sct-mini:hover{border-color:var(--ac)}.sct-mini-nm{font-size:12px;font-weight:700;color:var(--t1);margin-bottom:2px}
+.sct-mini-val{font-size:14px;font-weight:700;color:var(--t1)}.sct-mini-pct{font-size:11px;font-weight:700;margin-top:1px}
+
+/* ── Sector detail page ── */
+#sector-page{background:var(--bg)}
+.sec-pg-hdr{background:var(--bg3);border-bottom:1px solid var(--border);padding:0;position:sticky;top:62px;z-index:100}
+.sec-pg-hdr-in{max-width:1440px;margin:0 auto;padding:14px 24px;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.sec-pg-nm{font-family:var(--font-display);font-size:20px;font-weight:900;color:var(--t1)}
+.sec-pg-body{max-width:1440px;margin:0 auto;padding:20px 24px 60px;display:flex;flex-direction:column;gap:18px}
+
+/* ── Login/Portfolio modal ── */
+.modal-overlay{display:none;position:fixed;inset:0;z-index:5000;background:rgba(0,0,0,.65);backdrop-filter:blur(5px);align-items:center;justify-content:center}
+.modal-overlay.open{display:flex}
+.modal-box{background:var(--bg3);border:1px solid var(--border);border-radius:20px;padding:32px 28px;max-width:400px;width:calc(100% - 40px);text-align:center;box-shadow:0 24px 64px rgba(0,0,0,.5)}
+.modal-ttl{font-family:var(--font-display);font-size:22px;font-weight:900;color:var(--t1);margin-bottom:8px}
+.modal-sub{font-size:13px;color:var(--t3);line-height:1.7;margin-bottom:24px}
+.modal-icon{font-size:40px;margin-bottom:14px;display:block}
+.modal-close{padding:9px 22px;border-radius:10px;background:var(--bg4);border:1px solid var(--border);color:var(--t2);font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;transition:all var(--tr)}
+.modal-close:hover{color:var(--t1);border-color:var(--border2)}
+
+@media(max-width:1100px){.charts-layout{grid-template-columns:1fr}.charts-sidebar{display:none}.charts-main{padding:14px 16px 40px}}
+@media(max-width:768px){
+ .mstat{min-width:150px;flex:0 0 150px}.mstat-cv{display:none}
+ .mtab{padding:7px 12px;font-size:12px}
+ .nav-act-btn .btn-lbl{display:none}
+ .sec-pg-body{padding:12px 12px 40px}
+ .chart-panel-kpis{padding:8px 14px 0}
+}
 </style>
 
 </head><body>
@@ -414,29 +506,37 @@ footer{background:var(--bg2);border-top:1px solid var(--border);padding:44px 24p
    <span class="ar">بورصة العراق</span><span class="en">ISX Market</span>
   </a>
   <ul class="nav-links">
-   <li><a href="/brokers" onclick="window.location.href='/brokers';return false;" class="ar">أفضل الوسطاء</a><a href="/brokers" onclick="window.location.href='/brokers';return false;" class="en">Best Brokers</a></li>
    <li class="has-dd">
-    <button class="nav-dd-btn"><span class="ar">مقالات</span><span class="en">Articles</span><svg class="dd-chev" viewBox="0 0 10 6" fill="none"><path d="M1 1l4 4 4-4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+    <button class="nav-dd-btn"><span class="ar">القطاعات</span><span class="en">Sectors</span><svg class="dd-chev" viewBox="0 0 10 6" fill="none"><path d="M1 1l4 4 4-4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+    <div class="nav-dd" id="sectors-dd"></div>
+   </li>
+   <li><a href="/charts" onclick="navCharts();return false;"><span class="ar">المخططات</span><span class="en">Charts</span></a></li>
+   <li class="has-dd">
+    <button class="nav-dd-btn"><span class="ar">مقالات</span><span class="en">More</span><svg class="dd-chev" viewBox="0 0 10 6" fill="none"><path d="M1 1l4 4 4-4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
     <div class="nav-dd">
+     <a href="/brokers" onclick="window.location.href='/brokers';return false;"><span class="ar">أفضل الوسطاء</span><span class="en">Best Brokers</span></a>
      <a href="/learn" onclick="window.location.href='/learn';return false;"><span class="ar">تعلّم</span><span class="en">Learn</span></a>
      <a href="/news" onclick="window.location.href='/news';return false;"><span class="ar">الأخبار</span><span class="en">News</span></a>
      <a href="/research" onclick="window.location.href='/research';return false;"><span class="ar">الأبحاث</span><span class="en">Research</span></a>
+     <a href="/fx" onclick="navFX();return false;">IQD ⇄ USD</a>
+     <a href="/us-market" onclick="window.location.href='/us-market';return false;"><span class="ar">السوق الأمريكي</span><span class="en">US Market</span></a>
     </div>
    </li>
-   <li class="has-dd">
-    <button class="nav-dd-btn"><span class="ar">السوق</span><span class="en">Market</span><svg class="dd-chev" viewBox="0 0 10 6" fill="none"><path d="M1 1l4 4 4-4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
-    <div class="nav-dd">
-     <a href="/" onclick="navHome();return false;"><span class="ar">بورصة العراق</span><span class="en">Iraqi Stock Market</span></a>
-     <a href="/us-market" onclick="window.location.href='/us-market';return false;"><span class="ar">السوق الأمريكي</span><span class="en">US Stock Market</span></a>
-    </div>
-   </li>
-   <li><a href="/fx" onclick="navFX();return false;">IQD ⇄ USD</a></li>
   </ul>
   <div class="nav-right">
    <div class="search-wrap">
     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
     <input type="text" id="search-inp" placeholder="" oninput="handleSearch(this.value)">
    </div>
+   <button class="nav-act-btn" onclick="showModal('portfolio')">
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg>
+    <span class="btn-lbl ar">المحفظة</span><span class="btn-lbl en">Portfolio</span><span class="soon-dot"></span>
+   </button>
+   <button class="nav-act-btn" onclick="navWatchlist()">
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+    <span class="btn-lbl ar">المتابعة</span><span class="btn-lbl en">Watchlist</span>
+   </button>
+   <button class="nav-login-btn" onclick="showModal('login')"><span class="ar">تسجيل دخول</span><span class="en">Log In</span></button>
    <button class="icon-btn" id="theme-btn" onclick="toggleTheme()">🌙</button>
    <button class="cur-btn" id="cur-btn" onclick="toggleCurrency()" title="Toggle IQD/USD">USD</button>
    <button class="lang-btn" id="lang-btn" onclick="toggleLang()">EN</button>
@@ -489,61 +589,89 @@ footer{background:var(--bg2);border-top:1px solid var(--border);padding:44px 24p
    <span class="en">Fetching live data from Iraq Stock Exchange...</span>
   </div>
 
-  <!-- HERO -->
-  <div class="hero psec" id="hero">
-   <div class="hero-stats">
-    <div>
-     <div class="idx-label ar">المؤشر العام لسوق العراق</div>
-     <div class="idx-label en">Iraq Stock Market</div>
-     <div class="idx-value" id="idx-val">2,672.78</div>
-     <div class="idx-badges">
-      <span class="badge up" id="idx-chg-b">▲ 9.75</span>
-      <span class="badge up" id="idx-pct-b">+0.37%</span>
-     </div>
-    </div>
-    <div class="divider"></div>
-    <div class="metrics-grid">
-     <div class="metric"><span class="metric-lbl ar">حجم التداول</span><span class="metric-lbl en">Volume</span><span class="metric-val" id="m-vol">2.06B IQD</span></div>
-     <div class="metric"><span class="metric-lbl ar">الأسهم المتداولة</span><span class="metric-lbl en">Shares Traded</span><span class="metric-val" id="m-shr">2.60B</span></div>
-     <div class="metric"><span class="metric-lbl ar">عدد الصفقات</span><span class="metric-lbl en">Trades</span><span class="metric-val" id="m-trd">1,308</span></div>
-     <div class="metric"><span class="metric-lbl ar">الشركات المتداولة</span><span class="metric-lbl en">Companies Active</span><span class="metric-val" id="m-co">104</span></div>
-    </div>
-    <div>
-     <div class="breadth-bar">
-      <div class="bseg bup" id="b-up" style="flex:92"></div>
-      <div class="bseg bdn" id="b-dn" style="flex:49"></div>
-      <div class="bseg bfl" id="b-fl" style="flex:497"></div>
-     </div>
-     <div class="breadth-leg">
-      <div class="bleg"><div class="bdot" style="background:var(--gr)"></div><span class="ar">ارتفع </span><span class="en">Up </span><b id="c-up">15</b></div>
-      <div class="bleg"><div class="bdot" style="background:var(--rd)"></div><span class="ar">انخفض </span><span class="en">Down </span><b id="c-dn">8</b></div>
-      <div class="bleg"><div class="bdot" style="background:var(--t3)"></div><span class="ar">ثابت </span><span class="en">Flat </span><b id="c-fl">81</b></div>
-     </div>
-    </div>
-    <div class="live-row"><div class="pulse"></div><span class="ar">آخر تحديث: 17/05/2026</span><span class="en">Last update: 17/05/2026</span></div>
-   </div>
-   <div id="home-seo" aria-hidden="true" style="position:fixed;left:-9999px;width:1px;height:1px;overflow:hidden">
+  <!-- SEO hidden -->
+  <div id="home-seo" aria-hidden="true" style="position:fixed;left:-9999px;width:1px;height:1px;overflow:hidden">
    <h1>بورصة العراق للأوراق المالية — سوق العراق للأوراق المالية (ISX)</h1>
-   <p>بورصة العراق (Iraq Stock Exchange — ISX) هي السوق الرسمية للأوراق المالية في العراق، وتضم أكثر من 104 شركة مدرجة في قطاعات المصارف والاتصالات والصناعة والسياحة والتأمين والزراعة والخدمات. يتتبع مؤشر ربيع للأوراق المالية (RSISX) أداء السوق بشكل يومي. يمكنك متابعة أسعار الأسهم العراقية مباشرة، والاطلاع على الرسوم البيانية والتحليل الفني لجميع الشركات المدرجة في سوق العراق للأوراق المالية.</p>
-   <p>Iraq Stock Exchange (ISX / بورصة العراق) is Iraq's official securities market, operating in Baghdad. It lists over 104 companies across sectors including banking, telecommunications, industry, tourism, insurance, agriculture, and services. The Rabee Securities ISX Index (RSISX) tracks daily market performance. This site provides live Iraqi stock prices, interactive charts, technical analysis, and company data for all ISX-listed companies. Data sourced from Rabee Securities and the Iraq Securities Commission (ISC).</p>
-   <p>القطاعات: المصارف (40 شركة)، الصناعة (16)، تحويل الأموال (14)، الفنادق والسياحة (9)، الزراعة (7)، الخدمات (7)، التأمين (6)، الاستثمار (3)، الاتصالات (2).</p>
+   <p>بورصة العراق (Iraq Stock Exchange — ISX) هي السوق الرسمية للأوراق المالية في العراق، وتضم أكثر من 104 شركة مدرجة في قطاعات المصارف والاتصالات والصناعة والسياحة والتأمين والزراعة والخدمات.</p>
   </div>
-  <div class="hero-chart">
-    <div class="chart-hdr">
-     <span class="chart-ttl ar">مؤشر ISX العام</span>
-     <span class="chart-ttl en">Iraq Stock Market</span>
-     <div class="period-btns">
-      <button class="pbtn active" data-p="7">1W</button>
-      <button class="pbtn" data-p="30">1M</button>
-      <button class="pbtn" data-p="90">3M</button>
-      <button class="pbtn" data-p="180">6M</button>
-      <button class="pbtn" data-p="365">1Y</button>
-      <button class="pbtn" data-p="1825">5Y</button>
-      <button class="pbtn" data-p="3650">ALL</button>
+
+  <!-- CMC-STYLE STATS STRIP -->
+  <div class="mkt-stats" id="mkt-stats">
+   <!-- Total Market Cap -->
+   <div class="mstat" onclick="navCharts('mcap')">
+    <div class="mstat-info">
+     <div class="mstat-lbl ar">القيمة السوقية الكلية</div>
+     <div class="mstat-lbl en">Total Market Cap</div>
+     <div class="mstat-val" id="mstat-mcap-val">—</div>
+     <div class="mstat-pct" id="mstat-mcap-pct" style="color:var(--t3)">—</div>
+    </div>
+    <canvas class="mstat-cv" id="spark-mcap-mini" width="88" height="40"></canvas>
+   </div>
+   <!-- RSISX Index -->
+   <div class="mstat" onclick="navCharts('rsisx')">
+    <div class="mstat-info">
+     <div class="mstat-lbl">RSISX</div>
+     <div class="mstat-val" id="idx-val">2,672.78</div>
+     <div class="mstat-pct">
+      <span class="badge up" id="idx-chg-b" style="font-size:10px;padding:2px 6px">▲ 9.75</span>
+      <span class="badge up" id="idx-pct-b" style="font-size:10px;padding:2px 6px">+0.37%</span>
      </div>
     </div>
-    <div id="main-chart"></div>
+    <canvas class="mstat-cv" id="spark-rsisx-mini" width="88" height="40"></canvas>
    </div>
+   <!-- Market Breadth -->
+   <div class="mstat no-click" style="flex-direction:column;align-items:flex-start;gap:6px;min-width:180px">
+    <div class="mstat-lbl ar">حركة السوق</div>
+    <div class="mstat-lbl en">Market Breadth</div>
+    <div class="mstat-bbar" style="width:100%">
+     <div class="mstat-bseg" id="b-up" style="flex:15;background:var(--gr)"></div>
+     <div class="mstat-bseg" id="b-dn" style="flex:8;background:var(--rd)"></div>
+     <div class="mstat-bseg" id="b-fl" style="flex:81;background:var(--t3)"></div>
+    </div>
+    <div class="mstat-bleg">
+     <span style="color:var(--gr)">▲ <b id="c-up">15</b></span>
+     <span style="color:var(--rd)">▼ <b id="c-dn">8</b></span>
+     <span style="color:var(--t3)">● <b id="c-fl">81</b></span>
+    </div>
+   </div>
+   <!-- Volume 24h -->
+   <div class="mstat no-click">
+    <div class="mstat-info">
+     <div class="mstat-lbl ar">حجم التداول (24س)</div>
+     <div class="mstat-lbl en">Volume (24h)</div>
+     <div class="mstat-val" id="mstat-vol-val">—</div>
+     <div class="mstat-pct" id="mstat-vol-lbl" style="color:var(--t3);font-size:10px">IQD</div>
+    </div>
+   </div>
+   <!-- Last update -->
+   <div class="mstat no-click">
+    <div class="mstat-info">
+     <div class="mstat-lbl ar">آخر تحديث</div>
+     <div class="mstat-lbl en">Last Update</div>
+     <div class="mstat-val" id="mstat-upd" style="font-size:14px">—</div>
+     <div class="mstat-pct live-row" style="margin-top:4px"><div class="pulse"></div><span class="ar">بيانات حية</span><span class="en">Live Data</span></div>
+    </div>
+   </div>
+  </div>
+
+  <!-- RSISX CHART (full-width) -->
+  <div class="hero-chart psec" id="hero">
+   <div class="chart-hdr">
+    <div>
+     <span class="chart-ttl ar">مؤشر ربيع للأوراق المالية (RSISX)</span>
+     <span class="chart-ttl en">Rabee Securities ISX Index (RSISX)</span>
+    </div>
+    <div class="period-btns">
+     <button class="pbtn active" data-p="7">1W</button>
+     <button class="pbtn" data-p="30">1M</button>
+     <button class="pbtn" data-p="90">3M</button>
+     <button class="pbtn" data-p="180">6M</button>
+     <button class="pbtn" data-p="365">1Y</button>
+     <button class="pbtn" data-p="1825">5Y</button>
+     <button class="pbtn" data-p="3650">ALL</button>
+    </div>
+   </div>
+   <div id="main-chart"></div>
   </div>
 
   <!-- SECTOR INDICES -->
@@ -557,36 +685,44 @@ footer{background:var(--bg2);border-top:1px solid var(--border);padding:44px 24p
 
   <!-- MARKET TABLE -->
   <div class="psec" id="market-section">
-   <div class="sec-hdr">
-    <h2 class="sec-ttl ar">أداء السوق</h2>
-    <h2 class="sec-ttl en">Market Performance</h2>
+   <!-- CMC-style tab row -->
+   <div class="mkt-tabs-row">
+    <div class="mkt-tabs">
+     <button class="mtab active" data-tab="top" onclick="setTab('top')"><span class="ar">الأعلى</span><span class="en">Top</span></button>
+     <button class="mtab" data-tab="trending" onclick="setTab('trending')"><span class="ar">الأكثر تداولاً</span><span class="en">Trending</span></button>
+     <button class="mtab" data-tab="gainers" onclick="setTab('gainers')"><span class="ar">الرابحون</span><span class="en">Gainers</span></button>
+     <button class="mtab" data-tab="watchlist" onclick="setTab('watchlist')">
+      <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor" style="margin-inline-end:3px"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+      <span class="ar">المتابعة</span><span class="en">Watchlist</span>
+     </button>
+     <button class="mtab" data-tab="all" onclick="setTab('all')"><span class="ar">الكل</span><span class="en">All</span></button>
+    </div>
    </div>
-   <div class="stabs" id="stabs">
-    <button class="stab active" data-sec="all"><span class="ar">كل السوق</span><span class="en">All</span></button>
-    <button class="stab" data-sec="BANK"><span class="ar">مصارف</span><span class="en">Banking</span></button>
-    <button class="stab" data-sec="INS"><span class="ar">تأمين</span><span class="en">Insurance</span></button>
-    <button class="stab" data-sec="INV"><span class="ar">استثمار</span><span class="en">Investment</span></button>
-    <button class="stab" data-sec="SVC"><span class="ar">خدمات</span><span class="en">Services</span></button>
-    <button class="stab" data-sec="IND"><span class="ar">صناعة</span><span class="en">Industry</span></button>
-    <button class="stab" data-sec="HTL"><span class="ar">فنادق</span><span class="en">Hotels</span></button>
-    <button class="stab" data-sec="AGR"><span class="ar">زراعة</span><span class="en">Agriculture</span></button>
-    <button class="stab" data-sec="TEL"><span class="ar">اتصالات</span><span class="en">Telecom</span></button>
+   <!-- Sector filter -->
+   <div class="sec-filter" id="sec-filter">
+    <button class="sflt active" data-sec="all" onclick="filterSector('all')"><span class="ar">كل القطاعات</span><span class="en">All Sectors</span></button>
+    <button class="sflt" data-sec="BANK" onclick="filterSector('BANK')"><span class="ar">مصارف</span><span class="en">Banking</span></button>
+    <button class="sflt" data-sec="INS" onclick="filterSector('INS')"><span class="ar">تأمين</span><span class="en">Insurance</span></button>
+    <button class="sflt" data-sec="INV" onclick="filterSector('INV')"><span class="ar">استثمار</span><span class="en">Investment</span></button>
+    <button class="sflt" data-sec="SVC" onclick="filterSector('SVC')"><span class="ar">خدمات</span><span class="en">Services</span></button>
+    <button class="sflt" data-sec="IND" onclick="filterSector('IND')"><span class="ar">صناعة</span><span class="en">Industry</span></button>
+    <button class="sflt" data-sec="HTL" onclick="filterSector('HTL')"><span class="ar">فنادق</span><span class="en">Hotels</span></button>
+    <button class="sflt" data-sec="AGR" onclick="filterSector('AGR')"><span class="ar">زراعة</span><span class="en">Agriculture</span></button>
+    <button class="sflt" data-sec="TEL" onclick="filterSector('TEL')"><span class="ar">اتصالات</span><span class="en">Telecom</span></button>
    </div>
    <div class="tbl-wrap">
     <table class="dtbl">
      <thead>
       <tr>
-       <th>#</th>
-       <th data-sort="name" class="ar">الشركة</th><th data-sort="name" class="en">Company</th>
-       <th data-sort="sec" class="ar">القطاع</th><th data-sort="sec" class="en">Sector</th>
-       <th data-sort="mcap" class="srt-desc ar">القيمة السوقية</th><th data-sort="mcap" class="srt-desc en">Market Cap</th>
-       <th data-sort="close" class="ar">الإغلاق</th><th data-sort="close" class="en">Close</th>
-       <th data-sort="pct" class="ar">التغير%</th><th data-sort="pct" class="en">Change%</th>
-       <th data-sort="high" class="ar">أعلى</th><th data-sort="high" class="en">High</th>
-       <th data-sort="low" class="ar">أدنى</th><th data-sort="low" class="en">Low</th>
-       <th data-sort="vol" class="ar">الحجم</th><th data-sort="vol" class="en">Volume</th>
-       <th data-sort="deals" class="ar">صفقات</th><th data-sort="deals" class="en">Trades</th>
-       <th><span class="ar">رسم</span><span class="en">Chart</span></th>
+       <th class="rank-col">#</th>
+       <th class="star-col"></th>
+       <th data-sort="name"><span class="ar">الشركة</span><span class="en">Name</span></th>
+       <th data-sort="close"><span class="ar">السعر</span><span class="en">Price</span></th>
+       <th data-sort="pct" class="srt-desc"><span class="ar">24س%</span><span class="en">24h %</span></th>
+       <th data-sort="pct7"><span class="ar">7أيام%</span><span class="en">7d %</span></th>
+       <th data-sort="mcap"><span class="ar">القيمة السوقية</span><span class="en">Market Cap</span></th>
+       <th data-sort="vol"><span class="ar">الحجم (24س)</span><span class="en">Volume (24h)</span></th>
+       <th style="text-align:end"><span class="ar">آخر 7 أيام</span><span class="en">Last 7 Days</span></th>
       </tr>
      </thead>
      <tbody id="tbl-body"></tbody>
@@ -922,6 +1058,78 @@ footer{background:var(--bg2);border-top:1px solid var(--border);padding:44px 24p
  </div>
 </div>
 
+<!-- CHARTS PAGE -->
+<div id="charts-page" class="page">
+ <div style="background:var(--bg3);border-bottom:1px solid var(--border);padding:0 24px;height:50px;display:flex;align-items:center;gap:12px;position:sticky;top:62px;z-index:100">
+  <button class="back-btn" onclick="navHome()" style="font-size:12px;padding:5px 10px"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 12H5M12 5l-7 7 7 7"/></svg><span class="ar">رجوع</span><span class="en">Back</span></button>
+  <span style="font-family:var(--font-display);font-size:15px;font-weight:800;color:var(--t1)"><span class="ar">مركز المخططات</span><span class="en">Charts</span></span>
+ </div>
+ <div class="charts-layout">
+  <div class="charts-sidebar" id="charts-sidebar"></div>
+  <div class="charts-main" id="charts-main"></div>
+ </div>
+</div>
+
+<!-- SECTOR PAGE -->
+<div id="sector-page" class="page">
+ <div class="sec-pg-hdr">
+  <div class="sec-pg-hdr-in">
+   <button class="back-btn" onclick="navHome()" style="font-size:12px;padding:5px 10px"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 12H5M12 5l-7 7 7 7"/></svg><span class="ar">رجوع</span><span class="en">Back</span></button>
+   <div class="sec-pg-nm" id="sec-pg-nm">—</div>
+   <div style="display:flex;gap:8px;align-items:center;margin-inline-start:auto">
+    <span class="mstat-val" id="sec-pg-mcap" style="font-size:16px">—</span>
+    <span id="sec-pg-pct" class="badge fl" style="font-size:11px">0.00%</span>
+   </div>
+  </div>
+ </div>
+ <div class="sec-pg-body">
+  <!-- Chart -->
+  <div class="chart-panel">
+   <div class="chart-panel-hdr">
+    <div>
+     <div class="chart-panel-ttl" id="sec-pg-chart-ttl">—</div>
+     <div class="chart-panel-sub"><span class="ar">القيمة السوقية — آخر سنة</span><span class="en">Market Cap — Last 12 Months</span></div>
+    </div>
+   </div>
+   <div class="chart-panel-body" style="padding:14px 16px">
+    <canvas id="sec-pg-spark" width="900" height="160" style="width:100%;height:160px"></canvas>
+   </div>
+  </div>
+  <!-- Companies in sector -->
+  <div class="psec" style="margin-bottom:0">
+   <div class="sec-hdr"><h2 class="sec-ttl" id="sec-pg-co-ttl"><span class="ar">شركات القطاع</span><span class="en">Sector Companies</span></h2></div>
+   <div class="tbl-wrap">
+    <table class="dtbl">
+     <thead>
+      <tr>
+       <th class="rank-col">#</th>
+       <th class="star-col"></th>
+       <th><span class="ar">الشركة</span><span class="en">Name</span></th>
+       <th><span class="ar">السعر</span><span class="en">Price</span></th>
+       <th><span class="ar">24س%</span><span class="en">24h %</span></th>
+       <th><span class="ar">7أيام%</span><span class="en">7d %</span></th>
+       <th><span class="ar">القيمة السوقية</span><span class="en">Market Cap</span></th>
+       <th><span class="ar">الحجم</span><span class="en">Volume</span></th>
+       <th style="text-align:end"><span class="ar">7 أيام</span><span class="en">7 Days</span></th>
+      </tr>
+     </thead>
+     <tbody id="sec-pg-tbl"></tbody>
+    </table>
+   </div>
+  </div>
+ </div>
+</div>
+
+<!-- LOGIN / PORTFOLIO MODAL -->
+<div class="modal-overlay" id="modal-overlay" onclick="if(event.target===this)closeModal()">
+ <div class="modal-box" id="modal-box">
+  <span class="modal-icon" id="modal-icon">🔐</span>
+  <div class="modal-ttl" id="modal-ttl">قيد الإنشاء</div>
+  <div class="modal-sub" id="modal-sub">هذه الميزة قيد التطوير وستكون متاحة قريباً</div>
+  <button class="modal-close" onclick="closeModal()"><span class="ar">إغلاق</span><span class="en">Close</span></button>
+ </div>
+</div>
+
 <button class="scroll-top" id="scroll-top" onclick="window.scrollTo({top:0,behavior:'smooth'})">↑</button>
 
 <script src="https://cdn.jsdelivr.net/npm/lightweight-charts@4.1.3/dist/lightweight-charts.standalone.production.js" integrity="sha384-JZigAjwiaZtkUbA44CWkPaT3iBb/mU5pO6QOANp+OqHd4q+1+7MG1kzp2OOP9ZfP" crossorigin="anonymous"></script>
@@ -1050,6 +1258,8 @@ function loadHist(){
    }
    // Draw real sector sparklines now that hist is loaded
    buildSectorSparks();
+   buildMktStatMcapSpark();
+   buildMktStats();
   }).catch(()=>{HIST={};HISTL={};});
  return _histReady;
 }
@@ -2093,7 +2303,7 @@ function buildIdxGrid() {
  const a = ar();
  grid.innerHTML = SECTORS.map(s=>{
   const cl = cc(s.chg);
-  return `<div class="idx-card" onclick="filterSector('${s.id}')">
+  return `<div class="idx-card" onclick="navSector('${s.id}')" style="cursor:pointer">
    <div class="idx-nm">${a?s.ar:s.en}</div>
    <div class="idx-mcap-lbl">${a?'القيمة السوقية':'Market Cap'}</div>
    <div class="idx-v">${fmtSectorVal(s.val)}</div>
@@ -2105,119 +2315,421 @@ function buildIdxGrid() {
 }
 
 // ===================== TABLE =====================
-const SEC_NAMES = {BANK:['مصارف','Banking'],INS:['تأمين','Insurance'],INV:['استثمار','Investment'],SVC:['خدمات','Services'],IND:['صناعة','Industry'],HTL:['فنادق','Hotels'],AGR:['زراعة','Agriculture'],TEL:['اتصالات','Telecom'],FIN:['مالية','Financial']};
+const SEC_NAMES = {BANK:['مصارف','Banking'],INS:['تأمين','Insurance'],INV:['استثمار','Investment'],SVC:['خدمات','Services'],IND:['صناعة','Industry'],HTL:['فنادق','Hotels & Tourism'],AGR:['زراعة','Agriculture'],TEL:['اتصالات','Telecom'],FIN:['مالية','Financial']};
 
-function filterSector(sec) {
- curSec = sec;
- showAll = false;
- document.querySelectorAll('.stab').forEach(t=>t.classList.toggle('active',t.dataset.sec===sec));
- buildTable();
- document.getElementById('market-section').scrollIntoView({behavior:'smooth',block:'start'});
+// ── 7-day history helpers ──
+function get7dHistory(sym) {
+ if (!HIST || !HIST[sym] || !HIST[sym].length) return null;
+ const cutoff = Date.now()/1000 - 7*86400;
+ const arr = HIST[sym].filter(p=>p[0]>=cutoff);
+ return arr.length >= 2 ? arr : HIST[sym].slice(-7);
+}
+function get7dPct(sym) {
+ const h = get7dHistory(sym);
+ if (!h || h.length < 2) return 0;
+ const first = h[0][1], last = h[h.length-1][1];
+ return first ? ((last-first)/first)*100 : 0;
 }
 
+// ── Sector / total market-cap history ──
+function computeMcapHistory(secId, days) {
+ if (!HIST) return null;
+ const cos = (secId
+  ? COMPANIES.filter(c=>c.sec===secId)
+  : COMPANIES
+ ).filter(c=>c.close>0&&c.mcap>0&&HIST[c.sym]&&HIST[c.sym].length);
+ if (!cos.length) return null;
+ const pMaps={}, tsSet=new Set();
+ cos.forEach(c=>{
+  const m=new Map();
+  HIST[c.sym].forEach(p=>{m.set(p[0],p[1]);tsSet.add(p[0]);});
+  pMaps[c.sym]=m;
+ });
+ const cutoff = days ? Date.now()/1000 - days*86400 : 0;
+ const tsList = [...tsSet].sort((a,b)=>a-b).filter(ts=>ts>=cutoff);
+ const lastP={};
+ const vals = tsList.map(ts=>{
+  let tot=0;
+  cos.forEach(c=>{
+   const p=pMaps[c.sym].get(ts);
+   if(p!==undefined) lastP[c.sym]=p;
+   if(lastP[c.sym]) tot+=c.mcap*(lastP[c.sym]/c.close);
+  });
+  return [ts,tot];
+ }).filter(([,v])=>v>0);
+ return vals.length>=2 ? vals : null;
+}
+
+// ── Watchlist ──
+function getWatchlist(){try{return JSON.parse(localStorage.getItem('isx_watchlist')||'[]');}catch(e){return[];}}
+function isWatchlisted(sym){return getWatchlist().includes(sym);}
+function toggleWatchlist(sym,e){
+ if(e) e.stopPropagation();
+ const wl=getWatchlist(), idx=wl.indexOf(sym);
+ if(idx>=0) wl.splice(idx,1); else wl.push(sym);
+ localStorage.setItem('isx_watchlist',JSON.stringify(wl));
+ document.querySelectorAll(`.star-btn[data-sym="${sym}"]`).forEach(b=>b.classList.toggle('starred',idx<0));
+ if(curTab==='watchlist') buildTable();
+}
+function navWatchlist(){
+ setTab('watchlist');
+ showPage('home');
+ document.getElementById('market-section')?.scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+// ── Tabs ──
+let curTab = 'top';
+function setTab(tab){
+ curTab=tab;
+ showAll=false;
+ document.querySelectorAll('.mtab').forEach(t=>t.classList.toggle('active',t.dataset.tab===tab));
+ buildTable();
+}
+
+// ── Sector filter ──
+function filterSector(sec){
+ curSec=sec;
+ showAll=false;
+ document.querySelectorAll('.sflt').forEach(t=>t.classList.toggle('active',t.dataset.sec===sec));
+ buildTable();
+}
+
+// ── Sort state ──
 let sortState = {key:'mcap', dir:-1};
-function buildTable() {
- const body = document.getElementById('tbl-body');
- const footer = document.getElementById('tbl-footer');
- if (!body) return;
- const a = ar();
+document.addEventListener('click', e=>{
+ const th = e.target.closest('.dtbl th[data-sort]');
+ if(!th) return;
+ if(sortState.key===th.dataset.sort) sortState.dir*=-1;
+ else {sortState.key=th.dataset.sort; sortState.dir=-1;}
+ curTab='all';
+ document.querySelectorAll('.mtab').forEach(t=>t.classList.toggle('active',t.dataset.tab==='all'));
+ buildTable();
+});
+
+// ── Main table ──
+function buildTable(){
+ const body=document.getElementById('tbl-body');
+ const footer=document.getElementById('tbl-footer');
+ if(!body) return;
+ const a=ar();
 
  let data = curSec==='all' ? [...COMPANIES] : COMPANIES.filter(c=>c.sec===curSec);
- data.sort((x,y)=>{
-  const av=x[sortState.key], bv=y[sortState.key];
-  // dir -1 = descending (highest first, default), dir 1 = ascending
-  if (typeof av==='string') return sortState.dir===-1 ? -av.localeCompare(bv) : av.localeCompare(bv);
-  return sortState.dir===-1 ? (bv-av) : (av-bv);
- });
 
- const SHOW = 20;
- const hidden = data.length > SHOW && !showAll;
- footer.style.display = data.length > SHOW ? 'flex' : 'none';
- if (data.length <= SHOW) showAll = true;
+ switch(curTab){
+  case 'trending': data.sort((x,y)=>(y.vol||0)-(x.vol||0)); break;
+  case 'gainers':  data=data.filter(c=>c.pct>0); data.sort((x,y)=>y.pct-x.pct); break;
+  case 'watchlist':{ const wl=getWatchlist(); data=data.filter(c=>wl.includes(c.sym)); data.sort((x,y)=>(y.mcap||0)-(x.mcap||0)); break; }
+  case 'top':      data.sort((x,y)=>(y.mcap||0)-(x.mcap||0)); break;
+  case 'all':
+  default:
+   data.sort((x,y)=>{
+    let av=sortState.key==='pct7'?get7dPct(x.sym):x[sortState.key];
+    let bv=sortState.key==='pct7'?get7dPct(y.sym):y[sortState.key];
+    if(typeof av==='string') return sortState.dir===-1?-av.localeCompare(bv):av.localeCompare(bv);
+    return sortState.dir===-1?(bv-av):(av-bv);
+   });
+ }
 
- body.innerHTML = data.map((c,i)=>{
-  const isHidden = hidden && i >= SHOW;
-  const cl=cc(c.pct);
-  const sn=SEC_NAMES[c.sec]?(a?SEC_NAMES[c.sec][0]:SEC_NAMES[c.sec][1]):c.sec;
+ const SHOW=20;
+ const hidden=data.length>SHOW&&!showAll;
+ if(footer) footer.style.display=data.length>SHOW?'flex':'none';
+ if(data.length<=SHOW) showAll=true;
+
+ const pct7Map={};
+ data.forEach(c=>{pct7Map[c.sym]=get7dPct(c.sym);});
+
+ body.innerHTML=data.map((c,i)=>{
+  const isHidden=hidden&&i>=SHOW;
+  const cl=cc(c.pct), p7=pct7Map[c.sym], cl7=cc(p7);
   const ico=c.logo
-   ? `<img src="${c.logo}" style="width:100%;height:100%;object-fit:contain;border-radius:6px" onerror="this.parentElement.textContent='${c.sym.substring(0,2)}';this.parentElement.style='background:${c.color}22;color:${c.color}';">`
-   : c.sym.substring(0,2);
+   ?`<img src="${c.logo}" style="width:100%;height:100%;object-fit:contain;border-radius:6px" onerror="this.parentElement.textContent='${c.sym.substring(0,2)}';this.parentElement.style='background:${c.color}22;color:${c.color}';">`
+   :c.sym.substring(0,2);
   const icoStyle=c.logo?'background:#fff;padding:3px;border-radius:10px':'background:'+c.color+'22;color:'+c.color;
-  const pctStr=`${ci(c.pct)} ${Math.abs(c.pct).toFixed(2)}%`;
-  const chgStr=`${c.change>=0?'+':''}${c.change.toFixed(3)}`;
+  const starred=isWatchlisted(c.sym);
   return `<tr class="company-row${isHidden?' hidden-row':''}" onclick="navCompany('${c.sym}')">
    <td><span class="rnk">${i+1}</span></td>
+   <td><button class="star-btn${starred?' starred':''}" data-sym="${c.sym}" onclick="toggleWatchlist('${c.sym}',event)" title="${a?'متابعة':'Watch'}">★</button></td>
    <td><div class="co-cell"><div class="co-icon" style="${icoStyle}">${ico}</div><div class="co-names"><span class="co-sym">${a?c.ar:c.en}</span><span class="co-name">${c.sym}</span></div></div></td>
-   <td><span class="sec-badge">${sn}</span></td>
-   <td class="mcap-val" data-mcap="${c.mcap}">${fmtMoney(c.mcap,'mcap')}</td>
    <td class="price-val">${c.close>0?c.close.toFixed(3):'-'}</td>
-   <td><span class="chg-val ${cl}">${c.close>0?pctStr:'-'}</span></td>
-   <td class="vol-val ${c.close>0?cl:''}">${c.close>0?chgStr:'-'}</td>
-   <td class="vol-val">${c.high?c.high.toFixed(3):'-'}</td>
-   <td class="vol-val">${c.low?c.low.toFixed(3):'-'}</td>
+   <td><span class="chg-val ${cl}">${c.close>0?`${ci(c.pct)} ${Math.abs(c.pct).toFixed(2)}%`:'-'}</span></td>
+   <td><span class="chg-val ${cl7}">${p7?`${ci(p7)} ${Math.abs(p7).toFixed(2)}%`:'-'}</span></td>
+   <td class="mcap-val">${fmtMoney(c.mcap,'mcap')}</td>
    <td class="vol-val">${fmt(c.vol)}</td>
-   <td class="vol-val">${c.deals?c.deals.toLocaleString():'-'}</td>
-   <td><canvas class="spark-cv" id="spark-co-${c.sym}" width="80" height="34"></canvas></td>
+   <td style="text-align:end;padding-inline-end:8px"><canvas class="spark-cv" id="spark-co-${c.sym}" width="80" height="34"></canvas></td>
   </tr>`;
  }).join('');
 
- // Update sort header classes
  document.querySelectorAll('.dtbl th[data-sort]').forEach(th=>{
   th.classList.remove('srt-asc','srt-desc');
   if(th.dataset.sort===sortState.key) th.classList.add(sortState.dir===1?'srt-asc':'srt-desc');
  });
 
- // Update show-all button text
- const btn=document.getElementById('show-all-btn');
- if(btn){
-  document.getElementById('show-all-txt-ar').textContent=showAll?'▲ إخفاء':'عرض جميع الشركات (' + data.length + ') ↓';
-  document.getElementById('show-all-txt-en').textContent=showAll?'▲ Collapse':'Show All Companies (' + data.length + ') ↓';
- }
+ const _ar=document.getElementById('show-all-txt-ar'), _en=document.getElementById('show-all-txt-en');
+ if(_ar) _ar.textContent=showAll?'▲ إخفاء':`عرض جميع الشركات (${data.length}) ↓`;
+ if(_en) _en.textContent=showAll?'▲ Collapse':`Show All Companies (${data.length}) ↓`;
 
- // Sparklines
  setTimeout(()=>{
   data.forEach(c=>{
    const cv=document.getElementById(`spark-co-${c.sym}`);
    if(!cv) return;
-   const vals=[]; let v=c.close||1;
-   for(let i=0;i<16;i++){v=Math.max(0.001,v+(Math.random()-.47)*v*0.02); vals.push(v);}
-   if(c.close>0) vals[vals.length-1]=c.close;
-   drawSpark(cv,vals,c.pct>=0?'#2DD87A':'#F05252');
+   const h7=get7dHistory(c.sym), p7=pct7Map[c.sym];
+   if(h7&&h7.length>=2){
+    drawSpark(cv,h7.map(p=>p[1]),p7>=0?'#2DD87A':'#F05252');
+   } else {
+    const vals=[]; let v=c.close||1;
+    for(let i=0;i<10;i++){v=Math.max(0.001,v+(Math.random()-.47)*v*0.01);vals.push(v);}
+    if(c.close>0) vals[vals.length-1]=c.close;
+    drawSpark(cv,vals,c.pct>=0?'#2DD87A':'#F05252');
+   }
   });
  },60);
 }
 
-function toggleShowAll() {
- showAll = !showAll;
- document.querySelectorAll('.hidden-row').forEach(r=>r.classList.toggle('shown', showAll));
- document.getElementById('show-all-txt-ar').textContent = showAll?'▲ إخفاء':'عرض جميع الشركات ↓';
- document.getElementById('show-all-txt-en').textContent = showAll?'▲ Collapse':'Show All Companies ↓';
- // Draw sparks for newly revealed rows
- setTimeout(()=>{
-  COMPANIES.forEach(c=>{
-   const cv=document.getElementById(`spark-co-${c.sym}`);
-   if(!cv) return;
-   const vals=[]; let v=c.close||1;
-   for(let i=0;i<16;i++){v=Math.max(0.001,v+(Math.random()-.47)*v*0.02); vals.push(v);}
-   if(c.close>0) vals[vals.length-1]=c.close;
-   drawSpark(cv,vals,c.pct>=0?'#2DD87A':'#F05252');
-  });
- },60);
+function toggleShowAll(){
+ showAll=!showAll;
+ document.querySelectorAll('.hidden-row').forEach(r=>r.classList.toggle('shown',showAll));
+ const _ar=document.getElementById('show-all-txt-ar'), _en=document.getElementById('show-all-txt-en');
+ if(_ar) _ar.textContent=showAll?'▲ إخفاء':'عرض جميع الشركات ↓';
+ if(_en) _en.textContent=showAll?'▲ Collapse':'Show All Companies ↓';
+ if(showAll){
+  setTimeout(()=>{
+   document.querySelectorAll('.hidden-row.shown').forEach(row=>{
+    const cv=row.querySelector('.spark-cv');
+    if(!cv) return;
+    const sym=cv.id.replace('spark-co-','');
+    const c=COMPANIES.find(x=>x.sym===sym);
+    if(!c) return;
+    const h7=get7dHistory(sym), p7=get7dPct(sym);
+    if(h7&&h7.length>=2){drawSpark(cv,h7.map(p=>p[1]),p7>=0?'#2DD87A':'#F05252');}
+    else{const vals=[]; let v=c.close||1; for(let i=0;i<10;i++){v=Math.max(0.001,v+(Math.random()-.47)*v*0.01);vals.push(v);} if(c.close>0)vals[vals.length-1]=c.close; drawSpark(cv,vals,c.pct>=0?'#2DD87A':'#F05252');}
+   });
+  },60);
+ }
 }
 
-// ===================== TABLE SORT =====================
-document.querySelectorAll('.dtbl th[data-sort]').forEach(th=>{
- th.addEventListener('click',()=>{
-  if(sortState.key===th.dataset.sort) sortState.dir*=-1;
-  else { sortState.key=th.dataset.sort; sortState.dir=-1; }
-  buildTable();
+// ===================== MARKET STATS STRIP =====================
+function buildMktStats(){
+ const totalMcap=COMPANIES.reduce((s,c)=>s+(c.mcap||0),0);
+ const totalVol=COMPANIES.reduce((s,c)=>s+(c.vol||0),0);
+ const me=document.getElementById('mstat-mcap-val');
+ if(me) me.textContent=fmtSectorVal(totalMcap);
+ const ve=document.getElementById('mstat-vol-val');
+ if(ve) ve.textContent=fmt(totalVol);
+ const ue=document.getElementById('mstat-upd');
+ if(ue) ue.textContent=new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit',timeZone:'Asia/Baghdad'});
+ if(HIST&&HIST.rsisx_s){
+  const cv=document.getElementById('spark-rsisx-mini');
+  if(cv){const vals=HIST.rsisx_s.slice(-30).map(p=>p[1]);drawSpark(cv,vals,vals[vals.length-1]>=vals[0]?'#2DD87A':'#F05252');}
+ }
+}
+function buildMktStatMcapSpark(){
+ const cv=document.getElementById('spark-mcap-mini');
+ if(!cv||!HIST) return;
+ const h=computeMcapHistory(null,30);
+ if(!h) return;
+ const vals=h.map(p=>p[1]);
+ const up=vals[vals.length-1]>=vals[0];
+ drawSpark(cv,vals,up?'#2DD87A':'#F05252');
+ const pe=document.getElementById('mstat-mcap-pct');
+ if(pe&&vals.length>=2){
+  const pct=((vals[vals.length-1]-vals[0])/vals[0])*100;
+  pe.textContent=(pct>=0?'+':'')+pct.toFixed(2)+'%';
+  pe.style.color=pct>=0?'var(--gr)':'var(--rd)';
+ }
+}
+
+// ===================== NAV SECTORS DROPDOWN =====================
+function buildNavSectorsDD(){
+ const dd=document.getElementById('sectors-dd');
+ if(!dd) return;
+ const a=ar();
+ dd.innerHTML=SECTORS.map(s=>`<a href="/sector/${s.id}" onclick="navSector('${s.id}');return false;"><span style="width:8px;height:8px;border-radius:50%;background:${s.color};display:inline-block;flex-shrink:0"></span>${a?s.ar:s.en}</a>`).join('');
+}
+
+// ===================== CHARTS PAGE =====================
+let chartsItem='mcap';
+function navCharts(item){
+ chartsItem=item||'mcap';
+ history.pushState({},'','/charts'+(item?'/'+item:''));
+ showPage('charts');
+ renderChartsPage();
+ window.scrollTo({top:0});
+}
+function renderChartsPage(){
+ const sidebar=document.getElementById('charts-sidebar');
+ const a=ar();
+ const items=[
+  {id:'mcap',icon:'📊',ar:'إجمالي القيمة السوقية',en:'Total Market Cap'},
+  {id:'rsisx',icon:'📈',ar:'مؤشر RSISX',en:'RSISX Index'},
+  ...SECTORS.map(s=>({id:'sec_'+s.id,icon:'◉',ar:s.ar,en:s.en,color:s.color})),
+  {id:'rsi',icon:'⚡',ar:'مؤشر RSI (قريباً)',en:'RSI (Coming Soon)',disabled:true},
+  {id:'future1',icon:'◻',ar:'قيد الإنشاء',en:'Coming Soon',disabled:true},
+  {id:'future2',icon:'◻',ar:'قيد الإنشاء',en:'Coming Soon',disabled:true},
+ ];
+ if(sidebar){
+  sidebar.innerHTML=`<div style="font-size:10px;font-weight:800;color:var(--t3);text-transform:uppercase;letter-spacing:.5px;padding:4px 12px 10px">${a?'المخططات':'Charts'}</div>`
+   +items.map(it=>`<div class="csb-item${it.id===chartsItem?' active':''}${it.disabled?' disabled':''}" onclick="${it.disabled?'':'setChartsItem(\''+it.id+'\')'}" style="${it.disabled?'opacity:.4;cursor:default':''}">
+    <span style="font-size:14px">${it.icon}</span>
+    <span>${a?it.ar:it.en}</span>
+   </div>`).join('');
+ }
+ renderChartsMain();
+}
+function setChartsItem(id){
+ chartsItem=id;
+ document.querySelectorAll('.csb-item').forEach(el=>el.classList.toggle('active',el.textContent.trim()===document.querySelector(`.csb-item[onclick*="'${id}'"]`)?.textContent.trim()));
+ document.querySelectorAll('#charts-sidebar .csb-item').forEach(el=>{
+  const onclick=el.getAttribute('onclick')||'';
+  el.classList.toggle('active',onclick.includes("'"+id+"'"));
  });
-});
+ renderChartsMain();
+}
+function renderChartsMain(){
+ const main=document.getElementById('charts-main');
+ if(!main) return;
+ const a=ar();
+ if(chartsItem==='mcap'){
+  const h=computeMcapHistory(null,365);
+  const vals=h?h.map(p=>p[1]):[];
+  const up=vals.length>=2&&vals[vals.length-1]>=vals[0];
+  const totalMcap=COMPANIES.reduce((s,c)=>s+(c.mcap||0),0);
+  main.innerHTML=`<div class="chart-panel">
+   <div class="chart-panel-hdr"><div>
+    <div class="chart-panel-ttl">${a?'إجمالي القيمة السوقية لبورصة العراق':'Total ISX Market Capitalization'}</div>
+    <div class="chart-panel-sub">${a?'القيمة السوقية الكلية — آخر سنة':'Total market cap — last 12 months'}</div>
+   </div><div class="mstat-val" style="color:var(--t1)">${fmtSectorVal(totalMcap)}</div></div>
+   <div class="chart-panel-body" style="padding:14px 16px">
+    <canvas id="chart-mcap-cv" width="900" height="200" style="width:100%;height:200px"></canvas>
+    ${!h?`<p style="color:var(--t3);font-size:12px;padding:10px 0">${a?'بيانات التاريخ قيد التحميل...':'Historical data loading...'}</p>`:''}
+   </div></div>`;
+  if(h) setTimeout(()=>{const cv=document.getElementById('chart-mcap-cv');if(cv)drawSpark(cv,vals,up?'#2DD87A':'#F05252');},60);
+ } else if(chartsItem==='rsisx'){
+  main.innerHTML=`<div class="chart-panel">
+   <div class="chart-panel-hdr"><div>
+    <div class="chart-panel-ttl">${a?'مؤشر ربيع للأوراق المالية (RSISX)':'Rabee Securities ISX Index (RSISX)'}</div>
+    <div class="chart-panel-sub">${a?'المؤشر الرئيسي لبورصة العراق':'Main benchmark for the Iraq Stock Exchange'}</div>
+   </div></div>
+   <div class="chart-panel-body" style="padding:14px 16px">
+    <div id="charts-rsisx-wrap"></div>
+   </div></div>`;
+  setTimeout(()=>{
+   const wrap=document.getElementById('charts-rsisx-wrap');
+   if(!wrap) return;
+   wrap.innerHTML='<div id="charts-rsisx-inner" style="height:300px"></div>';
+   if(typeof LightweightCharts!=='undefined'){
+    const chart=LightweightCharts.createChart(document.getElementById('charts-rsisx-inner'),{height:300,layout:{background:{color:'transparent'},textColor:'#A09A8E'},grid:{vertLines:{color:'#2E2E38'},horzLines:{color:'#2E2E38'}},timeScale:{borderColor:'#2E2E38',timeVisible:true}});
+    const series=chart.addAreaSeries({lineColor:'#C8973D',topColor:'rgba(200,151,61,.25)',bottomColor:'rgba(200,151,61,.02)',lineWidth:2});
+    const src=(IDXL&&IDXL.length)?IDXL:IDX_REAL;
+    series.setData(src.map(p=>({time:p[0],value:p[1]})));
+    chart.timeScale().fitContent();
+   }
+  },100);
+ } else if(chartsItem.startsWith('sec_')){
+  const secId=chartsItem.replace('sec_','');
+  const sec=SECTORS.find(s=>s.id===secId);
+  if(!sec){main.innerHTML='';return;}
+  const h=computeMcapHistory(secId,365);
+  const vals=h?h.map(p=>p[1]):[];
+  const up=vals.length>=2&&vals[vals.length-1]>=vals[0];
+  main.innerHTML=`<div class="chart-panel">
+   <div class="chart-panel-hdr"><div>
+    <div class="chart-panel-ttl" style="color:${sec.color}">${a?sec.ar:sec.en}</div>
+    <div class="chart-panel-sub">${a?'القيمة السوقية للقطاع — آخر سنة':'Sector market cap — last 12 months'}</div>
+   </div><div class="mstat-val" style="color:var(--t1)">${fmtSectorVal(sec.val)}</div></div>
+   <div class="chart-panel-body" style="padding:14px 16px">
+    <canvas id="chart-sec-cv" width="900" height="200" style="width:100%;height:200px"></canvas>
+    ${!h?`<p style="color:var(--t3);font-size:12px;padding:10px 0">${a?'بيانات التاريخ قيد التحميل...':'Historical data loading...'}</p>`:''}
+   </div></div>`;
+  if(h) setTimeout(()=>{const cv=document.getElementById('chart-sec-cv');if(cv)drawSpark(cv,vals,up?'#2DD87A':'#F05252');},60);
+ } else {
+  main.innerHTML=`<div style="padding:40px;text-align:center;color:var(--t3)">${a?'الرجاء اختيار مخطط من القائمة الجانبية':'Select a chart from the sidebar'}</div>`;
+ }
+}
 
-// ===================== SECTOR TABS =====================
-document.querySelectorAll('.stab').forEach(t=>{
- t.addEventListener('click',()=>filterSector(t.dataset.sec));
-});
+// ===================== SECTOR PAGE =====================
+let activeSector=null;
+function navSector(id){
+ activeSector=id;
+ history.pushState({},'','/sector/'+id);
+ showPage('sector');
+ renderSectorPage();
+ window.scrollTo({top:0});
+}
+function renderSectorPage(){
+ if(!activeSector) return;
+ const sec=SECTORS.find(s=>s.id===activeSector);
+ if(!sec) return;
+ const a=ar();
+ const nm=document.getElementById('sec-pg-nm');
+ if(nm) nm.textContent=a?sec.ar:sec.en;
+ const mcapEl=document.getElementById('sec-pg-mcap');
+ if(mcapEl) mcapEl.textContent=fmtSectorVal(sec.val);
+ const pctEl=document.getElementById('sec-pg-pct');
+ if(pctEl){pctEl.textContent=(sec.chg>=0?'+':'')+sec.chg.toFixed(2)+'%';pctEl.className='badge '+(sec.chg>=0?'up':'dn');}
+ const ttlEl=document.getElementById('sec-pg-chart-ttl');
+ if(ttlEl) ttlEl.textContent=(a?sec.ar:sec.en)+' — '+(a?'القيمة السوقية':'Market Cap');
+ // Draw sector chart
+ const h=computeMcapHistory(activeSector,365);
+ const cv=document.getElementById('sec-pg-spark');
+ if(cv&&h){
+  const vals=h.map(p=>p[1]);
+  drawSpark(cv,vals,sec.chg>=0?'#2DD87A':'#F05252');
+ }
+ // Sector table
+ const body=document.getElementById('sec-pg-tbl');
+ if(!body) return;
+ const cos=COMPANIES.filter(c=>c.sec===activeSector).sort((x,y)=>(y.mcap||0)-(x.mcap||0));
+ body.innerHTML=cos.map((c,i)=>{
+  const cl=cc(c.pct), p7=get7dPct(c.sym), cl7=cc(p7);
+  const ico=c.logo?`<img src="${c.logo}" style="width:100%;height:100%;object-fit:contain;border-radius:6px" onerror="this.parentElement.textContent='${c.sym.substring(0,2)}';this.parentElement.style='background:${c.color}22;color:${c.color}';">`:c.sym.substring(0,2);
+  const icoStyle=c.logo?'background:#fff;padding:3px;border-radius:10px':'background:'+c.color+'22;color:'+c.color;
+  const starred=isWatchlisted(c.sym);
+  return `<tr class="company-row" onclick="navCompany('${c.sym}')">
+   <td><span class="rnk">${i+1}</span></td>
+   <td><button class="star-btn${starred?' starred':''}" data-sym="${c.sym}" onclick="toggleWatchlist('${c.sym}',event)" title="${a?'متابعة':'Watch'}">★</button></td>
+   <td><div class="co-cell"><div class="co-icon" style="${icoStyle}">${ico}</div><div class="co-names"><span class="co-sym">${a?c.ar:c.en}</span><span class="co-name">${c.sym}</span></div></div></td>
+   <td class="price-val">${c.close>0?c.close.toFixed(3):'-'}</td>
+   <td><span class="chg-val ${cl}">${c.close>0?`${ci(c.pct)} ${Math.abs(c.pct).toFixed(2)}%`:'-'}</span></td>
+   <td><span class="chg-val ${cl7}">${p7?`${ci(p7)} ${Math.abs(p7).toFixed(2)}%`:'-'}</span></td>
+   <td class="mcap-val">${fmtMoney(c.mcap,'mcap')}</td>
+   <td class="vol-val">${fmt(c.vol)}</td>
+   <td style="text-align:end;padding-inline-end:8px"><canvas class="spark-cv" id="spark-sec-co-${c.sym}" width="80" height="34"></canvas></td>
+  </tr>`;
+ }).join('');
+ setTimeout(()=>{
+  cos.forEach(c=>{
+   const cv=document.getElementById('spark-sec-co-'+c.sym);
+   if(!cv) return;
+   const h7=get7dHistory(c.sym), p7=get7dPct(c.sym);
+   if(h7&&h7.length>=2) drawSpark(cv,h7.map(p=>p[1]),p7>=0?'#2DD87A':'#F05252');
+   else{const vals=[]; let v=c.close||1; for(let i=0;i<10;i++){v=Math.max(0.001,v+(Math.random()-.47)*v*0.01);vals.push(v);} if(c.close>0)vals[vals.length-1]=c.close; drawSpark(cv,vals,c.pct>=0?'#2DD87A':'#F05252');}
+  });
+ },60);
+}
+
+// ===================== MODAL =====================
+function showModal(type){
+ const overlay=document.getElementById('modal-overlay');
+ const ttl=document.getElementById('modal-ttl');
+ const sub=document.getElementById('modal-sub');
+ const ico=document.getElementById('modal-icon');
+ if(!overlay) return;
+ const a=ar();
+ if(type==='login'){
+  if(ico) ico.textContent='🔐';
+  if(ttl) ttl.textContent=a?'تسجيل الدخول':'Log In';
+  if(sub) sub.textContent=a?'هذه الميزة قيد التطوير وستكون متاحة قريباً':'This feature is coming soon.';
+ } else if(type==='portfolio'){
+  if(ico) ico.textContent='💼';
+  if(ttl) ttl.textContent=a?'المحفظة الاستثمارية':'Portfolio';
+  if(sub) sub.textContent=a?'تتبع استثماراتك — قريباً':'Track your investments — coming soon.';
+ }
+ overlay.classList.add('open');
+}
+function closeModal(){
+ const overlay=document.getElementById('modal-overlay');
+ if(overlay) overlay.classList.remove('open');
+}
 
 // ===================== NEWS =====================
 function buildNews() {
@@ -2275,21 +2787,22 @@ function handleSearch(q) {
  const body=document.getElementById('tbl-body');
  if(!body) return;
  const a=ar();
- if(!filtered.length){body.innerHTML=`<tr><td colspan="12" style="text-align:center;padding:30px;color:var(--t3)">${a?'لا توجد نتائج':'No results found'}</td></tr>`;return;}
+ if(!filtered.length){body.innerHTML=`<tr><td colspan="9" style="text-align:center;padding:30px;color:var(--t3)">${a?'لا توجد نتائج':'No results found'}</td></tr>`;return;}
  body.innerHTML=filtered.map((c,i)=>{
-  const cl=cc(c.pct);
-  const sn=SEC_NAMES[c.sec]?(a?SEC_NAMES[c.sec][0]:SEC_NAMES[c.sec][1]):c.sec;
-  const ico=c.sym.substring(0,2);
+  const cl=cc(c.pct), p7=get7dPct(c.sym), cl7=cc(p7);
+  const ico=c.logo?`<img src="${c.logo}" style="width:100%;height:100%;object-fit:contain;border-radius:6px" onerror="this.parentElement.textContent='${c.sym.substring(0,2)}';this.parentElement.style='background:${c.color}22;color:${c.color}';">`:c.sym.substring(0,2);
+  const icoStyle=c.logo?'background:#fff;padding:3px;border-radius:10px':'background:'+c.color+'22;color:'+c.color;
+  const starred=isWatchlisted(c.sym);
   return `<tr class="company-row" onclick="navCompany('${c.sym}')">
    <td><span class="rnk">${i+1}</span></td>
-   <td><div class="co-cell"><div class="co-icon" style="background:${c.color}22;color:${c.color}">${ico}</div><div class="co-names"><span class="co-sym">${a?c.ar:c.en}</span><span class="co-name">${c.sym}</span></div></div></td>
-   <td><span class="sec-badge">${sn}</span></td>
-   <td class="mcap-val" data-mcap="${c.mcap}">${fmtMoney(c.mcap,'mcap')}</td>
+   <td><button class="star-btn${starred?' starred':''}" data-sym="${c.sym}" onclick="toggleWatchlist('${c.sym}',event)">★</button></td>
+   <td><div class="co-cell"><div class="co-icon" style="${icoStyle}">${ico}</div><div class="co-names"><span class="co-sym">${a?c.ar:c.en}</span><span class="co-name">${c.sym}</span></div></div></td>
    <td class="price-val">${c.close>0?c.close.toFixed(3):'-'}</td>
    <td><span class="chg-val ${cl}">${c.close>0?`${ci(c.pct)} ${Math.abs(c.pct).toFixed(2)}%`:'-'}</span></td>
+   <td><span class="chg-val ${cl7}">${p7?`${ci(p7)} ${Math.abs(p7).toFixed(2)}%`:'-'}</span></td>
+   <td class="mcap-val">${fmtMoney(c.mcap,'mcap')}</td>
    <td class="vol-val">${fmt(c.vol)}</td>
-   <td class="vol-val">${c.deals?c.deals.toLocaleString():'-'}</td>
-   <td></td><td></td><td></td><td></td>
+   <td></td>
   </tr>`;
  }).join('');
  document.getElementById('tbl-footer').style.display='none';
@@ -2316,7 +2829,7 @@ function applyLang(lang){
  const si=document.getElementById('search-inp');
  if(si) si.placeholder=isAr?'ابحث عن شركة أو رمز...':'Search company or ticker...';
  localStorage.setItem('lang',lang);
- buildTicker(); buildIdxGrid(); buildTable(); buildNews(); buildBrokers(); buildResearch();
+ buildTicker(); buildIdxGrid(); buildTable(); buildNews(); buildBrokers(); buildResearch(); buildNavSectorsDD(); buildMktStats();
  if(activeCo){
   document.getElementById('cp-sym').textContent=ar()?activeCo.ar:activeCo.en;
   document.getElementById('cp-name').textContent=activeCo.sym;
@@ -2442,6 +2955,7 @@ async function fetchLive() {
   buildTable();
   buildTicker();
   buildIdxGrid();
+  buildMktStats();
   // Remove loading dim now that live prices are in
   const _tb=document.getElementById('tbl-body'),_ti=document.getElementById('ticker-inner');
   if(_tb)_tb.classList.remove('loading'); if(_ti)_ti.classList.remove('loading');
@@ -2483,6 +2997,10 @@ function route(){
  const m=p.match(/^\/c\/([A-Za-z0-9]+)$/);
  if(m){ if(COMPANIES.find(c=>c.sym===m[1])) openCompany(m[1]); else showPage('notfound'); return; }
  if(p==='/fx'){ showPage('fx'); renderFX(); window.scrollTo({top:0}); return; }
+ const mc=p.match(/^\/charts(?:\/(.+))?$/);
+ if(mc){ chartsItem=mc[1]||'mcap'; showPage('charts'); renderChartsPage(); window.scrollTo({top:0}); return; }
+ const ms=p.match(/^\/sector\/([A-Z]+)$/);
+ if(ms&&SECTORS.find(s=>s.id===ms[1])){ activeSector=ms[1]; showPage('sector'); renderSectorPage(); window.scrollTo({top:0}); return; }
  if(p==='/'||p===''){ showPage('home'); return; }
  showPage('notfound');
 }
@@ -2576,6 +3094,8 @@ document.addEventListener('DOMContentLoaded',()=>{
  buildTicker();
  buildIdxGrid();
  buildTable();
+ buildMktStats();
+ buildNavSectorsDD();
  // Dim prices until live data loads to avoid flash of stale values
  const _tb=document.getElementById('tbl-body'),_ti=document.getElementById('ticker-inner');
  if(_tb)_tb.classList.add('loading'); if(_ti)_ti.classList.add('loading');
