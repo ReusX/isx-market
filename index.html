@@ -3035,10 +3035,20 @@ async function doSignIn() {
  if (!email || !pass) { _showMsg('login-err', ar() ? 'يرجى ملء جميع الحقول' : 'Please fill all fields'); return; }
  const btn = document.getElementById('login-submit');
  if (btn) { btn.disabled = true; btn.textContent = '...'; }
- const { error } = await _sb.auth.signInWithPassword({ email, password: pass });
- if (btn) { btn.disabled = false; btn.innerHTML = ar() ? '<span class="ar">دخول</span>' : '<span class="en">Sign In</span>'; }
- if (error) { _showMsg('login-err', error.message); return; }
- closeAuthModal();
+ try {
+  const { data, error } = await _sb.auth.signInWithPassword({ email, password: pass });
+  if (error) {
+   const msg = error.message === 'Email not confirmed'
+    ? (ar() ? 'البريد الإلكتروني غير مؤكد — تحقق من بريدك أو تواصل مع الدعم' : 'Email not confirmed. Check your inbox or contact support.')
+    : error.message;
+   _showMsg('login-err', msg); return;
+  }
+  closeAuthModal();
+ } catch(e) {
+  _showMsg('login-err', e.message || 'Login failed. Please try again.');
+ } finally {
+  if (btn) { btn.disabled = false; btn.innerHTML = '<span class="ar">دخول</span><span class="en">Sign In</span>'; }
+ }
 }
 
 // ── SIGN UP ──────────────────────────────────────────────────────
@@ -3058,10 +3068,16 @@ async function doSignUp() {
  if (existing) { _showMsg('signup-err', a ? 'اسم المستخدم محجوز' : 'Username already taken'); return; }
  const btn = document.getElementById('signup-submit');
  if (btn) { btn.disabled = true; btn.textContent = '...'; }
- const { error } = await _sb.auth.signUp({ email, password: pass, options: { data: { username } } });
- if (btn) { btn.disabled = false; btn.innerHTML = a ? '<span class="ar">إنشاء حساب</span>' : '<span class="en">Create Account</span>'; }
- if (error) { _showMsg('signup-err', error.message); return; }
- _showMsg('signup-ok', a ? '✓ تم إنشاء الحساب! تحقق من بريدك الإلكتروني للتأكيد.' : '✓ Account created! Check your email to confirm.');
+ try {
+  const { error } = await _sb.auth.signUp({ email, password: pass, options: { data: { username } } });
+  if (error) { _showMsg('signup-err', error.message); return; }
+  _showMsg('signup-ok', a ? '✓ تم إنشاء الحساب! يمكنك تسجيل الدخول الآن.' : '✓ Account created! You can now sign in.');
+  setTimeout(() => setAuthTab('login'), 1800);
+ } catch(e) {
+  _showMsg('signup-err', e.message || 'Signup failed. Please try again.');
+ } finally {
+  if (btn) { btn.disabled = false; btn.innerHTML = '<span class="ar">إنشاء حساب</span><span class="en">Create Account</span>'; }
+ }
 }
 
 // ── SIGN OUT ─────────────────────────────────────────────────────
