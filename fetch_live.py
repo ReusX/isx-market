@@ -102,6 +102,26 @@ else:
                 if key == 's':
                     updated_count += 1
 
+    # ── Update RSISX history in hist.json ──
+    # Store full RSISX series from API (always replace to stay in sync)
+    def parse_rsisx_date(d):
+        # d.Date is "M/D/YYYY"
+        parts = d['Date'].split('/')
+        m, day, y = int(parts[0]), int(parts[1]), int(parts[2])
+        dt = datetime.datetime(y, m, day, tzinfo=baghdad)
+        return int(dt.astimezone(datetime.timezone.utc).timestamp())
+
+    rsisx_pts = []
+    for r in rsisx:
+        try:
+            ts = parse_rsisx_date(r)
+            rsisx_pts.append([ts, float(r['IQD'])])
+        except Exception:
+            continue
+
+    hist['rsisx_s'] = rsisx_pts[-365:] if len(rsisx_pts) > 365 else rsisx_pts
+    hist['rsisx_l'] = rsisx_pts
+
     with open(hist_path, 'w') as f:
         json.dump(hist, f, separators=(',', ':'))
-    print(f"hist.json updated — {updated_count} symbols appended for {today_midnight_baghdad.date()}")
+    print(f"hist.json updated — {updated_count} symbols, {len(rsisx_pts)} RSISX pts for {today_midnight_baghdad.date()}")

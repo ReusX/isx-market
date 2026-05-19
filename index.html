@@ -1033,7 +1033,11 @@ let HIST=null,HISTL=null,_histReady=null;
 function loadHist(){
  if(_histReady) return _histReady;
  _histReady=fetch('./data/hist.json?t='+Math.floor(Date.now()/86400000))
-  .then(r=>r.json()).then(d=>{HIST=d.s;HISTL=d.l;}).catch(()=>{HIST={};HISTL={};});
+  .then(r=>r.json()).then(d=>{
+   HIST=d.s; HISTL=d.l;
+   if(d.rsisx_s && d.rsisx_s.length) { IDX_REAL.length=0; d.rsisx_s.forEach(p=>IDX_REAL.push(p)); }
+   if(d.rsisx_l && d.rsisx_l.length) { IDXL.length=0; d.rsisx_l.forEach(p=>IDXL.push(p)); }
+  }).catch(()=>{HIST={};HISTL={};});
  return _histReady;
 }
 const ISC_INFO={
