@@ -115,8 +115,11 @@ else:
         for key, max_pts in [('s', 252), ('l', None)]:
             arr = hist[key].get(sym, [])
             # Only append if this timestamp isn't already there
-            if not arr or arr[-1][0] != today_ts:
+            if not any(p[0] == today_ts for p in arr):
                 arr.append([today_ts, round(price, 4)])
+                arr.sort(key=lambda x: x[0])
+                # deduplicate
+                arr = [v for i, v in enumerate(arr) if i == 0 or v[0] != arr[i-1][0]]
                 if max_pts and len(arr) > max_pts:
                     arr = arr[-max_pts:]
                 hist[key][sym] = arr

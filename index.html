@@ -1247,6 +1247,10 @@ function loadHist(){
  _histReady=fetch('./data/hist.json?t='+Math.floor(Date.now()/86400000))
   .then(r=>r.json()).then(d=>{
    HIST=d.s; HISTL=d.l;
+   // Sort each symbol's arrays by timestamp and deduplicate (backfill may produce unsorted data)
+   const sortDedup = arr => { arr.sort((a,b)=>a[0]-b[0]); return arr.filter((v,i,a)=>i===0||v[0]!==a[i-1][0]); };
+   if(HIST) Object.keys(HIST).forEach(sym=>{ HIST[sym]=sortDedup(HIST[sym]); });
+   if(HISTL) Object.keys(HISTL).forEach(sym=>{ HISTL[sym]=sortDedup(HISTL[sym]); });
    // Only append NEW points — preserves pre-API historical data and skips bad out-of-order API points
    if(d.rsisx_s && d.rsisx_s.length) {
     const lastTs=IDX_REAL.length?IDX_REAL[IDX_REAL.length-1][0]:0;

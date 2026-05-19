@@ -198,13 +198,18 @@ def main():
         ts = int(dt.astimezone(datetime.timezone.utc).timestamp())
         for sym, row in day_data.items():
             arr = hist['s'].get(sym, [])
-            if not arr or arr[-1][0] != ts:
+            if not any(p[0] == ts for p in arr):
                 arr.append([ts, row['c']])
+                arr.sort(key=lambda x: x[0])
+                # deduplicate
+                arr = [v for i, v in enumerate(arr) if i == 0 or v[0] != arr[i-1][0]]
                 hist['s'][sym] = arr
                 added += 1
             arr_l = hist.get('l', {}).get(sym, [])
-            if not arr_l or arr_l[-1][0] != ts:
+            if not any(p[0] == ts for p in arr_l):
                 arr_l.append([ts, row['c']])
+                arr_l.sort(key=lambda x: x[0])
+                arr_l = [v for i, v in enumerate(arr_l) if i == 0 or v[0] != arr_l[i-1][0]]
                 hist.setdefault('l', {})[sym] = arr_l
 
     with open(hist_path, 'w') as f:
