@@ -1048,6 +1048,8 @@ function loadHist(){
     const lastTs=IDXL.length?IDXL[IDXL.length-1][0]:0;
     d.rsisx_l.filter(p=>p[0]>lastTs).forEach(p=>IDXL.push(p));
    }
+   // Draw real sector sparklines now that hist is loaded
+   buildSectorSparks();
   }).catch(()=>{HIST={};HISTL={};});
  return _histReady;
 }
@@ -2047,6 +2049,44 @@ function buildTicker() {
 }
 
 // ===================== SECTOR INDEX GRID =====================
+function buildSectorSparks() {
+ if (!HIST) return;
+ SECTORS.forEach(s => {
+  const cv = document.getElementById('spark-sec-' + s.id);
+  if (!cv) return;
+  const cos = COMPANIES.filter(c => c.sec === s.id && c.close > 0 && c.mcap > 0 && HIST[c.sym] && HIST[c.sym].length);
+  if (!cos.length) return;
+  // Build price Maps per company for O(1) lookup, collect all timestamps
+  const pMaps = {};
+  const tsSet = new Set();
+  cos.forEach(c => {
+   const m = new Map();
+   HIST[c.sym].forEach(p => { m.set(p[0], p[1]); tsSet.add(p[0]); });
+   pMaps[c.sym] = m;
+  });
+  const tsList = [...tsSet].sort((a, b) => a - b);
+  // Fill-forward: sector mcap at each ts = sum(co.mcap × hist_price / co.close)
+  const lastP = {};
+  const vals = tsList.map(ts => {
+   let tot = 0;
+   cos.forEach(c => {
+    const p = pMaps[c.sym].get(ts);
+    if (p !== undefined) lastP[c.sym] = p;
+    const price = lastP[c.sym];
+    if (price) tot += c.mcap * (price / c.close);
+   });
+   return tot;
+  }).filter(v => v > 0);
+  if (vals.length < 2) return;
+  // Downsample to ~40 pts
+  const step = Math.max(1, Math.floor(vals.length / 40));
+  const sampled = [];
+  for (let i = 0; i < vals.length; i += step) sampled.push(vals[i]);
+  if (sampled[sampled.length - 1] !== vals[vals.length - 1]) sampled.push(vals[vals.length - 1]);
+  drawSpark(cv, sampled, s.chg >= 0 ? '#2DD87A' : '#F05252');
+ });
+}
+
 function buildIdxGrid() {
  const grid = document.getElementById('idx-grid');
  if (!grid) return;
@@ -2057,18 +2097,11 @@ function buildIdxGrid() {
    <div class="idx-nm">${a?s.ar:s.en}</div>
    <div class="idx-mcap-lbl">${a?'القيمة السوقية':'Market Cap'}</div>
    <div class="idx-v">${fmtSectorVal(s.val)}</div>
-   <div class="idx-ch ${cl}">${ci(s.chg)} ${Math.abs(s.chg).toFixed(2)}%</div>
+   <div class="idx-ch ${cl}">${ci(s.chg)} ${Math.abs(s.chg).toFixed(2)}% <span style="font-size:9px;font-weight:500;opacity:.55;color:var(--t3)">${a?'24س':'24h'}</span></div>
    <canvas width="180" height="44" id="spark-sec-${s.id}"></canvas>
   </div>`;
  }).join('');
- SECTORS.forEach(s=>{
-  const cv=document.getElementById(`spark-sec-${s.id}`);
-  if(!cv) return;
-  const vals=[]; let v=s.val*0.9;
-  for(let i=0;i<30;i++){v=Math.max(50,v+(Math.random()-.46)*2); vals.push(v);}
-  vals[vals.length-1]=s.val;
-  drawSpark(cv,vals,s.chg>=0?'#2DD87A':'#F05252');
- });
+ buildSectorSparks();
 }
 
 // ===================== TABLE =====================
