@@ -1311,6 +1311,21 @@ function fmtMcap(v) {
  if (v >= 1000) return (v/1000).toFixed(1)+' B IQD';
  return v.toFixed(0)+' M IQD';
 }
+function fmtSectorVal(v) {
+ if (!v) return '-';
+ if (currencyMode === 'USD') {
+  const usd = v * 1e6 / EXCHANGE_RATE;
+  if (usd >= 1e9) return '$' + (usd/1e9).toFixed(2) + 'B';
+  if (usd >= 1e6) return '$' + (usd/1e6).toFixed(1) + 'M';
+  return '$' + (usd/1e3).toFixed(0) + 'K';
+ }
+ if (ar()) {
+  if (v >= 1e6) return (v/1e6).toFixed(2) + ' تريليون';
+  if (v >= 1000) return (v/1000).toFixed(1) + ' مليار';
+  return v.toFixed(0) + ' مليون';
+ }
+ return fmtMcap(v);
+}
 const EXCHANGE_RATE = 1310; // IQD per USD (official rate)
 let currencyMode = 'IQD';
 
@@ -2041,7 +2056,7 @@ function buildIdxGrid() {
   return `<div class="idx-card" onclick="filterSector('${s.id}')">
    <div class="idx-nm">${a?s.ar:s.en}</div>
    <div class="idx-mcap-lbl">${a?'القيمة السوقية':'Market Cap'}</div>
-   <div class="idx-v">${fmtMoney(s.val,'mcap')}</div>
+   <div class="idx-v">${fmtSectorVal(s.val)}</div>
    <div class="idx-ch ${cl}">${ci(s.chg)} ${Math.abs(s.chg).toFixed(2)}%</div>
    <canvas width="180" height="44" id="spark-sec-${s.id}"></canvas>
   </div>`;
