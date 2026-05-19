@@ -2,7 +2,7 @@ name: Update Live Market Data
 
 on:
   schedule:
-    - cron: '0,30 5-12 * * 0-4'
+    - cron: '0,30 5-16 * * 0-4'
   workflow_dispatch:
 
 jobs:
