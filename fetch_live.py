@@ -43,12 +43,24 @@ print(f"Prices fetched: {len(live_stocks)}")
 
 rsisx = requests.get('https://appapi.rs.iq/api/SiteStock/GetRSISXList?type=RSISX', headers=H, timeout=20).json()
 latest = rsisx[-1] if rsisx else None
+prev = rsisx[-2] if len(rsisx) >= 2 else None
+
+rsisx_val = float(latest['IQD']) if latest else 0
+rsisx_prev = float(prev['IQD']) if prev else 0
+rsisx_change = round(rsisx_val - rsisx_prev, 2) if rsisx_prev else 0
+rsisx_pct = round((rsisx_change / rsisx_prev) * 100, 2) if rsisx_prev else 0
+
+# Market breadth from DTDPriceChange
+up = sum(1 for s in stocks if (s.get('DTDPriceChange') or 0) > 0)
+dn = sum(1 for s in stocks if (s.get('DTDPriceChange') or 0) < 0)
+fl = len(stocks) - up - dn
 
 os.makedirs('data', exist_ok=True)
 out = {
     'updated': datetime.datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ'),
     'stocks': live_stocks,
-    'rsisx': {'value': latest['IQD'], 'date': latest['Date']} if latest else None
+    'rsisx': {'value': latest['IQD'], 'date': latest['Date'], 'change': rsisx_change, 'pct': rsisx_pct} if latest else None,
+    'breadth': {'up': up, 'dn': dn, 'fl': fl}
 }
 with open('data/live.json', 'w') as f:
     json.dump(out, f, separators=(',', ':'))

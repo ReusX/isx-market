@@ -2337,6 +2337,24 @@ async function fetchLive() {
    const rsVal = Number(d.rsisx.value).toLocaleString('en', {minimumFractionDigits:2, maximumFractionDigits:2});
    const el = document.getElementById('idx-val');
    if (el) el.textContent = rsVal;
+   // Update change badges
+   if (d.rsisx.change != null && d.rsisx.pct != null) {
+    const chg = d.rsisx.change, pct = d.rsisx.pct;
+    const up = chg >= 0;
+    const chgEl = document.getElementById('idx-chg-b');
+    const pctEl = document.getElementById('idx-pct-b');
+    if (chgEl) { chgEl.textContent = (up ? '▲ ' : '▼ ') + Math.abs(chg).toFixed(2); chgEl.className = 'badge ' + (up ? 'up' : 'dn'); }
+    if (pctEl) { pctEl.textContent = (up ? '+' : '') + pct.toFixed(2) + '%'; pctEl.className = 'badge ' + (up ? 'up' : 'dn'); }
+   }
+  }
+  // Update market breadth
+  if (d.breadth) {
+   const {up, dn, fl} = d.breadth;
+   const tot = up + dn + fl || 1;
+   const bUp = document.getElementById('b-up'), bDn = document.getElementById('b-dn'), bFl = document.getElementById('b-fl');
+   if (bUp) bUp.style.flex = up; if (bDn) bDn.style.flex = dn; if (bFl) bFl.style.flex = fl;
+   const cUp = document.getElementById('c-up'), cDn = document.getElementById('c-dn'), cFl = document.getElementById('c-fl');
+   if (cUp) cUp.textContent = up; if (cDn) cDn.textContent = dn; if (cFl) cFl.textContent = fl;
   }
   // Update live-row date
   if (d.rsisx && d.rsisx.date) {
