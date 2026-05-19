@@ -2334,10 +2334,17 @@ async function fetchLive() {
   });
   // Update RSISX index display
   if (d.rsisx && d.rsisx.value) {
-   document.querySelectorAll('.idx-val').forEach(el => {
-    if (el.closest('[data-idx="RSISX"]') || el.id === 'main-idx-val') {
-     el.textContent = Number(d.rsisx.value).toLocaleString('en', {minimumFractionDigits:2, maximumFractionDigits:2});
-    }
+   const rsVal = Number(d.rsisx.value).toLocaleString('en', {minimumFractionDigits:2, maximumFractionDigits:2});
+   const el = document.getElementById('idx-val');
+   if (el) el.textContent = rsVal;
+  }
+  // Update live-row date
+  if (d.rsisx && d.rsisx.date) {
+   const parts = d.rsisx.date.split('/');
+   const dateStr = parts.length === 3 ? `${parts[1].padStart(2,'0')}/${parts[0].padStart(2,'0')}/${parts[2]}` : d.rsisx.date;
+   document.querySelectorAll('.live-row span').forEach(el => {
+    if (el.classList.contains('ar')) el.textContent = 'آخر تحديث: ' + dateStr;
+    if (el.classList.contains('en')) el.textContent = 'Last update: ' + dateStr;
    });
   }
   // Rebuild table and ticker with fresh data
@@ -2351,8 +2358,8 @@ async function fetchLive() {
    + `<span class="en"> Live data — Last update: ${fmt} Baghdad · ${updated} stocks</span>`;
  } catch(e) {
   if (bar) bar.innerHTML = '<span style="color:var(--ac)">⚡</span>'
-   + '<span class="ar"> بيانات سوق العراق — آخر تحديث: 17/05/2026 (المصدر: ربيع للأوراق المالية)</span>'
-   + '<span class="en"> ISX market data — Last update: 17/05/2026 (Source: Rabee Securities)</span>';
+   + '<span class="ar"> بيانات سوق العراق (المصدر: ربيع للأوراق المالية)</span>'
+   + '<span class="en"> ISX market data (Source: Rabee Securities)</span>';
  }
 }
 
