@@ -2937,8 +2937,10 @@ function initAuth() {
 
 async function _loadProfile() {
  if (!_sb || !_sbUser) return;
- const { data } = await _sb.from('profiles').select('*').eq('id', _sbUser.id).single();
+ const { data, error } = await _sb.from('profiles').select('*').eq('id', _sbUser.id).single();
+ if (error) console.warn('[auth] profile load failed:', error.message, error.code);
  _sbProfile = data || null;
+ _updateNavAuth(); // refresh nav once profile arrives
 }
 
 async function _mergeWatchlist() {
@@ -2966,7 +2968,8 @@ function _updateNavAuth() {
  const avWrap    = document.getElementById('nav-user-av');
  const mobLogin  = document.getElementById('mob-login-btn');
  const mobInfo   = document.getElementById('mob-user-info');
- const loggedIn  = !!(_sbUser && _sbProfile);
+ // Show avatar as soon as session exists — don't wait for profile row
+ const loggedIn  = !!_sbUser;
 
  if (loginBtn) loginBtn.style.display = loggedIn ? 'none' : '';
  if (avWrap)   avWrap.style.display   = loggedIn ? '' : 'none';
@@ -2974,10 +2977,11 @@ function _updateNavAuth() {
  if (mobInfo)  mobInfo.style.display  = loggedIn ? '' : 'none';
 
  if (loggedIn) {
-  const uname = _sbProfile.username || '';
+  // Use profile data when available, fall back to email while it's loading
+  const uname = _sbProfile?.username || _sbUser.email?.split('@')[0] || '?';
   const email = _sbUser.email || '';
   const initial = uname[0]?.toUpperCase() || '?';
-  const isOG  = !!_sbProfile.is_og;
+  const isOG  = !!_sbProfile?.is_og;
 
   const els = {
    'user-initial': initial,
