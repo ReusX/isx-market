@@ -496,6 +496,53 @@ footer{background:var(--bg2);border-top:1px solid var(--border);padding:44px 24p
  .chart-panel-kpis{padding:8px 14px 0}
 }
 </style>
+<style>
+/* ── AUTH MODAL ─────────────────────────────────────────────── */
+.auth-overlay{display:none;position:fixed;inset:0;z-index:6000;background:rgba(0,0,0,.72);backdrop-filter:blur(6px);align-items:center;justify-content:center;padding:16px}
+.auth-overlay.open{display:flex}
+.auth-card{background:var(--bg2);border:1px solid var(--border);border-radius:20px;width:100%;max-width:420px;padding:32px 28px;position:relative;box-shadow:0 24px 60px rgba(0,0,0,.5)}
+.auth-close{position:absolute;top:16px;right:16px;background:none;border:none;color:var(--t3);cursor:pointer;font-size:18px;line-height:1;padding:4px 8px;border-radius:6px}
+.auth-close:hover{background:var(--bg3);color:var(--t1)}
+.auth-logo{display:flex;align-items:center;gap:10px;margin-bottom:24px}
+.auth-logo .logo-icon{width:38px;height:38px;font-size:20px;flex-shrink:0}
+.auth-logo-name{font-size:15px;font-weight:700;color:var(--t1);line-height:1.2}
+.auth-logo-sub{font-size:11px;color:var(--t3)}
+.auth-tabs{display:flex;gap:4px;background:var(--bg3);border-radius:10px;padding:4px;margin-bottom:24px}
+.auth-tab{flex:1;padding:8px;border:none;background:none;color:var(--t2);border-radius:7px;cursor:pointer;font-size:13px;font-weight:600;font-family:inherit;transition:all .2s}
+.auth-tab.active{background:var(--ac);color:#0C0C0E}
+.auth-field{margin-bottom:14px}
+.auth-field label{display:block;font-size:11px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.4px;margin-bottom:6px}
+.auth-field input{width:100%;background:var(--bg3);border:1px solid var(--border);color:var(--t1);padding:11px 13px;border-radius:9px;font-size:14px;font-family:inherit;outline:none;box-sizing:border-box;transition:border-color .2s}
+.auth-field input:focus{border-color:var(--ac)}
+.auth-field input::placeholder{color:var(--t3)}
+.auth-err{font-size:12px;color:var(--rd);background:rgba(240,82,82,.08);border:1px solid rgba(240,82,82,.2);border-radius:7px;padding:8px 10px;margin-bottom:12px;display:none}
+.auth-ok{font-size:12px;color:var(--gr);background:rgba(45,216,122,.08);border:1px solid rgba(45,216,122,.2);border-radius:7px;padding:8px 10px;margin-bottom:12px;display:none}
+.auth-submit{width:100%;background:var(--ac);color:#0C0C0E;border:none;padding:12px;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;margin-top:4px;transition:opacity .2s}
+.auth-submit:hover{opacity:.88}
+.auth-submit:disabled{opacity:.5;cursor:not-allowed}
+.auth-switch{text-align:center;margin-top:16px;font-size:12px;color:var(--t3)}
+.auth-switch button{background:none;border:none;color:var(--ac);font-weight:700;cursor:pointer;font-size:12px;font-family:inherit;padding:0 4px}
+.og-notice{background:linear-gradient(135deg,rgba(200,151,61,.12),rgba(200,151,61,.04));border:1px solid rgba(200,151,61,.3);border-radius:9px;padding:10px 12px;margin-bottom:14px;font-size:12px;color:var(--ac);display:flex;gap:8px;align-items:center}
+/* ── USER AVATAR NAV ────────────────────────────────────────── */
+.user-av-wrap{position:relative}
+.user-av-btn{width:32px;height:32px;border-radius:50%;background:var(--ac);color:#0C0C0E;border:none;cursor:pointer;font-size:13px;font-weight:800;font-family:inherit;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.user-av-btn:hover{opacity:.85}
+.user-dd-menu{position:absolute;top:calc(100% + 8px);right:0;background:var(--bg2);border:1px solid var(--border);border-radius:12px;min-width:200px;box-shadow:0 12px 32px rgba(0,0,0,.35);display:none;z-index:4000;overflow:hidden}
+.user-av-wrap:hover .user-dd-menu,.user-dd-menu:hover{display:block}
+.user-dd-header{padding:14px 16px 12px;border-bottom:1px solid var(--border)}
+.user-dd-uname{font-size:14px;font-weight:700;color:var(--t1);display:flex;align-items:center;gap:6px}
+.user-dd-email{font-size:11px;color:var(--t3);margin-top:2px;word-break:break-all}
+.user-dd-item{display:flex;align-items:center;gap:9px;width:100%;padding:10px 16px;background:none;border:none;color:var(--t2);cursor:pointer;font-size:13px;font-family:inherit;text-align:start;transition:background .15s}
+.user-dd-item:hover{background:var(--bg3);color:var(--t1)}
+.user-dd-logout{color:var(--rd)}
+.user-dd-logout:hover{background:rgba(240,82,82,.08);color:var(--rd)}
+.user-dd-sep{height:1px;background:var(--border);margin:2px 0}
+/* ── OG BADGE ───────────────────────────────────────────────── */
+.og-badge{display:inline-flex;align-items:center;padding:1px 6px;background:linear-gradient(135deg,#C8973D,#E8B84B);color:#0C0C0E;border-radius:4px;font-size:10px;font-weight:900;letter-spacing:.5px}
+/* ── TABLE OG COLUMN ────────────────────────────────────────── */
+.user-num-tag{font-size:10px;color:var(--t3)}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 
 </head><body>
 
@@ -561,7 +608,26 @@ footer{background:var(--bg2);border-top:1px solid var(--border);padding:44px 24p
     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
     <span class="btn-lbl ar">المتابعة</span><span class="btn-lbl en">Watchlist</span>
    </button>
-   <button class="nav-login-btn" onclick="showModal('login')"><span class="ar">تسجيل دخول</span><span class="en">Log In</span></button>
+   <button class="nav-login-btn" id="nav-login-btn" onclick="showAuthModal('login')"><span class="ar">دخول</span><span class="en">Log In</span></button>
+   <div class="user-av-wrap" id="nav-user-av" style="display:none">
+    <button class="user-av-btn" id="user-av-btn"><span id="user-initial">?</span></button>
+    <div class="user-dd-menu">
+     <div class="user-dd-header">
+      <div class="user-dd-uname"><span id="user-dd-name"></span><span class="og-badge" id="user-og-badge" style="display:none">OG</span></div>
+      <div class="user-dd-email" id="user-dd-email"></div>
+     </div>
+     <div class="user-dd-sep"></div>
+     <button class="user-dd-item" onclick="navWatchlist()">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+      <span class="ar">قائمة المتابعة</span><span class="en">Watchlist</span>
+     </button>
+     <div class="user-dd-sep"></div>
+     <button class="user-dd-item user-dd-logout" onclick="doSignOut()">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/></svg>
+      <span class="ar">تسجيل الخروج</span><span class="en">Sign Out</span>
+     </button>
+    </div>
+   </div>
    <button class="icon-btn" id="theme-btn" onclick="toggleTheme()">🌙</button>
    <button class="cur-btn" id="cur-btn" onclick="toggleCurrency()" title="Toggle IQD/USD">USD</button>
    <button class="lang-btn" id="lang-btn" onclick="toggleLang()">EN</button>
@@ -585,6 +651,19 @@ footer{background:var(--bg2);border-top:1px solid var(--border);padding:44px 24p
  <a href="/about"><span class="ar">عن الموقع</span><span class="en">About</span></a>
  <a href="/privacy"><span class="ar">سياسة الخصوصية</span><span class="en">Privacy</span></a>
  <div class="mob-nav-divider"></div>
+ <div id="mob-auth-section">
+  <button class="auth-submit" id="mob-login-btn" style="margin:12px 16px;width:calc(100% - 32px);padding:10px" onclick="showAuthModal('login');closeMobNav()"><span class="ar">دخول / تسجيل</span><span class="en">Login / Sign Up</span></button>
+  <div id="mob-user-info" style="display:none;padding:12px 16px;display:none">
+   <div style="display:flex;align-items:center;gap:10px">
+    <div class="user-av-btn" style="width:36px;height:36px;font-size:14px;pointer-events:none"><span id="mob-user-initial">?</span></div>
+    <div><div style="font-weight:700;color:var(--t1);font-size:14px" id="mob-user-name"></div><div style="font-size:11px;color:var(--t3)" id="mob-user-email"></div></div>
+   </div>
+   <button class="user-dd-item user-dd-logout" style="margin-top:8px;padding-left:0" onclick="doSignOut();closeMobNav()">
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/></svg>
+    <span class="ar">تسجيل الخروج</span><span class="en">Sign Out</span>
+   </button>
+  </div>
+ </div>
  <div class="mob-nav-controls">
   <button class="lang-btn" onclick="toggleLang()">EN / عربي</button>
   <button class="cur-btn" onclick="toggleCurrency()">IQD / USD</button>
@@ -1146,6 +1225,76 @@ footer{background:var(--bg2);border-top:1px solid var(--border);padding:44px 24p
   <div class="modal-ttl" id="modal-ttl">قيد الإنشاء</div>
   <div class="modal-sub" id="modal-sub">هذه الميزة قيد التطوير وستكون متاحة قريباً</div>
   <button class="modal-close" onclick="closeModal()"><span class="ar">إغلاق</span><span class="en">Close</span></button>
+ </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- AUTH MODAL                                                   -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+<div class="auth-overlay" id="auth-overlay" onclick="if(event.target===this)closeAuthModal()">
+ <div class="auth-card">
+  <button class="auth-close" onclick="closeAuthModal()">✕</button>
+  <div class="auth-logo">
+   <div class="logo-icon">ب</div>
+   <div><div class="auth-logo-name">ISX Market</div><div class="auth-logo-sub">بورصة العراق للأوراق المالية</div></div>
+  </div>
+  <div class="auth-tabs">
+   <button class="auth-tab active" data-tab="login" onclick="setAuthTab('login')"><span class="ar">دخول</span><span class="en">Login</span></button>
+   <button class="auth-tab" data-tab="signup" onclick="setAuthTab('signup')"><span class="ar">حساب جديد</span><span class="en">Sign Up</span></button>
+  </div>
+
+  <!-- LOGIN FORM -->
+  <div id="auth-login-form">
+   <div class="auth-field">
+    <label><span class="ar">البريد الإلكتروني</span><span class="en">Email</span></label>
+    <input type="email" id="login-email" autocomplete="email" onkeydown="if(event.key==='Enter')doSignIn()">
+   </div>
+   <div class="auth-field">
+    <label><span class="ar">كلمة المرور</span><span class="en">Password</span></label>
+    <input type="password" id="login-pass" autocomplete="current-password" onkeydown="if(event.key==='Enter')doSignIn()">
+   </div>
+   <div class="auth-err" id="login-err"></div>
+   <button class="auth-submit" id="login-submit" onclick="doSignIn()">
+    <span class="ar">دخول</span><span class="en">Sign In</span>
+   </button>
+   <div class="auth-switch">
+    <span class="ar">ليس لديك حساب؟ </span><span class="en">No account? </span>
+    <button onclick="setAuthTab('signup')"><span class="ar">إنشاء حساب</span><span class="en">Sign Up</span></button>
+   </div>
+  </div>
+
+  <!-- SIGNUP FORM -->
+  <div id="auth-signup-form" style="display:none">
+   <div class="og-notice">
+    <span>⚡</span>
+    <span><span class="ar">أول 200 مستخدم يحصل على شارة OG حصرية!</span><span class="en">First 200 users get an exclusive OG badge!</span></span>
+   </div>
+   <div class="auth-field">
+    <label><span class="ar">اسم المستخدم</span><span class="en">Username</span></label>
+    <input type="text" id="signup-username" autocomplete="username" placeholder="ahmed123">
+   </div>
+   <div class="auth-field">
+    <label><span class="ar">البريد الإلكتروني</span><span class="en">Email</span></label>
+    <input type="email" id="signup-email" autocomplete="email">
+   </div>
+   <div class="auth-field">
+    <label><span class="ar">كلمة المرور</span><span class="en">Password</span></label>
+    <input type="password" id="signup-pass" autocomplete="new-password">
+   </div>
+   <div class="auth-field">
+    <label><span class="ar">تأكيد كلمة المرور</span><span class="en">Confirm Password</span></label>
+    <input type="password" id="signup-pass2" autocomplete="new-password" onkeydown="if(event.key==='Enter')doSignUp()">
+   </div>
+   <div class="auth-err" id="signup-err"></div>
+   <div class="auth-ok" id="signup-ok"></div>
+   <button class="auth-submit" id="signup-submit" onclick="doSignUp()">
+    <span class="ar">إنشاء حساب</span><span class="en">Create Account</span>
+   </button>
+   <div class="auth-switch">
+    <span class="ar">لديك حساب؟ </span><span class="en">Have an account? </span>
+    <button onclick="setAuthTab('login')"><span class="ar">دخول</span><span class="en">Sign In</span></button>
+   </div>
+  </div>
  </div>
 </div>
 
@@ -2393,6 +2542,7 @@ function toggleWatchlist(sym,e){
  localStorage.setItem('isx_watchlist',JSON.stringify(wl));
  document.querySelectorAll(`.star-btn[data-sym="${sym}"]`).forEach(b=>b.classList.toggle('starred',idx<0));
  if(curTab==='watchlist') buildTable();
+ _scheduleWlSync(); // persist to DB if logged in
 }
 function navWatchlist(){
  setTab('watchlist');
@@ -2752,6 +2902,172 @@ function showModal(type){
 function closeModal(){
  const overlay=document.getElementById('modal-overlay');
  if(overlay) overlay.classList.remove('open');
+}
+
+// ===================== AUTH (SUPABASE) =====================
+const SUPABASE_URL  = 'YOUR_SUPABASE_URL';   // ← replace
+const SUPABASE_ANON = 'YOUR_SUPABASE_ANON_KEY'; // ← replace
+
+let _sb = null;          // supabase client
+let _sbUser = null;      // current auth user
+let _sbProfile = null;   // current profile row
+let _wlSyncTimer = null; // debounce timer for watchlist saves
+
+function initAuth() {
+ if (typeof window.supabase === 'undefined') { console.warn('Supabase SDK not loaded'); return; }
+ if (SUPABASE_URL === 'YOUR_SUPABASE_URL') { console.warn('Supabase keys not configured'); return; }
+ _sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON, {
+  auth: { persistSession: true, autoRefreshToken: true }
+ });
+ _sb.auth.onAuthStateChange(async (event, session) => {
+  if (session?.user) {
+   _sbUser = session.user;
+   await _loadProfile();
+  } else {
+   _sbUser = null; _sbProfile = null;
+  }
+  _updateNavAuth();
+  if (event === 'SIGNED_IN') { _mergeWatchlist(); buildTable(); }
+  if (event === 'SIGNED_OUT') buildTable();
+ });
+ _sb.auth.getSession().then(({ data: { session } }) => {
+  if (session?.user) { _sbUser = session.user; _loadProfile().then(() => { _updateNavAuth(); buildTable(); }); }
+ });
+}
+
+async function _loadProfile() {
+ if (!_sb || !_sbUser) return;
+ const { data } = await _sb.from('profiles').select('*').eq('id', _sbUser.id).single();
+ _sbProfile = data || null;
+}
+
+async function _mergeWatchlist() {
+ if (!_sbProfile) return;
+ const local = getWatchlist();
+ const db = _sbProfile.watchlist || [];
+ const merged = [...new Set([...db, ...local])];
+ localStorage.setItem('isx_watchlist', JSON.stringify(merged));
+ if (merged.length !== db.length) {
+  await _sb.from('profiles').update({ watchlist: merged }).eq('id', _sbUser.id);
+ }
+}
+
+function _scheduleWlSync() {
+ if (!_sb || !_sbUser) return;
+ clearTimeout(_wlSyncTimer);
+ _wlSyncTimer = setTimeout(async () => {
+  const wl = getWatchlist();
+  await _sb.from('profiles').update({ watchlist: wl }).eq('id', _sbUser.id);
+ }, 800);
+}
+
+function _updateNavAuth() {
+ const loginBtn  = document.getElementById('nav-login-btn');
+ const avWrap    = document.getElementById('nav-user-av');
+ const mobLogin  = document.getElementById('mob-login-btn');
+ const mobInfo   = document.getElementById('mob-user-info');
+ const loggedIn  = !!(_sbUser && _sbProfile);
+
+ if (loginBtn) loginBtn.style.display = loggedIn ? 'none' : '';
+ if (avWrap)   avWrap.style.display   = loggedIn ? '' : 'none';
+ if (mobLogin) mobLogin.style.display = loggedIn ? 'none' : '';
+ if (mobInfo)  mobInfo.style.display  = loggedIn ? '' : 'none';
+
+ if (loggedIn) {
+  const uname = _sbProfile.username || '';
+  const email = _sbUser.email || '';
+  const initial = uname[0]?.toUpperCase() || '?';
+  const isOG  = !!_sbProfile.is_og;
+
+  const els = {
+   'user-initial': initial,
+   'user-dd-name': uname,
+   'user-dd-email': email,
+   'mob-user-initial': initial,
+   'mob-user-name': uname,
+   'mob-user-email': email,
+  };
+  Object.entries(els).forEach(([id, val]) => { const e = document.getElementById(id); if (e) e.textContent = val; });
+
+  const ogBadge = document.getElementById('user-og-badge');
+  if (ogBadge) ogBadge.style.display = isOG ? 'inline-flex' : 'none';
+ }
+}
+
+// ── AUTH MODAL ──────────────────────────────────────────────────
+let _authTab = 'login';
+
+function showAuthModal(tab) {
+ _authTab = tab || 'login';
+ const ov = document.getElementById('auth-overlay');
+ if (ov) ov.classList.add('open');
+ setAuthTab(_authTab);
+ _clearAuthMsgs();
+}
+function closeAuthModal() {
+ const ov = document.getElementById('auth-overlay');
+ if (ov) ov.classList.remove('open');
+ _clearAuthMsgs();
+}
+function setAuthTab(tab) {
+ _authTab = tab;
+ document.querySelectorAll('.auth-tab').forEach(t => t.classList.toggle('active', t.dataset.tab === tab));
+ const lf = document.getElementById('auth-login-form');
+ const sf = document.getElementById('auth-signup-form');
+ if (lf) lf.style.display = tab === 'login'  ? '' : 'none';
+ if (sf) sf.style.display = tab === 'signup' ? '' : 'none';
+}
+function _clearAuthMsgs() {
+ ['login-err','signup-err','signup-ok'].forEach(id => {
+  const e = document.getElementById(id); if (e) { e.textContent = ''; e.style.display = 'none'; }
+ });
+}
+function _showMsg(id, msg) {
+ const e = document.getElementById(id);
+ if (e) { e.textContent = msg; e.style.display = 'block'; }
+}
+
+// ── SIGN IN ──────────────────────────────────────────────────────
+async function doSignIn() {
+ if (!_sb) { _showMsg('login-err', 'Auth service not configured'); return; }
+ const email = document.getElementById('login-email')?.value.trim() || '';
+ const pass  = document.getElementById('login-pass')?.value || '';
+ if (!email || !pass) { _showMsg('login-err', ar() ? 'يرجى ملء جميع الحقول' : 'Please fill all fields'); return; }
+ const btn = document.getElementById('login-submit');
+ if (btn) { btn.disabled = true; btn.textContent = '...'; }
+ const { error } = await _sb.auth.signInWithPassword({ email, password: pass });
+ if (btn) { btn.disabled = false; btn.innerHTML = ar() ? '<span class="ar">دخول</span>' : '<span class="en">Sign In</span>'; }
+ if (error) { _showMsg('login-err', error.message); return; }
+ closeAuthModal();
+}
+
+// ── SIGN UP ──────────────────────────────────────────────────────
+async function doSignUp() {
+ if (!_sb) { _showMsg('signup-err', 'Auth service not configured'); return; }
+ const username = document.getElementById('signup-username')?.value.trim() || '';
+ const email    = document.getElementById('signup-email')?.value.trim() || '';
+ const pass     = document.getElementById('signup-pass')?.value || '';
+ const pass2    = document.getElementById('signup-pass2')?.value || '';
+ const a = ar();
+ if (!username || !email || !pass || !pass2) { _showMsg('signup-err', a ? 'يرجى ملء جميع الحقول' : 'Please fill all fields'); return; }
+ if (pass !== pass2) { _showMsg('signup-err', a ? 'كلمتا المرور غير متطابقتين' : 'Passwords do not match'); return; }
+ if (pass.length < 6) { _showMsg('signup-err', a ? 'كلمة المرور 6 أحرف على الأقل' : 'Password must be at least 6 characters'); return; }
+ if (!/^[a-zA-Z0-9_]{3,20}$/.test(username)) { _showMsg('signup-err', a ? 'اسم المستخدم: 3-20 حرف، أرقام وشرطة سفلية فقط' : 'Username: 3-20 chars, letters/numbers/underscore only'); return; }
+ // Check username taken
+ const { data: existing } = await _sb.from('profiles').select('id').eq('username', username).maybeSingle();
+ if (existing) { _showMsg('signup-err', a ? 'اسم المستخدم محجوز' : 'Username already taken'); return; }
+ const btn = document.getElementById('signup-submit');
+ if (btn) { btn.disabled = true; btn.textContent = '...'; }
+ const { error } = await _sb.auth.signUp({ email, password: pass, options: { data: { username } } });
+ if (btn) { btn.disabled = false; btn.innerHTML = a ? '<span class="ar">إنشاء حساب</span>' : '<span class="en">Create Account</span>'; }
+ if (error) { _showMsg('signup-err', error.message); return; }
+ _showMsg('signup-ok', a ? '✓ تم إنشاء الحساب! تحقق من بريدك الإلكتروني للتأكيد.' : '✓ Account created! Check your email to confirm.');
+}
+
+// ── SIGN OUT ─────────────────────────────────────────────────────
+async function doSignOut() {
+ if (!_sb) return;
+ await _sb.auth.signOut();
 }
 
 // ===================== NEWS =====================
@@ -3129,6 +3445,7 @@ function toast(msg){
 
 // ===================== INIT =====================
 document.addEventListener('DOMContentLoaded',()=>{
+ initAuth(); // ← Supabase auth
  document.getElementById('search-inp').placeholder='ابحث عن شركة أو رمز...';
  SECTORS.forEach(s=>{ s.val=COMPANIES.filter(c=>c.sec===s.id).reduce((sum,c)=>sum+(c.mcap||0),0); });
  buildTicker();
