@@ -3053,32 +3053,55 @@ async function doSignIn() {
 
 // ── SIGN UP ──────────────────────────────────────────────────────
 async function doSignUp() {
- const a = ar();
+ // Step 1: immediate visual feedback — runs synchronously before anything else
  const btn = document.getElementById('signup-submit');
- // ── validation (sync, before any async) ──
- if (!_sb) { _showMsg('signup-err', 'Auth not configured'); return; }
- const username = (document.getElementById('signup-username')?.value || '').trim();
- const email    = (document.getElementById('signup-email')?.value || '').trim();
- const pass     = document.getElementById('signup-pass')?.value || '';
- const pass2    = document.getElementById('signup-pass2')?.value || '';
- if (!username || !email || !pass || !pass2) { _showMsg('signup-err', a ? 'يرجى ملء جميع الحقول' : 'Please fill all fields'); return; }
- if (pass !== pass2)  { _showMsg('signup-err', a ? 'كلمتا المرور غير متطابقتين' : 'Passwords do not match'); return; }
- if (pass.length < 6) { _showMsg('signup-err', a ? 'كلمة المرور 6 أحرف على الأقل' : 'Password min 6 characters'); return; }
- if (!/^[a-zA-Z0-9_]{3,20}$/.test(username)) { _showMsg('signup-err', a ? 'اسم المستخدم: 3-20 حرف، حروف وأرقام وشرطة سفلية فقط' : 'Username: 3-20 chars, letters/numbers/_ only'); return; }
- // ── async section ──
- if (btn) { btn.disabled = true; btn.textContent = '...'; }
+ if (btn) { btn.disabled = true; btn.textContent = '⏳'; }
+
+ const showErr = (msg) => {
+  const el = document.getElementById('signup-err');
+  if (el) { el.textContent = msg; el.style.cssText = 'display:block!important'; }
+  else alert(msg); // fallback if element missing
+  console.error('[signup]', msg);
+ };
+
  try {
-  // Check username taken
-  const { data: existing, error: qErr } = await _sb.from('profiles').select('id').eq('username', username).maybeSingle();
-  if (qErr && qErr.code !== 'PGRST116') { _showMsg('signup-err', qErr.message); return; }
-  if (existing) { _showMsg('signup-err', a ? 'اسم المستخدم محجوز' : 'Username already taken'); return; }
-  // Create account
+  const a = ar();
+  const username = (document.getElementById('signup-username')?.value || '').trim();
+  const email    = (document.getElementById('signup-email')?.value || '').trim();
+  const pass     = document.getElementById('signup-pass')?.value || '';
+  const pass2    = document.getElementById('signup-pass2')?.value || '';
+
+  // validation
+  if (!username || !email || !pass || !pass2) { showErr(a ? 'يرجى ملء جميع الحقول' : 'Please fill all fields'); return; }
+  if (pass !== pass2)  { showErr(a ? 'كلمتا المرور غير متطابقتين' : 'Passwords do not match'); return; }
+  if (pass.length < 6) { showErr(a ? 'كلمة المرور 6 أحرف على الأقل' : 'Password min 6 chars'); return; }
+  if (!/^[a-zA-Z0-9_]{3,20}$/.test(username)) { showErr(a ? 'اسم المستخدم: 3-20 حرف، حروف وأرقام فقط' : 'Username: 3-20 chars, letters/numbers/_ only'); return; }
+
+  if (!_sb) {
+   // Supabase not ready — try re-initialising
+   if (typeof window.supabase !== 'undefined') {
+    _sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON, { auth: { persistSession: true } });
+   } else {
+    showErr('Auth service failed to load. Please refresh the page.'); return;
+   }
+  }
+
+  // username taken check (ignore "not found" code)
+  const { data: existing } = await _sb.from('profiles').select('id').eq('username', username).maybeSingle().catch(() => ({ data: null }));
+  if (existing) { showErr(a ? 'اسم المستخدم محجوز' : 'Username already taken'); return; }
+
+  // create account
   const { error } = await _sb.auth.signUp({ email, password: pass, options: { data: { username } } });
-  if (error) { _showMsg('signup-err', error.message); return; }
-  _showMsg('signup-ok', a ? '✓ تم إنشاء الحساب! يمكنك تسجيل الدخول الآن.' : '✓ Account created! You can now sign in.');
+  if (error) { showErr(error.message); return; }
+
+  // success
+  const okEl = document.getElementById('signup-ok');
+  if (okEl) { okEl.textContent = a ? '✓ تم إنشاء الحساب! يمكنك تسجيل الدخول الآن.' : '✓ Account created! Signing you in...'; okEl.style.cssText = 'display:block!important'; }
   setTimeout(() => setAuthTab('login'), 1800);
+
  } catch(e) {
-  _showMsg('signup-err', e.message || 'Signup failed. Please try again.');
+  console.error('[signup exception]', e);
+  showErr(e.message || 'Unexpected error. Please try again.');
  } finally {
   if (btn) { btn.disabled = false; btn.innerHTML = '<span class="ar">إنشاء حساب</span><span class="en">Create Account</span>'; }
  }
