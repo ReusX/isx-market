@@ -3053,22 +3053,26 @@ async function doSignIn() {
 
 // ── SIGN UP ──────────────────────────────────────────────────────
 async function doSignUp() {
- if (!_sb) { _showMsg('signup-err', 'Auth service not configured'); return; }
- const username = document.getElementById('signup-username')?.value.trim() || '';
- const email    = document.getElementById('signup-email')?.value.trim() || '';
+ const a = ar();
+ const btn = document.getElementById('signup-submit');
+ // ── validation (sync, before any async) ──
+ if (!_sb) { _showMsg('signup-err', 'Auth not configured'); return; }
+ const username = (document.getElementById('signup-username')?.value || '').trim();
+ const email    = (document.getElementById('signup-email')?.value || '').trim();
  const pass     = document.getElementById('signup-pass')?.value || '';
  const pass2    = document.getElementById('signup-pass2')?.value || '';
- const a = ar();
  if (!username || !email || !pass || !pass2) { _showMsg('signup-err', a ? 'يرجى ملء جميع الحقول' : 'Please fill all fields'); return; }
- if (pass !== pass2) { _showMsg('signup-err', a ? 'كلمتا المرور غير متطابقتين' : 'Passwords do not match'); return; }
- if (pass.length < 6) { _showMsg('signup-err', a ? 'كلمة المرور 6 أحرف على الأقل' : 'Password must be at least 6 characters'); return; }
- if (!/^[a-zA-Z0-9_]{3,20}$/.test(username)) { _showMsg('signup-err', a ? 'اسم المستخدم: 3-20 حرف، أرقام وشرطة سفلية فقط' : 'Username: 3-20 chars, letters/numbers/underscore only'); return; }
- // Check username taken
- const { data: existing } = await _sb.from('profiles').select('id').eq('username', username).maybeSingle();
- if (existing) { _showMsg('signup-err', a ? 'اسم المستخدم محجوز' : 'Username already taken'); return; }
- const btn = document.getElementById('signup-submit');
+ if (pass !== pass2)  { _showMsg('signup-err', a ? 'كلمتا المرور غير متطابقتين' : 'Passwords do not match'); return; }
+ if (pass.length < 6) { _showMsg('signup-err', a ? 'كلمة المرور 6 أحرف على الأقل' : 'Password min 6 characters'); return; }
+ if (!/^[a-zA-Z0-9_]{3,20}$/.test(username)) { _showMsg('signup-err', a ? 'اسم المستخدم: 3-20 حرف، حروف وأرقام وشرطة سفلية فقط' : 'Username: 3-20 chars, letters/numbers/_ only'); return; }
+ // ── async section ──
  if (btn) { btn.disabled = true; btn.textContent = '...'; }
  try {
+  // Check username taken
+  const { data: existing, error: qErr } = await _sb.from('profiles').select('id').eq('username', username).maybeSingle();
+  if (qErr && qErr.code !== 'PGRST116') { _showMsg('signup-err', qErr.message); return; }
+  if (existing) { _showMsg('signup-err', a ? 'اسم المستخدم محجوز' : 'Username already taken'); return; }
+  // Create account
   const { error } = await _sb.auth.signUp({ email, password: pass, options: { data: { username } } });
   if (error) { _showMsg('signup-err', error.message); return; }
   _showMsg('signup-ok', a ? '✓ تم إنشاء الحساب! يمكنك تسجيل الدخول الآن.' : '✓ Account created! You can now sign in.');
