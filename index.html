@@ -3086,8 +3086,12 @@ async function doSignUp() {
    }
   }
 
-  // username taken check (ignore "not found" code)
-  const { data: existing } = await _sb.from('profiles').select('id').eq('username', username).maybeSingle().catch(() => ({ data: null }));
+  // username taken check — wrap in Promise.resolve so .catch() works on the thenable
+  let existing = null;
+  try {
+   const { data } = await Promise.resolve(_sb.from('profiles').select('id').eq('username', username).maybeSingle());
+   existing = data;
+  } catch(_) { existing = null; }
   if (existing) { showErr(a ? 'اسم المستخدم محجوز' : 'Username already taken'); return; }
 
   // create account
