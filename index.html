@@ -2922,16 +2922,21 @@ function initAuth() {
  _sb.auth.onAuthStateChange(async (event, session) => {
   if (session?.user) {
    _sbUser = session.user;
-   await _loadProfile();
+   _updateNavAuth(); // show avatar immediately, before DB round-trip
+   await _loadProfile(); // _loadProfile calls _updateNavAuth again with full data
   } else {
    _sbUser = null; _sbProfile = null;
+   _updateNavAuth();
   }
-  _updateNavAuth();
   if (event === 'SIGNED_IN') { _mergeWatchlist(); buildTable(); }
   if (event === 'SIGNED_OUT') buildTable();
  });
  _sb.auth.getSession().then(({ data: { session } }) => {
-  if (session?.user) { _sbUser = session.user; _loadProfile().then(() => { _updateNavAuth(); buildTable(); }); }
+  if (session?.user) {
+   _sbUser = session.user;
+   _updateNavAuth(); // show avatar immediately on page load
+   _loadProfile(); // load username/OG in background
+  }
  });
 }
 
