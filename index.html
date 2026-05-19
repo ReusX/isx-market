@@ -2369,9 +2369,14 @@ async function fetchLive() {
     if (el.classList.contains('en')) el.textContent = 'Last update: ' + dateStr;
    });
   }
+  // Update sector % changes
+  if (d.sectors) {
+   SECTORS.forEach(s => { if (d.sectors[s.id] != null) s.chg = d.sectors[s.id]; });
+  }
   // Rebuild table and ticker with fresh data
   buildTable();
   buildTicker();
+  buildIdxGrid();
   // Update status bar
   const ts = new Date(d.updated);
   const fmt = ts.toLocaleTimeString('en-GB', {hour:'2-digit', minute:'2-digit', timeZone:'Asia/Baghdad'});

@@ -55,12 +55,33 @@ up = sum(1 for s in stocks if (s.get('DTDPriceChange') or 0) > 0)
 dn = sum(1 for s in stocks if (s.get('DTDPriceChange') or 0) < 0)
 fl = len(stocks) - up - dn
 
+# Sector % changes — average DTDPriceChange per sector
+SECTOR_MAP = {
+    'Banking Sector': 'BANK',
+    'Insurance Sector': 'INS',
+    'Investment Sector': 'INV',
+    'Services Sector': 'SVC',
+    'Industry Sector': 'IND',
+    'Hotels&Tourism Sector': 'HTL',
+    'Agriculture Sector': 'AGR',
+    'Telecom Sector': 'TEL',
+}
+sector_data = {}
+for s in stocks:
+    sid = SECTOR_MAP.get(s.get('Sector', ''))
+    if not sid: continue
+    pct = s.get('DTDPriceChange') or 0
+    if sid not in sector_data: sector_data[sid] = []
+    sector_data[sid].append(pct)
+sector_chg = {k: round(sum(v)/len(v), 2) for k, v in sector_data.items() if v}
+
 os.makedirs('data', exist_ok=True)
 out = {
     'updated': datetime.datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ'),
     'stocks': live_stocks,
     'rsisx': {'value': latest['IQD'], 'date': latest['Date'], 'change': rsisx_change, 'pct': rsisx_pct} if latest else None,
-    'breadth': {'up': up, 'dn': dn, 'fl': fl}
+    'breadth': {'up': up, 'dn': dn, 'fl': fl},
+    'sectors': sector_chg
 }
 with open('data/live.json', 'w') as f:
     json.dump(out, f, separators=(',', ':'))
