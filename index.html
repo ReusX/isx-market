@@ -2027,7 +2027,7 @@ function buildIdxGrid() {
   const cl = cc(s.chg);
   return `<div class="idx-card" onclick="filterSector('${s.id}')">
    <div class="idx-nm">${a?s.ar:s.en}</div>
-   <div class="idx-v">${s.val.toFixed(2)}</div>
+   <div class="idx-v">${s.val>=1e9?(s.val/1e9).toFixed(2)+'B':s.val>=1e6?(s.val/1e6).toFixed(2)+'M':s.val.toFixed(2)}</div>
    <div class="idx-ch ${cl}">${ci(s.chg)} ${Math.abs(s.chg).toFixed(2)}%</div>
    <canvas width="180" height="44" id="spark-sec-${s.id}"></canvas>
   </div>`;
@@ -2369,10 +2369,13 @@ async function fetchLive() {
     if (el.classList.contains('en')) el.textContent = 'Last update: ' + dateStr;
    });
   }
-  // Update sector % changes
+  // Update sector % changes and compute total market cap per sector
   if (d.sectors) {
    SECTORS.forEach(s => { if (d.sectors[s.id] != null) s.chg = d.sectors[s.id]; });
   }
+  SECTORS.forEach(s => {
+   s.val = COMPANIES.filter(c => c.sec === s.id).reduce((sum, c) => sum + (c.mcap || 0), 0);
+  });
   // Rebuild table and ticker with fresh data
   buildTable();
   buildTicker();
@@ -2504,6 +2507,7 @@ function toast(msg){
 // ===================== INIT =====================
 document.addEventListener('DOMContentLoaded',()=>{
  document.getElementById('search-inp').placeholder='ابحث عن شركة أو رمز...';
+ SECTORS.forEach(s=>{ s.val=COMPANIES.filter(c=>c.sec===s.id).reduce((sum,c)=>sum+(c.mcap||0),0); });
  buildTicker();
  buildIdxGrid();
  buildTable();
