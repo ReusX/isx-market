@@ -966,6 +966,27 @@ footer{background:var(--bg2);border-top:1px solid var(--border);padding:44px 24p
    </div>
    <div class="research-grid" id="research-grid"></div>
   </div>
+
+  <!-- ABOUT ISX — keyword-rich visible section for SEO -->
+  <div class="psec" id="about-isx-section" style="background:var(--bg3);border:1px solid var(--border);border-radius:16px;padding:24px 28px;margin-top:8px">
+   <h2 class="sec-ttl" style="margin-bottom:14px"><span class="ar">عن بورصة العراق للأوراق المالية</span><span class="en">About the Iraq Stock Exchange (ISX)</span></h2>
+   <div class="ar" style="color:var(--t2);font-size:14px;line-height:1.85;max-width:860px">
+    <p style="margin:0 0 10px">
+     <strong>بورصة العراق للأوراق المالية (ISX)</strong> هي السوق الرسمية للأوراق المالية في العراق، وتضم أكثر من 100 شركة عراقية مدرجة في قطاعات المصارف، التأمين، الاستثمار، الخدمات، الصناعة، الفنادق والسياحة، الزراعة، والاتصالات. يتابع موقع <strong>ISX Market</strong> أسعار الأسهم العراقية مباشرة خلال ساعات التداول، ويعرض <strong>مؤشر ربيع RSISX</strong> للأوراق المالية الذي يقيس أداء السوق العراقي بشكل عام.
+    </p>
+    <p style="margin:0">
+     يُعدّ الاستثمار في بورصة العراق من أبرز الفرص الاستثمارية في منطقة الشرق الأوسط، لا سيما في <a href="/sector/BANK" onclick="navSector('BANK');return false;" style="color:var(--ac)">قطاع المصارف العراقية</a> و<a href="/sector/TEL" onclick="navSector('TEL');return false;" style="color:var(--ac)">قطاع الاتصالات</a>. لمتابعة <strong>سعر الدولار مقابل الدينار العراقي</strong> اليوم، تفضل بزيارة صفحة <a href="/fx" onclick="navFX();return false;" style="color:var(--ac)">أسعار الصرف IQD/USD</a>.
+    </p>
+   </div>
+   <div class="en" style="color:var(--t2);font-size:13px;line-height:1.8;max-width:860px;margin-top:4px">
+    <p style="margin:0 0 8px">
+     The <strong>Iraq Stock Exchange (ISX / بورصة العراق)</strong> is Iraq's official securities market with over 100 listed companies across Banking, Insurance, Investment, Services, Industry, Hotels &amp; Tourism, Agriculture, and Telecom sectors. ISX Market tracks live Iraqi stock prices, the <strong>RSISX index</strong> by Rabee Securities, sector market caps, and daily trading data.
+    </p>
+    <p style="margin:0">
+     Investing in Iraqi stocks offers exposure to one of the Middle East's fastest-growing emerging markets. Track the <a href="/sector/BANK" onclick="navSector('BANK');return false;" style="color:var(--ac)">Banking sector</a>, <a href="/sector/TEL" onclick="navSector('TEL');return false;" style="color:var(--ac)">Telecom sector</a>, and the <a href="/fx" onclick="navFX();return false;" style="color:var(--ac)">IQD/USD exchange rate</a> all in one place.
+    </p>
+   </div>
+  </div>
  </div>
 
  <!-- FOOTER -->
@@ -1213,6 +1234,11 @@ footer{background:var(--bg2);border-top:1px solid var(--border);padding:44px 24p
    <div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:14px" id="fx-table"></table></div>
    <div style="font-size:11px;color:var(--t3);margin-top:12px"><span class="ar">المصدر: السوق الموازية للدولار من egcurrency.com، وبقية العملات محتسبة عبر أسعار الصرف الدولية. للأغراض المعلوماتية فقط.</span><span class="en">Source: USD black-market from egcurrency.com; other currencies derived via international FX rates. Informational only.</span></div>
   </div>
+  <!-- FX keyword content -->
+  <div style="background:var(--bg3);border:1px solid var(--border);border-radius:14px;padding:18px 22px;margin-top:4px;color:var(--t2);font-size:13px;line-height:1.85">
+   <p class="ar" style="margin:0 0 8px"><strong>سعر الدولار مقابل الدينار العراقي</strong> — يعرض هذا القسم سعر الصرف في السوق الموازية (السوق السوداء) والسعر الرسمي الصادر عن <strong>البنك المركزي العراقي (CBI)</strong>. يُستخدم سعر الصرف في تسعير البضائع المستوردة، ويؤثر مباشرة على <strong>أسعار الأسهم العراقية</strong> لا سيما في قطاعات الاستيراد والصناعة. يُحدَّث السعر يومياً خلال ساعات عمل البنوك العراقية.</p>
+   <p class="en" style="margin:0"><strong>Iraqi Dinar (IQD) to US Dollar (USD)</strong> exchange rate — both the parallel market rate and the official Central Bank of Iraq (CBI) rate. The IQD/USD rate directly influences import costs and the valuations of companies listed on the <strong>Iraq Stock Exchange (ISX)</strong>. Updated daily during Iraqi banking hours.</p>
+  </div>
  </div>
 </div>
 
@@ -1272,6 +1298,11 @@ footer{background:var(--bg2);border-top:1px solid var(--border);padding:44px 24p
   <button class="back-btn" onclick="navHome()" style="font-size:12px;padding:5px 10px"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 12H5M12 5l-7 7 7 7"/></svg><span class="ar">رجوع</span><span class="en">Back</span></button>
   <span style="font-family:var(--font-display);font-size:15px;font-weight:800;color:var(--t1)"><span class="ar">مركز المخططات</span><span class="en">Charts</span></span>
  </div>
+ <!-- keyword intro — outside charts-main so renderChartsMain() doesn't wipe it -->
+ <div style="padding:14px 28px 0;max-width:780px">
+  <p class="ar" style="margin:0 0 6px;color:var(--t2);font-size:13px;line-height:1.85"><strong>مخططات بورصة العراق</strong> — استعرض أداء <strong>مؤشر ربيع للأوراق المالية (RSISX)</strong> وتطور <strong>القيمة السوقية الكلية لبورصة العراق</strong> عبر الزمن، إلى جانب مخططات القيمة السوقية لكل قطاع من قطاعات سوق العراق للأوراق المالية (ISX). تُحدَّث البيانات تلقائياً كل 6 ساعات خلال أيام التداول.</p>
+  <p class="en" style="margin:0 0 14px;color:var(--t2);font-size:13px;line-height:1.85">Track the <strong>RSISX index</strong> (Rabee Securities Iraq Stock Exchange Index), <strong>total Iraq Stock Exchange market cap</strong>, and sector-level market cap history. Data updates every 6 hours on trading days (Sunday–Thursday).</p>
+ </div>
  <div class="charts-layout">
   <div class="charts-sidebar" id="charts-sidebar"></div>
   <div class="charts-main" id="charts-main"></div>
@@ -1291,6 +1322,8 @@ footer{background:var(--bg2);border-top:1px solid var(--border);padding:44px 24p
   </div>
  </div>
  <div class="sec-pg-body">
+  <!-- Sector intro — populated by renderSectorPage() -->
+  <div id="sec-pg-intro" style="color:var(--t2);font-size:14px;line-height:1.8;padding:4px 0 2px"></div>
   <!-- Chart -->
   <div class="chart-panel">
    <div class="chart-panel-hdr">
@@ -2951,6 +2984,18 @@ function renderSectorPage(){
  const sec=SECTORS.find(s=>s.id===activeSector);
  if(!sec) return;
  const a=ar();
+ // Sector intro paragraph
+ const introEl=document.getElementById('sec-pg-intro');
+ if(introEl){
+  const cos=COMPANIES.filter(c=>c.sec===activeSector);
+  const n=cos.length;
+  const mcapTotal=cos.reduce((s,c)=>s+(c.mcap||0),0);
+  const mcapStr=mcapTotal>1e9?(mcapTotal/1e9).toFixed(2)+' تريليون دينار عراقي':(mcapTotal/1e6).toFixed(0)+' مليار دينار عراقي';
+  const pctStr=(sec.chg>=0?'ارتفع بنسبة +':'انخفض بنسبة ')+Math.abs(sec.chg).toFixed(2)+'%';
+  introEl.innerHTML=a
+   ?`<p style="margin:0"><strong>${sec.ar}</strong> في بورصة العراق يضم <strong>${n} شركة مدرجة</strong> بقيمة سوقية إجمالية تبلغ <strong>${mcapStr}</strong>. ${pctStr} اليوم. استعرض أسعار وأداء جميع أسهم ${sec.ar} العراقي المدرجة في سوق العراق للأوراق المالية (ISX) أدناه.</p>`
+   :`<p style="margin:0">The <strong>${sec.en}</strong> on the Iraq Stock Exchange (ISX) comprises <strong>${n} listed companies</strong> with a combined market cap of <strong>${mcapStr}</strong>, ${sec.chg>=0?'up':'down'} ${Math.abs(sec.chg).toFixed(2)}% today. Browse live prices and performance for all listed Iraqi ${sec.en.toLowerCase()} stocks below.</p>`;
+ }
  const nm=document.getElementById('sec-pg-nm');
  if(nm) nm.textContent=a?sec.ar:sec.en;
  const mcapEl=document.getElementById('sec-pg-mcap');
