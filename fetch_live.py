@@ -146,3 +146,69 @@ else:
     with open(hist_path, 'w') as f:
         json.dump(hist, f, separators=(',', ':'))
     print(f"hist.json updated — {updated_count} symbols, {len(rsisx_pts)} RSISX pts for {today_midnight_baghdad.date()}")
+
+# ── Append today's OHLCV from ISX portal daily XLSX ──────────────────────────
+import re, time
+from io import BytesIO
+import openpyxl
+
+today_iso = today_midnight_baghdad.strftime('%Y-%m-%d')
+ohlcv_path = 'data/ohlcv.json'
+ohlcv = json.load(open(ohlcv_path)) if os.path.exists(ohlcv_path) else {}
+
+if today_iso in ohlcv:
+    print(f"ohlcv: {today_iso} already present — skipping")
+elif weekday not in (4, 5):
+    DOMAIN = 'http://www.isx-iq.net'
+    PH = {'User-Agent': 'Mozilla/5.0'}
+    try:
+        r = requests.get(f'{DOMAIN}/isxportal/portal/uploadedFilesList.html', headers=PH, timeout=20)
+        rows = re.findall(r'<tr[^>]*>(.*?)</tr>', r.text, re.DOTALL)
+        xlsx_url = None
+        for row in rows:
+            if '.xlsx' not in row: continue
+            lm = re.search(r'href="(/isxportal/files/([^"]+\.xlsx))"', row)
+            dm = re.search(r'\b(\d{2}/\d{2}/\d{4})\b', row)
+            if not lm or not dm: continue
+            fname = lm.group(2)
+            if not fname or ord(fname[0]) > 0x05FF: continue  # skip Arabic-named files
+            d, m, y = dm.group(1).split('/')
+            if f'{y}-{m}-{d}' == today_iso:
+                xlsx_url = DOMAIN + lm.group(1)
+                break
+        if xlsx_url:
+            print(f"ohlcv: downloading today's XLSX: {xlsx_url.split('/')[-1][:40]}")
+            rc = requests.get(xlsx_url, headers=PH, timeout=30)
+            if rc.status_code == 200 and len(rc.content) > 1000:
+                wb = openpyxl.load_workbook(BytesIO(rc.content), read_only=True, data_only=True)
+                sn = next((s for s in wb.sheetnames if 'bull' in s.lower() or 'نشرة التداول' in s), None)
+                if sn:
+                    day_data = {}
+                    header_passed = False
+                    for row in wb[sn].iter_rows(values_only=True):
+                        if not header_passed:
+                            if row[2] is not None and ('code' in str(row[2]).lower() or 'رمز' in str(row[2])):
+                                header_passed = True
+                            continue
+                        code = row[2]
+                        if not code or not isinstance(code, str): continue
+                        code = str(code).strip().upper()
+                        if not re.match(r'^[A-Z]{2,6}$', code): continue
+                        def _f(v):
+                            try: return round(float(v), 4) if v is not None else None
+                            except: return None
+                        c = _f(row[8])
+                        if not c or c <= 0: continue
+                        day_data[code] = {'o':_f(row[3]),'h':_f(row[4]),'l':_f(row[5]),'c':c,
+                                          'v':int(float(row[12] or 0)),'d':int(float(row[11] or 0))}
+                    if day_data:
+                        ohlcv[today_iso] = day_data
+                        with open(ohlcv_path, 'w') as f:
+                            json.dump(dict(sorted(ohlcv.items())), f, separators=(',', ':'))
+                        print(f"ohlcv.json updated — {len(day_data)} companies for {today_iso}")
+                    else:
+                        print("ohlcv: no data parsed from today's XLSX")
+        else:
+            print(f"ohlcv: today's XLSX ({today_iso}) not yet posted on ISX portal")
+    except Exception as e:
+        print(f"ohlcv: error fetching today's XLSX: {e}")
