@@ -21,12 +21,20 @@ def fetch_detail(s):
         cp = d.get('ClosingPrice') or 0
         if cp <= 0:
             return None
+        op = d.get('OpeningPrice') or d.get('OpenPrice') or cp
+        hi = d.get('HighPrice') or d.get('HighestPrice') or d.get('DayHigh') or cp
+        lo = d.get('LowPrice') or d.get('LowestPrice') or d.get('DayLow') or cp
+        deals = int(d.get('TradingDeals') or d.get('NumberOfDeals') or d.get('Deals') or 0)
         return {
             'code': s['StockCode'],
             'close': cp,
+            'open':  round(op, 4),
+            'high':  round(hi, 4),
+            'low':   round(lo, 4),
             'change': round(d.get('DDChange') or 0, 4),
             'pct': round(s.get('DTDPriceChange') or 0, 4),
             'vol': int(d.get('TradingVolume') or 0),
+            'deals': deals,
         }
     except Exception as e:
         print(f"  Skip {s['StockCode']}: {e}")

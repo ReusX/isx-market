@@ -3462,10 +3462,14 @@ async function fetchLive() {
    const co = COMPANIES.find(c => c.sym === s.code);
    if (co && s.close > 0) {
     const prevClose = co.close;
-    co.close = s.close;
+    co.close  = s.close;
+    co.open   = s.open  || s.close;
+    co.high   = s.high  || s.close;
+    co.low    = s.low   || s.close;
     co.change = s.change;
-    co.pct = s.pct;
-    co.vol = s.vol;
+    co.pct    = s.pct;
+    co.vol    = s.vol;
+    if (s.deals) co.deals = s.deals;
     if (prevClose > 0) co.mcap = Math.round(co.mcap * s.close / prevClose);
     updated++;
    }
