@@ -180,13 +180,13 @@ a{color:inherit;text-decoration:none}button{cursor:pointer;border:none;backgroun
 .stab:hover{color:var(--t1);border-color:var(--border2)}.stab.active{background:var(--acbg);border-color:var(--ac);color:var(--ac)}
 .tbl-wrap{background:var(--bg3);border:1px solid var(--border);border-radius:16px;overflow:hidden}
 .dtbl{width:100%;border-collapse:collapse;font-size:13px}
-.dtbl th{padding:10px 13px;text-align:start;font-size:10px;font-weight:700;color:var(--t1);letter-spacing:.4px;text-transform:uppercase;background:var(--bg4);border-bottom:1px solid var(--border);white-space:nowrap;cursor:pointer;user-select:none;transition:color var(--tr)}
+.dtbl th{padding:11px 16px;text-align:start;font-size:10px;font-weight:700;color:var(--t2);letter-spacing:.4px;text-transform:uppercase;background:var(--bg4);border-bottom:1px solid var(--border);white-space:nowrap;cursor:pointer;user-select:none;transition:color var(--tr)}
 .dtbl th:hover{color:var(--t2)}.dtbl th.srt-asc::after{content:' ↑';color:var(--ac)}.dtbl th.srt-desc::after{content:' ↓';color:var(--ac)}
-.dtbl td{padding:11px 13px;border-bottom:1px solid var(--border);color:var(--t1);white-space:nowrap}
+.dtbl td{padding:14px 16px;border-bottom:1px solid var(--border);color:var(--t1);white-space:nowrap}
 .dtbl tr:last-child td{border-bottom:none}.dtbl tr.company-row{cursor:pointer;transition:background var(--tr)}.dtbl tr.company-row:hover td{background:var(--bg4)}
 .rnk{color:var(--t3);font-size:11px}
 .co-cell{display:flex;align-items:center;gap:9px}
-.co-icon{width:34px;height:34px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:900;flex-shrink:0;border:1px solid var(--border)}
+.co-icon{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:900;flex-shrink:0;border:1px solid var(--border)}
 .co-names{display:flex;flex-direction:column;gap:1px}
 .co-sym{font-weight:700;font-size:13px}.co-name{font-size:11px;color:var(--t3)}
 .price-val{font-weight:700;font-family:var(--font-display)}
@@ -403,20 +403,20 @@ footer{background:var(--bg2);border-top:1px solid var(--border);padding:44px 24p
 .cp-psec{margin:0 auto;max-width:1300px;padding:24px 20px 0}
 #mob-nav{display:none}
 
-/* ── CMC-style stats strip ── */
-.mkt-stats{display:flex;gap:10px;overflow-x:auto;padding-bottom:4px;margin-bottom:16px;scrollbar-width:none}
-.mkt-stats::-webkit-scrollbar{display:none}
-.mstat{background:var(--bg3);border:1px solid var(--border);border-radius:14px;padding:13px 16px;display:flex;align-items:center;gap:12px;cursor:pointer;transition:all var(--tr);flex:1;min-width:168px;color:inherit;text-decoration:none}
-.mstat:hover{border-color:var(--border2);background:var(--bg4)}
-.mstat.no-click{cursor:default}.mstat.no-click:hover{border-color:var(--border);background:var(--bg3)}
-.mstat-info{flex:1;min-width:0}
-.mstat-lbl{font-size:10px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.4px;margin-bottom:3px}
-.mstat-val{font-family:var(--font-display);font-size:18px;font-weight:800;color:var(--t1);line-height:1.1;white-space:nowrap}
-.mstat-pct{font-size:11px;font-weight:700;margin-top:2px}
-.mstat-cv{width:88px;height:40px;flex-shrink:0}
-.mstat-bbar{display:flex;gap:3px;width:100%;margin-top:5px;height:5px}
-.mstat-bseg{border-radius:3px;height:5px}
-.mstat-bleg{display:flex;gap:10px;font-size:10px;color:var(--t3);margin-top:6px}
+/* ── CMC large stat cards ── */
+.cmc-stat-cards{display:flex;gap:10px;overflow-x:auto;margin-bottom:20px;scrollbar-width:none;padding-bottom:2px}
+.cmc-stat-cards::-webkit-scrollbar{display:none}
+.cmc-scard{background:var(--bg3);border:1px solid var(--border);border-radius:10px;flex:1;min-width:190px;overflow:hidden;cursor:pointer;transition:border-color var(--tr);display:flex;flex-direction:column}
+.cmc-scard:hover{border-color:var(--border2)}
+.cmc-scard.static{cursor:default}.cmc-scard.static:hover{border-color:var(--border)}
+.cmc-scard-top{padding:16px 18px 6px;flex:1}
+.cmc-scard-ttl{font-size:11px;font-weight:700;color:var(--t2);display:flex;align-items:center;gap:3px;margin-bottom:8px;white-space:nowrap;overflow:hidden}
+.cmc-scard-arr{color:var(--t3);font-size:12px;margin-inline-start:2px;opacity:.7}
+.cmc-scard-val{font-family:var(--font-display);font-size:24px;font-weight:800;color:var(--t1);line-height:1.1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cmc-scard-chg{font-size:11px;font-weight:700;margin-top:5px}
+.cmc-scard-cv{display:block;width:100%;height:64px;flex-shrink:0}
+/* keep old ids alive for JS that references them */
+.mstat-bbar,.mstat-bseg,.mstat-bleg{display:none}
 
 /* ── Market table tabs (Top / Trending / Watchlist / Gainers / All) ── */
 .mkt-tabs-row{display:flex;align-items:center;justify-content:space-between;border-bottom:2px solid var(--border);margin-bottom:0;gap:6px}
@@ -489,7 +489,7 @@ footer{background:var(--bg2);border-top:1px solid var(--border);padding:44px 24p
 
 @media(max-width:1100px){.charts-layout{grid-template-columns:1fr}.charts-sidebar{display:none}.charts-main{padding:14px 16px 40px}}
 @media(max-width:768px){
- .mstat{min-width:150px;flex:0 0 150px}.mstat-cv{display:none}
+ .cmc-scard{min-width:155px;flex:0 0 155px}.cmc-scard-cv{height:48px}.cmc-scard-val{font-size:19px}
  .mtab{padding:7px 12px;font-size:12px}
  .nav-act-btn .btn-lbl{display:none}
  .sec-pg-body{padding:12px 12px 40px}
@@ -791,73 +791,71 @@ footer{background:var(--bg2);border-top:1px solid var(--border);padding:44px 24p
 <!-- HOME PAGE -->
 <div id="home-page" class="page active">
  <div class="main-wrap">
-  <div class="status-bar" id="status-bar">
-   <div class="pulse"></div>
-   <span class="ar">جاري تحديث البيانات من سوق العراق للأوراق المالية...</span>
-   <span class="en">Fetching live data from Iraq Stock Exchange...</span>
-  </div>
-
   <!-- SEO hidden -->
   <div id="home-seo" aria-hidden="true" style="position:fixed;left:-9999px;width:1px;height:1px;overflow:hidden">
    <h1>بورصة العراق للأوراق المالية — سوق العراق للأوراق المالية (ISX)</h1>
    <p>بورصة العراق (Iraq Stock Exchange — ISX) هي السوق الرسمية للأوراق المالية في العراق، وتضم أكثر من 104 شركة مدرجة في قطاعات المصارف والاتصالات والصناعة والسياحة والتأمين والزراعة والخدمات.</p>
   </div>
 
-  <!-- CMC-STYLE STATS STRIP -->
-  <div class="mkt-stats" id="mkt-stats">
-   <!-- Total Market Cap -->
-   <div class="mstat" onclick="navCharts('mcap')">
-    <div class="mstat-info">
-     <div class="mstat-lbl ar">القيمة السوقية الكلية</div>
-     <div class="mstat-lbl en">Total Market Cap</div>
-     <div class="mstat-val" id="mstat-mcap-val">—</div>
-     <div class="mstat-pct" id="mstat-mcap-pct" style="color:var(--t3)">—</div>
+  <!-- CMC-STYLE LARGE STAT CARDS -->
+  <div class="cmc-stat-cards" id="cmc-stat-cards">
+   <!-- Market Cap -->
+   <div class="cmc-scard" onclick="navCharts('mcap')">
+    <div class="cmc-scard-top">
+     <div class="cmc-scard-ttl"><span class="ar">القيمة السوقية الكلية</span><span class="en">Market Cap</span><span class="cmc-scard-arr">›</span></div>
+     <div class="cmc-scard-val" id="cmc-mcap-val">—</div>
+     <div class="cmc-scard-chg" id="cmc-mcap-chg" style="color:var(--t3)">—</div>
     </div>
-    <canvas class="mstat-cv" id="spark-mcap-mini" width="88" height="40"></canvas>
+    <canvas class="cmc-scard-cv" id="cmc-spark-mcap" width="300" height="64"></canvas>
    </div>
-   <!-- RSISX Index -->
-   <div class="mstat" onclick="navCharts('rsisx')">
-    <div class="mstat-info">
-     <div class="mstat-lbl">RSISX</div>
-     <div class="mstat-val" id="idx-val">2,672.78</div>
-     <div class="mstat-pct">
-      <span class="badge up" id="idx-chg-b" style="font-size:10px;padding:2px 6px">▲ 9.75</span>
-      <span class="badge up" id="idx-pct-b" style="font-size:10px;padding:2px 6px">+0.37%</span>
-     </div>
+   <!-- RSISX -->
+   <div class="cmc-scard" onclick="navCharts('rsisx')">
+    <div class="cmc-scard-top">
+     <div class="cmc-scard-ttl">RSISX <span class="cmc-scard-arr">›</span></div>
+     <div class="cmc-scard-val" id="cmc-rsisx-val">—</div>
+     <div class="cmc-scard-chg" id="cmc-rsisx-chg" style="color:var(--t3)">—</div>
     </div>
-    <canvas class="mstat-cv" id="spark-rsisx-mini" width="88" height="40"></canvas>
+    <canvas class="cmc-scard-cv" id="cmc-spark-rsisx" width="300" height="64"></canvas>
    </div>
    <!-- Market Breadth -->
-   <div class="mstat no-click" style="flex-direction:column;align-items:flex-start;gap:6px;min-width:180px">
-    <div class="mstat-lbl ar">حركة السوق</div>
-    <div class="mstat-lbl en">Market Breadth</div>
-    <div class="mstat-bbar" style="width:100%">
-     <div class="mstat-bseg" id="b-up" style="flex:15;background:var(--gr)"></div>
-     <div class="mstat-bseg" id="b-dn" style="flex:8;background:var(--rd)"></div>
-     <div class="mstat-bseg" id="b-fl" style="flex:81;background:var(--t3)"></div>
-    </div>
-    <div class="mstat-bleg">
-     <span style="color:var(--gr)">▲ <b id="c-up">15</b></span>
-     <span style="color:var(--rd)">▼ <b id="c-dn">8</b></span>
-     <span style="color:var(--t3)">● <b id="c-fl">81</b></span>
-    </div>
-   </div>
-   <!-- Volume 24h -->
-   <div class="mstat no-click">
-    <div class="mstat-info">
-     <div class="mstat-lbl ar">حجم التداول (24س)</div>
-     <div class="mstat-lbl en">Volume (24h)</div>
-     <div class="mstat-val" id="mstat-vol-val">—</div>
-     <div class="mstat-pct" id="mstat-vol-lbl" style="color:var(--t3);font-size:10px">IQD</div>
+   <div class="cmc-scard static">
+    <div class="cmc-scard-top">
+     <div class="cmc-scard-ttl"><span class="ar">حركة السوق</span><span class="en">Market Breadth</span></div>
+     <div style="display:flex;gap:16px;margin:10px 0 12px">
+      <span style="font-size:17px;font-weight:800;color:var(--gr)">▲ <span id="c-up">—</span></span>
+      <span style="font-size:17px;font-weight:800;color:var(--t3)">● <span id="c-fl">—</span></span>
+      <span style="font-size:17px;font-weight:800;color:var(--rd)">▼ <span id="c-dn">—</span></span>
+     </div>
+     <div style="display:flex;height:7px;border-radius:4px;overflow:hidden;gap:2px">
+      <div id="b-up" style="flex:15;background:var(--gr)"></div>
+      <div id="b-fl" style="flex:81;background:var(--t3);opacity:.25"></div>
+      <div id="b-dn" style="flex:8;background:var(--rd)"></div>
+     </div>
+     <div style="display:flex;justify-content:space-between;margin-top:7px;font-size:10px;color:var(--t3)">
+      <span class="ar">رابح</span><span class="en">Gainers</span>
+      <span class="ar">ثابت</span><span class="en">Flat</span>
+      <span class="ar">خاسر</span><span class="en">Losers</span>
+     </div>
     </div>
    </div>
-   <!-- Last update -->
-   <div class="mstat no-click">
-    <div class="mstat-info">
-     <div class="mstat-lbl ar">آخر تحديث</div>
-     <div class="mstat-lbl en">Last Update</div>
-     <div class="mstat-val" id="mstat-upd" style="font-size:14px">—</div>
-     <div class="mstat-pct live-row" style="margin-top:4px"><div class="pulse"></div><span class="ar">بيانات حية</span><span class="en">Live Data</span></div>
+   <!-- Volume -->
+   <div class="cmc-scard static">
+    <div class="cmc-scard-top">
+     <div class="cmc-scard-ttl"><span class="ar">حجم التداول (24س)</span><span class="en">Volume (24h)</span></div>
+     <div class="cmc-scard-val" id="mstat-vol-val">—</div>
+     <div class="cmc-scard-chg" style="color:var(--t3)">IQD</div>
+    </div>
+   </div>
+   <!-- Last Update -->
+   <div class="cmc-scard static">
+    <div class="cmc-scard-top">
+     <div class="cmc-scard-ttl"><span class="ar">آخر تحديث</span><span class="en">Last Update</span></div>
+     <div class="cmc-scard-val" id="mstat-upd" style="font-size:28px;letter-spacing:-1px">—</div>
+     <div style="display:flex;align-items:center;gap:6px;margin-top:8px">
+      <div class="pulse"></div>
+      <span class="cmc-scard-chg ar" style="color:var(--gr)">بيانات حية</span>
+      <span class="cmc-scard-chg en" style="color:var(--gr)">Live Data</span>
+     </div>
     </div>
    </div>
   </div>
@@ -2809,35 +2807,50 @@ function buildMktStats(){
  const totalMcap=COMPANIES.reduce((s,c)=>s+(c.mcap||0),0);
  const totalVol=COMPANIES.reduce((s,c)=>s+(c.vol||0),0);
  const n=COMPANIES.filter(c=>c.close>0).length;
- const me=document.getElementById('mstat-mcap-val');
- if(me) me.textContent=fmtSectorVal(totalMcap);
- const ve=document.getElementById('mstat-vol-val');
- if(ve) ve.textContent=fmt(totalVol);
- const ue=document.getElementById('mstat-upd');
- if(ue) ue.textContent=new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit',timeZone:'Asia/Baghdad'});
- // populate CMC heading spans
+ const up=LIVE?.breadth?.up!=null?LIVE.breadth.up:COMPANIES.filter(c=>(c.pct||0)>0).length;
+ const dn=LIVE?.breadth?.dn!=null?LIVE.breadth.dn:COMPANIES.filter(c=>(c.pct||0)<0).length;
+ const fl=COMPANIES.length-up-dn;
+ // volume + time
+ const ve=document.getElementById('mstat-vol-val'); if(ve) ve.textContent=fmt(totalVol);
+ const ue=document.getElementById('mstat-upd'); if(ue) ue.textContent=new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit',timeZone:'Asia/Baghdad'});
+ // market cap card
+ const me=document.getElementById('cmc-mcap-val'); if(me) me.textContent=fmtSectorVal(totalMcap);
+ // breadth bar
+ const bup=document.getElementById('b-up'),bfl=document.getElementById('b-fl'),bdn=document.getElementById('b-dn');
+ if(bup) bup.style.flex=up||1; if(bfl) bfl.style.flex=fl||1; if(bdn) bdn.style.flex=dn||1;
+ const cup=document.getElementById('c-up'),cfl=document.getElementById('c-fl'),cdn=document.getElementById('c-dn');
+ if(cup) cup.textContent=up; if(cfl) cfl.textContent=fl; if(cdn) cdn.textContent=dn;
+ // RSISX card
+ if(LIVE?.rsisx){
+  const rv=document.getElementById('cmc-rsisx-val'); if(rv) rv.textContent=Number(LIVE.rsisx.value).toLocaleString('en',{maximumFractionDigits:2});
+  const rc=document.getElementById('cmc-rsisx-chg');
+  if(rc){const p=LIVE.rsisx.pct||0;rc.textContent=(p>=0?'▲ +':'▼ ')+Math.abs(p).toFixed(2)+'%';rc.style.color=p>=0?'var(--gr)':'var(--rd)';}
+ }
+ // heading spans
  const mcapFmt=fmtSectorVal(totalMcap);
  const rsisxFmt=LIVE?.rsisx?.value?Number(LIVE.rsisx.value).toLocaleString('en',{maximumFractionDigits:2}):'—';
  ['ttl-mcap-hd','ttl-mcap-hd-en'].forEach(id=>{const el=document.getElementById(id);if(el)el.textContent=mcapFmt;});
  ['ttl-rsisx-hd','ttl-rsisx-hd-en'].forEach(id=>{const el=document.getElementById(id);if(el)el.textContent=rsisxFmt;});
  ['ttl-co-hd','ttl-co-hd-en'].forEach(id=>{const el=document.getElementById(id);if(el)el.textContent=n;});
- if(HIST&&HIST.rsisx_s){
-  const cv=document.getElementById('spark-rsisx-mini');
-  if(cv){const vals=HIST.rsisx_s.slice(-30).map(p=>p[1]);drawSpark(cv,vals,vals[vals.length-1]>=vals[0]?'#16C784':'#EA3943');}
+ // RSISX sparkline for CMC card
+ if(HIST?.rsisx_s){
+  const cv=document.getElementById('cmc-spark-rsisx');
+  if(cv){const vals=HIST.rsisx_s.slice(-30).map(p=>p[1]);cv.width=cv.offsetWidth||300;drawSpark(cv,vals,vals[vals.length-1]>=vals[0]?'#16C784':'#EA3943');}
  }
 }
 function buildMktStatMcapSpark(){
- const cv=document.getElementById('spark-mcap-mini');
+ const cv=document.getElementById('cmc-spark-mcap');
  if(!cv||!HIST) return;
  const h=computeMcapHistory(null,30);
  if(!h) return;
  const vals=h.map(p=>p[1]);
  const up=vals[vals.length-1]>=vals[0];
+ cv.width=cv.offsetWidth||300;
  drawSpark(cv,vals,up?'#16C784':'#EA3943');
- const pe=document.getElementById('mstat-mcap-pct');
+ const pe=document.getElementById('cmc-mcap-chg');
  if(pe&&vals.length>=2){
   const pct=((vals[vals.length-1]-vals[0])/vals[0])*100;
-  pe.textContent=(pct>=0?'+':'')+pct.toFixed(2)+'%';
+  pe.textContent=(pct>=0?'▲ +':'▼ ')+Math.abs(pct).toFixed(2)+'%';
   pe.style.color=pct>=0?'var(--gr)':'var(--rd)';
  }
 }
@@ -3455,19 +3468,14 @@ async function fetchLive() {
     updated++;
    }
   });
-  // Update RSISX index display
+  // Update RSISX CMC card
   if (d.rsisx && d.rsisx.value) {
    const rsVal = Number(d.rsisx.value).toLocaleString('en', {minimumFractionDigits:2, maximumFractionDigits:2});
-   const el = document.getElementById('idx-val');
-   if (el) el.textContent = rsVal;
-   // Update change badges
-   if (d.rsisx.change != null && d.rsisx.pct != null) {
-    const chg = d.rsisx.change, pct = d.rsisx.pct;
-    const up = chg >= 0;
-    const chgEl = document.getElementById('idx-chg-b');
-    const pctEl = document.getElementById('idx-pct-b');
-    if (chgEl) { chgEl.textContent = (up ? '▲ ' : '▼ ') + Math.abs(chg).toFixed(2); chgEl.className = 'badge ' + (up ? 'up' : 'dn'); }
-    if (pctEl) { pctEl.textContent = (up ? '+' : '') + pct.toFixed(2) + '%'; pctEl.className = 'badge ' + (up ? 'up' : 'dn'); }
+   const rvEl = document.getElementById('cmc-rsisx-val'); if (rvEl) rvEl.textContent = rsVal;
+   if (d.rsisx.pct != null) {
+    const pct = d.rsisx.pct, up = pct >= 0;
+    const rcEl = document.getElementById('cmc-rsisx-chg');
+    if (rcEl) { rcEl.textContent = (up ? '▲ +' : '▼ ') + Math.abs(pct).toFixed(2) + '%'; rcEl.style.color = up ? 'var(--gr)' : 'var(--rd)'; }
    }
   }
   // Update market breadth
