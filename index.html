@@ -122,13 +122,7 @@ a{color:inherit;text-decoration:none}button{cursor:pointer;border:none;backgroun
 .cur-btn:hover{background:var(--acbg);border-color:var(--ac)}
 .lang-btn{padding:6px 13px;border-radius:9px;background:var(--bg3);border:1px solid var(--border);color:var(--t1);font-size:12px;font-weight:700;transition:all var(--tr);white-space:nowrap}
 .lang-btn:hover{background:var(--acbg);color:var(--ac);border-color:var(--ac)}
-.ticker-bar{background:var(--bg2);border-bottom:1px solid var(--border);overflow:hidden;height:36px;display:flex;align-items:center;margin-top:62px}
-.ticker-label{background:var(--ac);color:#fff;font-size:11px;font-weight:700;padding:0 14px;height:100%;display:flex;align-items:center;white-space:nowrap;flex-shrink:0;letter-spacing:.5px}
-.ticker-track{flex:1;overflow:hidden;position:relative;height:100%}
-.ticker-inner{display:flex;align-items:center;animation:tickScroll 80s linear infinite;white-space:nowrap;height:100%}
-[data-lang="ar"] .ticker-inner{animation-direction:reverse}.ticker-inner:hover{animation-play-state:paused}
-.ticker-item{display:inline-flex;align-items:center;gap:7px;padding:0 18px;font-size:12px;border-inline-end:1px solid var(--border);height:100%;cursor:pointer;transition:background var(--tr)}
-.ticker-item:hover{background:var(--bg4)}
+.ticker-inner{display:none!important}
 .tsym{font-weight:700;color:var(--t1)}.tprice{color:var(--t2)}.tchg.up{color:var(--gr)}.tchg.dn{color:var(--rd)}.tchg.fl{color:var(--t3)}
 @keyframes tickScroll{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
 .page{display:none}.page.active{display:block}
@@ -786,11 +780,7 @@ footer{background:var(--bg2);border-top:1px solid var(--border);padding:44px 24p
 </div>
 
 <!-- TICKER -->
-<div class="ticker-bar">
- <div class="ticker-label ar">مباشر</div>
- <div class="ticker-label en">LIVE</div>
- <div class="ticker-track"><div class="ticker-inner" id="ticker-inner"></div></div>
-</div>
+<div style="height:62px"></div><!-- nav spacer -->
 
 <!-- HOME PAGE -->
 <div id="home-page" class="page active">
@@ -1540,6 +1530,7 @@ const COMPANIES = [
  {sym:'ABAP',logo:'',ar:'',en:'Babil for Animal & Vegetable Production',sec:'AGR',close:9.6,open:9.6,high:9.6,low:9.6,change:0.0,pct:0.0,vol:2560000,deals:0,mcap:0,color:'#10B981'},
 ];
 let HIST=null,HISTL=null,_histReady=null;
+let LIVE=null;
 function loadHist(){
  if(_histReady) return _histReady;
  _histReady=fetch('./data/hist.json?t='+Math.floor(Date.now()/86400000))
@@ -3464,6 +3455,7 @@ async function fetchLive() {
   const res = await fetch('./data/live.json?t=' + Math.floor(Date.now()/300000));
   if (!res.ok) throw new Error('no data');
   const d = await res.json();
+  LIVE = d; // make live data available globally
   // Update prices in COMPANIES
   let updated = 0;
   (d.stocks || []).forEach(s => {
@@ -3704,9 +3696,9 @@ document.addEventListener('DOMContentLoaded',()=>{
  buildTable();
  buildMktStats();
  buildNavSectorsDD();
- // Dim prices until live data loads to avoid flash of stale values
- const _tb=document.getElementById('tbl-body'),_ti=document.getElementById('ticker-inner');
- if(_tb)_tb.classList.add('loading'); if(_ti)_ti.classList.add('loading');
+ // Dim table prices until live data loads
+ const _tb=document.getElementById('tbl-body');
+ if(_tb)_tb.classList.add('loading');
  buildNews();
  buildBrokers();
  buildResearch();
