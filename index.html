@@ -102,8 +102,8 @@ a{color:inherit;text-decoration:none}button{cursor:pointer;border:none;backgroun
 .nav-logo{display:flex;align-items:center;gap:10px;font-family:var(--font-display);font-weight:900;font-size:19px;color:var(--t1);margin-inline-end:28px;flex-shrink:0;cursor:pointer}
 .logo-icon{width:34px;height:34px;border-radius:8px;background:var(--ac);display:flex;align-items:center;justify-content:center;font-size:17px;font-weight:900;color:#fff}
 .nav-links{display:flex;align-items:center;gap:2px;flex:1;list-style:none}
-.nav-links a,.nav-dd-btn{padding:6px 13px;border-radius:8px;font-size:13px;font-weight:700;color:var(--t1);transition:all var(--tr);white-space:nowrap;background:none;border:none;cursor:pointer;font-family:inherit;display:inline-flex;align-items:center;gap:5px}
-.nav-links a:hover,.nav-links a.active,.nav-dd-btn:hover{background:var(--bg4)}.nav-links a.active{color:var(--ac)}
+.nav-links a,.nav-dd-btn{padding:6px 12px;border-radius:0;font-size:13px;font-weight:600;color:var(--t2);transition:color var(--tr);white-space:nowrap;background:none;border:none;cursor:pointer;font-family:inherit;display:inline-flex;align-items:center;gap:5px}
+.nav-links a:hover,.nav-dd-btn:hover{color:var(--t1);background:none}.nav-links a.active{color:var(--t1);font-weight:700}
 .has-dd{position:relative}.nav-dd-btn{padding:6px 13px}
 .dd-chev{width:10px;height:10px;flex-shrink:0;opacity:.55;transition:transform var(--tr)}
 .has-dd:hover .dd-chev{transform:rotate(180deg)}
@@ -178,7 +178,7 @@ a{color:inherit;text-decoration:none}button{cursor:pointer;border:none;backgroun
 .stabs::-webkit-scrollbar{display:none}
 .stab{padding:7px 15px;border-radius:9px;white-space:nowrap;font-size:12px;font-weight:700;flex-shrink:0;background:var(--bg3);border:1px solid var(--border);color:var(--t1);transition:all var(--tr)}
 .stab:hover{color:var(--t1);border-color:var(--border2)}.stab.active{background:var(--acbg);border-color:var(--ac);color:var(--ac)}
-.tbl-wrap{background:var(--bg3);border:1px solid var(--border);border-radius:16px;overflow:hidden}
+.tbl-wrap{background:transparent;border:none;border-radius:0;overflow:hidden}
 .dtbl{width:100%;border-collapse:collapse;font-size:13px}
 .dtbl th{padding:11px 16px;text-align:start;font-size:10px;font-weight:700;color:var(--t2);letter-spacing:.4px;text-transform:uppercase;background:var(--bg4);border-bottom:1px solid var(--border);white-space:nowrap;cursor:pointer;user-select:none;transition:color var(--tr)}
 .dtbl th:hover{color:var(--t2)}.dtbl th.srt-asc::after{content:' ↑';color:var(--ac)}.dtbl th.srt-desc::after{content:' ↓';color:var(--ac)}
@@ -406,15 +406,15 @@ footer{background:var(--bg2);border-top:1px solid var(--border);padding:44px 24p
 /* ── CMC large stat cards ── */
 .cmc-stat-cards{display:flex;gap:10px;overflow-x:auto;margin-bottom:20px;scrollbar-width:none;padding-bottom:2px}
 .cmc-stat-cards::-webkit-scrollbar{display:none}
-.cmc-scard{background:var(--bg3);border:1px solid var(--border);border-radius:10px;flex:1;min-width:190px;overflow:hidden;cursor:pointer;transition:border-color var(--tr);display:flex;flex-direction:column}
+.cmc-scard{background:var(--bg3);border:1px solid var(--border);border-radius:10px;flex:1;min-width:160px;overflow:hidden;cursor:pointer;transition:border-color var(--tr);display:flex;flex-direction:column}
 .cmc-scard:hover{border-color:var(--border2)}
 .cmc-scard.static{cursor:default}.cmc-scard.static:hover{border-color:var(--border)}
-.cmc-scard-top{padding:16px 18px 6px;flex:1}
-.cmc-scard-ttl{font-size:11px;font-weight:700;color:var(--t2);display:flex;align-items:center;gap:3px;margin-bottom:8px;white-space:nowrap;overflow:hidden}
+.cmc-scard-top{padding:12px 14px 4px;flex:1}
+.cmc-scard-ttl{font-size:11px;font-weight:700;color:var(--t2);display:flex;align-items:center;gap:3px;margin-bottom:4px;white-space:nowrap;overflow:hidden}
 .cmc-scard-arr{color:var(--t3);font-size:12px;margin-inline-start:2px;opacity:.7}
-.cmc-scard-val{font-family:var(--font-display);font-size:24px;font-weight:800;color:var(--t1);line-height:1.1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.cmc-scard-chg{font-size:11px;font-weight:700;margin-top:5px}
-.cmc-scard-cv{display:block;width:100%;height:64px;flex-shrink:0}
+.cmc-scard-val{font-family:var(--font-display);font-size:20px;font-weight:800;color:var(--t1);line-height:1.1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cmc-scard-chg{font-size:11px;font-weight:700;margin-top:3px}
+.cmc-scard-cv{display:block;width:100%;height:50px;flex-shrink:0}
 /* keep old ids alive for JS that references them */
 .mstat-bbar,.mstat-bseg,.mstat-bleg{display:none}
 
@@ -797,6 +797,20 @@ footer{background:var(--bg2);border-top:1px solid var(--border);padding:44px 24p
    <p>بورصة العراق (Iraq Stock Exchange — ISX) هي السوق الرسمية للأوراق المالية في العراق، وتضم أكثر من 104 شركة مدرجة في قطاعات المصارف والاتصالات والصناعة والسياحة والتأمين والزراعة والخدمات.</p>
   </div>
 
+  <!-- CMC-STYLE TAB ROW (above stat cards, like CMC) -->
+  <div class="mkt-tabs-row" style="margin-bottom:16px">
+   <div class="mkt-tabs">
+    <button class="mtab active" data-tab="top" onclick="setTab('top')"><span class="ar">الأعلى</span><span class="en">Top</span></button>
+    <button class="mtab" data-tab="trending" onclick="setTab('trending')"><span class="ar">الأكثر تداولاً</span><span class="en">Trending</span></button>
+    <button class="mtab" data-tab="gainers" onclick="setTab('gainers')"><span class="ar">الرابحون</span><span class="en">Gainers</span></button>
+    <button class="mtab" data-tab="watchlist" onclick="setTab('watchlist')">
+     <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor" style="margin-inline-end:3px"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+     <span class="ar">المتابعة</span><span class="en">Watchlist</span>
+    </button>
+    <button class="mtab" data-tab="all" onclick="setTab('all')"><span class="ar">الكل</span><span class="en">All</span></button>
+   </div>
+  </div>
+
   <!-- CMC-STYLE LARGE STAT CARDS -->
   <div class="cmc-stat-cards" id="cmc-stat-cards">
    <!-- Market Cap -->
@@ -870,19 +884,6 @@ footer{background:var(--bg2);border-top:1px solid var(--border);padding:44px 24p
 
   <!-- MARKET TABLE -->
   <div class="psec" id="market-section">
-   <!-- CMC-style tab row -->
-   <div class="mkt-tabs-row">
-    <div class="mkt-tabs">
-     <button class="mtab active" data-tab="top" onclick="setTab('top')"><span class="ar">الأعلى</span><span class="en">Top</span></button>
-     <button class="mtab" data-tab="trending" onclick="setTab('trending')"><span class="ar">الأكثر تداولاً</span><span class="en">Trending</span></button>
-     <button class="mtab" data-tab="gainers" onclick="setTab('gainers')"><span class="ar">الرابحون</span><span class="en">Gainers</span></button>
-     <button class="mtab" data-tab="watchlist" onclick="setTab('watchlist')">
-      <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor" style="margin-inline-end:3px"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-      <span class="ar">المتابعة</span><span class="en">Watchlist</span>
-     </button>
-     <button class="mtab" data-tab="all" onclick="setTab('all')"><span class="ar">الكل</span><span class="en">All</span></button>
-    </div>
-   </div>
    <!-- Sector filter -->
    <div class="sec-filter" id="sec-filter">
     <button class="sflt active" data-sec="all" onclick="filterSector('all')"><span class="ar">كل القطاعات</span><span class="en">All Sectors</span></button>
