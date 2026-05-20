@@ -1531,6 +1531,7 @@ const COMPANIES = [
 ];
 let HIST=null,HISTL=null,_histReady=null;
 let LIVE=null;
+let OHLCV=null,_ohlcvReady=null;
 function loadHist(){
  if(_histReady) return _histReady;
  _histReady=fetch('./data/hist.json?t='+Math.floor(Date.now()/86400000))
@@ -1549,12 +1550,26 @@ function loadHist(){
     const lastTs=IDXL.length?IDXL[IDXL.length-1][0]:0;
     d.rsisx_l.filter(p=>p[0]>lastTs).forEach(p=>IDXL.push(p));
    }
+   // Clear candle cache so real data is used instead of synthetic
+   CANDLE_CACHE.clear();
    // Draw real sector sparklines now that hist is loaded
    buildSectorSparks();
    buildMktStatMcapSpark();
    buildMktStats();
+   // Rebuild active company chart with real data
+   if(activeCo) setTimeout(buildCpChart,50);
   }).catch(()=>{HIST={};HISTL={};});
  return _histReady;
+}
+function loadOhlcv(){
+ if(_ohlcvReady) return _ohlcvReady;
+ _ohlcvReady=fetch('./data/ohlcv.json?t='+Math.floor(Date.now()/86400000))
+  .then(r=>r.json()).then(d=>{
+   OHLCV=d;
+   CANDLE_CACHE.clear();
+   if(activeCo) setTimeout(buildCpChart,50);
+  }).catch(()=>{OHLCV={};});
+ return _ohlcvReady;
 }
 const ISC_INFO={
 'BAIB':{ne:'Asia Al Iraq Islamic BANK',na:'مصرف اسيا العراق الاسلامي للأستثمار والتمويل',se:'Banks',sa:'قطاع المصارف',est:'2017',addr:'Baghdad, Yarmouk, Mahalla 608, Block 35, Street 66, Building 2',email:'info@aiib.iq'},
@@ -1927,6 +1942,11 @@ function pickSeries(shortArr, longArr, days){
  const cnt = Math.min(periodCount(days), a.length);
  return a.slice(a.length-cnt);
 }
+function tsToDateStr(ts){
+ // ts is Baghdad midnight as UTC timestamp; add 3h to get Baghdad calendar date
+ const d=new Date((ts+10800)*1000);
+ return d.getUTCFullYear()+'-'+String(d.getUTCMonth()+1).padStart(2,'0')+'-'+String(d.getUTCDate()).padStart(2,'0');
+}
 function realCandles(sym, days){
  const sArr=(typeof HIST!=='undefined')&&HIST[sym];
  const lArr=(typeof HISTL!=='undefined')&&HISTL[sym];
@@ -1935,10 +1955,18 @@ function realCandles(sym, days){
  if(!sl||sl.length<2) return null;
  const out=[];
  for(let i=0;i<sl.length;i++){
-  const c=sl[i][1], o=(i===0?sl[i][1]:sl[i-1][1]);
-  const hi=Math.max(o,c), lo=Math.min(o,c);
-  const pad=(hi-lo)*0.18 + c*0.0015;
-  out.push({time:sl[i][0], open:+o.toFixed(4), high:+(hi+pad).toFixed(4), low:+Math.max(0.001,lo-pad).toFixed(4), close:+c.toFixed(4)});
+  const ts=sl[i][0], c=sl[i][1];
+  // Use real OHLCV from ohlcv.json if available for this date/symbol
+  const dateStr=tsToDateStr(ts);
+  const ov=OHLCV&&OHLCV[dateStr]&&OHLCV[dateStr][sym];
+  if(ov&&ov.o&&ov.h&&ov.l&&ov.c&&ov.c>0){
+   out.push({time:ts,open:+Number(ov.o).toFixed(4),high:+Number(ov.h).toFixed(4),low:+Math.max(0.001,Number(ov.l)).toFixed(4),close:+Number(ov.c).toFixed(4)});
+  } else {
+   const o=(i===0?c:sl[i-1][1]);
+   const hi=Math.max(o,c), lo=Math.min(o,c);
+   const pad=(hi-lo)*0.18 + c*0.0015;
+   out.push({time:ts,open:+o.toFixed(4),high:+(hi+pad).toFixed(4),low:+Math.max(0.001,lo-pad).toFixed(4),close:+c.toFixed(4)});
+  }
  }
  return out;
 }
@@ -2468,12 +2496,27 @@ function openCompany(sym) {
  const cb = document.getElementById('cp-chg-b');
  cb.textContent = `${ci(co.pct)} ${Math.abs(co.pct).toFixed(2)}%`;
  cb.className = `badge ${cc(co.pct)}`;
- document.getElementById('cp-open').textContent  = co.open  ? co.open.toFixed(3) : '-';
- document.getElementById('cp-high').textContent  = co.high  ? co.high.toFixed(3) : '-';
- document.getElementById('cp-low').textContent   = co.low   ? co.low.toFixed(3)  : '-';
- document.getElementById('cp-close').textContent = co.close ? co.close.toFixed(3): '-';
- document.getElementById('cp-vol').textContent   = fmt(co.vol);
- document.getElementById('cp-deals').textContent = co.deals ? co.deals.toLocaleString() : '-';
+ // Use real OHLCV from ohlcv.json if available (most recent date for this symbol)
+ let _ov=null,_ovDate='';
+ if(OHLCV){
+  const dates=Object.keys(OHLCV).sort().reverse();
+  for(const dt of dates){if(OHLCV[dt][co.sym]&&OHLCV[dt][co.sym].c>0){_ov=OHLCV[dt][co.sym];_ovDate=dt;break;}}
+ }
+ document.getElementById('cp-open').textContent  = _ov&&_ov.o ? Number(_ov.o).toFixed(3) : (co.open  ? co.open.toFixed(3)  : '-');
+ document.getElementById('cp-high').textContent  = _ov&&_ov.h ? Number(_ov.h).toFixed(3) : (co.high  ? co.high.toFixed(3)  : '-');
+ document.getElementById('cp-low').textContent   = _ov&&_ov.l ? Number(_ov.l).toFixed(3) : (co.low   ? co.low.toFixed(3)   : '-');
+ document.getElementById('cp-close').textContent = _ov&&_ov.c ? Number(_ov.c).toFixed(3) : (co.close ? co.close.toFixed(3) : '-');
+ document.getElementById('cp-vol').textContent   = _ov&&_ov.v ? fmt(_ov.v) : fmt(co.vol);
+ document.getElementById('cp-deals').textContent = (_ov&&_ov.d) ? _ov.d.toLocaleString() : (co.deals ? co.deals.toLocaleString() : '-');
+ // Update trading date dynamically
+ if(_ovDate){
+  const [dy,dm,dd]=_ovDate.split('-');
+  const dateDisp=dd+'/'+dm+'/'+dy;
+  document.querySelectorAll('.cp-date').forEach(el=>{
+   if(el.classList.contains('ar'))el.textContent='التداول: '+dateDisp;
+   else el.textContent='Trading: '+dateDisp;
+  });
+ }
  document.getElementById('cp-mcap').textContent  = fmtMcap(co.mcap);
 
  // Reset toolbar UI
@@ -3450,6 +3493,7 @@ document.addEventListener('keydown',e=>{if(e.key==='Escape') closeFullscreen();}
 let lastLiveUpdate = null;
 async function fetchLive() {
  loadHist(); // prefetch in background
+ loadOhlcv(); // prefetch real OHLCV in background
  const bar = document.getElementById('status-bar');
  try {
   const res = await fetch('./data/live.json?t=' + Math.floor(Date.now()/300000));
@@ -3474,6 +3518,11 @@ async function fetchLive() {
     updated++;
    }
   });
+  // Cache prices to localStorage to avoid flicker on next page load
+  try {
+   const pc={};(d.stocks||[]).forEach(s=>{if(s.close>0)pc[s.code]={close:s.close,open:s.open,high:s.high,low:s.low,change:s.change,pct:s.pct,vol:s.vol,deals:s.deals};});
+   localStorage.setItem('isx_prices',JSON.stringify({ts:d.updated,stocks:pc}));
+  } catch(e){}
   // Update RSISX CMC card
   if (d.rsisx && d.rsisx.value) {
    const rsVal = Number(d.rsisx.value).toLocaleString('en', {minimumFractionDigits:2, maximumFractionDigits:2});
@@ -3694,6 +3743,25 @@ function toast(msg){
 document.addEventListener('DOMContentLoaded',()=>{
  initAuth(); // ← Supabase auth
  document.getElementById('search-inp').placeholder='ابحث عن شركة أو رمز...';
+ // Apply cached live prices immediately to avoid price flicker on refresh
+ try {
+  const _cached=JSON.parse(localStorage.getItem('isx_prices')||'null');
+  if(_cached&&_cached.stocks&&_cached.ts){
+   const _age=Date.now()-new Date(_cached.ts).getTime();
+   if(_age<24*3600*1000){ // use if less than 24h old
+    Object.entries(_cached.stocks).forEach(([code,s])=>{
+     const co=COMPANIES.find(c=>c.sym===code);
+     if(co&&s.close>0){
+      const _pc=co.close;
+      co.close=s.close;co.open=s.open||s.close;co.high=s.high||s.close;
+      co.low=s.low||s.close;co.change=s.change;co.pct=s.pct;co.vol=s.vol;
+      if(s.deals)co.deals=s.deals;
+      if(_pc>0)co.mcap=Math.round(co.mcap*s.close/_pc);
+     }
+    });
+   }
+  }
+ } catch(e){}
  SECTORS.forEach(s=>{ s.val=COMPANIES.filter(c=>c.sec===s.id).reduce((sum,c)=>sum+(c.mcap||0),0); });
  buildTicker();
  buildIdxGrid();
