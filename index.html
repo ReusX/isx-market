@@ -90,7 +90,7 @@
 </style>
 <style>
 :root{--font-text:'ThmanyahText','Segoe UI',Arial,sans-serif;--font-display:'ThmanyahDisplay','Segoe UI',Arial,sans-serif;--tr:0.22s ease}
-[data-theme="dark"]{--bg:#17171A;--bg2:#0D1117;--bg3:#222531;--bg4:#2A2D3E;--bg5:#323546;--border:#323546;--border2:#424568;--t1:#FFFFFF;--t2:#A1A7BB;--t3:#616E85;--ac:#3861FB;--ac2:#5978FF;--acbg:rgba(56,97,251,0.1);--gr:#16C784;--grbg:rgba(22,199,132,0.1);--rd:#EA3943;--rdbg:rgba(234,57,67,0.1);--sh:0 4px 24px rgba(0,0,0,0.5);--sh2:0 1px 12px rgba(0,0,0,0.4);--navbg:rgba(23,23,26,0.95)}
+[data-theme="dark"]{--bg:#0D0E14;--bg2:#080910;--bg3:#171820;--bg4:#1E1F2B;--bg5:#252634;--border:#2A2B3A;--border2:#383A50;--t1:#FFFFFF;--t2:#A1A7BB;--t3:#616E85;--ac:#3861FB;--ac2:#5978FF;--acbg:rgba(56,97,251,0.1);--gr:#16C784;--grbg:rgba(22,199,132,0.1);--rd:#EA3943;--rdbg:rgba(234,57,67,0.1);--sh:0 4px 24px rgba(0,0,0,0.6);--sh2:0 1px 12px rgba(0,0,0,0.5);--navbg:rgba(13,14,20,0.97)}
 [data-theme="light"]{--bg:#F8FAFD;--bg2:#F0F2F5;--bg3:#FFFFFF;--bg4:#F8FAFD;--bg5:#EFF2F5;--border:#EFF2F5;--border2:#D6DCE5;--t1:#1B2141;--t2:#58667E;--t3:#808A9D;--ac:#3861FB;--ac2:#5978FF;--acbg:rgba(56,97,251,0.08);--gr:#16C784;--grbg:rgba(22,199,132,0.08);--rd:#EA3943;--rdbg:rgba(234,57,67,0.08);--sh:0 4px 24px rgba(0,0,0,0.08);--sh2:0 1px 12px rgba(0,0,0,0.05);--navbg:rgba(248,250,253,0.95)}
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}html{scroll-behavior:smooth;overflow-x:hidden;max-width:100%}
 body{font-family:var(--font-text);background:var(--bg);color:var(--t1);font-size:14px;line-height:1.6;transition:background var(--tr),color var(--tr);overflow-x:hidden;max-width:100%}
@@ -180,7 +180,7 @@ a{color:inherit;text-decoration:none}button{cursor:pointer;border:none;backgroun
 .stab:hover{color:var(--t1);border-color:var(--border2)}.stab.active{background:var(--acbg);border-color:var(--ac);color:var(--ac)}
 .tbl-wrap{background:transparent;border:none;border-radius:0;overflow:hidden}
 .dtbl{width:100%;border-collapse:collapse;font-size:13px}
-.dtbl th{padding:11px 16px;text-align:start;font-size:10px;font-weight:700;color:var(--t2);letter-spacing:.4px;text-transform:uppercase;background:var(--bg4);border-bottom:1px solid var(--border);white-space:nowrap;cursor:pointer;user-select:none;transition:color var(--tr)}
+.dtbl th{padding:11px 16px;text-align:start;font-size:10px;font-weight:700;color:var(--t3);letter-spacing:.4px;text-transform:uppercase;background:var(--bg);border-bottom:1px solid var(--border);white-space:nowrap;cursor:pointer;user-select:none;transition:color var(--tr)}
 .dtbl th:hover{color:var(--t2)}.dtbl th.srt-asc::after{content:' ↑';color:var(--ac)}.dtbl th.srt-desc::after{content:' ↓';color:var(--ac)}
 .dtbl td{padding:14px 16px;border-bottom:1px solid var(--border);color:var(--t1);white-space:nowrap}
 .dtbl tr:last-child td{border-bottom:none}.dtbl tr.company-row{cursor:pointer;transition:background var(--tr)}.dtbl tr.company-row:hover td{background:var(--bg4)}
@@ -425,6 +425,10 @@ footer{background:var(--bg2);border-top:1px solid var(--border);padding:44px 24p
 .mtab{padding:9px 18px;font-size:13px;font-weight:700;color:var(--t3);background:none;border:none;border-bottom:3px solid transparent;margin-bottom:-2px;white-space:nowrap;transition:all var(--tr);cursor:pointer;font-family:inherit}
 .mtab:hover{color:var(--t2)}.mtab.active{color:var(--t1);border-bottom-color:var(--ac)}
 .sec-filter{display:flex;gap:4px;overflow-x:auto;scrollbar-width:none;padding:12px 0 0;margin-bottom:12px;flex-wrap:wrap}
+/* Full-bleed market section */
+#market-section{width:100%;padding:0}
+#market-section .sec-filter-wrap{padding:0 24px}
+@media(max-width:600px){#market-section .sec-filter-wrap{padding:0 10px}}
 .sec-filter::-webkit-scrollbar{display:none}
 .sflt{padding:4px 10px;border-radius:7px;font-size:11px;font-weight:700;color:var(--t2);background:var(--bg3);border:1px solid var(--border);transition:all var(--tr);cursor:pointer;white-space:nowrap;font-family:inherit}
 .sflt:hover{color:var(--t1)}.sflt.active{background:var(--acbg);border-color:var(--ac);color:var(--ac)}
@@ -790,7 +794,7 @@ footer{background:var(--bg2);border-top:1px solid var(--border);padding:44px 24p
 
 <!-- HOME PAGE -->
 <div id="home-page" class="page active">
- <div class="main-wrap">
+ <div class="main-wrap" style="padding-bottom:4px">
   <!-- SEO hidden -->
   <div id="home-seo" aria-hidden="true" style="position:fixed;left:-9999px;width:1px;height:1px;overflow:hidden">
    <h1>بورصة العراق للأوراق المالية — سوق العراق للأوراق المالية (ISX)</h1>
@@ -882,9 +886,11 @@ footer{background:var(--bg2);border-top:1px solid var(--border);padding:44px 24p
    <p class="en" id="home-subline-en" style="font-size:13px;color:var(--t2);line-height:1.6">Total market cap <span id="ttl-mcap-hd-en">—</span> | RSISX: <span id="ttl-rsisx-hd-en">—</span> | <span id="ttl-co-hd-en">—</span> listed companies</p>
   </div>
 
-  <!-- MARKET TABLE -->
-  <div class="psec" id="market-section">
-   <!-- Sector filter -->
+ </div><!-- /main-wrap-top -->
+
+ <!-- MARKET TABLE — full bleed, outside main-wrap -->
+ <div id="market-section">
+  <div class="sec-filter-wrap">
    <div class="sec-filter" id="sec-filter">
     <button class="sflt active" data-sec="all" onclick="filterSector('all')"><span class="ar">كل القطاعات</span><span class="en">All Sectors</span></button>
     <button class="sflt" data-sec="BANK" onclick="filterSector('BANK')"><span class="ar">مصارف</span><span class="en">Banking</span></button>
@@ -896,31 +902,34 @@ footer{background:var(--bg2);border-top:1px solid var(--border);padding:44px 24p
     <button class="sflt" data-sec="AGR" onclick="filterSector('AGR')"><span class="ar">زراعة</span><span class="en">Agriculture</span></button>
     <button class="sflt" data-sec="TEL" onclick="filterSector('TEL')"><span class="ar">اتصالات</span><span class="en">Telecom</span></button>
    </div>
-   <div class="tbl-wrap">
-    <table class="dtbl">
-     <thead>
-      <tr>
-       <th class="rank-col">#</th>
-       <th class="star-col"></th>
-       <th data-sort="name"><span class="ar">الشركة</span><span class="en">Name</span></th>
-       <th data-sort="close"><span class="ar">السعر</span><span class="en">Price</span></th>
-       <th data-sort="pct" class="srt-desc"><span class="ar">24س%</span><span class="en">24h %</span></th>
-       <th data-sort="pct7"><span class="ar">7أيام%</span><span class="en">7d %</span></th>
-       <th data-sort="mcap"><span class="ar">القيمة السوقية</span><span class="en">Market Cap</span></th>
-       <th data-sort="vol"><span class="ar">الحجم (24س)</span><span class="en">Volume (24h)</span></th>
-       <th style="text-align:end"><span class="ar">آخر 7 أيام</span><span class="en">Last 7 Days</span></th>
-      </tr>
-     </thead>
-     <tbody id="tbl-body"></tbody>
-    </table>
-    <div class="tbl-footer" id="tbl-footer">
-     <button class="show-all-btn" id="show-all-btn" onclick="toggleShowAll()">
-      <span class="ar" id="show-all-txt-ar">عرض جميع الشركات ↓</span>
-      <span class="en" id="show-all-txt-en">Show All Companies ↓</span>
-     </button>
-    </div>
+  </div>
+  <div class="tbl-wrap">
+   <table class="dtbl">
+    <thead>
+     <tr>
+      <th class="rank-col">#</th>
+      <th class="star-col"></th>
+      <th data-sort="name"><span class="ar">الشركة</span><span class="en">Name</span></th>
+      <th data-sort="close"><span class="ar">السعر</span><span class="en">Price</span></th>
+      <th data-sort="pct" class="srt-desc"><span class="ar">24س%</span><span class="en">24h %</span></th>
+      <th data-sort="pct7"><span class="ar">7أيام%</span><span class="en">7d %</span></th>
+      <th data-sort="mcap"><span class="ar">القيمة السوقية</span><span class="en">Market Cap</span></th>
+      <th data-sort="vol"><span class="ar">الحجم (24س)</span><span class="en">Volume (24h)</span></th>
+      <th style="text-align:end"><span class="ar">آخر 7 أيام</span><span class="en">Last 7 Days</span></th>
+     </tr>
+    </thead>
+    <tbody id="tbl-body"></tbody>
+   </table>
+   <div class="tbl-footer" id="tbl-footer">
+    <button class="show-all-btn" id="show-all-btn" onclick="toggleShowAll()">
+     <span class="ar" id="show-all-txt-ar">عرض جميع الشركات ↓</span>
+     <span class="en" id="show-all-txt-en">Show All Companies ↓</span>
+    </button>
    </div>
   </div>
+ </div>
+
+ <div class="main-wrap"><!-- /main-wrap-bottom -->
 
   <!-- NEWS -->
   <div class="psec" id="news">
