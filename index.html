@@ -550,70 +550,78 @@ footer{background:var(--bg2);border-top:1px solid var(--border);padding:44px 24p
  .chart-panel-kpis{padding:8px 14px 0}
 }
 
-/* ── PR 2 — GAMIFIED HOMEPAGE ─────────────────────────────────────────── */
-.hp-wrap{max-width:1440px;margin:0 auto;padding:28px 24px 80px}
-.hp-hero-row{display:grid;grid-template-columns:1fr 360px;gap:20px;margin-bottom:22px}
-.hp-card{background:var(--surf);border:1px solid var(--border);border-radius:18px;position:relative;overflow:hidden}
-.hp-pad{padding:28px}
-.hp-glow{position:absolute;pointer-events:none;border-radius:50%}
-.hp-kicker{font-family:var(--font-mono);font-size:11px;letter-spacing:.18em;color:var(--ink4);text-transform:uppercase;margin-bottom:10px}
-.hp-h1{font-size:30px;font-weight:700;letter-spacing:-.02em;line-height:1.18;margin-bottom:6px}
-.hp-chips{display:flex;gap:10px;margin-top:20px;flex-wrap:wrap}
-.hp-chip{padding:10px 14px;border-radius:12px;display:flex;align-items:center;gap:10px;transition:opacity .15s}
-.hp-chip:hover{opacity:.82}
-.hp-chip-gold{background:rgba(245,200,75,.1);border:1px solid rgba(245,200,75,.27)}
-.hp-chip-purple{background:rgba(168,85,247,.1);border:1px solid rgba(168,85,247,.27);cursor:pointer}
-.hp-chip-brand{background:rgba(79,107,255,.1);border:1px solid rgba(79,107,255,.27);cursor:pointer}
-.hp-chip-lbl{font-size:11px;color:var(--ink3);margin-bottom:2px}
-.hp-chip-v-gold{font-size:13px;font-weight:700;color:var(--gold);font-family:var(--font-mono)}
-.hp-chip-v-purple{font-size:12px;font-weight:700;color:var(--purple)}
-.hp-chip-v-brand{font-size:12px;font-weight:700;color:var(--brand)}
-.hp-wbar{margin-top:20px;padding:14px;background:var(--surf3);border-radius:12px;border:1px dashed rgba(245,200,75,.22);max-width:540px}
-.hp-wbar-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
-.hp-wbar-lbl{font-family:var(--font-mono);font-size:10px;letter-spacing:.14em;color:var(--ink4);text-transform:uppercase}
-.hp-wbar-pts{color:var(--gold);font-family:var(--font-mono);font-size:11px}
-.hp-spin-card{background:linear-gradient(160deg,var(--surf),rgba(168,85,247,.06));text-align:center}
-.hp-spin-btn{width:100%;padding:13px;background:var(--gold-grad);border:none;border-radius:12px;color:#3a2700;font-weight:800;font-size:14px;font-family:inherit;letter-spacing:.04em;cursor:pointer;box-shadow:0 10px 28px -8px rgba(245,200,75,.55);transition:opacity .15s,transform .15s}
-.hp-spin-btn:hover{opacity:.92;transform:translateY(-1px)}
-.hp-cta-row{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:22px}
-.hp-cta{padding:24px;border-radius:16px;background:var(--surf);border:1px solid var(--border);cursor:pointer;position:relative;overflow:hidden;transition:transform .15s,border-color .15s}
-.hp-cta:hover{transform:translateY(-2px)}
-.hp-cta-ic{width:46px;height:46px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px;margin-bottom:14px}
-.hp-cta-badge{display:inline-flex;padding:4px 10px;border-radius:999px;font-size:11px;font-weight:600}
-.hp-cta-btn{margin-top:16px;padding:10px 16px;background:transparent;border-radius:10px;font-weight:700;font-size:12px;font-family:inherit;display:inline-flex;align-items:center;gap:8px;cursor:pointer}
-.hp-mkt-row{display:grid;grid-template-columns:1fr 340px;gap:20px;margin-bottom:22px}
-.hp-left-col{display:flex;flex-direction:column;gap:16px}
-.hp-movers-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
-.hp-mover{padding:14px;background:var(--surf2);border:1px solid var(--border);border-radius:12px;cursor:pointer;transition:border-color .15s}
-.hp-mover:hover{border-color:var(--brand)}
-.hp-mover-ico{width:32px;height:32px;border-radius:7px;background:linear-gradient(135deg,var(--brand),var(--brand-deep));display:flex;align-items:center;justify-content:center;font-weight:800;font-size:9px;color:#fff;flex-shrink:0}
-.hp-art-row{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
-.hp-art{padding:18px;background:var(--surf2);border:1px solid var(--border);border-radius:12px;cursor:pointer;transition:border-color .15s}
-.hp-art:hover{border-color:var(--border2)}
-.hp-shdr{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:14px;gap:8px}
-.hp-skicker{font-family:var(--font-mono);font-size:9px;letter-spacing:.16em;color:var(--ink4);text-transform:uppercase;margin-bottom:4px}
-.hp-stitle{font-size:16px;font-weight:700;letter-spacing:-.01em}
-.hp-link{font-size:12px;color:var(--brand);font-weight:600;white-space:nowrap}
-.hp-link:hover{text-decoration:underline}
-.hp-ref-card{background:linear-gradient(135deg,var(--surf),rgba(79,107,255,.07))}
-.hp-ref-code{margin-top:14px;padding:8px 12px;background:var(--surf2);border:1px dashed var(--brand);border-radius:10px;font-family:var(--font-mono);font-size:14px;font-weight:700;color:var(--brand);letter-spacing:.05em;display:flex;align-items:center;justify-content:space-between;cursor:pointer}
-.hp-ref-copy{font-size:10px;color:var(--ink3)}
-.hp-tag{display:inline-flex;padding:4px 10px;border-radius:999px;font-size:11px;font-weight:600}
-@media(max-width:1100px){.hp-hero-row{grid-template-columns:1fr}.hp-mkt-row{grid-template-columns:1fr}}
+/* ── HOMEPAGE V2 — companies-first, gamification subtle ─────────────── */
+/* Nav game chips */
+.nav-game-chips{display:none;align-items:center;gap:6px;margin-inline-start:6px;flex-shrink:0}
+.nav-streak-chip{display:flex;align-items:center;gap:4px;padding:4px 9px;background:rgba(245,200,75,.12);border:1px solid rgba(245,200,75,.27);border-radius:999px;font-size:11px;font-weight:700;color:var(--gold);font-family:var(--font-mono)}
+.nav-pts-chip{display:flex;align-items:center;gap:5px;padding:4px 10px 4px 7px;background:var(--surf);border:1px solid var(--border);border-radius:999px}
+.nav-pts-icon{width:14px;height:14px;border-radius:50%;background:var(--gold-grad);display:flex;align-items:center;justify-content:center;font-size:7px;font-weight:800;color:#5a3a00;flex-shrink:0}
+/* Slim strip */
+.hp-strip{display:flex;align-items:center;padding:0 24px;height:38px;background:var(--surf);border-bottom:1px solid var(--border);font-size:12px;overflow:hidden;gap:0;flex-shrink:0}
+.hp-strip-item{display:flex;align-items:center;gap:6px;color:var(--ink3);white-space:nowrap;flex-shrink:0}
+.hp-strip-sep{width:1px;height:14px;background:var(--border);margin:0 14px;flex-shrink:0}
+.hp-strip-bar-wrap{width:72px;height:4px;background:rgba(255,255,255,.06);border-radius:999px;overflow:hidden;border:1px solid var(--border);flex-shrink:0}
+.hp-strip-bar-fill{height:100%;background:var(--gold-grad);border-radius:999px;transition:width .4s}
+.hp-strip-invite{display:flex;align-items:center;gap:5px;color:var(--brand);font-weight:600;cursor:pointer;flex-shrink:0;white-space:nowrap}
+.hp-strip-invite:hover{opacity:.8}
+/* Page wrap & layout */
+.hp-wrap{max-width:1440px;margin:0 auto;padding:20px 24px 80px}
+.hp-layout{display:grid;grid-template-columns:1fr 300px;gap:20px;align-items:start}
+.hp-main{display:flex;flex-direction:column;gap:16px}
+.hp-sb{display:flex;flex-direction:column;gap:12px}
+/* Shared card */
+.hp-card{background:var(--surf);border:1px solid var(--border);border-radius:16px}
+/* RSISX index card */
+.hp-idx-inner{padding:18px 22px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:14px}
+/* Companies table */
+.hp-tbl-head{display:flex;justify-content:space-between;align-items:center;padding:14px 20px;border-bottom:1px solid var(--border);flex-wrap:wrap;gap:10px}
+.hp-tbl-title{font-size:15px;font-weight:700;flex-shrink:0}
+.hp-chips-row{display:flex;gap:5px;flex-wrap:wrap;align-items:center}
+.hp-fchip{padding:4px 11px;border-radius:999px;font-size:11px;font-weight:600;border:1px solid var(--border);color:var(--ink3);background:transparent;cursor:pointer;font-family:inherit;transition:all .13s;white-space:nowrap}
+.hp-fchip.active{background:var(--brand);border-color:var(--brand);color:#fff}
+.hp-fchip:hover:not(.active){border-color:var(--border2);color:var(--ink2)}
+.hp-schip{padding:4px 10px;border-radius:8px;font-size:11px;font-weight:600;border:1px solid var(--border);color:var(--ink3);background:transparent;cursor:pointer;font-family:inherit;transition:all .13s;white-space:nowrap}
+.hp-schip.active{background:var(--acbg);border-color:var(--ac);color:var(--ac)}
+.hp-schip:hover:not(.active){border-color:var(--border2);color:var(--ink2)}
+/* Table columns & rows */
+.hp-col-grid{display:grid;grid-template-columns:36px 1fr 90px 72px 96px 96px 100px 152px;gap:8px}
+.hp-col-hdr{padding:8px 20px;border-bottom:1px solid var(--border);font-family:var(--font-mono);font-size:9px;color:var(--ink4);letter-spacing:.12em;text-transform:uppercase}
+.hp-tbl-row{padding:11px 20px;align-items:center;border-bottom:1px solid var(--border);transition:background .1s;cursor:pointer}
+.hp-tbl-row:last-child{border-bottom:none}
+.hp-tbl-row:hover{background:var(--surf2)}
+.hp-co-logo{width:32px;height:32px;border-radius:7px;background:linear-gradient(135deg,var(--brand),var(--brand-deep));display:flex;align-items:center;justify-content:center;font-weight:800;font-size:8px;letter-spacing:.04em;flex-shrink:0;overflow:hidden}
+.hp-co-logo img{width:100%;height:100%;object-fit:cover;border-radius:7px}
+.hp-tbl-foot{padding:11px 20px;border-top:1px solid var(--border);text-align:center}
+.hp-view-all{font-size:12px;color:var(--brand);font-weight:600;cursor:pointer;text-decoration:none}
+.hp-view-all:hover{text-decoration:underline}
+/* Action buttons */
+.hp-act-buy{padding:5px 9px;background:var(--green-soft);border:1px solid rgba(34,197,94,.35);color:var(--gr);font-weight:700;font-size:10px;border-radius:6px;font-family:inherit;cursor:pointer;transition:opacity .1s}
+.hp-act-sell{padding:5px 9px;background:transparent;border:1px solid var(--border);color:var(--ink4);font-weight:700;font-size:10px;border-radius:6px;font-family:inherit;cursor:pointer;transition:opacity .1s}
+.hp-act-sell.has{background:var(--red-soft);border-color:rgba(239,68,68,.35);color:var(--rd)}
+.hp-act-go{padding:5px 8px;background:transparent;border:1px solid var(--border);color:var(--ink2);font-size:11px;border-radius:6px;font-family:inherit;cursor:pointer;transition:opacity .1s}
+.hp-act-buy:hover,.hp-act-sell:hover,.hp-act-go:hover{opacity:.7}
+/* Sidebar cards */
+.hp-sb-card{background:var(--surf);border:1px solid var(--border);border-radius:14px;padding:16px}
+/* Mini spin widget */
+.hp-spin-coll{display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--surf);border:1px solid rgba(168,85,247,.3);border-radius:12px;cursor:pointer;position:relative;overflow:hidden;transition:border-color .15s}
+.hp-spin-coll:hover{border-color:rgba(168,85,247,.55)}
+.hp-spin-go{padding:5px 10px;background:var(--gold-grad);border:none;border-radius:7px;color:#3a2700;font-weight:800;font-size:10px;font-family:inherit;cursor:pointer;white-space:nowrap;flex-shrink:0;letter-spacing:.03em}
+.hp-spin-exp{background:linear-gradient(160deg,var(--surf),rgba(168,85,247,.05));border:1px solid rgba(168,85,247,.22);border-radius:12px;padding:14px;position:relative;overflow:hidden}
+.hp-spin-exp-btn{width:100%;padding:10px;background:var(--gold-grad);border:none;border-radius:9px;color:#3a2700;font-weight:800;font-size:12px;font-family:inherit;letter-spacing:.04em;cursor:pointer;box-shadow:0 6px 20px -6px rgba(245,200,75,.5);transition:opacity .15s,transform .15s}
+.hp-spin-exp-btn:hover{opacity:.9;transform:translateY(-1px)}
+/* Responsive */
+@media(max-width:1100px){.hp-layout{grid-template-columns:1fr}.hp-sb{display:grid;grid-template-columns:1fr 1fr}}
 @media(max-width:768px){
- .hp-wrap{padding:10px 12px 100px}
- .hp-hero-row,.hp-mkt-row{gap:12px}
- .hp-cta-row{grid-template-columns:1fr;gap:10px}
- .hp-cta{padding:14px;display:flex;align-items:center;gap:12px}
- .hp-cta-ic{margin-bottom:0;flex-shrink:0;width:40px;height:40px;font-size:18px}
- .hp-cta-kicker,.hp-cta-sub,.hp-cta-btn,.hp-cta-glow{display:none}
- .hp-movers-grid{grid-template-columns:1fr 1fr;gap:8px}
- .hp-art-row{grid-template-columns:1fr;gap:10px}
- .hp-h1{font-size:22px}
- .hp-pad{padding:16px}
- .hp-chips{gap:8px}
- .hp-wbar{max-width:100%}
- .hp-stitle{font-size:14px}
+ .hp-wrap{padding:12px 12px 100px}
+ .hp-strip{padding:0 12px;gap:0}
+ .hp-strip .hp-strip-sep:nth-child(n+4){display:none}
+ .hp-strip .hp-strip-item:nth-child(n+4){display:none}
+ .hp-col-grid{grid-template-columns:28px 1fr 80px 64px}
+ .hp-col-hdr .hp-c5,.hp-col-hdr .hp-c6,.hp-col-hdr .hp-c7,.hp-col-hdr .hp-c8{display:none}
+ .hp-tbl-row .hp-c5,.hp-tbl-row .hp-c6,.hp-tbl-row .hp-c7,.hp-tbl-row .hp-c8{display:none}
+ .hp-sb{display:flex;flex-direction:column}
+ .hp-idx-inner{padding:14px 14px}
+ .hp-tbl-head{padding:10px 12px}
 }
 </style>
 <style>
@@ -863,6 +871,11 @@ html[dir="rtl"] .auth-field-new input.has-icon{padding-right:42px}
     </div>
    </li>
   </ul>
+  <!-- game chips: streak + points — shown only when logged in -->
+  <div class="nav-game-chips" id="nav-game-chips">
+   <div class="nav-streak-chip">🔥<span id="nav-streak-n">0</span></div>
+   <div class="nav-pts-chip"><div class="nav-pts-icon">₽</div><span style="font-family:var(--font-mono);font-size:11px;font-weight:700;color:var(--gold)" id="nav-pts-n">—</span></div>
+  </div>
   <div class="nav-right">
    <div class="search-wrap">
     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
@@ -949,10 +962,224 @@ html[dir="rtl"] .auth-field-new input.has-icon{padding-right:42px}
      Dynamic content populated by buildHomepage() in JS
      ══════════════════════════════════════════════════════════════════ -->
 <div id="home-page" class="page active">
- <div class="hp-wrap">
 
-  <!-- ── HERO ROW: greeting card (left) + daily spin widget (right) ── -->
-  <div class="hp-hero-row">
+ <!-- ── slim gamified strip ── -->
+ <div class="hp-strip" id="hp-strip">
+  <span class="hp-strip-item">
+   <span style="font-size:13px">🔥</span>
+   <span class="ar">سلسلة</span><span class="en">Streak</span>
+   <span style="font-family:var(--font-mono);font-weight:700;color:var(--gold)" id="hp-strip-streak">0</span>
+  </span>
+  <span class="hp-strip-sep"></span>
+  <span class="hp-strip-item">
+   <span class="ar">السحب</span><span class="en">Withdrawal</span>
+   <div class="hp-strip-bar-wrap"><div class="hp-strip-bar-fill" id="hp-strip-wfill" style="width:0%"></div></div>
+   <span style="font-family:var(--font-mono);color:var(--gold);font-weight:600;font-size:11px" id="hp-strip-wpct">0%</span>
+  </span>
+  <span class="hp-strip-sep"></span>
+  <span class="hp-strip-item" id="hp-strip-rank-item">
+   <span id="hp-strip-rank-ic" style="font-size:12px">⭐</span>
+   <span id="hp-strip-rank-txt" style="color:var(--brand);font-weight:600"><span class="ar">متداول ← مستثمر</span><span class="en">Trader → Investor</span></span>
+   <span style="font-family:var(--font-mono);color:var(--brand);font-weight:600" id="hp-strip-rank-pct">—</span>
+  </span>
+  <span class="hp-strip-sep"></span>
+  <span class="hp-strip-invite" onclick="navRefer()">☷ <span class="ar">دعوة +250</span><span class="en">Invite +250</span></span>
+ </div>
+
+ <div class="hp-wrap">
+  <div class="hp-layout">
+
+   <!-- ═══════ LEFT: RSISX index + Companies table ═══════ -->
+   <div class="hp-main">
+
+    <!-- RSISX index summary card -->
+    <div class="hp-card">
+     <div class="hp-idx-inner">
+      <div>
+       <div style="font-family:var(--font-mono);font-size:10px;letter-spacing:.16em;color:var(--ink4);text-transform:uppercase;margin-bottom:4px">
+        <span class="ar">سوق العراق · مؤشر ربيع</span><span class="en">IRAQ STOCK EXCHANGE · RSISX</span>
+       </div>
+       <div style="display:flex;align-items:baseline;gap:10px;flex-wrap:wrap">
+        <span style="font-family:var(--font-mono);font-size:30px;font-weight:800;letter-spacing:-.02em" id="hp-rsisx-val">—</span>
+        <span id="hp-rsisx-delta"></span>
+        <span style="font-size:11px;color:var(--ink4);font-family:var(--font-mono)" id="hp-rsisx-abs"></span>
+       </div>
+      </div>
+      <div style="display:flex;align-items:center;gap:24px;flex-wrap:wrap">
+       <div style="display:flex;gap:20px">
+        <div style="text-align:center">
+         <div style="font-family:var(--font-mono);font-size:9px;letter-spacing:.1em;color:var(--ink4);text-transform:uppercase"><span class="ar">الحجم</span><span class="en">Volume</span></div>
+         <div style="font-size:13px;font-weight:700;margin-top:3px;font-family:var(--font-mono)" id="hp-vol">—</div>
+        </div>
+        <div style="text-align:center">
+         <div style="font-family:var(--font-mono);font-size:9px;letter-spacing:.1em;color:var(--ink4);text-transform:uppercase"><span class="ar">الصفقات</span><span class="en">Trades</span></div>
+         <div style="font-size:13px;font-weight:700;margin-top:3px;font-family:var(--font-mono)" id="hp-deals">—</div>
+        </div>
+        <div style="text-align:center">
+         <div style="font-family:var(--font-mono);font-size:9px;letter-spacing:.1em;color:var(--ink4);text-transform:uppercase"><span class="ar">صاعدة</span><span class="en">Adv</span></div>
+         <div style="font-size:13px;font-weight:700;color:var(--gr);margin-top:3px;font-family:var(--font-mono)" id="hp-bup">—</div>
+        </div>
+        <div style="text-align:center">
+         <div style="font-family:var(--font-mono);font-size:9px;letter-spacing:.1em;color:var(--ink4);text-transform:uppercase"><span class="ar">هابطة</span><span class="en">Dec</span></div>
+         <div style="font-size:13px;font-weight:700;color:var(--rd);margin-top:3px;font-family:var(--font-mono)" id="hp-bdn">—</div>
+        </div>
+       </div>
+       <div id="hp-rsisx-spark"></div>
+      </div>
+     </div>
+    </div>
+
+    <!-- Companies table card -->
+    <div class="hp-card">
+     <!-- header: title + sector chips + sort chips -->
+     <div class="hp-tbl-head">
+      <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+       <span class="hp-tbl-title"><span class="ar">الشركات</span><span class="en">Companies</span></span>
+       <div class="hp-chips-row" id="hp-sector-chips"></div>
+      </div>
+      <div class="hp-chips-row" id="hp-sort-chips"></div>
+     </div>
+     <!-- column headers -->
+     <div class="hp-col-grid hp-col-hdr">
+      <span>#</span>
+      <span><span class="ar">الشركة</span><span class="en">COMPANY</span></span>
+      <span><span class="ar">السعر</span><span class="en">PRICE</span></span>
+      <span><span class="ar">24س</span><span class="en">24H</span></span>
+      <span class="hp-c5"><span class="ar">الحجم</span><span class="en">VOLUME</span></span>
+      <span class="hp-c6"><span class="ar">القيمة</span><span class="en">MKT CAP</span></span>
+      <span class="hp-c7"><span class="ar">7 أيام</span><span class="en">7D</span></span>
+      <span class="hp-c8" style="text-align:end"><span class="ar">الإجراء</span><span class="en">ACTION</span></span>
+     </div>
+     <!-- rows — populated by buildHomepage() -->
+     <div id="hp-tbl-body"></div>
+     <div class="hp-tbl-foot">
+      <a class="hp-view-all" href="/market" onclick="navMarket();return false;" id="hp-view-all-link">
+       <span class="ar">عرض كل الشركات ←</span><span class="en">View all companies →</span>
+      </a>
+     </div>
+    </div>
+
+   </div><!-- /hp-main -->
+
+   <!-- ═══════ RIGHT: Sidebar ═══════ -->
+   <div class="hp-sb">
+
+    <!-- Portfolio / points summary -->
+    <div class="hp-sb-card" id="hp-port-card">
+     <div style="font-family:var(--font-mono);font-size:10px;letter-spacing:.16em;color:var(--ink4);text-transform:uppercase;margin-bottom:6px"><span class="ar">محفظتك</span><span class="en">YOUR PORTFOLIO</span></div>
+     <div style="display:flex;align-items:baseline;gap:8px;margin-bottom:4px">
+      <span style="font-family:var(--font-mono);font-size:22px;font-weight:800;color:var(--gold);letter-spacing:-.02em" id="hp-port-pts">—</span>
+      <span style="font-size:12px;color:var(--gold)"><span class="ar">نقطة</span><span class="en">pts</span></span>
+      <span style="flex:1"></span>
+      <span id="hp-port-rank-badge"></span>
+     </div>
+     <div style="height:1px;background:var(--border);margin:10px 0 10px"></div>
+     <!-- rank progress -->
+     <div id="hp-rank-section">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:7px">
+       <div style="font-size:11px;color:var(--ink3)">
+        <span id="hp-rank-name" style="font-weight:700;color:var(--ink2)">—</span>
+        <span style="margin:0 4px">→</span>
+        <span id="hp-rank-next">—</span>
+       </div>
+       <span style="font-family:var(--font-mono);font-size:11px;font-weight:700;color:var(--brand)" id="hp-rank-pct">—</span>
+      </div>
+      <div style="height:4px;background:rgba(255,255,255,.06);border-radius:999px;overflow:hidden;border:1px solid var(--border)"><div id="hp-rank-bar" style="height:100%;width:0%;background:var(--gold-grad);border-radius:999px;transition:width .4s"></div></div>
+     </div>
+    </div>
+
+    <!-- Mini spin widget — collapsed/expanded -->
+    <div id="hp-spin-mini-wrap">
+     <div class="hp-spin-coll" id="hp-spin-coll" onclick="toggleSpinWidget()">
+      <div style="position:absolute;top:-18px;inset-inline-end:-18px;width:80px;height:80px;background:radial-gradient(circle,rgba(168,85,247,.28) 0%,transparent 60%);pointer-events:none"></div>
+      <div id="hp-spin-mini-wheel" style="flex-shrink:0;position:relative;line-height:0"></div>
+      <div style="flex:1;min-width:0">
+       <div style="font-family:var(--font-mono);font-size:9px;letter-spacing:.14em;color:var(--purple);text-transform:uppercase;margin-bottom:2px" id="hp-spin-status">◎ <span class="ar">لفة جاهزة</span><span class="en">SPIN READY</span></div>
+       <div style="font-size:12px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">
+        <span class="ar">اربح حتى <span style="color:var(--gold)">250 ألف</span></span>
+        <span class="en">Win up to <span style="color:var(--gold)">250K</span></span>
+       </div>
+      </div>
+      <button class="hp-spin-go" onclick="event.stopPropagation();navSpin()"><span class="ar">العب</span><span class="en">SPIN</span></button>
+     </div>
+     <div class="hp-spin-exp" id="hp-spin-exp" style="display:none">
+      <div style="position:absolute;inset:-28px;background:radial-gradient(circle at 50% 30%,rgba(168,85,247,.18) 0%,transparent 60%);pointer-events:none"></div>
+      <div style="position:relative">
+       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+        <span style="font-family:var(--font-mono);font-size:10px;letter-spacing:.16em;color:var(--purple);text-transform:uppercase">◎ <span class="ar">لفة اليوم</span><span class="en">DAILY SPIN</span></span>
+        <span style="font-size:14px;color:var(--ink3);cursor:pointer;line-height:1" onclick="toggleSpinWidget()">−</span>
+       </div>
+       <div style="display:flex;justify-content:center;margin-bottom:10px" id="hp-spin-exp-wheel"></div>
+       <button class="hp-spin-exp-btn" onclick="navSpin()"><span class="ar">أدر الآن</span><span class="en">SPIN NOW</span></button>
+      </div>
+     </div>
+    </div>
+
+    <!-- Referral mini -->
+    <div class="hp-sb-card" style="background:linear-gradient(135deg,var(--surf),rgba(79,107,255,.05))">
+     <div style="display:flex;align-items:center;gap:10px">
+      <div style="width:36px;height:36px;border-radius:9px;background:var(--brand-soft);color:var(--brand);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0">☷</div>
+      <div style="flex:1;min-width:0">
+       <div style="font-size:11px;font-weight:700"><span class="ar">ادعُ صديقًا</span><span class="en">Invite a friend</span></div>
+       <div style="font-size:10px;color:var(--ink3);margin-top:2px">
+        <span class="ar">كلاكما تربحان </span><span class="en">Both earn </span><span style="color:var(--gold);font-weight:700;font-family:var(--font-mono)">+250 pts</span>
+       </div>
+      </div>
+      <button style="padding:6px 11px;background:var(--brand);border:none;border-radius:8px;color:#fff;font-weight:700;font-size:11px;font-family:inherit;cursor:pointer;flex-shrink:0;transition:opacity .15s" onclick="navRefer()" onmouseover="this.style.opacity='.82'" onmouseout="this.style.opacity='1'"><span class="ar">شارك</span><span class="en">Share</span></button>
+     </div>
+    </div>
+
+    <!-- Streak mini -->
+    <div class="hp-sb-card">
+     <div style="display:flex;align-items:center;gap:10px">
+      <span style="font-size:22px;flex-shrink:0">🔥</span>
+      <div style="flex:1">
+       <div style="font-size:11px;font-weight:700" id="hp-streak-lbl"><span class="ar">0 أيام متتالية</span><span class="en">0-day streak</span></div>
+       <div style="font-size:10px;color:var(--ink3);margin-top:2px"><span class="ar">استلم اليوم </span><span class="en">Claim today's </span><span style="color:var(--gold);font-weight:700">+100 pts</span></div>
+      </div>
+      <button style="padding:6px 11px;background:var(--gold-grad);border:none;border-radius:8px;color:#3a2700;font-weight:800;font-size:11px;font-family:inherit;cursor:pointer;flex-shrink:0" onclick="navLearn()"><span class="ar">استلم</span><span class="en">Claim</span></button>
+     </div>
+    </div>
+
+    <!-- Articles / news -->
+    <div class="hp-sb-card">
+     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+      <span style="font-family:var(--font-mono);font-size:10px;letter-spacing:.16em;color:var(--ink4);text-transform:uppercase"><span class="ar">أحدث المقالات</span><span class="en">LATEST ARTICLES</span></span>
+      <span style="font-size:12px;color:var(--brand);cursor:pointer" onclick="navAnalysis()">→</span>
+     </div>
+     <div onclick="navAnalysis()" style="cursor:pointer;padding:8px 0;border-bottom:1px solid var(--border)">
+      <div style="display:flex;align-items:center;gap:5px;margin-bottom:4px">
+       <span style="padding:2px 6px;font-size:9px;font-weight:700;border-radius:4px;background:rgba(79,107,255,.14);color:var(--brand)"><span class="ar">بنوك</span><span class="en">Banking</span></span>
+       <span style="font-size:9px;color:var(--gr);font-weight:700">▲ <span class="ar">صاعد</span><span class="en">Bull</span></span>
+      </div>
+      <div style="font-size:12px;font-weight:600;line-height:1.35"><span class="ar">لماذا قد يقفز قطاع المصارف 30٪</span><span class="en">Why banking sector could surge 30%</span></div>
+     </div>
+     <div onclick="navAnalysis()" style="cursor:pointer;padding:8px 0;border-bottom:1px solid var(--border)">
+      <div style="display:flex;align-items:center;gap:5px;margin-bottom:4px">
+       <span style="padding:2px 6px;font-size:9px;font-weight:700;border-radius:4px;background:rgba(34,197,94,.14);color:var(--gr)"><span class="ar">مشروبات</span><span class="en">Beverages</span></span>
+       <span style="font-size:9px;color:var(--ink3);font-weight:600">• <span class="ar">محايد</span><span class="en">Neutral</span></span>
+      </div>
+      <div style="font-size:12px;font-weight:600;line-height:1.35"><span class="ar">بغداد للمشروبات: قائد أم مبالغ؟</span><span class="en">Baghdad Soft: leader or overvalued?</span></div>
+     </div>
+     <div onclick="navAnalysis()" style="cursor:pointer;padding:8px 0">
+      <div style="display:flex;align-items:center;gap:5px;margin-bottom:4px">
+       <span style="padding:2px 6px;font-size:9px;font-weight:700;border-radius:4px;background:rgba(168,85,247,.14);color:var(--purple)"><span class="ar">فنادق</span><span class="en">Hotels</span></span>
+       <span style="font-size:9px;color:var(--rd);font-weight:700">▼ <span class="ar">هابط</span><span class="en">Bear</span></span>
+      </div>
+      <div style="font-size:12px;font-weight:600;line-height:1.35"><span class="ar">انتعاش السياحة — المخطط يقول انتظر</span><span class="en">Tourism rebound — chart says wait</span></div>
+     </div>
+    </div>
+
+   </div><!-- /hp-sb -->
+  </div><!-- /hp-layout -->
+ </div><!-- /hp-wrap -->
+</div><!-- /home-page -->
+
+<!-- ══════════════════════════════════════════════════════════════════
+     old-home-page-v1-start (hidden dead markup — will be removed in next PR)
+     ══════════════════════════════════════════════════════════════════ -->
+<div id="home-page-v1-old" style="display:none">
+ <div>
 
    <!-- GREETING / POINTS HERO CARD -->
    <div class="hp-card">
@@ -3868,6 +4095,11 @@ let _sb = null;          // supabase client
 let _sbUser = null;      // current auth user
 let _sbProfile = null;   // current profile row
 let _wlSyncTimer = null; // debounce timer for watchlist saves
+// Homepage v2 state
+let _hpSector = 'all';       // active sector filter chip
+let _hpSort = 'default';     // active sort chip
+let _hpSpinExpanded = false; // spin mini widget open/closed
+let _hpChipsBuilt = false;   // sector+sort chips already injected
 
 function initAuth() {
  if (typeof window.supabase === 'undefined') { console.warn('Supabase SDK not loaded'); return; }
@@ -4181,6 +4413,8 @@ function applyLang(lang){
  if(si) si.placeholder=isAr?'ابحث عن شركة أو رمز...':'Search company or ticker...';
  localStorage.setItem('lang',lang);
  buildTicker(); buildIdxGrid(); buildTable(); buildNews(); buildBrokers(); buildResearch(); buildNavSectorsDD(); buildMktStats();
+ _hpChipsBuilt = false; // rebuild chips in new language
+ if(document.getElementById('home-page')?.classList.contains('active')) buildHomepage();
  if(activeCo){
   document.getElementById('cp-sym').textContent=ar()?activeCo.ar:activeCo.en;
   document.getElementById('cp-name').textContent=activeCo.sym;
@@ -4382,84 +4616,206 @@ function _fortuneWheelSvg(sz) {
  return `<svg width="${sz}" height="${sz}" viewBox="0 0 ${sz} ${sz}" style="display:block;filter:drop-shadow(0 4px 18px rgba(168,85,247,.35))">${paths}${labels}<circle cx="${cx}" cy="${cy}" r="${ri}" fill="#0B0E14" stroke="rgba(255,255,255,.15)" stroke-width="1.5"/><text x="${cx}" y="${cy}" text-anchor="middle" dominant-baseline="central" fill="#F5C84B" font-size="${(sz*0.09).toFixed(0)}" font-weight="700">◎</text></svg>`;
 }
 
-/** Populate all dynamic elements on the new gamified homepage */
+// ── helpers ─────────────────────────────────────────────────────────────────
+function _fmtVol(v) {
+ if (v == null || v === 0) return '—';
+ if (v >= 1e9) return (v/1e9).toFixed(1)+'B';
+ if (v >= 1e6) return (v/1e6).toFixed(1)+'M';
+ if (v >= 1e3) return (v/1e3).toFixed(0)+'K';
+ return v.toString();
+}
+function _fmtMcapSI(v) { // v is in millions IQD
+ if (!v) return '—';
+ if (v >= 1e6) return (v/1e6).toFixed(1)+'T';
+ if (v >= 1e3) return (v/1e3).toFixed(1)+'B';
+ return v.toLocaleString('en',{maximumFractionDigits:0})+'M';
+}
+
+/** Toggle the sidebar mini spin widget open/closed */
+function toggleSpinWidget() {
+ _hpSpinExpanded = !_hpSpinExpanded;
+ const coll = document.getElementById('hp-spin-coll');
+ const exp  = document.getElementById('hp-spin-exp');
+ if (coll) coll.style.display = _hpSpinExpanded ? 'none' : 'flex';
+ if (exp)  exp.style.display  = _hpSpinExpanded ? 'block' : 'none';
+ if (_hpSpinExpanded) {
+  const ew = document.getElementById('hp-spin-exp-wheel');
+  if (ew && !ew.firstChild) ew.innerHTML = _fortuneWheelSvg(170);
+ }
+}
+
+/** Sector filter definitions */
+const _HP_SECTORS = [
+ { id:'all',  ar:'الكل',        en:'All' },
+ { id:'BANK', ar:'بنوك',        en:'Banking' },
+ { id:'IND',  ar:'صناعي',       en:'Industrial' },
+ { id:'SVC',  ar:'خدمات',       en:'Services' },
+ { id:'HTL',  ar:'فنادق',       en:'Hotels' },
+ { id:'TEL',  ar:'اتصالات',     en:'Telecom' },
+];
+/** Sort option definitions */
+const _HP_SORTS = [
+ { id:'default',   ar:'الكل',    en:'All' },
+ { id:'gainers',   ar:'رابحون',  en:'Gainers' },
+ { id:'losers',    ar:'خاسرون',  en:'Losers' },
+ { id:'volume',    ar:'الحجم',   en:'Volume' },
+ { id:'watchlist', ar:'مراقبة',  en:'Watchlist' },
+];
+
+/** Build sector + sort filter chips (idempotent — only once) */
+function _buildHpChips() {
+ if (_hpChipsBuilt) {
+  // just update active state
+  document.querySelectorAll('.hp-fchip').forEach(el => {
+   el.classList.toggle('active', el.dataset.sec === _hpSector);
+  });
+  document.querySelectorAll('.hp-schip').forEach(el => {
+   el.classList.toggle('active', el.dataset.srt === _hpSort);
+  });
+  return;
+ }
+ const isAr = ar();
+ const secEl = document.getElementById('hp-sector-chips');
+ const srtEl = document.getElementById('hp-sort-chips');
+ if (secEl) {
+  secEl.innerHTML = _HP_SECTORS.map(s =>
+   `<button class="hp-fchip${s.id===_hpSector?' active':''}" data-sec="${s.id}"
+     onclick="_hpSector='${s.id}';_buildHpChips();_buildHpTable()">${isAr?s.ar:s.en}</button>`
+  ).join('');
+ }
+ if (srtEl) {
+  srtEl.innerHTML = _HP_SORTS.map(s =>
+   `<button class="hp-schip${s.id===_hpSort?' active':''}" data-srt="${s.id}"
+     onclick="_hpSort='${s.id}';_buildHpChips();_buildHpTable()">${isAr?s.ar:s.en}</button>`
+  ).join('');
+ }
+ _hpChipsBuilt = true;
+}
+
+/** Build the companies table rows */
+function _buildHpTable() {
+ const bodyEl = document.getElementById('hp-tbl-body');
+ if (!bodyEl) return;
+ const isAr = ar();
+ const wl = getWatchlist ? getWatchlist() : [];
+
+ // 1. Start with all companies with a price
+ let data = COMPANIES.filter(c => c.close > 0);
+
+ // 2. Sector filter
+ if (_hpSector !== 'all') data = data.filter(c => c.sec === _hpSector);
+
+ // 3. Sort
+ if (_hpSort === 'gainers')   data = [...data].sort((a,b) => b.pct - a.pct);
+ else if (_hpSort === 'losers')    data = [...data].sort((a,b) => a.pct - b.pct);
+ else if (_hpSort === 'volume')    data = [...data].sort((a,b) => (b.vol||0) - (a.vol||0));
+ else if (_hpSort === 'watchlist') data = data.filter(c => wl.includes(c.sym));
+ else data = [...data].sort((a,b) => (b.mcap||0) - (a.mcap||0));
+
+ const shown = data.slice(0, 10);
+ const total = COMPANIES.filter(c => c.close > 0).length;
+
+ // Update footer link
+ const ftEl = document.getElementById('hp-view-all-link');
+ if (ftEl) {
+  const arTxt = ftEl.querySelector('.ar'), enTxt = ftEl.querySelector('.en');
+  if (arTxt) arTxt.textContent = `عرض كل الشركات (${total}) ←`;
+  if (enTxt) enTxt.textContent = `View all ${total} companies →`;
+ }
+
+ if (!shown.length) {
+  bodyEl.innerHTML = `<div style="padding:28px;text-align:center;color:var(--ink4);font-size:13px"><span class="ar">لا توجد شركات في هذه الفئة</span><span class="en">No companies in this category</span></div>`;
+  return;
+ }
+
+ bodyEl.innerHTML = shown.map((co, i) => {
+  const up = co.pct >= 0;
+  const col = up ? 'var(--gr)' : 'var(--rd)';
+  const name = isAr ? (co.ar || co.en) : co.en;
+  const logoHtml = co.logo
+   ? `<div class="hp-co-logo"><img src="${co.logo}" alt="${co.sym}" loading="lazy"></div>`
+   : `<div class="hp-co-logo">${co.sym.slice(0,4)}</div>`;
+  const hist = HIST?.s?.[co.sym];
+  const spark = hist && hist.length > 1
+   ? sparkHtml(hist.slice(-8).map(p => p[1]), col, 92, 26) : '';
+  const pctSign = (co.pct >= 0 ? '+' : '') + co.pct.toFixed(2) + '%';
+  const inWl = wl.includes(co.sym);
+
+  return `<div class="hp-col-grid hp-tbl-row" onclick="openCompany('${co.sym}')">
+   <span style="font-family:var(--font-mono);font-size:11px;color:var(--ink4)">${i+1}</span>
+   <div style="display:flex;align-items:center;gap:9px;min-width:0">
+    ${logoHtml}
+    <div style="min-width:0">
+     <div style="font-size:12px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:flex;align-items:center;gap:5px">${name}${inWl?'<span style="font-size:10px;color:var(--gold)">★</span>':''}</div>
+     <div style="font-size:10px;color:var(--ink4);font-family:var(--font-mono)">${co.sym}</div>
+    </div>
+   </div>
+   <span style="font-family:var(--font-mono);font-size:13px;font-weight:700">${co.close.toFixed(3)}</span>
+   <span style="font-family:var(--font-mono);font-size:11px;font-weight:600;color:${col}">${up?'▲':'▼'} ${Math.abs(co.pct).toFixed(2)}%</span>
+   <span class="hp-c5" style="font-family:var(--font-mono);font-size:11px;color:var(--ink2)">${_fmtVol(co.vol)}</span>
+   <span class="hp-c6" style="font-family:var(--font-mono);font-size:11px;color:var(--ink2)">${_fmtMcapSI(co.mcap)}</span>
+   <span class="hp-c7">${spark}</span>
+   <div class="hp-c8" style="display:flex;gap:4px;justify-content:flex-end" onclick="event.stopPropagation()">
+    <button class="hp-act-buy" onclick="openCompany('${co.sym}')"><span class="ar">شراء</span><span class="en">Buy</span></button>
+    <button class="hp-act-sell" onclick="openCompany('${co.sym}')"><span class="ar">بيع</span><span class="en">Sell</span></button>
+    <button class="hp-act-go" onclick="openCompany('${co.sym}')">→</button>
+   </div>
+  </div>`;
+ }).join('');
+}
+
+/** Populate all dynamic elements on the homepage */
 function buildHomepage() {
- const isAr = document.documentElement.dataset.lang === 'ar';
-
- // ── Greeting ────────────────────────────────────────────────────
- const bghHour = (new Date().getUTCHours() + 3) % 24;
- const greetAr = bghHour < 12 ? 'صباح الخير' : bghHour < 17 ? 'مساء الخير' : 'مساء النور';
- const greetEn = bghHour < 12 ? 'GOOD MORNING' : bghHour < 17 ? 'GOOD AFTERNOON' : 'GOOD EVENING';
- const uname = _sbProfile?.username || _sbUser?.email?.split('@')[0] || null;
- const grEl = document.getElementById('hp-greeting');
- if (grEl) {
-  const arSpan = grEl.querySelector('.ar'), enSpan = grEl.querySelector('.en');
-  if (arSpan) arSpan.textContent = uname ? `${greetAr} · ${uname}` : greetAr;
-  if (enSpan) enSpan.textContent = uname ? `${greetEn} · ${uname.toUpperCase()}` : greetEn;
- }
-
- // ── Points display ───────────────────────────────────────────────
- const pts = _sbProfile?.points ?? null;
- const ptsAr = pts != null ? fmtPts(pts, 'ar') + ' نقطة' : '— نقطة';
- const ptsEn = pts != null ? fmtPts(pts, 'en') + ' pts' : '— pts';
- const elAr = document.getElementById('hp-pts-ar'), elEn = document.getElementById('hp-pts-en');
- if (elAr) elAr.textContent = ptsAr;
- if (elEn) elEn.textContent = ptsEn;
-
- // ── Market change in headline ────────────────────────────────────
- const rsisxPct = LIVE?.rsisx?.pct ?? LIVE?.rsisx?.change_pct ?? null;
- const rsisxDir = rsisxPct != null ? (rsisxPct >= 0 ? 1 : -1) : 0;
- const rsisxColor = rsisxDir >= 0 ? 'var(--gr)' : 'var(--rd)';
- const rsisxSign = rsisxPct != null ? (rsisxDir >= 0 ? '+' : '') + rsisxPct.toFixed(2) + '%' : '—';
- const mktArEl = document.getElementById('hp-mkt-ar'), mktEnEl = document.getElementById('hp-mkt-en');
- if (mktArEl) { mktArEl.textContent = rsisxSign; mktArEl.style.color = rsisxColor; }
- if (mktEnEl) { mktEnEl.textContent = rsisxSign; mktEnEl.style.color = rsisxColor; }
-
- // ── Streak chip ──────────────────────────────────────────────────
+ const isAr = ar();
+ const pts    = _sbProfile?.points ?? null;
  const streak = _sbProfile?.streak ?? 0;
- const streakEl = document.getElementById('hp-streak-chip');
- if (streakEl) {
-  const arS = streakEl.querySelector('.ar'), enS = streakEl.querySelector('.en');
-  if (arS) arS.textContent = streak + ' أيام';
-  if (enS) enS.textContent = streak + ' days';
+
+ // ── 1. Nav game chips ──────────────────────────────────────────
+ const navChips = document.getElementById('nav-game-chips');
+ if (navChips) {
+  navChips.style.display = _sbUser ? 'flex' : 'none';
+  const navS = document.getElementById('nav-streak-n');
+  const navP = document.getElementById('nav-pts-n');
+  if (navS) navS.textContent = streak;
+  if (navP) navP.textContent = pts != null ? fmtPts(pts,'en') : '—';
  }
 
- // ── Spin chip ────────────────────────────────────────────────────
- const spinCooldown = _sbProfile?.spin_cooldown_ends_at;
- const spinReady = !spinCooldown || new Date(spinCooldown) < new Date();
- const spinEl = document.getElementById('hp-spin-chip');
- if (spinEl && !spinReady) {
-  const secsLeft = Math.max(0, Math.floor((new Date(spinCooldown) - new Date()) / 3600000));
-  const arS = spinEl.querySelector('.ar'), enS = spinEl.querySelector('.en');
-  if (arS) arS.textContent = `متاحة خلال ~${secsLeft}س`;
-  if (enS) enS.textContent = `~${secsLeft}h remaining`;
- }
+ // ── 2. Slim strip ─────────────────────────────────────────────
+ const stripStreak = document.getElementById('hp-strip-streak');
+ if (stripStreak) stripStreak.textContent = streak;
 
- // ── Withdrawal progress ──────────────────────────────────────────
  const WITHDRAWAL_GOAL = 100000;
- const wbarEl = document.getElementById('hp-wbar');
- if (wbarEl && pts != null) {
-  const pct = Math.min(100, Math.max(0, (pts / WITHDRAWAL_GOAL) * 100));
-  const remain = Math.max(0, WITHDRAWAL_GOAL - pts);
-  const fillEl = document.getElementById('hp-wbar-fill');
-  const remEl  = document.getElementById('hp-wbar-remain');
-  if (fillEl) fillEl.style.width = pct.toFixed(1) + '%';
-  if (remEl)  remEl.textContent = isAr
-   ? fmtPts(remain, 'ar') + ' نقطة متبقية'
-   : fmtPts(remain, 'en') + ' pts to go';
- } else if (wbarEl && pts == null) {
-  wbarEl.style.display = 'none';
+ const wFill = document.getElementById('hp-strip-wfill');
+ const wPct  = document.getElementById('hp-strip-wpct');
+ const pct   = pts != null ? Math.min(100, (pts / WITHDRAWAL_GOAL) * 100) : 0;
+ if (wFill) wFill.style.width = pct.toFixed(1) + '%';
+ if (wPct)  wPct.textContent  = Math.round(pct) + '%';
+
+ // Rank strip
+ if (pts != null) {
+  const rank = rankFor(pts);
+  const nextRank = RANKS[RANKS.indexOf(rank) + 1];
+  const rankTxtEl = document.getElementById('hp-strip-rank-txt');
+  const rankPctEl = document.getElementById('hp-strip-rank-pct');
+  if (nextRank && rankTxtEl) {
+   const rankToNext = isAr
+    ? `${rank.ar} ← ${nextRank.ar}`
+    : `${rank.en} → ${nextRank.en}`;
+   rankTxtEl.innerHTML = rankToNext;
+   rankTxtEl.style.color = rank.color;
+  }
+  if (nextRank && rankPctEl) {
+   const rankPct = Math.min(100, ((pts - rank.min) / (nextRank.min - rank.min)) * 100);
+   rankPctEl.textContent = Math.round(rankPct) + '%';
+   rankPctEl.style.color = rank.color;
+  }
  }
 
- // ── Fortune wheel (inject once) ─────────────────────────────────
- const wheelEl = document.getElementById('hp-wheel');
- if (wheelEl && !wheelEl.firstChild) {
-  const sz = window.innerWidth < 600 ? 180 : 220;
-  wheelEl.innerHTML = _fortuneWheelSvg(sz);
- }
-
- // ── RSISX market index card ──────────────────────────────────────
+ // ── 3. RSISX index card ───────────────────────────────────────
+ const rsisxPct = LIVE?.rsisx?.pct ?? LIVE?.rsisx?.change_pct ?? null;
  const rsisxVal = LIVE?.rsisx?.value ? Number(LIVE.rsisx.value) : null;
+ const rsisxDir = rsisxPct != null ? (rsisxPct >= 0 ? 1 : -1) : 0;
+
  const valEl = document.getElementById('hp-rsisx-val');
  if (valEl && rsisxVal) valEl.textContent = rsisxVal.toFixed(2);
 
@@ -4472,71 +4828,85 @@ function buildHomepage() {
   absEl.textContent = (rsisxDir >= 0 ? '+' : '') + absChg + (isAr ? ' اليوم' : ' today');
  }
 
- // RSISX sparkline from IDX_REAL
  const sparkEl = document.getElementById('hp-rsisx-spark');
  if (sparkEl && IDX_REAL && IDX_REAL.length > 1) {
   const vals = IDX_REAL.slice(-30).map(p => p[1]);
-  const col = vals[vals.length - 1] >= vals[0] ? 'var(--gr)' : 'var(--rd)';
-  const w = window.innerWidth < 600 ? 100 : 200;
-  sparkEl.innerHTML = sparkHtml(vals, col, w, 54);
+  const col = vals[vals.length-1] >= vals[0] ? 'var(--gr)' : 'var(--rd)';
+  const w = window.innerWidth < 600 ? 90 : 180;
+  sparkEl.innerHTML = sparkHtml(vals, col, w, 52);
  }
 
- // Breadth
  const breadth = LIVE?.breadth || {};
- const bUp = breadth.up || 0, bDn = breadth.dn || 0;
  const bUpEl = document.getElementById('hp-bup'), bDnEl = document.getElementById('hp-bdn');
- if (bUpEl && bUp) bUpEl.textContent = bUp;
- if (bDnEl && bDn) bDnEl.textContent = bDn;
+ if (bUpEl) bUpEl.textContent = breadth.up || 0;
+ if (bDnEl) bDnEl.textContent = breadth.dn || 0;
 
- // Volume & deals from LIVE
- const vol = LIVE?.vol ?? LIVE?.volume ?? null;
- const deals = LIVE?.deals ?? null;
+ const liveVol = LIVE?.vol ?? LIVE?.volume ?? null;
+ const liveDeals = LIVE?.deals ?? null;
  const volEl = document.getElementById('hp-vol'), dealsEl = document.getElementById('hp-deals');
- if (volEl && vol != null) {
-  volEl.textContent = vol >= 1e9 ? (vol/1e9).toFixed(1)+'B IQD'
-   : vol >= 1e6 ? (vol/1e6).toFixed(1)+'M IQD'
-   : vol.toLocaleString();
+ if (volEl && liveVol != null) {
+  volEl.textContent = liveVol >= 1e9 ? (liveVol/1e9).toFixed(1)+'B IQD'
+   : liveVol >= 1e6 ? (liveVol/1e6).toFixed(1)+'M IQD' : liveVol.toLocaleString();
  }
- if (dealsEl && deals != null) dealsEl.textContent = deals.toLocaleString();
+ if (dealsEl && liveDeals != null) dealsEl.textContent = liveDeals.toLocaleString();
 
- // ── Top movers (top 4 by |pct|) ─────────────────────────────────
- const moversEl = document.getElementById('hp-movers');
- if (moversEl) {
-  const movers = [...COMPANIES]
-   .filter(c => c.close > 0 && c.pct != null)
-   .sort((a, b) => Math.abs(b.pct) - Math.abs(a.pct))
-   .slice(0, 4);
-  if (movers.length) {
-   moversEl.innerHTML = movers.map(co => {
-    const up = co.pct >= 0;
-    const col = up ? 'var(--gr)' : 'var(--rd)';
-    const coName = ar() ? co.ar : co.en;
-    const hist = HIST?.s?.[co.sym];
-    const spark = hist && hist.length > 1
-     ? sparkHtml(hist.slice(-8).map(p => p[1]), col, 110, 28) : '';
-    return `<div class="hp-mover" onclick="openCompany('${co.sym}')">
-     <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
-      <div class="hp-mover-ico">${co.sym.slice(0,4)}</div>
-      <div style="flex:1;min-width:0">
-       <div style="font-size:11px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${coName}</div>
-       <div style="font-size:9px;color:var(--ink4);font-family:var(--font-mono)">${co.sym}</div>
-      </div>
-     </div>
-     ${spark}
-     <div style="display:flex;justify-content:space-between;align-items:center;margin-top:6px">
-      <span style="font-family:var(--font-mono);font-size:13px;font-weight:700">${co.close.toFixed(3)}</span>
-      ${deltaHtml(co.pct)}
-     </div>
-    </div>`;
-   }).join('');
+ // ── 4. Build sector/sort chips (once) + table rows ────────────
+ _buildHpChips();
+ _buildHpTable();
+
+ // ── 5. Sidebar: portfolio card ────────────────────────────────
+ const portPtsEl = document.getElementById('hp-port-pts');
+ if (portPtsEl) portPtsEl.textContent = pts != null ? fmtPts(pts,'en') : '—';
+
+ if (pts != null) {
+  const rank = rankFor(pts);
+  const nextRank = RANKS[RANKS.indexOf(rank) + 1];
+  const rankNameEl = document.getElementById('hp-rank-name');
+  const rankNextEl = document.getElementById('hp-rank-next');
+  const rankPctEl2 = document.getElementById('hp-rank-pct');
+  const rankBarEl  = document.getElementById('hp-rank-bar');
+  const badgeEl    = document.getElementById('hp-port-rank-badge');
+  if (rankNameEl) { rankNameEl.textContent = isAr ? rank.ar : rank.en; rankNameEl.style.color = rank.color; }
+  if (rankNextEl && nextRank) { rankNextEl.textContent = isAr ? nextRank.ar : nextRank.en; }
+  if (nextRank) {
+   const rankPct2 = Math.min(100, ((pts - rank.min) / (nextRank.min - rank.min)) * 100);
+   if (rankPctEl2) rankPctEl2.textContent = Math.round(rankPct2) + '%';
+   if (rankBarEl)  rankBarEl.style.width  = rankPct2.toFixed(1) + '%';
+  } else {
+   if (rankPctEl2) rankPctEl2.textContent = '100%';
+   if (rankBarEl)  rankBarEl.style.width  = '100%';
+  }
+  if (badgeEl) {
+   const icons = {noob:'⭐',trader:'🔷',investor:'💚',shark:'🦈'};
+   badgeEl.textContent = icons[rank.id] || '⭐';
   }
  }
 
- // ── Referral code ────────────────────────────────────────────────
- const refCode = _sbProfile?.referral_code || null;
- const refEl = document.getElementById('hp-ref-code-txt');
- if (refEl && refCode) {
-  refEl.innerHTML = `<span style="color:var(--brand)">${refCode}</span>`;
+ // ── 6. Sidebar: streak label ──────────────────────────────────
+ const streakLbl = document.getElementById('hp-streak-lbl');
+ if (streakLbl) {
+  const arS = streakLbl.querySelector('.ar'), enS = streakLbl.querySelector('.en');
+  if (arS) arS.textContent = `${streak} أيام متتالية`;
+  if (enS) enS.textContent = `${streak}-day streak`;
+ }
+
+ // ── 7. Mini spin widget: status label ────────────────────────
+ const spinCooldown = _sbProfile?.spin_cooldown_ends_at;
+ const spinReady = !spinCooldown || new Date(spinCooldown) < new Date();
+ const spinStatusEl = document.getElementById('hp-spin-status');
+ if (spinStatusEl) {
+  if (!spinReady) {
+   const hLeft = Math.max(1, Math.ceil((new Date(spinCooldown) - new Date()) / 3600000));
+   spinStatusEl.innerHTML = isAr ? `◎ متاح خلال ${hLeft}س` : `◎ Ready in ~${hLeft}h`;
+  } else {
+   spinStatusEl.innerHTML = `◎ <span class="ar">لفة جاهزة</span><span class="en">SPIN READY</span>`;
+  }
+ }
+
+ // inject mini wheel once
+ const miniWheelEl = document.getElementById('hp-spin-mini-wheel');
+ if (miniWheelEl && !miniWheelEl.firstChild) {
+  miniWheelEl.innerHTML = _fortuneWheelSvg(52);
  }
 }
 
