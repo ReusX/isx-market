@@ -315,9 +315,23 @@ footer{background:var(--bg2);border-top:1px solid var(--border);padding:44px 24p
   .idx-grid{grid-template-columns:repeat(2,1fr);gap:8px}
   .idx-v{font-size:18px}
 
-  /* ── Table ── */
-  .tbl-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
-  .dtbl{min-width:600px}
+  /* ── Stat cards: 2×2 grid on mobile ── */
+  .cmc-stat-cards{display:grid;grid-template-columns:1fr 1fr;overflow-x:visible;gap:8px;margin-bottom:14px}
+  .cmc-scard{min-width:0;flex:none}
+  .cmc-scard-val{font-size:17px}
+  .cmc-scard-top{padding:10px 10px 4px}
+
+  /* ── Table: hide heavy columns, go full-width ── */
+  .mob-hide{display:none!important}
+  .tbl-wrap{overflow-x:visible}
+  .dtbl{min-width:0;width:100%}
+  .dtbl td,.dtbl th{padding:10px 8px}
+  .dtbl td:first-child,.dtbl th:first-child{padding-inline-start:10px}
+  .dtbl td:last-child,.dtbl th:last-child{padding-inline-end:10px}
+  .co-icon{width:30px;height:30px;font-size:11px}
+  .co-sym{font-size:13px}
+  .price-val{font-size:13px}
+  .chg-val{font-size:12px}
   .stabs{gap:4px}
   .stab{padding:6px 12px;font-size:11px}
 
@@ -902,10 +916,10 @@ footer{background:var(--bg2);border-top:1px solid var(--border);padding:44px 24p
       <th data-sort="name"><span class="ar">الشركة</span><span class="en">Name</span></th>
       <th data-sort="close"><span class="ar">السعر</span><span class="en">Price</span></th>
       <th data-sort="pct" class="srt-desc"><span class="ar">24س%</span><span class="en">24h %</span></th>
-      <th data-sort="pct7"><span class="ar">7أيام%</span><span class="en">7d %</span></th>
-      <th data-sort="mcap"><span class="ar">القيمة السوقية</span><span class="en">Market Cap</span></th>
-      <th data-sort="vol"><span class="ar">الحجم (24س)</span><span class="en">Volume (24h)</span></th>
-      <th style="text-align:end"><span class="ar">آخر 7 أيام</span><span class="en">Last 7 Days</span></th>
+      <th data-sort="pct7" class="mob-hide"><span class="ar">7أيام%</span><span class="en">7d %</span></th>
+      <th data-sort="mcap" class="mob-hide"><span class="ar">القيمة السوقية</span><span class="en">Market Cap</span></th>
+      <th data-sort="vol" class="mob-hide"><span class="ar">الحجم (24س)</span><span class="en">Volume (24h)</span></th>
+      <th class="mob-hide" style="text-align:end"><span class="ar">آخر 7 أيام</span><span class="en">Last 7 Days</span></th>
      </tr>
     </thead>
     <tbody id="tbl-body"></tbody>
@@ -1325,10 +1339,10 @@ footer{background:var(--bg2);border-top:1px solid var(--border);padding:44px 24p
        <th><span class="ar">الشركة</span><span class="en">Name</span></th>
        <th><span class="ar">السعر</span><span class="en">Price</span></th>
        <th><span class="ar">24س%</span><span class="en">24h %</span></th>
-       <th><span class="ar">7أيام%</span><span class="en">7d %</span></th>
-       <th><span class="ar">القيمة السوقية</span><span class="en">Market Cap</span></th>
-       <th><span class="ar">الحجم</span><span class="en">Volume</span></th>
-       <th style="text-align:end"><span class="ar">7 أيام</span><span class="en">7 Days</span></th>
+       <th class="mob-hide"><span class="ar">7أيام%</span><span class="en">7d %</span></th>
+       <th class="mob-hide"><span class="ar">القيمة السوقية</span><span class="en">Market Cap</span></th>
+       <th class="mob-hide"><span class="ar">الحجم</span><span class="en">Volume</span></th>
+       <th class="mob-hide" style="text-align:end"><span class="ar">7 أيام</span><span class="en">7 Days</span></th>
       </tr>
      </thead>
      <tbody id="sec-pg-tbl"></tbody>
@@ -2791,10 +2805,10 @@ function buildTable(){
    <td><div class="co-cell"><div class="co-icon" style="${icoStyle}">${ico}</div><div class="co-names"><span class="co-sym">${a?c.ar:c.en}</span><span class="co-name">${c.sym}</span></div></div></td>
    <td class="price-val">${c.close>0?c.close.toFixed(3):'-'}</td>
    <td><span class="chg-val ${cl}">${c.close>0?`${ci(c.pct)} ${Math.abs(c.pct).toFixed(2)}%`:'-'}</span></td>
-   <td><span class="chg-val ${cl7}">${p7?`${ci(p7)} ${Math.abs(p7).toFixed(2)}%`:'-'}</span></td>
-   <td class="mcap-val">${fmtMoney(c.mcap,'mcap')}</td>
-   <td class="vol-val">${fmt(c.vol)}</td>
-   <td style="text-align:end;padding-inline-end:8px"><canvas class="spark-cv" id="spark-co-${c.sym}" width="80" height="34"></canvas></td>
+   <td class="mob-hide"><span class="chg-val ${cl7}">${p7?`${ci(p7)} ${Math.abs(p7).toFixed(2)}%`:'-'}</span></td>
+   <td class="mob-hide mcap-val">${fmtMoney(c.mcap,'mcap')}</td>
+   <td class="mob-hide vol-val">${fmt(c.vol)}</td>
+   <td class="mob-hide" style="text-align:end;padding-inline-end:8px"><canvas class="spark-cv" id="spark-co-${c.sym}" width="80" height="34"></canvas></td>
   </tr>`;
  }).join('');
 
@@ -2876,10 +2890,10 @@ function buildMktStats(){
  ['ttl-mcap-hd','ttl-mcap-hd-en'].forEach(id=>{const el=document.getElementById(id);if(el)el.textContent=mcapFmt;});
  ['ttl-rsisx-hd','ttl-rsisx-hd-en'].forEach(id=>{const el=document.getElementById(id);if(el)el.textContent=rsisxFmt;});
  ['ttl-co-hd','ttl-co-hd-en'].forEach(id=>{const el=document.getElementById(id);if(el)el.textContent=n;});
- // RSISX sparkline for CMC card
- if(HIST?.rsisx_s){
+ // RSISX sparkline for CMC card (uses IDX_REAL, not HIST which only has stock closes)
+ if(IDX_REAL && IDX_REAL.length > 1){
   const cv=document.getElementById('cmc-spark-rsisx');
-  if(cv){const vals=HIST.rsisx_s.slice(-30).map(p=>p[1]);cv.width=cv.offsetWidth||300;drawSpark(cv,vals,vals[vals.length-1]>=vals[0]?'#16C784':'#EA3943');}
+  if(cv){const vals=IDX_REAL.slice(-30).map(p=>p[1]);cv.width=cv.offsetWidth||300;drawSpark(cv,vals,vals[vals.length-1]>=vals[0]?'#16C784':'#EA3943');}
  }
 }
 function buildMktStatMcapSpark(){
@@ -3069,10 +3083,10 @@ function renderSectorPage(){
    <td><div class="co-cell"><div class="co-icon" style="${icoStyle}">${ico}</div><div class="co-names"><span class="co-sym">${a?c.ar:c.en}</span><span class="co-name">${c.sym}</span></div></div></td>
    <td class="price-val">${c.close>0?c.close.toFixed(3):'-'}</td>
    <td><span class="chg-val ${cl}">${c.close>0?`${ci(c.pct)} ${Math.abs(c.pct).toFixed(2)}%`:'-'}</span></td>
-   <td><span class="chg-val ${cl7}">${p7?`${ci(p7)} ${Math.abs(p7).toFixed(2)}%`:'-'}</span></td>
-   <td class="mcap-val">${fmtMoney(c.mcap,'mcap')}</td>
-   <td class="vol-val">${fmt(c.vol)}</td>
-   <td style="text-align:end;padding-inline-end:8px"><canvas class="spark-cv" id="spark-sec-co-${c.sym}" width="80" height="34"></canvas></td>
+   <td class="mob-hide"><span class="chg-val ${cl7}">${p7?`${ci(p7)} ${Math.abs(p7).toFixed(2)}%`:'-'}</span></td>
+   <td class="mob-hide mcap-val">${fmtMoney(c.mcap,'mcap')}</td>
+   <td class="mob-hide vol-val">${fmt(c.vol)}</td>
+   <td class="mob-hide" style="text-align:end;padding-inline-end:8px"><canvas class="spark-cv" id="spark-sec-co-${c.sym}" width="80" height="34"></canvas></td>
   </tr>`;
  }).join('');
  setTimeout(()=>{
