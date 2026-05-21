@@ -17,6 +17,10 @@
 <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png">
 <link rel="icon" type="image/png" sizes="192x192" href="/favicon-192.png">
 <link rel="apple-touch-icon" href="/favicon-192.png">
+<!-- Gamification fonts — Inter (EN UI), JetBrains Mono (numbers/mono); Arabic uses existing Thmanyah -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap">
 
 <!-- Geo targeting — Iraq -->
 <meta name="geo.region" content="IQ">
@@ -89,9 +93,46 @@
 @font-face{font-family:'ThmanyahDisplay';font-weight:900;src:url('/fonts/ThmanyahDisplay-900-normal.woff2') format('woff2')}
 </style>
 <style>
-:root{--font-text:'ThmanyahText','Segoe UI',Arial,sans-serif;--font-display:'ThmanyahDisplay','Segoe UI',Arial,sans-serif;--tr:0.22s ease}
-[data-theme="dark"]{--bg:#0B1020;--bg2:#0A0F1D;--bg3:#171C2C;--bg4:#1E2436;--bg5:#252D40;--border:#2A3348;--border2:#384060;--t1:#FFFFFF;--t2:#A1A7BB;--t3:#808A9D;--ac:#3861FB;--ac2:#5978FF;--acbg:rgba(56,97,251,0.1);--gr:#16C784;--grbg:rgba(22,199,132,0.1);--rd:#EA3943;--rdbg:rgba(234,57,67,0.1);--sh:0 4px 24px rgba(0,0,0,0.6);--sh2:0 1px 12px rgba(0,0,0,0.5);--navbg:rgba(10,15,29,0.97)}
-[data-theme="light"]{--bg:#F8FAFD;--bg2:#F0F2F5;--bg3:#FFFFFF;--bg4:#F8FAFD;--bg5:#EFF2F5;--border:#EFF2F5;--border2:#D6DCE5;--t1:#1B2141;--t2:#58667E;--t3:#808A9D;--ac:#3861FB;--ac2:#5978FF;--acbg:rgba(56,97,251,0.08);--gr:#16C784;--grbg:rgba(22,199,132,0.08);--rd:#EA3943;--rdbg:rgba(234,57,67,0.08);--sh:0 4px 24px rgba(0,0,0,0.08);--sh2:0 1px 12px rgba(0,0,0,0.05);--navbg:rgba(248,250,253,0.95)}
+:root{
+  /* Existing site fonts — unchanged */
+  --font-text:'ThmanyahText','Segoe UI',Arial,sans-serif;
+  --font-display:'ThmanyahDisplay','Segoe UI',Arial,sans-serif;
+  --tr:0.22s ease;
+  /* Gamification fonts — used only by new gamified UI elements */
+  --font-en:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;
+  --font-mono:'JetBrains Mono',ui-monospace,monospace;
+  /* Gamification palette — additive, never overrides existing vars */
+  --gold:#F5C84B;
+  --gold-deep:#D4A21B;
+  --gold-grad:linear-gradient(135deg,#FCE39A 0%,#F5C84B 45%,#C28A1B 100%);
+  --purple:#A855F7;
+  --purple-deep:#7E22CE;
+  --purple-soft:rgba(168,85,247,0.16);
+  /* Brand alias — design tokens use #4F6BFF; our --ac is #3861FB (kept for existing UI) */
+  --brand:#4F6BFF;
+  --brand-deep:#3A4FD6;
+  --brand-soft:rgba(79,107,255,0.14);
+  --brand-line:rgba(79,107,255,0.35);
+  /* Rank tier colors */
+  --rank-noob:#9CA3AF;
+  --rank-trader:#4F6BFF;
+  --rank-investor:#22C55E;
+  --rank-shark:#A855F7;
+}
+[data-theme="dark"]{--bg:#0B1020;--bg2:#0A0F1D;--bg3:#171C2C;--bg4:#1E2436;--bg5:#252D40;--border:#2A3348;--border2:#384060;--t1:#FFFFFF;--t2:#A1A7BB;--t3:#808A9D;--ac:#3861FB;--ac2:#5978FF;--acbg:rgba(56,97,251,0.1);--gr:#16C784;--grbg:rgba(22,199,132,0.1);--rd:#EA3943;--rdbg:rgba(234,57,67,0.1);--sh:0 4px 24px rgba(0,0,0,0.6);--sh2:0 1px 12px rgba(0,0,0,0.5);--navbg:rgba(10,15,29,0.97);
+  /* Gamification surfaces — parallel to --bg2/3/4, tuned to design spec */
+  --surf:#11151E;--surf2:#161B27;--surf3:#1C2230;--surf-elev:#202738;
+  /* Ink scale — parallel to --t1/2/3, used by gamified UI */
+  --ink:rgba(255,255,255,1);--ink2:rgba(255,255,255,0.72);--ink3:rgba(255,255,255,0.50);--ink4:rgba(255,255,255,0.32);
+  /* Gamification signals */
+  --gold-soft:rgba(245,200,75,0.14);--green-soft:rgba(34,197,94,0.14);--red-soft:rgba(239,68,68,0.14)}
+[data-theme="light"]{--bg:#F8FAFD;--bg2:#F0F2F5;--bg3:#FFFFFF;--bg4:#F8FAFD;--bg5:#EFF2F5;--border:#EFF2F5;--border2:#D6DCE5;--t1:#1B2141;--t2:#58667E;--t3:#808A9D;--ac:#3861FB;--ac2:#5978FF;--acbg:rgba(56,97,251,0.08);--gr:#16C784;--grbg:rgba(22,199,132,0.08);--rd:#EA3943;--rdbg:rgba(234,57,67,0.08);--sh:0 4px 24px rgba(0,0,0,0.08);--sh2:0 1px 12px rgba(0,0,0,0.05);--navbg:rgba(248,250,253,0.95);
+  /* Gamification surfaces — light-mode equivalents */
+  --surf:#FFFFFF;--surf2:#F8FAFD;--surf3:#F0F2F5;--surf-elev:#FFFFFF;
+  /* Ink scale */
+  --ink:rgba(27,33,65,1);--ink2:rgba(27,33,65,0.72);--ink3:rgba(27,33,65,0.50);--ink4:rgba(27,33,65,0.32);
+  /* Gamification signals */
+  --gold-soft:rgba(245,200,75,0.12);--green-soft:rgba(34,197,94,0.1);--red-soft:rgba(239,68,68,0.08)}
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}html{scroll-behavior:smooth;overflow-x:hidden;max-width:100%}
 body{font-family:var(--font-text);background:var(--bg);color:var(--t1);font-size:14px;line-height:1.6;transition:background var(--tr),color var(--tr);overflow-x:hidden;max-width:100%}
 [data-lang="en"]{direction:ltr}[data-lang="ar"]{direction:rtl}
@@ -1687,6 +1728,164 @@ const COMPANIES = [
 let HIST=null,HISTL=null,_histReady=null;
 let LIVE=null;
 let OHLCV=null,_ohlcvReady=null;
+
+// ─────────────────────────────────────────────────────────────────────────────
+// PR 1 — GAMIFICATION TOKENS + PRIMITIVES
+// Additive only. No existing code modified.
+// ─────────────────────────────────────────────────────────────────────────────
+
+// ── Rank metadata ─────────────────────────────────────────────────────────────
+const RANKS = [
+  { id:'noob',     en:'Noob',     ar:'مبتدئ',  min:0,      max:9999,     color:'#9CA3AF', glow:'rgba(156,163,175,0.4)' },
+  { id:'trader',   en:'Trader',   ar:'متداول', min:10000,  max:19999,    color:'#4F6BFF', glow:'rgba(79,107,255,0.5)'  },
+  { id:'investor', en:'Investor', ar:'مستثمر', min:20000,  max:49999,    color:'#22C55E', glow:'rgba(34,197,94,0.5)'   },
+  { id:'shark',    en:'Shark',    ar:'قرش',    min:50000,  max:Infinity, color:'#A855F7', glow:'rgba(168,85,247,0.55)' },
+];
+
+// Return the RANKS entry for a given point total
+function rankFor(points) {
+  return RANKS.find(r => points >= r.min && points <= r.max) || RANKS[0];
+}
+
+// Format points with locale-aware thousands separator
+function fmtPts(n, lang) {
+  if (n == null || n === undefined) return '—';
+  return Number(n).toLocaleString(lang === 'ar' ? 'ar-IQ' : 'en-US');
+}
+
+// Bilingual string picker — L(lang, {en:'…', ar:'…'})
+// (Distinct from existing ar() helper which reads the DOM data-lang attribute)
+function L(lang, obj) { return obj[lang] ?? obj.en; }
+
+// ── Vanilla JS component helpers (template-string builders) ──────────────────
+// Naming convention: *Html() returns an HTML string for innerHTML assignment.
+// All use CSS variables from :root / [data-theme] so they respect dark/light.
+
+/** Pill / tag chip */
+function pillHtml(text, color='var(--brand)', soft=true) {
+  const bg   = soft ? `${color}26`  : color;
+  const col  = soft ? color         : '#fff';
+  const bdr  = soft ? `1px solid ${color}44` : 'none';
+  return `<span style="display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:999px;background:${bg};color:${col};border:${bdr};font-size:11px;font-weight:600;letter-spacing:-.005em;">${text}</span>`;
+}
+
+/** ▲/▼ delta badge */
+function deltaHtml(value, suffix='%') {
+  const up  = value >= 0;
+  const col = up ? 'var(--gr)' : 'var(--rd)';
+  const arr = up ? '▲' : '▼';
+  const sign= up ? '+' : '';
+  return `<span style="font-family:var(--font-mono);font-size:11px;font-weight:600;color:${col};display:inline-flex;align-items:center;gap:2px;"><span>${arr}</span><span>${sign}${value}${suffix}</span></span>`;
+}
+
+/** Gold gradient points display */
+function ptsHtml(value, lang='ar', size=28, glow=false) {
+  const formatted = fmtPts(value, lang);
+  const label     = L(lang, {en:'pts', ar:'نقطة'});
+  const shadow    = glow ? `text-shadow:0 0 24px rgba(245,200,75,0.4)` : '';
+  return `<span style="display:inline-flex;align-items:baseline;gap:8px;font-family:var(--font-en);">
+    <span style="font-size:${size}px;font-weight:700;letter-spacing:-.02em;background:var(--gold-grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;${shadow}">${formatted}</span>
+    <span style="font-size:${size*0.42}px;font-weight:600;color:var(--gold);opacity:.85">${label}</span>
+  </span>`;
+}
+
+/** Rank badge — gradient circle + star SVG */
+function rankBadgeHtml(rank, size=56, showLabel=false, lang='ar') {
+  const r   = typeof rank === 'string' ? RANKS.find(x=>x.id===rank)||RANKS[0] : rank;
+  const gid = `rbg-${r.id}-${size}`;
+  const labelHtml = showLabel ? `
+    <div style="display:flex;flex-direction:column;">
+      <span style="font-family:var(--font-mono);font-size:9px;letter-spacing:.16em;color:var(--ink4);text-transform:uppercase">${L(lang,{en:'Rank',ar:'الرتبة'})}</span>
+      <span style="font-size:13px;font-weight:700;color:${r.color};margin-top:2px">${lang==='ar'?r.ar:r.en}</span>
+    </div>` : '';
+  return `<div style="display:inline-flex;align-items:center;gap:10px;">
+    <div style="position:relative;width:${size}px;height:${size}px;">
+      <svg viewBox="0 0 64 64" width="${size}" height="${size}">
+        <defs>
+          <linearGradient id="${gid}" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stop-color="${r.color}"/>
+            <stop offset="1" stop-color="#22C55E"/>
+          </linearGradient>
+          <radialGradient id="${gid}g" cx=".5" cy=".5" r=".5">
+            <stop offset=".6" stop-color="${r.glow}" stop-opacity=".5"/>
+            <stop offset="1"  stop-color="${r.glow}" stop-opacity="0"/>
+          </radialGradient>
+        </defs>
+        <circle cx="32" cy="32" r="30" fill="url(#${gid}g)"/>
+        <circle cx="32" cy="32" r="22" fill="url(#${gid})" stroke="rgba(255,255,255,.25)" stroke-width="1.5"/>
+        <path d="M32 18 L35.3 27.5 L45 28 L37.5 34.4 L40 44 L32 38.5 L24 44 L26.5 34.4 L19 28 L28.7 27.5 Z" fill="rgba(255,255,255,.95)"/>
+      </svg>
+    </div>
+    ${labelHtml}
+  </div>`;
+}
+
+/** Horizontal progress bar */
+function progressHtml(value, max, {color='var(--brand)', height=8, showLabel=false, lang='ar', glow=false}={}) {
+  const pct  = Math.min(100, Math.max(0, (value/max)*100));
+  const grad = `linear-gradient(90deg,${color},${color==='var(--brand)'?'var(--gr)':color})`;
+  const sh   = glow ? `box-shadow:0 0 12px ${color}88` : '';
+  const lbl  = showLabel ? `
+    <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--ink3);margin-bottom:6px;font-family:var(--font-mono);">
+      <span>${fmtPts(value,lang)}</span><span>/ ${fmtPts(max,lang)}</span>
+    </div>` : '';
+  return `<div style="width:100%">${lbl}
+    <div style="height:${height}px;background:rgba(255,255,255,.06);border-radius:999px;overflow:hidden;border:1px solid var(--border);">
+      <div style="height:100%;width:${pct}%;background:${grad};border-radius:999px;${sh}"></div>
+    </div>
+  </div>`;
+}
+
+/** Circular avatar with initials */
+function avatarHtml(name='?', color='var(--brand)', size=40, ring=null) {
+  const initials = (name||'?').slice(0,2).toUpperCase();
+  const ringStyle = ring ? `border:2px solid ${ring};box-shadow:0 0 0 1.5px var(--bg),0 0 16px ${ring}55` : '';
+  return `<div style="width:${size}px;height:${size}px;border-radius:50%;background:linear-gradient(135deg,${color},var(--brand-deep));color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:${size*0.4}px;letter-spacing:-.02em;flex-shrink:0;${ringStyle}">${initials}</div>`;
+}
+
+/** Inline SVG sparkline (returns SVG string) */
+function sparkHtml(data, color='var(--gr)', w=120, h=36) {
+  if (!data||data.length<2) return '';
+  const min=Math.min(...data), max=Math.max(...data), range=max-min||1;
+  const pts=data.map((v,i)=>`${(i/(data.length-1))*w},${h-((v-min)/range)*(h-4)-2}`).join(' ');
+  const gid=`sk${color.replace(/[^a-z0-9]/gi,'')}${w}${data[0]|0}`;
+  return `<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}">
+    <defs><linearGradient id="${gid}" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="${color}" stop-opacity=".35"/>
+      <stop offset="1" stop-color="${color}" stop-opacity="0"/>
+    </linearGradient></defs>
+    <polygon points="0,${h} ${pts} ${w},${h}" fill="url(#${gid})"/>
+    <polyline points="${pts}" fill="none" stroke="${color}" stroke-width="1.5" stroke-linecap="round"/>
+  </svg>`;
+}
+
+/** Confetti overlay (absolute-positioned inside a relative container) */
+function confettiHtml(count=24, seed=0) {
+  const colors=['var(--gold)','var(--brand)','var(--gr)','var(--purple)','#fff'];
+  let out='<div style="position:absolute;inset:0;overflow:hidden;pointer-events:none">';
+  for(let i=0;i<count;i++){
+    const s=(seed+i*113)%1000;
+    const x=(s*7)%100, y=(s*13)%100, sz=4+((s*3)%7);
+    const col=colors[i%colors.length];
+    out+=`<div style="position:absolute;left:${x}%;top:${y}%;width:${sz}px;height:${sz*0.4}px;background:${col};border-radius:1px;transform:rotate(${(s*17)%360}deg);opacity:.85"></div>`;
+  }
+  return out+'</div>';
+}
+
+// ── User profile shape — fields needed from Supabase (TODO: add columns) ──────
+// profiles table needs:
+//   points            integer default 0
+//   streak            integer default 0
+//   streak_history    jsonb   default '[]'   -- array of bools, last 30 days
+//   spin_cooldown_ends_at  timestamptz
+//   referral_code     text unique
+// referrals table:
+//   inviter_id, invitee_id, invitee_progress (0-250), status ('pending'|'paid')
+// achievements table: user_id, achievement_id, unlocked bool, unlocked_at timestamptz
+// missions table:     user_id, mission_id, progress int, max int, daily bool
+// holdings table:     user_id, sym text, shares decimal
+// wallet_transactions table: user_id, amount int, kind ('spin'|'buy'|'sell'|'streak'|'ref'|'mission'), created_at
+// rank is derived — rankFor(user.points) — cache on profiles.rank for perf
 function loadHist(){
  if(_histReady) return _histReady;
  _histReady=fetch('./data/hist.json?t='+Math.floor(Date.now()/86400000))
