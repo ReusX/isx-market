@@ -549,6 +549,72 @@ footer{background:var(--bg2);border-top:1px solid var(--border);padding:44px 24p
  .sec-pg-body{padding:12px 12px 40px}
  .chart-panel-kpis{padding:8px 14px 0}
 }
+
+/* ── PR 2 — GAMIFIED HOMEPAGE ─────────────────────────────────────────── */
+.hp-wrap{max-width:1440px;margin:0 auto;padding:28px 24px 80px}
+.hp-hero-row{display:grid;grid-template-columns:1fr 360px;gap:20px;margin-bottom:22px}
+.hp-card{background:var(--surf);border:1px solid var(--border);border-radius:18px;position:relative;overflow:hidden}
+.hp-pad{padding:28px}
+.hp-glow{position:absolute;pointer-events:none;border-radius:50%}
+.hp-kicker{font-family:var(--font-mono);font-size:11px;letter-spacing:.18em;color:var(--ink4);text-transform:uppercase;margin-bottom:10px}
+.hp-h1{font-size:30px;font-weight:700;letter-spacing:-.02em;line-height:1.18;margin-bottom:6px}
+.hp-chips{display:flex;gap:10px;margin-top:20px;flex-wrap:wrap}
+.hp-chip{padding:10px 14px;border-radius:12px;display:flex;align-items:center;gap:10px;transition:opacity .15s}
+.hp-chip:hover{opacity:.82}
+.hp-chip-gold{background:rgba(245,200,75,.1);border:1px solid rgba(245,200,75,.27)}
+.hp-chip-purple{background:rgba(168,85,247,.1);border:1px solid rgba(168,85,247,.27);cursor:pointer}
+.hp-chip-brand{background:rgba(79,107,255,.1);border:1px solid rgba(79,107,255,.27);cursor:pointer}
+.hp-chip-lbl{font-size:11px;color:var(--ink3);margin-bottom:2px}
+.hp-chip-v-gold{font-size:13px;font-weight:700;color:var(--gold);font-family:var(--font-mono)}
+.hp-chip-v-purple{font-size:12px;font-weight:700;color:var(--purple)}
+.hp-chip-v-brand{font-size:12px;font-weight:700;color:var(--brand)}
+.hp-wbar{margin-top:20px;padding:14px;background:var(--surf3);border-radius:12px;border:1px dashed rgba(245,200,75,.22);max-width:540px}
+.hp-wbar-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.hp-wbar-lbl{font-family:var(--font-mono);font-size:10px;letter-spacing:.14em;color:var(--ink4);text-transform:uppercase}
+.hp-wbar-pts{color:var(--gold);font-family:var(--font-mono);font-size:11px}
+.hp-spin-card{background:linear-gradient(160deg,var(--surf),rgba(168,85,247,.06));text-align:center}
+.hp-spin-btn{width:100%;padding:13px;background:var(--gold-grad);border:none;border-radius:12px;color:#3a2700;font-weight:800;font-size:14px;font-family:inherit;letter-spacing:.04em;cursor:pointer;box-shadow:0 10px 28px -8px rgba(245,200,75,.55);transition:opacity .15s,transform .15s}
+.hp-spin-btn:hover{opacity:.92;transform:translateY(-1px)}
+.hp-cta-row{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:22px}
+.hp-cta{padding:24px;border-radius:16px;background:var(--surf);border:1px solid var(--border);cursor:pointer;position:relative;overflow:hidden;transition:transform .15s,border-color .15s}
+.hp-cta:hover{transform:translateY(-2px)}
+.hp-cta-ic{width:46px;height:46px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px;margin-bottom:14px}
+.hp-cta-badge{display:inline-flex;padding:4px 10px;border-radius:999px;font-size:11px;font-weight:600}
+.hp-cta-btn{margin-top:16px;padding:10px 16px;background:transparent;border-radius:10px;font-weight:700;font-size:12px;font-family:inherit;display:inline-flex;align-items:center;gap:8px;cursor:pointer}
+.hp-mkt-row{display:grid;grid-template-columns:1fr 340px;gap:20px;margin-bottom:22px}
+.hp-left-col{display:flex;flex-direction:column;gap:16px}
+.hp-movers-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.hp-mover{padding:14px;background:var(--surf2);border:1px solid var(--border);border-radius:12px;cursor:pointer;transition:border-color .15s}
+.hp-mover:hover{border-color:var(--brand)}
+.hp-mover-ico{width:32px;height:32px;border-radius:7px;background:linear-gradient(135deg,var(--brand),var(--brand-deep));display:flex;align-items:center;justify-content:center;font-weight:800;font-size:9px;color:#fff;flex-shrink:0}
+.hp-art-row{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.hp-art{padding:18px;background:var(--surf2);border:1px solid var(--border);border-radius:12px;cursor:pointer;transition:border-color .15s}
+.hp-art:hover{border-color:var(--border2)}
+.hp-shdr{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:14px;gap:8px}
+.hp-skicker{font-family:var(--font-mono);font-size:9px;letter-spacing:.16em;color:var(--ink4);text-transform:uppercase;margin-bottom:4px}
+.hp-stitle{font-size:16px;font-weight:700;letter-spacing:-.01em}
+.hp-link{font-size:12px;color:var(--brand);font-weight:600;white-space:nowrap}
+.hp-link:hover{text-decoration:underline}
+.hp-ref-card{background:linear-gradient(135deg,var(--surf),rgba(79,107,255,.07))}
+.hp-ref-code{margin-top:14px;padding:8px 12px;background:var(--surf2);border:1px dashed var(--brand);border-radius:10px;font-family:var(--font-mono);font-size:14px;font-weight:700;color:var(--brand);letter-spacing:.05em;display:flex;align-items:center;justify-content:space-between;cursor:pointer}
+.hp-ref-copy{font-size:10px;color:var(--ink3)}
+.hp-tag{display:inline-flex;padding:4px 10px;border-radius:999px;font-size:11px;font-weight:600}
+@media(max-width:1100px){.hp-hero-row{grid-template-columns:1fr}.hp-mkt-row{grid-template-columns:1fr}}
+@media(max-width:768px){
+ .hp-wrap{padding:10px 12px 100px}
+ .hp-hero-row,.hp-mkt-row{gap:12px}
+ .hp-cta-row{grid-template-columns:1fr;gap:10px}
+ .hp-cta{padding:14px;display:flex;align-items:center;gap:12px}
+ .hp-cta-ic{margin-bottom:0;flex-shrink:0;width:40px;height:40px;font-size:18px}
+ .hp-cta-kicker,.hp-cta-sub,.hp-cta-btn,.hp-cta-glow{display:none}
+ .hp-movers-grid{grid-template-columns:1fr 1fr;gap:8px}
+ .hp-art-row{grid-template-columns:1fr;gap:10px}
+ .hp-h1{font-size:22px}
+ .hp-pad{padding:16px}
+ .hp-chips{gap:8px}
+ .hp-wbar{max-width:100%}
+ .hp-stitle{font-size:14px}
+}
 </style>
 <style>
 /* ── AUTH MODAL ─────────────────────────────────────────────── */
@@ -783,6 +849,7 @@ html[dir="rtl"] .auth-field-new input.has-icon{padding-right:42px}
     <button class="nav-dd-btn"><span class="ar">القطاعات</span><span class="en">Sectors</span><svg class="dd-chev" viewBox="0 0 10 6" fill="none"><path d="M1 1l4 4 4-4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
     <div class="nav-dd" id="sectors-dd"></div>
    </li>
+   <li><a href="/market" onclick="navMarket();return false;"><span class="ar">السوق</span><span class="en">Market</span></a></li>
    <li><a href="/charts" onclick="navCharts();return false;"><span class="ar">المخططات</span><span class="en">Charts</span></a></li>
    <li class="has-dd">
     <button class="nav-dd-btn"><span class="ar">مقالات</span><span class="en">More</span><svg class="dd-chev" viewBox="0 0 10 6" fill="none"><path d="M1 1l4 4 4-4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
@@ -846,7 +913,8 @@ html[dir="rtl"] .auth-field-new input.has-icon{padding-right:42px}
  <a href="/research" onclick="window.location.href='/research';closeMobNav();return false;"><span class="ar">الأبحاث</span><span class="en">Research</span></a>
  <div class="mob-nav-divider"></div>
  <div style="padding:6px 16px 2px;font-size:11px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.5px"><span class="ar">السوق</span><span class="en">Market</span></div>
- <a href="/" onclick="navHome();closeMobNav();return false;"><span class="ar">بورصة العراق</span><span class="en">Iraqi Stock Market</span></a>
+ <a href="/" onclick="navHome();closeMobNav();return false;"><span class="ar">الرئيسية</span><span class="en">Home</span></a>
+ <a href="/market" onclick="navMarket();closeMobNav();return false;"><span class="ar">قائمة الأسهم</span><span class="en">All Stocks</span></a>
  <a href="/fx" onclick="navFX();closeMobNav();return false;">IQD ⇄ USD</a>
  <div class="mob-nav-divider"></div>
  <a href="/about"><span class="ar">عن الموقع</span><span class="en">About</span></a>
@@ -876,7 +944,335 @@ html[dir="rtl"] .auth-field-new input.has-icon{padding-right:42px}
 <div style="height:62px"></div><!-- nav spacer -->
 
 <!-- HOME PAGE -->
+<!-- ══════════════════════════════════════════════════════════════════
+     NEW GAMIFIED HOMEPAGE  —  PR 2
+     Dynamic content populated by buildHomepage() in JS
+     ══════════════════════════════════════════════════════════════════ -->
 <div id="home-page" class="page active">
+ <div class="hp-wrap">
+
+  <!-- ── HERO ROW: greeting card (left) + daily spin widget (right) ── -->
+  <div class="hp-hero-row">
+
+   <!-- GREETING / POINTS HERO CARD -->
+   <div class="hp-card">
+    <div class="hp-glow" style="top:-120px;right:-80px;width:480px;height:480px;background:radial-gradient(circle,rgba(245,200,75,.15) 0%,transparent 65%)"></div>
+    <div class="hp-glow" style="bottom:-180px;left:-100px;width:380px;height:380px;background:radial-gradient(circle,rgba(79,107,255,.2) 0%,transparent 65%)"></div>
+    <div class="hp-pad" style="position:relative">
+     <div class="hp-kicker" id="hp-greeting">
+      <span class="ar">السوق العراقي</span><span class="en">IRAQ STOCK EXCHANGE</span>
+     </div>
+     <div class="hp-h1">
+      <span class="ar">لديك <span id="hp-pts-ar" style="background:var(--gold-grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;font-family:var(--font-mono)">—</span> <span style="color:var(--ink3)">· السوق <span id="hp-mkt-ar" style="color:var(--gr)">—</span> اليوم</span></span>
+      <span class="en">You have <span id="hp-pts-en" style="background:var(--gold-grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;font-family:var(--font-mono)">—</span> <span style="color:var(--ink3)"> · market <span id="hp-mkt-en" style="color:var(--gr)">—</span> today</span></span>
+     </div>
+
+     <!-- Chips: streak | spin | referral -->
+     <div class="hp-chips">
+      <div class="hp-chip hp-chip-gold">
+       <span style="font-size:20px">🔥</span>
+       <div>
+        <div class="hp-chip-lbl"><span class="ar">سلسلة</span><span class="en">Streak</span></div>
+        <div class="hp-chip-v-gold" id="hp-streak-chip">
+         <span class="ar">— أيام</span><span class="en">— days</span>
+        </div>
+       </div>
+      </div>
+      <div class="hp-chip hp-chip-purple" onclick="navSpin()">
+       <span style="font-size:20px">◎</span>
+       <div>
+        <div class="hp-chip-lbl"><span class="ar">لفة اليوم</span><span class="en">Daily spin</span></div>
+        <div class="hp-chip-v-purple" id="hp-spin-chip">
+         <span class="ar">جاهزة · حتى 250 ألف</span><span class="en">Ready · up to 250K</span>
+        </div>
+       </div>
+      </div>
+      <div class="hp-chip hp-chip-brand" onclick="navRefer()">
+       <span style="font-size:20px">☷</span>
+       <div>
+        <div class="hp-chip-lbl"><span class="ar">إحالة وربح</span><span class="en">Refer & earn</span></div>
+        <div class="hp-chip-v-brand">
+         <span class="ar">+250 لكل صديق</span><span class="en">+250 per friend</span>
+        </div>
+       </div>
+      </div>
+     </div>
+
+     <!-- Withdrawal progress bar -->
+     <div class="hp-wbar" id="hp-wbar">
+      <div class="hp-wbar-row">
+       <span class="hp-wbar-lbl"><span class="ar">تقدم السحب</span><span class="en">WITHDRAWAL PROGRESS</span></span>
+       <span class="hp-wbar-pts" id="hp-wbar-remain"></span>
+      </div>
+      <div id="hp-wbar-prog" style="height:6px;background:rgba(255,255,255,.06);border-radius:999px;overflow:hidden;border:1px solid var(--border)">
+       <div id="hp-wbar-fill" style="height:100%;width:0%;background:var(--gold-grad);border-radius:999px;box-shadow:0 0 12px rgba(245,200,75,.55)"></div>
+      </div>
+     </div>
+    </div>
+   </div>
+
+   <!-- DAILY SPIN WIDGET -->
+   <div class="hp-card hp-spin-card">
+    <div class="hp-glow" style="inset:-40px;background:radial-gradient(circle at 50% 30%,rgba(168,85,247,.22) 0%,transparent 60%)"></div>
+    <div class="hp-pad" style="position:relative">
+     <div class="hp-kicker" style="color:var(--purple)">
+      <span class="ar">لفة اليوم · جاهزة</span><span class="en">DAILY SPIN · READY</span>
+     </div>
+     <div style="font-size:17px;font-weight:700;margin-bottom:14px">
+      <span class="ar">اربح حتى <span style="color:var(--gold)">250,000 نقطة</span></span>
+      <span class="en">Win up to <span style="color:var(--gold)">250,000 pts</span></span>
+     </div>
+     <div id="hp-wheel" style="display:flex;justify-content:center;margin-bottom:14px"></div>
+     <button class="hp-spin-btn" onclick="navSpin()">
+      <span class="ar">أدر الآن</span><span class="en">SPIN NOW</span>
+     </button>
+    </div>
+   </div>
+  </div><!-- /hp-hero-row -->
+
+  <!-- ── CTA CARDS: LEARN / RESEARCH / EXPERT ANALYSIS ── -->
+  <div class="hp-cta-row">
+   <!-- Learn -->
+   <div class="hp-cta" onclick="navLearn()">
+    <div class="hp-cta-glow" style="position:absolute;top:-60px;right:-40px;width:200px;height:200px;background:radial-gradient(circle,rgba(34,197,94,.14) 0%,transparent 60%);pointer-events:none"></div>
+    <div style="position:relative;display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:14px">
+     <div class="hp-cta-ic" style="background:rgba(34,197,94,.14);color:#22C55E;border:1px solid rgba(34,197,94,.3)">◇</div>
+     <div class="hp-cta-badge" style="background:rgba(34,197,94,.14);color:#22C55E;border:1px solid rgba(34,197,94,.25)">
+      <span class="ar">+50 نقطة / درس</span><span class="en">+50 pts / lesson</span>
+     </div>
+    </div>
+    <div class="hp-skicker hp-cta-kicker ar" style="position:relative">التعليم</div>
+    <div class="hp-skicker hp-cta-kicker en" style="position:relative">EDUCATION</div>
+    <div style="position:relative;font-size:19px;font-weight:700;letter-spacing:-.01em;line-height:1.2">
+     <span class="ar">تعلّم التداول من الصفر</span><span class="en">Learn trading from zero</span>
+    </div>
+    <div class="hp-cta-sub" style="position:relative;font-size:12px;color:var(--ink3);margin-top:8px;line-height:1.5">
+     <span class="ar">24 درسًا · اكسب نقاطًا مع كل درس</span><span class="en">24 lessons · earn pts as you complete</span>
+    </div>
+    <button class="hp-cta-btn" style="border:1px solid rgba(34,197,94,.4);color:#22C55E">
+     <span class="ar">ابدأ الدورة</span><span class="en">Start the course</span><span>→</span>
+    </button>
+   </div>
+   <!-- Research -->
+   <div class="hp-cta" onclick="navResearch()">
+    <div class="hp-cta-glow" style="position:absolute;top:-60px;right:-40px;width:200px;height:200px;background:radial-gradient(circle,rgba(79,107,255,.14) 0%,transparent 60%);pointer-events:none"></div>
+    <div style="position:relative;display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:14px">
+     <div class="hp-cta-ic" style="background:rgba(79,107,255,.14);color:var(--brand);border:1px solid rgba(79,107,255,.3)">◳</div>
+     <div class="hp-cta-badge" style="background:rgba(79,107,255,.14);color:var(--brand);border:1px solid rgba(79,107,255,.25)">
+      <span class="ar">مجاني · كل البيانات</span><span class="en">Free · all data</span>
+     </div>
+    </div>
+    <div class="hp-skicker hp-cta-kicker ar" style="position:relative">الأبحاث</div>
+    <div class="hp-skicker hp-cta-kicker en" style="position:relative">RESEARCH</div>
+    <div style="position:relative;font-size:19px;font-weight:700;letter-spacing:-.01em;line-height:1.2">
+     <span class="ar">الأبحاث والفلاتر</span><span class="en">Research & screeners</span>
+    </div>
+    <div class="hp-cta-sub" style="position:relative;font-size:12px;color:var(--ink3);margin-top:8px;line-height:1.5">
+     <span class="ar">فلتر الأسهم العراقية حسب القطاع والربحية</span><span class="en">Filter Iraqi stocks by sector, P/E, dividends</span>
+    </div>
+    <button class="hp-cta-btn" style="border:1px solid rgba(79,107,255,.4);color:var(--brand)">
+     <span class="ar">افتح الفلاتر</span><span class="en">Open screener</span><span>→</span>
+    </button>
+   </div>
+   <!-- Expert Analysis -->
+   <div class="hp-cta" onclick="navAnalysis()">
+    <div class="hp-cta-glow" style="position:absolute;top:-60px;right:-40px;width:200px;height:200px;background:radial-gradient(circle,rgba(168,85,247,.14) 0%,transparent 60%);pointer-events:none"></div>
+    <div style="position:relative;display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:14px">
+     <div class="hp-cta-ic" style="background:rgba(168,85,247,.14);color:var(--purple);border:1px solid rgba(168,85,247,.3)">◆</div>
+     <div class="hp-cta-badge" style="background:rgba(168,85,247,.14);color:var(--purple);border:1px solid rgba(168,85,247,.25)">
+      <span class="ar">جديد · 3 تقارير</span><span class="en">NEW · 3 reports</span>
+     </div>
+    </div>
+    <div class="hp-skicker hp-cta-kicker ar" style="position:relative">تحليلات الخبراء</div>
+    <div class="hp-skicker hp-cta-kicker en" style="position:relative">EXPERT ANALYSIS</div>
+    <div style="position:relative;font-size:19px;font-weight:700;letter-spacing:-.01em;line-height:1.2">
+     <span class="ar">تحليل السوق</span><span class="en">Expert market analysis</span>
+    </div>
+    <div class="hp-cta-sub" style="position:relative;font-size:12px;color:var(--ink3);margin-top:8px;line-height:1.5">
+     <span class="ar">تحليلات أسبوعية من كبار المحللين</span><span class="en">Weekly deep-dives from senior analysts</span>
+    </div>
+    <button class="hp-cta-btn" style="border:1px solid rgba(168,85,247,.4);color:var(--purple)">
+     <span class="ar">اقرأ هذا الأسبوع</span><span class="en">Read this week</span><span>→</span>
+    </button>
+   </div>
+  </div><!-- /hp-cta-row -->
+
+  <!-- ── MARKET INDEX + TOP MOVERS (left) | REFERRAL CTA (right) ── -->
+  <div class="hp-mkt-row">
+   <div class="hp-left-col">
+
+    <!-- Market index card -->
+    <div class="hp-card">
+     <div class="hp-pad">
+      <div class="hp-shdr">
+       <div>
+        <div class="hp-skicker"><span class="ar">سوق العراق للأوراق المالية</span><span class="en">IRAQ STOCK EXCHANGE</span></div>
+        <div class="hp-stitle"><span class="ar">مؤشر السوق</span><span class="en">Market index</span></div>
+       </div>
+       <a class="hp-link" onclick="navMarket();return false;" href="/market">
+        <span class="ar">عرض الكل ←</span><span class="en">View all →</span>
+       </a>
+      </div>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+       <div>
+        <div style="font-family:var(--font-mono);font-size:30px;font-weight:700;letter-spacing:-.02em" id="hp-rsisx-val">—</div>
+        <div style="display:flex;align-items:center;gap:8px;margin-top:4px">
+         <span id="hp-rsisx-delta"></span>
+         <span style="font-size:11px;color:var(--ink4);font-family:var(--font-mono)" id="hp-rsisx-abs"></span>
+        </div>
+       </div>
+       <div id="hp-rsisx-spark"></div>
+      </div>
+      <!-- Breadth stats row -->
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;padding-top:14px;border-top:1px solid var(--border)">
+       <div>
+        <div style="font-family:var(--font-mono);font-size:9px;letter-spacing:.12em;color:var(--ink4);text-transform:uppercase"><span class="ar">الحجم</span><span class="en">Volume</span></div>
+        <div style="font-size:13px;font-weight:700;margin-top:4px;font-family:var(--font-mono)" id="hp-vol">—</div>
+       </div>
+       <div>
+        <div style="font-family:var(--font-mono);font-size:9px;letter-spacing:.12em;color:var(--ink4);text-transform:uppercase"><span class="ar">الصفقات</span><span class="en">Trades</span></div>
+        <div style="font-size:13px;font-weight:700;margin-top:4px;font-family:var(--font-mono)" id="hp-deals">—</div>
+       </div>
+       <div>
+        <div style="font-family:var(--font-mono);font-size:9px;letter-spacing:.12em;color:var(--ink4);text-transform:uppercase"><span class="ar">صاعدة</span><span class="en">Advance</span></div>
+        <div style="font-size:13px;font-weight:700;color:var(--gr);margin-top:4px;font-family:var(--font-mono)" id="hp-bup">—</div>
+       </div>
+       <div>
+        <div style="font-family:var(--font-mono);font-size:9px;letter-spacing:.12em;color:var(--ink4);text-transform:uppercase"><span class="ar">هابطة</span><span class="en">Decline</span></div>
+        <div style="font-size:13px;font-weight:700;color:var(--rd);margin-top:4px;font-family:var(--font-mono)" id="hp-bdn">—</div>
+       </div>
+      </div>
+     </div>
+    </div>
+
+    <!-- Top movers -->
+    <div class="hp-card">
+     <div class="hp-pad">
+      <div class="hp-shdr">
+       <div>
+        <div class="hp-skicker"><span class="ar">الأعلى حركة اليوم</span><span class="en">TOP MOVERS TODAY</span></div>
+        <div class="hp-stitle"><span class="ar">رابحو وخاسرو اليوم</span><span class="en">Today's gainers & losers</span></div>
+       </div>
+       <a class="hp-link" onclick="navMarket();return false;" href="/market">
+        <span class="ar">كل الشركات ←</span><span class="en">All companies →</span>
+       </a>
+      </div>
+      <div class="hp-movers-grid" id="hp-movers">
+       <!-- Populated by buildHomepage() -->
+       <div class="hp-mover" style="opacity:.4;animation:pulse 2s infinite">
+        <div style="height:32px;background:var(--surf3);border-radius:6px;margin-bottom:8px"></div>
+        <div style="height:20px;background:var(--surf3);border-radius:4px;width:60%"></div>
+       </div>
+       <div class="hp-mover" style="opacity:.3;animation:pulse 2s infinite;animation-delay:.1s">
+        <div style="height:32px;background:var(--surf3);border-radius:6px;margin-bottom:8px"></div>
+        <div style="height:20px;background:var(--surf3);border-radius:4px;width:60%"></div>
+       </div>
+       <div class="hp-mover" style="opacity:.2;animation:pulse 2s infinite;animation-delay:.2s">
+        <div style="height:32px;background:var(--surf3);border-radius:6px;margin-bottom:8px"></div>
+        <div style="height:20px;background:var(--surf3);border-radius:4px;width:60%"></div>
+       </div>
+       <div class="hp-mover" style="opacity:.15;animation:pulse 2s infinite;animation-delay:.3s">
+        <div style="height:32px;background:var(--surf3);border-radius:6px;margin-bottom:8px"></div>
+        <div style="height:20px;background:var(--surf3);border-radius:4px;width:60%"></div>
+       </div>
+      </div>
+     </div>
+    </div>
+   </div><!-- /hp-left-col -->
+
+   <!-- REFERRAL CTA CARD -->
+   <div class="hp-card hp-ref-card">
+    <div class="hp-glow" style="top:-60px;right:-40px;width:220px;height:220px;background:radial-gradient(circle,rgba(79,107,255,.28) 0%,transparent 60%)"></div>
+    <div class="hp-pad" style="position:relative">
+     <div style="font-size:30px;margin-bottom:8px">☷</div>
+     <div style="font-family:var(--font-mono);font-size:10px;letter-spacing:.16em;color:var(--brand);text-transform:uppercase;margin-bottom:6px">
+      <span class="ar">ادعُ أصدقاءك</span><span class="en">INVITE FRIENDS</span>
+     </div>
+     <div style="font-size:18px;font-weight:700;letter-spacing:-.01em;line-height:1.3">
+      <span class="ar">كلاكما تربحان <span style="background:var(--gold-grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">+250 نقطة</span></span>
+      <span class="en">Both earn <span style="background:var(--gold-grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">+250 pts</span></span>
+     </div>
+     <div style="font-size:12px;color:var(--ink3);margin-top:6px">
+      <span class="ar">عندما يكسب صديقك 250 نقطة.</span>
+      <span class="en">When your friend earns 250 pts.</span>
+     </div>
+     <div class="hp-ref-code" id="hp-ref-box" onclick="copyRefCode()">
+      <span id="hp-ref-code-txt" style="color:var(--ink3)">
+       <span class="ar">سجّل دخولك لرؤية رمزك</span>
+       <span class="en">Sign in to see your code</span>
+      </span>
+      <span class="hp-ref-copy">📋 <span class="ar">نسخ</span><span class="en">COPY</span></span>
+     </div>
+     <button style="width:100%;margin-top:12px;padding:11px;background:var(--brand);border:none;border-radius:10px;color:#fff;font-weight:700;font-size:13px;font-family:inherit;cursor:pointer;transition:opacity .15s" onclick="navRefer()" onmouseover="this.style.opacity='.88'" onmouseout="this.style.opacity='1'">
+      <span class="ar">شارك الرابط</span><span class="en">Share invite link</span>
+     </button>
+    </div>
+   </div><!-- /referral card -->
+  </div><!-- /hp-mkt-row -->
+
+  <!-- ── ARTICLES / EXPERT ANALYSIS STRIP ── -->
+  <div class="hp-card" style="margin-bottom:0">
+   <div class="hp-pad">
+    <div class="hp-shdr">
+     <div>
+      <div class="hp-skicker"><span class="ar">تحليلات الخبراء</span><span class="en">EXPERT ANALYSIS</span></div>
+      <div class="hp-stitle"><span class="ar">هذا الأسبوع في السوق</span><span class="en">This week in the Iraqi market</span></div>
+     </div>
+     <a class="hp-link" onclick="navAnalysis();return false;" href="/analysis">
+      <span class="ar">كل المقالات ←</span><span class="en">All articles →</span>
+     </a>
+    </div>
+    <div class="hp-art-row">
+     <div class="hp-art">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
+       <span class="hp-tag" style="background:rgba(79,107,255,.14);color:var(--brand);border:1px solid rgba(79,107,255,.25)"><span class="ar">بنوك</span><span class="en">Banking</span></span>
+       <span class="hp-tag" style="background:rgba(34,197,94,.14);color:var(--gr);border:1px solid rgba(34,197,94,.25)"><span class="ar">▲ صاعد</span><span class="en">▲ Bullish</span></span>
+      </div>
+      <div style="font-size:15px;font-weight:700;line-height:1.35">
+       <span class="ar">لماذا قد يقفز قطاع المصارف 30٪ بعد نتائج الربع الثالث</span>
+       <span class="en">Why banking sector could surge 30% on Q3 results</span>
+      </div>
+      <div style="font-size:11px;color:var(--ink4);font-family:var(--font-mono);margin-top:10px">
+       <span class="ar">خالد م. · 6 دقائق</span><span class="en">Khaled M. · 6 min read</span>
+      </div>
+     </div>
+     <div class="hp-art">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
+       <span class="hp-tag" style="background:rgba(34,197,94,.14);color:var(--gr);border:1px solid rgba(34,197,94,.25)"><span class="ar">مشروبات</span><span class="en">Beverages</span></span>
+       <span class="hp-tag" style="background:rgba(255,255,255,.06);color:var(--ink3);border:1px solid var(--border)">•&nbsp;<span class="ar">محايد</span><span class="en">Neutral</span></span>
+      </div>
+      <div style="font-size:15px;font-weight:700;line-height:1.35">
+       <span class="ar">بغداد للمشروبات: قائد سوق أم مبالغ في تقييمه؟</span>
+       <span class="en">Baghdad Soft: market leader or overvalued?</span>
+      </div>
+      <div style="font-size:11px;color:var(--ink4);font-family:var(--font-mono);margin-top:10px">
+       <span class="ar">سارة أ. · 8 دقائق</span><span class="en">Sara A. · 8 min read</span>
+      </div>
+     </div>
+     <div class="hp-art">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
+       <span class="hp-tag" style="background:rgba(168,85,247,.14);color:var(--purple);border:1px solid rgba(168,85,247,.25)"><span class="ar">فنادق</span><span class="en">Hotels</span></span>
+       <span class="hp-tag" style="background:rgba(239,68,68,.14);color:var(--rd);border:1px solid rgba(239,68,68,.25)"><span class="ar">▼ هابط</span><span class="en">▼ Bearish</span></span>
+      </div>
+      <div style="font-size:15px;font-weight:700;line-height:1.35">
+       <span class="ar">انتعاش السياحة حقيقي — لكن المخطط يقول انتظر</span>
+       <span class="en">Tourism rebound is real — but the chart says wait</span>
+      </div>
+      <div style="font-size:11px;color:var(--ink4);font-family:var(--font-mono);margin-top:10px">
+       <span class="ar">يوسف ح. · 5 دقائق</span><span class="en">Yusuf H. · 5 min read</span>
+      </div>
+     </div>
+    </div>
+   </div>
+  </div><!-- /articles strip -->
+
+ </div><!-- /hp-wrap -->
+</div><!-- /home-page -->
+
+<!-- ══════════════════════════════════════════════════════════════════
+     MARKET TABLE PAGE  —  old homepage, now at /market
+     ══════════════════════════════════════════════════════════════════ -->
+<div id="v1-page" class="page">
  <div class="main-wrap" style="padding-bottom:4px">
   <!-- SEO hidden -->
   <div id="home-seo" aria-hidden="true" style="position:fixed;left:-9999px;width:1px;height:1px;overflow:hidden">
@@ -2254,7 +2650,7 @@ function showPage(p) {
  document.querySelectorAll('.page').forEach(el => el.classList.remove('active'));
  document.getElementById(p + '-page').classList.add('active');
  window.scrollTo({top: 0});
- if (p === 'home') { if (cpChart) { cpChart.remove(); cpChart = null; } }
+ if (p === 'home' || p === 'v1') { if (cpChart) { cpChart.remove(); cpChart = null; } }
 }
 
 function toggleMobNav(){
@@ -3488,8 +3884,8 @@ function initAuth() {
    _sbUser = null; _sbProfile = null;
    _updateNavAuth();
   }
-  if (event === 'SIGNED_IN') { _mergeWatchlist(); buildTable(); }
-  if (event === 'SIGNED_OUT') buildTable();
+  if (event === 'SIGNED_IN') { _mergeWatchlist(); buildTable(); setTimeout(buildHomepage,200); }
+  if (event === 'SIGNED_OUT') { buildTable(); setTimeout(buildHomepage,100); }
  });
  _sb.auth.getSession().then(({ data: { session } }) => {
   if (session?.user) {
@@ -3917,6 +4313,8 @@ async function fetchLive() {
   buildTicker();
   buildIdxGrid();
   buildMktStats();
+  // Refresh gamified homepage with real live data
+  if(document.getElementById('home-page')?.classList.contains('active')) buildHomepage();
   // Remove loading dim now that live prices are in
   const _tb=document.getElementById('tbl-body'),_ti=document.getElementById('ticker-inner');
   if(_tb)_tb.classList.remove('loading'); if(_ti)_ti.classList.remove('loading');
@@ -3957,6 +4355,222 @@ function _setPageMeta(title, desc, url) {
 
 function navCompany(s){ history.pushState({},'','/c/'+s); route(); }
 
+// ── PR 2 — GAMIFIED HOMEPAGE ───────────────────────────────────────────────
+
+/** Decorative fortune wheel SVG (12 segments, donut style) */
+function _fortuneWheelSvg(sz) {
+ const segs = [
+  {l:'0',c:'#6B7280'},{l:'1',c:'#4F6BFF'},{l:'250K',c:'#A855F7'},
+  {l:'0',c:'#6B7280'},{l:'1',c:'#4F6BFF'},{l:'25',c:'#22C55E'},
+  {l:'0',c:'#6B7280'},{l:'1',c:'#4F6BFF'},{l:'0',c:'#6B7280'},
+  {l:'25K',c:'#F5C84B'},{l:'1',c:'#4F6BFF'},{l:'25',c:'#22C55E'},
+ ];
+ const cx=sz/2, cy=sz/2, r=sz/2-6, ri=sz*0.14, step=Math.PI*2/12;
+ const f=n=>n.toFixed(1);
+ let paths='', labels='';
+ segs.forEach((s,i)=>{
+  const a0=-Math.PI/2+i*step, a1=a0+step-0.04;
+  const ox1=cx+r*Math.cos(a0), oy1=cy+r*Math.sin(a0);
+  const ox2=cx+r*Math.cos(a1), oy2=cy+r*Math.sin(a1);
+  const ix1=cx+ri*Math.cos(a1), iy1=cy+ri*Math.sin(a1);
+  const ix2=cx+ri*Math.cos(a0), iy2=cy+ri*Math.sin(a0);
+  paths+=`<path d="M${f(ox1)},${f(oy1)} A${r},${r} 0 0,1 ${f(ox2)},${f(oy2)} L${f(ix1)},${f(iy1)} A${ri},${ri} 0 0,0 ${f(ix2)},${f(iy2)}Z" fill="${s.c}" opacity=".88"/>`;
+  const ma=-Math.PI/2+(i+0.5)*step, mr=(r+ri)/2;
+  const fsz=s.l.length>2?Math.max(5,sz*0.046):Math.max(6,sz*0.054);
+  labels+=`<text x="${f(cx+mr*Math.cos(ma))}" y="${f(cy+mr*Math.sin(ma))}" text-anchor="middle" dominant-baseline="central" fill="white" font-size="${fsz.toFixed(0)}" font-weight="700" font-family="monospace">${s.l}</text>`;
+ });
+ return `<svg width="${sz}" height="${sz}" viewBox="0 0 ${sz} ${sz}" style="display:block;filter:drop-shadow(0 4px 18px rgba(168,85,247,.35))">${paths}${labels}<circle cx="${cx}" cy="${cy}" r="${ri}" fill="#0B0E14" stroke="rgba(255,255,255,.15)" stroke-width="1.5"/><text x="${cx}" y="${cy}" text-anchor="middle" dominant-baseline="central" fill="#F5C84B" font-size="${(sz*0.09).toFixed(0)}" font-weight="700">◎</text></svg>`;
+}
+
+/** Populate all dynamic elements on the new gamified homepage */
+function buildHomepage() {
+ const isAr = document.documentElement.dataset.lang === 'ar';
+
+ // ── Greeting ────────────────────────────────────────────────────
+ const bghHour = (new Date().getUTCHours() + 3) % 24;
+ const greetAr = bghHour < 12 ? 'صباح الخير' : bghHour < 17 ? 'مساء الخير' : 'مساء النور';
+ const greetEn = bghHour < 12 ? 'GOOD MORNING' : bghHour < 17 ? 'GOOD AFTERNOON' : 'GOOD EVENING';
+ const uname = _sbProfile?.username || _sbUser?.email?.split('@')[0] || null;
+ const grEl = document.getElementById('hp-greeting');
+ if (grEl) {
+  const arSpan = grEl.querySelector('.ar'), enSpan = grEl.querySelector('.en');
+  if (arSpan) arSpan.textContent = uname ? `${greetAr} · ${uname}` : greetAr;
+  if (enSpan) enSpan.textContent = uname ? `${greetEn} · ${uname.toUpperCase()}` : greetEn;
+ }
+
+ // ── Points display ───────────────────────────────────────────────
+ const pts = _sbProfile?.points ?? null;
+ const ptsAr = pts != null ? fmtPts(pts, 'ar') + ' نقطة' : '— نقطة';
+ const ptsEn = pts != null ? fmtPts(pts, 'en') + ' pts' : '— pts';
+ const elAr = document.getElementById('hp-pts-ar'), elEn = document.getElementById('hp-pts-en');
+ if (elAr) elAr.textContent = ptsAr;
+ if (elEn) elEn.textContent = ptsEn;
+
+ // ── Market change in headline ────────────────────────────────────
+ const rsisxPct = LIVE?.rsisx?.pct ?? LIVE?.rsisx?.change_pct ?? null;
+ const rsisxDir = rsisxPct != null ? (rsisxPct >= 0 ? 1 : -1) : 0;
+ const rsisxColor = rsisxDir >= 0 ? 'var(--gr)' : 'var(--rd)';
+ const rsisxSign = rsisxPct != null ? (rsisxDir >= 0 ? '+' : '') + rsisxPct.toFixed(2) + '%' : '—';
+ const mktArEl = document.getElementById('hp-mkt-ar'), mktEnEl = document.getElementById('hp-mkt-en');
+ if (mktArEl) { mktArEl.textContent = rsisxSign; mktArEl.style.color = rsisxColor; }
+ if (mktEnEl) { mktEnEl.textContent = rsisxSign; mktEnEl.style.color = rsisxColor; }
+
+ // ── Streak chip ──────────────────────────────────────────────────
+ const streak = _sbProfile?.streak ?? 0;
+ const streakEl = document.getElementById('hp-streak-chip');
+ if (streakEl) {
+  const arS = streakEl.querySelector('.ar'), enS = streakEl.querySelector('.en');
+  if (arS) arS.textContent = streak + ' أيام';
+  if (enS) enS.textContent = streak + ' days';
+ }
+
+ // ── Spin chip ────────────────────────────────────────────────────
+ const spinCooldown = _sbProfile?.spin_cooldown_ends_at;
+ const spinReady = !spinCooldown || new Date(spinCooldown) < new Date();
+ const spinEl = document.getElementById('hp-spin-chip');
+ if (spinEl && !spinReady) {
+  const secsLeft = Math.max(0, Math.floor((new Date(spinCooldown) - new Date()) / 3600000));
+  const arS = spinEl.querySelector('.ar'), enS = spinEl.querySelector('.en');
+  if (arS) arS.textContent = `متاحة خلال ~${secsLeft}س`;
+  if (enS) enS.textContent = `~${secsLeft}h remaining`;
+ }
+
+ // ── Withdrawal progress ──────────────────────────────────────────
+ const WITHDRAWAL_GOAL = 100000;
+ const wbarEl = document.getElementById('hp-wbar');
+ if (wbarEl && pts != null) {
+  const pct = Math.min(100, Math.max(0, (pts / WITHDRAWAL_GOAL) * 100));
+  const remain = Math.max(0, WITHDRAWAL_GOAL - pts);
+  const fillEl = document.getElementById('hp-wbar-fill');
+  const remEl  = document.getElementById('hp-wbar-remain');
+  if (fillEl) fillEl.style.width = pct.toFixed(1) + '%';
+  if (remEl)  remEl.textContent = isAr
+   ? fmtPts(remain, 'ar') + ' نقطة متبقية'
+   : fmtPts(remain, 'en') + ' pts to go';
+ } else if (wbarEl && pts == null) {
+  wbarEl.style.display = 'none';
+ }
+
+ // ── Fortune wheel (inject once) ─────────────────────────────────
+ const wheelEl = document.getElementById('hp-wheel');
+ if (wheelEl && !wheelEl.firstChild) {
+  const sz = window.innerWidth < 600 ? 180 : 220;
+  wheelEl.innerHTML = _fortuneWheelSvg(sz);
+ }
+
+ // ── RSISX market index card ──────────────────────────────────────
+ const rsisxVal = LIVE?.rsisx?.value ? Number(LIVE.rsisx.value) : null;
+ const valEl = document.getElementById('hp-rsisx-val');
+ if (valEl && rsisxVal) valEl.textContent = rsisxVal.toFixed(2);
+
+ const deltaEl = document.getElementById('hp-rsisx-delta');
+ if (deltaEl && rsisxPct != null) deltaEl.innerHTML = deltaHtml(rsisxPct);
+
+ const absEl = document.getElementById('hp-rsisx-abs');
+ if (absEl && rsisxVal && rsisxPct != null) {
+  const absChg = (rsisxVal * rsisxPct / (100 + rsisxPct)).toFixed(2);
+  absEl.textContent = (rsisxDir >= 0 ? '+' : '') + absChg + (isAr ? ' اليوم' : ' today');
+ }
+
+ // RSISX sparkline from IDX_REAL
+ const sparkEl = document.getElementById('hp-rsisx-spark');
+ if (sparkEl && IDX_REAL && IDX_REAL.length > 1) {
+  const vals = IDX_REAL.slice(-30).map(p => p[1]);
+  const col = vals[vals.length - 1] >= vals[0] ? 'var(--gr)' : 'var(--rd)';
+  const w = window.innerWidth < 600 ? 100 : 200;
+  sparkEl.innerHTML = sparkHtml(vals, col, w, 54);
+ }
+
+ // Breadth
+ const breadth = LIVE?.breadth || {};
+ const bUp = breadth.up || 0, bDn = breadth.dn || 0;
+ const bUpEl = document.getElementById('hp-bup'), bDnEl = document.getElementById('hp-bdn');
+ if (bUpEl && bUp) bUpEl.textContent = bUp;
+ if (bDnEl && bDn) bDnEl.textContent = bDn;
+
+ // Volume & deals from LIVE
+ const vol = LIVE?.vol ?? LIVE?.volume ?? null;
+ const deals = LIVE?.deals ?? null;
+ const volEl = document.getElementById('hp-vol'), dealsEl = document.getElementById('hp-deals');
+ if (volEl && vol != null) {
+  volEl.textContent = vol >= 1e9 ? (vol/1e9).toFixed(1)+'B IQD'
+   : vol >= 1e6 ? (vol/1e6).toFixed(1)+'M IQD'
+   : vol.toLocaleString();
+ }
+ if (dealsEl && deals != null) dealsEl.textContent = deals.toLocaleString();
+
+ // ── Top movers (top 4 by |pct|) ─────────────────────────────────
+ const moversEl = document.getElementById('hp-movers');
+ if (moversEl) {
+  const movers = [...COMPANIES]
+   .filter(c => c.close > 0 && c.pct != null)
+   .sort((a, b) => Math.abs(b.pct) - Math.abs(a.pct))
+   .slice(0, 4);
+  if (movers.length) {
+   moversEl.innerHTML = movers.map(co => {
+    const up = co.pct >= 0;
+    const col = up ? 'var(--gr)' : 'var(--rd)';
+    const coName = ar() ? co.ar : co.en;
+    const hist = HIST?.s?.[co.sym];
+    const spark = hist && hist.length > 1
+     ? sparkHtml(hist.slice(-8).map(p => p[1]), col, 110, 28) : '';
+    return `<div class="hp-mover" onclick="openCompany('${co.sym}')">
+     <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+      <div class="hp-mover-ico">${co.sym.slice(0,4)}</div>
+      <div style="flex:1;min-width:0">
+       <div style="font-size:11px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${coName}</div>
+       <div style="font-size:9px;color:var(--ink4);font-family:var(--font-mono)">${co.sym}</div>
+      </div>
+     </div>
+     ${spark}
+     <div style="display:flex;justify-content:space-between;align-items:center;margin-top:6px">
+      <span style="font-family:var(--font-mono);font-size:13px;font-weight:700">${co.close.toFixed(3)}</span>
+      ${deltaHtml(co.pct)}
+     </div>
+    </div>`;
+   }).join('');
+  }
+ }
+
+ // ── Referral code ────────────────────────────────────────────────
+ const refCode = _sbProfile?.referral_code || null;
+ const refEl = document.getElementById('hp-ref-code-txt');
+ if (refEl && refCode) {
+  refEl.innerHTML = `<span style="color:var(--brand)">${refCode}</span>`;
+ }
+}
+
+/** Copy referral code to clipboard */
+function copyRefCode() {
+ const code = _sbProfile?.referral_code;
+ if (!code) { showAuthOverlay(); return; }
+ navigator.clipboard?.writeText(code).then(() => {
+  const el = document.getElementById('hp-ref-box');
+  if (el) { el.style.borderColor = 'var(--gr)'; setTimeout(() => el.style.borderColor = '', 1500); }
+ });
+}
+
+/** Show old market table page at /market */
+function navMarket() {
+ const rsisxVal = LIVE?.rsisx?.value ? Number(LIVE.rsisx.value).toLocaleString('en',{maximumFractionDigits:0}) : null;
+ const n = COMPANIES.filter(c=>c.close>0).length;
+ _setPageMeta(
+  `أسعار أسهم بورصة العراق${rsisxVal?' — RSISX '+rsisxVal:''} | ISX Market`,
+  `أسعار ${n} سهم عراقي مباشرة في بورصة العراق. Iraq Stock Exchange live prices.`,
+  'https://iraqsm.com/market'
+ );
+ history.pushState({},'','/market');
+ showPage('v1');
+ window.scrollTo({top:0});
+}
+
+/** Placeholder nav functions — pages to be built in subsequent PRs */
+function navSpin()     { /* PR 3 */ }
+function navRefer()    { /* PR 6 */ }
+function navLearn()    { /* PR Learn */ }
+function navResearch() { navCharts(); } // research = charts page for now
+function navAnalysis() { /* PR Analysis */ }
+
 function navHome(){
  const rsisxVal = LIVE?.rsisx?.value ? Number(LIVE.rsisx.value).toLocaleString('en',{maximumFractionDigits:0}) : null;
  const n  = COMPANIES.filter(c=>c.close>0).length;
@@ -3967,6 +4581,7 @@ function navHome(){
  const desc  = `بورصة العراق للأوراق المالية (ISX) — أسعار ${n} سهم عراقي مباشرة${rsisxVal?`. مؤشر ربيع RSISX: ${rsisxVal}`:''}, ${up} شركة صاعدة و${dn} شركة هابطة اليوم. سوق العراق للأوراق المالية: أسعار الأسهم العراقية، القطاعات، والمخططات. Iraq Stock Exchange live prices.`;
  _setPageMeta(title, desc, 'https://iraqsm.com/');
  history.pushState({},'','/'); showPage('home');
+ buildHomepage();
 }
 
 function navFX(){
@@ -3999,7 +4614,7 @@ function route(){
  const _sp=sessionStorage.getItem('spaPath');
  if(_sp){ sessionStorage.removeItem('spaPath'); history.replaceState({},'',_sp); }
  let p=location.pathname;
- if(p==='/en'||p==='/en/'){ applyLang('en'); history.replaceState({},'','/en'); showPage('home'); return; }
+ if(p==='/en'||p==='/en/'){ applyLang('en'); history.replaceState({},'','/en'); showPage('home'); buildHomepage(); return; }
  const m=p.match(/^\/c\/([A-Za-z0-9]+)$/);
  if(m){ if(COMPANIES.find(c=>c.sym===m[1])) openCompany(m[1]); else showPage('notfound'); return; }
  if(p==='/fx'){ navFX(); return; }
@@ -4007,7 +4622,8 @@ function route(){
  if(mc){ chartsItem=mc[1]||'mcap'; navCharts(chartsItem); return; }
  const ms=p.match(/^\/sector\/([A-Z]+)$/);
  if(ms&&SECTORS.find(s=>s.id===ms[1])){ activeSector=ms[1]; navSector(ms[1]); return; }
- if(p==='/'||p===''){ showPage('home'); return; }
+ if(p==='/market'){ navMarket(); return; }
+ if(p==='/'||p===''){ showPage('home'); buildHomepage(); return; }
  showPage('notfound');
 }
 window.addEventListener('popstate', route);
@@ -4135,6 +4751,8 @@ document.addEventListener('DOMContentLoaded',()=>{
  fetchLive();
  setInterval(fetchLive,1800000); // refresh every 30 minutes
  route();
+ // Build homepage after route() — wheel SVG is rendered here first time
+ setTimeout(buildHomepage, 0);
 });
 </script>
 </body>
