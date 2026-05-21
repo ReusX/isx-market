@@ -511,31 +511,68 @@ footer{background:var(--bg2);border-top:1px solid var(--border);padding:44px 24p
 </style>
 <style>
 /* ── AUTH MODAL ─────────────────────────────────────────────── */
-.auth-overlay{display:none;position:fixed;inset:0;z-index:6000;background:rgba(0,0,0,.72);backdrop-filter:blur(6px);align-items:center;justify-content:center;padding:16px}
-.auth-overlay.open{display:flex}
-.auth-card{background:var(--bg2);border:1px solid var(--border);border-radius:20px;width:100%;max-width:420px;padding:32px 28px;position:relative;box-shadow:0 24px 60px rgba(0,0,0,.5)}
-.auth-close{position:absolute;top:16px;right:16px;background:none;border:none;color:var(--t3);cursor:pointer;font-size:18px;line-height:1;padding:4px 8px;border-radius:6px}
-.auth-close:hover{background:var(--bg3);color:var(--t1)}
-.auth-logo{display:flex;align-items:center;gap:10px;margin-bottom:24px}
-.auth-logo .logo-icon{width:38px;height:38px;font-size:20px;flex-shrink:0}
-.auth-logo-name{font-size:15px;font-weight:700;color:var(--t1);line-height:1.2}
-.auth-logo-sub{font-size:11px;color:var(--t3)}
-.auth-tabs{display:flex;gap:4px;background:var(--bg3);border-radius:10px;padding:4px;margin-bottom:24px}
-.auth-tab{flex:1;padding:8px;border:none;background:none;color:var(--t2);border-radius:7px;cursor:pointer;font-size:13px;font-weight:600;font-family:inherit;transition:all .2s}
-.auth-tab.active{background:var(--ac);color:#fff}
-.auth-field{margin-bottom:14px}
-.auth-field label{display:block;font-size:11px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.4px;margin-bottom:6px}
-.auth-field input{width:100%;background:var(--bg3);border:1px solid var(--border);color:var(--t1);padding:11px 13px;border-radius:9px;font-size:14px;font-family:inherit;outline:none;box-sizing:border-box;transition:border-color .2s}
-.auth-field input:focus{border-color:var(--ac)}
-.auth-field input::placeholder{color:var(--t3)}
-.auth-err{font-size:12px;color:var(--rd);background:rgba(234,57,67,.08);border:1px solid rgba(234,57,67,.2);border-radius:7px;padding:8px 10px;margin-bottom:12px;display:none}
-.auth-ok{font-size:12px;color:var(--gr);background:rgba(22,199,132,.08);border:1px solid rgba(22,199,132,.2);border-radius:7px;padding:8px 10px;margin-bottom:12px;display:none}
-.auth-submit{width:100%;background:var(--ac);color:#fff;border:none;padding:12px;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;margin-top:4px;transition:opacity .2s}
-.auth-submit:hover{opacity:.88}
-.auth-submit:disabled{opacity:.5;cursor:not-allowed}
-.auth-switch{text-align:center;margin-top:16px;font-size:12px;color:var(--t3)}
-.auth-switch button{background:none;border:none;color:var(--ac);font-weight:700;cursor:pointer;font-size:12px;font-family:inherit;padding:0 4px}
-.og-notice{background:linear-gradient(135deg,rgba(56,97,251,.12),rgba(56,97,251,.04));border:1px solid rgba(56,97,251,.3);border-radius:9px;padding:10px 12px;margin-bottom:14px;font-size:12px;color:var(--ac);display:flex;gap:8px;align-items:center}
+/* ── FULL-PAGE AUTH ─────────────────────────────────────────────────────── */
+#auth-overlay{display:none;position:fixed;inset:0;z-index:6000;flex-direction:column;background:#0B0E14;overflow-y:auto}
+#auth-overlay.open{display:flex}
+#auth-overlay *{box-sizing:border-box}
+.auth-nav{flex:0 0 auto;padding:16px 28px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid rgba(255,255,255,0.07);background:rgba(11,14,20,0.85);backdrop-filter:blur(10px);position:sticky;top:0;z-index:2}
+.auth-nav-brand{display:flex;align-items:center;gap:11px;text-decoration:none;color:#fff;font-weight:600;font-size:15px}
+.auth-nav-links{display:flex;gap:22px;font-size:13px}
+.auth-nav-links a{color:rgba(255,255,255,0.55);text-decoration:none;transition:color .15s}
+.auth-nav-links a:hover{color:#fff}
+.auth-close-btn{background:none;border:1px solid rgba(255,255,255,0.12);color:rgba(255,255,255,0.55);cursor:pointer;font-size:15px;width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;transition:all .15s;font-family:inherit}
+.auth-close-btn:hover{background:rgba(255,255,255,0.06);color:#fff;border-color:rgba(255,255,255,0.2)}
+.auth-body{flex:1;position:relative;display:flex;align-items:center;justify-content:center;padding:40px 20px}
+.auth-backdrop{position:absolute;inset:0;pointer-events:none;z-index:0}
+.auth-stack{position:relative;z-index:1;width:100%;max-width:760px;display:flex;flex-direction:column;align-items:center;gap:28px}
+.auth-card-wrap{width:440px;max-width:100%;background:#11151E;border:1px solid rgba(255,255,255,0.08);border-radius:18px;padding:36px 32px 28px;box-shadow:0 24px 60px -20px rgba(0,0,0,0.65)}
+.auth-card-head{display:flex;justify-content:center;margin-bottom:20px}
+.auth-card-h1{font-size:24px;font-weight:600;text-align:center;margin:0 0 6px;color:#fff;letter-spacing:-.01em}
+.auth-card-sub{font-size:13px;color:rgba(255,255,255,0.42);text-align:center;margin:0 0 24px;line-height:1.5}
+.auth-tabs{display:flex;gap:4px;background:rgba(255,255,255,0.05);border-radius:10px;padding:4px;margin-bottom:24px}
+.auth-tab{flex:1;padding:8px;border:none;background:none;color:rgba(255,255,255,0.48);border-radius:7px;cursor:pointer;font-size:13px;font-weight:600;font-family:inherit;transition:all .2s}
+.auth-tab.active{background:#4F6BFF;color:#fff}
+.auth-field-new{display:block;margin-bottom:15px}
+.auth-field-new .auth-lbl{display:block;font-size:12px;color:rgba(255,255,255,0.62);margin-bottom:6px;font-weight:500}
+.auth-field-new .auth-input-wrap{position:relative}
+.auth-field-new input{width:100%;padding:12px 14px;background:#0a0d13;border:1px solid rgba(255,255,255,0.09);border-radius:10px;color:#fff;font-family:inherit;font-size:14px;outline:none;transition:border-color .15s,box-shadow .15s}
+.auth-field-new input::placeholder{color:rgba(255,255,255,0.28)}
+.auth-field-new input:focus{border-color:#4F6BFF;box-shadow:0 0 0 3px rgba(79,107,255,0.18)}
+.auth-field-new .auth-inp-icon{position:absolute;top:50%;transform:translateY(-50%);color:rgba(255,255,255,0.32);display:flex;align-items:center;pointer-events:none}
+html[dir="ltr"] .auth-field-new .auth-inp-icon{left:13px}
+html[dir="rtl"] .auth-field-new .auth-inp-icon{right:13px}
+html[dir="ltr"] .auth-field-new input.has-icon{padding-left:42px}
+html[dir="rtl"] .auth-field-new input.has-icon{padding-right:42px}
+.auth-row-between{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+.auth-checkbox{display:inline-flex;align-items:center;gap:8px;font-size:12px;color:rgba(255,255,255,0.58);cursor:pointer;user-select:none}
+.auth-checkbox input{display:none}
+.auth-checkbox .auth-box{width:16px;height:16px;border-radius:4px;border:1px solid rgba(255,255,255,0.15);background:#0a0d13;display:inline-block;position:relative;transition:background .15s,border-color .15s}
+.auth-checkbox input:checked+.auth-box{background:#4F6BFF;border-color:#4F6BFF}
+.auth-checkbox input:checked+.auth-box::after{content:'';position:absolute;inset:3px;background:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='4' stroke-linecap='round' stroke-linejoin='round'><polyline points='20 6 9 17 4 12'/></svg>") center/contain no-repeat}
+.auth-link{font-size:12px;color:#4F6BFF;text-decoration:none;font-weight:500}
+.auth-link:hover{text-decoration:underline}
+.auth-btn-primary{width:100%;padding:13px 16px;background:#4F6BFF;border:0;border-radius:10px;color:#fff;font-family:inherit;font-size:15px;font-weight:600;cursor:pointer;box-shadow:0 8px 24px -8px rgba(79,107,255,0.5);transition:background .15s,transform .05s;margin-bottom:16px}
+.auth-btn-primary:hover{background:#5d77ff}
+.auth-btn-primary:active{transform:translateY(1px)}
+.auth-btn-primary:disabled{opacity:.5;cursor:not-allowed}
+.auth-social-row{display:flex;gap:10px;margin-bottom:4px}
+.auth-btn-social{flex:1;padding:10px 12px;background:transparent;border:1px solid rgba(255,255,255,0.1);border-radius:10px;color:#fff;display:flex;align-items:center;justify-content:center;gap:9px;font-family:inherit;font-size:13px;font-weight:500;cursor:pointer;transition:background .15s,border-color .15s}
+.auth-btn-social:hover{background:rgba(255,255,255,0.04);border-color:rgba(255,255,255,0.18)}
+.auth-or{display:flex;align-items:center;gap:14px;margin-bottom:16px}
+.auth-or .auth-or-line{flex:1;height:1px;background:rgba(255,255,255,0.08)}
+.auth-or .auth-or-lbl{font-size:12px;color:rgba(255,255,255,0.32)}
+.auth-err{font-size:12px;color:#EF4444;background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.2);border-radius:7px;padding:8px 10px;margin-bottom:12px;display:none}
+.auth-ok{font-size:12px;color:#22C55E;background:rgba(34,197,94,0.08);border:1px solid rgba(34,197,94,0.2);border-radius:7px;padding:8px 10px;margin-bottom:12px;display:none}
+.og-notice{background:linear-gradient(135deg,rgba(79,107,255,.12),rgba(79,107,255,.04));border:1px solid rgba(79,107,255,.3);border-radius:9px;padding:10px 12px;margin-bottom:16px;font-size:12px;color:#7B8FFF;display:flex;gap:8px;align-items:center}
+.auth-card-foot{margin-top:22px;padding-top:18px;border-top:1px solid rgba(255,255,255,0.07);font-size:13px;color:rgba(255,255,255,0.38);text-align:center}
+.auth-card-foot button{background:none;border:none;color:#4F6BFF;font-weight:600;cursor:pointer;font-size:13px;font-family:inherit;padding:0 3px}
+.auth-card-foot button:hover{text-decoration:underline}
+.auth-bullets{width:100%;max-width:720px;display:grid;grid-template-columns:repeat(4,1fr);gap:18px;padding:4px}
+.auth-bullet{display:flex;gap:12px;align-items:flex-start}
+.auth-bullet-check{flex:0 0 auto;width:26px;height:26px;border-radius:7px;background:rgba(79,107,255,0.15);border:1px solid rgba(79,107,255,0.35);display:flex;align-items:center;justify-content:center;margin-top:2px}
+.auth-bullet-title{font-size:13px;font-weight:600;color:rgba(255,255,255,0.85);line-height:1.3}
+@media(max-width:720px){.auth-nav{padding:12px 16px}.auth-nav-links{display:none}.auth-bullets{grid-template-columns:1fr 1fr}.auth-card-wrap{padding:28px 20px 22px}}
+@media(max-width:420px){.auth-bullets{grid-template-columns:1fr}}
 /* ── USER AVATAR NAV ────────────────────────────────────────── */
 .user-av-wrap{position:relative}
 .user-av-btn{width:32px;height:32px;border-radius:50%;background:var(--ac);color:#fff;border:none;cursor:pointer;font-size:13px;font-weight:800;font-family:inherit;display:flex;align-items:center;justify-content:center;flex-shrink:0}
@@ -1366,71 +1403,174 @@ footer{background:var(--bg2);border-top:1px solid var(--border);padding:44px 24p
 <!-- ═══════════════════════════════════════════════════════════ -->
 <!-- AUTH MODAL                                                   -->
 <!-- ═══════════════════════════════════════════════════════════ -->
-<div class="auth-overlay" id="auth-overlay" onclick="if(event.target===this)closeAuthModal()">
- <div class="auth-card">
-  <button class="auth-close" onclick="closeAuthModal()">✕</button>
-  <div class="auth-logo">
-   <div class="logo-icon" style="width:38px;height:38px"><img src="/favicon-192.png" alt="ISX Market" style="width:38px;height:38px"></div>
-   <div><div class="auth-logo-name">ISX Market</div><div class="auth-logo-sub">بورصة العراق للأوراق المالية</div></div>
-  </div>
-  <div class="auth-tabs">
-   <button class="auth-tab active" data-tab="login" onclick="setAuthTab('login')"><span class="ar">دخول</span><span class="en">Login</span></button>
-   <button class="auth-tab" data-tab="signup" onclick="setAuthTab('signup')"><span class="ar">حساب جديد</span><span class="en">Sign Up</span></button>
-  </div>
+<div id="auth-overlay">
+ <!-- Sticky Nav -->
+ <header class="auth-nav">
+  <a class="auth-nav-brand" href="/" onclick="closeAuthModal();return false;">
+   <img src="/favicon-192.png" alt="ISX Market" style="width:30px;height:30px;border-radius:8px">
+   <span class="ar">بورصة العراق</span><span class="en">ISX Market</span>
+  </a>
+  <nav class="auth-nav-links">
+   <a href="/charts" onclick="closeAuthModal()" class="ar">المخططات</a>
+   <a href="/charts" onclick="closeAuthModal()" class="en">Charts</a>
+   <a href="/sector/BANK" onclick="closeAuthModal()" class="ar">القطاعات</a>
+   <a href="/sector/BANK" onclick="closeAuthModal()" class="en">Sectors</a>
+  </nav>
+  <button class="auth-close-btn" onclick="closeAuthModal()">✕</button>
+ </header>
 
-  <!-- LOGIN FORM -->
-  <div id="auth-login-form">
-   <div class="auth-field">
-    <label><span class="ar">البريد الإلكتروني</span><span class="en">Email</span></label>
-    <input type="email" id="login-email" autocomplete="email" onkeydown="if(event.key==='Enter')doSignIn()">
-   </div>
-   <div class="auth-field">
-    <label><span class="ar">كلمة المرور</span><span class="en">Password</span></label>
-    <input type="password" id="login-pass" autocomplete="current-password" onkeydown="if(event.key==='Enter')doSignIn()">
-   </div>
-   <div class="auth-err" id="login-err"></div>
-   <button class="auth-submit" id="login-submit" onclick="doSignIn()">
-    <span class="ar">دخول</span><span class="en">Sign In</span>
-   </button>
-   <div class="auth-switch">
-    <span class="ar">ليس لديك حساب؟ </span><span class="en">No account? </span>
-    <button onclick="setAuthTab('signup')"><span class="ar">إنشاء حساب</span><span class="en">Sign Up</span></button>
-   </div>
-  </div>
+ <!-- Main body -->
+ <main class="auth-body">
+  <!-- Animated chart-line backdrop -->
+  <svg class="auth-backdrop" viewBox="0 0 1100 760" preserveAspectRatio="none">
+   <defs>
+    <linearGradient id="authCF" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#4F6BFF" stop-opacity="0.18"/><stop offset="100%" stop-color="#4F6BFF" stop-opacity="0"/></linearGradient>
+    <linearGradient id="authLF" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#4F6BFF" stop-opacity="0"/><stop offset="40%" stop-color="#4F6BFF" stop-opacity="0.4"/><stop offset="60%" stop-color="#22C55E" stop-opacity="0.4"/><stop offset="100%" stop-color="#22C55E" stop-opacity="0"/></linearGradient>
+   </defs>
+   <g stroke="rgba(255,255,255,0.03)" stroke-width="1">
+    <path d="M0 150 H1100 M0 300 H1100 M0 450 H1100 M0 600 H1100"/>
+    <path d="M150 0 V760 M300 0 V760 M450 0 V760 M600 0 V760 M750 0 V760 M900 0 V760"/>
+   </g>
+   <path d="M0 580 L80 540 L160 560 L240 480 L320 510 L400 420 L480 460 L560 370 L640 410 L720 320 L800 360 L880 280 L960 310 L1040 230 L1100 270" stroke="url(#authLF)" stroke-width="1.5" fill="none" opacity="0.7"/>
+   <path d="M0 580 L80 540 L160 560 L240 480 L320 510 L400 420 L480 460 L560 370 L640 410 L720 320 L800 360 L880 280 L960 310 L1040 230 L1100 270 L1100 760 L0 760 Z" fill="url(#authCF)" opacity="0.5"/>
+  </svg>
 
-  <!-- SIGNUP FORM -->
-  <div id="auth-signup-form" style="display:none">
-   <div class="og-notice">
-    <span>⚡</span>
-    <span><span class="ar">أول 200 مستخدم يحصل على شارة OG حصرية!</span><span class="en">First 200 users get an exclusive OG badge!</span></span>
+  <div class="auth-stack">
+   <!-- Auth card -->
+   <section class="auth-card-wrap">
+
+    <!-- Logo -->
+    <div class="auth-card-head">
+     <img src="/favicon-192.png" alt="ISX Market" style="width:48px;height:48px;border-radius:13px">
+    </div>
+
+    <!-- Login / Signup tabs -->
+    <div class="auth-tabs">
+     <button class="auth-tab active" data-tab="login" onclick="setAuthTab('login')"><span class="ar">دخول</span><span class="en">Login</span></button>
+     <button class="auth-tab" data-tab="signup" onclick="setAuthTab('signup')"><span class="ar">حساب جديد</span><span class="en">Sign Up</span></button>
+    </div>
+
+    <!-- ── LOGIN FORM ── -->
+    <div id="auth-login-form">
+     <h1 class="auth-card-h1"><span class="ar">مرحباً بعودتك</span><span class="en">Welcome back</span></h1>
+     <p class="auth-card-sub"><span class="ar">سجل دخولك لمتابعة سوق العراق</span><span class="en">Sign in to track the Iraq market</span></p>
+
+     <label class="auth-field-new">
+      <span class="auth-lbl"><span class="ar">البريد الإلكتروني</span><span class="en">Email</span></span>
+      <div class="auth-input-wrap">
+       <span class="auth-inp-icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-10 5L2 7"/></svg></span>
+       <input class="has-icon" type="email" id="login-email" autocomplete="email" placeholder="you@example.com" onkeydown="if(event.key==='Enter')doSignIn()">
+      </div>
+     </label>
+
+     <label class="auth-field-new">
+      <span class="auth-lbl"><span class="ar">كلمة المرور</span><span class="en">Password</span></span>
+      <div class="auth-input-wrap">
+       <span class="auth-inp-icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></span>
+       <input class="has-icon" type="password" id="login-pass" autocomplete="current-password" placeholder="••••••••" onkeydown="if(event.key==='Enter')doSignIn()">
+      </div>
+     </label>
+
+     <div class="auth-row-between">
+      <label class="auth-checkbox">
+       <input type="checkbox" name="remember">
+       <span class="auth-box"></span>
+       <span class="ar">تذكرني</span><span class="en">Remember me</span>
+      </label>
+      <a class="auth-link" href="#"><span class="ar">نسيت كلمة المرور؟</span><span class="en">Forgot password?</span></a>
+     </div>
+
+     <div class="auth-err" id="login-err"></div>
+     <button class="auth-btn-primary" id="login-submit" onclick="doSignIn()">
+      <span class="ar">تسجيل الدخول</span><span class="en">Sign In</span>
+     </button>
+
+     <div class="auth-or"><span class="auth-or-line"></span><span class="auth-or-lbl"><span class="ar">أو تابع باستخدام</span><span class="en">or continue with</span></span><span class="auth-or-line"></span></div>
+     <div class="auth-social-row">
+      <button type="button" class="auth-btn-social">
+       <svg width="16" height="16" viewBox="0 0 18 18"><path d="M17.64 9.2c0-.64-.06-1.25-.16-1.84H9v3.48h4.84c-.21 1.12-.84 2.07-1.78 2.7v2.25h2.88c1.68-1.55 2.66-3.84 2.66-6.59z" fill="#4285F4"/><path d="M9 18c2.43 0 4.46-.8 5.95-2.18l-2.88-2.25c-.8.54-1.82.86-3.07.86-2.36 0-4.36-1.59-5.07-3.73H.96v2.32C2.44 15.98 5.48 18 9 18z" fill="#34A853"/><path d="M3.93 10.7c-.18-.54-.28-1.12-.28-1.7s.1-1.16.28-1.7V4.98H.96C.35 6.18 0 7.55 0 9s.35 2.82.96 4.02l2.97-2.32z" fill="#FBBC05"/><path d="M9 3.58c1.32 0 2.51.45 3.44 1.35l2.58-2.58C13.46.89 11.43 0 9 0 5.48 0 2.44 2.02.96 4.98l2.97 2.32C4.64 5.16 6.64 3.58 9 3.58z" fill="#EA4335"/></svg>
+       <span>Google</span>
+      </button>
+      <button type="button" class="auth-btn-social">
+       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+       <span class="ar">رقم الهاتف</span><span class="en">Phone</span>
+      </button>
+     </div>
+
+     <div class="auth-card-foot">
+      <span class="ar">ليس لديك حساب؟ </span><span class="en">No account? </span>
+      <button onclick="setAuthTab('signup')"><span class="ar">إنشاء حساب</span><span class="en">Sign Up</span></button>
+     </div>
+    </div>
+
+    <!-- ── SIGNUP FORM ── -->
+    <div id="auth-signup-form" style="display:none">
+     <h1 class="auth-card-h1"><span class="ar">إنشئ حسابك</span><span class="en">Create your account</span></h1>
+     <p class="auth-card-sub"><span class="ar">ابدأ تتبع سوق العراق للأوراق المالية</span><span class="en">Start tracking the Iraq Stock Exchange</span></p>
+
+     <div class="og-notice">⚡ <span><span class="ar">أول 200 مستخدم يحصل على شارة OG حصرية!</span><span class="en">First 200 users get an exclusive OG badge!</span></span></div>
+
+     <label class="auth-field-new">
+      <span class="auth-lbl"><span class="ar">اسم المستخدم</span><span class="en">Username</span></span>
+      <div class="auth-input-wrap">
+       <span class="auth-inp-icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></span>
+       <input class="has-icon" type="text" id="signup-username" autocomplete="username" placeholder="ahmed123">
+      </div>
+     </label>
+
+     <label class="auth-field-new">
+      <span class="auth-lbl"><span class="ar">البريد الإلكتروني</span><span class="en">Email</span></span>
+      <div class="auth-input-wrap">
+       <span class="auth-inp-icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-10 5L2 7"/></svg></span>
+       <input class="has-icon" type="email" id="signup-email" autocomplete="email" placeholder="you@example.com">
+      </div>
+     </label>
+
+     <label class="auth-field-new">
+      <span class="auth-lbl"><span class="ar">كلمة المرور</span><span class="en">Password</span></span>
+      <div class="auth-input-wrap">
+       <span class="auth-inp-icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></span>
+       <input class="has-icon" type="password" id="signup-pass" autocomplete="new-password" placeholder="••••••••">
+      </div>
+     </label>
+
+     <label class="auth-field-new">
+      <span class="auth-lbl"><span class="ar">تأكيد كلمة المرور</span><span class="en">Confirm Password</span></span>
+      <div class="auth-input-wrap">
+       <span class="auth-inp-icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></span>
+       <input class="has-icon" type="password" id="signup-pass2" autocomplete="new-password" placeholder="••••••••" onkeydown="if(event.key==='Enter')doSignUp()">
+      </div>
+     </label>
+
+     <div class="auth-err" id="signup-err"></div>
+     <div class="auth-ok" id="signup-ok"></div>
+     <button class="auth-btn-primary" id="signup-submit" onclick="doSignUp()">
+      <span class="ar">إنشاء حساب</span><span class="en">Create Account</span>
+     </button>
+
+     <p style="font-size:11px;color:rgba(255,255,255,0.28);text-align:center;margin:0 0 4px;line-height:1.6">
+      <span class="ar">بإنشائك حساب، فإنك توافق على <a href="#" style="color:rgba(255,255,255,0.45)">شروط الخدمة</a> و<a href="#" style="color:rgba(255,255,255,0.45)">سياسة الخصوصية</a></span>
+      <span class="en">By signing up you agree to our <a href="#" style="color:rgba(255,255,255,0.45)">Terms</a> and <a href="#" style="color:rgba(255,255,255,0.45)">Privacy Policy</a></span>
+     </p>
+
+     <div class="auth-card-foot">
+      <span class="ar">لديك حساب بالفعل؟ </span><span class="en">Have an account? </span>
+      <button onclick="setAuthTab('login')"><span class="ar">تسجيل الدخول</span><span class="en">Sign In</span></button>
+     </div>
+    </div>
+
+   </section>
+
+   <!-- Marketing bullets -->
+   <div class="auth-bullets">
+    <div class="auth-bullet"><span class="auth-bullet-check"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#4F6BFF" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span><span class="auth-bullet-title"><span class="ar">تتبع جميع الأسهم العراقية</span><span class="en">Track all Iraqi stocks</span></span></div>
+    <div class="auth-bullet"><span class="auth-bullet-check"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#4F6BFF" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span><span class="auth-bullet-title"><span class="ar">قوائم مراقبة مخصصة</span><span class="en">Custom watchlists</span></span></div>
+    <div class="auth-bullet"><span class="auth-bullet-check"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#4F6BFF" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span><span class="auth-bullet-title"><span class="ar">تنبيهات الأسعار الفورية</span><span class="en">Real-time price alerts</span></span></div>
+    <div class="auth-bullet"><span class="auth-bullet-check"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#4F6BFF" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span><span class="auth-bullet-title"><span class="ar">تحليلات ومخططات احترافية</span><span class="en">Professional charts &amp; analytics</span></span></div>
    </div>
-   <div class="auth-field">
-    <label><span class="ar">اسم المستخدم</span><span class="en">Username</span></label>
-    <input type="text" id="signup-username" autocomplete="username" placeholder="ahmed123">
-   </div>
-   <div class="auth-field">
-    <label><span class="ar">البريد الإلكتروني</span><span class="en">Email</span></label>
-    <input type="email" id="signup-email" autocomplete="email">
-   </div>
-   <div class="auth-field">
-    <label><span class="ar">كلمة المرور</span><span class="en">Password</span></label>
-    <input type="password" id="signup-pass" autocomplete="new-password">
-   </div>
-   <div class="auth-field">
-    <label><span class="ar">تأكيد كلمة المرور</span><span class="en">Confirm Password</span></label>
-    <input type="password" id="signup-pass2" autocomplete="new-password" onkeydown="if(event.key==='Enter')doSignUp()">
-   </div>
-   <div class="auth-err" id="signup-err"></div>
-   <div class="auth-ok" id="signup-ok"></div>
-   <button class="auth-submit" id="signup-submit" onclick="doSignUp()">
-    <span class="ar">إنشاء حساب</span><span class="en">Create Account</span>
-   </button>
-   <div class="auth-switch">
-    <span class="ar">لديك حساب؟ </span><span class="en">Have an account? </span>
-    <button onclick="setAuthTab('login')"><span class="ar">دخول</span><span class="en">Sign In</span></button>
-   </div>
+
   </div>
- </div>
+ </main>
 </div>
 
 <button class="scroll-top" id="scroll-top" onclick="window.scrollTo({top:0,behavior:'smooth'})">↑</button>
@@ -3277,7 +3417,7 @@ async function doSignIn() {
  } catch(e) {
   _showMsg('login-err', e.message || 'Login failed. Please try again.');
  } finally {
-  if (btn) { btn.disabled = false; btn.innerHTML = '<span class="ar">دخول</span><span class="en">Sign In</span>'; }
+  if (btn) { btn.disabled = false; btn.innerHTML = '<span class="ar">تسجيل الدخول</span><span class="en">Sign In</span>'; }
  }
 }
 
