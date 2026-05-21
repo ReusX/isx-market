@@ -1,0 +1,40 @@
+{
+  "rewrites": [
+    { "source": "/en",               "destination": "/index.html" },
+    { "source": "/market",           "destination": "/index.html" },
+    { "source": "/fx",               "destination": "/index.html" },
+    { "source": "/charts",           "destination": "/index.html" },
+    { "source": "/charts/:path*",    "destination": "/index.html" },
+    { "source": "/c/:sym",           "destination": "/index.html" },
+    { "source": "/sector/:id",       "destination": "/index.html" },
+    { "source": "/rewards/:path*",   "destination": "/index.html" },
+    { "source": "/wallet",           "destination": "/index.html" },
+    { "source": "/refer",            "destination": "/index.html" },
+    { "source": "/profile",          "destination": "/index.html" },
+    { "source": "/leaderboard",      "destination": "/index.html" },
+    { "source": "/quests",           "destination": "/index.html" },
+    { "source": "/tiers",            "destination": "/index.html" },
+    { "source": "/learn",            "destination": "/index.html" },
+    { "source": "/analysis",         "destination": "/index.html" }
+  ],
+  "headers": [
+    {
+      "source": "/data/(.*)",
+      "headers": [
+        { "key": "Cache-Control", "value": "public, max-age=1800, stale-while-revalidate=3600" }
+      ]
+    },
+    {
+      "source": "/fonts/(.*)",
+      "headers": [
+        { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }
+      ]
+    },
+    {
+      "source": "/favicon(.*)",
+      "headers": [
+        { "key": "Cache-Control", "value": "public, max-age=86400" }
+      ]
+    }
+  ]
+}
