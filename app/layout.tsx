@@ -29,6 +29,9 @@ export const metadata: Metadata = {
   title: 'بورصة العراق | ISX Market',
   description: 'أسعار أسهم بورصة العراق للأوراق المالية (ISX) مباشرة — مؤشر ربيع RSISX، المخططات، والقطاعات. Iraq Stock Exchange live prices.',
   metadataBase: new URL('https://iraqsm.com'),
+  alternates: {
+    canonical: 'https://iraqsm.com',
+  },
   openGraph: {
     title: 'بورصة العراق | ISX Market',
     description: 'Live Iraq Stock Exchange prices, charts and analysis.',
