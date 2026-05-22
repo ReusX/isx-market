@@ -123,7 +123,7 @@ function AdvancedChart({
     s.current.rsiChart = rsiChart
 
     const rsiS = rsiChart.addLineSeries({
-      color: '#A855F7', lineWidth: 1.5, priceLineVisible: false, lastValueVisible: true,
+      color: '#A855F7', lineWidth: 2 as any, priceLineVisible: false, lastValueVisible: true,
       autoscaleInfoProvider: () => ({ priceRange: { minValue: 0, maxValue: 100 }, margins: { above: 0.08, below: 0.08 } }),
     })
     rsiS.setData(rsiData)
@@ -245,7 +245,7 @@ function AdvancedChart({
         const ma     = calcMA(state.closes, period)
         const maData = candles.map((c, i) => ma[i] != null ? { time: c.time, value: +ma[i]!.toFixed(4) } : null).filter(Boolean) as any[]
         if (!maData.length) continue
-        const ms = mainChart.addLineSeries({ color: mc, lineWidth: 1.5, priceLineVisible: false, lastValueVisible: true, crosshairMarkerVisible: false, title: label })
+        const ms = mainChart.addLineSeries({ color: mc, lineWidth: 2 as any, priceLineVisible: false, lastValueVisible: true, crosshairMarkerVisible: false, title: label })
         ms.setData(maData)
       }
 
