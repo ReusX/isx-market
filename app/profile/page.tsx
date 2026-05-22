@@ -35,7 +35,7 @@ export default function ProfilePage() {
   const nxt      = nextRank(rank)
 
   async function saveUsername() {
-    if (!username.trim() || username === profile.username) { setEditing(false); return }
+    if (!username.trim() || username === profile?.username) { setEditing(false); return }
     setSaving(true)
     await sb.from('profiles').update({ username: username.trim() }).eq('id', user.id)
     await refreshProfile()
