@@ -7,10 +7,10 @@ import { useApp } from '@/context/AppContext'
 import { fetchLive, fetchCompanyMeta, mergeCompanies, filterSort, fmtVol, fmtMcap, SECTORS, SORT_OPTIONS } from '@/lib/market'
 import type { Company } from '@/types'
 
-function CoLogo({ sym, color }: { sym: string; color?: string }) {
+function CoLogo({ sym, logo, color }: { sym: string; logo?: string; color?: string }) {
   const [err, setErr] = useState(false)
-  if (!err) return (
-    <img src={`https://isc.gov.iq/Uploads/Companies/${sym}.png`} alt={sym}
+  if (logo && !err) return (
+    <img src={logo} alt={sym}
       width={28} height={28}
       style={{ borderRadius: 6, objectFit: 'contain', background: '#fff', padding: 2 }}
       onError={() => setErr(true)} />
@@ -151,7 +151,7 @@ export default function MarketPage() {
             >
               <span style={{ fontSize: 10, color: 'var(--ink4)', fontFamily: 'var(--font-mono)' }}>{i + 1}</span>
               <div style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
-                <CoLogo sym={co.sym} color={co.color} />
+                <CoLogo sym={co.sym} logo={co.logo} color={co.color} />
                 <div>
                   <div style={{ fontSize: 12, fontWeight: 700 }}>{ar ? co.ar : co.en}</div>
                   <div style={{ display: 'flex', gap: 5, alignItems: 'center' }}>
