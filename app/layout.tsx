@@ -15,16 +15,42 @@ const inter = Inter({
   display: 'swap',
 })
 
-const thmanyah = localFont({
+// Thmanyah Sans — primary UI font for all Arabic text
+const thmanyahSans = localFont({
   src: [
-    { path: '../fonts/ThmanyahText-400-normal.woff2',    weight: '400', style: 'normal' },
-    { path: '../fonts/ThmanyahText-500-normal.woff2',    weight: '500', style: 'normal' },
-    { path: '../fonts/ThmanyahText-700-normal.woff2',    weight: '700', style: 'normal' },
-    { path: '../fonts/ThmanyahDisplay-400-normal.woff2', weight: '400', style: 'normal' },
-    { path: '../fonts/ThmanyahDisplay-700-normal.woff2', weight: '700', style: 'normal' },
-    { path: '../fonts/ThmanyahDisplay-900-normal.woff2', weight: '900', style: 'normal' },
+    { path: '../fonts/thmanyahsans-Light.woff2',   weight: '300', style: 'normal' },
+    { path: '../fonts/thmanyahsans-Regular.woff2', weight: '400', style: 'normal' },
+    { path: '../fonts/thmanyahsans-Medium.woff2',  weight: '500', style: 'normal' },
+    { path: '../fonts/thmanyahsans-Bold.woff2',    weight: '700', style: 'normal' },
+    { path: '../fonts/thmanyahsans-Black.woff2',   weight: '900', style: 'normal' },
   ],
   variable: '--font-thmanyah',
+  display: 'swap',
+})
+
+// Thmanyah Serif Text — for long-form Arabic body text (news, articles, about)
+const thmanyahSerifText = localFont({
+  src: [
+    { path: '../fonts/thmanyahseriftext-Light.woff2',   weight: '300', style: 'normal' },
+    { path: '../fonts/thmanyahseriftext-Regular.woff2', weight: '400', style: 'normal' },
+    { path: '../fonts/thmanyahseriftext-Medium.woff2',  weight: '500', style: 'normal' },
+    { path: '../fonts/thmanyahseriftext-Bold.woff2',    weight: '700', style: 'normal' },
+    { path: '../fonts/thmanyahseriftext-Black.woff2',   weight: '900', style: 'normal' },
+  ],
+  variable: '--font-thmanyah-serif',
+  display: 'swap',
+})
+
+// Thmanyah Serif Display — for large Arabic headings
+const thmanyahSerifDisplay = localFont({
+  src: [
+    { path: '../fonts/thmanyahserifdisplay-Light.woff2',   weight: '300', style: 'normal' },
+    { path: '../fonts/thmanyahserifdisplay-Regular.woff2', weight: '400', style: 'normal' },
+    { path: '../fonts/thmanyahserifdisplay-Medium.woff2',  weight: '500', style: 'normal' },
+    { path: '../fonts/thmanyahserifdisplay-Bold.woff2',    weight: '700', style: 'normal' },
+    { path: '../fonts/thmanyahserifdisplay-Black.woff2',   weight: '900', style: 'normal' },
+  ],
+  variable: '--font-thmanyah-display',
   display: 'swap',
 })
 
@@ -57,7 +83,7 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="ar" dir="rtl" className={`${inter.variable} ${thmanyah.variable}`} suppressHydrationWarning>
+    <html lang="ar" dir="rtl" className={`${inter.variable} ${thmanyahSans.variable} ${thmanyahSerifText.variable} ${thmanyahSerifDisplay.variable}`} suppressHydrationWarning>
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />

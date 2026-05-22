@@ -35,6 +35,7 @@
   --ink2: rgba(255,255,255,0.72);
   --ink3: rgba(255,255,255,0.50);
   --ink4: rgba(255,255,255,0.32);
+  --ink5: rgba(255,255,255,0.18);
 
   /* Borders */
   --line:  rgba(255,255,255,0.08);
@@ -166,10 +167,27 @@ button { cursor: pointer; font-family: inherit; }
 a[href*="tradingview"] { display: none !important; }
 .tv-lightweight-charts a { display: none !important; }
 
-/* ── Arabic: Thmanyah font for ALL elements ── */
+/* ── Arabic: Thmanyah Sans for ALL UI elements ── */
 html[lang="ar"] * {
-  font-family: var(--font-thmanyah) !important;
+  font-family: var(--font-thmanyah), sans-serif !important;
 }
+
+/* Long-form Arabic body text (news articles, about page) → Thmanyah Serif Text */
+html[lang="ar"] .wp-content,
+html[lang="ar"] .wp-content p,
+html[lang="ar"] .wp-content li,
+html[lang="ar"] .prose-ar {
+  font-family: var(--font-thmanyah-serif), serif !important;
+}
+
+/* Large Arabic display headings → Thmanyah Serif Display */
+html[lang="ar"] .wp-content h1,
+html[lang="ar"] .wp-content h2,
+html[lang="ar"] .wp-content h3,
+html[lang="ar"] .display-ar {
+  font-family: var(--font-thmanyah-display), serif !important;
+}
+
 /* Preserve monospace for prices, codes, numbers */
 html[lang="ar"] .mono,
 html[lang="ar"] [style*="font-mono"],
