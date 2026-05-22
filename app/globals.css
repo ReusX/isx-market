@@ -2,10 +2,33 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ── Thmanyah Sans (UI font) ── */
+@font-face { font-family: 'ThmanyahSans'; src: url('/fonts/thmanyahsans-Light.woff2')   format('woff2'); font-weight: 300; font-style: normal; font-display: swap; }
+@font-face { font-family: 'ThmanyahSans'; src: url('/fonts/thmanyahsans-Regular.woff2') format('woff2'); font-weight: 400; font-style: normal; font-display: swap; }
+@font-face { font-family: 'ThmanyahSans'; src: url('/fonts/thmanyahsans-Medium.woff2')  format('woff2'); font-weight: 500; font-style: normal; font-display: swap; }
+@font-face { font-family: 'ThmanyahSans'; src: url('/fonts/thmanyahsans-Bold.woff2')    format('woff2'); font-weight: 700; font-style: normal; font-display: swap; }
+@font-face { font-family: 'ThmanyahSans'; src: url('/fonts/thmanyahsans-Black.woff2')   format('woff2'); font-weight: 900; font-style: normal; font-display: swap; }
+
+/* ── Thmanyah Serif Text (article body) ── */
+@font-face { font-family: 'ThmanyahSerifText'; src: url('/fonts/thmanyahseriftext-Light.woff2')   format('woff2'); font-weight: 300; font-style: normal; font-display: swap; }
+@font-face { font-family: 'ThmanyahSerifText'; src: url('/fonts/thmanyahseriftext-Regular.woff2') format('woff2'); font-weight: 400; font-style: normal; font-display: swap; }
+@font-face { font-family: 'ThmanyahSerifText'; src: url('/fonts/thmanyahseriftext-Medium.woff2')  format('woff2'); font-weight: 500; font-style: normal; font-display: swap; }
+@font-face { font-family: 'ThmanyahSerifText'; src: url('/fonts/thmanyahseriftext-Bold.woff2')    format('woff2'); font-weight: 700; font-style: normal; font-display: swap; }
+@font-face { font-family: 'ThmanyahSerifText'; src: url('/fonts/thmanyahseriftext-Black.woff2')   format('woff2'); font-weight: 900; font-style: normal; font-display: swap; }
+
+/* ── Thmanyah Serif Display (headings) ── */
+@font-face { font-family: 'ThmanyahSerifDisplay'; src: url('/fonts/thmanyahserifdisplay-Light.woff2')   format('woff2'); font-weight: 300; font-style: normal; font-display: swap; }
+@font-face { font-family: 'ThmanyahSerifDisplay'; src: url('/fonts/thmanyahserifdisplay-Regular.woff2') format('woff2'); font-weight: 400; font-style: normal; font-display: swap; }
+@font-face { font-family: 'ThmanyahSerifDisplay'; src: url('/fonts/thmanyahserifdisplay-Medium.woff2')  format('woff2'); font-weight: 500; font-style: normal; font-display: swap; }
+@font-face { font-family: 'ThmanyahSerifDisplay'; src: url('/fonts/thmanyahserifdisplay-Bold.woff2')    format('woff2'); font-weight: 700; font-style: normal; font-display: swap; }
+@font-face { font-family: 'ThmanyahSerifDisplay'; src: url('/fonts/thmanyahserifdisplay-Black.woff2')   format('woff2'); font-weight: 900; font-style: normal; font-display: swap; }
+
 :root {
-  --font-en:   'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-  --font-ar:   var(--font-thmanyah), sans-serif;
-  --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+  --font-en:              'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-ar:              'ThmanyahSans', var(--font-thmanyah), sans-serif;
+  --font-ar-serif:        'ThmanyahSerifText', var(--font-thmanyah-serif), serif;
+  --font-ar-display:      'ThmanyahSerifDisplay', var(--font-thmanyah-display), serif;
+  --font-mono:            'JetBrains Mono', ui-monospace, monospace;
 
   /* Brand */
   --brand:      #4F6BFF;
@@ -167,9 +190,10 @@ button { cursor: pointer; font-family: inherit; }
 a[href*="tradingview"] { display: none !important; }
 .tv-lightweight-charts a { display: none !important; }
 
-/* ── Arabic: Thmanyah Sans for ALL UI elements ── */
+/* ── Arabic: ThmanyahSans for ALL UI elements ── */
+html[lang="ar"],
 html[lang="ar"] * {
-  font-family: var(--font-thmanyah), sans-serif !important;
+  font-family: 'ThmanyahSans', var(--font-thmanyah), sans-serif !important;
 }
 
 /* Long-form Arabic body text (news articles, about page) → Thmanyah Serif Text */
@@ -177,7 +201,7 @@ html[lang="ar"] .wp-content,
 html[lang="ar"] .wp-content p,
 html[lang="ar"] .wp-content li,
 html[lang="ar"] .prose-ar {
-  font-family: var(--font-thmanyah-serif), serif !important;
+  font-family: 'ThmanyahSerifText', var(--font-thmanyah-serif), serif !important;
 }
 
 /* Large Arabic display headings → Thmanyah Serif Display */
@@ -185,7 +209,7 @@ html[lang="ar"] .wp-content h1,
 html[lang="ar"] .wp-content h2,
 html[lang="ar"] .wp-content h3,
 html[lang="ar"] .display-ar {
-  font-family: var(--font-thmanyah-display), serif !important;
+  font-family: 'ThmanyahSerifDisplay', var(--font-thmanyah-display), serif !important;
 }
 
 /* Preserve monospace for prices, codes, numbers */
@@ -194,5 +218,5 @@ html[lang="ar"] [style*="font-mono"],
 html[lang="ar"] code,
 html[lang="ar"] pre,
 html[lang="ar"] .wp-content pre {
-  font-family: var(--font-mono) !important;
+  font-family: 'JetBrains Mono', ui-monospace, monospace !important;
 }

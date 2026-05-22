@@ -43,7 +43,7 @@ export default function Footer() {
             {/* Social */}
             <div style={{ display: 'flex', gap: 10, marginTop: 16 }}>
               <a
-                href="https://www.instagram.com/iraqsm"
+                href="https://www.instagram.com/iraqsmcom"
                 target="_blank" rel="noopener noreferrer"
                 aria-label="Instagram"
                 style={{
@@ -61,7 +61,7 @@ export default function Footer() {
                 </svg>
               </a>
               <a
-                href="https://www.facebook.com/iraqsm"
+                href="https://www.facebook.com/Iraqstockmarket/"
                 target="_blank" rel="noopener noreferrer"
                 aria-label="Facebook"
                 style={{

@@ -68,7 +68,7 @@ export default function ContactPage() {
         </div>
         <div style={{ display: 'flex', gap: 14, flexWrap: 'wrap' }}>
           <a
-            href="https://www.instagram.com/iraqsm"
+            href="https://www.instagram.com/iraqsmcom"
             target="_blank" rel="noopener noreferrer"
             style={{
               display: 'flex', alignItems: 'center', gap: 10,
@@ -83,7 +83,7 @@ export default function ContactPage() {
             Instagram
           </a>
           <a
-            href="https://www.facebook.com/iraqsm"
+            href="https://www.facebook.com/Iraqstockmarket/"
             target="_blank" rel="noopener noreferrer"
             style={{
               display: 'flex', alignItems: 'center', gap: 10,
