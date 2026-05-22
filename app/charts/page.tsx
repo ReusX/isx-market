@@ -17,6 +17,14 @@ const TF = [
   { id: 'ALL', label: 'كل', days: 99999 },
 ] as const
 
+// ─── Convert Unix timestamp → YYYY-MM-DD (Baghdad +3h offset) ────────────────
+function tsToDate(ts: number): string {
+  const d = new Date((ts + 10800) * 1000)   // +3 h for Iraq timezone
+  return d.getUTCFullYear() + '-' +
+    String(d.getUTCMonth() + 1).padStart(2, '0') + '-' +
+    String(d.getUTCDate()).padStart(2, '0')
+}
+
 // ─── Real RSISX Chart (Lightweight Charts) ────────────────────────────────────
 function RSISXChart({ tf }: { tf: string }) {
   const ref = useRef<HTMLDivElement>(null)
@@ -37,10 +45,15 @@ function RSISXChart({ tf }: { tf: string }) {
       const cutoff = tfObj.days >= 99999 ? 0 : Date.now() / 1000 - tfObj.days * 86400
       const filtered = raw.filter(p => p[0] >= cutoff)
 
-      const data = filtered.map(([ts, v]) => ({
-        time: ts as any,
-        value: v,
-      }))
+      // Convert to date strings (Lightweight Charts is most reliable with YYYY-MM-DD)
+      // Deduplicate: if two entries land on the same date, keep the last one
+      const seen = new Map<string, number>()
+      for (const [ts, v] of filtered) {
+        seen.set(tsToDate(ts), v)
+      }
+      const data = Array.from(seen.entries())
+        .sort((a, b) => a[0].localeCompare(b[0]))
+        .map(([time, value]) => ({ time: time as any, value }))
 
       if (!data.length || !ref.current) return
 
@@ -63,13 +76,8 @@ function RSISXChart({ tf }: { tf: string }) {
           scaleMargins: { top: 0.08, bottom: 0.08 },
         },
         timeScale: {
-          borderColor:  'rgba(255,255,255,0.07)',
-          timeVisible:  true,
-          secondsVisible: false,
-          tickMarkFormatter: (t: number) => {
-            const d = new Date(t * 1000)
-            return d.getUTCFullYear() + '/' + String(d.getUTCMonth() + 1).padStart(2, '0')
-          },
+          borderColor: 'rgba(255,255,255,0.07)',
+          timeVisible: false,
         },
         watermark: {
           visible:   true,
