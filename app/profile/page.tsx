@@ -9,7 +9,7 @@ import { rankFor, fmtPts, rankProgress, nextRank } from '@/lib/ranks'
 import { createClient } from '@/lib/supabase/client'
 
 export default function ProfilePage() {
-  const { lang, user, profile, authLoading, refreshProfile, signOut } = useApp()
+  const { lang, user, profile, authLoading, refreshProfile, signOut, openAuth } = useApp()
   const ar = lang === 'ar'
   const sb = createClient()
   const [editing, setEditing]   = useState(false)
@@ -31,12 +31,12 @@ export default function ProfilePage() {
       <div style={{ fontWeight: 700, fontSize: 16, marginBottom: 12 }}>
         {ar ? 'يجب تسجيل الدخول' : 'Sign in required'}
       </div>
-      <Link href="/?auth=signup" style={{
+      <button onClick={() => openAuth('signin')} style={{
         padding: '9px 20px', background: 'var(--brand)', borderRadius: 10,
-        fontSize: 13, fontWeight: 700, color: '#fff', display: 'inline-block',
+        fontSize: 13, fontWeight: 700, color: '#fff', border: 'none', fontFamily: 'inherit',
       }}>
         {ar ? 'تسجيل الدخول' : 'Sign In'}
-      </Link>
+      </button>
     </div>
   )
 

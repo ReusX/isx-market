@@ -52,7 +52,7 @@ function CoLogo({ sym, color }: { sym: string; color?: string }) {
 
 // ─── Page ────────────────────────────────────────────────────────────────────
 export default function HomePage() {
-  const { lang, user, profile, authLoading, watchlist, toggleWatchlist } = useApp()
+  const { lang, user, profile, authLoading, watchlist, toggleWatchlist, openAuth } = useApp()
   const ar = lang === 'ar'
   const router = useRouter()
 
@@ -420,13 +420,13 @@ export default function HomePage() {
                   ? 'سجّل وابدأ بـ 1000 نقطة + محفظة افتراضية'
                   : 'Sign up with 1,000 pts + virtual portfolio'}
               </div>
-              <Link href="/?auth=signup" style={{
-                display: 'block', padding: '9px',
+              <button onClick={() => openAuth('signup')} style={{
+                display: 'block', width: '100%', padding: '9px',
                 background: 'var(--brand)', borderRadius: 10,
-                fontSize: 12, fontWeight: 700, color: '#fff',
+                fontSize: 12, fontWeight: 700, color: '#fff', border: 'none', fontFamily: 'inherit',
               }}>
                 {ar ? 'إنشاء حساب مجاني' : 'Create Free Account'}
-              </Link>
+              </button>
             </div>
           )}
 
@@ -499,7 +499,7 @@ function SpinWidget({ ar, user }: { ar: boolean; user: boolean }) {
             {ar ? 'اربح نقاط، مضاعفات، وهدايا!' : 'Win points, multipliers & prizes!'}
           </div>
           <button
-            onClick={() => user ? router.push('/rewards/spin') : router.push('/?auth=signup')}
+            onClick={() => user ? router.push('/rewards/spin') : openAuth('signup')}
             style={{
               width: '100%', padding: '9px', borderRadius: 10, border: 'none',
               background: 'linear-gradient(135deg, #4F6BFF, #A855F7)',

@@ -17,7 +17,7 @@ const QUESTS = [
 ]
 
 export default function QuestsPage() {
-  const { lang, user } = useApp()
+  const { lang, user, openAuth } = useApp()
   const ar = lang === 'ar'
 
   return (
@@ -40,12 +40,12 @@ export default function QuestsPage() {
           <div style={{ fontSize: 13, color: 'var(--ink2)' }}>
             {ar ? 'سجّل دخولك لتتبع تقدمك' : 'Sign in to track your progress'}
           </div>
-          <Link href="/?auth=signup" style={{
+          <button onClick={() => openAuth('signin')} style={{
             padding: '7px 16px', background: 'var(--brand)', borderRadius: 9,
-            fontSize: 12, fontWeight: 700, color: '#fff',
+            fontSize: 12, fontWeight: 700, color: '#fff', border: 'none', fontFamily: 'inherit',
           }}>
             {ar ? 'دخول' : 'Sign In'}
-          </Link>
+          </button>
         </div>
       )}
 

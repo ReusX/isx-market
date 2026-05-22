@@ -118,7 +118,7 @@ export default function CompanyPage() {
   const { sym } = useParams<{ sym: string }>()
   const searchParams = useSearchParams()
   const router = useRouter()
-  const { lang, watchlist, toggleWatchlist, user, authLoading } = useApp()
+  const { lang, watchlist, toggleWatchlist, user, authLoading, openAuth } = useApp()
   const ar = lang === 'ar'
 
   const [co, setCo]             = useState<Company | null>(null)
@@ -256,12 +256,12 @@ export default function CompanyPage() {
             <div style={{ fontSize: 13, color: 'var(--ink3)', marginBottom: 12 }}>
               {ar ? 'سجّل دخولك للتداول الافتراضي' : 'Sign in to paper trade'}
             </div>
-            <Link href="/?auth=signup" style={{
+            <button onClick={() => openAuth('signup')} style={{
               padding: '9px 20px', background: 'var(--brand)', borderRadius: 10,
-              fontSize: 13, fontWeight: 700, color: '#fff',
+              fontSize: 13, fontWeight: 700, color: '#fff', border: 'none', fontFamily: 'inherit',
             }}>
               {ar ? 'إنشاء حساب' : 'Create Account'}
-            </Link>
+            </button>
           </div>
         ) : (
           <>

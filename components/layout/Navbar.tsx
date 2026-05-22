@@ -4,11 +4,9 @@ import Link from 'next/link'
 import { useState } from 'react'
 import { useApp } from '@/context/AppContext'
 import { fmtPts } from '@/lib/ranks'
-import AuthModal from '@/components/auth/AuthModal'
 
 export default function Navbar() {
-  const { lang, setLang, user, profile, signOut } = useApp()
-  const [authOpen, setAuthOpen] = useState(false)
+  const { lang, setLang, user, profile, signOut, openAuth } = useApp()
   const [userMenuOpen, setUserMenuOpen] = useState(false)
   const ar = lang === 'ar'
 
@@ -133,7 +131,7 @@ export default function Navbar() {
               </div>
             ) : (
               <button
-                onClick={() => setAuthOpen(true)}
+                onClick={() => openAuth('signin')}
                 style={{
                   padding: '7px 16px', background: 'var(--brand)', border: 'none',
                   borderRadius: 9, color: '#fff', fontWeight: 700, fontSize: 13,
@@ -157,7 +155,6 @@ export default function Navbar() {
         </div>
       </nav>
 
-      {authOpen && <AuthModal onClose={() => setAuthOpen(false)} />}
     </>
   )
 }

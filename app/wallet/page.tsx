@@ -13,7 +13,7 @@ import type { Holding, Transaction } from '@/types'
 const VIRTUAL_CASH = 10_000_000 // 10M IQD starting cash
 
 function WalletPageInner() {
-  const { lang, user, profile, authLoading, refreshProfile } = useApp()
+  const { lang, user, profile, authLoading, refreshProfile, openAuth } = useApp()
   const ar = lang === 'ar'
   const sb = createClient()
   const searchParams = useSearchParams()
@@ -51,12 +51,12 @@ function WalletPageInner() {
       <div style={{ fontWeight: 700, fontSize: 16, marginBottom: 8 }}>
         {ar ? 'يجب تسجيل الدخول' : 'Sign in required'}
       </div>
-      <Link href="/?auth=signup" style={{
+      <button onClick={() => openAuth('signin')} style={{
         padding: '9px 20px', background: 'var(--brand)', borderRadius: 10,
-        fontSize: 13, fontWeight: 700, color: '#fff', display: 'inline-block',
+        fontSize: 13, fontWeight: 700, color: '#fff', border: 'none', fontFamily: 'inherit',
       }}>
         {ar ? 'تسجيل الدخول' : 'Sign In'}
-      </Link>
+      </button>
     </div>
   )
 

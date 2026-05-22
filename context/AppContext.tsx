@@ -3,17 +3,19 @@
 import { createContext, useContext, useEffect, useState, useCallback } from 'react'
 import type { UserProfile, Lang } from '@/types'
 import { createClient } from '@/lib/supabase/client'
+import AuthModal from '@/components/auth/AuthModal'
 
 interface AppState {
-  lang:       Lang
-  user:       any | null
-  profile:    UserProfile | null
-  watchlist:  string[]
+  lang:        Lang
+  user:        any | null
+  profile:     UserProfile | null
+  watchlist:   string[]
   authLoading: boolean
-  setLang:    (l: Lang) => void
+  setLang:     (l: Lang) => void
   toggleWatchlist: (sym: string) => void
   refreshProfile:  () => Promise<void>
-  signOut:    () => Promise<void>
+  signOut:     () => Promise<void>
+  openAuth:    (tab?: 'signin' | 'signup') => void
 }
 
 const AppContext = createContext<AppState | null>(null)
@@ -24,6 +26,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [profile, setProfile] = useState<UserProfile | null>(null)
   const [watchlist, setWatchlist] = useState<string[]>([])
   const [authLoading, setAuthLoading] = useState(true)
+  const [authModalTab, setAuthModalTab] = useState<'signin' | 'signup' | null>(null)
   const supabase = createClient()
 
   // Init lang from localStorage
@@ -42,15 +45,22 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   // Auth listener
   useEffect(() => {
+    // Safety timeout — never leave users stuck loading
+    const timeout = setTimeout(() => setAuthLoading(false), 4000)
+
     // Resolve auth state on first load
-    supabase.auth.getUser().then(({ data: { user } }) => {
-      setUser(user ?? null)
-      if (user) {
-        refreshProfile().finally(() => setAuthLoading(false))
-      } else {
+    supabase.auth.getUser()
+      .then(({ data: { user } }) => {
+        setUser(user ?? null)
+        if (user) {
+          return refreshProfile()
+        }
+      })
+      .catch(() => {})
+      .finally(() => {
+        clearTimeout(timeout)
         setAuthLoading(false)
-      }
-    })
+      })
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       setUser(session?.user ?? null)
@@ -108,9 +118,14 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     setProfile(null)
   }
 
+  const openAuth = (tab: 'signin' | 'signup' = 'signin') => setAuthModalTab(tab)
+
   return (
-    <AppContext.Provider value={{ lang, user, profile, watchlist, authLoading, setLang, toggleWatchlist, refreshProfile, signOut }}>
+    <AppContext.Provider value={{ lang, user, profile, watchlist, authLoading, setLang, toggleWatchlist, refreshProfile, signOut, openAuth }}>
       {children}
+      {authModalTab && !user && (
+        <AuthModal defaultTab={authModalTab} onClose={() => setAuthModalTab(null)} />
+      )}
     </AppContext.Provider>
   )
 }

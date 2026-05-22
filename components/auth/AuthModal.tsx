@@ -4,12 +4,12 @@ import { useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useApp } from '@/context/AppContext'
 
-interface Props { onClose: () => void }
+interface Props { onClose: () => void; defaultTab?: 'signin' | 'signup' }
 
 type Tab = 'signin' | 'signup'
 
-export default function AuthModal({ onClose }: Props) {
-  const [tab, setTab]         = useState<Tab>('signin')
+export default function AuthModal({ onClose, defaultTab = 'signin' }: Props) {
+  const [tab, setTab]         = useState<Tab>(defaultTab)
   const [email, setEmail]     = useState('')
   const [password, setPass]   = useState('')
   const [username, setUser]   = useState('')

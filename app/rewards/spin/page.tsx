@@ -69,7 +69,7 @@ function Wheel({ spinning, result }: { spinning: boolean; result: number | null 
 }
 
 export default function SpinPage() {
-  const { lang, user, profile, refreshProfile } = useApp()
+  const { lang, user, profile, refreshProfile, openAuth } = useApp()
   const ar = lang === 'ar'
 
   const [spinning,  setSpinning]  = useState(false)
@@ -85,12 +85,12 @@ export default function SpinPage() {
       <div style={{ fontWeight: 700, fontSize: 18, marginBottom: 8 }}>
         {ar ? 'سجّل للعب' : 'Sign in to spin'}
       </div>
-      <Link href="/?auth=signup" style={{
+      <button onClick={() => openAuth('signup')} style={{
         padding: '10px 24px', background: 'var(--brand)', borderRadius: 12,
-        fontSize: 14, fontWeight: 700, color: '#fff', display: 'inline-block',
+        fontSize: 14, fontWeight: 700, color: '#fff', border: 'none', fontFamily: 'inherit',
       }}>
         {ar ? 'إنشاء حساب مجاني' : 'Create Free Account'}
-      </Link>
+      </button>
     </div>
   )
 
