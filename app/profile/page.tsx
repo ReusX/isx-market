@@ -156,7 +156,7 @@ export default function ProfilePage() {
 
       {/* Stats grid */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10, marginBottom: 16 }}>
-        {statCard('₽', ar ? 'نقطة' : 'Points', fmtPts(profile.points))}
+        {statCard('🪙', ar ? 'نقطة' : 'Points', fmtPts(profile.points))}
         {statCard('🔥', ar ? 'تسلسل' : 'Streak', `${profile.streak ?? 0}d`)}
         {statCard(rank.icon, ar ? 'الرتبة' : 'Rank', ar ? rank.ar : rank.en)}
       </div>

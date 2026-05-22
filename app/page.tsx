@@ -169,7 +169,7 @@ export default function HomePage() {
   const stripItems = user && profile ? [
     { icon: '🔥', label: ar ? `${profile.streak} يوم` : `${profile.streak}d streak` },
     { icon: rank?.icon ?? '⭐', label: ar ? rank?.ar : rank?.en },
-    { icon: '₽',  label: fmtPts(profile.points) },
+    { icon: '🪙', label: fmtPts(profile.points) },
     { icon: '🎡', label: ar ? 'دوّر' : 'Spin', onClick: () => router.push('/rewards/spin') },
     { icon: '👥', label: ar ? 'أحل صديق' : 'Invite', onClick: () => router.push('/profile#referral') },
   ] : [

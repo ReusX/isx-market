@@ -27,11 +27,7 @@ export default function Navbar() {
         }}>
           {/* Logo */}
           <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: 10, marginInlineEnd: 24, flexShrink: 0 }}>
-            <div style={{
-              width: 32, height: 32, borderRadius: 8,
-              background: 'var(--brand)', display: 'flex', alignItems: 'center', justifyContent: 'center',
-              fontSize: 14, fontWeight: 900, color: '#fff',
-            }}>₿</div>
+            <img src="/iqd-logo.svg" alt="IQD" width={32} height={32} style={{ borderRadius: 7, display: 'block' }} />
             <span style={{ fontWeight: 800, fontSize: 16, color: 'var(--ink)' }}>
               {ar ? 'بورصة العراق' : 'ISX Market'}
             </span>
@@ -85,8 +81,9 @@ export default function Navbar() {
                   width: 14, height: 14, borderRadius: '50%',
                   background: 'var(--gold-grad)',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  fontSize: 7, fontWeight: 800, color: '#5a3a00', flexShrink: 0,
-                }}>₽</div>
+                  fontSize: 5.5, fontWeight: 800, color: '#5a3a00', flexShrink: 0,
+                  fontFamily: 'serif', letterSpacing: 0,
+                }}>د.ع</div>
                 <span style={{ fontFamily: 'var(--font-mono)', fontSize: 11, fontWeight: 700, color: 'var(--gold)' }}>
                   {fmtPts(profile.points)}
                 </span>

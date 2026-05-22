@@ -167,7 +167,7 @@ export default function SpinPage() {
         background: 'rgba(245,200,75,0.12)', border: '1px solid rgba(245,200,75,0.27)',
         marginBottom: 24,
       }}>
-        <span style={{ fontSize: 14 }}>₽</span>
+        <span style={{ fontSize: 11, fontFamily: 'serif', fontWeight: 700, color: 'var(--gold)' }}>د.ع</span>
         <span style={{ fontFamily: 'var(--font-mono)', fontWeight: 700, color: 'var(--gold)', fontSize: 14 }}>
           {fmtPts(profile.points)}
         </span>
