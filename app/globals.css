@@ -118,6 +118,33 @@ button { cursor: pointer; font-family: inherit; }
 }
 .skeleton { animation: pulse 1.8s infinite; background: var(--surf3); border-radius: 6px; }
 
+/* ── WordPress article content ── */
+.wp-content { font-size: 15px; line-height: 1.8; color: var(--ink2); }
+.wp-content h2 { font-size: 20px; font-weight: 800; margin: 28px 0 12px; color: var(--ink); }
+.wp-content h3 { font-size: 17px; font-weight: 700; margin: 22px 0 10px; color: var(--ink); }
+.wp-content p  { margin: 0 0 16px; }
+.wp-content a  { color: var(--brand); text-decoration: underline; }
+.wp-content ul, .wp-content ol { padding-inline-start: 24px; margin: 0 0 16px; }
+.wp-content li { margin-bottom: 6px; }
+.wp-content blockquote {
+  margin: 20px 0; padding: 14px 20px;
+  border-inline-start: 3px solid var(--brand);
+  background: var(--surf2); border-radius: 0 10px 10px 0;
+  color: var(--ink3); font-style: italic;
+}
+.wp-content img { max-width: 100%; border-radius: 10px; margin: 12px 0; }
+.wp-content pre {
+  background: var(--surf3); border: 1px solid var(--line);
+  border-radius: 10px; padding: 16px; overflow-x: auto;
+  font-family: var(--font-mono); font-size: 13px;
+}
+.wp-content table { width: 100%; border-collapse: collapse; margin: 16px 0; }
+.wp-content th, .wp-content td {
+  padding: 10px 12px; text-align: start;
+  border-bottom: 1px solid var(--line); font-size: 13px;
+}
+.wp-content th { font-weight: 700; color: var(--ink3); background: var(--surf2); }
+
 /* ── Mobile responsive ── */
 @media (max-width: 768px) {
   main { padding-bottom: 72px !important; }

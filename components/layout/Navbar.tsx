@@ -41,6 +41,9 @@ export default function Navbar() {
           <div className="desktop-only" style={{ display: 'flex', alignItems: 'center', gap: 2, flex: 1 }}>
             {[
               { href: '/market',     ar: 'السوق',      en: 'Market' },
+              { href: '/news',       ar: 'الأخبار',    en: 'News' },
+              { href: '/research',   ar: 'أبحاث',      en: 'Research' },
+              { href: '/learn',      ar: 'تعلّم',      en: 'Learn' },
               { href: '/charts',     ar: 'المخططات',   en: 'Charts' },
               { href: '/fx',         ar: 'IQD ⇄ USD',  en: 'IQD ⇄ USD' },
               { href: '/leaderboard',ar: 'المتصدرون',  en: 'Leaderboard' },
