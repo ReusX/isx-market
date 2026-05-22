@@ -18,6 +18,9 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${BASE}/quests`,      lastModified: now, changeFrequency: 'weekly',  priority: 0.5 },
     { url: `${BASE}/rewards/spin`,lastModified: now, changeFrequency: 'daily',   priority: 0.4 },
     { url: `${BASE}/companies`,   lastModified: now, changeFrequency: 'monthly', priority: 0.6 },
+    { url: `${BASE}/gold`,        lastModified: now, changeFrequency: 'hourly',  priority: 0.9 },
+    { url: `${BASE}/banks`,       lastModified: now, changeFrequency: 'monthly', priority: 0.7 },
+    { url: `${BASE}/learn/trading-from-zero`, lastModified: now, changeFrequency: 'monthly', priority: 0.7 },
   ]
 
   const companies: MetadataRoute.Sitemap = (companiesData as { sym: string }[]).map(c => ({

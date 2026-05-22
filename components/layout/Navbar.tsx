@@ -48,6 +48,8 @@ export default function Navbar() {
               { href: '/fx',         ar: 'IQD ⇄ USD',  en: 'IQD ⇄ USD' },
               { href: '/companies',   ar: 'الشركات',    en: 'Companies' },
               { href: '/leaderboard',ar: 'المتصدرون',  en: 'Leaderboard' },
+              { href: '/gold',        ar: 'سعر الذهب',  en: 'Gold' },
+              { href: '/banks',       ar: 'المصارف',    en: 'Banks' },
             ].map(l => (
               <Link key={l.href} href={l.href} style={{
                 padding: '6px 12px', borderRadius: 8,

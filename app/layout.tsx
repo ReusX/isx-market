@@ -27,13 +27,13 @@ const thmanyah = localFont({
 })
 
 export const metadata: Metadata = {
-  title: { default: 'بورصة العراق | ISX Market', template: '%s | ISX Market' },
-  description: 'أسعار أسهم بورصة العراق للأوراق المالية مباشرة — مؤشر RSISX، المخططات، والقطاعات. Iraq Stock Exchange live prices and charts.',
+  title: { default: 'بورصة العراق — تتبع، تداول، استثمار، أخبار، تحليل', template: '%s | ISX Market' },
+  description: 'بورصة العراق للأوراق المالية — تتبع أسعار الأسهم العراقية مباشرة خلال ساعات التداول، تحليلات مالية، أخبار السوق، مؤشر RSISX، وأدوات الاستثمار الذكي. Iraq Stock Exchange live prices, trading and analysis.',
   metadataBase: new URL('https://iraqsm.com'),
   // No root canonical — each page sets its own to avoid the "non-canonical in sitemap" issue
   openGraph: {
-    title: 'بورصة العراق | ISX Market',
-    description: 'Iraq Stock Exchange live prices, charts and analysis — أسعار بورصة العراق مباشرة.',
+    title: 'بورصة العراق — تتبع، تداول، استثمار، أخبار، تحليل',
+    description: 'تتبع أسعار الأسهم العراقية مباشرة، مؤشر RSISX، تحليلات مالية وأخبار بورصة العراق. Iraq Stock Exchange live prices, charts and analysis.',
     url: 'https://iraqsm.com',
     siteName: 'ISX Market',
     images: [{ url: '/og-image.png', width: 1200, height: 630 }],

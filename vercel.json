@@ -1,4 +1,12 @@
 {
+  "redirects": [
+    {
+      "source": "/(.*)",
+      "has": [{ "type": "host", "value": "www.iraqsm.com" }],
+      "destination": "https://iraqsm.com/$1",
+      "permanent": true
+    }
+  ],
   "headers": [
     {
       "source": "/data/(.*)",
