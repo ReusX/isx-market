@@ -483,6 +483,7 @@ export default function CompanyPage() {
   const [action, setAction]       = useState<'buy' | 'sell' | null>(null)
   const [trading, setTrading]     = useState(false)
   const [tradeMsg, setTradeMsg]   = useState<string | null>(null)
+  const [buyAttempted, setBuyAttempted] = useState(false)
 
   useEffect(() => {
     setDemoEnabled(localStorage.getItem('demo_trading_enabled') === 'true')
@@ -498,6 +499,7 @@ export default function CompanyPage() {
   }, [sym])
 
   async function handleBuyWithPoints() {
+    setBuyAttempted(true)
     if (!user || !co || !qty) return
     setTrading(true); setTradeMsg(null)
     try {
@@ -715,23 +717,23 @@ export default function CompanyPage() {
                 <span style={{ fontSize: 11, color: 'var(--ink4)' }}>{ar ? 'نقاطك المتاحة' : 'Your points'}</span>
                 <span style={{ fontFamily: 'var(--font-mono)', fontSize: 13, fontWeight: 700, color: 'var(--gold)' }}>🪙 {userPoints.toLocaleString('en')}</span>
               </div>
-              <div style={{ fontSize: 11, color: maxAffordable === 0 ? 'var(--dn)' : 'var(--ink3)', padding: '0 2px' }}>
-                {maxAffordable === 0
-                  ? (ar ? `❌ نقاطك لا تكفي لشراء ولو سهم واحد (السعر: ${sharePrice.toFixed(3)} نقطة/سهم)` : `❌ Not enough points for even 1 share (${sharePrice.toFixed(3)} pts/share)`)
-                  : (ar ? `يمكنك شراء حتى ${maxAffordable.toLocaleString('en')} سهم (${sharePrice.toFixed(3)} نقطة/سهم)` : `You can buy up to ${maxAffordable.toLocaleString('en')} shares (${sharePrice.toFixed(3)} pts/share)`)}
-              </div>
+              {buyAttempted && maxAffordable === 0 && (
+                <div style={{ fontSize: 11, color: 'var(--dn)', padding: '0 2px' }}>
+                  {ar ? `❌ نقاطك لا تكفي لشراء ولو سهم واحد (السعر: ${sharePrice.toFixed(3)} نقطة/سهم)` : `❌ Not enough points for even 1 share (${sharePrice.toFixed(3)} pts/share)`}
+                </div>
+              )}
               <div>
                 <label style={{ fontSize: 11, color: 'var(--ink4)', display: 'block', marginBottom: 4 }}>{ar ? 'الكمية (سهم)' : 'Quantity (shares)'}</label>
                 <div style={{ display: 'flex', gap: 6 }}>
                   <input type="number" min="1" max={maxAffordable} value={qty}
-                    onChange={e => { setQty(e.target.value); setTradeMsg(null) }}
+                    onChange={e => { setQty(e.target.value); setTradeMsg(null); setBuyAttempted(false) }}
                     style={{ flex: 1, padding: '9px 12px', borderRadius: 9, background: 'var(--surf3)', border: `1px solid ${overBudget ? 'rgba(239,68,68,0.5)' : 'var(--line2)'}`, color: overBudget ? 'var(--dn)' : 'var(--ink)', fontFamily: 'var(--font-mono)', fontSize: 14, outline: 'none' }} />
                   <button onClick={() => { setQty(String(maxAffordable)); setTradeMsg(null) }} disabled={maxAffordable === 0}
                     style={{ padding: '9px 14px', borderRadius: 9, border: '1px solid var(--line)', background: 'var(--surf3)', color: 'var(--gold)', fontSize: 11, fontWeight: 700, fontFamily: 'inherit', opacity: maxAffordable === 0 ? 0.4 : 1 }}>
                     {ar ? 'الحد الأقصى' : 'Max'}
                   </button>
                 </div>
-                {overBudget && <div style={{ fontSize: 10, color: 'var(--dn)', marginTop: 4 }}>{ar ? `نقاطك تكفي لـ ${maxAffordable.toLocaleString('en')} سهم فقط` : `Your points only cover ${maxAffordable.toLocaleString('en')} shares`}</div>}
+                {buyAttempted && overBudget && <div style={{ fontSize: 10, color: 'var(--dn)', marginTop: 4 }}>{ar ? `نقاطك تكفي لـ ${maxAffordable.toLocaleString('en')} سهم فقط` : `Your points only cover ${maxAffordable.toLocaleString('en')} shares`}</div>}
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 12px', background: 'var(--surf3)', borderRadius: 9, fontSize: 12 }}>
                 <span style={{ color: 'var(--ink4)' }}>{ar ? 'التكلفة' : 'Cost'}</span>
