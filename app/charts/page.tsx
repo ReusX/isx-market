@@ -56,7 +56,7 @@ export default function ChartsPage() {
         setCompanies(mergeCompanies(meta, live.stocks))
         if (live.rsisx) {
           setRsisxPct(Number(live.rsisx.pct))
-          setRsisxVal(Number(live.rsisx.close).toFixed(2))
+          setRsisxVal(Number(live.rsisx.value).toFixed(2))
         }
       })
       .finally(() => setLoading(false))

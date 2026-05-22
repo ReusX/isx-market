@@ -77,7 +77,7 @@ export default function HomePage() {
   )
 
   const rsisx = liveData?.rsisx
-  const rsisxVal  = rsisx ? Number(rsisx.close).toFixed(2) : '—'
+  const rsisxVal  = rsisx ? Number(rsisx.value).toFixed(2) : '—'
   const rsisxChg  = rsisx ? Number(rsisx.change) : 0
   const rsisxPct  = rsisx ? Number(rsisx.pct) : 0
   const rsisxUp   = rsisxPct >= 0
