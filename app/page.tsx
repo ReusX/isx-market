@@ -52,12 +52,13 @@ function MiniSpark({ points, up }: { points: number[]; up: boolean }) {
 }
 
 // ─── Logo ────────────────────────────────────────────────────────────────────
-function CoLogo({ sym, color, size = 28 }: { sym: string; color?: string; size?: number }) {
+function CoLogo({ sym, color, logo, size = 28 }: { sym: string; color?: string; logo?: string; size?: number }) {
   const [err, setErr] = useState(false)
-  if (!err) {
+  const src = !err ? (logo || `https://isc.gov.iq/Uploads/Companies/${sym}.png`) : null
+  if (src) {
     return (
       <img
-        src={`https://isc.gov.iq/Uploads/Companies/${sym}.png`}
+        src={src}
         alt={sym}
         width={size} height={size}
         style={{ borderRadius: 6, objectFit: 'contain', background: '#fff', padding: 2, flexShrink: 0 }}
@@ -77,6 +78,42 @@ function CoLogo({ sym, color, size = 28 }: { sym: string; color?: string; size?:
   )
 }
 
+// ─── RSISX Mini Sparkline ─────────────────────────────────────────────────────
+function RSISXSpark({ data, up, w = 120, h = 40 }: { data: [number, number][]; up: boolean; w?: number; h?: number }) {
+  if (!data || data.length < 2) return null
+  const values = data.map(d => d[1])
+  const min = Math.min(...values)
+  const max = Math.max(...values)
+  const range = max - min || 1
+  const pad = 2
+  const pts = values.map((v, i) => {
+    const x = pad + (i / (values.length - 1)) * (w - pad * 2)
+    const y = h - pad - ((v - min) / range) * (h - pad * 2)
+    return `${x},${y}`
+  }).join(' ')
+  const color = up ? 'var(--up)' : 'var(--dn)'
+  const firstPt = pts.split(' ')[0]
+  const lastPt = pts.split(' ').slice(-1)[0]
+  const [lx, ly] = lastPt.split(',').map(Number)
+  return (
+    <svg width={w} height={h} viewBox={`0 0 ${w} ${h}`} fill="none" style={{ overflow: 'visible' }}>
+      <defs>
+        <linearGradient id="rsisx-grad" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor={color} stopOpacity="0.25" />
+          <stop offset="100%" stopColor={color} stopOpacity="0" />
+        </linearGradient>
+      </defs>
+      <polygon
+        points={`${firstPt} ${pts} ${lx},${h} ${pad},${h}`}
+        fill="url(#rsisx-grad)"
+      />
+      <polyline points={pts} stroke={color} strokeWidth="1.5"
+        strokeLinecap="round" strokeLinejoin="round" />
+      <circle cx={lx} cy={ly} r="2.5" fill={color} />
+    </svg>
+  )
+}
+
 // ─── Page ────────────────────────────────────────────────────────────────────
 export default function HomePage() {
   const { lang, user, profile, authLoading, watchlist, toggleWatchlist, openAuth } = useApp()
@@ -88,7 +125,8 @@ export default function HomePage() {
   const [loading,   setLoading]   = useState(true)
   const [sector,    setSector]    = useState('all')
   const [sort,      setSort]      = useState('default')
-  const [histShort, setHistShort] = useState<Record<string, [number, number][]>>({})
+  const [histShort,  setHistShort]  = useState<Record<string, [number, number][]>>({})
+  const [rsisxHist,  setRsisxHist]  = useState<[number, number][]>([])
 
   useEffect(() => {
     Promise.all([
@@ -100,6 +138,7 @@ export default function HomePage() {
         setLiveData(live)
         setCompanies(mergeCompanies(meta, live.stocks))
         setHistShort(hist.s ?? {})
+        setRsisxHist((hist.rsisx_s ?? []).slice(-90))
       })
       .finally(() => setLoading(false))
   }, [])
@@ -186,52 +225,54 @@ export default function HomePage() {
 
         {/* ── Index card ── */}
         <div style={{ padding: '12px 16px 8px' }}>
-          <div style={{
-            background: 'var(--surf)',
-            border: '1px solid var(--line)',
-            borderRadius: 16, padding: '14px 16px',
-            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-          }}>
-            <div>
-              <div style={{ fontSize: 10, color: 'var(--ink4)', fontWeight: 600, marginBottom: 4 }}>
-                {ar ? 'مؤشر ربيع RSISX' : 'RSISX Index'}
+          <Link href="/charts" style={{ textDecoration: 'none' }}>
+            <div style={{
+              background: 'var(--surf)',
+              border: '1px solid var(--line)',
+              borderRadius: 16, padding: '14px 16px',
+              cursor: 'pointer',
+            }}>
+              {/* Top row: label + breadth stats */}
+              <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 8 }}>
+                <div>
+                  <div style={{ fontSize: 10, color: 'var(--ink4)', fontWeight: 600, marginBottom: 4 }}>
+                    {ar ? 'مؤشر ربيع RSISX' : 'RSISX Index'} ›
+                  </div>
+                  <div style={{ fontFamily: 'var(--font-mono)', fontSize: 26, fontWeight: 800, lineHeight: 1 }}>
+                    {loading ? '—' : rsisxVal}
+                  </div>
+                  {!loading && (
+                    <div style={{
+                      fontSize: 12, fontWeight: 700, marginTop: 4,
+                      color: rsisxUp ? 'var(--up)' : 'var(--dn)',
+                    }}>
+                      {rsisxUp ? '▲' : '▼'} {Math.abs(rsisxPct).toFixed(2)}%
+                    </div>
+                  )}
+                </div>
+                <div style={{ display: 'flex', gap: 14, paddingTop: 4 }}>
+                  <div style={{ textAlign: 'center' }}>
+                    <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--up)' }}>{gainers}</div>
+                    <div style={{ fontSize: 9, color: 'var(--ink4)' }}>{ar ? 'رابح' : 'Up'}</div>
+                  </div>
+                  <div style={{ textAlign: 'center' }}>
+                    <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--dn)' }}>{losers}</div>
+                    <div style={{ fontSize: 9, color: 'var(--ink4)' }}>{ar ? 'خاسر' : 'Down'}</div>
+                  </div>
+                  <div style={{ textAlign: 'center' }}>
+                    <div style={{ fontSize: 15, fontWeight: 700 }}>{companies.filter(c => c.close > 0).length}</div>
+                    <div style={{ fontSize: 9, color: 'var(--ink4)' }}>{ar ? 'شركة' : 'Listed'}</div>
+                  </div>
+                </div>
               </div>
-              <div style={{ fontFamily: 'var(--font-mono)', fontSize: 26, fontWeight: 800, lineHeight: 1 }}>
-                {loading ? '—' : rsisxVal}
-              </div>
-              {!loading && (
-                <div style={{
-                  fontSize: 12, fontWeight: 700, marginTop: 4,
-                  color: rsisxUp ? 'var(--up)' : 'var(--dn)',
-                }}>
-                  {rsisxUp ? '▲' : '▼'} {Math.abs(rsisxPct).toFixed(2)}%
+              {/* Sparkline */}
+              {!loading && rsisxHist.length > 2 && (
+                <div style={{ marginTop: 4, marginInline: -2 }}>
+                  <RSISXSpark data={rsisxHist} up={rsisxUp} w={320} h={48} />
                 </div>
               )}
             </div>
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 8 }}>
-              <div style={{ display: 'flex', gap: 14 }}>
-                <div style={{ textAlign: 'center' }}>
-                  <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--up)' }}>{gainers}</div>
-                  <div style={{ fontSize: 9, color: 'var(--ink4)' }}>{ar ? 'رابح' : 'Up'}</div>
-                </div>
-                <div style={{ textAlign: 'center' }}>
-                  <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--dn)' }}>{losers}</div>
-                  <div style={{ fontSize: 9, color: 'var(--ink4)' }}>{ar ? 'خاسر' : 'Down'}</div>
-                </div>
-                <div style={{ textAlign: 'center' }}>
-                  <div style={{ fontSize: 15, fontWeight: 700 }}>{companies.filter(c => c.close > 0).length}</div>
-                  <div style={{ fontSize: 9, color: 'var(--ink4)' }}>{ar ? 'شركة' : 'Listed'}</div>
-                </div>
-              </div>
-              <Link href="/charts" style={{
-                padding: '5px 12px',
-                background: 'var(--brand-soft)', border: '1px solid var(--brand)',
-                borderRadius: 8, fontSize: 11, fontWeight: 700, color: 'var(--brand)',
-              }}>
-                {ar ? 'المخططات ›' : 'Charts ›'}
-              </Link>
-            </div>
-          </div>
+          </Link>
         </div>
 
         {/* ── Quick actions ── */}
@@ -326,7 +367,7 @@ export default function HomePage() {
                 onClick={() => router.push(`/c/${co.sym}`)}
               >
                 {/* Logo */}
-                <CoLogo sym={co.sym} color={co.color} size={38} />
+                <CoLogo sym={co.sym} color={co.color} logo={co.logo} size={38} />
 
                 {/* Name + sparkline */}
                 <div style={{ flex: 1, minWidth: 0 }}>
@@ -459,49 +500,60 @@ export default function HomePage() {
         <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
 
           {/* RSISX Card */}
-          <div style={{
-            background: 'var(--surf)', border: '1px solid var(--line)',
-            borderRadius: 16, padding: '16px 20px',
-            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-            flexWrap: 'wrap', gap: 12,
-          }}>
-            <div>
-              <div style={{ fontSize: 11, color: 'var(--ink4)', fontWeight: 600, marginBottom: 4 }}>
-                {ar ? 'مؤشر ربيع RSISX' : 'Rabee RSISX Index'}
-              </div>
-              <div style={{ display: 'flex', alignItems: 'baseline', gap: 10 }}>
-                <span style={{ fontFamily: 'var(--font-mono)', fontSize: 28, fontWeight: 700 }}>
-                  {loading ? '—' : rsisxVal}
-                </span>
-                {!loading && (
-                  <span style={{ fontSize: 13, fontWeight: 700, color: rsisxUp ? 'var(--up)' : 'var(--dn)' }}>
-                    {rsisxUp ? '▲' : '▼'} {Math.abs(rsisxPct).toFixed(2)}%
+          <Link href="/charts" style={{ textDecoration: 'none' }}>
+            <div style={{
+              background: 'var(--surf)', border: '1px solid var(--line)',
+              borderRadius: 16, padding: '16px 20px',
+              display: 'grid',
+              gridTemplateColumns: 'auto 1fr auto',
+              alignItems: 'center', gap: 20,
+              cursor: 'pointer',
+              transition: 'border-color 0.15s',
+            }}
+            onMouseEnter={e => (e.currentTarget.style.borderColor = 'var(--brand)')}
+            onMouseLeave={e => (e.currentTarget.style.borderColor = 'var(--line)')}
+            >
+              {/* Left: value + pct */}
+              <div>
+                <div style={{ fontSize: 11, color: 'var(--ink4)', fontWeight: 600, marginBottom: 4 }}>
+                  {ar ? 'مؤشر ربيع RSISX' : 'Rabee RSISX Index'} ›
+                </div>
+                <div style={{ display: 'flex', alignItems: 'baseline', gap: 10 }}>
+                  <span style={{ fontFamily: 'var(--font-mono)', fontSize: 28, fontWeight: 700 }}>
+                    {loading ? '—' : rsisxVal}
                   </span>
+                  {!loading && (
+                    <span style={{ fontSize: 13, fontWeight: 700, color: rsisxUp ? 'var(--up)' : 'var(--dn)' }}>
+                      {rsisxUp ? '▲' : '▼'} {Math.abs(rsisxPct).toFixed(2)}%
+                    </span>
+                  )}
+                </div>
+              </div>
+
+              {/* Center: sparkline */}
+              <div style={{ minWidth: 0 }}>
+                {!loading && rsisxHist.length > 2 && (
+                  <RSISXSpark data={rsisxHist} up={rsisxUp} w={400} h={52} />
                 )}
               </div>
+
+              {/* Right: breadth stats */}
+              <div style={{ display: 'flex', gap: 20 }}>
+                <div style={{ textAlign: 'center' }}>
+                  <div style={{ fontSize: 10, color: 'var(--ink4)', marginBottom: 2 }}>{ar ? 'رابحون' : 'Gainers'}</div>
+                  <div style={{ fontSize: 18, fontWeight: 700, color: 'var(--up)' }}>{gainers}</div>
+                </div>
+                <div style={{ textAlign: 'center' }}>
+                  <div style={{ fontSize: 10, color: 'var(--ink4)', marginBottom: 2 }}>{ar ? 'خاسرون' : 'Losers'}</div>
+                  <div style={{ fontSize: 18, fontWeight: 700, color: 'var(--dn)' }}>{losers}</div>
+                </div>
+                <div style={{ textAlign: 'center' }}>
+                  <div style={{ fontSize: 10, color: 'var(--ink4)', marginBottom: 2 }}>{ar ? 'شركة' : 'Listed'}</div>
+                  <div style={{ fontSize: 18, fontWeight: 700 }}>{companies.filter(c => c.close > 0).length}</div>
+                </div>
+              </div>
             </div>
-            <div style={{ display: 'flex', gap: 20 }}>
-              <div style={{ textAlign: 'center' }}>
-                <div style={{ fontSize: 10, color: 'var(--ink4)', marginBottom: 2 }}>{ar ? 'رابحون' : 'Gainers'}</div>
-                <div style={{ fontSize: 18, fontWeight: 700, color: 'var(--up)' }}>{gainers}</div>
-              </div>
-              <div style={{ textAlign: 'center' }}>
-                <div style={{ fontSize: 10, color: 'var(--ink4)', marginBottom: 2 }}>{ar ? 'خاسرون' : 'Losers'}</div>
-                <div style={{ fontSize: 18, fontWeight: 700, color: 'var(--dn)' }}>{losers}</div>
-              </div>
-              <div style={{ textAlign: 'center' }}>
-                <div style={{ fontSize: 10, color: 'var(--ink4)', marginBottom: 2 }}>{ar ? 'شركة' : 'Listed'}</div>
-                <div style={{ fontSize: 18, fontWeight: 700 }}>{companies.filter(c => c.close > 0).length}</div>
-              </div>
-            </div>
-            <Link href="/charts" style={{
-              padding: '8px 16px', background: 'var(--brand-soft)',
-              border: '1px solid var(--brand)', borderRadius: 9,
-              fontSize: 12, fontWeight: 700, color: 'var(--brand)',
-            }}>
-              {ar ? 'المخططات ›' : 'Charts ›'}
-            </Link>
-          </div>
+          </Link>
 
           {/* Filter chips */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
@@ -602,7 +654,7 @@ export default function HomePage() {
                   <span style={{ fontSize: 10, color: 'var(--ink4)', fontFamily: 'var(--font-mono)' }}>{i + 1}</span>
 
                   <div style={{ display: 'flex', alignItems: 'center', gap: 9, minWidth: 0 }}>
-                    <CoLogo sym={co.sym} color={co.color} />
+                    <CoLogo sym={co.sym} color={co.color} logo={co.logo} />
                     <div style={{ minWidth: 0 }}>
                       <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--ink)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                         {ar ? co.ar : co.en}
