@@ -605,7 +605,7 @@ export default function HomePage() {
               <span style={{ ...colHdr, textAlign: 'end' }}>{ar ? 'السعر' : 'Price'}</span>
               <span style={{ ...colHdr, textAlign: 'end' }}>{ar ? 'التغيير' : 'Change'}</span>
               <span style={{ ...colHdr, textAlign: 'end' }}>{ar ? 'الحجم' : 'Volume'}</span>
-              <span style={{ ...colHdr, textAlign: 'end' }}>{ar ? 'القيمة السوقية' : 'Mkt Cap'}</span>
+              <span style={{ ...colHdr, textAlign: 'right', direction: 'ltr', display: 'block' }}>{ar ? 'Mkt Cap' : 'Mkt Cap'}</span>
               <span style={{ ...colHdr, textAlign: 'center' }}></span>
               <span style={colHdr}></span>
             </div>
@@ -679,9 +679,9 @@ export default function HomePage() {
                     {fmtVol(co.vol)}
                   </span>
 
-                  <span style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--ink3)', textAlign: 'end' }}>
+                  <div style={{ fontFamily: 'var(--font-mono)', fontSize: 12, fontWeight: 700, color: 'var(--ink2)', textAlign: 'right', direction: 'ltr' }}>
                     {fmtMcap(co.mcap)}
-                  </span>
+                  </div>
 
                   <div style={{ display: 'flex', justifyContent: 'center' }}>
                     <Spark pct={co.pct} />

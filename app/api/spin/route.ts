@@ -26,8 +26,8 @@ export async function POST() {
   const { data: { user } } = await sb.auth.getUser()
   if (!user) return NextResponse.json({ ok: false, error: 'Unauthorized' }, { status: 401 })
 
-  // Check cooldown
-  const { data: profile } = await sb.from('profiles').select('points, spin_cooldown_ends_at').eq('id', user.id).single()
+  // Check cooldown + load streak
+  const { data: profile } = await sb.from('profiles').select('points, streak, spin_cooldown_ends_at').eq('id', user.id).single()
   if (!profile) return NextResponse.json({ ok: false, error: 'Profile not found' }, { status: 404 })
 
   if (profile.spin_cooldown_ends_at) {
@@ -37,12 +37,28 @@ export async function POST() {
     }
   }
 
-  const prize     = pickPrize()
-  const newPts    = (profile.points ?? 0) + prize.pts
-  const cooldown  = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString()
+  // ── Streak logic ─────────────────────────────────────────────────────────────
+  // spin_cooldown_ends_at = last_spin_at + 24h
+  // If user spins within the 24h–48h window after last spin → streak continues
+  // If they missed a day (>48h gap) → streak resets to 1
+  let newStreak = 1
+  if (profile.spin_cooldown_ends_at) {
+    const lastSpinAt  = new Date(profile.spin_cooldown_ends_at).getTime() - 24 * 3600 * 1000
+    const hoursSince  = (Date.now() - lastSpinAt) / 3600000
+    // Window: cooldown just ended (24h) up to 48h → consecutive day
+    if (hoursSince >= 24 && hoursSince < 48) {
+      newStreak = (profile.streak ?? 0) + 1
+    }
+    // > 48h means they skipped a day → streak resets to 1
+  }
+
+  const prize    = pickPrize()
+  const newPts   = (profile.points ?? 0) + prize.pts
+  const cooldown = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString()
 
   await sb.from('profiles').update({
     points: newPts,
+    streak: newStreak,
     spin_cooldown_ends_at: cooldown,
   }).eq('id', user.id)
 
@@ -56,5 +72,5 @@ export async function POST() {
     notes:      prize.special || null,
   })
 
-  return NextResponse.json({ ok: true, prize_pts: prize.pts, special: prize.special, new_points: newPts })
+  return NextResponse.json({ ok: true, prize_pts: prize.pts, special: prize.special, new_points: newPts, new_streak: newStreak })
 }
