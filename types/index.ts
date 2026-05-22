@@ -70,26 +70,26 @@ export interface UserProfile {
   email:                 string | null
   points:                number
   streak:                number
-  streak_history:        string[]
   spin_cooldown_ends_at: string | null
   referral_code:         string | null
-  rank:                  RankId
+  referred_by:           string | null
+  cash_balance:          number
   watchlist:             string[]
-  og_member:             boolean
   created_at:            string
 }
 
 // ─── Wallet / Transactions ──────────────────────────────────────────────────
 
-export type TxKind = 'spin' | 'streak' | 'referral' | 'mission' | 'buy' | 'sell' | 'withdrawal'
+export type TxKind = 'spin' | 'streak' | 'referral' | 'mission' | 'buy' | 'sell' | 'withdrawal' | 'deposit' | 'bonus'
 
 export interface Transaction {
   id:         string
   user_id:    string
-  kind:       TxKind
-  points:     number        // positive = credit, negative = debit
-  sym:        string | null // for buy/sell
-  meta:       Record<string, any>
+  kind:       string
+  sym:        string | null
+  qty:        number | null
+  amount:     number
+  notes:      string | null
   created_at: string
 }
 
@@ -97,7 +97,7 @@ export interface Holding {
   id:         string
   user_id:    string
   sym:        string
-  shares:     number
+  qty:        number
   avg_price:  number        // IQD per share
   created_at: string
 }
