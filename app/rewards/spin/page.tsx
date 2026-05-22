@@ -140,6 +140,13 @@ export default function SpinPage() {
     }
   }
 
+  if (!profile) return (
+    <div style={{ maxWidth: 500, margin: '80px auto', padding: '0 24px' }}>
+      <div className="skeleton" style={{ height: 300, borderRadius: 20, marginBottom: 12 }} />
+      <div className="skeleton" style={{ height: 44, borderRadius: 12 }} />
+    </div>
+  )
+
   const cooldownEnds = profile.spin_cooldown_ends_at ? new Date(profile.spin_cooldown_ends_at) : null
   const onCooldown   = cooldownEnds ? cooldownEnds > new Date() : false
   const hoursLeft    = onCooldown && cooldownEnds ? Math.ceil((cooldownEnds.getTime() - Date.now()) / 3600000) : 0
