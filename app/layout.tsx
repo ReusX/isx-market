@@ -5,6 +5,7 @@ import './globals.css'
 import { AppProvider } from '@/context/AppContext'
 import Navbar from '@/components/layout/Navbar'
 import BottomNav from '@/components/layout/BottomNav'
+import { SpeedInsights } from '@vercel/speed-insights/next'
 
 const inter = Inter({
   subsets: ['latin'],
@@ -73,6 +74,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           </main>
           <BottomNav />
         </AppProvider>
+        <SpeedInsights />
       </body>
     </html>
   )
