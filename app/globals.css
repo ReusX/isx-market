@@ -117,3 +117,16 @@ button { cursor: pointer; font-family: inherit; }
   50%       { opacity: 0.4; }
 }
 .skeleton { animation: pulse 1.8s infinite; background: var(--surf3); border-radius: 6px; }
+
+/* ── Mobile responsive ── */
+@media (max-width: 768px) {
+  main { padding-bottom: 72px !important; }
+  .desktop-only { display: none !important; }
+
+  /* Hide scrollbars on mobile chip rows */
+  .chip-scroll { scrollbar-width: none; }
+  .chip-scroll::-webkit-scrollbar { display: none; }
+}
+@media (min-width: 769px) {
+  .mobile-only { display: none !important; }
+}

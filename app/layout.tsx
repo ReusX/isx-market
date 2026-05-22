@@ -4,6 +4,7 @@ import localFont from 'next/font/local'
 import './globals.css'
 import { AppProvider } from '@/context/AppContext'
 import Navbar from '@/components/layout/Navbar'
+import BottomNav from '@/components/layout/BottomNav'
 
 const inter = Inter({
   subsets: ['latin'],
@@ -67,6 +68,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <main style={{ paddingTop: 'var(--nav-h)' }}>
             {children}
           </main>
+          <BottomNav />
         </AppProvider>
       </body>
     </html>

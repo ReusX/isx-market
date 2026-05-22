@@ -37,8 +37,8 @@ export default function Navbar() {
             </span>
           </Link>
 
-          {/* Nav links */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 2, flex: 1 }}>
+          {/* Nav links — desktop only */}
+          <div className="desktop-only" style={{ display: 'flex', alignItems: 'center', gap: 2, flex: 1 }}>
             {[
               { href: '/market',     ar: 'السوق',      en: 'Market' },
               { href: '/charts',     ar: 'المخططات',   en: 'Charts' },
@@ -57,6 +57,9 @@ export default function Navbar() {
               </Link>
             ))}
           </div>
+
+          {/* Spacer for mobile */}
+          <div className="mobile-only" style={{ flex: 1 }} />
 
           {/* Game chips — shown when logged in */}
           {user && profile && (

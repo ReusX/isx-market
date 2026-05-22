@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, useMemo } from 'react'
+import { useEffect, useState, useMemo, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { useApp } from '@/context/AppContext'
@@ -8,7 +8,7 @@ import { fetchLive, fetchCompanyMeta, mergeCompanies, filterSort, fmtVol, fmtMca
 import { rankFor, fmtPts } from '@/lib/ranks'
 import type { Company, LiveData } from '@/types'
 
-// ─── Sparkline ───────────────────────────────────────────────────────────────
+// ─── Mini Spark (direction-based) ────────────────────────────────────────────
 function Spark({ pct }: { pct: number }) {
   const up = pct >= 0
   return (
@@ -24,26 +24,53 @@ function Spark({ pct }: { pct: number }) {
   )
 }
 
+// ─── Real mini sparkline from hist data ──────────────────────────────────────
+function MiniSpark({ points, up }: { points: number[]; up: boolean }) {
+  if (!points || points.length < 2) {
+    return (
+      <svg width="64" height="28" viewBox="0 0 64 28" fill="none">
+        <line x1="0" y1="14" x2="64" y2="14" stroke="var(--line2)" strokeWidth="1.5" />
+      </svg>
+    )
+  }
+  const min = Math.min(...points)
+  const max = Math.max(...points)
+  const range = max - min || 1
+  const w = 64, h = 28, pad = 2
+  const pts = points.map((v, i) => {
+    const x = pad + (i / (points.length - 1)) * (w - pad * 2)
+    const y = h - pad - ((v - min) / range) * (h - pad * 2)
+    return `${x},${y}`
+  }).join(' ')
+  const color = up ? 'var(--up)' : 'var(--dn)'
+  return (
+    <svg width={w} height={h} viewBox={`0 0 ${w} ${h}`} fill="none">
+      <polyline points={pts} stroke={color} strokeWidth="1.5"
+        strokeLinecap="round" strokeLinejoin="round" fill="none" />
+    </svg>
+  )
+}
+
 // ─── Logo ────────────────────────────────────────────────────────────────────
-function CoLogo({ sym, color }: { sym: string; color?: string }) {
+function CoLogo({ sym, color, size = 28 }: { sym: string; color?: string; size?: number }) {
   const [err, setErr] = useState(false)
   if (!err) {
     return (
       <img
         src={`https://isc.gov.iq/Uploads/Companies/${sym}.png`}
         alt={sym}
-        width={28} height={28}
-        style={{ borderRadius: 6, objectFit: 'contain', background: '#fff', padding: 2 }}
+        width={size} height={size}
+        style={{ borderRadius: 6, objectFit: 'contain', background: '#fff', padding: 2, flexShrink: 0 }}
         onError={() => setErr(true)}
       />
     )
   }
   return (
     <div style={{
-      width: 28, height: 28, borderRadius: 6, flexShrink: 0,
+      width: size, height: size, borderRadius: 6, flexShrink: 0,
       background: color || 'var(--brand)',
       display: 'flex', alignItems: 'center', justifyContent: 'center',
-      fontSize: 9, fontWeight: 800, color: '#fff',
+      fontSize: size < 32 ? 9 : 11, fontWeight: 800, color: '#fff',
     }}>
       {sym.slice(0, 3)}
     </div>
@@ -61,12 +88,18 @@ export default function HomePage() {
   const [loading,   setLoading]   = useState(true)
   const [sector,    setSector]    = useState('all')
   const [sort,      setSort]      = useState('default')
+  const [histShort, setHistShort] = useState<Record<string, [number, number][]>>({})
 
   useEffect(() => {
-    Promise.all([fetchLive(), fetchCompanyMeta()])
-      .then(([live, meta]) => {
+    Promise.all([
+      fetchLive(),
+      fetchCompanyMeta(),
+      fetch(`/data/hist.json?t=${Math.floor(Date.now() / 60000)}`).then(r => r.json()).catch(() => ({})),
+    ])
+      .then(([live, meta, hist]) => {
         setLiveData(live)
         setCompanies(mergeCompanies(meta, live.stocks))
+        setHistShort(hist.s ?? {})
       })
       .finally(() => setLoading(false))
   }, [])
@@ -76,15 +109,22 @@ export default function HomePage() {
     [companies, sector, sort, watchlist]
   )
 
-  const rsisx = liveData?.rsisx
-  const rsisxVal  = rsisx ? Number(rsisx.value).toFixed(2) : '—'
-  const rsisxChg  = rsisx ? Number(rsisx.change) : 0
-  const rsisxPct  = rsisx ? Number(rsisx.pct) : 0
-  const rsisxUp   = rsisxPct >= 0
+  const rsisx    = liveData?.rsisx
+  const rsisxVal = rsisx ? Number(rsisx.value).toFixed(2) : '—'
+  const rsisxPct = rsisx ? Number(rsisx.pct) : 0
+  const rsisxUp  = rsisxPct >= 0
 
-  const gainers = useMemo(() => [...companies].filter(c => c.pct > 0 && c.close > 0).length, [companies])
-  const losers  = useMemo(() => [...companies].filter(c => c.pct < 0 && c.close > 0).length, [companies])
+  const gainers = useMemo(() => companies.filter(c => c.pct > 0 && c.close > 0).length, [companies])
+  const losers  = useMemo(() => companies.filter(c => c.pct < 0 && c.close > 0).length, [companies])
   const rank    = profile ? rankFor(profile.points) : null
+
+  // Mini sparkline points (last 20 closes from hist)
+  function sparkPoints(sym: string) {
+    const series = histShort[sym]
+    if (!series || series.length < 2) return []
+    const recent = series.slice(-20)
+    return recent.map(p => p[1])
+  }
 
   // ── Strip CTA items ─────────────────────────────────────────────────────
   const stripItems = user && profile ? [
@@ -108,8 +148,8 @@ export default function HomePage() {
 
   return (
     <>
-      {/* ── Slim strip ── */}
-      <div style={{
+      {/* ── Slim strip — desktop only ── */}
+      <div className="desktop-only" style={{
         background: 'var(--surf)', borderBottom: '1px solid var(--line)',
         overflowX: 'auto', scrollbarWidth: 'none',
       }}>
@@ -139,8 +179,275 @@ export default function HomePage() {
         </div>
       </div>
 
-      {/* ── Main layout ── */}
-      <div style={{
+      {/* ══════════════════════════════════════════════════════════════════
+          MOBILE LAYOUT
+      ══════════════════════════════════════════════════════════════════ */}
+      <div className="mobile-only" style={{ display: 'flex', flexDirection: 'column', minHeight: 0 }}>
+
+        {/* ── Index card ── */}
+        <div style={{ padding: '12px 16px 8px' }}>
+          <div style={{
+            background: 'var(--surf)',
+            border: '1px solid var(--line)',
+            borderRadius: 16, padding: '14px 16px',
+            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+          }}>
+            <div>
+              <div style={{ fontSize: 10, color: 'var(--ink4)', fontWeight: 600, marginBottom: 4 }}>
+                {ar ? 'مؤشر ربيع RSISX' : 'RSISX Index'}
+              </div>
+              <div style={{ fontFamily: 'var(--font-mono)', fontSize: 26, fontWeight: 800, lineHeight: 1 }}>
+                {loading ? '—' : rsisxVal}
+              </div>
+              {!loading && (
+                <div style={{
+                  fontSize: 12, fontWeight: 700, marginTop: 4,
+                  color: rsisxUp ? 'var(--up)' : 'var(--dn)',
+                }}>
+                  {rsisxUp ? '▲' : '▼'} {Math.abs(rsisxPct).toFixed(2)}%
+                </div>
+              )}
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 8 }}>
+              <div style={{ display: 'flex', gap: 14 }}>
+                <div style={{ textAlign: 'center' }}>
+                  <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--up)' }}>{gainers}</div>
+                  <div style={{ fontSize: 9, color: 'var(--ink4)' }}>{ar ? 'رابح' : 'Up'}</div>
+                </div>
+                <div style={{ textAlign: 'center' }}>
+                  <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--dn)' }}>{losers}</div>
+                  <div style={{ fontSize: 9, color: 'var(--ink4)' }}>{ar ? 'خاسر' : 'Down'}</div>
+                </div>
+                <div style={{ textAlign: 'center' }}>
+                  <div style={{ fontSize: 15, fontWeight: 700 }}>{companies.filter(c => c.close > 0).length}</div>
+                  <div style={{ fontSize: 9, color: 'var(--ink4)' }}>{ar ? 'شركة' : 'Listed'}</div>
+                </div>
+              </div>
+              <Link href="/charts" style={{
+                padding: '5px 12px',
+                background: 'var(--brand-soft)', border: '1px solid var(--brand)',
+                borderRadius: 8, fontSize: 11, fontWeight: 700, color: 'var(--brand)',
+              }}>
+                {ar ? 'المخططات ›' : 'Charts ›'}
+              </Link>
+            </div>
+          </div>
+        </div>
+
+        {/* ── Quick actions ── */}
+        <div style={{
+          display: 'flex', gap: 8, padding: '0 16px 10px',
+          overflowX: 'auto', scrollbarWidth: 'none',
+        }}>
+          {[
+            { icon: '📚', labelAr: 'تعلّم', labelEn: 'Learn', href: '/quests' },
+            { icon: '🔍', labelAr: 'بحث', labelEn: 'Research', href: '/market' },
+            { icon: '📊', labelAr: 'تحليل', labelEn: 'Analysis', href: '/charts' },
+            { icon: '⭐', labelAr: 'المراقبة', labelEn: 'Watchlist', action: () => setSort('watchlist') },
+            { icon: '🏆', labelAr: 'المتصدرون', labelEn: 'Leaderboard', href: '/leaderboard' },
+          ].map((chip, i) => (
+            chip.href ? (
+              <Link key={i} href={chip.href} style={{
+                display: 'flex', alignItems: 'center', gap: 5,
+                padding: '7px 14px', borderRadius: 999, whiteSpace: 'nowrap',
+                background: 'var(--surf)', border: '1px solid var(--line)',
+                fontSize: 11, fontWeight: 600, color: 'var(--ink2)',
+                flexShrink: 0,
+              }}>
+                <span>{chip.icon}</span>
+                {ar ? chip.labelAr : chip.labelEn}
+              </Link>
+            ) : (
+              <button key={i} onClick={chip.action} style={{
+                display: 'flex', alignItems: 'center', gap: 5,
+                padding: '7px 14px', borderRadius: 999, whiteSpace: 'nowrap',
+                background: sort === 'watchlist' ? 'var(--brand)' : 'var(--surf)',
+                border: sort === 'watchlist' ? 'none' : '1px solid var(--line)',
+                fontSize: 11, fontWeight: 600,
+                color: sort === 'watchlist' ? '#fff' : 'var(--ink2)',
+                flexShrink: 0, fontFamily: 'inherit',
+              }}>
+                <span>{chip.icon}</span>
+                {ar ? chip.labelAr : chip.labelEn}
+              </button>
+            )
+          ))}
+        </div>
+
+        {/* ── Sector chips ── */}
+        <div style={{
+          display: 'flex', gap: 6, padding: '0 16px 10px',
+          overflowX: 'auto', scrollbarWidth: 'none',
+        }}>
+          {SECTORS.map(s => (
+            <button key={s.id} onClick={() => setSector(s.id)}
+              style={{
+                padding: '5px 12px', borderRadius: 999, border: 'none', whiteSpace: 'nowrap',
+                background: sector === s.id ? 'var(--brand)' : 'var(--surf2)',
+                color: sector === s.id ? '#fff' : 'var(--ink3)',
+                fontSize: 11, fontWeight: 700, fontFamily: 'inherit', flexShrink: 0,
+              }}
+            >
+              {ar ? s.ar : s.en}
+            </button>
+          ))}
+        </div>
+
+        {/* ── Company list ── */}
+        <div style={{ flex: 1 }}>
+          {loading && Array.from({ length: 8 }).map((_, i) => (
+            <div key={i} style={{
+              display: 'flex', alignItems: 'center', gap: 10,
+              padding: '10px 16px', borderBottom: '1px solid var(--line)',
+            }}>
+              <div className="skeleton" style={{ width: 38, height: 38, borderRadius: 10, flexShrink: 0 }} />
+              <div style={{ flex: 1 }}>
+                <div className="skeleton" style={{ height: 11, width: 100, borderRadius: 4, marginBottom: 6 }} />
+                <div className="skeleton" style={{ height: 9, width: 60, borderRadius: 4 }} />
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 6 }}>
+                <div className="skeleton" style={{ height: 11, width: 56, borderRadius: 4 }} />
+                <div className="skeleton" style={{ height: 9, width: 40, borderRadius: 4 }} />
+              </div>
+            </div>
+          ))}
+
+          {!loading && filtered.map(co => {
+            const up = co.pct >= 0
+            const pts = sparkPoints(co.sym)
+            return (
+              <div
+                key={co.sym}
+                style={{
+                  display: 'flex', alignItems: 'center', gap: 10,
+                  padding: '10px 16px', borderBottom: '1px solid var(--line)',
+                  cursor: 'pointer',
+                }}
+                onClick={() => router.push(`/c/${co.sym}`)}
+              >
+                {/* Logo */}
+                <CoLogo sym={co.sym} color={co.color} size={38} />
+
+                {/* Name + sparkline */}
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{
+                    fontSize: 12, fontWeight: 700, color: 'var(--ink)',
+                    overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                    marginBottom: 2,
+                  }}>
+                    {ar ? co.ar : co.en}
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                    <span style={{ fontSize: 9, color: 'var(--ink4)', fontFamily: 'var(--font-mono)' }}>
+                      {co.sym}
+                    </span>
+                    <MiniSpark points={pts} up={up} />
+                  </div>
+                </div>
+
+                {/* Price + change */}
+                <div style={{ textAlign: 'end', flexShrink: 0 }}>
+                  <div style={{
+                    fontFamily: 'var(--font-mono)', fontSize: 13, fontWeight: 700,
+                    color: 'var(--ink)', marginBottom: 2,
+                  }}>
+                    {co.close.toFixed(3)}
+                  </div>
+                  <div style={{
+                    fontSize: 11, fontWeight: 700,
+                    color: up ? 'var(--up)' : 'var(--dn)',
+                  }}>
+                    {up ? '▲' : '▼'} {Math.abs(co.pct).toFixed(2)}%
+                  </div>
+                </div>
+
+                {/* Buy button */}
+                <button
+                  onClick={e => { e.stopPropagation(); router.push(`/c/${co.sym}?action=buy`) }}
+                  style={{
+                    padding: '6px 12px', borderRadius: 8, border: 'none',
+                    background: 'rgba(34,197,94,0.15)', color: 'var(--up)',
+                    fontSize: 11, fontWeight: 700, fontFamily: 'inherit', flexShrink: 0,
+                  }}
+                >
+                  {ar ? 'شراء' : 'Buy'}
+                </button>
+              </div>
+            )
+          })}
+
+          {!loading && filtered.length === 0 && (
+            <div style={{ padding: '40px 24px', textAlign: 'center', color: 'var(--ink4)', fontSize: 13 }}>
+              {sort === 'watchlist'
+                ? (ar ? 'قائمة المراقبة فارغة — اضغط ★ لإضافة شركة' : 'Watchlist empty — tap ★ to add a company')
+                : (ar ? 'لا توجد نتائج' : 'No results')}
+            </div>
+          )}
+        </div>
+
+        {/* ── Spin banner (above bottom nav) ── */}
+        {!authLoading && !user && (
+          <div style={{
+            margin: '12px 16px',
+            background: 'linear-gradient(135deg, rgba(245,200,75,0.15), rgba(245,200,75,0.05))',
+            border: '1px solid rgba(245,200,75,0.4)',
+            borderRadius: 14, padding: '12px 16px',
+            display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10,
+          }}>
+            <div>
+              <div style={{ fontSize: 12, fontWeight: 800, color: 'var(--gold)' }}>
+                {ar ? '🎡 عجلة الحظ متاحة!' : '🎡 SPIN READY'}
+              </div>
+              <div style={{ fontSize: 10, color: 'var(--ink3)', marginTop: 2 }}>
+                {ar ? 'اربح حتى 5,000 نقطة مجاناً' : 'Win up to 5,000 pts free'}
+              </div>
+            </div>
+            <button
+              onClick={() => openAuth('signup')}
+              style={{
+                padding: '8px 14px', borderRadius: 9, border: 'none',
+                background: 'var(--gold)', color: '#0B0E14',
+                fontSize: 11, fontWeight: 800, fontFamily: 'inherit', flexShrink: 0,
+              }}
+            >
+              {ar ? 'سجّل' : 'Join'}
+            </button>
+          </div>
+        )}
+        {!authLoading && user && (
+          <div style={{
+            margin: '12px 16px',
+            background: 'linear-gradient(135deg, rgba(245,200,75,0.15), rgba(245,200,75,0.05))',
+            border: '1px solid rgba(245,200,75,0.4)',
+            borderRadius: 14, padding: '12px 16px',
+            display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10,
+          }}>
+            <div>
+              <div style={{ fontSize: 12, fontWeight: 800, color: 'var(--gold)' }}>
+                {ar ? '🎡 عجلة الحظ جاهزة!' : '🎡 SPIN READY'}
+              </div>
+              <div style={{ fontSize: 10, color: 'var(--ink3)', marginTop: 2 }}>
+                {ar ? 'اربح حتى 5,000 نقطة مجاناً' : 'Win up to 5,000 pts free · Daily'}
+              </div>
+            </div>
+            <button
+              onClick={() => router.push('/rewards/spin')}
+              style={{
+                padding: '8px 14px', borderRadius: 9, border: 'none',
+                background: 'var(--gold)', color: '#0B0E14',
+                fontSize: 11, fontWeight: 800, fontFamily: 'inherit', flexShrink: 0,
+              }}
+            >
+              {ar ? 'دوّر' : 'Spin'}
+            </button>
+          </div>
+        )}
+      </div>
+
+      {/* ══════════════════════════════════════════════════════════════════
+          DESKTOP LAYOUT
+      ══════════════════════════════════════════════════════════════════ */}
+      <div className="desktop-only" style={{
         maxWidth: 1440, margin: '0 auto',
         padding: '20px 24px',
         display: 'grid',
@@ -479,7 +786,6 @@ function SpinWidget({ ar, user, openAuth }: { ar: boolean; user: boolean; openAu
 
       {expanded && (
         <div style={{ padding: '0 16px 16px', textAlign: 'center' }}>
-          {/* Mini wheel graphic */}
           <div style={{
             width: 120, height: 120, margin: '0 auto 12px',
             borderRadius: '50%',
@@ -572,7 +878,7 @@ function MoverRow({ co, ar, router }: { co: Company; ar: boolean; router: any })
 // ─── FX Quick Widget ─────────────────────────────────────────────────────────
 function FxWidget({ ar }: { ar: boolean }) {
   const [usd, setUsd] = useState('1')
-  const rate = 1310 // IQD per USD (approximate)
+  const rate = 1310
   const iqd = (parseFloat(usd || '0') * rate).toLocaleString('en')
 
   return (
