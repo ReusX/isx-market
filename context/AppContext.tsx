@@ -124,7 +124,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     }}>
       {children}
       {authModalTab && !user && (
-        <AuthModal defaultTab={authModalTab} onClose={() => setAuthModalTab(null)} />
+        <AuthModal defaultTab={authModalTab} lang={lang} onClose={() => setAuthModalTab(null)} />
       )}
     </AppContext.Provider>
   )

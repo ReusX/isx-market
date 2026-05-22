@@ -3,7 +3,6 @@
 export const dynamic = 'force-dynamic'
 
 import { useState, useRef } from 'react'
-import Link from 'next/link'
 import { useApp } from '@/context/AppContext'
 import { fmtPts } from '@/lib/ranks'
 

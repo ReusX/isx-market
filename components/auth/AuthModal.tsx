@@ -2,13 +2,14 @@
 
 import { useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
-import { useApp } from '@/context/AppContext'
 
-interface Props { onClose: () => void; defaultTab?: 'signin' | 'signup' }
+// Note: does NOT import useApp — AppContext imports this file, so importing
+// useApp here would create a circular dependency. Lang is passed as a prop instead.
+interface Props { onClose: () => void; defaultTab?: 'signin' | 'signup'; lang?: string }
 
 type Tab = 'signin' | 'signup'
 
-export default function AuthModal({ onClose, defaultTab = 'signin' }: Props) {
+export default function AuthModal({ onClose, defaultTab = 'signin', lang = 'ar' }: Props) {
   const [tab, setTab]         = useState<Tab>(defaultTab)
   const [email, setEmail]     = useState('')
   const [password, setPass]   = useState('')
@@ -17,7 +18,6 @@ export default function AuthModal({ onClose, defaultTab = 'signin' }: Props) {
   const [loading, setLoading] = useState(false)
   const [error, setError]     = useState<string | null>(null)
   const [done, setDone]       = useState(false)
-  const { lang }              = useApp()
   const ar                    = lang === 'ar'
   const sb                    = createClient()
 
