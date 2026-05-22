@@ -9,6 +9,7 @@ interface AppState {
   user:       any | null
   profile:    UserProfile | null
   watchlist:  string[]
+  authLoading: boolean
   setLang:    (l: Lang) => void
   toggleWatchlist: (sym: string) => void
   refreshProfile:  () => Promise<void>
@@ -22,6 +23,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<any | null>(null)
   const [profile, setProfile] = useState<UserProfile | null>(null)
   const [watchlist, setWatchlist] = useState<string[]>([])
+  const [authLoading, setAuthLoading] = useState(true)
   const supabase = createClient()
 
   // Init lang from localStorage
@@ -40,6 +42,16 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   // Auth listener
   useEffect(() => {
+    // Resolve auth state on first load
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      setUser(user ?? null)
+      if (user) {
+        refreshProfile().finally(() => setAuthLoading(false))
+      } else {
+        setAuthLoading(false)
+      }
+    })
+
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       setUser(session?.user ?? null)
       if (session?.user) {
@@ -47,10 +59,6 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       } else {
         setProfile(null)
       }
-    })
-    supabase.auth.getUser().then(({ data: { user } }) => {
-      setUser(user)
-      if (user) refreshProfile()
     })
     return () => subscription.unsubscribe()
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -101,7 +109,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <AppContext.Provider value={{ lang, user, profile, watchlist, setLang, toggleWatchlist, refreshProfile, signOut }}>
+    <AppContext.Provider value={{ lang, user, profile, watchlist, authLoading, setLang, toggleWatchlist, refreshProfile, signOut }}>
       {children}
     </AppContext.Provider>
   )

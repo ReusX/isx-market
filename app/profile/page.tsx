@@ -9,13 +9,21 @@ import { rankFor, fmtPts, rankProgress, nextRank } from '@/lib/ranks'
 import { createClient } from '@/lib/supabase/client'
 
 export default function ProfilePage() {
-  const { lang, user, profile, refreshProfile, signOut } = useApp()
+  const { lang, user, profile, authLoading, refreshProfile, signOut } = useApp()
   const ar = lang === 'ar'
   const sb = createClient()
   const [editing, setEditing]   = useState(false)
   const [username, setUsername] = useState(profile?.username ?? '')
   const [saving, setSaving]     = useState(false)
   const [saved, setSaved]       = useState(false)
+
+  if (authLoading) return (
+    <div style={{ maxWidth: 600, margin: '80px auto', textAlign: 'center', padding: '0 24px' }}>
+      <div className="skeleton" style={{ width: 64, height: 64, borderRadius: '50%', margin: '0 auto 16px' }} />
+      <div className="skeleton" style={{ width: 160, height: 18, borderRadius: 8, margin: '0 auto 8px' }} />
+      <div className="skeleton" style={{ width: 120, height: 14, borderRadius: 8, margin: '0 auto' }} />
+    </div>
+  )
 
   if (!user || !profile) return (
     <div style={{ maxWidth: 600, margin: '80px auto', textAlign: 'center', padding: '0 24px' }}>

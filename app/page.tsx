@@ -52,7 +52,7 @@ function CoLogo({ sym, color }: { sym: string; color?: string }) {
 
 // ─── Page ────────────────────────────────────────────────────────────────────
 export default function HomePage() {
-  const { lang, user, profile, watchlist, toggleWatchlist } = useApp()
+  const { lang, user, profile, authLoading, watchlist, toggleWatchlist } = useApp()
   const ar = lang === 'ar'
   const router = useRouter()
 
@@ -369,7 +369,13 @@ export default function HomePage() {
         <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
 
           {/* Portfolio card (logged in) */}
-          {user && profile ? (
+          {authLoading ? (
+            <div style={{ background: 'var(--surf)', border: '1px solid var(--line)', borderRadius: 16, padding: 16 }}>
+              <div className="skeleton" style={{ height: 12, width: 80, borderRadius: 6, marginBottom: 12 }} />
+              <div className="skeleton" style={{ height: 20, width: '100%', borderRadius: 6, marginBottom: 8 }} />
+              <div className="skeleton" style={{ height: 36, width: '100%', borderRadius: 10 }} />
+            </div>
+          ) : user && profile ? (
             <div style={{
               background: 'var(--surf)', border: '1px solid var(--line)',
               borderRadius: 16, padding: 16,

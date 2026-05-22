@@ -13,7 +13,7 @@ import type { Holding, Transaction } from '@/types'
 const VIRTUAL_CASH = 10_000_000 // 10M IQD starting cash
 
 function WalletPageInner() {
-  const { lang, user, profile, refreshProfile } = useApp()
+  const { lang, user, profile, authLoading, refreshProfile } = useApp()
   const ar = lang === 'ar'
   const sb = createClient()
   const searchParams = useSearchParams()
@@ -36,6 +36,14 @@ function WalletPageInner() {
       setTxHistory((t as Transaction[]) ?? [])
     }).finally(() => setLoading(false))
   }, [user])
+
+  if (authLoading) return (
+    <div style={{ maxWidth: 700, margin: '40px auto', padding: '0 24px' }}>
+      {[120, 80, 200].map((h, i) => (
+        <div key={i} className="skeleton" style={{ height: h, borderRadius: 16, marginBottom: 12 }} />
+      ))}
+    </div>
+  )
 
   if (!user || !profile) return (
     <div style={{ maxWidth: 600, margin: '80px auto', textAlign: 'center', padding: '0 24px' }}>

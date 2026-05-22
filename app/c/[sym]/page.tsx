@@ -56,7 +56,7 @@ export default function CompanyPage() {
   const { sym } = useParams<{ sym: string }>()
   const searchParams = useSearchParams()
   const router = useRouter()
-  const { lang, watchlist, toggleWatchlist, user } = useApp()
+  const { lang, watchlist, toggleWatchlist, user, authLoading } = useApp()
   const ar = lang === 'ar'
 
   const [co, setCo]             = useState<Company | null>(null)
@@ -186,7 +186,13 @@ export default function CompanyPage() {
       {/* Trade card */}
       <div style={{ background: 'var(--surf)', border: '1px solid var(--line)', borderRadius: 20, padding: '20px 24px' }}>
         <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 16 }}>{ar ? 'تداول' : 'Paper Trade'}</div>
-        {!user ? (
+        {authLoading ? (
+          <div style={{ padding: '20px 0' }}>
+            <div className="skeleton" style={{ height: 40, borderRadius: 10, marginBottom: 12 }} />
+            <div className="skeleton" style={{ height: 40, borderRadius: 10, marginBottom: 12 }} />
+            <div className="skeleton" style={{ height: 44, borderRadius: 10 }} />
+          </div>
+        ) : !user ? (
           <div style={{ textAlign: 'center', padding: '20px 0' }}>
             <div style={{ fontSize: 13, color: 'var(--ink3)', marginBottom: 12 }}>
               {ar ? 'سجّل دخولك للتداول الافتراضي' : 'Sign in to paper trade'}
