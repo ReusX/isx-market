@@ -2,7 +2,7 @@
 
 export const dynamic = 'force-dynamic'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { useApp } from '@/context/AppContext'
@@ -12,7 +12,7 @@ import type { Holding, Transaction } from '@/types'
 
 const VIRTUAL_CASH = 10_000_000 // 10M IQD starting cash
 
-export default function WalletPage() {
+function WalletPageInner() {
   const { lang, user, profile, refreshProfile } = useApp()
   const ar = lang === 'ar'
   const sb = createClient()
@@ -315,5 +315,13 @@ export default function WalletPage() {
         </div>
       )}
     </div>
+  )
+}
+
+export default function WalletPage() {
+  return (
+    <Suspense fallback={<div style={{ padding: 40, textAlign: 'center', color: 'var(--ink4)' }}>Loading…</div>}>
+      <WalletPageInner />
+    </Suspense>
   )
 }
