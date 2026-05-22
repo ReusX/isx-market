@@ -27,7 +27,9 @@ function tsToDate(ts: number): string {
 
 // ─── Real RSISX Chart (Lightweight Charts) ────────────────────────────────────
 function RSISXChart({ tf }: { tf: string }) {
-  const ref = useRef<HTMLDivElement>(null)
+  const ref     = useRef<HTMLDivElement>(null)
+  const tipRef  = useRef<HTMLDivElement>(null)
+  const wrapRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     if (!ref.current) return
@@ -113,6 +115,45 @@ function RSISXChart({ tf }: { tf: string }) {
       area.setData(data)
       chart.timeScale().fitContent()
 
+      // ── Custom crosshair tooltip ──────────────────────────────────────────
+      chart.subscribeCrosshairMove((param: any) => {
+        const tip  = tipRef.current
+        const wrap = wrapRef.current
+        if (!tip || !wrap) return
+
+        if (!param.time || !param.point || param.point.x < 0 || param.point.y < 0) {
+          tip.style.display = 'none'
+          return
+        }
+
+        const d = param.seriesData.get(area)
+        if (d == null) { tip.style.display = 'none'; return }
+
+        // param.time is a string "YYYY-MM-DD" for area series with string time
+        let dateStr = ''
+        if (typeof param.time === 'string') {
+          dateStr = param.time
+        } else if (param.time && typeof param.time === 'object') {
+          const { year, month, day } = param.time as any
+          dateStr = `${year}-${String(month).padStart(2,'0')}-${String(day).padStart(2,'0')}`
+        }
+
+        const val = typeof d === 'object' && 'value' in d ? d.value : d as number
+
+        tip.innerHTML = `
+          <div style="font-size:11px;color:rgba(255,255,255,0.5);margin-bottom:4px">${dateStr}</div>
+          <div style="font-size:15px;font-weight:800;color:#fff;font-family:'JetBrains Mono',monospace">${val.toFixed(2)}</div>
+        `
+        tip.style.display = 'block'
+
+        const chartW = wrap.clientWidth
+        const tw = tip.offsetWidth || 120
+        const x = param.point.x
+        const y = param.point.y
+        tip.style.left  = (x + tw + 16 > chartW ? x - tw - 8 : x + 10) + 'px'
+        tip.style.top   = Math.max(4, y - 32) + 'px'
+      })
+
       // Remove TradingView attribution logo
       ref.current?.querySelectorAll('a[href*="tradingview"]').forEach(el => el.remove())
 
@@ -129,7 +170,22 @@ function RSISXChart({ tf }: { tf: string }) {
     }
   }, [tf])
 
-  return <div ref={ref} style={{ width: '100%', height: 420 }} />
+  return (
+    <div ref={wrapRef} style={{ position: 'relative', width: '100%' }}>
+      <div ref={ref} style={{ width: '100%', height: 420 }} />
+      <div ref={tipRef} style={{
+        display: 'none',
+        position: 'absolute',
+        pointerEvents: 'none',
+        zIndex: 10,
+        background: 'rgba(17,21,30,0.95)',
+        border: '1px solid rgba(255,255,255,0.12)',
+        borderRadius: 8,
+        padding: '8px 12px',
+        minWidth: 110,
+      }} />
+    </div>
+  )
 }
 
 // ─── Simple SVG sparkline for company mini-cards ──────────────────────────────

@@ -1,10 +1,9 @@
 'use client'
 
-import { useEffect, useState, useRef } from 'react'
-import { useParams, useSearchParams, useRouter } from 'next/navigation'
+import { useEffect, useState, useRef, useCallback } from 'react'
+import { useParams } from 'next/navigation'
 import Link from 'next/link'
 import { useApp } from '@/context/AppContext'
-import { fmtPts } from '@/lib/ranks'
 import { fetchLive, fetchCompanyMeta, mergeCompanies, fmtVol, fmtMcap } from '@/lib/market'
 import type { Company } from '@/types'
 
@@ -68,247 +67,357 @@ function CoLogo({ sym, logo, color }: { sym: string; logo?: string; color?: stri
 // ─── Advanced Chart ───────────────────────────────────────────────────────────
 type ChartType = 'candle' | 'line'
 
+// Shared chart state held in a ref — not reactive, avoids unnecessary re-inits
+interface ChartState {
+  LC: any; mainChart: any; rsiChart: any; priceSeries: any
+  candles: any[]; closes: number[]; ro: ResizeObserver | null
+}
+
 function AdvancedChart({
-  sym, tf, color, chartType,
-  showMA20, showMA50, showMA100, showRSI,
+  sym, tf, color, chartType, showMA20, showMA50, showMA100, showRSI, co,
 }: {
   sym: string; tf: string; color?: string; chartType: ChartType
   showMA20: boolean; showMA50: boolean; showMA100: boolean; showRSI: boolean
+  co: Company
 }) {
-  const mainRef = useRef<HTMLDivElement>(null)
-  const rsiRef  = useRef<HTMLDivElement>(null)
+  const mainRef    = useRef<HTMLDivElement>(null)
+  const rsiRef     = useRef<HTMLDivElement>(null)
+  const tooltipRef = useRef<HTMLDivElement>(null)
+  const showRSIRef = useRef(showRSI)
 
+  const s = useRef<ChartState>({
+    LC: null, mainChart: null, rsiChart: null, priceSeries: null,
+    candles: [], closes: [], ro: null,
+  })
+
+  // Copy state
+  const [copyDone, setCopyDone] = useState(false)
+
+  // Keep showRSIRef up to date without re-running the main effect
+  useEffect(() => { showRSIRef.current = showRSI }, [showRSI])
+
+  // ── Build RSI sub-chart (callable from both effects) ──────────────────────
+  const buildRSI = useCallback(() => {
+    const { LC, candles, closes, mainChart } = s.current
+    if (!LC || !candles.length || !rsiRef.current) return
+
+    s.current.rsiChart?.remove()
+    s.current.rsiChart = null
+
+    const rsiVals = calcRSI(closes)
+    const rsiData = candles
+      .map((c, i) => rsiVals[i] != null ? { time: c.time, value: +rsiVals[i]!.toFixed(2) } : null)
+      .filter(Boolean) as any[]
+    if (!rsiData.length) return
+
+    const rsiChart = LC.createChart(rsiRef.current, {
+      width:  rsiRef.current.clientWidth,
+      height: 120,
+      layout: { background: { color: 'transparent' }, textColor: 'rgba(255,255,255,0.35)', fontSize: 10 },
+      grid:   { vertLines: { color: 'rgba(255,255,255,0.04)' }, horzLines: { color: 'rgba(255,255,255,0.04)' } },
+      crosshair:       { mode: LC.CrosshairMode.Normal },
+      rightPriceScale: { borderColor: 'rgba(255,255,255,0.07)' },
+      timeScale:       { borderColor: 'rgba(255,255,255,0.07)', timeVisible: false, fixLeftEdge: true, fixRightEdge: true },
+      handleScroll: true, handleScale: true,
+    })
+    s.current.rsiChart = rsiChart
+
+    const rsiS = rsiChart.addLineSeries({
+      color: '#A855F7', lineWidth: 1.5, priceLineVisible: false, lastValueVisible: true,
+      autoscaleInfoProvider: () => ({ priceRange: { minValue: 0, maxValue: 100 }, margins: { above: 0.08, below: 0.08 } }),
+    })
+    rsiS.setData(rsiData)
+    rsiS.createPriceLine({ price: 70, color: 'rgba(239,68,68,0.55)',   lineWidth: 1, lineStyle: 2, axisLabelVisible: true, title: '70' })
+    rsiS.createPriceLine({ price: 50, color: 'rgba(255,255,255,0.18)', lineWidth: 1, lineStyle: 3, axisLabelVisible: false, title: '' })
+    rsiS.createPriceLine({ price: 30, color: 'rgba(34,197,94,0.55)',   lineWidth: 1, lineStyle: 2, axisLabelVisible: true, title: '30' })
+    rsiChart.timeScale().fitContent()
+
+    // Sync scroll/zoom with main chart
+    let sync = false
+    mainChart?.timeScale().subscribeVisibleLogicalRangeChange((range: any) => {
+      if (sync || !range) return
+      sync = true; rsiChart.timeScale().setVisibleLogicalRange(range); sync = false
+    })
+    rsiChart.timeScale().subscribeVisibleLogicalRangeChange((range: any) => {
+      if (sync || !range) return
+      sync = true; mainChart?.timeScale().setVisibleLogicalRange(range); sync = false
+    })
+
+    rsiRef.current?.querySelectorAll('a[href*="tradingview"]').forEach(el => (el as HTMLElement).style.display = 'none')
+  }, []) // stable — reads only from s.current ref
+
+  // ── Main chart effect — NO showRSI in deps ────────────────────────────────
   useEffect(() => {
-    if (!mainRef.current) return
-    let mainChart: any = null
-    let rsiChart: any  = null
-    let ro: ResizeObserver | null = null
+    const state = s.current
+    let cancelled = false
+
+    // Cleanup previous
+    state.ro?.disconnect(); state.mainChart?.remove(); state.rsiChart?.remove()
+    state.mainChart = null; state.rsiChart = null; state.priceSeries = null
+    state.candles = []; state.closes = []
 
     async function init() {
       const LC = await import('lightweight-charts')
-      if (!mainRef.current) return
+      if (cancelled || !mainRef.current) return
+      state.LC = LC
 
       const [histRes, ohlcvRes] = await Promise.all([
         fetch('/data/hist.json?t='  + Math.floor(Date.now() / 86400000)).then(r => r.json()),
         fetch('/data/ohlcv.json?t=' + Math.floor(Date.now() / 86400000)).then(r => r.json()),
       ])
+      if (cancelled || !mainRef.current) return
 
-      const days    = TF_DAYS[tf] ?? 30
-      const useLong = days >= 1825
+      const days     = TF_DAYS[tf] ?? 30
+      const useLong  = days >= 1825
       const raw: [number, number][] = (useLong ? histRes.l?.[sym] : null) ?? histRes.s?.[sym] ?? []
-      const cutoff  = Date.now() / 1000 - days * 86400
+      const cutoff   = Date.now() / 1000 - days * 86400
       const filtered = raw.filter(p => p[0] >= cutoff)
-      if (!filtered.length || !mainRef.current) return
+      if (!filtered.length) return
 
-      // Build OHLCV candles
       const candles = filtered.map((p, i) => {
         const [ts, c] = p
         const dateStr = tsToDate(ts)
         const ov = ohlcvRes?.[dateStr]?.[sym]
         if (ov?.o && ov?.h && ov?.l && ov?.c && +ov.c > 0) {
-          return {
-            time: ts as any,
-            open:   +Number(ov.o).toFixed(4),
-            high:   +Number(ov.h).toFixed(4),
-            low:    +Math.max(0.001, Number(ov.l)).toFixed(4),
-            close:  +Number(ov.c).toFixed(4),
-            volume: ov.v ? +ov.v : 0,
-          }
+          return { time: ts as any, open: +Number(ov.o).toFixed(4), high: +Number(ov.h).toFixed(4), low: +Math.max(0.001, Number(ov.l)).toFixed(4), close: +Number(ov.c).toFixed(4), volume: ov.v ? +ov.v : 0 }
         }
         const prev = i > 0 ? filtered[i - 1][1] : c
         const hi = Math.max(prev, c), lo = Math.min(prev, c)
         const pad = (hi - lo) * 0.18 + c * 0.0015
-        return {
-          time:   ts as any,
-          open:   +prev.toFixed(4),
-          high:   +(hi + pad).toFixed(4),
-          low:    +Math.max(0.001, lo - pad).toFixed(4),
-          close:  +c.toFixed(4),
-          volume: 0,
-        }
+        return { time: ts as any, open: +prev.toFixed(4), high: +(hi + pad).toFixed(4), low: +Math.max(0.001, lo - pad).toFixed(4), close: +c.toFixed(4), volume: 0 }
       })
 
-      const closes   = candles.map(c => c.close)
+      state.candles = candles
+      state.closes  = candles.map(c => c.close)
       const lineColor = color || '#4F6BFF'
 
-      const sharedLayout = {
-        background:  { color: 'transparent' },
-        textColor:   'rgba(255,255,255,0.4)',
-        fontSize:    11,
-      }
-      const sharedGrid = {
-        vertLines: { color: 'rgba(255,255,255,0.04)' },
-        horzLines: { color: 'rgba(255,255,255,0.05)' },
-      }
-      const sharedTimeScale = {
-        borderColor:   'rgba(255,255,255,0.07)',
-        timeVisible:   false,
-        fixLeftEdge:   true,
-        fixRightEdge:  true,
-      }
-
-      // ── Main chart ─────────────────────────────────────────────────────────
-      mainChart = LC.createChart(mainRef.current, {
+      const mainChart = LC.createChart(mainRef.current, {
         width:  mainRef.current.clientWidth,
         height: 360,
-        layout: sharedLayout,
-        grid:   sharedGrid,
+        layout: { background: { color: 'transparent' }, textColor: 'rgba(255,255,255,0.4)', fontSize: 11 },
+        grid:   { vertLines: { color: 'rgba(255,255,255,0.04)' }, horzLines: { color: 'rgba(255,255,255,0.05)' } },
         crosshair:       { mode: LC.CrosshairMode.Normal },
-        rightPriceScale: { borderColor: 'rgba(255,255,255,0.07)', scaleMargins: { top: 0.08, bottom: showRSI ? 0.18 : 0.08 } },
-        timeScale: { ...sharedTimeScale, visible: true },
-        watermark: {
-          visible: true, text: 'iraqsm.com', fontSize: 14,
-          color: 'rgba(79,107,255,0.2)', horzAlign: 'left', vertAlign: 'bottom', fontStyle: 'bold',
-        },
-        handleScroll: true,
-        handleScale:  true,
+        rightPriceScale: { borderColor: 'rgba(255,255,255,0.07)', scaleMargins: { top: 0.08, bottom: 0.08 } },
+        timeScale:       { borderColor: 'rgba(255,255,255,0.07)', timeVisible: false, fixLeftEdge: true, fixRightEdge: true },
+        watermark: { visible: true, text: 'iraqsm.com', fontSize: 14, color: 'rgba(79,107,255,0.2)', horzAlign: 'left', vertAlign: 'bottom', fontStyle: 'bold' },
+        handleScroll: true, handleScale: true,
       })
+      state.mainChart = mainChart
 
       // Price series
+      let priceSeries: any
       if (chartType === 'candle') {
-        const cs = mainChart.addCandlestickSeries({
-          upColor:        '#22C55E',
-          downColor:      '#EF4444',
-          borderUpColor:  '#22C55E',
-          borderDownColor:'#EF4444',
-          wickUpColor:    '#22C55E',
-          wickDownColor:  '#EF4444',
+        priceSeries = mainChart.addCandlestickSeries({
+          upColor: '#22C55E', downColor: '#EF4444',
+          borderUpColor: '#22C55E', borderDownColor: '#EF4444',
+          wickUpColor: '#22C55E', wickDownColor: '#EF4444',
           priceLineVisible: false,
         })
-        cs.setData(candles)
+        priceSeries.setData(candles)
       } else {
-        const as = mainChart.addAreaSeries({
-          lineColor,
-          topColor:         lineColor + '55',
-          bottomColor:      lineColor + '05',
-          lineWidth:        2,
-          priceLineVisible: false,
+        priceSeries = mainChart.addAreaSeries({
+          lineColor, topColor: lineColor + '55', bottomColor: lineColor + '05',
+          lineWidth: 2, priceLineVisible: false,
+          crosshairMarkerVisible: true, crosshairMarkerRadius: 4,
+          crosshairMarkerBorderColor: lineColor, crosshairMarkerBackgroundColor: lineColor,
         })
-        as.setData(candles.map(c => ({ time: c.time, value: c.close })))
+        priceSeries.setData(candles.map(c => ({ time: c.time, value: c.close })))
       }
+      state.priceSeries = priceSeries
 
-      // Volume histogram (own price scale)
-      const hasVol = candles.some(c => c.volume > 0)
-      if (hasVol) {
-        const volS = mainChart.addHistogramSeries({
-          priceFormat:  { type: 'volume' },
-          priceScaleId: 'vol',
-        })
-        mainChart.priceScale('vol').applyOptions({
-          scaleMargins: { top: 0.82, bottom: 0 },
-        })
+      // Volume histogram
+      if (candles.some(c => c.volume > 0)) {
+        const volS = mainChart.addHistogramSeries({ priceFormat: { type: 'volume' }, priceScaleId: 'vol' })
+        mainChart.priceScale('vol').applyOptions({ scaleMargins: { top: 0.82, bottom: 0 } })
         volS.setData(candles.map(c => ({
-          time:  c.time,
-          value: c.volume,
+          time: c.time, value: c.volume,
           color: c.close >= c.open ? 'rgba(34,197,94,0.28)' : 'rgba(239,68,68,0.28)',
         })))
       }
 
-      // MA lines
-      const maConf = [
-        { period: 20,  show: showMA20,  color: '#F59E0B', label: 'MA20'  },
-        { period: 50,  show: showMA50,  color: '#3B82F6', label: 'MA50'  },
-        { period: 100, show: showMA100, color: '#A855F7', label: 'MA100' },
-      ]
-      for (const { period, show, color: mc, label } of maConf) {
+      // MA overlays
+      for (const { period, show, mc, label } of [
+        { period: 20,  show: showMA20,  mc: '#F59E0B', label: 'MA20'  },
+        { period: 50,  show: showMA50,  mc: '#3B82F6', label: 'MA50'  },
+        { period: 100, show: showMA100, mc: '#A855F7', label: 'MA100' },
+      ]) {
         if (!show) continue
-        const ma     = calcMA(closes, period)
-        const maData = candles
-          .map((c, i) => ma[i] != null ? { time: c.time, value: +ma[i]!.toFixed(4) } : null)
-          .filter(Boolean) as any[]
+        const ma     = calcMA(state.closes, period)
+        const maData = candles.map((c, i) => ma[i] != null ? { time: c.time, value: +ma[i]!.toFixed(4) } : null).filter(Boolean) as any[]
         if (!maData.length) continue
-        const ms = mainChart.addLineSeries({
-          color: mc, lineWidth: 1.5,
-          priceLineVisible: false,
-          lastValueVisible: true,
-          crosshairMarkerVisible: false,
-          title: label,
-        })
+        const ms = mainChart.addLineSeries({ color: mc, lineWidth: 1.5, priceLineVisible: false, lastValueVisible: true, crosshairMarkerVisible: false, title: label })
         ms.setData(maData)
       }
 
       mainChart.timeScale().fitContent()
 
-      // ── RSI sub-chart ──────────────────────────────────────────────────────
-      if (showRSI && rsiRef.current) {
-        const rsiVals = calcRSI(closes)
-        const rsiData = candles
-          .map((c, i) => rsiVals[i] != null ? { time: c.time, value: +rsiVals[i]!.toFixed(2) } : null)
-          .filter(Boolean) as any[]
+      // ── Custom OHLC tooltip ──────────────────────────────────────────────────
+      mainChart.subscribeCrosshairMove((param: any) => {
+        const tip = tooltipRef.current
+        const wrap = mainRef.current
+        if (!tip || !wrap) return
+        const chartW = wrap.clientWidth
 
-        rsiChart = LC.createChart(rsiRef.current, {
-          width:  rsiRef.current.clientWidth,
-          height: 120,
-          layout: { ...sharedLayout, fontSize: 10 },
-          grid:   sharedGrid,
-          crosshair:       { mode: LC.CrosshairMode.Normal },
-          rightPriceScale: { borderColor: 'rgba(255,255,255,0.07)' },
-          timeScale: { ...sharedTimeScale, timeVisible: false },
-          handleScroll: true,
-          handleScale:  true,
-        })
+        if (!param.point || !param.time ||
+            param.point.x < 0 || param.point.x > chartW ||
+            param.point.y < 0 || param.point.y > 360) {
+          tip.style.display = 'none'; return
+        }
 
-        const rsiS = rsiChart.addLineSeries({
-          color:            '#A855F7',
-          lineWidth:        1.5,
-          priceLineVisible: false,
-          lastValueVisible: true,
-          autoscaleInfoProvider: () => ({
-            priceRange: { minValue: 0, maxValue: 100 },
-            margins:    { above: 0.08, below: 0.08 },
-          }),
-        })
-        rsiS.setData(rsiData)
+        const data = param.seriesData.get(state.priceSeries)
+        if (!data) { tip.style.display = 'none'; return }
 
-        // Reference lines: 70 / 50 / 30
-        rsiS.createPriceLine({ price: 70, color: 'rgba(239,68,68,0.55)',  lineWidth: 1, lineStyle: (LC as any).LineStyle?.Dashed ?? 2, axisLabelVisible: true,  title: '70' })
-        rsiS.createPriceLine({ price: 50, color: 'rgba(255,255,255,0.18)', lineWidth: 1, lineStyle: (LC as any).LineStyle?.Dotted ?? 3, axisLabelVisible: false, title: '' })
-        rsiS.createPriceLine({ price: 30, color: 'rgba(34,197,94,0.55)',   lineWidth: 1, lineStyle: (LC as any).LineStyle?.Dashed ?? 2, axisLabelVisible: true,  title: '30' })
+        const dateStr = typeof param.time === 'number' ? tsToDate(param.time) : String(param.time)
+        const tw = 140
+        const leftX = param.point.x + tw + 16 > chartW ? param.point.x - tw - 8 : param.point.x + 10
+        const topY  = Math.max(8, param.point.y - 44)
 
-        rsiChart.timeScale().fitContent()
+        tip.style.display = 'block'
+        tip.style.left    = `${leftX}px`
+        tip.style.top     = `${topY}px`
 
-        // Sync time axis scroll / zoom
-        let syncing = false
-        mainChart.timeScale().subscribeVisibleLogicalRangeChange((range: any) => {
-          if (syncing || !range || !rsiChart) return
-          syncing = true
-          rsiChart.timeScale().setVisibleLogicalRange(range)
-          syncing = false
-        })
-        rsiChart.timeScale().subscribeVisibleLogicalRangeChange((range: any) => {
-          if (syncing || !range || !mainChart) return
-          syncing = true
-          mainChart.timeScale().setVisibleLogicalRange(range)
-          syncing = false
-        })
-      }
+        if ('open' in data) {
+          const { open, high, low, close } = data as any
+          const isUp = close >= open
+          tip.innerHTML =
+            `<div style="font-size:9px;color:rgba(255,255,255,0.38);margin-bottom:5px">${dateStr}</div>` +
+            `<div style="display:grid;grid-template-columns:14px 1fr;gap:2px 6px;font-size:11px">` +
+            `<span style="color:rgba(255,255,255,0.45)">O</span><span>${open.toFixed(3)}</span>` +
+            `<span style="color:#22C55E">H</span><span style="color:#22C55E">${high.toFixed(3)}</span>` +
+            `<span style="color:#EF4444">L</span><span style="color:#EF4444">${low.toFixed(3)}</span>` +
+            `<span style="color:rgba(255,255,255,0.45)">C</span><span style="color:${isUp ? '#22C55E' : '#EF4444'};font-weight:700">${close.toFixed(3)}</span>` +
+            `</div>`
+        } else {
+          const v = (data as any).value
+          tip.innerHTML =
+            `<div style="font-size:9px;color:rgba(255,255,255,0.38);margin-bottom:4px">${dateStr}</div>` +
+            `<div style="font-size:14px;font-weight:700">${v.toFixed(3)}</div>`
+        }
+      })
 
       // Resize observer
-      ro = new ResizeObserver(() => {
-        if (mainChart && mainRef.current) mainChart.applyOptions({ width: mainRef.current.clientWidth })
-        if (rsiChart  && rsiRef.current)  rsiChart.applyOptions({ width: rsiRef.current.clientWidth })
+      state.ro = new ResizeObserver(() => {
+        if (state.mainChart && mainRef.current) state.mainChart.applyOptions({ width: mainRef.current.clientWidth })
+        if (state.rsiChart  && rsiRef.current)  state.rsiChart.applyOptions({ width: rsiRef.current.clientWidth })
       })
-      ro.observe(mainRef.current)
+      if (mainRef.current) state.ro.observe(mainRef.current)
 
-      // Kill TradingView attribution links
-      const killAttrib = () => {
+      // Kill attribution
+      const kill = () => {
         mainRef.current?.querySelectorAll('a[href*="tradingview"]').forEach(el => (el as HTMLElement).style.display = 'none')
-        rsiRef.current?.querySelectorAll('a[href*="tradingview"]').forEach(el => (el as HTMLElement).style.display = 'none')
       }
-      killAttrib()
-      setTimeout(killAttrib, 500)
+      kill(); setTimeout(kill, 600)
+
+      // Build RSI if it was enabled before data finished loading
+      if (showRSIRef.current) buildRSI()
     }
 
     init()
-    return () => { ro?.disconnect(); mainChart?.remove(); rsiChart?.remove() }
-  }, [sym, tf, color, chartType, showMA20, showMA50, showMA100, showRSI])
+    return () => {
+      cancelled = true
+      s.current.ro?.disconnect()
+      s.current.mainChart?.remove(); s.current.rsiChart?.remove()
+      s.current.mainChart = null;    s.current.rsiChart = null
+    }
+  }, [sym, tf, color, chartType, showMA20, showMA50, showMA100, buildRSI]) // ← NO showRSI
+
+  // ── RSI-only effect — just add/remove without touching main chart ─────────
+  useEffect(() => {
+    const state = s.current
+    if (!showRSI) {
+      state.rsiChart?.remove()
+      state.rsiChart = null
+    } else if (state.LC && state.candles.length) {
+      buildRSI()
+    }
+    // If data not loaded yet, main effect init() calls buildRSI() at the end
+  }, [showRSI, buildRSI])
+
+  // ── Download chart ────────────────────────────────────────────────────────
+  function downloadChart() {
+    const mc = s.current.mainChart
+    if (!mc) return
+    const srcCanvas = mc.takeScreenshot() as HTMLCanvasElement
+    const H = 38
+    const fin = document.createElement('canvas')
+    fin.width  = srcCanvas.width
+    fin.height = srcCanvas.height + H
+    const ctx  = fin.getContext('2d')!
+    // header strip
+    ctx.fillStyle = '#0B0E14'
+    ctx.fillRect(0, 0, fin.width, H)
+    ctx.font = 'bold 13px Inter, sans-serif'
+    ctx.fillStyle = '#fff'
+    ctx.textAlign = 'left'
+    ctx.fillText(`${sym}  ${co.close.toFixed(3)} IQD`, 14, 25)
+    ctx.textAlign = 'right'
+    ctx.fillStyle = '#4F6BFF'
+    ctx.fillText('iraqsm.com', fin.width - 14, 25)
+    // chart below
+    ctx.drawImage(srcCanvas, 0, H)
+    const a = document.createElement('a')
+    a.href = fin.toDataURL('image/png')
+    a.download = `${sym}-${tf}-iraqsm.png`
+    document.body.appendChild(a); a.click(); document.body.removeChild(a)
+  }
+
+  async function copyChart() {
+    const mc = s.current.mainChart
+    if (!mc) return
+    const srcCanvas = mc.takeScreenshot() as HTMLCanvasElement
+    srcCanvas.toBlob(async blob => {
+      if (!blob) return
+      try {
+        await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })])
+        setCopyDone(true); setTimeout(() => setCopyDone(false), 2000)
+      } catch { /* clipboard not available */ }
+    }, 'image/png')
+  }
 
   return (
-    <div>
+    <div style={{ position: 'relative' }}>
+      {/* Action buttons */}
+      <div style={{ position: 'absolute', top: 0, insetInlineEnd: 0, display: 'flex', gap: 4, zIndex: 5 }}>
+        <button onClick={downloadChart} title="Download chart" style={{
+          padding: '4px 8px', borderRadius: 6, background: 'var(--surf2)',
+          border: '1px solid var(--line)', color: 'var(--ink3)', fontSize: 10,
+          fontWeight: 700, fontFamily: 'inherit', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4,
+        }}>
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
+          </svg>
+          PNG
+        </button>
+        <button onClick={copyChart} title="Copy chart to clipboard" style={{
+          padding: '4px 8px', borderRadius: 6,
+          background: copyDone ? 'rgba(34,197,94,0.15)' : 'var(--surf2)',
+          border: `1px solid ${copyDone ? 'rgba(34,197,94,0.4)' : 'var(--line)'}`,
+          color: copyDone ? 'var(--up)' : 'var(--ink3)', fontSize: 10,
+          fontWeight: 700, fontFamily: 'inherit', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4,
+        }}>
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+          </svg>
+          {copyDone ? '✓ Copied' : 'Copy'}
+        </button>
+      </div>
+
+      {/* Main chart */}
       <div ref={mainRef} style={{ width: '100%', height: 360 }} />
+
+      {/* OHLC tooltip overlay */}
+      <div ref={tooltipRef} style={{
+        position: 'absolute', display: 'none', pointerEvents: 'none', zIndex: 10,
+        background: 'rgba(11,14,20,0.92)', border: '1px solid rgba(255,255,255,0.12)',
+        borderRadius: 8, padding: '7px 10px', fontFamily: 'var(--font-mono)',
+        minWidth: 120, boxShadow: '0 4px 16px rgba(0,0,0,0.4)',
+        color: 'rgba(255,255,255,0.85)',
+      }} />
+
+      {/* RSI sub-chart */}
       {showRSI && (
         <div style={{ marginTop: 2, borderTop: '1px solid rgba(255,255,255,0.06)' }}>
-          <div style={{ padding: '5px 6px 2px', fontSize: 9, fontWeight: 800, color: 'rgba(168,85,247,0.8)', fontFamily: 'var(--font-mono)', letterSpacing: '0.05em' }}>
+          <div style={{ padding: '4px 6px 2px', fontSize: 9, fontWeight: 800, color: 'rgba(168,85,247,0.8)', fontFamily: 'var(--font-mono)', letterSpacing: '0.05em' }}>
             RSI (14)
           </div>
           <div ref={rsiRef} style={{ width: '100%', height: 120 }} />
@@ -318,7 +427,7 @@ function AdvancedChart({
   )
 }
 
-// ─── Main page ────────────────────────────────────────────────────────────────
+// ─── Main Page ────────────────────────────────────────────────────────────────
 export default function CompanyPage() {
   const { sym }      = useParams<{ sym: string }>()
   const { lang, watchlist, toggleWatchlist, user, profile, authLoading, openAuth, refreshProfile } = useApp()
@@ -336,12 +445,12 @@ export default function CompanyPage() {
   const [showRSI,   setShowRSI]   = useState(false)
 
   // Trade state
-  const [qty, setQty]           = useState('100')
+  const [qty, setQty]             = useState('100')
   const [tradeMode, setTradeMode] = useState<'points' | 'demo'>('points')
   const [demoEnabled, setDemoEnabled] = useState(false)
-  const [action, setAction]     = useState<'buy' | 'sell' | null>(null)
-  const [trading, setTrading]   = useState(false)
-  const [tradeMsg, setTradeMsg] = useState<string | null>(null)
+  const [action, setAction]       = useState<'buy' | 'sell' | null>(null)
+  const [trading, setTrading]     = useState(false)
+  const [tradeMsg, setTradeMsg]   = useState<string | null>(null)
 
   useEffect(() => {
     setDemoEnabled(localStorage.getItem('demo_trading_enabled') === 'true')
@@ -366,14 +475,10 @@ export default function CompanyPage() {
       })
       const data = await res.json()
       if (data.ok) {
-        setTradeMsg(ar
-          ? `✅ اشتريت ${qty} سهم! نقاطك المتبقية: ${data.remainingPoints?.toLocaleString('en')}`
-          : `✅ Bought ${qty} shares! Remaining: ${data.remainingPoints?.toLocaleString('en')} pts`)
+        setTradeMsg(ar ? `✅ اشتريت ${qty} سهم! نقاطك المتبقية: ${data.remainingPoints?.toLocaleString('en')}` : `✅ Bought ${qty} shares! Remaining: ${data.remainingPoints?.toLocaleString('en')} pts`)
         refreshProfile?.()
       } else {
-        setTradeMsg(ar
-          ? (data.error === 'Insufficient points' ? '❌ نقاطك غير كافية' : data.error)
-          : data.error ?? 'Error')
+        setTradeMsg(ar ? (data.error === 'Insufficient points' ? '❌ نقاطك غير كافية' : data.error) : data.error ?? 'Error')
       }
     } catch { setTradeMsg(ar ? 'خطأ في الاتصال' : 'Network error') }
     setTrading(false)
@@ -389,9 +494,7 @@ export default function CompanyPage() {
       })
       const data = await res.json()
       if (data.ok) {
-        setTradeMsg(ar
-          ? `✅ ${action === 'buy' ? 'تم الشراء' : 'تم البيع'} بنجاح`
-          : `✅ ${action === 'buy' ? 'Purchase' : 'Sale'} completed`)
+        setTradeMsg(ar ? `✅ ${action === 'buy' ? 'تم الشراء' : 'تم البيع'} بنجاح` : `✅ ${action === 'buy' ? 'Purchase' : 'Sale'} completed`)
       } else { setTradeMsg(data.error ?? 'Error') }
     } catch { setTradeMsg(ar ? 'خطأ في الاتصال' : 'Network error') }
     setTrading(false)
@@ -402,7 +505,6 @@ export default function CompanyPage() {
       <div className="skeleton" style={{ height: 220, borderRadius: 16 }} />
     </div>
   )
-
   if (!co) return (
     <div style={{ maxWidth: 900, margin: '80px auto', padding: '0 24px', textAlign: 'center' }}>
       <div style={{ fontSize: 40, marginBottom: 12 }}>🔍</div>
@@ -456,7 +558,6 @@ export default function CompanyPage() {
               </div>
             </div>
           </div>
-
           <div style={{ textAlign: 'end' }}>
             <div style={{ fontFamily: 'var(--font-mono)', fontSize: 32, fontWeight: 800 }}>{co.close.toFixed(3)}</div>
             <div style={{ fontSize: 14, fontWeight: 700, color: up ? 'var(--up)' : 'var(--dn)' }}>
@@ -464,33 +565,29 @@ export default function CompanyPage() {
             </div>
           </div>
         </div>
-
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(100px, 1fr))', gap: 16, marginTop: 20, paddingTop: 20, borderTop: '1px solid var(--line)' }}>
-          {stat(ar ? 'فتح'          : 'Open',     co.open.toFixed(3))}
-          {stat(ar ? 'أعلى'         : 'High',     co.high.toFixed(3))}
-          {stat(ar ? 'أدنى'         : 'Low',      co.low.toFixed(3))}
-          {stat(ar ? 'الحجم'        : 'Vol',      fmtVol(co.vol))}
-          {stat(ar ? 'القيمة السوقية': 'Mkt Cap', fmtMcap(co.mcap))}
-          {stat(ar ? 'الصفقات'      : 'Deals',   (co.deals ?? 0).toLocaleString('en'))}
+          {stat(ar ? 'فتح' : 'Open', co.open.toFixed(3))}
+          {stat(ar ? 'أعلى' : 'High', co.high.toFixed(3))}
+          {stat(ar ? 'أدنى' : 'Low', co.low.toFixed(3))}
+          {stat(ar ? 'الحجم' : 'Vol', fmtVol(co.vol))}
+          {stat(ar ? 'القيمة السوقية' : 'Mkt Cap', fmtMcap(co.mcap))}
+          {stat(ar ? 'الصفقات' : 'Deals', (co.deals ?? 0).toLocaleString('en'))}
         </div>
       </div>
 
       {/* ── Chart card ── */}
       <div style={{ background: 'var(--surf)', border: '1px solid var(--line)', borderRadius: 20, padding: '20px 24px', marginBottom: 16 }}>
-
-        {/* Row 1: title + chart type toggle */}
+        {/* Row 1: title + chart type */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10, flexWrap: 'wrap', gap: 8 }}>
           <span style={{ fontSize: 13, fontWeight: 700 }}>{ar ? 'المخطط السعري' : 'Price Chart'}</span>
-
-          {/* Chart type */}
           <div style={{ display: 'flex', gap: 2, background: 'var(--surf3)', borderRadius: 8, padding: 3 }}>
             {([['candle', ar ? '🕯️ شموع' : '🕯️ Candles'], ['line', ar ? '📈 خطي' : '📈 Line']] as const).map(([t, label]) => (
               <button key={t} onClick={() => setChartType(t as ChartType)} style={{
                 padding: '4px 12px', borderRadius: 6, border: 'none', fontSize: 11, fontWeight: 700,
                 background: chartType === t ? 'var(--surf)' : 'none',
-                color:      chartType === t ? 'var(--ink)' : 'var(--ink4)',
+                color: chartType === t ? 'var(--ink)' : 'var(--ink4)',
                 fontFamily: 'inherit', cursor: 'pointer',
-                boxShadow:  chartType === t ? '0 1px 4px rgba(0,0,0,0.25)' : 'none',
+                boxShadow: chartType === t ? '0 1px 4px rgba(0,0,0,0.25)' : 'none',
               }}>{label}</button>
             ))}
           </div>
@@ -498,35 +595,31 @@ export default function CompanyPage() {
 
         {/* Row 2: indicators + timeframe */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14, flexWrap: 'wrap', gap: 8 }}>
-
-          {/* Indicator toggles */}
           <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
             {indBtns.map(ind => (
               <button key={ind.key} onClick={() => ind.set(!ind.state)} style={{
                 padding: '3px 9px', borderRadius: 6, fontSize: 10, fontWeight: 800,
-                border:      `1px solid ${ind.state ? ind.color + '70' : 'var(--line)'}`,
-                background:  ind.state ? ind.color + '1A' : 'none',
-                color:       ind.state ? ind.color : 'var(--ink4)',
-                fontFamily:  'var(--font-mono)', cursor: 'pointer', letterSpacing: '0.03em',
+                border: `1px solid ${ind.state ? ind.color + '70' : 'var(--line)'}`,
+                background: ind.state ? ind.color + '1A' : 'none',
+                color: ind.state ? ind.color : 'var(--ink4)',
+                fontFamily: 'var(--font-mono)', cursor: 'pointer', letterSpacing: '0.03em',
               }}>{ind.label}</button>
             ))}
           </div>
-
-          {/* TF buttons */}
           <div style={{ display: 'flex', gap: 3 }}>
             {TF.map(t => (
               <button key={t} onClick={() => setTf(t)} style={{
                 padding: '4px 10px', borderRadius: 6,
                 background: tf === t ? 'var(--brand)' : 'none',
-                border:     `1px solid ${tf === t ? 'var(--brand)' : 'var(--line)'}`,
-                color:      tf === t ? '#fff' : 'var(--ink3)',
+                border: `1px solid ${tf === t ? 'var(--brand)' : 'var(--line)'}`,
+                color: tf === t ? '#fff' : 'var(--ink3)',
                 fontSize: 11, fontWeight: 700, fontFamily: 'inherit', cursor: 'pointer',
               }}>{t}</button>
             ))}
           </div>
         </div>
 
-        {/* Active indicator legend */}
+        {/* MA legend */}
         {(showMA20 || showMA50 || showMA100) && (
           <div style={{ display: 'flex', gap: 12, marginBottom: 8, paddingBottom: 10, borderBottom: '1px solid var(--line)', flexWrap: 'wrap' }}>
             {showMA20  && <span style={{ fontSize: 10, fontFamily: 'var(--font-mono)', color: '#F59E0B', fontWeight: 700 }}>── MA20</span>}
@@ -538,15 +631,14 @@ export default function CompanyPage() {
         <AdvancedChart
           sym={co.sym} tf={tf} color={co.color} chartType={chartType}
           showMA20={showMA20} showMA50={showMA50} showMA100={showMA100} showRSI={showRSI}
+          co={co}
         />
       </div>
 
       {/* Trade card */}
       <div style={{ background: 'var(--surf)', border: '1px solid var(--line)', borderRadius: 20, padding: '20px 24px' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-          <div style={{ fontSize: 13, fontWeight: 700 }}>
-            {ar ? 'اشترِ بنقاطك' : 'Buy with Points'}
-          </div>
+          <div style={{ fontSize: 13, fontWeight: 700 }}>{ar ? 'اشترِ بنقاطك' : 'Buy with Points'}</div>
           {demoEnabled && (
             <div style={{ display: 'flex', gap: 4, background: 'var(--surf3)', borderRadius: 8, padding: 3 }}>
               {(['points', 'demo'] as const).map(m => (
@@ -573,14 +665,10 @@ export default function CompanyPage() {
             <div style={{ fontSize: 13, color: 'var(--ink3)', marginBottom: 12 }}>
               {ar ? 'سجّل دخولك لشراء الأسهم بنقاطك' : 'Sign in to buy shares with your points'}
             </div>
-            <button onClick={() => openAuth('signup')} style={{
-              padding: '9px 20px', background: 'var(--brand)', borderRadius: 10,
-              fontSize: 13, fontWeight: 700, color: '#fff', border: 'none', fontFamily: 'inherit',
-            }}>
+            <button onClick={() => openAuth('signup')} style={{ padding: '9px 20px', background: 'var(--brand)', borderRadius: 10, fontSize: 13, fontWeight: 700, color: '#fff', border: 'none', fontFamily: 'inherit' }}>
               {ar ? 'إنشاء حساب' : 'Create Account'}
             </button>
           </div>
-
         ) : tradeMode === 'points' ? (() => {
           const userPoints    = profile?.points ?? 0
           const sharePrice    = co.close > 0 ? co.close : 0.001
@@ -589,7 +677,6 @@ export default function CompanyPage() {
           const costPts       = Math.round(qtyNum * sharePrice)
           const canAfford     = userPoints >= costPts && qtyNum > 0
           const overBudget    = qtyNum > 0 && !canAfford
-
           return (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '9px 12px', background: 'rgba(245,200,75,0.08)', border: '1px solid rgba(245,200,75,0.2)', borderRadius: 9 }}>
@@ -642,8 +729,8 @@ export default function CompanyPage() {
                 <button key={a} onClick={() => { setAction(action === a ? null : a); setTradeMsg(null) }} style={{
                   flex: 1, padding: '10px', borderRadius: 10, fontWeight: 700, fontSize: 13, fontFamily: 'inherit',
                   background: action === a ? (a === 'buy' ? 'rgba(34,197,94,0.25)' : 'rgba(239,68,68,0.2)') : 'var(--surf3)',
-                  color:      action === a ? (a === 'buy' ? 'var(--up)' : 'var(--dn)') : 'var(--ink3)',
-                  border:     `1px solid ${action === a ? (a === 'buy' ? 'rgba(34,197,94,0.4)' : 'rgba(239,68,68,0.35)') : 'var(--line)'}`,
+                  color: action === a ? (a === 'buy' ? 'var(--up)' : 'var(--dn)') : 'var(--ink3)',
+                  border: `1px solid ${action === a ? (a === 'buy' ? 'rgba(34,197,94,0.4)' : 'rgba(239,68,68,0.35)') : 'var(--line)'}`,
                 }}>
                   {a === 'buy' ? (ar ? '🟢 شراء' : '🟢 Buy') : (ar ? '🔴 بيع' : '🔴 Sell')}
                 </button>
@@ -661,7 +748,8 @@ export default function CompanyPage() {
                   <span style={{ fontFamily: 'var(--font-mono)', fontWeight: 700 }}>{(co.close * Number(qty || 0)).toFixed(3)} IQD</span>
                 </div>
                 {tradeMsg && <div style={{ padding: '9px 12px', borderRadius: 8, fontSize: 12, fontWeight: 600, background: tradeMsg.startsWith('✅') ? 'rgba(34,197,94,0.1)' : 'rgba(239,68,68,0.1)', border: `1px solid ${tradeMsg.startsWith('✅') ? 'rgba(34,197,94,0.25)' : 'rgba(239,68,68,0.25)'}`, color: tradeMsg.startsWith('✅') ? 'var(--up)' : 'var(--dn)' }}>{tradeMsg}</div>}
-                <button onClick={handleDemoTrade} disabled={trading} style={{ padding: '11px', borderRadius: 10, border: 'none', background: action === 'buy' ? 'var(--up)' : 'var(--dn)', color: '#fff', fontWeight: 700, fontSize: 14, fontFamily: 'inherit', opacity: trading ? 0.6 : 1 }}>
+                <button onClick={handleDemoTrade} disabled={trading}
+                  style={{ padding: '11px', borderRadius: 10, border: 'none', background: action === 'buy' ? 'var(--up)' : 'var(--dn)', color: '#fff', fontWeight: 700, fontSize: 14, fontFamily: 'inherit', opacity: trading ? 0.6 : 1 }}>
                   {trading ? '...' : action === 'buy' ? (ar ? `شراء ${qty} سهم (تجريبي)` : `Buy ${qty} shares (demo)`) : (ar ? `بيع ${qty} سهم (تجريبي)` : `Sell ${qty} shares (demo)`)}
                 </button>
               </>
