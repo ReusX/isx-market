@@ -353,7 +353,7 @@ export default function HomePage() {
             </div>
           ))}
 
-          {!loading && filtered.map(co => {
+          {!loading && filtered.slice(0, 25).map(co => {
             const up = co.pct >= 0
             const pts = sparkPoints(co.sym)
             return (
@@ -401,21 +401,19 @@ export default function HomePage() {
                     {up ? '▲' : '▼'} {Math.abs(co.pct).toFixed(2)}%
                   </div>
                 </div>
-
-                {/* Buy button */}
-                <button
-                  onClick={e => { e.stopPropagation(); router.push(`/c/${co.sym}?action=buy`) }}
-                  style={{
-                    padding: '6px 12px', borderRadius: 8, border: 'none',
-                    background: 'rgba(34,197,94,0.15)', color: 'var(--up)',
-                    fontSize: 11, fontWeight: 700, fontFamily: 'inherit', flexShrink: 0,
-                  }}
-                >
-                  {ar ? 'شراء' : 'Buy'}
-                </button>
               </div>
             )
           })}
+
+          {/* View all link */}
+          {!loading && filtered.length > 25 && (
+            <Link href="/market" style={{
+              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+              padding: '14px 16px', fontSize: 13, fontWeight: 700, color: 'var(--brand)',
+            }}>
+              {ar ? `← عرض كل الشركات (${filtered.length})` : `View all ${filtered.length} companies →`}
+            </Link>
+          )}
 
           {!loading && filtered.length === 0 && (
             <div style={{ padding: '40px 24px', textAlign: 'center', color: 'var(--ink4)', fontSize: 13 }}>
@@ -598,7 +596,7 @@ export default function HomePage() {
             {/* Table header */}
             <div style={{
               display: 'grid',
-              gridTemplateColumns: '28px 1fr 90px 80px 70px 80px 60px 100px',
+              gridTemplateColumns: '28px 1fr 90px 80px 70px 80px 60px 36px',
               padding: '10px 16px', borderBottom: '1px solid var(--line)',
               alignItems: 'center',
             }}>
@@ -609,13 +607,13 @@ export default function HomePage() {
               <span style={{ ...colHdr, textAlign: 'end' }}>{ar ? 'الحجم' : 'Volume'}</span>
               <span style={{ ...colHdr, textAlign: 'end' }}>{ar ? 'القيمة السوقية' : 'Mkt Cap'}</span>
               <span style={{ ...colHdr, textAlign: 'center' }}></span>
-              <span style={{ ...colHdr, textAlign: 'end' }}>{ar ? 'تداول' : 'Trade'}</span>
+              <span style={colHdr}></span>
             </div>
 
             {loading && Array.from({ length: 8 }).map((_, i) => (
               <div key={i} style={{
                 display: 'grid',
-                gridTemplateColumns: '28px 1fr 90px 80px 70px 80px 60px 100px',
+                gridTemplateColumns: '28px 1fr 90px 80px 70px 80px 60px 36px',
                 padding: '12px 16px', borderBottom: '1px solid var(--line)',
                 alignItems: 'center', gap: 8,
               }}>
@@ -633,7 +631,7 @@ export default function HomePage() {
               </div>
             ))}
 
-            {!loading && filtered.map((co, i) => {
+            {!loading && filtered.slice(0, 25).map((co, i) => {
               const up = co.pct >= 0
               const pct = Math.abs(co.pct).toFixed(2)
               const inWL = watchlist.includes(co.sym)
@@ -642,7 +640,7 @@ export default function HomePage() {
                   key={co.sym}
                   style={{
                     display: 'grid',
-                    gridTemplateColumns: '28px 1fr 90px 80px 70px 80px 60px 100px',
+                    gridTemplateColumns: '28px 1fr 90px 80px 70px 80px 60px 36px',
                     padding: '10px 16px', borderBottom: '1px solid var(--line)',
                     alignItems: 'center', cursor: 'pointer',
                     transition: 'background 0.12s',
@@ -689,30 +687,23 @@ export default function HomePage() {
                     <Spark pct={co.pct} />
                   </div>
 
-                  <div style={{ display: 'flex', gap: 5, justifyContent: 'flex-end' }} onClick={e => e.stopPropagation()}>
-                    <button onClick={() => router.push(`/c/${co.sym}?action=buy`)} style={{
-                      padding: '4px 9px', borderRadius: 6, border: 'none',
-                      background: 'rgba(34,197,94,0.15)', color: 'var(--up)',
-                      fontSize: 10, fontWeight: 700, fontFamily: 'inherit',
-                    }}>
-                      {ar ? 'شراء' : 'Buy'}
-                    </button>
-                    <button onClick={() => router.push(`/c/${co.sym}?action=sell`)} style={{
-                      padding: '4px 9px', borderRadius: 6, border: 'none',
-                      background: 'rgba(239,68,68,0.12)', color: 'var(--dn)',
-                      fontSize: 10, fontWeight: 700, fontFamily: 'inherit',
-                    }}>
-                      {ar ? 'بيع' : 'Sell'}
-                    </button>
-                    <button onClick={() => router.push(`/c/${co.sym}`)} style={{
-                      padding: '4px 9px', borderRadius: 6, border: '1px solid var(--line)',
-                      background: 'none', color: 'var(--ink3)',
-                      fontSize: 10, fontWeight: 700, fontFamily: 'inherit',
-                    }}>›</button>
-                  </div>
+                  <button onClick={e => { e.stopPropagation(); router.push(`/c/${co.sym}`) }} style={{
+                    padding: '4px 8px', borderRadius: 6, border: '1px solid var(--line)',
+                    background: 'none', color: 'var(--ink3)', fontSize: 13, fontFamily: 'inherit',
+                  }}>›</button>
                 </div>
               )
             })}
+
+            {!loading && filtered.length > 25 && (
+              <Link href="/market" style={{
+                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+                padding: '14px 16px', fontSize: 13, fontWeight: 700, color: 'var(--brand)',
+                borderTop: '1px solid var(--line)',
+              }}>
+                {ar ? `← عرض كل الشركات (${filtered.length})` : `View all ${filtered.length} companies →`}
+              </Link>
+            )}
 
             {!loading && filtered.length === 0 && (
               <div style={{ padding: '40px 24px', textAlign: 'center', color: 'var(--ink4)', fontSize: 13 }}>

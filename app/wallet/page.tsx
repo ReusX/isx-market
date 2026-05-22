@@ -25,6 +25,11 @@ function WalletPageInner() {
   const [depositAmt, setDeposit]  = useState('')
   const [submitting, setSubmit]   = useState(false)
   const [msg, setMsg]             = useState<string | null>(null)
+  const [demoEnabled, setDemoEnabled] = useState(false)
+
+  useEffect(() => {
+    setDemoEnabled(localStorage.getItem('demo_trading_enabled') === 'true')
+  }, [])
 
   useEffect(() => {
     if (!user) return
@@ -124,38 +129,18 @@ function WalletPageInner() {
       {/* Overview */}
       {tab === 'overview' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-          {/* Balance cards */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-            <div style={{ background: 'var(--surf)', border: '1px solid var(--line)', borderRadius: 16, padding: 16 }}>
-              <div style={{ fontSize: 10, color: 'var(--ink4)', fontWeight: 600, marginBottom: 6 }}>
-                {ar ? 'الرصيد النقدي' : 'Cash Balance'}
-              </div>
-              <div style={{ fontFamily: 'var(--font-mono)', fontSize: 20, fontWeight: 800, color: 'var(--gold)' }}>
-                {cashbal.toLocaleString('en')}
-              </div>
-              <div style={{ fontSize: 10, color: 'var(--ink4)', marginTop: 2 }}>IQD</div>
-            </div>
-            <div style={{ background: 'var(--surf)', border: '1px solid var(--line)', borderRadius: 16, padding: 16 }}>
-              <div style={{ fontSize: 10, color: 'var(--ink4)', fontWeight: 600, marginBottom: 6 }}>
-                {ar ? 'قيمة المحفظة' : 'Portfolio Value'}
-              </div>
-              <div style={{ fontFamily: 'var(--font-mono)', fontSize: 20, fontWeight: 800 }}>
-                {totalPortVal.toLocaleString('en', { maximumFractionDigits: 0 })}
-              </div>
-              <div style={{ fontSize: 10, color: 'var(--ink4)', marginTop: 2 }}>IQD</div>
-            </div>
-          </div>
 
-          {/* Points & rank */}
+          {/* ── Points (primary) ── */}
           <div style={{ background: 'var(--surf)', border: '1px solid var(--line)', borderRadius: 16, padding: 16 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
               <div>
                 <div style={{ fontSize: 10, color: 'var(--ink4)', fontWeight: 600, marginBottom: 3 }}>
-                  {ar ? 'النقاط' : 'Points'}
+                  🪙 {ar ? 'رصيد النقاط' : 'Points Balance'}
                 </div>
-                <div style={{ fontFamily: 'var(--font-mono)', fontSize: 22, fontWeight: 800 }}>
-                  {fmtPts(profile.points)}
+                <div style={{ fontFamily: 'var(--font-mono)', fontSize: 28, fontWeight: 800, color: 'var(--gold)' }}>
+                  {profile.points.toLocaleString('en')}
                 </div>
+                <div style={{ fontSize: 10, color: 'var(--ink4)', marginTop: 2 }}>{ar ? 'نقطة' : 'pts'}</div>
               </div>
               <div style={{
                 padding: '6px 14px', borderRadius: 999,
@@ -179,15 +164,63 @@ function WalletPageInner() {
             )}
           </div>
 
-          {/* Streak */}
+          {/* ── Points Portfolio (shares bought with points) ── */}
+          <div style={{ background: 'var(--surf)', border: '1px solid var(--line)', borderRadius: 16, padding: 16 }}>
+            <div style={{ fontSize: 11, color: 'var(--ink4)', fontWeight: 600, marginBottom: 10 }}>
+              📊 {ar ? 'محفظة الأسهم (مشتراة بالنقاط)' : 'Stock Holdings (bought with points)'}
+            </div>
+            {loading ? (
+              <div className="skeleton" style={{ height: 40, borderRadius: 8 }} />
+            ) : holdings.length === 0 ? (
+              <div style={{ fontSize: 12, color: 'var(--ink4)', textAlign: 'center', padding: '12px 0' }}>
+                {ar ? 'لا توجد أسهم بعد — ابدأ بالشراء من صفحة أي شركة' : 'No holdings yet — buy from any company page'}
+              </div>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                {holdings.slice(0, 5).map(h => (
+                  <div key={h.sym} style={{
+                    display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                    padding: '8px 10px', background: 'var(--surf2)', borderRadius: 9,
+                  }}>
+                    <div>
+                      <span style={{ fontWeight: 700, fontSize: 13, fontFamily: 'var(--font-mono)' }}>{h.sym}</span>
+                      <span style={{ fontSize: 10, color: 'var(--ink4)', marginInlineStart: 8 }}>
+                        {h.qty.toLocaleString('en')} {ar ? 'سهم' : 'shares'}
+                      </span>
+                    </div>
+                    <div style={{ textAlign: 'end' }}>
+                      <div style={{ fontFamily: 'var(--font-mono)', fontSize: 12, fontWeight: 700 }}>
+                        {(h.avg_price * h.qty).toLocaleString('en', { maximumFractionDigits: 0 })} IQD
+                      </div>
+                      <div style={{ fontSize: 10, color: 'var(--ink4)' }}>@ {h.avg_price.toFixed(3)}</div>
+                    </div>
+                  </div>
+                ))}
+                {holdings.length > 5 && (
+                  <button onClick={() => setTab('holdings')} style={{
+                    padding: '6px', borderRadius: 8, border: '1px solid var(--line)',
+                    background: 'none', color: 'var(--brand)', fontSize: 11, fontFamily: 'inherit',
+                  }}>
+                    {ar ? `عرض كل ${holdings.length} أسهم ›` : `View all ${holdings.length} holdings ›`}
+                  </button>
+                )}
+                <div style={{ fontSize: 11, color: 'var(--ink3)', paddingTop: 4, borderTop: '1px solid var(--line)' }}>
+                  {ar ? 'إجمالي القيمة:' : 'Total value:'}{' '}
+                  <span style={{ fontFamily: 'var(--font-mono)', fontWeight: 700 }}>
+                    {totalPortVal.toLocaleString('en', { maximumFractionDigits: 0 })} IQD
+                  </span>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* ── Streak ── */}
           <div style={{ background: 'var(--surf)', border: '1px solid var(--line)', borderRadius: 16, padding: 16, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <div>
               <div style={{ fontSize: 10, color: 'var(--ink4)', fontWeight: 600, marginBottom: 3 }}>
                 {ar ? 'أيام التسلسل' : 'Streak'}
               </div>
-              <div style={{ fontSize: 24, fontWeight: 800 }}>
-                🔥 {profile.streak ?? 0}
-              </div>
+              <div style={{ fontSize: 24, fontWeight: 800 }}>🔥 {profile.streak ?? 0}</div>
             </div>
             <Link href="/rewards/spin" style={{
               padding: '9px 18px', background: 'linear-gradient(135deg,#4F6BFF,#A855F7)',
@@ -195,6 +228,79 @@ function WalletPageInner() {
             }}>
               {ar ? 'دوّر اليوم' : "Today's Spin"}
             </Link>
+          </div>
+
+          {/* ── Demo Trading toggle ── */}
+          <div style={{ background: 'var(--surf)', border: '1px solid var(--line)', borderRadius: 16, padding: 16 }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: demoEnabled ? 14 : 0 }}>
+              <div>
+                <div style={{ fontSize: 12, fontWeight: 700 }}>💹 {ar ? 'التداول التجريبي' : 'Demo Trading'}</div>
+                <div style={{ fontSize: 10, color: 'var(--ink4)', marginTop: 2 }}>
+                  {ar ? 'تداول بأموال افتراضية — للتعلم فقط' : 'Trade with virtual cash — for learning only'}
+                </div>
+              </div>
+              {/* Toggle switch */}
+              <button
+                onClick={() => {
+                  const next = !demoEnabled
+                  setDemoEnabled(next)
+                  localStorage.setItem('demo_trading_enabled', String(next))
+                }}
+                style={{
+                  width: 44, height: 24, borderRadius: 12, border: 'none',
+                  background: demoEnabled ? 'var(--brand)' : 'var(--surf3)',
+                  position: 'relative', cursor: 'pointer', flexShrink: 0,
+                  transition: 'background 0.2s',
+                }}
+              >
+                <div style={{
+                  position: 'absolute', top: 3, width: 18, height: 18, borderRadius: '50%',
+                  background: '#fff', transition: 'left 0.2s',
+                  left: demoEnabled ? 23 : 3,
+                }} />
+              </button>
+            </div>
+
+            {/* Demo section — shown only when enabled */}
+            {demoEnabled && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                <div style={{
+                  padding: '8px 12px', background: 'rgba(79,107,255,0.07)',
+                  border: '1px solid rgba(79,107,255,0.2)', borderRadius: 8,
+                  fontSize: 11, color: 'var(--ink3)', lineHeight: 1.6,
+                }}>
+                  {ar
+                    ? '⚠️ هذا رصيد تجريبي افتراضي فقط. لا يمثل أموالاً حقيقية.'
+                    : '⚠️ This is a virtual demo balance only. It does not represent real money.'}
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+                  <div style={{ background: 'var(--surf2)', borderRadius: 12, padding: 12 }}>
+                    <div style={{ fontSize: 10, color: 'var(--ink4)', marginBottom: 4 }}>
+                      {ar ? 'رصيد التداول التجريبي' : 'Demo Cash Balance'}
+                    </div>
+                    <div style={{ fontFamily: 'var(--font-mono)', fontSize: 16, fontWeight: 800, color: 'var(--brand)' }}>
+                      {cashbal.toLocaleString('en')}
+                    </div>
+                    <div style={{ fontSize: 10, color: 'var(--ink4)' }}>IQD ({ar ? 'تجريبي' : 'demo'})</div>
+                  </div>
+                  <div style={{ background: 'var(--surf2)', borderRadius: 12, padding: 12 }}>
+                    <div style={{ fontSize: 10, color: 'var(--ink4)', marginBottom: 4 }}>
+                      {ar ? 'قيمة المحفظة التجريبية' : 'Demo Portfolio Value'}
+                    </div>
+                    <div style={{ fontFamily: 'var(--font-mono)', fontSize: 16, fontWeight: 800 }}>
+                      {totalPortVal.toLocaleString('en', { maximumFractionDigits: 0 })}
+                    </div>
+                    <div style={{ fontSize: 10, color: 'var(--ink4)' }}>IQD ({ar ? 'تجريبي' : 'demo'})</div>
+                  </div>
+                </div>
+                <button onClick={() => setTab('deposit')} style={{
+                  padding: '8px', borderRadius: 9, border: '1px solid var(--line)',
+                  background: 'none', color: 'var(--brand)', fontSize: 12, fontWeight: 700, fontFamily: 'inherit',
+                }}>
+                  {ar ? 'إضافة رصيد تجريبي ›' : 'Add demo balance ›'}
+                </button>
+              </div>
+            )}
           </div>
         </div>
       )}

@@ -34,6 +34,34 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ ok: true })
   }
 
+  if (action === 'buy_with_points') {
+    if (!sym || !qty || !price) return NextResponse.json({ ok: false, error: 'Missing fields' })
+    const { data: prof } = await sb.from('profiles').select('points').eq('id', user.id).single()
+    const currentPoints = (prof as any)?.points ?? 0
+    const costInPoints = Math.round(qty * price) // 1 point = 1 IQD
+
+    if (currentPoints < costInPoints) {
+      return NextResponse.json({ ok: false, error: 'Insufficient points' })
+    }
+
+    const { data: existing } = await sb.from('holdings').select('*').eq('user_id', user.id).eq('sym', sym).maybeSingle()
+    if (existing) {
+      const newQty = existing.qty + qty
+      const newAvg = (existing.avg_price * existing.qty + price * qty) / newQty
+      await sb.from('holdings').update({ qty: newQty, avg_price: newAvg }).eq('id', existing.id)
+    } else {
+      await sb.from('holdings').insert({ user_id: user.id, sym, qty, avg_price: price })
+    }
+
+    await sb.from('profiles').update({ points: currentPoints - costInPoints }).eq('id', user.id)
+    await sb.from('transactions').insert({
+      user_id: user.id, kind: 'buy', sym, qty,
+      amount: costInPoints, notes: 'points_purchase',
+    })
+
+    return NextResponse.json({ ok: true, pointsSpent: costInPoints, remainingPoints: currentPoints - costInPoints })
+  }
+
   if (action === 'buy' || action === 'sell') {
     if (!sym || !qty || !price) return NextResponse.json({ ok: false, error: 'Missing fields' })
 
