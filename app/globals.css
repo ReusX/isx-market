@@ -157,3 +157,7 @@ button { cursor: pointer; font-family: inherit; }
 @media (min-width: 769px) {
   .mobile-only { display: none !important; }
 }
+
+/* Hide TradingView attribution injected by lightweight-charts */
+a[href*="tradingview"] { display: none !important; }
+.tv-lightweight-charts a { display: none !important; }

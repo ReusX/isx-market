@@ -105,6 +105,9 @@ function RSISXChart({ tf }: { tf: string }) {
       area.setData(data)
       chart.timeScale().fitContent()
 
+      // Remove TradingView attribution logo
+      ref.current?.querySelectorAll('a[href*="tradingview"]').forEach(el => el.remove())
+
       ro = new ResizeObserver(() => {
         if (chart && ref.current) chart.applyOptions({ width: ref.current.clientWidth })
       })

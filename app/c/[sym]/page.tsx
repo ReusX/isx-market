@@ -98,6 +98,9 @@ function PriceChart({ sym, tf, color }: { sym: string; tf: string; color?: strin
       areaSeries.setData(candles.map(c => ({ time: c.time, value: c.close })))
       chart.timeScale().fitContent()
 
+      // Remove TradingView attribution logo
+      ref.current?.querySelectorAll('a[href*="tradingview"]').forEach(el => el.remove())
+
       ro = new ResizeObserver(() => {
         if (chart && ref.current) chart.applyOptions({ width: ref.current.clientWidth })
       })
