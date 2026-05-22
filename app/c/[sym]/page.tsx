@@ -334,38 +334,70 @@ function AdvancedChart({
   }, [showRSI, buildRSI])
 
   // ── Download chart ────────────────────────────────────────────────────────
-  function downloadChart() {
+  function buildExportCanvas(): HTMLCanvasElement {
     const mc = s.current.mainChart
-    if (!mc) return
     const srcCanvas = mc.takeScreenshot() as HTMLCanvasElement
-    const H = 38
+    const H   = 52
+    const PAD = 16
     const fin = document.createElement('canvas')
     fin.width  = srcCanvas.width
     fin.height = srcCanvas.height + H
     const ctx  = fin.getContext('2d')!
-    // header strip
+
+    // ── full dark background (chart screenshot is transparent)
     ctx.fillStyle = '#0B0E14'
+    ctx.fillRect(0, 0, fin.width, fin.height)
+
+    // ── header strip (slightly lighter band)
+    ctx.fillStyle = '#11151E'
     ctx.fillRect(0, 0, fin.width, H)
-    ctx.font = 'bold 13px Inter, sans-serif'
-    ctx.fillStyle = '#fff'
-    ctx.textAlign = 'left'
-    ctx.fillText(`${sym}  ${co.close.toFixed(3)} IQD`, 14, 25)
-    ctx.textAlign = 'right'
+    // bottom border on header
+    ctx.fillStyle = 'rgba(255,255,255,0.08)'
+    ctx.fillRect(0, H - 1, fin.width, 1)
+
+    // ── left side: ticker (bold) + company name
+    ctx.textBaseline = 'middle'
+    ctx.textAlign    = 'left'
+    ctx.font         = 'bold 15px "JetBrains Mono", monospace'
+    ctx.fillStyle    = '#fff'
+    ctx.fillText(sym, PAD, H / 2 - 7)
+
+    ctx.font      = '12px Inter, sans-serif'
+    ctx.fillStyle = 'rgba(255,255,255,0.45)'
+    ctx.fillText(co.en, PAD, H / 2 + 9)
+
+    // ── center: price
+    const priceStr = `${co.close.toFixed(3)} IQD`
+    ctx.font      = 'bold 14px "JetBrains Mono", monospace'
+    ctx.fillStyle = '#22C55E'
+    ctx.textAlign = 'center'
+    ctx.fillText(priceStr, fin.width / 2, H / 2)
+
+    // ── right side: iraqsm.com
+    ctx.font      = 'bold 13px Inter, sans-serif'
     ctx.fillStyle = '#4F6BFF'
-    ctx.fillText('iraqsm.com', fin.width - 14, 25)
-    // chart below
+    ctx.textAlign = 'right'
+    ctx.fillText('iraqsm.com', fin.width - PAD, H / 2)
+
+    // ── chart below header (transparent bg → dark shows through)
     ctx.drawImage(srcCanvas, 0, H)
-    const a = document.createElement('a')
-    a.href = fin.toDataURL('image/png')
+
+    return fin
+  }
+
+  function downloadChart() {
+    if (!s.current.mainChart) return
+    const fin = buildExportCanvas()
+    const a   = document.createElement('a')
+    a.href     = fin.toDataURL('image/png')
     a.download = `${sym}-${tf}-iraqsm.png`
     document.body.appendChild(a); a.click(); document.body.removeChild(a)
   }
 
   async function copyChart() {
-    const mc = s.current.mainChart
-    if (!mc) return
-    const srcCanvas = mc.takeScreenshot() as HTMLCanvasElement
-    srcCanvas.toBlob(async blob => {
+    if (!s.current.mainChart) return
+    const fin = buildExportCanvas()
+    fin.toBlob(async blob => {
       if (!blob) return
       try {
         await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })])
