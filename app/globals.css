@@ -1,0 +1,119 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --font-en:   'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-ar:   'IBM Plex Sans Arabic', -apple-system, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+
+  /* Brand */
+  --brand:      #4F6BFF;
+  --brand-deep: #3A4FD6;
+  --brand-soft: rgba(79,107,255,0.14);
+
+  /* Finance */
+  --up:     #22C55E;
+  --dn:     #EF4444;
+  --up-s:   rgba(34,197,94,0.14);
+  --dn-s:   rgba(239,68,68,0.14);
+
+  /* Rewards */
+  --gold:      #F5C84B;
+  --gold-deep: #D4A21B;
+  --gold-grad: linear-gradient(135deg,#FCE39A 0%,#F5C84B 45%,#C28A1B 100%);
+  --purple:    #A855F7;
+
+  /* Surfaces */
+  --bg:    #0B0E14;
+  --surf:  #11151E;
+  --surf2: #161B27;
+  --surf3: #1C2230;
+
+  /* Ink */
+  --ink:  rgba(255,255,255,1);
+  --ink2: rgba(255,255,255,0.72);
+  --ink3: rgba(255,255,255,0.50);
+  --ink4: rgba(255,255,255,0.32);
+
+  /* Borders */
+  --line:  rgba(255,255,255,0.08);
+  --line2: rgba(255,255,255,0.14);
+
+  /* Nav */
+  --nav-h: 62px;
+}
+
+* { box-sizing: border-box; }
+
+html {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-ar);
+  scroll-behavior: smooth;
+}
+
+html[lang="en"] {
+  font-family: var(--font-en);
+}
+
+html[lang="ar"] {
+  font-family: var(--font-ar);
+}
+
+body {
+  margin: 0;
+  min-height: 100dvh;
+  background: var(--bg);
+  color: var(--ink);
+  overflow-x: hidden;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+a { color: inherit; text-decoration: none; }
+button { cursor: pointer; font-family: inherit; }
+
+/* ── Scrollbar ── */
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--line2); border-radius: 4px; }
+
+/* ── Gold gradient text utility ── */
+.gold-text {
+  background: var(--gold-grad);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ── Mono number utility ── */
+.mono { font-family: var(--font-mono); }
+
+/* ── Card ── */
+.card {
+  background: var(--surf);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+}
+
+/* ── Slim strip ── */
+.strip {
+  display: flex;
+  align-items: center;
+  height: 38px;
+  padding: 0 24px;
+  background: var(--surf);
+  border-bottom: 1px solid var(--line);
+  font-size: 12px;
+  overflow: hidden;
+  gap: 0;
+  flex-shrink: 0;
+}
+
+/* ── Pulse skeleton animation ── */
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.4; }
+}
+.skeleton { animation: pulse 1.8s infinite; background: var(--surf3); border-radius: 6px; }

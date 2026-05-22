@@ -91,7 +91,7 @@ out = {
     'breadth': {'up': up, 'dn': dn, 'fl': fl},
     'sectors': sector_chg
 }
-with open('data/live.json', 'w') as f:
+with open('public/data/live.json', 'w') as f:
     json.dump(out, f, separators=(',', ':'))
 print(f"live.json written — {len(live_stocks)} stocks, RSISX={out['rsisx']}")
 
@@ -107,7 +107,7 @@ weekday = today_midnight_baghdad.weekday()  # Mon=0 … Sun=6
 if weekday in (4, 5):  # Friday or Saturday
     print(f"Weekend ({today_midnight_baghdad.strftime('%A')}) — skipping hist update")
 else:
-    hist_path = 'data/hist.json'
+    hist_path = 'public/data/hist.json'
     if os.path.exists(hist_path):
         with open(hist_path) as f:
             hist = json.load(f)
@@ -164,7 +164,7 @@ from io import BytesIO
 import openpyxl
 
 today_iso = today_midnight_baghdad.strftime('%Y-%m-%d')
-ohlcv_path = 'data/ohlcv.json'
+ohlcv_path = 'public/data/ohlcv.json'
 ohlcv = json.load(open(ohlcv_path)) if os.path.exists(ohlcv_path) else {}
 
 if today_iso in ohlcv:
