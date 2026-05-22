@@ -49,7 +49,7 @@ export default function Navbar() {
             ].map(l => (
               <Link key={l.href} href={l.href} style={{
                 padding: '6px 12px', borderRadius: 8,
-                fontSize: 13, fontWeight: 600, color: 'var(--ink3)',
+                fontSize: 13, fontWeight: 700, color: 'var(--ink3)',
                 transition: 'color 0.15s',
               }}
               onMouseEnter={e => (e.currentTarget.style.color = 'var(--ink)')}

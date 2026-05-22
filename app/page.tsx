@@ -292,7 +292,7 @@ export default function HomePage() {
                 display: 'flex', alignItems: 'center', gap: 5,
                 padding: '7px 14px', borderRadius: 999, whiteSpace: 'nowrap',
                 background: 'var(--surf)', border: '1px solid var(--line)',
-                fontSize: 11, fontWeight: 600, color: 'var(--ink2)',
+                fontSize: 11, fontWeight: 700, color: 'var(--ink2)',
                 flexShrink: 0,
               }}>
                 <span>{chip.icon}</span>
@@ -304,7 +304,7 @@ export default function HomePage() {
                 padding: '7px 14px', borderRadius: 999, whiteSpace: 'nowrap',
                 background: sort === 'watchlist' ? 'var(--brand)' : 'var(--surf)',
                 border: sort === 'watchlist' ? 'none' : '1px solid var(--line)',
-                fontSize: 11, fontWeight: 600,
+                fontSize: 11, fontWeight: 700,
                 color: sort === 'watchlist' ? '#fff' : 'var(--ink2)',
                 flexShrink: 0, fontFamily: 'inherit',
               }}>
@@ -579,7 +579,7 @@ export default function HomePage() {
                     border: `1px solid ${sort === s.id ? 'var(--brand)' : 'var(--line)'}`,
                     background: 'none',
                     color: sort === s.id ? 'var(--brand)' : 'var(--ink4)',
-                    fontSize: 11, fontWeight: 600, fontFamily: 'inherit',
+                    fontSize: 11, fontWeight: 700, fontFamily: 'inherit',
                   }}
                 >
                   {ar ? s.ar : s.en}
@@ -597,6 +597,7 @@ export default function HomePage() {
             <div style={{
               display: 'grid',
               gridTemplateColumns: '28px 1fr 90px 80px 70px 80px 60px 36px',
+              columnGap: 6,
               padding: '10px 16px', borderBottom: '1px solid var(--line)',
               alignItems: 'center',
             }}>
@@ -605,7 +606,7 @@ export default function HomePage() {
               <span style={{ ...colHdr, textAlign: 'end' }}>{ar ? 'السعر' : 'Price'}</span>
               <span style={{ ...colHdr, textAlign: 'end' }}>{ar ? 'التغيير' : 'Change'}</span>
               <span style={{ ...colHdr, textAlign: 'end' }}>{ar ? 'الحجم' : 'Volume'}</span>
-              <span style={{ ...colHdr, textAlign: 'right', direction: 'ltr', display: 'block' }}>{ar ? 'Mkt Cap' : 'Mkt Cap'}</span>
+              <span style={{ ...colHdr, textAlign: 'end' }}>{ar ? 'القيمة السوقية' : 'Mkt Cap'}</span>
               <span style={{ ...colHdr, textAlign: 'center' }}></span>
               <span style={colHdr}></span>
             </div>
@@ -679,9 +680,9 @@ export default function HomePage() {
                     {fmtVol(co.vol)}
                   </span>
 
-                  <div style={{ fontFamily: 'var(--font-mono)', fontSize: 12, fontWeight: 700, color: 'var(--ink2)', textAlign: 'right', direction: 'ltr' }}>
+                  <span style={{ fontFamily: 'var(--font-mono)', fontSize: 12, fontWeight: 700, color: 'var(--ink2)', textAlign: 'end' }}>
                     {fmtMcap(co.mcap)}
-                  </div>
+                  </span>
 
                   <div style={{ display: 'flex', justifyContent: 'center' }}>
                     <Spark pct={co.pct} />
