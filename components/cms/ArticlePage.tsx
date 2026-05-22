@@ -68,10 +68,14 @@ export default function ArticlePage({ post, section, backHref }: Props) {
         </div>
       )}
 
-      {/* Content */}
+      {/* Content — rewrite any cms.iraqsm.com image src URLs to Hostinger temp domain */}
       <div
         className="wp-content"
-        dangerouslySetInnerHTML={{ __html: post.content.rendered }}
+        dangerouslySetInnerHTML={{
+          __html: post.content.rendered
+            .replace(/https:\/\/cms\.iraqsm\.com/g, 'https://paleturquoise-deer-610016.hostingersite.com')
+            .replace(/http:\/\/cms\.iraqsm\.com/g,  'https://paleturquoise-deer-610016.hostingersite.com'),
+        }}
       />
 
       {/* Back to section */}
