@@ -203,7 +203,7 @@ export default function CompanyPage() {
             <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
               {(['buy', 'sell'] as const).map(a => (
                 <button key={a} onClick={() => setAction(action === a ? null : a)} style={{
-                  flex: 1, padding: '10px', borderRadius: 10, border: 'none',
+                  flex: 1, padding: '10px', borderRadius: 10,
                   background: action === a
                     ? (a === 'buy' ? 'rgba(34,197,94,0.25)' : 'rgba(239,68,68,0.2)')
                     : 'var(--surf3)',
