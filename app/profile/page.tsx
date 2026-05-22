@@ -2,20 +2,44 @@
 
 export const dynamic = 'force-dynamic'
 
-import { useState } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import Link from 'next/link'
 import { useApp } from '@/context/AppContext'
 import { rankFor, fmtPts, rankProgress, nextRank } from '@/lib/ranks'
 import { createClient } from '@/lib/supabase/client'
 
+function genCode(uid: string): string {
+  // Deterministic 8-char code from user ID prefix + random suffix
+  const prefix = uid.replace(/-/g, '').slice(0, 4).toUpperCase()
+  const suffix = Math.random().toString(36).slice(2, 6).toUpperCase()
+  return `${prefix}${suffix}`
+}
+
 export default function ProfilePage() {
   const { lang, user, profile, authLoading, refreshProfile, signOut, openAuth } = useApp()
   const ar = lang === 'ar'
   const sb = createClient()
-  const [editing, setEditing]   = useState(false)
-  const [username, setUsername] = useState(profile?.username ?? '')
-  const [saving, setSaving]     = useState(false)
-  const [saved, setSaved]       = useState(false)
+  const [editing,   setEditing]   = useState(false)
+  const [username,  setUsername]  = useState(profile?.username ?? '')
+  const [saving,    setSaving]    = useState(false)
+  const [saved,     setSaved]     = useState(false)
+  const [copied,    setCopied]    = useState(false)
+
+  // Auto-generate referral code if missing
+  useEffect(() => {
+    if (!user || !profile || profile.referral_code) return
+    const code = genCode(user.id)
+    sb.from('profiles').update({ referral_code: code }).eq('id', user.id)
+      .then(() => refreshProfile())
+  }, [user, profile]) // eslint-disable-line
+
+  const copyCode = useCallback(async () => {
+    const code = profile?.referral_code
+    if (!code) return
+    await navigator.clipboard.writeText(code)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
+  }, [profile?.referral_code])
 
   if (authLoading) return (
     <div style={{ maxWidth: 600, margin: '80px auto', textAlign: 'center', padding: '0 24px' }}>
@@ -163,17 +187,21 @@ export default function ProfilePage() {
           <div style={{
             flex: 1, padding: '10px 14px', background: 'var(--surf3)',
             borderRadius: 10, fontFamily: 'var(--font-mono)', fontWeight: 700, fontSize: 16,
-            letterSpacing: '0.1em', color: 'var(--gold)',
+            letterSpacing: '0.15em', color: profile.referral_code ? 'var(--gold)' : 'var(--ink4)',
           }}>
-            {profile.referral_code ?? '—'}
+            {profile.referral_code ?? (ar ? 'جاري الإنشاء...' : 'Generating...')}
           </div>
           <button
-            onClick={() => navigator.clipboard.writeText(profile.referral_code ?? '')}
+            onClick={copyCode}
+            disabled={!profile.referral_code}
             style={{
-              padding: '10px 14px', borderRadius: 10, border: '1px solid var(--line)',
-              background: 'var(--surf3)', color: 'var(--ink3)', fontSize: 12, fontFamily: 'inherit',
+              padding: '10px 16px', borderRadius: 10, border: '1px solid var(--line)',
+              background: copied ? 'var(--up)' : 'var(--surf3)',
+              color: copied ? '#fff' : 'var(--ink3)',
+              fontSize: 12, fontFamily: 'inherit', fontWeight: 700,
+              transition: 'all 0.2s', cursor: profile.referral_code ? 'pointer' : 'not-allowed',
             }}>
-            {ar ? 'نسخ' : 'Copy'}
+            {copied ? '✓' : (ar ? 'نسخ' : 'Copy')}
           </button>
         </div>
         <div style={{ fontSize: 11, color: 'var(--ink4)', lineHeight: 1.6 }}>

@@ -120,10 +120,14 @@ button { cursor: pointer; font-family: inherit; }
 
 /* ── WordPress article content ── */
 .wp-content { font-size: 15px; line-height: 1.8; color: var(--ink2); }
-.wp-content h2 { font-size: 20px; font-weight: 800; margin: 28px 0 12px; color: var(--ink); }
-.wp-content h3 { font-size: 17px; font-weight: 700; margin: 22px 0 10px; color: var(--ink); }
-.wp-content p  { margin: 0 0 16px; }
-.wp-content a  { color: var(--brand); text-decoration: underline; }
+/* Override any WordPress inline color styles that would be invisible on dark bg */
+.wp-content *  { color: inherit !important; background-color: transparent !important; }
+.wp-content h1 { font-size: 22px; font-weight: 800; margin: 28px 0 12px; color: var(--ink) !important; }
+.wp-content h2 { font-size: 20px; font-weight: 800; margin: 28px 0 12px; color: var(--ink) !important; }
+.wp-content h3 { font-size: 17px; font-weight: 700; margin: 22px 0 10px; color: var(--ink) !important; }
+.wp-content h4 { font-size: 15px; font-weight: 700; margin: 18px 0 8px;  color: var(--ink) !important; }
+.wp-content p  { margin: 0 0 16px; color: var(--ink2) !important; }
+.wp-content a  { color: var(--brand) !important; text-decoration: underline; }
 .wp-content ul, .wp-content ol { padding-inline-start: 24px; margin: 0 0 16px; }
 .wp-content li { margin-bottom: 6px; }
 .wp-content blockquote {

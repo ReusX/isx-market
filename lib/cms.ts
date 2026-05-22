@@ -58,7 +58,7 @@ export async function getPosts(
 export async function getPost(slug: string): Promise<WPPost | null> {
   try {
     const res = await fetch(
-      `${WP}/wp-json/wp/v2/posts?slug=${slug}&_embed=1`,
+      `${WP}/wp-json/wp/v2/posts?slug=${encodeURIComponent(slug)}&_embed=1`,
       { next: { revalidate: 300 } }
     )
     if (!res.ok) return null
@@ -70,10 +70,26 @@ export async function getPost(slug: string): Promise<WPPost | null> {
 }
 
 // ── Featured image URL ────────────────────────────────────────────────────────
+// Rewrites cms.iraqsm.com URLs → Hostinger temp domain so images work
+// regardless of DNS propagation state for the WP media files
+function rewriteImgUrl(url: string | null | undefined): string | null {
+  if (!url) return null
+  return url
+    .replace('https://cms.iraqsm.com', 'https://paleturquoise-deer-610016.hostingersite.com')
+    .replace('http://cms.iraqsm.com',  'https://paleturquoise-deer-610016.hostingersite.com')
+}
+
 export function featuredImage(post: WPPost, size = 'medium_large'): string | null {
   const media = post._embedded?.['wp:featuredmedia']?.[0]
   if (!media) return null
-  return media.media_details?.sizes?.[size]?.source_url ?? media.source_url ?? null
+  const url =
+    media.media_details?.sizes?.[size]?.source_url
+    ?? media.media_details?.sizes?.['large']?.source_url
+    ?? media.media_details?.sizes?.['medium_large']?.source_url
+    ?? media.media_details?.sizes?.['medium']?.source_url
+    ?? media.source_url
+    ?? null
+  return rewriteImgUrl(url)
 }
 
 // ── Author name ───────────────────────────────────────────────────────────────
