@@ -4,7 +4,7 @@
 
 :root {
   --font-en:   'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-  --font-ar:   'IBM Plex Sans Arabic', -apple-system, sans-serif;
+  --font-ar:   var(--font-thmanyah), -apple-system, sans-serif;
   --font-mono: 'JetBrains Mono', ui-monospace, monospace;
 
   /* Brand */

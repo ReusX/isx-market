@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from 'next'
 import { Inter } from 'next/font/google'
+import localFont from 'next/font/local'
 import './globals.css'
 import { AppProvider } from '@/context/AppContext'
 import Navbar from '@/components/layout/Navbar'
@@ -7,6 +8,19 @@ import Navbar from '@/components/layout/Navbar'
 const inter = Inter({
   subsets: ['latin'],
   variable: '--font-en',
+  display: 'swap',
+})
+
+const thmanyah = localFont({
+  src: [
+    { path: '../fonts/ThmanyahText-400-normal.woff2',    weight: '400', style: 'normal' },
+    { path: '../fonts/ThmanyahText-500-normal.woff2',    weight: '500', style: 'normal' },
+    { path: '../fonts/ThmanyahText-700-normal.woff2',    weight: '700', style: 'normal' },
+    { path: '../fonts/ThmanyahDisplay-400-normal.woff2', weight: '400', style: 'normal' },
+    { path: '../fonts/ThmanyahDisplay-700-normal.woff2', weight: '700', style: 'normal' },
+    { path: '../fonts/ThmanyahDisplay-900-normal.woff2', weight: '900', style: 'normal' },
+  ],
+  variable: '--font-thmanyah',
   display: 'swap',
 })
 
@@ -38,12 +52,12 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="ar" dir="rtl" className={inter.variable}>
+    <html lang="ar" dir="rtl" className={`${inter.variable} ${thmanyah.variable}`} suppressHydrationWarning>
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link
-          href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap"
+          href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap"
           rel="stylesheet"
         />
       </head>
