@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { useParams, useSearchParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { useApp } from '@/context/AppContext'
@@ -8,6 +8,8 @@ import { fetchLive, fetchCompanyMeta, mergeCompanies, fmtVol, fmtMcap } from '@/
 import type { Company } from '@/types'
 
 const TF = ['1D','1W','1M','3M','1Y','5Y'] as const
+
+const TF_DAYS: Record<string,number> = { '1D':1,'1W':7,'1M':30,'3M':90,'1Y':365,'5Y':1825 }
 
 function CoLogo({ sym, color }: { sym: string; color?: string }) {
   const [err, setErr] = useState(false)
@@ -26,30 +28,90 @@ function CoLogo({ sym, color }: { sym: string; color?: string }) {
   )
 }
 
-// Simple placeholder chart — replace with real chart lib later
-function PriceChart({ sym, tf, pct }: { sym: string; tf: string; pct: number }) {
-  const up = pct >= 0
-  const pts = Array.from({ length: 40 }, (_, i) => {
-    const noise = (Math.sin(i * 0.7 + sym.charCodeAt(0)) + Math.sin(i * 1.3)) * 8
-    return 60 + noise + (up ? i * 0.5 : -i * 0.5)
-  })
-  const min = Math.min(...pts), max = Math.max(...pts)
-  const norm = (v: number) => 90 - ((v - min) / (max - min)) * 80
-  const poly = pts.map((v, i) => `${(i / 39) * 560},${norm(v)}`).join(' ')
-  const fill = pts.map((v, i) => `${(i / 39) * 560},${norm(v)}`).concat(['560,100', '0,100']).join(' ')
+function tsToDate(ts: number): string {
+  const d = new Date((ts + 10800) * 1000)
+  return d.getUTCFullYear() + '-' +
+    String(d.getUTCMonth() + 1).padStart(2, '0') + '-' +
+    String(d.getUTCDate()).padStart(2, '0')
+}
 
-  return (
-    <svg viewBox="0 0 560 100" preserveAspectRatio="none" style={{ width: '100%', height: 160 }}>
-      <defs>
-        <linearGradient id="chg" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor={up ? '#22C55E' : '#EF4444'} stopOpacity="0.3" />
-          <stop offset="100%" stopColor={up ? '#22C55E' : '#EF4444'} stopOpacity="0" />
-        </linearGradient>
-      </defs>
-      <polygon points={fill} fill="url(#chg)" />
-      <polyline points={poly} fill="none" stroke={up ? '#22C55E' : '#EF4444'} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-  )
+function PriceChart({ sym, tf, color }: { sym: string; tf: string; color?: string }) {
+  const ref = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (!ref.current) return
+    let chart: any = null
+    let ro: ResizeObserver | null = null
+
+    async function init() {
+      const LC = await import('lightweight-charts')
+      if (!ref.current) return
+
+      const [histRes, ohlcvRes] = await Promise.all([
+        fetch('/data/hist.json?t=' + Math.floor(Date.now() / 86400000)).then(r => r.json()),
+        fetch('/data/ohlcv.json?t=' + Math.floor(Date.now() / 86400000)).then(r => r.json()),
+      ])
+
+      const days = TF_DAYS[tf] ?? 30
+      const useLong = days >= 1825
+      const raw: [number, number][] = (useLong ? histRes.l?.[sym] : null) ?? histRes.s?.[sym] ?? []
+      const cutoff = Date.now() / 1000 - days * 86400
+      const series = raw.filter(p => p[0] >= cutoff)
+
+      // Build candles
+      const candles = series.map((p, i) => {
+        const [ts, c] = p
+        const dateStr = tsToDate(ts)
+        const ov = ohlcvRes?.[dateStr]?.[sym]
+        if (ov?.o && ov?.h && ov?.l && ov?.c && +ov.c > 0) {
+          return { time: ts as any, open: +Number(ov.o).toFixed(4), high: +Number(ov.h).toFixed(4), low: +Math.max(0.001, Number(ov.l)).toFixed(4), close: +Number(ov.c).toFixed(4) }
+        }
+        const prev = i > 0 ? series[i - 1][1] : c
+        const hi = Math.max(prev, c), lo = Math.min(prev, c)
+        const pad = (hi - lo) * 0.18 + c * 0.0015
+        return { time: ts as any, open: +prev.toFixed(4), high: +(hi + pad).toFixed(4), low: +Math.max(0.001, lo - pad).toFixed(4), close: +c.toFixed(4) }
+      })
+
+      if (!candles.length || !ref.current) return
+
+      const lineColor = color || '#4F6BFF'
+      chart = LC.createChart(ref.current, {
+        width: ref.current.clientWidth,
+        height: 340,
+        layout: { background: { color: 'transparent' }, textColor: 'rgba(255,255,255,0.45)', fontFamily: 'var(--font-ar), sans-serif', fontSize: 11 },
+        grid: { vertLines: { color: 'rgba(255,255,255,0.05)' }, horzLines: { color: 'rgba(255,255,255,0.05)' } },
+        crosshair: { mode: LC.CrosshairMode.Normal },
+        rightPriceScale: { borderColor: 'rgba(255,255,255,0.08)' },
+        timeScale: { borderColor: 'rgba(255,255,255,0.08)', timeVisible: false },
+        watermark: { visible: true, text: 'iraqsm.com', fontSize: 14, color: 'rgba(79,107,255,0.25)', horzAlign: 'left', vertAlign: 'bottom', fontStyle: 'bold' },
+        handleScroll: true,
+        handleScale: true,
+      })
+
+      const areaSeries = chart.addAreaSeries({
+        lineColor,
+        topColor: lineColor + '55',
+        bottomColor: lineColor + '05',
+        lineWidth: 2,
+        priceLineVisible: false,
+      })
+      areaSeries.setData(candles.map(c => ({ time: c.time, value: c.close })))
+      chart.timeScale().fitContent()
+
+      ro = new ResizeObserver(() => {
+        if (chart && ref.current) chart.applyOptions({ width: ref.current.clientWidth })
+      })
+      ro.observe(ref.current)
+    }
+
+    init()
+    return () => {
+      ro?.disconnect()
+      chart?.remove()
+    }
+  }, [sym, tf, color])
+
+  return <div ref={ref} style={{ width: '100%', height: 340 }} />
 }
 
 export default function CompanyPage() {
@@ -177,10 +239,7 @@ export default function CompanyPage() {
             ))}
           </div>
         </div>
-        <PriceChart sym={co.sym} tf={tf} pct={co.pct} />
-        <p style={{ fontSize: 10, color: 'var(--ink4)', textAlign: 'center', margin: '8px 0 0' }}>
-          {ar ? '* بيانات تقريبية — سيتم توصيل البيانات الحقيقية قريباً' : '* Illustrative — real OHLCV data coming soon'}
-        </p>
+        <PriceChart sym={co.sym} tf={tf} color={co.color} />
       </div>
 
       {/* Trade card */}
