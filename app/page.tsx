@@ -431,7 +431,7 @@ export default function HomePage() {
           )}
 
           {/* Spin widget */}
-          <SpinWidget ar={ar} user={!!user} />
+          <SpinWidget ar={ar} user={!!user} openAuth={openAuth} />
 
           {/* Top movers */}
           {!loading && companies.length > 0 && (
@@ -447,7 +447,7 @@ export default function HomePage() {
 }
 
 // ─── Spin Widget ─────────────────────────────────────────────────────────────
-function SpinWidget({ ar, user }: { ar: boolean; user: boolean }) {
+function SpinWidget({ ar, user, openAuth }: { ar: boolean; user: boolean; openAuth: (tab?: 'signin' | 'signup') => void }) {
   const [expanded, setExpanded] = useState(false)
   const router = useRouter()
 
