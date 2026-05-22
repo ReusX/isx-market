@@ -27,11 +27,7 @@ export default function Navbar() {
         }}>
           {/* Logo */}
           <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: 10, marginInlineEnd: 24, flexShrink: 0 }}>
-            <div style={{
-              width: 32, height: 32, borderRadius: 8,
-              background: 'var(--brand)', display: 'flex', alignItems: 'center', justifyContent: 'center',
-              fontSize: 14, fontWeight: 900, color: '#fff',
-            }}>₿</div>
+            <img src="/favicon-192.png" alt="ISX" width={32} height={32} style={{ borderRadius: 8, display: 'block' }} />
             <span style={{ fontWeight: 800, fontSize: 16, color: 'var(--ink)' }}>
               {ar ? 'بورصة العراق' : 'ISX Market'}
             </span>
