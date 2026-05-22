@@ -68,17 +68,16 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     const fallback = setTimeout(() => setAuthLoading(false), 5000)
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
+      (event, session) => {
         clearTimeout(fallback)
         const u = session?.user ?? null
         setUser(u)
+        setAuthLoading(false)   // ← resolve immediately — don't wait for profile fetch
         if (u) {
-          await fetchProfile(u.id)
+          fetchProfile(u.id)    // async, updates profile state when ready
         } else {
           setProfile(null)
         }
-        // Mark auth as resolved after the very first event
-        setAuthLoading(false)
       }
     )
 

@@ -86,7 +86,7 @@ export default function SpinPage() {
     </div>
   )
 
-  if (!user || !profile) return (
+  if (!user) return (
     <div style={{ maxWidth: 500, margin: '80px auto', textAlign: 'center', padding: '0 24px' }}>
       <div style={{ fontSize: 48, marginBottom: 12 }}>🎡</div>
       <div style={{ fontWeight: 700, fontSize: 18, marginBottom: 8 }}>

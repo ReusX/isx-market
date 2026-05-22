@@ -25,7 +25,7 @@ export default function ProfilePage() {
     </div>
   )
 
-  if (!user || !profile) return (
+  if (!user) return (
     <div style={{ maxWidth: 600, margin: '80px auto', textAlign: 'center', padding: '0 24px' }}>
       <div style={{ fontSize: 40, marginBottom: 12 }}>👤</div>
       <div style={{ fontWeight: 700, fontSize: 16, marginBottom: 12 }}>
@@ -37,6 +37,14 @@ export default function ProfilePage() {
       }}>
         {ar ? 'تسجيل الدخول' : 'Sign In'}
       </button>
+    </div>
+  )
+
+  if (!profile) return (
+    <div style={{ maxWidth: 700, margin: '40px auto', padding: '0 24px' }}>
+      {[80, 120, 80].map((h, i) => (
+        <div key={i} className="skeleton" style={{ height: h, borderRadius: 16, marginBottom: 12 }} />
+      ))}
     </div>
   )
 
