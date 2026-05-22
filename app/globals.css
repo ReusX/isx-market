@@ -4,7 +4,7 @@
 
 :root {
   --font-en:   'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-  --font-ar:   var(--font-thmanyah), -apple-system, sans-serif;
+  --font-ar:   var(--font-thmanyah), sans-serif;
   --font-mono: 'JetBrains Mono', ui-monospace, monospace;
 
   /* Brand */
@@ -165,3 +165,16 @@ button { cursor: pointer; font-family: inherit; }
 /* Hide TradingView attribution injected by lightweight-charts */
 a[href*="tradingview"] { display: none !important; }
 .tv-lightweight-charts a { display: none !important; }
+
+/* ── Arabic: Thmanyah font for ALL elements ── */
+html[lang="ar"] * {
+  font-family: var(--font-thmanyah) !important;
+}
+/* Preserve monospace for prices, codes, numbers */
+html[lang="ar"] .mono,
+html[lang="ar"] [style*="font-mono"],
+html[lang="ar"] code,
+html[lang="ar"] pre,
+html[lang="ar"] .wp-content pre {
+  font-family: var(--font-mono) !important;
+}
