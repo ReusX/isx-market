@@ -69,7 +69,7 @@ function Wheel({ spinning, result }: { spinning: boolean; result: number | null 
 }
 
 export default function SpinPage() {
-  const { lang, user, profile, refreshProfile, openAuth } = useApp()
+  const { lang, user, profile, authLoading, refreshProfile, openAuth } = useApp()
   const ar = lang === 'ar'
 
   const [spinning,  setSpinning]  = useState(false)
@@ -78,6 +78,14 @@ export default function SpinPage() {
   const [error,     setError]     = useState<string | null>(null)
   const [rotation,  setRotation]  = useState(0)
   const wheelRef = useRef<SVGSVGElement>(null)
+
+  if (authLoading) return (
+    <div style={{ maxWidth: 500, margin: '80px auto', padding: '0 24px' }}>
+      <div className="skeleton" style={{ height: 48, width: 48, borderRadius: '50%', margin: '0 auto 16px' }} />
+      <div className="skeleton" style={{ height: 300, borderRadius: 20, marginBottom: 12 }} />
+      <div className="skeleton" style={{ height: 44, borderRadius: 12 }} />
+    </div>
+  )
 
   if (!user || !profile) return (
     <div style={{ maxWidth: 500, margin: '80px auto', textAlign: 'center', padding: '0 24px' }}>

@@ -1,6 +1,6 @@
 'use client'
 
-import { createContext, useContext, useEffect, useState, useCallback } from 'react'
+import { createContext, useContext, useEffect, useState, useCallback, useMemo } from 'react'
 import type { UserProfile, Lang } from '@/types'
 import { createClient } from '@/lib/supabase/client'
 import AuthModal from '@/components/auth/AuthModal'
@@ -21,77 +21,77 @@ interface AppState {
 const AppContext = createContext<AppState | null>(null)
 
 export function AppProvider({ children }: { children: React.ReactNode }) {
-  const [lang, setLangState] = useState<Lang>('ar')
-  const [user, setUser] = useState<any | null>(null)
-  const [profile, setProfile] = useState<UserProfile | null>(null)
+  // Stable client — created once, never recreated
+  const supabase = useMemo(() => createClient(), [])
+
+  const [lang, setLangState]   = useState<Lang>('ar')
+  const [user, setUser]         = useState<any | null>(null)
+  const [profile, setProfile]   = useState<UserProfile | null>(null)
   const [watchlist, setWatchlist] = useState<string[]>([])
   const [authLoading, setAuthLoading] = useState(true)
   const [authModalTab, setAuthModalTab] = useState<'signin' | 'signup' | null>(null)
-  const supabase = createClient()
 
-  // Init lang from localStorage
+  // Init lang + watchlist from localStorage
   useEffect(() => {
     const saved = localStorage.getItem('lang') as Lang | null
     if (saved) setLangState(saved)
-  }, [])
-
-  // Init watchlist from localStorage
-  useEffect(() => {
     try {
       const wl = JSON.parse(localStorage.getItem('isx_watchlist') ?? '[]')
       setWatchlist(wl)
     } catch {}
   }, [])
 
-  // Auth listener
-  useEffect(() => {
-    // Safety timeout — never leave users stuck loading
-    const timeout = setTimeout(() => setAuthLoading(false), 4000)
-
-    // Resolve auth state on first load
-    supabase.auth.getUser()
-      .then(({ data: { user } }) => {
-        setUser(user ?? null)
-        if (user) {
-          return refreshProfile()
+  // Fetch profile for a given user id
+  const fetchProfile = useCallback(async (uid: string) => {
+    try {
+      const { data } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', uid)
+        .single()
+      if (data) {
+        setProfile(data as UserProfile)
+        if (data.watchlist?.length) {
+          setWatchlist(prev => {
+            const merged = Array.from(new Set([...prev, ...(data.watchlist ?? [])]))
+            localStorage.setItem('isx_watchlist', JSON.stringify(merged))
+            return merged
+          })
         }
-      })
-      .catch(() => {})
-      .finally(() => {
-        clearTimeout(timeout)
-        setAuthLoading(false)
-      })
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      setUser(session?.user ?? null)
-      if (session?.user) {
-        await refreshProfile()
-      } else {
-        setProfile(null)
       }
-    })
-    return () => subscription.unsubscribe()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+    } catch {}
+  }, [supabase])
+
+  // Auth — onAuthStateChange fires INITIAL_SESSION immediately on mount
+  useEffect(() => {
+    // Safety net: if INITIAL_SESSION never fires, unblock after 5s
+    const fallback = setTimeout(() => setAuthLoading(false), 5000)
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        clearTimeout(fallback)
+        const u = session?.user ?? null
+        setUser(u)
+        if (u) {
+          await fetchProfile(u.id)
+        } else {
+          setProfile(null)
+        }
+        // Mark auth as resolved after the very first event
+        setAuthLoading(false)
+      }
+    )
+
+    return () => {
+      clearTimeout(fallback)
+      subscription.unsubscribe()
+    }
+  }, [supabase, fetchProfile])
 
   const refreshProfile = useCallback(async () => {
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return
-    const { data } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('id', user.id)
-      .single()
-    if (data) {
-      setProfile(data as UserProfile)
-      // Merge server watchlist with local
-      if (data.watchlist?.length) {
-        const merged = Array.from(new Set([...watchlist, ...(data.watchlist ?? [])]))
-        setWatchlist(merged)
-        localStorage.setItem('isx_watchlist', JSON.stringify(merged))
-      }
-    }
-  }, [supabase, watchlist])
+    const { data: { user: u } } = await supabase.auth.getUser()
+    if (u) await fetchProfile(u.id)
+  }, [supabase, fetchProfile])
 
   const setLang = (l: Lang) => {
     setLangState(l)
@@ -101,15 +101,12 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   }
 
   const toggleWatchlist = (sym: string) => {
-    const updated = watchlist.includes(sym)
-      ? watchlist.filter(s => s !== sym)
-      : [...watchlist, sym]
-    setWatchlist(updated)
-    localStorage.setItem('isx_watchlist', JSON.stringify(updated))
-    // Sync to Supabase if logged in
-    if (user) {
-      supabase.from('profiles').update({ watchlist: updated }).eq('id', user.id)
-    }
+    setWatchlist(prev => {
+      const updated = prev.includes(sym) ? prev.filter(s => s !== sym) : [...prev, sym]
+      localStorage.setItem('isx_watchlist', JSON.stringify(updated))
+      if (user) supabase.from('profiles').update({ watchlist: updated }).eq('id', user.id)
+      return updated
+    })
   }
 
   const signOut = async () => {
@@ -121,7 +118,10 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const openAuth = (tab: 'signin' | 'signup' = 'signin') => setAuthModalTab(tab)
 
   return (
-    <AppContext.Provider value={{ lang, user, profile, watchlist, authLoading, setLang, toggleWatchlist, refreshProfile, signOut, openAuth }}>
+    <AppContext.Provider value={{
+      lang, user, profile, watchlist, authLoading,
+      setLang, toggleWatchlist, refreshProfile, signOut, openAuth,
+    }}>
       {children}
       {authModalTab && !user && (
         <AuthModal defaultTab={authModalTab} onClose={() => setAuthModalTab(null)} />
