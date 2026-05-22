@@ -46,6 +46,7 @@ export default function Navbar() {
               { href: '/learn',      ar: 'تعلّم',      en: 'Learn' },
               { href: '/charts',     ar: 'المخططات',   en: 'Charts' },
               { href: '/fx',         ar: 'IQD ⇄ USD',  en: 'IQD ⇄ USD' },
+              { href: '/companies',   ar: 'الشركات',    en: 'Companies' },
               { href: '/leaderboard',ar: 'المتصدرون',  en: 'Leaderboard' },
             ].map(l => (
               <Link key={l.href} href={l.href} style={{

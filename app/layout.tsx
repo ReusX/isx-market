@@ -5,6 +5,7 @@ import './globals.css'
 import { AppProvider } from '@/context/AppContext'
 import Navbar from '@/components/layout/Navbar'
 import BottomNav from '@/components/layout/BottomNav'
+import { Analytics } from '@vercel/analytics/react'
 
 const inter = Inter({
   subsets: ['latin'],
@@ -26,15 +27,13 @@ const thmanyah = localFont({
 })
 
 export const metadata: Metadata = {
-  title: 'بورصة العراق | ISX Market',
-  description: 'أسعار أسهم بورصة العراق للأوراق المالية (ISX) مباشرة — مؤشر ربيع RSISX، المخططات، والقطاعات. Iraq Stock Exchange live prices.',
+  title: { default: 'بورصة العراق | ISX Market', template: '%s | ISX Market' },
+  description: 'أسعار أسهم بورصة العراق للأوراق المالية مباشرة — مؤشر RSISX، المخططات، والقطاعات. Iraq Stock Exchange live prices and charts.',
   metadataBase: new URL('https://iraqsm.com'),
-  alternates: {
-    canonical: 'https://iraqsm.com',
-  },
+  // No root canonical — each page sets its own to avoid the "non-canonical in sitemap" issue
   openGraph: {
     title: 'بورصة العراق | ISX Market',
-    description: 'Live Iraq Stock Exchange prices, charts and analysis.',
+    description: 'Iraq Stock Exchange live prices, charts and analysis — أسعار بورصة العراق مباشرة.',
     url: 'https://iraqsm.com',
     siteName: 'ISX Market',
     images: [{ url: '/og-image.png', width: 1200, height: 630 }],
@@ -72,6 +71,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             {children}
           </main>
           <BottomNav />
+          <Analytics />
         </AppProvider>
       </body>
     </html>
