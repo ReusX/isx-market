@@ -46,10 +46,6 @@ export async function generateMetadata({ params }: { params: { sym: string } }):
   }
 }
 
-export async function generateStaticParams() {
-  return (companiesData as { sym: string }[]).map(c => ({ sym: c.sym }))
-}
-
 export default function CompanyLayout({ children }: Props) {
   return children
 }
