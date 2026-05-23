@@ -38,7 +38,7 @@ export default function Navbar() {
             {[
               { href: '/market',     ar: 'السوق',      en: 'Market' },
               { href: '/news',       ar: 'الأخبار',    en: 'News' },
-              { href: '/analysis',   ar: 'تحليل ✦',    en: 'Analysis ✦' },
+              { href: '/analysis',   ar: 'تحليل',      en: 'Analysis' },
               { href: '/research',   ar: 'أبحاث',      en: 'Research' },
               { href: '/learn',      ar: 'تعلّم',      en: 'Learn' },
               { href: '/charts',     ar: 'المخططات',   en: 'Charts' },

@@ -96,7 +96,7 @@ function CaseCard({ type, points, lang }: { type: 'bull' | 'bear'; points: Analy
   )
 }
 
-function Generating({ ar }: { ar: boolean }) {
+function Loading({ ar }: { ar: boolean }) {
   const [dot, setDot] = useState(0)
   useEffect(() => {
     const t = setInterval(() => setDot(d => (d + 1) % 4), 500)
@@ -108,13 +108,13 @@ function Generating({ ar }: { ar: boolean }) {
         <div style={{ position: 'absolute', inset: 0, borderRadius: '50%', border: '3px solid rgba(79,107,255,0.15)' }} />
         <div style={{ position: 'absolute', inset: 0, borderRadius: '50%', border: '3px solid transparent', borderTopColor: 'var(--brand)', animation: 'spin 0.9s linear infinite' }} />
         <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
-        <div style={{ position: 'absolute', inset: 8, borderRadius: '50%', background: 'rgba(79,107,255,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18 }}>✦</div>
+        <div style={{ position: 'absolute', inset: 8, borderRadius: '50%', background: 'rgba(79,107,255,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18 }}>📊</div>
       </div>
-      <div style={{ fontSize: 16, fontWeight: 800, color: 'var(--ink)', marginBottom: 8 }}>
-        {ar ? `جارٍ تحليل البيانات المالية${'.'.repeat(dot)}` : `Analysing financial data${'.'.repeat(dot)}`}
+      <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--ink)', marginBottom: 8 }}>
+        {ar ? `جارٍ تحليل التقارير المالية${'.'.repeat(dot)}` : `Analysing financial filings${'.'.repeat(dot)}`}
       </div>
-      <div style={{ fontSize: 13, color: 'var(--ink4)' }}>
-        {ar ? 'Groq · LLaMA 3.3 70B — ~١٥ ثانية' : 'Groq · LLaMA 3.3 70B — ~15 seconds'}
+      <div style={{ fontSize: 12, color: 'var(--ink5)' }}>
+        {ar ? '~٢٠ ثانية' : '~20 seconds'}
       </div>
     </div>
   )
@@ -127,8 +127,8 @@ export default function AnalysisPage({ params }: { params: { sym: string } }) {
 
   const [co,       setCo]       = useState<CoMeta | null>(null)
   const [live,     setLive]     = useState<{ close: number; pct: number } | null>(null)
-  const [analysis, setAnalysis] = useState<{ en: AnalysisData; ar: AnalysisData; generated_at: string } | null>(null)
-  const [phase,    setPhase]    = useState<'booting' | 'generating' | 'done' | 'error'>('booting')
+  const [analysis, setAnalysis] = useState<{ en: AnalysisData; ar: AnalysisData } | null>(null)
+  const [phase,    setPhase]    = useState<'booting' | 'loading' | 'done' | 'error'>('booting')
   const [errMsg,   setErrMsg]   = useState('')
 
   useEffect(() => {
@@ -144,24 +144,25 @@ export default function AnalysisPage({ params }: { params: { sym: string } }) {
     })
   }, [sym])
 
-  const loadOrGenerate = useCallback(async (forceRegen = false) => {
-    if (!forceRegen) {
-      try {
-        const res = await fetch(`/api/analysis/${sym}`)
-        if (res.ok) {
-          setAnalysis(await res.json())
-          setPhase('done')
-          return
-        }
-      } catch (_) {}
-    }
-    setPhase('generating')
+  const loadOrGenerate = useCallback(async () => {
+    // Try cache first
+    try {
+      const res = await fetch(`/api/analysis/${sym}`)
+      if (res.ok) {
+        setAnalysis(await res.json())
+        setPhase('done')
+        return
+      }
+    } catch (_) {}
+
+    // Auto-generate if not cached
+    setPhase('loading')
     setErrMsg('')
     try {
       const res = await fetch(`/api/analysis/${sym}`, { method: 'POST' })
       if (!res.ok) {
         const e = await res.json().catch(() => ({ error: `HTTP ${res.status}` }))
-        throw new Error(e.error ?? 'Generation failed')
+        throw new Error(e.error ?? 'Failed to load analysis')
       }
       setAnalysis(await res.json())
       setPhase('done')
@@ -179,17 +180,16 @@ export default function AnalysisPage({ params }: { params: { sym: string } }) {
   const price    = live?.close ?? 0
   const pct      = live?.pct ?? 0
   const up       = pct >= 0
-  const genDate  = analysis?.generated_at
-    ? new Date(analysis.generated_at).toLocaleDateString(ar ? 'ar-IQ' : 'en-US', { year: 'numeric', month: 'long', day: 'numeric' })
-    : ''
+  const verdict  = content?.verdict ? getVerdict(content.verdict) : null
 
-  const verdict = content?.verdict ? getVerdict(content.verdict) : null
+  // Thmanyah font for this page regardless of language toggle
+  const thmanyah = "'ThmanyahSans', sans-serif"
 
   return (
-    <div style={{ maxWidth: 900, margin: '0 auto', padding: '28px 24px 80px' }}>
+    <div style={{ maxWidth: 900, margin: '0 auto', padding: '28px 24px 80px', fontFamily: thmanyah }}>
 
       {/* Breadcrumb */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 28, fontSize: 13, color: 'var(--ink4)' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 28, fontSize: 13, color: 'var(--ink4)', fontFamily: thmanyah }}>
         <Link href="/analysis" style={{ color: 'var(--brand)', fontWeight: 600 }}>{ar ? 'التحليلات' : 'Analysis'}</Link>
         <span>/</span>
         <span style={{ fontFamily: 'var(--font-mono)', fontWeight: 700, color: 'var(--ink)' }}>{sym}</span>
@@ -197,7 +197,7 @@ export default function AnalysisPage({ params }: { params: { sym: string } }) {
 
       {/* Company header */}
       {co && (
-        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 16, marginBottom: 28, flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', alignItems: 'flex-start', gap: 16, marginBottom: 28, flexWrap: 'wrap' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
             <CoLogo sym={co.sym} logo={co.logo} color={secColor} />
             <div>
@@ -207,7 +207,7 @@ export default function AnalysisPage({ params }: { params: { sym: string } }) {
                   {ar ? (secLabel?.ar ?? co.sec) : (secLabel?.en ?? co.sec)}
                 </span>
               </div>
-              <div style={{ fontSize: 15, color: 'var(--ink3)', marginBottom: 6 }}>{ar ? co.ar : co.en}</div>
+              <div style={{ fontSize: 15, color: 'var(--ink3)', marginBottom: 6, fontFamily: thmanyah }}>{ar ? co.ar : co.en}</div>
               {price > 0 && (
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                   <span style={{ fontFamily: 'var(--font-mono)', fontSize: 20, fontWeight: 800 }}>{price.toFixed(3)}</span>
@@ -219,62 +219,40 @@ export default function AnalysisPage({ params }: { params: { sym: string } }) {
               )}
             </div>
           </div>
-          {phase === 'done' && (
-            <button onClick={() => loadOrGenerate(true)} style={{
-              padding: '8px 16px', borderRadius: 9, background: 'none',
-              border: '1px solid var(--line)', color: 'var(--ink4)',
-              fontSize: 12, fontWeight: 700, fontFamily: 'inherit', cursor: 'pointer',
-            }}>↻ {ar ? 'تحديث' : 'Refresh'}</button>
-          )}
         </div>
       )}
 
       <div style={{ height: 1, background: 'var(--line)', marginBottom: 28 }} />
 
       {/* States */}
-      {phase === 'booting'    && <div style={{ padding: '60px 0', textAlign: 'center', color: 'var(--ink4)' }}>…</div>}
-      {phase === 'generating' && <Generating ar={ar} />}
+      {phase === 'booting'  && <div style={{ padding: '60px 0', textAlign: 'center', color: 'var(--ink5)' }}>…</div>}
+      {phase === 'loading'  && <Loading ar={ar} />}
 
-      {phase === 'error' && (() => {
-        const isQuota = errMsg.includes('429') || errMsg.toLowerCase().includes('quota')
-        return (
-          <div style={{ textAlign: 'center', padding: '48px 24px' }}>
-            <div style={{ fontSize: 32, marginBottom: 12 }}>{isQuota ? '⚡' : '❌'}</div>
-            <div style={{ fontSize: 15, fontWeight: 800, color: 'var(--ink)', marginBottom: 8 }}>
-              {isQuota ? (ar ? 'تجاوز حصة الذكاء الاصطناعي' : 'AI quota reached') : (ar ? 'فشل التوليد' : 'Generation failed')}
-            </div>
-            <div style={{ fontSize: 13, color: 'var(--ink4)', marginBottom: 24, maxWidth: 360, margin: '0 auto 24px', lineHeight: 1.7 }}>
-              {isQuota ? (ar ? 'يرجى المحاولة بعد قليل.' : 'Please try again in a few minutes.') : errMsg}
-            </div>
-            <button onClick={() => loadOrGenerate(true)} style={{ padding: '10px 28px', borderRadius: 10, background: 'var(--brand)', border: 'none', color: '#fff', fontWeight: 700, fontSize: 13, fontFamily: 'inherit', cursor: 'pointer' }}>
-              {ar ? 'إعادة المحاولة' : 'Try Again'}
-            </button>
+      {phase === 'error' && (
+        <div style={{ textAlign: 'center', padding: '48px 24px' }}>
+          <div style={{ fontSize: 32, marginBottom: 12 }}>⚠️</div>
+          <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--ink)', marginBottom: 8, fontFamily: thmanyah }}>
+            {ar ? 'تعذّر تحميل التحليل' : 'Could not load analysis'}
           </div>
-        )
-      })()}
+          <div style={{ fontSize: 13, color: 'var(--ink4)', marginBottom: 24, maxWidth: 360, margin: '0 auto 24px', lineHeight: 1.7, fontFamily: thmanyah }}>
+            {errMsg}
+          </div>
+        </div>
+      )}
 
       {/* ── Analysis content ── */}
       {phase === 'done' && content && (
-        <div>
-
-          {/* AI badge */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 20, fontSize: 12, color: 'var(--ink4)' }}>
-            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, background: 'rgba(79,107,255,0.1)', border: '1px solid rgba(79,107,255,0.22)', borderRadius: 6, padding: '3px 9px', fontSize: 11, fontWeight: 700, color: 'var(--brand)' }}>
-              ✦ Groq · LLaMA 3.3
-            </span>
-            <span>·</span>
-            <span>{ar ? 'تم التوليد في' : 'Generated'} {genDate}</span>
-          </div>
+        <div style={{ fontFamily: thmanyah }}>
 
           {/* Headline */}
           {content.headline && (
-            <h2 style={{ fontSize: 26, fontWeight: 900, lineHeight: 1.3, color: 'var(--ink)', margin: '0 0 20px' }}>
+            <h2 style={{ fontSize: 28, fontWeight: 900, lineHeight: 1.3, color: 'var(--ink)', margin: '0 0 18px', fontFamily: thmanyah }}>
               {content.headline}
             </h2>
           )}
 
           {/* Summary */}
-          <p style={{ fontSize: 16, lineHeight: 1.9, color: 'var(--ink2)', margin: '0 0 28px', fontWeight: 400 }}>
+          <p style={{ fontSize: 16, lineHeight: 2, color: 'var(--ink2)', margin: '0 0 28px', fontWeight: 400, fontFamily: thmanyah }}>
             {content.summary}
           </p>
 
@@ -286,10 +264,10 @@ export default function AnalysisPage({ params }: { params: { sym: string } }) {
                 const isNeg = k.change?.startsWith('-') || k.change?.includes('↓')
                 const changeColor = isPos ? 'var(--up)' : isNeg ? 'var(--dn)' : 'var(--ink4)'
                 return (
-                  <div key={i} style={{ padding: '16px 16px', borderRadius: 13, background: 'var(--surf)', border: '1px solid var(--line)' }}>
-                    <div style={{ fontSize: 10, color: 'var(--ink5)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 6 }}>{k.label}</div>
+                  <div key={i} style={{ padding: '16px', borderRadius: 13, background: 'var(--surf)', border: '1px solid var(--line)' }}>
+                    <div style={{ fontSize: 10, color: 'var(--ink5)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 6, fontFamily: thmanyah }}>{k.label}</div>
                     <div style={{ fontFamily: 'var(--font-mono)', fontSize: 16, fontWeight: 800, color: 'var(--ink)', marginBottom: 3 }}>{k.value}</div>
-                    {k.change && <div style={{ fontSize: 11, fontWeight: 700, color: changeColor }}>{k.change}</div>}
+                    {k.change && <div style={{ fontSize: 11, fontWeight: 700, color: changeColor, fontFamily: thmanyah }}>{k.change}</div>}
                   </div>
                 )
               })}
@@ -307,12 +285,12 @@ export default function AnalysisPage({ params }: { params: { sym: string } }) {
             <div style={{ padding: '22px 24px', borderRadius: 16, background: verdict.bg, border: `1px solid ${verdict.color}28`, marginBottom: 28 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
                 <span style={{ fontSize: 20 }}>{verdict.emoji}</span>
-                <span style={{ fontSize: 15, fontWeight: 900, color: verdict.color }}>
+                <span style={{ fontSize: 15, fontWeight: 900, color: verdict.color, fontFamily: thmanyah }}>
                   {ar ? 'الحكم:' : 'Verdict:'} {content.verdict}
                 </span>
               </div>
               {content.verdictBody && (
-                <p style={{ fontSize: 14, color: 'var(--ink2)', margin: 0, lineHeight: 1.8 }}>{content.verdictBody}</p>
+                <p style={{ fontSize: 14, color: 'var(--ink2)', margin: 0, lineHeight: 1.9, fontFamily: thmanyah }}>{content.verdictBody}</p>
               )}
             </div>
           )}
@@ -320,12 +298,12 @@ export default function AnalysisPage({ params }: { params: { sym: string } }) {
           {/* Themes */}
           {(content.themes?.length ?? 0) > 0 && (
             <div style={{ marginBottom: 28 }}>
-              <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--ink4)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 10 }}>
+              <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--ink4)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 10, fontFamily: thmanyah }}>
                 {ar ? 'المحاور الرئيسية' : 'Key Themes'}
               </div>
               <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                 {content.themes.map((t, i) => (
-                  <span key={i} style={{ padding: '5px 14px', borderRadius: 999, background: 'var(--surf2)', border: '1px solid var(--line)', fontSize: 12, fontWeight: 600, color: 'var(--ink3)' }}>{t}</span>
+                  <span key={i} style={{ padding: '5px 14px', borderRadius: 999, background: 'var(--surf2)', border: '1px solid var(--line)', fontSize: 12, fontWeight: 600, color: 'var(--ink3)', fontFamily: thmanyah }}>{t}</span>
                 ))}
               </div>
             </div>
@@ -333,18 +311,11 @@ export default function AnalysisPage({ params }: { params: { sym: string } }) {
 
           {/* Outlook */}
           {content.outlook && (
-            <div style={{ padding: '18px 20px', borderRadius: 14, background: 'var(--surf)', border: '1px solid var(--line)', marginBottom: 28 }}>
-              <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--ink4)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 8 }}>{ar ? 'التوقعات' : 'Outlook'}</div>
-              <p style={{ fontSize: 14, color: 'var(--ink2)', margin: 0, lineHeight: 1.8 }}>{content.outlook}</p>
+            <div style={{ padding: '18px 20px', borderRadius: 14, background: 'var(--surf)', border: '1px solid var(--line)' }}>
+              <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--ink4)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 8, fontFamily: thmanyah }}>{ar ? 'التوقعات' : 'Outlook'}</div>
+              <p style={{ fontSize: 14, color: 'var(--ink2)', margin: 0, lineHeight: 1.9, fontFamily: thmanyah }}>{content.outlook}</p>
             </div>
           )}
-
-          {/* Disclaimer */}
-          <div style={{ padding: '12px 16px', borderRadius: 10, background: 'rgba(245,200,75,0.05)', border: '1px solid rgba(245,200,75,0.15)', fontSize: 11.5, color: 'var(--ink5)', lineHeight: 1.7 }}>
-            ⚠ {ar
-              ? 'تحليل مُولَّد بالذكاء الاصطناعي (Groq · LLaMA 3.3 70B) بناءً على بيانات السوق المتاحة. ليس نصيحة استثمارية.'
-              : 'AI-generated (Groq · LLaMA 3.3 70B) based on available market data and training knowledge. Not investment advice.'}
-          </div>
         </div>
       )}
     </div>

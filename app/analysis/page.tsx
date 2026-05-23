@@ -52,22 +52,13 @@ export default function AnalysisListPage() {
 
       {/* Header */}
       <div style={{ marginBottom: 36 }}>
-        <div style={{
-          display: 'inline-flex', alignItems: 'center', gap: 8,
-          background: 'rgba(79,107,255,0.12)', border: '1px solid rgba(79,107,255,0.25)',
-          borderRadius: 8, padding: '4px 10px', marginBottom: 14,
-          fontSize: 11, fontWeight: 700, color: 'var(--brand)',
-          letterSpacing: '0.06em', textTransform: 'uppercase',
-        }}>
-          ✦ AI {ar ? 'مدعوم بالذكاء الاصطناعي' : 'Powered'}
-        </div>
         <h1 style={{ fontSize: 30, fontWeight: 900, margin: '0 0 10px', color: 'var(--ink)', lineHeight: 1.2 }}>
           {ar ? 'تحليل شركات البورصة' : 'ISX Company Analysis'}
         </h1>
         <p style={{ fontSize: 15, color: 'var(--ink3)', margin: 0, lineHeight: 1.6 }}>
           {ar
-            ? 'تحليلات استثمارية مدعومة بـ Gemini AI — حالات ثيرانية ودبية، محركات السوق، والتوقعات المستقبلية.'
-            : 'AI-powered investment analysis for every ISX-listed company — bull & bear cases, key themes, and forward outlook.'}
+            ? 'تحليلات استثمارية بناءً على التقارير المالية الرسمية — الحالات الإيجابية والسلبية، محركات السوق، والتوقعات المستقبلية.'
+            : 'Investment analysis based on official ISC filings — bull & bear cases, key themes, and forward outlook.'}
         </p>
       </div>
 
