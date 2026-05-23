@@ -28,3 +28,7 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Capacitor native projects (generated — run `bash scripts/setup-mobile.sh` to recreate)
+android/
+ios/

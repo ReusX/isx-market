@@ -220,3 +220,35 @@ html[lang="ar"] pre,
 html[lang="ar"] .wp-content pre {
   font-family: 'JetBrains Mono', ui-monospace, monospace !important;
 }
+
+/* ── Native app (Capacitor) safe-area & chrome ── */
+
+/* Push content below the native status bar */
+.capacitor-ios main,
+.capacitor-android main {
+  padding-top: env(safe-area-inset-top) !important;
+}
+
+/* Push bottom nav above the home indicator / gesture bar */
+.capacitor-ios .bottom-nav,
+.capacitor-android .bottom-nav {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+/* Extend the navbar background into the status bar area */
+.capacitor-ios nav,
+.capacitor-android nav {
+  padding-top: env(safe-area-inset-top);
+  height: calc(var(--nav-h) + env(safe-area-inset-top));
+}
+
+/* Remove tap highlight on touch devices */
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Prevent text selection on long-press (native feel) */
+.no-select {
+  -webkit-user-select: none;
+  user-select: none;
+}
