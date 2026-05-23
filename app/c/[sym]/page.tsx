@@ -199,7 +199,7 @@ function AdvancedChart({
         crosshair:       { mode: LC.CrosshairMode.Normal },
         rightPriceScale: { borderColor: 'rgba(255,255,255,0.07)', scaleMargins: { top: 0.08, bottom: 0.08 } },
         timeScale:       { borderColor: 'rgba(255,255,255,0.07)', timeVisible: false, fixLeftEdge: true, fixRightEdge: true },
-        watermark: { visible: true, text: 'iraqsm.com', fontSize: 16, color: 'rgba(79,107,255,0.55)', horzAlign: 'left', vertAlign: 'bottom', fontStyle: 'bold' },
+        watermark: { visible: true, text: 'iraqsm.com', fontSize: 16, color: '#4F6BFF', horzAlign: 'left', vertAlign: 'bottom', fontStyle: 'bold' },
         handleScroll: true, handleScale: true,
       })
       state.mainChart = mainChart
