@@ -23,11 +23,148 @@ const SECTOR: Record<string, { en: string; ar: string }> = {
   INV:  { en: 'Investment',         ar: 'الاستثمار'        },
 }
 
+// ── Extract embedded JPEG images from a scanned PDF buffer ───────────────────
+function extractJpegsFromPdf(buffer: Buffer): Buffer[] {
+  const jpegs: Buffer[] = []
+  let i = 0
+  while (i < buffer.length - 3) {
+    // JPEG SOI marker: FF D8 FF
+    if (buffer[i] === 0xFF && buffer[i + 1] === 0xD8 && buffer[i + 2] === 0xFF) {
+      const start = i
+      let j = i + 2
+      while (j < buffer.length - 1) {
+        // JPEG EOI marker: FF D9
+        if (buffer[j] === 0xFF && buffer[j + 1] === 0xD9) {
+          const jpeg = buffer.slice(start, j + 2)
+          if (jpeg.length > 30000) jpegs.push(jpeg) // skip thumbnails
+          i = j + 2
+          break
+        }
+        j++
+      }
+      if (j >= buffer.length - 1) break
+    } else {
+      i++
+    }
+  }
+  return jpegs
+}
+
+// ── Use Llama 4 Scout (vision) to extract financial data from PDF pages ───────
+async function extractFinancialTextFromPdf(
+  pdfUrl: string,
+  periodLabel: string,
+): Promise<string> {
+  // Download PDF
+  const pdfRes = await fetch(pdfUrl, { signal: AbortSignal.timeout(15000) })
+  if (!pdfRes.ok) throw new Error(`PDF download failed: ${pdfRes.status}`)
+  const pdfBuf = Buffer.from(await pdfRes.arrayBuffer())
+
+  // Extract JPEG pages
+  const jpegs = extractJpegsFromPdf(pdfBuf)
+  if (jpegs.length === 0) throw new Error('No JPEG pages found in PDF')
+
+  // Send first 3 pages to Llama 4 Scout (the financial tables are usually on pages 2-4)
+  const pagesToSend = jpegs.slice(0, 3)
+  const imageContent = pagesToSend.map(buf => ({
+    type: 'image_url' as const,
+    image_url: { url: `data:image/jpeg;base64,${buf.toString('base64')}` },
+  }))
+
+  const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${process.env.GROQ_API_KEY}`,
+    },
+    body: JSON.stringify({
+      model: 'meta-llama/llama-4-scout-17b-16e-instruct',
+      messages: [{
+        role: 'user',
+        content: [
+          {
+            type: 'text',
+            text: `These are pages from the ${periodLabel} financial report of an Iraqi company listed on the Iraq Stock Exchange. The document is in Arabic.
+
+Extract ALL financial figures visible in these pages. Include:
+- Revenue / إيرادات (total, by segment if shown)
+- Net profit / صافي الربح (or net loss)
+- Operating expenses / المصروفات التشغيلية
+- Total assets / إجمالي الموجودات
+- Total liabilities / إجمالي الخصوم
+- Equity / حقوق المساهمين
+- EPS / ربحية السهم
+- Cash flow figures if visible
+- Any year-over-year comparison columns (current period vs prior period)
+- Period dates shown (e.g. 1/1/2025 - 9/30/2025)
+
+Output as structured list: "Label: value (current period) vs value (prior period)"
+Include the original Arabic label alongside the English translation. Be precise with numbers.`,
+          },
+          ...imageContent,
+        ],
+      }],
+      temperature: 0.1,
+      max_tokens: 2000,
+    }),
+    signal: AbortSignal.timeout(25000),
+  })
+
+  if (!res.ok) {
+    const err = await res.text().catch(() => '')
+    throw new Error(`Groq vision ${res.status}: ${err.slice(0, 200)}`)
+  }
+
+  const data = await res.json()
+  const text = data.choices?.[0]?.message?.content ?? ''
+  return `=== ${periodLabel} ===\n${text}`
+}
+
+// ── ISC: fetch 2 most recent report periods ───────────────────────────────────
+interface ReportPeriod { label: string; url: string }
+
+async function fetchISCReports(sym: string): Promise<ReportPeriod[]> {
+  try {
+    const mapPath = path.join(process.cwd(), 'public', 'data', 'isc-map.json')
+    const iscMap: Record<string, number> = JSON.parse(fs.readFileSync(mapPath, 'utf-8'))
+    const iscId = iscMap[sym]
+    if (!iscId) return []
+
+    const res = await fetch(`https://api.isc.gov.iq/api/companies/${iscId}/reports`, {
+      signal: AbortSignal.timeout(8000),
+    })
+    if (!res.ok) return []
+
+    const rows: Array<{
+      year: string
+      q1?: { url: string } | null
+      q2?: { url: string } | null
+      q3?: { url: string } | null
+      q4?: { url: string } | null
+      annual?: { url: string } | null
+    }> = await res.json()
+
+    const periods: ReportPeriod[] = []
+    for (const row of rows) {
+      const yr = row.year
+      if (row.q3?.url) periods.push({ label: `Q3 ${yr}`, url: row.q3.url })
+      else if (row.q2?.url) periods.push({ label: `Q2 ${yr}`, url: row.q2.url })
+      else if (row.q1?.url) periods.push({ label: `Q1 ${yr}`, url: row.q1.url })
+      if (row.annual?.url) periods.push({ label: `FY ${yr}`, url: row.annual.url })
+      if (periods.length >= 2) break
+    }
+    return periods.slice(0, 2)
+  } catch {
+    return []
+  }
+}
+
 // ── Prompt ────────────────────────────────────────────────────────────────────
 function buildPrompt(
   co: { sym: string; en: string; ar: string; sec: string; mcap: number },
   price: number,
   pct: number,
+  filingText: string,
 ): string {
   const sec   = SECTOR[co.sec] ?? { en: co.sec, ar: co.sec }
   const mcapB = (co.mcap / 1000).toFixed(2)
@@ -40,70 +177,74 @@ CURRENT PRICE: ${price > 0 ? price.toFixed(3) + ' IQD' : 'N/A'}
 MARKET CAP: ${mcapB}B IQD
 RECENT CHANGE: ${pct >= 0 ? '+' : ''}${pct.toFixed(2)}%
 
-TASK: Generate a data-driven investment analysis using your knowledge of this company's most recent financial filings and publicly available data.
+ACTUAL FINANCIAL DATA (extracted via OCR from official ISC filings):
+${filingText || 'No filings retrieved — use your training knowledge of this company.'}
 
-STRICT RULES — EVERY SECTION MUST:
-1. Include SPECIFIC numbers: actual revenue figures in IQD billions/millions, YoY % changes, net profit/loss, capital adequacy ratios (for banks), loan-to-deposit ratios, dividend yields, EPS — whatever is most relevant for this sector
-2. Compare the TWO most recent reporting periods (e.g. H1 2024 vs H1 2023, or FY2023 vs FY2022)
-3. NEVER write vague statements like "the company has strong growth" — always say "revenue grew X% YoY to Y billion IQD"
-4. For banks: include capital adequacy ratio, non-performing loan ratio, deposit growth, net interest margin
-5. For telecoms: include subscriber count, ARPU trends, EBITDA margin
-6. For industrials: include production volumes, gross margin, capacity utilization
-7. Verdict must be one of: "Very Bullish" / "Bullish" / "Mildly Bullish" / "Neutral" / "Mildly Bearish" / "Bearish" / "Very Bearish"
+TASK: Write an investment analysis grounded in the ACTUAL NUMBERS above.
+
+STRICT RULES:
+1. Use ONLY numbers that appear in the filing data above — never invent figures
+2. Always state the period (e.g. "Q3 2025", "H1 2025 vs H1 2024")
+3. Express IQD values in millions (M) or billions (B) — convert raw numbers accordingly
+4. For banks: include capital adequacy, NPL ratio, deposit growth
+5. For telecoms: include ARPU, subscriber count, EBITDA margin if available
+6. For industrials: include gross margin, production volumes if available
+7. Verdict must be exactly one of: "Very Bullish" / "Bullish" / "Mildly Bullish" / "Neutral" / "Mildly Bearish" / "Bearish" / "Very Bearish"
+8. If a specific metric isn't in the filings, omit that KPI rather than inventing it
 
 Return ONLY valid JSON, no markdown:
 
 {
   "en": {
-    "headline": "Punchy 8-12 word title summarizing the key financial story (like a newspaper headline)",
-    "summary": "3-4 sentences packed with specific numbers: revenue figures, YoY growth rates, profit/loss amounts, and key metrics comparing the two most recent periods",
+    "headline": "8-12 word headline with a specific number from the filings",
+    "summary": "3-4 sentences with exact IQD figures and YoY % changes from the actual filings",
     "kpis": [
       {"label": "Revenue", "value": "X.X B IQD", "change": "+X% YoY"},
       {"label": "Net Profit", "value": "X.X B IQD", "change": "+X% YoY"},
-      {"label": "Most relevant metric for this sector", "value": "X", "change": "vs prior period"}
+      {"label": "Most relevant sector metric", "value": "X", "change": "vs prior period"}
     ],
     "bullCase": [
-      {"title": "5-7 word title with a number if possible", "body": "2-3 sentences. MUST include at least one specific figure or % change. E.g. 'Net profit surged 34% YoY to 47B IQD in H1 2024, driven by...'"},
-      {"title": "Second bull point", "body": "2-3 sentences with specific data"},
-      {"title": "Third bull point", "body": "2-3 sentences with specific data"}
+      {"title": "Title with specific number from filing", "body": "2-3 sentences citing exact figures"},
+      {"title": "Second bull point with data", "body": "2-3 sentences with specific data"},
+      {"title": "Third bull point with data", "body": "2-3 sentences with specific data"}
     ],
     "bearCase": [
-      {"title": "5-7 word risk title with data", "body": "2-3 sentences with specific risk figures"},
+      {"title": "Risk title with specific figure", "body": "2-3 sentences with specific risk figures"},
       {"title": "Second risk", "body": "2-3 sentences with data"},
       {"title": "Third risk", "body": "2-3 sentences with data"}
     ],
     "verdict": "Bullish",
-    "verdictBody": "2-3 sentences overall assessment with the most compelling data point driving the verdict",
-    "themes": ["Theme with data", "Theme 2", "Theme 3", "Theme 4"],
-    "outlook": "2 sentences on near-term outlook referencing specific guidance, upcoming catalysts, or macro factors with numbers"
+    "verdictBody": "2-3 sentences citing the single most compelling data point from the filings",
+    "themes": ["Theme with filing number", "Theme 2", "Theme 3", "Theme 4"],
+    "outlook": "2 sentences on near-term outlook based on filing trends or stated guidance"
   },
   "ar": {
-    "headline": "عنوان صحفي 8-12 كلمة يلخص القصة المالية الرئيسية بأرقام محددة",
-    "summary": "3-4 جمل مكثفة بأرقام محددة: إيرادات، نمو سنوي، أرباح/خسائر، مقارنة آخر فترتين ماليتين",
+    "headline": "عنوان 8-12 كلمة بأرقام حقيقية من التقارير",
+    "summary": "3-4 جمل بأرقام من التقارير الرسمية مع مقارنة سنوية",
     "kpis": [
       {"label": "الإيرادات", "value": "X.X مليار دينار", "change": "+X% سنوياً"},
       {"label": "صافي الربح", "value": "X.X مليار دينار", "change": "+X% سنوياً"},
       {"label": "أهم مؤشر للقطاع", "value": "X", "change": "مقارنة بالفترة السابقة"}
     ],
     "bullCase": [
-      {"title": "عنوان إيجابي 5-7 كلمات بأرقام", "body": "2-3 جمل تحتوي على رقم محدد أو نسبة نمو. مثال: ارتفع صافي الربح 34% سنوياً إلى 47 مليار دينار"},
+      {"title": "عنوان إيجابي بأرقام من التقرير", "body": "2-3 جمل بأرقام حقيقية"},
       {"title": "النقطة الإيجابية الثانية", "body": "2-3 جمل بأرقام محددة"},
       {"title": "النقطة الإيجابية الثالثة", "body": "2-3 جمل بأرقام محددة"}
     ],
     "bearCase": [
-      {"title": "عنوان مخاطرة 5-7 كلمات بأرقام", "body": "2-3 جمل بأرقام مخاطر محددة"},
+      {"title": "عنوان مخاطرة بأرقام من التقرير", "body": "2-3 جمل بأرقام مخاطر محددة"},
       {"title": "المخاطرة الثانية", "body": "2-3 جمل بأرقام"},
       {"title": "المخاطرة الثالثة", "body": "2-3 جمل بأرقام"}
     ],
     "verdict": "إيجابي",
-    "verdictBody": "2-3 جمل تقييم شامل مع أهم نقطة بيانات تدعم الحكم",
-    "themes": ["موضوع بأرقام", "موضوع 2", "موضوع 3", "موضوع 4"],
-    "outlook": "جملتان عن التوقعات مع أرقام محددة أو محفزات قادمة"
+    "verdictBody": "2-3 جمل تقييم شامل مع أهم رقم من التقارير",
+    "themes": ["موضوع بأرقام من التقرير", "موضوع 2", "موضوع 3", "موضوع 4"],
+    "outlook": "جملتان عن التوقعات بناءً على أرقام التقارير"
   }
 }`
 }
 
-// ── Groq ──────────────────────────────────────────────────────────────────────
+// ── Groq text (analysis) ──────────────────────────────────────────────────────
 async function callGroq(prompt: string): Promise<{ en: any; ar: any }> {
   const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
     method: 'POST',
@@ -116,12 +257,12 @@ async function callGroq(prompt: string): Promise<{ en: any; ar: any }> {
       messages: [
         {
           role: 'system',
-          content: 'You are a senior financial analyst covering the Iraq Stock Exchange. You ALWAYS use specific numbers, YoY comparisons, and actual financial data. Never write vague statements. Return valid JSON only.',
+          content: 'You are a senior financial analyst. Use ONLY numbers explicitly stated in the filing data. Never invent or estimate figures. Return valid JSON only.',
         },
         { role: 'user', content: prompt },
       ],
       response_format: { type: 'json_object' },
-      temperature: 0.5,
+      temperature: 0.3,
       max_tokens: 3000,
     }),
   })
@@ -180,16 +321,42 @@ export async function POST(
       if (st) { price = st.close ?? 0; pct = st.pct ?? 0 }
     } catch (_) {}
 
-    const result = await callGroq(buildPrompt(co, price, pct))
+    // Step 1: Get 2 most recent PDF URLs from ISC
+    const reports = await fetchISCReports(sym)
+    console.log(`[${sym}] ISC reports found:`, reports.map(r => r.label))
+
+    // Step 2: OCR each PDF with Llama 4 Scout vision (in parallel)
+    let filingText = ''
+    if (reports.length > 0) {
+      const results = await Promise.allSettled(
+        reports.map(r => extractFinancialTextFromPdf(r.url, r.label))
+      )
+      const texts: string[] = []
+      for (const r of results) {
+        if (r.status === 'fulfilled') texts.push(r.value)
+        else console.warn('PDF extraction failed:', r.reason?.message)
+      }
+      filingText = texts.join('\n\n')
+    }
+
+    // Step 3: Analyze with Groq LLaMA 3.3 70B
+    const prompt = buildPrompt(co, price, pct, filingText)
+    const result = await callGroq(prompt)
     const generated_at = new Date().toISOString()
 
+    // Step 4: Cache
     try {
       await supabase
         .from('company_analysis')
         .upsert({ sym, en: result.en, ar: result.ar, generated_at }, { onConflict: 'sym' })
     } catch (e) { console.error('Supabase write:', e) }
 
-    return NextResponse.json({ en: result.en, ar: result.ar, generated_at })
+    return NextResponse.json({
+      en: result.en,
+      ar: result.ar,
+      generated_at,
+      sources: reports.map(r => r.label),
+    })
   } catch (err: any) {
     console.error('Analysis error:', err)
     return NextResponse.json({ error: err.message ?? 'Generation failed' }, { status: 500 })
