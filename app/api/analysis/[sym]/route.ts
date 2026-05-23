@@ -3,10 +3,8 @@ import { createClient }              from '@supabase/supabase-js'
 import fs   from 'fs'
 import path from 'path'
 
-// ── Increase function timeout (Vercel Pro: up to 300s) ────────────────────────
 export const maxDuration = 60
 
-// ── Supabase ──────────────────────────────────────────────────────────────────
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_ROLE_KEY!,
@@ -25,68 +23,87 @@ const SECTOR: Record<string, { en: string; ar: string }> = {
   INV:  { en: 'Investment',         ar: 'الاستثمار'        },
 }
 
-// ── Build prompt (single call → both EN + AR) ─────────────────────────────────
+// ── Prompt ────────────────────────────────────────────────────────────────────
 function buildPrompt(
   co: { sym: string; en: string; ar: string; sec: string; mcap: number },
   price: number,
   pct: number,
 ): string {
-  const sec  = SECTOR[co.sec] ?? { en: co.sec, ar: co.sec }
+  const sec   = SECTOR[co.sec] ?? { en: co.sec, ar: co.sec }
   const mcapB = (co.mcap / 1000).toFixed(2)
-  const priceStr = price > 0 ? `${price.toFixed(3)} IQD` : 'N/A'
-  const pctStr   = `${pct >= 0 ? '+' : ''}${pct.toFixed(2)}%`
 
-  return `You are a senior financial analyst specializing in the Iraq Stock Exchange (ISX) and Iraqi capital markets.
+  return `You are a senior financial analyst covering the Iraq Stock Exchange (ISX).
 
-COMPANY DATA:
-- Ticker: ${co.sym}
-- English name: ${co.en}
-- Arabic name: ${co.ar}
-- Sector: ${sec.en} (${sec.ar})
-- Current Price: ${priceStr}
-- Market Cap: ${mcapB}B IQD
-- Recent Change: ${pctStr}
+COMPANY: ${co.en} (${co.sym}) — ${co.ar}
+SECTOR: ${sec.en}
+CURRENT PRICE: ${price > 0 ? price.toFixed(3) + ' IQD' : 'N/A'}
+MARKET CAP: ${mcapB}B IQD
+RECENT CHANGE: ${pct >= 0 ? '+' : ''}${pct.toFixed(2)}%
 
-CONTEXT:
-The Iraq Stock Exchange (ISX) operates under the Iraq Securities Commission (ISC). Iraqi listed companies file semi-annual and annual reports. Use your knowledge of this company's most recent available financial filings (compare the latest two reporting periods if possible — revenue trends, profit/loss, capital adequacy for banks, operational metrics). Iraqi companies are affected by oil revenue cycles, reconstruction spending, USD/IQD exchange rates, and sector-specific dynamics.
+TASK: Generate a data-driven investment analysis using your knowledge of this company's most recent financial filings and publicly available data.
 
-Generate a bilingual investment analysis. Return ONLY valid JSON with this exact structure — no markdown, no explanation, just the JSON:
+STRICT RULES — EVERY SECTION MUST:
+1. Include SPECIFIC numbers: actual revenue figures in IQD billions/millions, YoY % changes, net profit/loss, capital adequacy ratios (for banks), loan-to-deposit ratios, dividend yields, EPS — whatever is most relevant for this sector
+2. Compare the TWO most recent reporting periods (e.g. H1 2024 vs H1 2023, or FY2023 vs FY2022)
+3. NEVER write vague statements like "the company has strong growth" — always say "revenue grew X% YoY to Y billion IQD"
+4. For banks: include capital adequacy ratio, non-performing loan ratio, deposit growth, net interest margin
+5. For telecoms: include subscriber count, ARPU trends, EBITDA margin
+6. For industrials: include production volumes, gross margin, capacity utilization
+7. Verdict must be one of: "Very Bullish" / "Bullish" / "Mildly Bullish" / "Neutral" / "Mildly Bearish" / "Bearish" / "Very Bearish"
+
+Return ONLY valid JSON, no markdown:
 
 {
   "en": {
-    "summary": "3-4 sentence executive summary comparing recent filing periods and current investment case",
+    "headline": "Punchy 8-12 word title summarizing the key financial story (like a newspaper headline)",
+    "summary": "3-4 sentences packed with specific numbers: revenue figures, YoY growth rates, profit/loss amounts, and key metrics comparing the two most recent periods",
+    "kpis": [
+      {"label": "Revenue", "value": "X.X B IQD", "change": "+X% YoY"},
+      {"label": "Net Profit", "value": "X.X B IQD", "change": "+X% YoY"},
+      {"label": "Most relevant metric for this sector", "value": "X", "change": "vs prior period"}
+    ],
     "bullCase": [
-      {"title": "Short positive title (5-7 words)", "body": "2-3 sentences with specific financial reasoning"},
-      {"title": "Second bull point title", "body": "2-3 sentences with specific data or trend"},
-      {"title": "Third bull point title", "body": "2-3 sentences with specific reasoning"}
+      {"title": "5-7 word title with a number if possible", "body": "2-3 sentences. MUST include at least one specific figure or % change. E.g. 'Net profit surged 34% YoY to 47B IQD in H1 2024, driven by...'"},
+      {"title": "Second bull point", "body": "2-3 sentences with specific data"},
+      {"title": "Third bull point", "body": "2-3 sentences with specific data"}
     ],
     "bearCase": [
-      {"title": "Short risk title (5-7 words)", "body": "2-3 sentences with specific risk details"},
-      {"title": "Second bear point title", "body": "2-3 sentences"},
-      {"title": "Third bear point title", "body": "2-3 sentences"}
+      {"title": "5-7 word risk title with data", "body": "2-3 sentences with specific risk figures"},
+      {"title": "Second risk", "body": "2-3 sentences with data"},
+      {"title": "Third risk", "body": "2-3 sentences with data"}
     ],
-    "themes": ["Theme 1", "Theme 2", "Theme 3", "Theme 4"],
-    "outlook": "2 sentences on near-term outlook based on recent filings and market conditions"
+    "verdict": "Bullish",
+    "verdictBody": "2-3 sentences overall assessment with the most compelling data point driving the verdict",
+    "themes": ["Theme with data", "Theme 2", "Theme 3", "Theme 4"],
+    "outlook": "2 sentences on near-term outlook referencing specific guidance, upcoming catalysts, or macro factors with numbers"
   },
   "ar": {
-    "summary": "ملخص تنفيذي 3-4 جمل يقارن آخر فترتين ماليتين والحالة الاستثمارية الراهنة",
+    "headline": "عنوان صحفي 8-12 كلمة يلخص القصة المالية الرئيسية بأرقام محددة",
+    "summary": "3-4 جمل مكثفة بأرقام محددة: إيرادات، نمو سنوي، أرباح/خسائر، مقارنة آخر فترتين ماليتين",
+    "kpis": [
+      {"label": "الإيرادات", "value": "X.X مليار دينار", "change": "+X% سنوياً"},
+      {"label": "صافي الربح", "value": "X.X مليار دينار", "change": "+X% سنوياً"},
+      {"label": "أهم مؤشر للقطاع", "value": "X", "change": "مقارنة بالفترة السابقة"}
+    ],
     "bullCase": [
-      {"title": "عنوان إيجابي قصير 5-7 كلمات", "body": "2-3 جمل بمبررات مالية محددة"},
-      {"title": "عنوان النقطة الإيجابية الثانية", "body": "2-3 جمل"},
-      {"title": "عنوان النقطة الإيجابية الثالثة", "body": "2-3 جمل"}
+      {"title": "عنوان إيجابي 5-7 كلمات بأرقام", "body": "2-3 جمل تحتوي على رقم محدد أو نسبة نمو. مثال: ارتفع صافي الربح 34% سنوياً إلى 47 مليار دينار"},
+      {"title": "النقطة الإيجابية الثانية", "body": "2-3 جمل بأرقام محددة"},
+      {"title": "النقطة الإيجابية الثالثة", "body": "2-3 جمل بأرقام محددة"}
     ],
     "bearCase": [
-      {"title": "عنوان مخاطرة قصير 5-7 كلمات", "body": "2-3 جمل بتفاصيل المخاطرة"},
-      {"title": "عنوان المخاطرة الثانية", "body": "2-3 جمل"},
-      {"title": "عنوان المخاطرة الثالثة", "body": "2-3 جمل"}
+      {"title": "عنوان مخاطرة 5-7 كلمات بأرقام", "body": "2-3 جمل بأرقام مخاطر محددة"},
+      {"title": "المخاطرة الثانية", "body": "2-3 جمل بأرقام"},
+      {"title": "المخاطرة الثالثة", "body": "2-3 جمل بأرقام"}
     ],
-    "themes": ["موضوع 1", "موضوع 2", "موضوع 3", "موضوع 4"],
-    "outlook": "جملتان عن التوقعات قصيرة المدى بناءً على آخر البيانات المالية"
+    "verdict": "إيجابي",
+    "verdictBody": "2-3 جمل تقييم شامل مع أهم نقطة بيانات تدعم الحكم",
+    "themes": ["موضوع بأرقام", "موضوع 2", "موضوع 3", "موضوع 4"],
+    "outlook": "جملتان عن التوقعات مع أرقام محددة أو محفزات قادمة"
   }
 }`
 }
 
-// ── Call Groq (LLaMA 3.3 70B, OpenAI-compatible) ─────────────────────────────
+// ── Groq ──────────────────────────────────────────────────────────────────────
 async function callGroq(prompt: string): Promise<{ en: any; ar: any }> {
   const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
     method: 'POST',
@@ -99,13 +116,13 @@ async function callGroq(prompt: string): Promise<{ en: any; ar: any }> {
       messages: [
         {
           role: 'system',
-          content: 'You are a senior financial analyst specializing in the Iraq Stock Exchange (ISX). Always respond with valid JSON only — no markdown, no explanation.',
+          content: 'You are a senior financial analyst covering the Iraq Stock Exchange. You ALWAYS use specific numbers, YoY comparisons, and actual financial data. Never write vague statements. Return valid JSON only.',
         },
         { role: 'user', content: prompt },
       ],
       response_format: { type: 'json_object' },
-      temperature: 0.65,
-      max_tokens: 2048,
+      temperature: 0.5,
+      max_tokens: 3000,
     }),
   })
 
@@ -117,17 +134,15 @@ async function callGroq(prompt: string): Promise<{ en: any; ar: any }> {
   const data = await res.json()
   const text = data.choices?.[0]?.message?.content
   if (!text) throw new Error('Empty response from Groq')
-
   return JSON.parse(text) as { en: any; ar: any }
 }
 
-// ── GET: return cached ────────────────────────────────────────────────────────
+// ── GET: cached ───────────────────────────────────────────────────────────────
 export async function GET(
   _req: NextRequest,
   { params }: { params: { sym: string } },
 ) {
   const sym = params.sym.toUpperCase()
-
   try {
     const { data, error } = await supabase
       .from('company_analysis')
@@ -141,8 +156,7 @@ export async function GET(
         return NextResponse.json({ en: data.en, ar: data.ar, generated_at: data.generated_at })
       }
     }
-  } catch (_) { /* table may not exist */ }
-
+  } catch (_) {}
   return NextResponse.json({ error: 'not_found' }, { status: 404 })
 }
 
@@ -152,43 +166,32 @@ export async function POST(
   { params }: { params: { sym: string } },
 ) {
   const sym = params.sym.toUpperCase()
-
   try {
-    // Load company meta
     const companiesPath = path.join(process.cwd(), 'public', 'data', 'companies.json')
     const companies: any[] = JSON.parse(fs.readFileSync(companiesPath, 'utf-8'))
     const co = companies.find(c => c.sym === sym)
-    if (!co) {
-      return NextResponse.json({ error: 'Company not found' }, { status: 404 })
-    }
+    if (!co) return NextResponse.json({ error: 'Company not found' }, { status: 404 })
 
-    // Live price (best-effort)
     let price = 0, pct = 0
     try {
       const livePath = path.join(process.cwd(), 'public', 'data', 'live.json')
       const live: any = JSON.parse(fs.readFileSync(livePath, 'utf-8'))
       const st = live.stocks?.find((s: any) => s.code === sym)
       if (st) { price = st.close ?? 0; pct = st.pct ?? 0 }
-    } catch (_) { /* use defaults */ }
+    } catch (_) {}
 
-    // Single Groq call → both languages
     const result = await callGroq(buildPrompt(co, price, pct))
-
     const generated_at = new Date().toISOString()
 
-    // Cache
     try {
       await supabase
         .from('company_analysis')
         .upsert({ sym, en: result.en, ar: result.ar, generated_at }, { onConflict: 'sym' })
-    } catch (e) {
-      console.error('Supabase write error:', e)
-    }
+    } catch (e) { console.error('Supabase write:', e) }
 
     return NextResponse.json({ en: result.en, ar: result.ar, generated_at })
-
   } catch (err: any) {
-    console.error('Analysis generation error:', err)
+    console.error('Analysis error:', err)
     return NextResponse.json({ error: err.message ?? 'Generation failed' }, { status: 500 })
   }
 }
