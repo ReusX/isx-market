@@ -279,21 +279,33 @@ export default function AnalysisPage({ params }: { params: { sym: string } }) {
       {(phase === 'booting') && <AnalysisSkeleton />}
       {phase === 'generating' && <Generating ar={ar} />}
 
-      {phase === 'error' && (
-        <div style={{ textAlign: 'center', padding: '48px 24px' }}>
-          <div style={{ fontSize: 14, color: 'var(--dn)', marginBottom: 20, lineHeight: 1.6 }}>
-            ❌ {ar ? 'فشل التوليد' : 'Generation failed'}<br />
-            <span style={{ fontSize: 12, color: 'var(--ink4)' }}>{errMsg}</span>
+      {phase === 'error' && (() => {
+        const isQuota = errMsg.includes('429') || errMsg.toLowerCase().includes('quota')
+        return (
+          <div style={{ textAlign: 'center', padding: '48px 24px' }}>
+            <div style={{ fontSize: 32, marginBottom: 16 }}>{isQuota ? '⚡' : '❌'}</div>
+            <div style={{ fontSize: 15, fontWeight: 800, color: 'var(--ink)', marginBottom: 8 }}>
+              {isQuota
+                ? (ar ? 'تم تجاوز حصة الذكاء الاصطناعي مؤقتاً' : 'AI quota temporarily reached')
+                : (ar ? 'فشل توليد التحليل' : 'Analysis generation failed')}
+            </div>
+            <div style={{ fontSize: 13, color: 'var(--ink4)', marginBottom: 24, lineHeight: 1.7, maxWidth: 360, margin: '0 auto 24px' }}>
+              {isQuota
+                ? (ar
+                    ? 'جارٍ استنفاد حصة Gemini AI مؤقتاً. يرجى المحاولة مرة أخرى بعد قليل.'
+                    : 'Gemini AI quota is temporarily exhausted. Please try again in a few minutes.')
+                : (ar ? 'حدث خطأ أثناء التوليد. يرجى المحاولة مجدداً.' : 'Something went wrong. Please try again.')}
+            </div>
+            <button onClick={() => loadOrGenerate(true)} style={{
+              padding: '10px 28px', borderRadius: 10, background: 'var(--brand)',
+              border: 'none', color: '#fff', fontWeight: 700, fontSize: 13,
+              fontFamily: 'inherit', cursor: 'pointer',
+            }}>
+              {ar ? 'إعادة المحاولة' : 'Try Again'}
+            </button>
           </div>
-          <button onClick={() => loadOrGenerate(true)} style={{
-            padding: '10px 28px', borderRadius: 10, background: 'var(--brand)',
-            border: 'none', color: '#fff', fontWeight: 700, fontSize: 13,
-            fontFamily: 'inherit', cursor: 'pointer',
-          }}>
-            {ar ? 'إعادة المحاولة' : 'Try Again'}
-          </button>
-        </div>
-      )}
+        )
+      })()}
 
       {/* ── Analysis ── */}
       {phase === 'done' && content && (
