@@ -199,7 +199,7 @@ function AdvancedChart({
         crosshair:       { mode: LC.CrosshairMode.Normal },
         rightPriceScale: { borderColor: 'rgba(255,255,255,0.07)', scaleMargins: { top: 0.08, bottom: 0.08 } },
         timeScale:       { borderColor: 'rgba(255,255,255,0.07)', timeVisible: false, fixLeftEdge: true, fixRightEdge: true },
-        watermark: { visible: true, text: 'iraqsm.com', fontSize: 14, color: 'rgba(79,107,255,0.2)', horzAlign: 'left', vertAlign: 'bottom', fontStyle: 'bold' },
+        watermark: { visible: true, text: 'iraqsm.com', fontSize: 16, color: 'rgba(79,107,255,0.55)', horzAlign: 'left', vertAlign: 'bottom', fontStyle: 'bold' },
         handleScroll: true, handleScale: true,
       })
       state.mainChart = mainChart
@@ -381,6 +381,26 @@ function AdvancedChart({
 
     // ── chart below header (transparent bg → dark shows through)
     ctx.drawImage(srcCanvas, 0, H)
+
+    // ── watermark stamp on chart area (bottom-left, unmissable on export)
+    const WM = 'iraqsm.com'
+    const WM_FONT = 'bold 15px "JetBrains Mono", monospace'
+    ctx.font         = WM_FONT
+    ctx.textAlign    = 'left'
+    ctx.textBaseline = 'bottom'
+    // dark pill background
+    const metrics  = ctx.measureText(WM)
+    const wmW      = metrics.width + 20
+    const wmH      = 28
+    const wmX      = PAD
+    const wmY      = fin.height - PAD - wmH
+    ctx.fillStyle  = 'rgba(11,14,20,0.72)'
+    ctx.beginPath()
+    ctx.roundRect(wmX, wmY, wmW, wmH, 6)
+    ctx.fill()
+    // text
+    ctx.fillStyle = '#4F6BFF'
+    ctx.fillText(WM, wmX + 10, fin.height - PAD - 7)
 
     return fin
   }
