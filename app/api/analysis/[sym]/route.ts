@@ -86,32 +86,37 @@ Generate a bilingual investment analysis. Return ONLY valid JSON with this exact
 }`
 }
 
-// ── Call Gemini (single call, returns {en, ar}) ───────────────────────────────
-async function callGemini(prompt: string): Promise<{ en: any; ar: any }> {
-  const res = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${process.env.GEMINI_API_KEY}`,
-    {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        contents: [{ parts: [{ text: prompt }] }],
-        generationConfig: {
-          responseMimeType: 'application/json',
-          temperature: 0.65,
-          maxOutputTokens: 2048,
-        },
-      }),
+// ── Call Groq (LLaMA 3.3 70B, OpenAI-compatible) ─────────────────────────────
+async function callGroq(prompt: string): Promise<{ en: any; ar: any }> {
+  const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${process.env.GROQ_API_KEY}`,
     },
-  )
+    body: JSON.stringify({
+      model: 'llama-3.3-70b-versatile',
+      messages: [
+        {
+          role: 'system',
+          content: 'You are a senior financial analyst specializing in the Iraq Stock Exchange (ISX). Always respond with valid JSON only — no markdown, no explanation.',
+        },
+        { role: 'user', content: prompt },
+      ],
+      response_format: { type: 'json_object' },
+      temperature: 0.65,
+      max_tokens: 2048,
+    }),
+  })
 
   if (!res.ok) {
     const txt = await res.text().catch(() => '')
-    throw new Error(`Gemini ${res.status}: ${txt.slice(0, 200)}`)
+    throw new Error(`Groq ${res.status}: ${txt.slice(0, 200)}`)
   }
 
   const data = await res.json()
-  const text = data.candidates?.[0]?.content?.parts?.[0]?.text
-  if (!text) throw new Error('Empty response from Gemini')
+  const text = data.choices?.[0]?.message?.content
+  if (!text) throw new Error('Empty response from Groq')
 
   return JSON.parse(text) as { en: any; ar: any }
 }
@@ -166,8 +171,8 @@ export async function POST(
       if (st) { price = st.close ?? 0; pct = st.pct ?? 0 }
     } catch (_) { /* use defaults */ }
 
-    // Single Gemini call → both languages
-    const result = await callGemini(buildPrompt(co, price, pct))
+    // Single Groq call → both languages
+    const result = await callGroq(buildPrompt(co, price, pct))
 
     const generated_at = new Date().toISOString()
 

@@ -317,7 +317,7 @@ export default function AnalysisPage({ params }: { params: { sym: string } }) {
               background: 'rgba(79,107,255,0.1)', border: '1px solid rgba(79,107,255,0.22)',
               borderRadius: 6, padding: '3px 9px', fontSize: 11, fontWeight: 700, color: 'var(--brand)',
             }}>
-              ✦ Gemini AI
+              ✦ Groq · LLaMA 3.3
             </span>
             <span>·</span>
             <span>{ar ? 'تم التوليد في' : 'Generated'} {genDate}</span>
@@ -391,8 +391,8 @@ export default function AnalysisPage({ params }: { params: { sym: string } }) {
             fontSize: 11.5, color: 'var(--ink5)', lineHeight: 1.7,
           }}>
             ⚠ {ar
-              ? 'هذا التحليل مُولَّد بالذكاء الاصطناعي (Gemini AI) استناداً إلى بيانات السوق المتاحة وبيانات التدريب. ليس نصيحة استثمارية.'
-              : 'AI-generated (Gemini AI) based on available market data and training knowledge. Not investment advice.'}
+              ? 'هذا التحليل مُولَّد بالذكاء الاصطناعي (Groq · LLaMA 3.3) استناداً إلى بيانات السوق المتاحة. ليس نصيحة استثمارية.'
+              : 'AI-generated (Groq · LLaMA 3.3 70B) based on available market data and training knowledge. Not investment advice.'}
           </div>
         </div>
       )}
