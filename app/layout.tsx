@@ -56,13 +56,14 @@ const thmanyahSerifDisplay = localFont({
 })
 
 export const metadata: Metadata = {
-  title: { default: 'بورصة العراق — تتبع، تداول، استثمار، أخبار، تحليل', template: '%s | ISX Market' },
-  description: 'بورصة العراق للأوراق المالية — تتبع أسعار الأسهم العراقية مباشرة خلال ساعات التداول، تحليلات مالية، أخبار السوق، مؤشر RSISX، وأدوات الاستثمار الذكي. Iraq Stock Exchange live prices, trading and analysis.',
+  title: { default: 'ISX Market — بورصة العراق | تداول، استثمار، أسهم عراقية', template: '%s | ISX Market' },
+  description: 'ISX Market — بورصة العراق للأوراق المالية. تتبع أسعار الاسهم العراقية مباشرة، تداول واستثمار، تحليلات مالية، أخبار السوق، ومؤشر RSISX. Iraq Stock Exchange live prices, trading, investing and analysis.',
   metadataBase: new URL('https://iraqsm.com'),
   // No root canonical — each page sets its own to avoid the "non-canonical in sitemap" issue
+  keywords: ['iraq stock market', 'isx market', 'iraq stock exchange', 'الاسهم العراقية', 'بورصة العراق', 'تداول', 'استثمار', 'اسهم', 'RSISX', 'rabee'],
   openGraph: {
-    title: 'بورصة العراق — تتبع، تداول، استثمار، أخبار، تحليل',
-    description: 'تتبع أسعار الأسهم العراقية مباشرة، مؤشر RSISX، تحليلات مالية وأخبار بورصة العراق. Iraq Stock Exchange live prices, charts and analysis.',
+    title: 'ISX Market — بورصة العراق | Iraq Stock Exchange',
+    description: 'تتبع أسعار الاسهم العراقية مباشرة، مؤشر RSISX، تحليلات مالية وأخبار بورصة العراق. Iraq Stock Exchange live prices, charts, trading and analysis.',
     url: 'https://iraqsm.com',
     siteName: 'ISX Market',
     images: [{ url: '/og-image.png', width: 1200, height: 630 }],
