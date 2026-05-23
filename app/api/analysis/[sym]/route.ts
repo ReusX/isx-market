@@ -50,26 +50,48 @@ function extractJpegsFromPdf(buffer: Buffer): Buffer[] {
   return jpegs
 }
 
-// ── Use Llama 4 Scout (vision) to extract financial data from PDF pages ───────
-async function extractFinancialTextFromPdf(
-  pdfUrl: string,
-  periodLabel: string,
-): Promise<string> {
-  // Download PDF
-  const pdfRes = await fetch(pdfUrl, { signal: AbortSignal.timeout(15000) })
+// ── Download a PDF and extract its JPEG pages as base64 ──────────────────────
+async function downloadPdfPages(pdfUrl: string): Promise<string[]> {
+  const pdfRes = await fetch(pdfUrl, { signal: AbortSignal.timeout(12000) })
   if (!pdfRes.ok) throw new Error(`PDF download failed: ${pdfRes.status}`)
-  const pdfBuf = Buffer.from(await pdfRes.arrayBuffer())
+  const buf = Buffer.from(await pdfRes.arrayBuffer())
+  const jpegs = extractJpegsFromPdf(buf)
+  // Skip page 1 (usually a cover page), send pages 2-4 which have financial tables
+  const pages = jpegs.length > 1 ? jpegs.slice(1, 4) : jpegs.slice(0, 3)
+  return pages.map(b => b.toString('base64'))
+}
 
-  // Extract JPEG pages
-  const jpegs = extractJpegsFromPdf(pdfBuf)
-  if (jpegs.length === 0) throw new Error('No JPEG pages found in PDF')
+// ── Use Llama 4 Scout (vision) to read all filing pages in one call ───────────
+async function extractFinancialData(
+  reports: ReportPeriod[],
+): Promise<string> {
+  // Download all PDFs in parallel
+  const pdfPagesResults = await Promise.allSettled(
+    reports.map(r => downloadPdfPages(r.url).then(pages => ({ label: r.label, pages })))
+  )
 
-  // Send first 3 pages to Llama 4 Scout (the financial tables are usually on pages 2-4)
-  const pagesToSend = jpegs.slice(0, 3)
-  const imageContent = pagesToSend.map(buf => ({
-    type: 'image_url' as const,
-    image_url: { url: `data:image/jpeg;base64,${buf.toString('base64')}` },
-  }))
+  const imageContent: any[] = []
+  const labelsFound: string[] = []
+
+  for (const result of pdfPagesResults) {
+    if (result.status === 'fulfilled') {
+      const { label, pages } = result.value
+      labelsFound.push(label)
+      // Add section header as text
+      imageContent.push({ type: 'text', text: `\n--- ${label} filing pages: ---` })
+      // Add up to 2 pages per PDF to keep request manageable
+      for (const b64 of pages.slice(0, 2)) {
+        imageContent.push({
+          type: 'image_url',
+          image_url: { url: `data:image/jpeg;base64,${b64}` },
+        })
+      }
+    } else {
+      console.warn('PDF download failed:', result.reason?.message)
+    }
+  }
+
+  if (imageContent.length === 0) return ''
 
   const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
     method: 'POST',
@@ -84,40 +106,40 @@ async function extractFinancialTextFromPdf(
         content: [
           {
             type: 'text',
-            text: `These are pages from the ${periodLabel} financial report of an Iraqi company listed on the Iraq Stock Exchange. The document is in Arabic.
+            text: `These are pages from official Iraq Stock Exchange (ISX) financial reports. Documents are in Arabic.
 
-Extract ALL financial figures visible in these pages. Include:
-- Revenue / إيرادات (total, by segment if shown)
-- Net profit / صافي الربح (or net loss)
+For EACH filing period shown, extract ALL financial figures:
+- Revenue / الإيرادات with period dates
+- Net profit or loss / صافي الربح أو الخسارة
 - Operating expenses / المصروفات التشغيلية
 - Total assets / إجمالي الموجودات
 - Total liabilities / إجمالي الخصوم
-- Equity / حقوق المساهمين
+- Shareholders equity / حقوق المساهمين
 - EPS / ربحية السهم
-- Cash flow figures if visible
-- Any year-over-year comparison columns (current period vs prior period)
-- Period dates shown (e.g. 1/1/2025 - 9/30/2025)
+- Any other key metrics visible
 
-Output as structured list: "Label: value (current period) vs value (prior period)"
-Include the original Arabic label alongside the English translation. Be precise with numbers.`,
+Format output as:
+PERIOD: [period label and dates]
+- [Arabic label] / [English label]: [current value] vs [prior period value if shown]
+
+Be precise. Include every number visible. Use the exact values shown in the tables.`,
           },
           ...imageContent,
         ],
       }],
       temperature: 0.1,
-      max_tokens: 2000,
+      max_tokens: 2500,
     }),
-    signal: AbortSignal.timeout(25000),
+    signal: AbortSignal.timeout(40000),
   })
 
   if (!res.ok) {
     const err = await res.text().catch(() => '')
-    throw new Error(`Groq vision ${res.status}: ${err.slice(0, 200)}`)
+    throw new Error(`Groq vision ${res.status}: ${err.slice(0, 300)}`)
   }
 
   const data = await res.json()
-  const text = data.choices?.[0]?.message?.content ?? ''
-  return `=== ${periodLabel} ===\n${text}`
+  return data.choices?.[0]?.message?.content ?? ''
 }
 
 // ── ISC: fetch 2 most recent report periods ───────────────────────────────────
@@ -325,18 +347,15 @@ export async function POST(
     const reports = await fetchISCReports(sym)
     console.log(`[${sym}] ISC reports found:`, reports.map(r => r.label))
 
-    // Step 2: OCR each PDF with Llama 4 Scout vision (in parallel)
+    // Step 2: Download PDFs + extract financial data with Llama 4 Scout vision
     let filingText = ''
     if (reports.length > 0) {
-      const results = await Promise.allSettled(
-        reports.map(r => extractFinancialTextFromPdf(r.url, r.label))
-      )
-      const texts: string[] = []
-      for (const r of results) {
-        if (r.status === 'fulfilled') texts.push(r.value)
-        else console.warn('PDF extraction failed:', r.reason?.message)
+      try {
+        filingText = await extractFinancialData(reports)
+        console.log(`[${sym}] Extracted ${filingText.length} chars from filings`)
+      } catch (e: any) {
+        console.warn(`[${sym}] Vision extraction failed:`, e.message)
       }
-      filingText = texts.join('\n\n')
     }
 
     // Step 3: Analyze with Groq LLaMA 3.3 70B
