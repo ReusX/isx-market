@@ -9,6 +9,7 @@ import Footer from '@/components/layout/Footer'
 import { Analytics } from '@vercel/analytics/react'
 import { SpeedInsights } from '@vercel/speed-insights/next'
 import NativeBridge from '@/components/NativeBridge'
+import ChatWidget from '@/components/chat/ChatWidget'
 
 const inter = Inter({
   subsets: ['latin'],
@@ -103,6 +104,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <Footer />
           <BottomNav />
           <NativeBridge />
+          <ChatWidget />
           <Analytics />
           <SpeedInsights />
         </AppProvider>
