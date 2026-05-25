@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from 'next'
-import { Inter } from 'next/font/google'
+import { Inter, JetBrains_Mono } from 'next/font/google'
 import localFont from 'next/font/local'
 import './globals.css'
 import { AppProvider } from '@/context/AppContext'
@@ -14,7 +14,15 @@ import ChatWidget from '@/components/chat/ChatWidget'
 const inter = Inter({
   subsets: ['latin'],
   variable: '--font-en',
-  display: 'swap',
+  display: 'optional',
+})
+
+// JetBrains Mono — for prices, codes, numbers (replaces Google Fonts stylesheet)
+const jetbrainsMono = JetBrains_Mono({
+  subsets: ['latin'],
+  weight: ['400', '500', '600', '700'],
+  variable: '--font-mono',
+  display: 'optional',
 })
 
 // Thmanyah Sans — primary UI font for all Arabic text
@@ -27,7 +35,7 @@ const thmanyahSans = localFont({
     { path: '../fonts/thmanyahsans-Black.woff2',   weight: '900', style: 'normal' },
   ],
   variable: '--font-thmanyah',
-  display: 'swap',
+  display: 'optional',
 })
 
 // Thmanyah Serif Text — for long-form Arabic body text (news, articles, about)
@@ -40,7 +48,7 @@ const thmanyahSerifText = localFont({
     { path: '../fonts/thmanyahseriftext-Black.woff2',   weight: '900', style: 'normal' },
   ],
   variable: '--font-thmanyah-serif',
-  display: 'swap',
+  display: 'optional',
 })
 
 // Thmanyah Serif Display — for large Arabic headings
@@ -53,7 +61,7 @@ const thmanyahSerifDisplay = localFont({
     { path: '../fonts/thmanyahserifdisplay-Black.woff2',   weight: '900', style: 'normal' },
   ],
   variable: '--font-thmanyah-display',
-  display: 'swap',
+  display: 'optional',
 })
 
 export const metadata: Metadata = {
@@ -86,15 +94,8 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="ar" dir="rtl" className={`${inter.variable} ${thmanyahSans.variable} ${thmanyahSerifText.variable} ${thmanyahSerifDisplay.variable}`} suppressHydrationWarning>
-      <head>
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link
-          href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap"
-          rel="stylesheet"
-        />
-      </head>
+    <html lang="ar" dir="rtl" className={`${inter.variable} ${jetbrainsMono.variable} ${thmanyahSans.variable} ${thmanyahSerifText.variable} ${thmanyahSerifDisplay.variable}`} suppressHydrationWarning>
+      <head />
       <body>
         <AppProvider>
           <Navbar />
