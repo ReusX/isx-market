@@ -68,7 +68,9 @@ export const metadata: Metadata = {
   title: { default: 'ISX Market — بورصة العراق | تداول، استثمار، أسهم عراقية', template: '%s | ISX Market' },
   description: 'ISX Market — بورصة العراق للأوراق المالية. تتبع أسعار الاسهم العراقية مباشرة، تداول واستثمار، تحليلات مالية، أخبار السوق، ومؤشر RSISX. Iraq Stock Exchange live prices, trading, investing and analysis.',
   metadataBase: new URL('https://iraqsm.com'),
-  // No root canonical — each page sets its own to avoid the "non-canonical in sitemap" issue
+  // Root canonical covers the home page (which is 'use client' and can't export metadata).
+  // Pages with their own alternates.canonical automatically override this.
+  alternates: { canonical: 'https://iraqsm.com' },
   keywords: ['iraq stock market', 'isx market', 'iraq stock exchange', 'الاسهم العراقية', 'بورصة العراق', 'تداول', 'استثمار', 'اسهم', 'RSISX', 'rabee'],
   openGraph: {
     title: 'ISX Market — بورصة العراق | Iraq Stock Exchange',
