@@ -167,8 +167,11 @@ today_iso = today_midnight_baghdad.strftime('%Y-%m-%d')
 ohlcv_path = 'public/data/ohlcv.json'
 ohlcv = json.load(open(ohlcv_path)) if os.path.exists(ohlcv_path) else {}
 
+day_data = {}  # populated below — used to sync live.json after XLSX is available
+
 if today_iso in ohlcv:
-    print(f"ohlcv: {today_iso} already present — skipping")
+    day_data = ohlcv[today_iso]   # already fetched in a previous run — still sync live.json
+    print(f"ohlcv: {today_iso} already present")
 elif weekday not in (4, 5):
     DOMAIN = 'http://www.isx-iq.net'
     PH = {'User-Agent': 'Mozilla/5.0'}
@@ -223,3 +226,48 @@ elif weekday not in (4, 5):
             print(f"ohlcv: today's XLSX ({today_iso}) not yet posted on ISX portal")
     except Exception as e:
         print(f"ohlcv: error fetching today's XLSX: {e}")
+
+# ── Sync live.json prices with ISX XLSX (authoritative source) ───────────────
+# The Rabee API often returns yesterday's ClosingPrice during/after trading.
+# The ISX daily XLSX is the official settlement price — always prefer it.
+if day_data and weekday not in (4, 5):
+    # Build previous-close map from hist.json so we can recalculate pct change
+    prev_close_map = {}
+    try:
+        hd = json.load(open('public/data/hist.json'))
+        for sym, pts in hd.get('s', {}).items():
+            # today_ts = midnight Baghdad — filter to strictly before today
+            prev = [p for p in pts if p[0] < today_ts]
+            if prev:
+                prev_close_map[sym] = prev[-1][1]
+    except Exception as e:
+        print(f"prev-close lookup failed: {e}")
+
+    override_count = 0
+    for stock in out['stocks']:
+        code = stock['code']
+        if code not in day_data:
+            continue
+        xd = day_data[code]
+        nc = xd.get('c')
+        if not nc or nc <= 0:
+            continue
+        prev = prev_close_map.get(code)
+        chg  = round(nc - prev, 4) if prev else stock['change']
+        pct  = round((chg / prev) * 100, 4) if prev else stock['pct']
+        stock.update({
+            'close':  nc,
+            'open':   xd.get('o') or stock['open'],
+            'high':   xd.get('h') or stock['high'],
+            'low':    xd.get('l') or stock['low'],
+            'vol':    xd.get('v') or stock['vol'],
+            'deals':  xd.get('d') or stock['deals'],
+            'change': chg,
+            'pct':    pct,
+        })
+        override_count += 1
+
+    if override_count:
+        with open('public/data/live.json', 'w') as f:
+            json.dump(out, f, separators=(',', ':'))
+        print(f"live.json synced with XLSX: {override_count} prices overridden (ISX official > Rabee API)")
