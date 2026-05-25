@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import { notFound } from 'next/navigation'
 import companiesData from '@/public/data/companies.json'
 
 const BASE = 'https://iraqsm.com'
@@ -46,6 +47,10 @@ export default function CompanyLayout({ children, params }: Props) {
   const company = (companiesData as { sym: string; ar: string; en: string }[])
     .find(c => c.sym === sym)
 
+  // Return a real HTTP 404 for unknown tickers (delisted, mistyped, etc.)
+  // This prevents soft-404s (200 with empty content) which confuse Google.
+  if (!company) notFound()
+
   return (
     <>
       {/* Server-rendered H1 — visible to crawlers, visually hidden */}
@@ -54,7 +59,7 @@ export default function CompanyLayout({ children, params }: Props) {
         overflow: 'hidden', clip: 'rect(0,0,0,0)',
         whiteSpace: 'nowrap',
       }}>
-        {company?.en ?? sym} ({sym}) — Iraq Stock Exchange Share Price
+        {company.en} ({sym}) — Iraq Stock Exchange Share Price
       </h1>
       {children}
     </>
