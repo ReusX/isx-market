@@ -1,12 +1,24 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  // Canonical URLs never have a trailing slash.
+  // Next.js will 308-redirect /foo/ → /foo automatically.
+  trailingSlash: false,
+
   images: {
     remotePatterns: [
       { protocol: 'https', hostname: 'isc.gov.iq' },
       { protocol: 'https', hostname: 'qmedwacwicutqojngqhi.supabase.co' },
     ],
   },
-  // Allow Arabic font from Google Fonts + ISX portal
+
+  async redirects() {
+    return [
+      // /en/ was crawled by Google — redirect cleanly to root
+      { source: '/en', destination: '/', permanent: true },
+      { source: '/en/:path*', destination: '/:path*', permanent: true },
+    ]
+  },
+
   async headers() {
     return [
       {
