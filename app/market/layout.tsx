@@ -8,7 +8,7 @@ export const metadata: Metadata = {
     url: 'https://iraqsm.com/market',
     title: 'Iraq Stock Market Live | ISX Market — بورصة العراق',
     description: 'Live prices for all stocks on the Iraq Stock Exchange — ISX Market with RSISX index and sector data.',
-    images: [{ url: '/og-image.png', width: 1200, height: 630 }],
+    images: [{ url: '/opengraph-image', width: 1200, height: 630 }],
   },
 }
 export default function MarketLayout({ children }: { children: React.ReactNode }) {

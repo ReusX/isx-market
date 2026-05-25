@@ -7,7 +7,7 @@ export const metadata: Metadata = {
     url: 'https://iraqsm.com/fx',
     title: 'سعر الدولار اليوم في العراق | سعر صرف الدينار العراقي',
     description: 'سعر صرف الدولار مقابل الدينار العراقي اليوم — محول فوري IQD/USD.',
-    images: [{ url: '/og-image.png', width: 1200, height: 630 }],
+    images: [{ url: '/opengraph-image', width: 1200, height: 630 }],
   },
 }
 export default function FxLayout({ children }: { children: React.ReactNode }) {

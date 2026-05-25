@@ -23,7 +23,7 @@ export async function generateMetadata({ params }: { params: { slug: string } })
     title: `${stripHtml(post.title.rendered)} | ISX Market`,
     description: buildDesc(stripHtml(post.excerpt?.rendered ?? ''), 'news'),
     alternates: { canonical: `https://iraqsm.com/news/${params.slug}` },
-    openGraph: { url: `https://iraqsm.com/news/${params.slug}`, images: [{ url: '/og-image.png', width: 1200, height: 630 }] },
+    openGraph: { url: `https://iraqsm.com/news/${params.slug}`, images: [{ url: '/opengraph-image', width: 1200, height: 630 }] },
   }
 }
 

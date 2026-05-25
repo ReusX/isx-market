@@ -75,7 +75,7 @@ export const metadata: Metadata = {
     description: 'تتبع أسعار الاسهم العراقية مباشرة، مؤشر RSISX، تحليلات مالية وأخبار بورصة العراق. Iraq Stock Exchange live prices, charts, trading and analysis.',
     url: 'https://iraqsm.com',
     siteName: 'ISX Market',
-    images: [{ url: '/og-image.png', width: 1200, height: 630 }],
+    images: [{ url: '/opengraph-image', width: 1200, height: 630 }],
     locale: 'ar_IQ',
     type: 'website',
   },

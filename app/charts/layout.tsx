@@ -4,7 +4,7 @@ export const metadata: Metadata = {
   description: 'ISX charts — interactive historical price charts for all Iraq Stock Exchange (ISX) stocks and the RSISX index. Powered by Rabee Securities data. مخططات أسعار الأسهم العراقية التاريخية.',
   alternates: { canonical: 'https://iraqsm.com/charts' },
   keywords: ['isx charts', 'iraq stock exchange charts', 'مخططات بورصة العراق', 'rabee', 'RSISX chart', 'iraq stock market chart'],
-  openGraph: { url: 'https://iraqsm.com/charts', title: 'ISX Charts — Iraq Stock Exchange', images: [{ url: '/og-image.png', width: 1200, height: 630 }] },
+  openGraph: { url: 'https://iraqsm.com/charts', title: 'ISX Charts — Iraq Stock Exchange', images: [{ url: '/opengraph-image', width: 1200, height: 630 }] },
 }
 export default function ChartsLayout({ children }: { children: React.ReactNode }) {
   return (

@@ -6,7 +6,7 @@ export const metadata: Metadata = {
   title: 'الشركات المدرجة | ISX Listed Companies',
   description: 'قائمة جميع الشركات المدرجة في بورصة العراق للأوراق المالية — 104 شركة في مختلف القطاعات. All 104 companies listed on the Iraq Stock Exchange (ISX).',
   alternates: { canonical: 'https://iraqsm.com/companies' },
-  openGraph: { url: 'https://iraqsm.com/companies', images: [{ url: '/og-image.png', width: 1200, height: 630 }] },
+  openGraph: { url: 'https://iraqsm.com/companies', images: [{ url: '/opengraph-image', width: 1200, height: 630 }] },
 }
 
 const SECTOR_LABELS: Record<string, { ar: string; en: string }> = {

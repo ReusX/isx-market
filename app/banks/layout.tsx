@@ -7,7 +7,7 @@ export const metadata: Metadata = {
     url: 'https://iraqsm.com/banks',
     title: 'المصارف العراقية | بورصة العراق ISX',
     description: 'أسعار أسهم المصارف العراقية المدرجة في بورصة العراق للأوراق المالية.',
-    images: [{ url: '/og-image.png', width: 1200, height: 630 }],
+    images: [{ url: '/opengraph-image', width: 1200, height: 630 }],
   },
   keywords: ['مصرف الرافدين', 'مصرف الرشيد', 'مصرف بغداد', 'المصارف العراقية', 'بنوك العراق', 'مصرف التنمية الدولي'],
 }

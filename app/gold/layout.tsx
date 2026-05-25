@@ -7,7 +7,7 @@ export const metadata: Metadata = {
     url: 'https://iraqsm.com/gold',
     title: 'سعر الذهب اليوم في العراق | مثقال وغرام بالدينار العراقي',
     description: 'سعر مثقال الذهب عيار 21 في العراق اليوم — محدّث تلقائياً بالدينار العراقي.',
-    images: [{ url: '/og-image.png', width: 1200, height: 630 }],
+    images: [{ url: '/opengraph-image', width: 1200, height: 630 }],
   },
   keywords: ['سعر الذهب اليوم في العراق', 'سعر مثقال الذهب', 'سعر غرام الذهب', 'سعر الذهب عيار 21', 'اسعار الذهب العراق'],
 }

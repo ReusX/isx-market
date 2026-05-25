@@ -28,7 +28,7 @@ export async function generateMetadata({ params }: { params: { sym: string } }):
       description: desc,
       url,
       siteName: 'ISX Market',
-      images:   [{ url: '/og-image.png', width: 1200, height: 630, alt: `${sym} – ISX Market` }],
+      images:   [{ url: '/opengraph-image', width: 1200, height: 630, alt: `${sym} – ISX Market` }],
       locale:   'ar_IQ',
       type:     'website',
     },
@@ -36,7 +36,7 @@ export async function generateMetadata({ params }: { params: { sym: string } }):
       card:        'summary_large_image',
       title:       `${sym} | ISX Market`,
       description: desc,
-      images:      ['/og-image.png'],
+      images:      ['/opengraph-image'],
     },
   }
 }
