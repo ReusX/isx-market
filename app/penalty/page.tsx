@@ -281,8 +281,8 @@ export default function PenaltyPage() {
               </div>
             )}
 
-            {/* ZONE GRID — 3×3 clickable zones */}
-            <div style={{
+            {/* ZONE GRID — 3×3 clickable zones (dir=ltr so columns stay L→R in RTL page) */}
+            <div dir="ltr" style={{
               position: 'absolute', inset: 0,
               display: 'grid', gridTemplateColumns: '1fr 1fr 1fr',
               gridTemplateRows: '1fr 1fr 1fr',
