@@ -443,7 +443,7 @@ export default function SnakePage() {
       </div>
 
       {/* ── D-pad ── */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 52px)', gap: 6 }}>
+      <div dir="ltr" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 52px)', gap: 6 }}>
         <div /><button style={btnStyle()} onPointerDown={() => dpad('U')}>▲</button><div />
         <button style={btnStyle()} onPointerDown={() => dpad('L')}>◀</button>
         <div style={{ width: 52, height: 52 }} />
