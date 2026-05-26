@@ -28,28 +28,59 @@ function Goalkeeper({ side, diving }: { side: KeeperSide; diving: boolean }) {
       filter: 'drop-shadow(0 6px 14px rgba(0,0,0,0.6))',
     }}>
 
-      {/* Head — Noor Sabri face slapped on like a meme photo */}
+      {/* Head — Noor Sabri face taped on, meme style */}
       <div style={{
-        width: 34, height: 34,
         position: 'relative', marginBottom: 1, zIndex: 2,
-        /* slight tilt + paper-stuck look */
-        transform: 'rotate(-4deg)',
-        filter: 'drop-shadow(2px 3px 4px rgba(0,0,0,0.7))',
+        transform: 'rotate(-5deg)',
+        filter: 'drop-shadow(2px 4px 6px rgba(0,0,0,0.8))',
       }}>
-        {/* The photo itself */}
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src="/keeper-face.webp"
-          alt="keeper"
-          style={{
-            width: '100%', height: '100%',
-            objectFit: 'cover',
-            objectPosition: '50% 20%',   /* crop to face area */
-            borderRadius: '3px',
-            border: '2px solid #fff',    /* white photo border */
-            display: 'block',
-          }}
-        />
+        {/* Tape strip — top left */}
+        <div style={{
+          position: 'absolute', top: -5, left: 1, zIndex: 5,
+          width: 14, height: 7,
+          background: 'rgba(210,230,255,0.62)',
+          border: '0.5px solid rgba(160,200,240,0.5)',
+          borderRadius: 2,
+          transform: 'rotate(-10deg)',
+          boxShadow: '0 1px 3px rgba(0,0,0,0.2)',
+          backdropFilter: 'blur(1px)',
+        }} />
+        {/* Tape strip — top right */}
+        <div style={{
+          position: 'absolute', top: -5, right: 1, zIndex: 5,
+          width: 14, height: 7,
+          background: 'rgba(210,230,255,0.62)',
+          border: '0.5px solid rgba(160,200,240,0.5)',
+          borderRadius: 2,
+          transform: 'rotate(10deg)',
+          boxShadow: '0 1px 3px rgba(0,0,0,0.2)',
+          backdropFilter: 'blur(1px)',
+        }} />
+
+        {/* Face cutout — just the face, no card bg */}
+        <div style={{
+          width: 42, height: 42,
+          borderRadius: '50% 50% 42% 42%',  /* oval face shape */
+          overflow: 'hidden',
+          border: '2.5px solid #fff',
+          boxShadow: '0 2px 6px rgba(0,0,0,0.5)',
+          background: '#D9897A',  /* skin fallback */
+        }}>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/keeper-face.webp"
+            alt="Noor Sabri"
+            style={{
+              width: '170%',        /* zoom in to fill with just the face */
+              height: '170%',
+              objectFit: 'cover',
+              marginLeft: '-35%',   /* center horizontally */
+              marginTop: '-8%',     /* push down slightly to frame face */
+              display: 'block',
+              imageRendering: 'auto',
+            }}
+          />
+        </div>
       </div>
 
       {/* Neck */}
