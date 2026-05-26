@@ -45,6 +45,7 @@ export default function Navbar() {
               { href: '/fx',         ar: 'IQD ⇄ USD',  en: 'IQD ⇄ USD' },
               { href: '/companies',   ar: 'الشركات',    en: 'Companies' },
               { href: '/leaderboard',ar: 'المتصدرون',  en: 'Leaderboard' },
+              { href: '/quests',      ar: '⭐ المهمات',  en: '⭐ Quests' },
               { href: '/gold',        ar: 'سعر الذهب',  en: 'Gold' },
               { href: '/banks',       ar: 'المصارف',    en: 'Banks' },
             ].map(l => (
