@@ -4,19 +4,36 @@ import { cookies } from 'next/headers'
 
 export const maxDuration = 10
 
-const POINTS_PER_GOAL  = 100
+const POINTS_PER_GOAL   = 100
 const MAX_SHOTS_PER_DAY = 10
-const KEEPER_SIDES = ['L', 'C', 'R'] as const
-const ZONE_TO_SIDE: Record<string, 'L' | 'C' | 'R'> = {
-  TL: 'L', TC: 'C', TR: 'R',
-  ML: 'L', MC: 'C', MR: 'R',
-  BL: 'L', BC: 'C', BR: 'R',
+
+// Keeper now dives to one of 6 zones (top/bottom × left/center/right)
+type KeeperDive = 'TL' | 'TC' | 'TR' | 'BL' | 'BC' | 'BR'
+const KEEPER_DIVES: KeeperDive[] = ['TL', 'TC', 'TR', 'BL', 'BC', 'BR']
+
+// Middle zones share a side with two keeper dive positions
+const MIDDLE_SAME_SIDE: Record<string, KeeperDive[]> = {
+  ML: ['TL', 'BL'],
+  MC: ['TC', 'BC'],
+  MR: ['TR', 'BR'],
+}
+
+function calcScored(zone: string, keeperDive: KeeperDive): boolean {
+  // Exact zone match → always saved
+  if (zone === keeperDive) return false
+
+  // Middle zones: keeper on same side (top or bottom) → 50 % save chance
+  const sameSide = MIDDLE_SAME_SIDE[zone]
+  if (sameSide?.includes(keeperDive)) return Math.random() >= 0.5
+
+  // Any other case → goal
+  return true
 }
 
 function baghdadDayStart() {
-  const now     = new Date()
-  const bStr    = now.toLocaleString('en-US', { timeZone: 'Asia/Baghdad' })
-  const bDate   = new Date(bStr)
+  const now   = new Date()
+  const bStr  = now.toLocaleString('en-US', { timeZone: 'Asia/Baghdad' })
+  const bDate = new Date(bStr)
   bDate.setHours(0, 0, 0, 0)
   return new Date(bDate.getTime() - 3 * 60 * 60 * 1000).toISOString()
 }
@@ -30,13 +47,12 @@ function makeClient() {
   )
 }
 
-// GET — how many shots left today
+// GET — shots left today
 export async function GET() {
   const sb = makeClient()
   const { data: { user } } = await sb.auth.getUser()
   if (!user) return NextResponse.json({ shotsLeft: MAX_SHOTS_PER_DAY })
 
-  // Check unlimited flag
   const { data: profile } = await sb
     .from('profiles').select('unlimited_games').eq('id', user.id).single()
   if (profile?.unlimited_games) return NextResponse.json({ shotsLeft: 999 })
@@ -57,56 +73,48 @@ export async function POST(req: Request) {
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const { zone } = await req.json()
-  if (!zone || !ZONE_TO_SIDE[zone])
+  const validZones = ['TL','TC','TR','ML','MC','MR','BL','BC','BR']
+  if (!zone || !validZones.includes(zone))
     return NextResponse.json({ error: 'Invalid zone' }, { status: 400 })
 
-  // Check unlimited flag
   const { data: profile } = await sb
     .from('profiles').select('points, unlimited_games').eq('id', user.id).single()
   const unlimited = profile?.unlimited_games ?? false
 
   if (!unlimited) {
-    // Check daily limit
     const { count } = await sb
       .from('penalty_shots')
       .select('*', { count: 'exact', head: true })
       .eq('user_id', user.id)
       .gte('created_at', baghdadDayStart())
 
-    const shotsTaken = count ?? 0
-    if (shotsTaken >= MAX_SHOTS_PER_DAY) {
+    if ((count ?? 0) >= MAX_SHOTS_PER_DAY)
       return NextResponse.json({ error: 'daily_limit', shotsLeft: 0 }, { status: 429 })
-    }
   }
 
-  // Keeper randomly dives to L, C, or R
-  const keeperSide = KEEPER_SIDES[Math.floor(Math.random() * 3)]
-  const shotSide   = ZONE_TO_SIDE[zone]
-  const scored     = shotSide !== keeperSide
+  // Keeper picks one of 6 dive directions
+  const keeperDive = KEEPER_DIVES[Math.floor(Math.random() * KEEPER_DIVES.length)]
+  const scored = calcScored(zone, keeperDive)
 
-  // Award points if goal
   if (scored && profile) {
     await sb.from('profiles')
       .update({ points: (profile.points ?? 0) + POINTS_PER_GOAL })
       .eq('id', user.id)
   }
 
-  // Get updated shot count for response
   const { count: newCount } = unlimited ? { count: 0 } : await sb
     .from('penalty_shots')
     .select('*', { count: 'exact', head: true })
     .eq('user_id', user.id)
     .gte('created_at', baghdadDayStart())
 
-  // Log the shot
   await sb.from('penalty_shots').insert({
-    user_id: user.id, scored, shot_zone: zone, keeper_side: keeperSide,
+    user_id: user.id, scored, shot_zone: zone, keeper_side: keeperDive,
   })
 
   return NextResponse.json({
     scored,
-    keeperSide,
-    shotSide,
+    keeperDive,           // e.g. "TL", "BR" — used by page for animation
     shotsLeft: unlimited ? 999 : MAX_SHOTS_PER_DAY - ((newCount ?? 0) + 1),
     points: scored ? POINTS_PER_GOAL : 0,
   })

@@ -4,21 +4,37 @@ import { useState, useEffect, useRef } from 'react'
 import { useApp } from '@/context/AppContext'
 import Link from 'next/link'
 
-type Zone = 'TL'|'TC'|'TR'|'ML'|'MC'|'MR'|'BL'|'BC'|'BR'
-type KeeperSide = 'L'|'C'|'R'
-type Phase = 'idle'|'shooting'|'result'
+type Zone    = 'TL'|'TC'|'TR'|'ML'|'MC'|'MR'|'BL'|'BC'|'BR'
+type KeeperDir = 'TL'|'TC'|'TR'|'BL'|'BC'|'BR'
+type Phase   = 'idle'|'shooting'|'result'
 
 const ZONE_POS: Record<Zone, { x: number; y: number }> = {
   TL: { x: 18, y: 15 }, TC: { x: 50, y: 15 }, TR: { x: 82, y: 15 },
   ML: { x: 18, y: 48 }, MC: { x: 50, y: 48 }, MR: { x: 82, y: 48 },
   BL: { x: 18, y: 76 }, BC: { x: 50, y: 76 }, BR: { x: 82, y: 76 },
 }
-const KEEPER_X: Record<KeeperSide, number> = { L: 14, C: 50, R: 86 }
+
+// Keeper horizontal position (% left in goal interior)
+const DIR_X: Record<KeeperDir, number> = {
+  TL: 13, TC: 50, TR: 87,
+  BL: 13, BC: 50, BR: 87,
+}
+// Keeper vertical position — top dives: keeper jumps high, bottom dives: stays low
+const DIR_BOTTOM: Record<KeeperDir, string> = {
+  TL: '38%', TC: '40%', TR: '38%',
+  BL: '4px',  BC: '4px',  BR: '4px',
+}
+// Body rotation angle for dive
+const DIR_ANGLE: Record<KeeperDir, number> = {
+  TL: -62, TC: -5, TR: 62,
+  BL: -50, BC:  5, BR: 50,
+}
+
 const ZONES: Zone[] = ['TL','TC','TR','ML','MC','MR','BL','BC','BR']
 
 // ── Goalkeeper figure ────────────────────────────────────────────────────────
-function Goalkeeper({ side, diving }: { side: KeeperSide; diving: boolean }) {
-  const angle = diving ? (side === 'L' ? -55 : side === 'R' ? 55 : 0) : 0
+function Goalkeeper({ dir, diving }: { dir: KeeperDir; diving: boolean }) {
+  const angle = diving ? DIR_ANGLE[dir] : 0
   return (
     <div style={{
       display: 'flex', flexDirection: 'column', alignItems: 'center',
@@ -180,17 +196,16 @@ export default function PenaltyPage() {
   const { user, profile, refreshProfile, openAuth, lang } = useApp()
   const ar = lang === 'ar'
 
-  const [phase, setPhase]             = useState<Phase>('idle')
-  const [shotsLeft, setShotsLeft]     = useState(10)
+  const [phase, setPhase]               = useState<Phase>('idle')
+  const [shotsLeft, setShotsLeft]       = useState(10)
   const [selectedZone, setSelectedZone] = useState<Zone | null>(null)
-  const [keeperSide, setKeeperSide]   = useState<KeeperSide>('C')
-  const [scored, setScored]           = useState<boolean | null>(null)
-  const [totalToday, setTotalToday]   = useState(0)
-  const [ballPos, setBallPos]         = useState({ x: 50, y: 105 })
-  const [keeperX, setKeeperX]         = useState(50)
-  const [ballVisible, setBallVisible] = useState(false)
-  const [hover, setHover]             = useState<Zone | null>(null)
-  const [loading, setLoading]         = useState(false)
+  const [keeperDir, setKeeperDir]       = useState<KeeperDir>('BC')
+  const [scored, setScored]             = useState<boolean | null>(null)
+  const [totalToday, setTotalToday]     = useState(0)
+  const [ballPos, setBallPos]           = useState({ x: 50, y: 105 })
+  const [ballVisible, setBallVisible]   = useState(false)
+  const [hover, setHover]               = useState<Zone | null>(null)
+  const [loading, setLoading]           = useState(false)
   const timeoutRef = useRef<ReturnType<typeof setTimeout>[]>([])
 
   useEffect(() => {
@@ -225,13 +240,12 @@ export default function PenaltyPage() {
       setShotsLeft(0); setPhase('idle'); setBallVisible(false); return
     }
 
-    const ks: KeeperSide = data.keeperSide
-    const sc: boolean    = data.scored
+    const kd: KeeperDir = data.keeperDive
+    const sc: boolean   = data.scored
 
     const t1 = setTimeout(() => {
       setBallPos(ZONE_POS[zone])
-      setKeeperX(KEEPER_X[ks])
-      setKeeperSide(ks)
+      setKeeperDir(kd)
     }, 50)
     const t2 = setTimeout(() => {
       setScored(sc); setPhase('result')
@@ -242,7 +256,7 @@ export default function PenaltyPage() {
     const t3 = setTimeout(() => {
       setPhase('idle'); setBallVisible(false)
       setBallPos({ x: 50, y: 105 })
-      setKeeperX(50); setSelectedZone(null); setScored(null)
+      setKeeperDir('BC'); setSelectedZone(null); setScored(null)
     }, 2800)
 
     timeoutRef.current = [t1, t2, t3]
@@ -364,13 +378,15 @@ export default function PenaltyPage() {
               {/* ── KEEPER ── */}
               <div style={{
                 position: 'absolute',
-                bottom: 2,
-                left: `${keeperX}%`,
+                bottom: phase === 'shooting' ? DIR_BOTTOM[keeperDir] : '4px',
+                left: `${DIR_X[keeperDir]}%`,
                 transform: 'translateX(-50%)',
-                transition: 'left 0.48s cubic-bezier(0.22, 0, 0.32, 1)',
+                transition: phase === 'shooting'
+                  ? 'left 0.48s cubic-bezier(0.22,0,0.32,1), bottom 0.48s cubic-bezier(0.22,0,0.32,1)'
+                  : 'none',
                 zIndex: 4,
               }}>
-                <Goalkeeper side={keeperSide} diving={phase === 'shooting'} />
+                <Goalkeeper dir={keeperDir} diving={phase === 'shooting'} />
               </div>
 
               {/* ── BALL ── */}
