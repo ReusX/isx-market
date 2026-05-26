@@ -28,36 +28,32 @@ function Goalkeeper({ side, diving }: { side: KeeperSide; diving: boolean }) {
       filter: 'drop-shadow(0 6px 14px rgba(0,0,0,0.6))',
     }}>
 
-      {/* Head */}
+      {/* Head — Noor Sabri face slapped on like a meme photo */}
       <div style={{
-        width: 26, height: 26, borderRadius: '50%',
-        background: 'radial-gradient(circle at 38% 32%, #FECFC6, #D9897A)',
-        border: '1.5px solid rgba(0,0,0,0.18)',
+        width: 34, height: 34,
         position: 'relative', marginBottom: 1, zIndex: 2,
+        /* slight tilt + paper-stuck look */
+        transform: 'rotate(-4deg)',
+        filter: 'drop-shadow(2px 3px 4px rgba(0,0,0,0.7))',
       }}>
-        {/* Hair */}
-        <div style={{
-          position: 'absolute', top: -1, left: 0, right: 0, height: 12,
-          background: 'linear-gradient(180deg, #2d1e14 60%, transparent)',
-          borderRadius: '50% 50% 30% 30%',
-        }} />
-        {/* Left eye */}
-        <div style={{ position: 'absolute', top: 10, left: 5, width: 4, height: 5, background: '#1a1a1a', borderRadius: '50%' }}>
-          <div style={{ position: 'absolute', top: 1, left: 1, width: 1.5, height: 1.5, background: 'rgba(255,255,255,0.7)', borderRadius: '50%' }} />
-        </div>
-        {/* Right eye */}
-        <div style={{ position: 'absolute', top: 10, right: 5, width: 4, height: 5, background: '#1a1a1a', borderRadius: '50%' }}>
-          <div style={{ position: 'absolute', top: 1, left: 1, width: 1.5, height: 1.5, background: 'rgba(255,255,255,0.7)', borderRadius: '50%' }} />
-        </div>
-        {/* Mouth */}
-        <div style={{ position: 'absolute', bottom: 4, left: '50%', transform: 'translateX(-50%)', width: 8, height: 3, borderBottom: '2px solid rgba(180,80,60,0.8)', borderLeft: '1px solid rgba(180,80,60,0.5)', borderRight: '1px solid rgba(180,80,60,0.5)', borderRadius: '0 0 5px 5px' }} />
-        {/* Ear stubs */}
-        <div style={{ position: 'absolute', top: 9, left: -3, width: 4, height: 7, background: '#D9897A', borderRadius: '50%' }} />
-        <div style={{ position: 'absolute', top: 9, right: -3, width: 4, height: 7, background: '#D9897A', borderRadius: '50%' }} />
+        {/* The photo itself */}
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src="/keeper-face.webp"
+          alt="keeper"
+          style={{
+            width: '100%', height: '100%',
+            objectFit: 'cover',
+            objectPosition: '50% 20%',   /* crop to face area */
+            borderRadius: '3px',
+            border: '2px solid #fff',    /* white photo border */
+            display: 'block',
+          }}
+        />
       </div>
 
       {/* Neck */}
-      <div style={{ width: 10, height: 5, background: '#D9897A', zIndex: 2 }} />
+      <div style={{ width: 10, height: 4, background: '#D9897A', zIndex: 2 }} />
 
       {/* Arms + Jersey wrapper */}
       <div style={{ position: 'relative', zIndex: 2 }}>
