@@ -7,7 +7,7 @@ import { useApp } from '@/context/AppContext'
 // ─── Constants ────────────────────────────────────────────────────────────────
 const COLS       = 20
 const ROWS       = 20
-const DAILY_CAP  = 500
+const DAILY_CAP  = 2000
 const INIT_SPEED = 175   // ms per step
 const MIN_SPEED  = 65
 const SPEED_STEP = 12    // speed up every 5 foods
@@ -342,7 +342,7 @@ export default function SnakePage() {
             }} />
           </div>
           <div style={{ fontSize: 10, color: 'var(--ink4)', marginTop: 4 }}>
-            {ar ? '10 نقطة لكل طعامة' : '10 pts per food eaten'}
+            {ar ? '100 نقطة لكل طعامة' : '100 pts per food eaten'}
           </div>
         </div>
       </div>
@@ -370,8 +370,8 @@ export default function SnakePage() {
             <div style={{ fontWeight: 800, fontSize: 20 }}>{ar ? 'لعبة الثعبان' : 'Nokia Snake'}</div>
             <div style={{ fontSize: 12, color: 'var(--ink3)', textAlign: 'center', lineHeight: 1.7, maxWidth: 220 }}>
               {ar
-                ? 'كل طعامة = 10 نقاط\nحد يومي 500 نقطة\nيتسارع كل 5 طعامات'
-                : 'Each food = 10 pts\n500 pts daily limit\nSpeeds up every 5 foods'}
+                ? 'كل طعامة = 100 نقطة\nحد يومي 2000 نقطة\nيتسارع كل 5 طعامات'
+                : 'Each food = 100 pts\n2000 pts daily limit\nSpeeds up every 5 foods'}
             </div>
             {!user && (
               <div style={{

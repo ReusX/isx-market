@@ -11,7 +11,7 @@ const QUESTS = [
   { icon: '💼', titleAr: 'أول صفقة',        titleEn: 'First Trade',        pts: 100, descAr: 'نفّذ أول صفقة شراء أو بيع',               descEn: 'Complete your first buy or sell trade',  href: null },
   { icon: '🎡', titleAr: 'دوّر العجلة',     titleEn: 'Spin the Wheel',     pts: 50,  descAr: 'استخدم عجلة الحظ اليوم',                  descEn: 'Use the spin wheel today',               href: null },
   { icon: '⚽', titleAr: 'ركلة الجزاء',     titleEn: 'Penalty Shootout',   pts: 100, descAr: 'سجّل هدفاً واربح 100 نقطة (حتى 10 ركلات يومياً)', descEn: 'Score a penalty to win 100 pts (up to 10 shots/day)', href: '/penalty' },
-  { icon: '🐍', titleAr: 'لعبة الثعبان',   titleEn: 'Snake Game',         pts: 10,  descAr: 'كل طعامة = 10 نقاط، حتى 500 نقطة يومياً',          descEn: 'Each food = 10 pts, up to 500 pts/day',              href: '/snake' },
+  { icon: '🐍', titleAr: 'لعبة الثعبان',   titleEn: 'Snake Game',         pts: 100, descAr: 'كل طعامة = 100 نقطة، حتى 2000 نقطة يومياً',         descEn: 'Each food = 100 pts, up to 2000 pts/day',            href: '/snake' },
   { icon: '🔥', titleAr: 'تسلسل 7 أيام',   titleEn: '7-Day Streak',       pts: 300, descAr: 'سجّل دخولاً 7 أيام متتالية',              descEn: 'Log in 7 consecutive days',              href: null },
   { icon: '👥', titleAr: 'أحل صديقاً',      titleEn: 'Refer a Friend',     pts: 500, descAr: 'ادعُ صديقاً وسجّله عبر رمز الإحالة',     descEn: 'Invite a friend using your referral code', href: null },
   { icon: '📊', titleAr: 'تحقق من المخططات','titleEn': 'Check Charts',     pts: 15,  descAr: 'افتح مخطط أي شركة',                       descEn: 'Open any company chart',                 href: null },

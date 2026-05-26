@@ -3,8 +3,8 @@ import { createClient } from '@/lib/supabase/server'
 
 export const maxDuration = 10
 
-const PTS_PER_FOOD = 10
-const DAILY_CAP    = 500   // max 500 pts/day from snake (50 foods)
+const PTS_PER_FOOD = 100
+const DAILY_CAP    = 2000  // max 2000 pts/day from snake (20 foods)
 
 function baghdadDayStart() {
   const now   = new Date()

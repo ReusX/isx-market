@@ -13,7 +13,7 @@ export default function BottomNav() {
     { href: '/',            icon: '🏠', labelAr: 'الرئيسية', labelEn: 'Home'      },
     { href: '/market',      icon: '📊', labelAr: 'السوق',    labelEn: 'Market'    },
     { href: '/rewards/spin',icon: '🎡', labelAr: 'دوّر',     labelEn: 'Spin',  special: true },
-    { href: '/wallet',      icon: '💼', labelAr: 'محفظة',   labelEn: 'Portfolio' },
+    { href: '/quests',      icon: '⭐', labelAr: 'المهمات',  labelEn: 'Quests'    },
     { href: '/profile',     icon: '👤', labelAr: 'الملف',    labelEn: 'Profile'   },
   ]
 
