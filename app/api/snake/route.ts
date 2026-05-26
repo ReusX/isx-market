@@ -20,6 +20,11 @@ export async function GET() {
   const { data: { user } } = await sb.auth.getUser()
   if (!user) return NextResponse.json({ ptsLeft: DAILY_CAP })
 
+  // Check unlimited flag
+  const { data: profile } = await sb
+    .from('profiles').select('unlimited_games').eq('id', user.id).single()
+  if (profile?.unlimited_games) return NextResponse.json({ ptsLeft: 999999 })
+
   const { data } = await sb
     .from('snake_scores')
     .select('points_awarded')
@@ -41,27 +46,31 @@ export async function POST(req: Request) {
   if (!Number.isInteger(score) || score < 1 || score > 5000)
     return NextResponse.json({ error: 'Invalid score' }, { status: 400 })
 
-  // Check how many pts already earned today
-  const { data: todayRows } = await sb
-    .from('snake_scores')
-    .select('points_awarded')
-    .eq('user_id', user.id)
-    .gte('created_at', baghdadDayStart())
+  // Check unlimited flag
+  const { data: profile } = await sb
+    .from('profiles').select('points, unlimited_games').eq('id', user.id).single()
+  const unlimited = profile?.unlimited_games ?? false
 
-  const usedToday     = (todayRows ?? []).reduce((s, r) => s + (r.points_awarded ?? 0), 0)
-  const remaining     = Math.max(0, DAILY_CAP - usedToday)
-  const rawPts        = score * PTS_PER_FOOD
-  const pointsAwarded = Math.min(rawPts, remaining)
+  let pointsAwarded: number
+  if (unlimited) {
+    pointsAwarded = score * PTS_PER_FOOD
+  } else {
+    const { data: todayRows } = await sb
+      .from('snake_scores')
+      .select('points_awarded')
+      .eq('user_id', user.id)
+      .gte('created_at', baghdadDayStart())
+
+    const usedToday = (todayRows ?? []).reduce((s, r) => s + (r.points_awarded ?? 0), 0)
+    const remaining = Math.max(0, DAILY_CAP - usedToday)
+    pointsAwarded   = Math.min(score * PTS_PER_FOOD, remaining)
+  }
 
   // Award points to profile
-  if (pointsAwarded > 0) {
-    const { data: profile } = await sb
-      .from('profiles').select('points').eq('id', user.id).single()
-    if (profile) {
-      await sb.from('profiles')
-        .update({ points: (profile.points ?? 0) + pointsAwarded })
-        .eq('id', user.id)
-    }
+  if (pointsAwarded > 0 && profile) {
+    await sb.from('profiles')
+      .update({ points: (profile.points ?? 0) + pointsAwarded })
+      .eq('id', user.id)
   }
 
   // Log the game
@@ -73,6 +82,6 @@ export async function POST(req: Request) {
 
   return NextResponse.json({
     pointsAwarded,
-    ptsLeft: Math.max(0, remaining - pointsAwarded),
+    ptsLeft: unlimited ? 999999 : Math.max(0, DAILY_CAP - pointsAwarded),
   })
 }

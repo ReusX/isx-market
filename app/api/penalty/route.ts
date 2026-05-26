@@ -36,6 +36,11 @@ export async function GET() {
   const { data: { user } } = await sb.auth.getUser()
   if (!user) return NextResponse.json({ shotsLeft: MAX_SHOTS_PER_DAY })
 
+  // Check unlimited flag
+  const { data: profile } = await sb
+    .from('profiles').select('unlimited_games').eq('id', user.id).single()
+  if (profile?.unlimited_games) return NextResponse.json({ shotsLeft: 999 })
+
   const { count } = await sb
     .from('penalty_shots')
     .select('*', { count: 'exact', head: true })
@@ -55,16 +60,23 @@ export async function POST(req: Request) {
   if (!zone || !ZONE_TO_SIDE[zone])
     return NextResponse.json({ error: 'Invalid zone' }, { status: 400 })
 
-  // Check daily limit
-  const { count } = await sb
-    .from('penalty_shots')
-    .select('*', { count: 'exact', head: true })
-    .eq('user_id', user.id)
-    .gte('created_at', baghdadDayStart())
+  // Check unlimited flag
+  const { data: profile } = await sb
+    .from('profiles').select('points, unlimited_games').eq('id', user.id).single()
+  const unlimited = profile?.unlimited_games ?? false
 
-  const shotsTaken = count ?? 0
-  if (shotsTaken >= MAX_SHOTS_PER_DAY) {
-    return NextResponse.json({ error: 'daily_limit', shotsLeft: 0 }, { status: 429 })
+  if (!unlimited) {
+    // Check daily limit
+    const { count } = await sb
+      .from('penalty_shots')
+      .select('*', { count: 'exact', head: true })
+      .eq('user_id', user.id)
+      .gte('created_at', baghdadDayStart())
+
+    const shotsTaken = count ?? 0
+    if (shotsTaken >= MAX_SHOTS_PER_DAY) {
+      return NextResponse.json({ error: 'daily_limit', shotsLeft: 0 }, { status: 429 })
+    }
   }
 
   // Keeper randomly dives to L, C, or R
@@ -73,15 +85,18 @@ export async function POST(req: Request) {
   const scored     = shotSide !== keeperSide
 
   // Award points if goal
-  if (scored) {
-    const { data: profile } = await sb
-      .from('profiles').select('points').eq('id', user.id).single()
-    if (profile) {
-      await sb.from('profiles')
-        .update({ points: (profile.points ?? 0) + POINTS_PER_GOAL })
-        .eq('id', user.id)
-    }
+  if (scored && profile) {
+    await sb.from('profiles')
+      .update({ points: (profile.points ?? 0) + POINTS_PER_GOAL })
+      .eq('id', user.id)
   }
+
+  // Get updated shot count for response
+  const { count: newCount } = unlimited ? { count: 0 } : await sb
+    .from('penalty_shots')
+    .select('*', { count: 'exact', head: true })
+    .eq('user_id', user.id)
+    .gte('created_at', baghdadDayStart())
 
   // Log the shot
   await sb.from('penalty_shots').insert({
@@ -92,7 +107,7 @@ export async function POST(req: Request) {
     scored,
     keeperSide,
     shotSide,
-    shotsLeft: MAX_SHOTS_PER_DAY - shotsTaken - 1,
+    shotsLeft: unlimited ? 999 : MAX_SHOTS_PER_DAY - ((newCount ?? 0) + 1),
     points: scored ? POINTS_PER_GOAL : 0,
   })
 }
