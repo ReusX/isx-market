@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useApp } from '@/context/AppContext'
+import { useQuestTrack } from '@/lib/useQuestTrack'
 
 interface FxRate {
   source: string
@@ -22,6 +23,7 @@ const RATES: FxRate[] = [
 
 export default function FxPage() {
   const { lang } = useApp()
+  useQuestTrack('currency_convert')
   const ar = lang === 'ar'
 
   const [usd, setUsd] = useState('')

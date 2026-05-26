@@ -4,6 +4,7 @@ export const dynamic = 'force-dynamic'
 
 import { useState, useRef } from 'react'
 import { useApp } from '@/context/AppContext'
+import { useQuestTrack } from '@/lib/useQuestTrack'
 import { fmtPts } from '@/lib/ranks'
 
 const PRIZES = [
@@ -71,8 +72,10 @@ export default function SpinPage() {
   const { lang, user, profile, authLoading, refreshProfile, openAuth } = useApp()
   const ar = lang === 'ar'
 
-  const [spinning,  setSpinning]  = useState(false)
-  const [result,    setResult]    = useState<number | null>(null)
+  const [spinning,   setSpinning]   = useState(false)
+  const [result,     setResult]     = useState<number | null>(null)
+  const [spunOnce,   setSpunOnce]   = useState(false)
+  useQuestTrack('spin_wheel', spunOnce)
   const [prize,     setPrize]     = useState<typeof PRIZES[0] | null>(null)
   const [error,     setError]     = useState<string | null>(null)
   const [rotation,  setRotation]  = useState(0)
@@ -132,6 +135,7 @@ export default function SpinPage() {
         setResult(idx)
         setPrize(PRIZES[idx])
         setSpinning(false)
+        setSpunOnce(true)
         refreshProfile()
       }, 3600)
     } catch {

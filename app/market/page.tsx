@@ -4,6 +4,7 @@ import { useEffect, useState, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { useApp } from '@/context/AppContext'
+import { useQuestTrack } from '@/lib/useQuestTrack'
 import { fetchLive, fetchCompanyMeta, mergeCompanies, filterSort, fmtVol, fmtMcap, SECTORS, SORT_OPTIONS } from '@/lib/market'
 import type { Company } from '@/types'
 
@@ -27,6 +28,7 @@ function CoLogo({ sym, logo, color }: { sym: string; logo?: string; color?: stri
 
 export default function MarketPage() {
   const { lang, watchlist, toggleWatchlist } = useApp()
+  useQuestTrack('market_visit')
   const ar = lang === 'ar'
   const router = useRouter()
 
