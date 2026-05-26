@@ -111,6 +111,37 @@ create trigger on_auth_user_created
   after insert on auth.users
   for each row execute procedure public.handle_new_user();
 
+-- ── penalty_shots ────────────────────────────────────────────────────────
+create table if not exists public.penalty_shots (
+  id          uuid primary key default gen_random_uuid(),
+  user_id     uuid not null references public.profiles(id) on delete cascade,
+  scored      boolean not null,
+  shot_zone   text not null,
+  keeper_side text not null,
+  created_at  timestamptz default now()
+);
+
+alter table public.penalty_shots enable row level security;
+create policy "Users read own penalty shots"
+  on public.penalty_shots for select using ((SELECT auth.uid()) = user_id);
+create policy "Users insert own penalty shots"
+  on public.penalty_shots for insert with check ((SELECT auth.uid()) = user_id);
+
+-- ── snake_scores ──────────────────────────────────────────────────────────
+create table if not exists public.snake_scores (
+  id              uuid primary key default gen_random_uuid(),
+  user_id         uuid not null references public.profiles(id) on delete cascade,
+  score           int not null,
+  points_awarded  int not null default 0,
+  created_at      timestamptz default now()
+);
+
+alter table public.snake_scores enable row level security;
+create policy "Users read own snake scores"
+  on public.snake_scores for select using ((SELECT auth.uid()) = user_id);
+create policy "Users insert own snake scores"
+  on public.snake_scores for insert with check ((SELECT auth.uid()) = user_id);
+
 -- ── Indexes ───────────────────────────────────────────────────────────────
 create index if not exists idx_holdings_user    on public.holdings(user_id);
 create index if not exists idx_tx_user          on public.transactions(user_id, created_at desc);
