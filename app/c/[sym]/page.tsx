@@ -165,63 +165,70 @@ function AdvancedChart({
       const rsData = await fetch(`/api/stock/${sym}`).then(r => r.json()).catch(() => [])
       if (cancelled || !mainRef.current) return
 
-      // rsData: [{date:"YYYY-MM-DD", close:number}] — Rabee Securities authoritative prices
+      // ── Data from Rabee Securities SiteRsIndexList ────────────────────────
+      // ISX stocks trade at ONE fixed price per day (no intraday H/L).
+      // Flat runs of 14+ consecutive days at the same price are common.
+      // Strategy: body = prevClose→close | zero wicks | 0.6% min body.
+      const allDaily: { date: string; close: number }[] = rsData ?? []
       const days    = TF_DAYS[tf] ?? 30
       const cutoffD = new Date(Date.now() - days * 86400 * 1000).toISOString().slice(0, 10)
-      const daily: { date: string; close: number }[] =
-        (rsData as { date: string; close: number }[]).filter(p => p.date >= cutoffD)
+      const daily   = allDaily.filter(p => p.date >= cutoffD)
       if (!daily.length) return
 
-      // For 3M+ aggregate into weekly candles so flat ISX days don't produce a
-      // wall of + doji marks. open = prior week's last close, close = this week's
-      // last close. We do NOT use weekly H/L from individual closes — that creates
-      // giant fake wicks. Wicks are purely cosmetic (±0.5%).
-      type Pt = { date: string; open: number; close: number }
+      // ── Aggregate to weekly for 3M+ ───────────────────────────────────────
+      // Each week: open = prev-week's last close, close = this week's last close.
+      // Weekly high = highest close in week, low = lowest close in week
+      // (real weekly range, not fake intraday).
+      type Pt = { date: string; open: number; close: number; high: number; low: number }
+
       const points: Pt[] = (() => {
         if (days < 90) {
-          return daily.map(({ date, close: c }, i) => ({
-            date,
-            open:  i > 0 ? daily[i - 1].close : c,
-            close: c,
-          }))
+          return daily.map(({ date, close: c }, i) => {
+            const prev = i > 0 ? daily[i - 1].close : c
+            return { date, open: prev, close: c, high: Math.max(prev, c), low: Math.min(prev, c) }
+          })
         }
         // Group by Monday of each ISO week
-        const weekMap = new Map<string, { date: string; close: number }>()
+        const weekMap = new Map<string, { date: string; first: number; last: number; high: number; low: number }>()
         for (const { date, close: c } of daily) {
-          const d   = new Date(date)
-          const dow = d.getUTCDay() || 7
-          const mon = new Date(d)
-          mon.setUTCDate(d.getUTCDate() - dow + 1)
+          const d = new Date(date); const dow = d.getUTCDay() || 7
+          const mon = new Date(d); mon.setUTCDate(d.getUTCDate() - dow + 1)
           const key = mon.toISOString().slice(0, 10)
-          // Always overwrite so the last day of the week wins as close
-          weekMap.set(key, { date: key, close: c })
+          if (!weekMap.has(key)) weekMap.set(key, { date: key, first: c, last: c, high: c, low: c })
+          else {
+            const w = weekMap.get(key)!
+            w.last = c; w.high = Math.max(w.high, c); w.low = Math.min(w.low, c)
+          }
         }
         const weeks = Array.from(weekMap.values()).sort((a, b) => a.date.localeCompare(b.date))
-        return weeks.map((w, i) => ({
-          date:  w.date,
-          open:  i > 0 ? weeks[i - 1].close : w.close,
-          close: w.close,
-        }))
+        return weeks.map((w, i) => {
+          const prevClose = i > 0 ? weeks[i - 1].last : w.first
+          return { date: w.date, open: prevClose, close: w.last, high: w.high, low: w.low }
+        })
       })()
 
-      // Build candle objects. Minimum 0.3% body so flat periods stay visible.
-      // Wicks ±0.5% cosmetic only — ISX has no reliable intraday H/L data.
-      const candles: any[] = points.map(({ date, open: rawOpen, close: c }) => {
+      // ── Build candles ─────────────────────────────────────────────────────
+      // · body  = open → close (green if close > open, red if close < open)
+      // · wicks = real weekly price range for weekly candles; for daily candles
+      //   the wick = body bounds (no fake intraday extension)
+      // · minimum 0.6% body so flat days render as a visible bar, not a dot
+      const MIN_BODY = 0.006
+      const candles: any[] = points.map(({ date, open: rawOpen, close: c, high: rawH, low: rawL }) => {
         const cl      = +c.toFixed(4)
-        const minBody = +(cl * 0.003).toFixed(4)
-        const wick    = +(cl * 0.005).toFixed(4)
-        let open      = +rawOpen.toFixed(4)
-        if (Math.abs(cl - open) < minBody) {
-          open = cl >= open ? +(cl - minBody).toFixed(4) : +(cl + minBody).toFixed(4)
+        let   open    = +rawOpen.toFixed(4)
+        const bodyPct = Math.abs(cl - open) / cl
+
+        if (bodyPct < MIN_BODY) {
+          // Flat or near-flat: force a visible body in the direction of drift
+          open = cl >= rawOpen
+            ? +(cl - cl * MIN_BODY).toFixed(4)   // green bar
+            : +(cl + cl * MIN_BODY).toFixed(4)   // red bar
         }
-        return {
-          time:  date,
-          open,
-          close: cl,
-          high:  +(Math.max(open, cl) + wick).toFixed(4),
-          low:   +Math.max(0.001, Math.min(open, cl) - wick).toFixed(4),
-          volume: 0,
-        }
+
+        const hi = +Math.max(rawH, open, cl).toFixed(4)
+        const lo = +Math.max(0.001, Math.min(rawL, open, cl)).toFixed(4)
+
+        return { time: date, open, close: cl, high: hi, low: lo, volume: 0 }
       })
 
       state.candles = candles
