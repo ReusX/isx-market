@@ -246,14 +246,15 @@ export default function HomePage() {
                   <div style={{ fontFamily: 'var(--font-mono)', fontSize: 26, fontWeight: 800, lineHeight: 1 }}>
                     {loading ? '—' : rsisxVal}
                   </div>
-                  {!loading && (
-                    <div style={{
-                      fontSize: 12, fontWeight: 700, marginTop: 4,
-                      color: rsisxUp ? 'var(--up)' : 'var(--dn)',
-                    }}>
-                      {rsisxUp ? '▲' : '▼'} {Math.abs(rsisxPct).toFixed(2)}%
-                    </div>
-                  )}
+                  {/* Reserve height always — prevents CLS when pct loads */}
+                  <div style={{
+                    fontSize: 12, fontWeight: 700, marginTop: 4,
+                    color: rsisxUp ? 'var(--up)' : 'var(--dn)',
+                    visibility: loading ? 'hidden' : 'visible',
+                    minHeight: 18,
+                  }}>
+                    {rsisxUp ? '▲' : '▼'} {Math.abs(rsisxPct).toFixed(2)}%
+                  </div>
                 </div>
                 <div style={{ display: 'flex', gap: 14, paddingTop: 4 }}>
                   <div style={{ textAlign: 'center' }}>
@@ -270,12 +271,12 @@ export default function HomePage() {
                   </div>
                 </div>
               </div>
-              {/* Sparkline */}
-              {!loading && rsisxHist.length > 2 && (
-                <div style={{ marginTop: 4, marginInline: -2 }}>
+              {/* Sparkline — always reserve 48px height to prevent CLS */}
+              <div style={{ marginTop: 4, marginInline: -2, height: 48 }}>
+                {!loading && rsisxHist.length > 2 && (
                   <RSISXSpark data={rsisxHist} up={rsisxUp} w={320} h={48} />
-                </div>
-              )}
+                )}
+              </div>
             </div>
           </Link>
         </div>
@@ -525,16 +526,14 @@ export default function HomePage() {
                   <span style={{ fontFamily: 'var(--font-mono)', fontSize: 28, fontWeight: 700 }}>
                     {loading ? '—' : rsisxVal}
                   </span>
-                  {!loading && (
-                    <span style={{ fontSize: 13, fontWeight: 700, color: rsisxUp ? 'var(--up)' : 'var(--dn)' }}>
-                      {rsisxUp ? '▲' : '▼'} {Math.abs(rsisxPct).toFixed(2)}%
-                    </span>
-                  )}
+                  <span style={{ fontSize: 13, fontWeight: 700, color: rsisxUp ? 'var(--up)' : 'var(--dn)', visibility: loading ? 'hidden' : 'visible' }}>
+                    {rsisxUp ? '▲' : '▼'} {Math.abs(rsisxPct).toFixed(2)}%
+                  </span>
                 </div>
               </div>
 
-              {/* Center: sparkline */}
-              <div style={{ minWidth: 0 }}>
+              {/* Center: sparkline — reserve height to prevent CLS */}
+              <div style={{ minWidth: 0, height: 52 }}>
                 {!loading && rsisxHist.length > 2 && (
                   <RSISXSpark data={rsisxHist} up={rsisxUp} w={400} h={52} />
                 )}
