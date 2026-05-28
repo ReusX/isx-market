@@ -9,7 +9,7 @@ import { fetchLive, fetchCompanyMeta, mergeCompanies, fmtVol, fmtMcap } from '@/
 import type { Company } from '@/types'
 
 const TF = ['1D','1W','1M','3M','1Y','5Y'] as const
-const TF_DAYS: Record<string,number> = { '1D':1,'1W':7,'1M':30,'3M':90,'1Y':365,'5Y':1825 }
+const TF_DAYS: Record<string,number> = { '1D':10,'1W':7,'1M':30,'3M':90,'1Y':365,'5Y':1825 }
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 function tsToDate(ts: number): string {
@@ -176,11 +176,15 @@ function AdvancedChart({
       if (!filtered.length) return
 
       // Build candles — deduplicate by date string to avoid duplicate-time crashes
+      // ISX stocks frequently trade at a single price all day (h=l=o=c), so we
+      // synthesise candle bodies from prev-close → curr-close to show daily moves.
       const candleMap = new Map<string, any>()
       for (let i = 0; i < filtered.length; i++) {
         const [ts, c] = filtered[i]
         const dateStr = tsToDate(ts)
         const ov = ohlcvRes?.[dateStr]?.[sym]
+        // Previous close price — used for candle open when OHLCV has no body
+        const prevClose = i > 0 ? filtered[i - 1][1] : c
 
         let candle: any
         if (ov?.o && ov?.h && ov?.l && ov?.c && +ov.c > 0 && +ov.h > 0 && +ov.l > 0) {
@@ -190,17 +194,35 @@ function AdvancedChart({
           const cl = +Number(ov.c).toFixed(4)
           // Sanity-check: reject obviously bad API data (high > 2× close or low < 0.3× close)
           if (h <= cl * 2 && l >= cl * 0.3) {
-            // Flat candle (h === l): add tiny spread so the chart scale doesn't collapse
-            const spread = h === l ? +(cl * 0.002).toFixed(4) : 0
-            candle = { time: dateStr, open: o, high: +(h + spread).toFixed(4), low: +Math.max(0.001, l - spread).toFixed(4), close: cl, volume: ov.v ? +ov.v : 0 }
+            if (h === l) {
+              // Flat ISX candle (no intraday movement): use prev close as open so the
+              // candle body shows the inter-day price move; wicks are ±0.5%
+              const synOpen = +prevClose.toFixed(4)
+              const wick    = +(cl * 0.005).toFixed(4)
+              candle = {
+                time: dateStr, open: synOpen, close: cl,
+                high:  +(Math.max(synOpen, cl) + wick).toFixed(4),
+                low:   +Math.max(0.001, Math.min(synOpen, cl) - wick).toFixed(4),
+                volume: ov.v ? +ov.v : 0,
+              }
+            } else {
+              candle = { time: dateStr, open: o, high: h, low: l, close: cl, volume: ov.v ? +ov.v : 0 }
+            }
           }
         }
 
         if (!candle) {
-          // No valid OHLCV data — render a small doji at the close price.
-          // Do NOT bridge to prev price; that creates phantom mega-candles on gap days.
-          const spread = +(c * 0.003).toFixed(4)
-          candle = { time: dateStr, open: +c.toFixed(4), high: +(c + spread).toFixed(4), low: +Math.max(0.001, c - spread).toFixed(4), close: +c.toFixed(4), volume: 0 }
+          // No valid OHLCV — bridge prev close → current price as open → close.
+          // Cap to ±10% to avoid phantom mega-candles from multi-day data gaps.
+          const changePct = prevClose > 0 ? Math.abs(c - prevClose) / prevClose : 0
+          const synOpen   = changePct <= 0.10 ? +prevClose.toFixed(4) : +c.toFixed(4)
+          const wick      = +(Math.max(Math.abs(c - synOpen), c * 0.005)).toFixed(4)
+          candle = {
+            time: dateStr, open: synOpen, close: +c.toFixed(4),
+            high:  +(Math.max(synOpen, c) + wick * 0.15).toFixed(4),
+            low:   +Math.max(0.001, Math.min(synOpen, c) - wick * 0.15).toFixed(4),
+            volume: 0,
+          }
         }
 
         candleMap.set(dateStr, candle)  // last entry wins for duplicate dates
