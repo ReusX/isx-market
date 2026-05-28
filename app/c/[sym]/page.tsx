@@ -175,18 +175,38 @@ function AdvancedChart({
       const filtered = raw.filter(p => p[0] >= cutoff)
       if (!filtered.length) return
 
-      const candles = filtered.map((p, i) => {
-        const [ts, c] = p
+      // Build candles — deduplicate by date string to avoid duplicate-time crashes
+      const candleMap = new Map<string, any>()
+      for (let i = 0; i < filtered.length; i++) {
+        const [ts, c] = filtered[i]
         const dateStr = tsToDate(ts)
         const ov = ohlcvRes?.[dateStr]?.[sym]
-        if (ov?.o && ov?.h && ov?.l && ov?.c && +ov.c > 0) {
-          return { time: ts as any, open: +Number(ov.o).toFixed(4), high: +Number(ov.h).toFixed(4), low: +Math.max(0.001, Number(ov.l)).toFixed(4), close: +Number(ov.c).toFixed(4), volume: ov.v ? +ov.v : 0 }
+
+        let candle: any
+        if (ov?.o && ov?.h && ov?.l && ov?.c && +ov.c > 0 && +ov.h > 0 && +ov.l > 0) {
+          const o  = +Number(ov.o).toFixed(4)
+          const h  = +Number(ov.h).toFixed(4)
+          const l  = +Math.max(0.001, Number(ov.l)).toFixed(4)
+          const cl = +Number(ov.c).toFixed(4)
+          // Sanity-check: reject obviously bad API data (high > 2× close or low < 0.3× close)
+          if (h <= cl * 2 && l >= cl * 0.3) {
+            // Flat candle (h === l): add tiny spread so the chart scale doesn't collapse
+            const spread = h === l ? +(cl * 0.002).toFixed(4) : 0
+            candle = { time: dateStr, open: o, high: +(h + spread).toFixed(4), low: +Math.max(0.001, l - spread).toFixed(4), close: cl, volume: ov.v ? +ov.v : 0 }
+          }
         }
-        const prev = i > 0 ? filtered[i - 1][1] : c
-        const hi = Math.max(prev, c), lo = Math.min(prev, c)
-        const pad = (hi - lo) * 0.18 + c * 0.0015
-        return { time: ts as any, open: +prev.toFixed(4), high: +(hi + pad).toFixed(4), low: +Math.max(0.001, lo - pad).toFixed(4), close: +c.toFixed(4), volume: 0 }
-      })
+
+        if (!candle) {
+          // No valid OHLCV data — render a small doji at the close price.
+          // Do NOT bridge to prev price; that creates phantom mega-candles on gap days.
+          const spread = +(c * 0.003).toFixed(4)
+          candle = { time: dateStr, open: +c.toFixed(4), high: +(c + spread).toFixed(4), low: +Math.max(0.001, c - spread).toFixed(4), close: +c.toFixed(4), volume: 0 }
+        }
+
+        candleMap.set(dateStr, candle)  // last entry wins for duplicate dates
+      }
+      const candles = Array.from(candleMap.values())
+        .sort((a, b) => (a.time as string).localeCompare(b.time as string))
 
       state.candles = candles
       state.closes  = candles.map(c => c.close)
