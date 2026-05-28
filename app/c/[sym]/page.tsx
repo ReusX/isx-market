@@ -162,62 +162,33 @@ function AdvancedChart({
       if (cancelled || !mainRef.current) return
       state.LC = LC
 
-      const [rsData, ohlcvRes] = await Promise.all([
-        fetch(`/api/stock/${sym}`).then(r => r.json()).catch(() => []),
-        fetch('/data/ohlcv.json?t=' + Math.floor(Date.now() / 86400000)).then(r => r.json()).catch(() => ({})),
-      ])
+      const rsData = await fetch(`/api/stock/${sym}`).then(r => r.json()).catch(() => [])
       if (cancelled || !mainRef.current) return
 
-      // rsData: [{date:"YYYY-MM-DD", close:number}] from Rabee Securities — authoritative source
+      // rsData: [{date:"YYYY-MM-DD", close:number}] — Rabee Securities authoritative prices
       const days    = TF_DAYS[tf] ?? 30
       const cutoffD = new Date(Date.now() - days * 86400 * 1000).toISOString().slice(0, 10)
       const filtered: { date: string; close: number }[] =
-        (rsData as { date: string; close: number }[])
-          .filter(p => p.date >= cutoffD)
+        (rsData as { date: string; close: number }[]).filter(p => p.date >= cutoffD)
       if (!filtered.length) return
 
-      // Build candles using RS closing prices + OHLCV for real H/L where available.
-      // ISX stocks trade at one fixed price all day (open=high=low=close), so we
-      // synthesise visible candle bodies using prev-close as open.
-      const candles: any[] = []
-      for (let i = 0; i < filtered.length; i++) {
-        const { date, close: c } = filtered[i]
+      // Candle body = prevClose → close (shows daily move direction cleanly).
+      // Wicks are ±0.5% — purely cosmetic so candles aren't invisible doji marks.
+      // We do NOT use ohlcv.json H/L because the ISX portal H/L data is unreliable.
+      const candles: any[] = filtered.map(({ date, close: c }, i) => {
         const prevClose = i > 0 ? filtered[i - 1].close : c
-        const ov = ohlcvRes?.[date]?.[sym]
-
-        let candle: any
-        if (ov?.h && ov?.l && ov?.c && +ov.h > 0 && +ov.l > 0) {
-          const h  = +Number(ov.h).toFixed(4)
-          const l  = +Math.max(0.001, Number(ov.l)).toFixed(4)
-          const cl = +c.toFixed(4)           // trust RS close price, not OHLCV close
-          const synOpen = +prevClose.toFixed(4)
-          // Sanity-check OHLCV H/L
-          if (h <= cl * 2.5 && l >= cl * 0.2 && h >= l) {
-            const realH = Math.max(h, synOpen, cl)
-            const realL = Math.min(l, synOpen, cl)
-            candle = {
-              time: date, open: synOpen, close: cl,
-              high: +realH.toFixed(4), low: +Math.max(0.001, realL).toFixed(4),
-              volume: ov.v ? +ov.v : 0,
-            }
-          }
+        const open = +prevClose.toFixed(4)
+        const cl   = +c.toFixed(4)
+        const wick = +(cl * 0.005).toFixed(4)
+        return {
+          time:   date,
+          open,
+          close:  cl,
+          high:   +(Math.max(open, cl) + wick).toFixed(4),
+          low:    +Math.max(0.001, Math.min(open, cl) - wick).toFixed(4),
+          volume: 0,
         }
-
-        if (!candle) {
-          // No OHLCV — synthesise body from prevClose→close, tiny ±0.5% wicks
-          const synOpen = +prevClose.toFixed(4)
-          const cl      = +c.toFixed(4)
-          const wick    = +(cl * 0.005).toFixed(4)
-          candle = {
-            time: date, open: synOpen, close: cl,
-            high:  +(Math.max(synOpen, cl) + wick).toFixed(4),
-            low:   +Math.max(0.001, Math.min(synOpen, cl) - wick).toFixed(4),
-            volume: 0,
-          }
-        }
-
-        candles.push(candle)
-      }
+      })
 
       state.candles = candles
       state.closes  = candles.map(c => c.close)
