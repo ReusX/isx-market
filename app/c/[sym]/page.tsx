@@ -168,24 +168,67 @@ function AdvancedChart({
       // rsData: [{date:"YYYY-MM-DD", close:number}] — Rabee Securities authoritative prices
       const days    = TF_DAYS[tf] ?? 30
       const cutoffD = new Date(Date.now() - days * 86400 * 1000).toISOString().slice(0, 10)
-      const filtered: { date: string; close: number }[] =
+      const daily: { date: string; close: number }[] =
         (rsData as { date: string; close: number }[]).filter(p => p.date >= cutoffD)
-      if (!filtered.length) return
+      if (!daily.length) return
 
-      // Candle body = prevClose → close (shows daily move direction cleanly).
-      // Wicks are ±0.5% — purely cosmetic so candles aren't invisible doji marks.
-      // We do NOT use ohlcv.json H/L because the ISX portal H/L data is unreliable.
-      const candles: any[] = filtered.map(({ date, close: c }, i) => {
-        const prevClose = i > 0 ? filtered[i - 1].close : c
-        const open = +prevClose.toFixed(4)
-        const cl   = +c.toFixed(4)
+      // For 3M+ aggregate into weekly candles — ISX stocks often trade flat for
+      // days at a time, so daily candles produce many + doji marks on longer views.
+      // Weekly aggregation gives real bodies whenever any movement happens in the week.
+      type Pt = { date: string; open: number; high: number; low: number; close: number }
+      const points: Pt[] = (() => {
+        if (days < 90) {
+          // Daily — use prevClose as open for visible body, min 0.3% body
+          return daily.map(({ date, close: c }, i) => {
+            const prev = i > 0 ? daily[i - 1].close : c
+            return { date, open: prev, high: c, low: c, close: c }
+          })
+        }
+        // Weekly — group by Mon date of each week
+        const weekMap = new Map<string, Pt>()
+        for (const { date, close: c } of daily) {
+          const d   = new Date(date)
+          const dow = d.getUTCDay() || 7        // Sun→7, Mon=1
+          const mon = new Date(d)
+          mon.setUTCDate(d.getUTCDate() - dow + 1)
+          const key = mon.toISOString().slice(0, 10)
+          if (!weekMap.has(key)) {
+            weekMap.set(key, { date: key, open: c, high: c, low: c, close: c })
+          } else {
+            const w = weekMap.get(key)!
+            w.high  = Math.max(w.high, c)
+            w.low   = Math.min(w.low,  c)
+            w.close = c
+          }
+        }
+        // Bridge open of each week from prior week's close for visible body
+        const weeks = Array.from(weekMap.values()).sort((a, b) => a.date.localeCompare(b.date))
+        return weeks.map((w, i) => ({
+          ...w,
+          open: i > 0 ? weeks[i - 1].close : w.open,
+        }))
+      })()
+
+      // Build lightweight-charts candle objects.
+      // Enforce minimum 0.3% body so flat candles don't render as invisible + marks.
+      // Wicks are ±0.5% of close (cosmetic only — ISX has no intraday H/L data).
+      const candles: any[] = points.map(({ date, open: rawOpen, high, low, close: c }) => {
+        const cl  = +c.toFixed(4)
         const wick = +(cl * 0.005).toFixed(4)
+        // Minimum 0.3% body height — keeps dojis visible
+        const minBody = +(cl * 0.003).toFixed(4)
+        let open = +rawOpen.toFixed(4)
+        if (Math.abs(cl - open) < minBody) {
+          open = cl >= open ? +(cl - minBody).toFixed(4) : +(cl + minBody).toFixed(4)
+        }
+        const realHigh = Math.max(high, open, cl)
+        const realLow  = Math.min(low,  open, cl)
         return {
-          time:   date,
+          time:  date,
           open,
-          close:  cl,
-          high:   +(Math.max(open, cl) + wick).toFixed(4),
-          low:    +Math.max(0.001, Math.min(open, cl) - wick).toFixed(4),
+          close: cl,
+          high:  +(realHigh + wick).toFixed(4),
+          low:   +Math.max(0.001, realLow - wick).toFixed(4),
           volume: 0,
         }
       })
