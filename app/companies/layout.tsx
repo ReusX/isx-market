@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
-  title: 'Iraq Stock Exchange Listed Companies — ISX Companies | الشركات المدرجة في بورصة العراق',
+  title: { absolute: 'الشركات المدرجة في بورصة العراق | ISX Listed Companies' },
   description: 'All companies listed on the Iraq Stock Exchange (ISX) — browse by sector including banking, telecom, industry, insurance, and more. الشركات المدرجة في بورصة العراق للأوراق المالية، اسهم العراق، سوق الاسهم العراقي.',
   alternates: { canonical: 'https://iraqsm.com/companies' },
   keywords: [

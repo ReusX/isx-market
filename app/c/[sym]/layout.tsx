@@ -16,7 +16,7 @@ export async function generateMetadata({ params }: { params: { sym: string } }):
 
   const enName  = company?.en ?? sym
   const arName  = company?.ar ?? sym
-  const title   = `${sym} — ${enName.slice(0, 36)} | Iraq Stock Exchange`
+  const title   = { absolute: `${sym} — ${enName.slice(0, 28)} | Iraq Stock Exchange` }
   const desc    = `${arName} (${sym}) — سعر السهم في سوق الاسهم العراقي مباشرة. ${enName} (${sym}) live share price, charts, and market data on the Iraq Stock Exchange (ISX).`.slice(0, 158)
   const url     = `${BASE}/c/${sym}`
 

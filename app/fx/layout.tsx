@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 export const metadata: Metadata = {
-  title: 'سعر الدولار اليوم في العراق — سعر الصرف مقابل الدينار',
+  title: { absolute: 'سعر الدولار اليوم في العراق | USD to IQD Rate' },
   description: 'سعر صرف الدولار الأمريكي مقابل الدينار العراقي اليوم — سعر 100 دولار بالدينار، محول العملات IQD/USD، وسعر الصرف الرسمي والسوق الموازية. Live dollar to Iraqi Dinar exchange rate and currency converter.',
   alternates: { canonical: 'https://iraqsm.com/fx' },
   openGraph: {

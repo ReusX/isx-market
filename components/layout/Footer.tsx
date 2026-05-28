@@ -93,6 +93,7 @@ export default function Footer() {
               { href: '/research',    ar: 'أبحاث',         en: 'Research' },
               { href: '/leaderboard', ar: 'المتصدرون',     en: 'Leaderboard' },
               { href: '/fx',          ar: 'IQD ⇄ USD',     en: 'IQD ⇄ USD' },
+              { href: '/learn/trading-from-zero', ar: 'تعلّم التداول', en: 'Learn Trading' },
             ].map(l => (
               <Link key={l.href} href={l.href} style={{ display: 'block', fontSize: 13, color: 'var(--ink3)', marginBottom: 10, textDecoration: 'none' }}
                 onMouseEnter={e => (e.currentTarget.style.color = 'var(--ink)')}
@@ -110,7 +111,7 @@ export default function Footer() {
             </div>
             {[
               { href: '/wallet', ar: 'محفظتي',          en: 'My Wallet' },
-              { href: '/spin',   ar: 'العجلة اليومية',   en: 'Daily Spin' },
+              { href: '/rewards/spin', ar: 'العجلة اليومية',   en: 'Daily Spin' },
               { href: '/points', ar: 'نظام النقاط',      en: 'Points System' },
               { href: '/quests', ar: 'المهام',            en: 'Quests' },
             ].map(l => (

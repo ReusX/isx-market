@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
-  title: 'About Iraq Stock Market — Iraq Stock Exchange (ISX) Tracker | عن بورصة العراق',
+  title: { absolute: 'عن بورصة العراق | About Iraq Stock Market (ISX)' },
   description: 'iraqsm.com is the leading Iraq stock market tracker — live prices, charts, and analysis for the Iraq Stock Exchange (ISX). Built for Iraqi investors. منصة متابعة سوق الاسهم العراقي وبورصة العراق للأوراق المالية.',
   alternates: { canonical: 'https://iraqsm.com/about' },
   keywords: [

@@ -66,17 +66,13 @@ const thmanyahSerifDisplay = localFont({
 
 export const metadata: Metadata = {
   title: {
-    default: 'Iraq Stock Market — Iraq Stock Exchange ISX | بورصة العراق | اسعار الاسهم العراقية',
-    template: '%s | Iraq Stock Market — iraqsm.com',
+    default: 'Iraq Stock Market ISX — بورصة العراق | اسعار الاسهم العراقية',
+    template: '%s | iraqsm.com',
   },
   description: 'Iraq Stock Market & Iraq Stock Exchange (ISX) — live prices, charts, and analysis for all Iraqi stocks. اسعار الاسهم العراقية مباشرة، تحليلات سوق الاسهم العراقي، مؤشر RSISX، اسهم العراق، بورصة العراق للأوراق المالية.',
   metadataBase: new URL('https://iraqsm.com'),
   alternates: {
     canonical: 'https://iraqsm.com',
-    languages: {
-      'ar-IQ': 'https://iraqsm.com',
-      'en':    'https://iraqsm.com',
-    },
   },
   keywords: [
     'iraq stock market', 'iraq stock exchange', 'isx stock exchange', 'isx market',
