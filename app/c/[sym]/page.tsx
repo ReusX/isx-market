@@ -172,63 +172,54 @@ function AdvancedChart({
         (rsData as { date: string; close: number }[]).filter(p => p.date >= cutoffD)
       if (!daily.length) return
 
-      // For 3M+ aggregate into weekly candles — ISX stocks often trade flat for
-      // days at a time, so daily candles produce many + doji marks on longer views.
-      // Weekly aggregation gives real bodies whenever any movement happens in the week.
-      type Pt = { date: string; open: number; high: number; low: number; close: number }
+      // For 3M+ aggregate into weekly candles so flat ISX days don't produce a
+      // wall of + doji marks. open = prior week's last close, close = this week's
+      // last close. We do NOT use weekly H/L from individual closes — that creates
+      // giant fake wicks. Wicks are purely cosmetic (±0.5%).
+      type Pt = { date: string; open: number; close: number }
       const points: Pt[] = (() => {
         if (days < 90) {
-          // Daily — use prevClose as open for visible body, min 0.3% body
-          return daily.map(({ date, close: c }, i) => {
-            const prev = i > 0 ? daily[i - 1].close : c
-            return { date, open: prev, high: c, low: c, close: c }
-          })
+          return daily.map(({ date, close: c }, i) => ({
+            date,
+            open:  i > 0 ? daily[i - 1].close : c,
+            close: c,
+          }))
         }
-        // Weekly — group by Mon date of each week
-        const weekMap = new Map<string, Pt>()
+        // Group by Monday of each ISO week
+        const weekMap = new Map<string, { date: string; close: number }>()
         for (const { date, close: c } of daily) {
           const d   = new Date(date)
-          const dow = d.getUTCDay() || 7        // Sun→7, Mon=1
+          const dow = d.getUTCDay() || 7
           const mon = new Date(d)
           mon.setUTCDate(d.getUTCDate() - dow + 1)
           const key = mon.toISOString().slice(0, 10)
-          if (!weekMap.has(key)) {
-            weekMap.set(key, { date: key, open: c, high: c, low: c, close: c })
-          } else {
-            const w = weekMap.get(key)!
-            w.high  = Math.max(w.high, c)
-            w.low   = Math.min(w.low,  c)
-            w.close = c
-          }
+          // Always overwrite so the last day of the week wins as close
+          weekMap.set(key, { date: key, close: c })
         }
-        // Bridge open of each week from prior week's close for visible body
         const weeks = Array.from(weekMap.values()).sort((a, b) => a.date.localeCompare(b.date))
         return weeks.map((w, i) => ({
-          ...w,
-          open: i > 0 ? weeks[i - 1].close : w.open,
+          date:  w.date,
+          open:  i > 0 ? weeks[i - 1].close : w.close,
+          close: w.close,
         }))
       })()
 
-      // Build lightweight-charts candle objects.
-      // Enforce minimum 0.3% body so flat candles don't render as invisible + marks.
-      // Wicks are ±0.5% of close (cosmetic only — ISX has no intraday H/L data).
-      const candles: any[] = points.map(({ date, open: rawOpen, high, low, close: c }) => {
-        const cl  = +c.toFixed(4)
-        const wick = +(cl * 0.005).toFixed(4)
-        // Minimum 0.3% body height — keeps dojis visible
+      // Build candle objects. Minimum 0.3% body so flat periods stay visible.
+      // Wicks ±0.5% cosmetic only — ISX has no reliable intraday H/L data.
+      const candles: any[] = points.map(({ date, open: rawOpen, close: c }) => {
+        const cl      = +c.toFixed(4)
         const minBody = +(cl * 0.003).toFixed(4)
-        let open = +rawOpen.toFixed(4)
+        const wick    = +(cl * 0.005).toFixed(4)
+        let open      = +rawOpen.toFixed(4)
         if (Math.abs(cl - open) < minBody) {
           open = cl >= open ? +(cl - minBody).toFixed(4) : +(cl + minBody).toFixed(4)
         }
-        const realHigh = Math.max(high, open, cl)
-        const realLow  = Math.min(low,  open, cl)
         return {
           time:  date,
           open,
           close: cl,
-          high:  +(realHigh + wick).toFixed(4),
-          low:   +Math.max(0.001, realLow - wick).toFixed(4),
+          high:  +(Math.max(open, cl) + wick).toFixed(4),
+          low:   +Math.max(0.001, Math.min(open, cl) - wick).toFixed(4),
           volume: 0,
         }
       })
