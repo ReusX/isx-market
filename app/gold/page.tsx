@@ -78,12 +78,12 @@ export default function GoldPage() {
 
         {/* H1 */}
         <h1 style={{ fontSize: 24, fontWeight: 800, marginBottom: 4, lineHeight: 1.3 }}>
-          Gold Price Today
+          Gold Price in Iraq Today
         </h1>
         <p style={{ fontSize: 13, color: 'var(--ink4)', marginBottom: 28 }}>
           {loading
-            ? 'Loading...'
-            : `Updated: ${gold?.updatedAt} — Spot price: ${fmtUSD(priceUSD, 2)}/troy oz`}
+            ? 'Loading live Iraq gold rate...'
+            : `Iraq gold rate updated: ${gold?.updatedAt} — International spot: ${fmtUSD(priceUSD, 2)}/troy oz`}
         </p>
 
         {/* Spot price hero */}
@@ -108,7 +108,7 @@ export default function GoldPage() {
 
         {/* Per-gram prices by karat */}
         <h2 style={{ fontSize: 14, fontWeight: 700, color: 'var(--ink3)', marginBottom: 12, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-          Price per Gram
+          Iraq Gold Price Today — Per Gram
         </h2>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: 10, marginBottom: 28 }}>
           {karats.map(k => (
@@ -127,7 +127,7 @@ export default function GoldPage() {
 
         {/* Weights table */}
         <h2 style={{ fontSize: 14, fontWeight: 700, color: 'var(--ink3)', marginBottom: 12, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-          Weight Table — 18K
+          Iraq Gold Rate — Weight Table (18K)
         </h2>
         <div style={{
           background: 'var(--surf)', border: '1px solid var(--line)',
@@ -162,7 +162,7 @@ export default function GoldPage() {
 
         {/* Calculator */}
         <h2 style={{ fontSize: 14, fontWeight: 700, color: 'var(--ink3)', marginBottom: 12, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-          Gold Price Calculator
+          Iraq Gold Price Calculator
         </h2>
         <div style={{
           background: 'var(--surf)', border: '1px solid var(--line)',
@@ -193,21 +193,69 @@ export default function GoldPage() {
         <div style={{
           background: 'var(--surf)', border: '1px solid var(--line)',
           borderRadius: 12, padding: '20px', fontSize: 14, lineHeight: 1.8, color: 'var(--ink2)',
+          marginBottom: 20,
         }}>
           <h2 style={{ fontSize: 16, fontWeight: 700, marginBottom: 12, color: 'var(--ink)' }}>
-            How is the gold price calculated?
+            How is the gold price in Iraq calculated?
           </h2>
           <p style={{ marginBottom: 10 }}>
-            Gold is priced globally in <strong>troy ounces</strong> (1 troy oz = 31.1035 grams) and traded
-            24/7 on commodity markets. The spot price shown here is the international benchmark in USD.
+            The <strong>gold price in Iraq today</strong> is derived from the international spot price quoted in
+            USD per troy ounce (1 troy oz = 31.1035 g) and converted to <strong>Iraqi Dinar (IQD)</strong> at
+            the current exchange rate. The official CBI rate is ~1,310 IQD per USD.
           </p>
           <p style={{ marginBottom: 10 }}>
-            Karat denotes purity: <strong>24K is 99.9% pure</strong>, 22K is 91.7%, 18K is 75%, and 14K is 58.3%.
-            Jewelry is typically 18K or 22K — a balance of purity and durability.
+            Karat denotes purity: <strong>24K is 99.9% pure gold</strong>, 21K is 87.5% (the most common
+            karat in Iraqi jewellery markets), 18K is 75%, and 14K is 58.3%.
+          </p>
+          <p style={{ marginBottom: 10 }}>
+            The <strong>mithqal (مثقال)</strong> — equal to 4.608 grams — is the traditional Iraqi unit for
+            quoting gold. The <strong>iraq gold rate today</strong> for one mithqal of 21K is the most widely
+            searched gold price in Iraq.
           </p>
           <p>
-            Prices update in real time during market hours and reflect the London/COMEX spot benchmark.
-            Dealer premiums, fabrication costs, and local taxes are additional.
+            Prices reflect the London/COMEX spot benchmark and update in real time during market hours.
+            Local dealer premiums, fabrication costs, and taxes are additional.
+          </p>
+        </div>
+
+        {/* English SEO section — targets backlink traffic from cryptonews / coinnews */}
+        <div style={{
+          background: 'var(--surf)', border: '1px solid var(--line)',
+          borderRadius: 12, padding: '20px 24px', fontSize: 14, lineHeight: 1.9, color: 'var(--ink2)',
+        }}>
+          <h2 style={{ fontSize: 18, fontWeight: 800, marginBottom: 16, color: 'var(--ink)' }}>
+            Iraq Gold Price Today — Everything You Need to Know
+          </h2>
+
+          <h3 style={{ fontSize: 15, fontWeight: 700, marginBottom: 8, color: 'var(--ink)' }}>
+            Why is the gold price in Iraq different from the global price?
+          </h3>
+          <p style={{ marginBottom: 14 }}>
+            The <strong>gold price in Iraq</strong> is the international USD spot price converted to Iraqi
+            Dinar. Because the IQD/USD rate is managed by the Central Bank of Iraq (CBI) and a parallel
+            market rate exists, the effective price can differ slightly between official and market
+            channels. This page uses the CBI official rate of approximately 1,310 IQD per USD, which you
+            can adjust in the rate input above.
+          </p>
+
+          <h3 style={{ fontSize: 15, fontWeight: 700, marginBottom: 8, color: 'var(--ink)' }}>
+            Gold price in Iraq 2026 — current trends
+          </h3>
+          <p style={{ marginBottom: 14 }}>
+            In 2026, the <strong>iraq gold price</strong> has tracked global commodity markets closely.
+            Gold broke record highs in USD terms, pushing the <strong>gold price in Iraqi Dinar</strong>
+            to historic levels. Iraqi consumers and jewellers primarily trade 21K gold (عيار 21), making
+            the mithqal price the most-watched daily figure in Iraqi souks.
+          </p>
+
+          <h3 style={{ fontSize: 15, fontWeight: 700, marginBottom: 8, color: 'var(--ink)' }}>
+            How to read the Iraq gold rate table
+          </h3>
+          <p style={{ marginBottom: 0 }}>
+            The tables above show the <strong>iraq gold rate today</strong> for common weights (gram,
+            mithqal, 5g, 10g, 100g) across the four most traded karat grades. Use the calculator to
+            convert any custom weight to IQD instantly. All prices update automatically from the live
+            international gold spot market.
           </p>
         </div>
       </div>
@@ -220,10 +268,10 @@ export default function GoldPage() {
 
       {/* H1 */}
       <h1 style={{ fontSize: 24, fontWeight: 800, marginBottom: 4, lineHeight: 1.3 }}>
-        سعر الذهب اليوم في العراق
+        سعر الذهب اليوم في العراق بالدينار العراقي
       </h1>
       <p style={{ fontSize: 13, color: 'var(--ink4)', marginBottom: 28 }}>
-        {loading ? 'جاري التحميل...' : `آخر تحديث: ${gold?.updatedAt} — السعر العالمي: $${priceUSD.toFixed(2)}/أوقية`}
+        {loading ? 'جاري تحميل اسعار الذهب...' : `آخر تحديث: ${gold?.updatedAt} — السعر العالمي: $${priceUSD.toFixed(2)}/أوقية`}
       </p>
 
       {/* IQD/USD rate input */}
@@ -250,7 +298,7 @@ export default function GoldPage() {
 
       {/* Per-gram prices by karat */}
       <h2 style={{ fontSize: 14, fontWeight: 700, color: 'var(--ink3)', marginBottom: 12, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-        سعر الغرام الواحد
+        سعر غرام الذهب في العراق اليوم
       </h2>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: 10, marginBottom: 28 }}>
         {karats.map(k => (
@@ -269,7 +317,7 @@ export default function GoldPage() {
 
       {/* Mithqal section — most searched in Iraq */}
       <h2 style={{ fontSize: 14, fontWeight: 700, color: 'var(--ink3)', marginBottom: 12, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-        سعر المثقال (٤.٦٠٨ غرام)
+        سعر مثقال الذهب في العراق اليوم (٤.٦٠٨ غرام)
       </h2>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: 10, marginBottom: 28 }}>
         {karats.map(k => (
@@ -288,7 +336,7 @@ export default function GoldPage() {
 
       {/* Quick weights table */}
       <h2 style={{ fontSize: 14, fontWeight: 700, color: 'var(--ink3)', marginBottom: 12, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-        جدول الأوزان — عيار 21
+        اسعار الذهب العراق اليوم — جدول الأوزان عيار 21
       </h2>
       <div style={{
         background: 'var(--surf)', border: '1px solid var(--line)',
@@ -320,7 +368,7 @@ export default function GoldPage() {
 
       {/* Calculator */}
       <h2 style={{ fontSize: 14, fontWeight: 700, color: 'var(--ink3)', marginBottom: 12, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-        حاسبة سعر الذهب
+        حاسبة سعر الذهب بالدينار العراقي
       </h2>
       <div style={{
         background: 'var(--surf)', border: '1px solid var(--line)',
@@ -356,19 +404,23 @@ export default function GoldPage() {
         borderRadius: 12, padding: '20px', fontSize: 14, lineHeight: 1.8, color: 'var(--ink2)',
       }}>
         <h2 style={{ fontSize: 16, fontWeight: 700, marginBottom: 12, color: 'var(--ink)' }}>
-          كيف يُحسب سعر الذهب في العراق؟
+          كيف يُحسب سعر الذهب اليوم في العراق بالدينار العراقي؟
         </h2>
         <p style={{ marginBottom: 10 }}>
-          يُحدَّد <strong>سعر الذهب اليوم في العراق</strong> بناءً على سعر الذهب العالمي بالأونصة (Troy Ounce = 31.1 غرام)
-          مضروباً بسعر صرف الدولار مقابل الدينار العراقي، ثم مقسوماً على عيار الذهب.
+          يُحدَّد <strong>سعر الذهب اليوم في العراق</strong> بناءً على <strong>سعر الذهب العالمي بالدولار</strong> لكل أونصة
+          (Troy Ounce = 31.1 غرام) مضروباً بسعر صرف الدينار العراقي مقابل الدولار (1310 دينار تقريباً)،
+          ثم مقسوماً على 31.1 للحصول على <strong>سعر غرام الذهب في العراق</strong>.
         </p>
         <p style={{ marginBottom: 10 }}>
-          <strong>المثقال</strong> هو وحدة الوزن الشائعة في أسواق الذهب العراقية = <strong>4.608 غرام</strong>.
-          أكثر الأوزان شيوعاً في السوق العراقية هو <strong>عيار 21</strong>.
+          <strong>المثقال</strong> هو وحدة الوزن الأساسية في أسواق الذهب العراقية = <strong>4.608 غرام</strong>.
+          <strong>سعر مثقال الذهب عيار 21</strong> هو الأكثر تداولاً وبحثاً في العراق يومياً.
+        </p>
+        <p style={{ marginBottom: 10 }}>
+          تتغير <strong>اسعار الذهب العراق اليوم</strong> مع تذبذبات أسواق السلع العالمية.
+          يمكنك تعديل <strong>سعر الصرف</strong> بالدينار العراقي أعلاه لمطابقة السعر المتداول في السوق المحلية.
         </p>
         <p>
-          يتغير <strong>سعر مثقال الذهب عيار 21</strong> يومياً تبعاً لتذبذبات أسواق السلع العالمية.
-          يمكنك تعديل سعر الصرف أعلاه لمطابقة السعر المتداول في السوق المحلية.
+          <strong>سعر الذهب بالدينار العراقي</strong> يعكس مزيجاً من السعر الدولي وسعر الصرف المعتمد من البنك المركزي العراقي.
         </p>
       </div>
     </div>
