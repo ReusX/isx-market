@@ -94,8 +94,16 @@ export const metadata: Metadata = {
   },
   twitter: { card: 'summary_large_image', site: '@iraqsm' },
   icons: {
-    icon: [{ url: '/favicon.svg', type: 'image/svg+xml' }, { url: '/favicon-32.png', sizes: '32x32' }],
-    apple: '/favicon-192.png',
+    icon: [
+      { url: '/favicon.svg',    type: 'image/svg+xml' },
+      { url: '/favicon-32.png', sizes: '32x32',   type: 'image/png' },
+      { url: '/favicon-192.png',sizes: '192x192', type: 'image/png' },
+      { url: '/icon.png',       sizes: '1024x1024',type: 'image/png' },
+    ],
+    apple: [
+      { url: '/favicon-192.png', sizes: '192x192', type: 'image/png' },
+    ],
+    shortcut: '/favicon-192.png',
   },
 }
 
@@ -133,8 +141,15 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                 '@type': 'Organization',
                 '@id': 'https://iraqsm.com/#organization',
                 name: 'Iraq Stock Market',
+                alternateName: 'iraqsm.com',
                 url: 'https://iraqsm.com',
-                logo: { '@type': 'ImageObject', url: 'https://iraqsm.com/favicon-192.png' },
+                logo: {
+                  '@type': 'ImageObject',
+                  url: 'https://iraqsm.com/icon.png',
+                  width: 1024,
+                  height: 1024,
+                },
+                image: 'https://iraqsm.com/icon.png',
                 sameAs: ['https://iraqsm.com'],
               },
               {
