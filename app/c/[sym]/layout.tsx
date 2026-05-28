@@ -14,28 +14,33 @@ export async function generateMetadata({ params }: { params: { sym: string } }):
   const company = (companiesData as { sym: string; ar: string; en: string; sec?: string }[])
     .find(c => c.sym === sym)
 
-  const enName = company?.en ?? sym
-  // Keep title under 60 chars
-  const title  = `${sym} – ${enName.length > 32 ? enName.slice(0, 32) + '…' : enName}`
-  const desc   = `${company?.ar ?? sym} (${sym}) — سعر السهم مباشرة من بورصة العراق. ${enName} live share price, charts and data on Iraq Stock Exchange.`.slice(0, 158)
-  const url    = `${BASE}/c/${sym}`
+  const enName  = company?.en ?? sym
+  const arName  = company?.ar ?? sym
+  const title   = `${sym} — ${enName.slice(0, 36)} | Iraq Stock Exchange`
+  const desc    = `${arName} (${sym}) — سعر السهم في سوق الاسهم العراقي مباشرة. ${enName} (${sym}) live share price, charts, and market data on the Iraq Stock Exchange (ISX).`.slice(0, 158)
+  const url     = `${BASE}/c/${sym}`
 
   return {
     title,
     description: desc,
     alternates: { canonical: url },
+    keywords: [
+      `${sym}`, `${enName}`, `${arName}`,
+      'iraq stock exchange', 'iraq stock market', 'isx',
+      'اسعار الاسهم العراقية', 'سوق الاسهم العراقي',
+    ],
     openGraph: {
-      title:       `${sym} | ISX Market`,
+      title:       `${sym} — ${enName} | Iraq Stock Exchange`,
       description: desc,
       url,
-      siteName: 'ISX Market',
-      images:   [{ url: '/opengraph-image', width: 1200, height: 630, alt: `${sym} – ISX Market` }],
+      siteName: 'Iraq Stock Market — iraqsm.com',
+      images:   [{ url: '/opengraph-image', width: 1200, height: 630, alt: `${sym} – Iraq Stock Exchange` }],
       locale:   'ar_IQ',
       type:     'website',
     },
     twitter: {
       card:        'summary_large_image',
-      title:       `${sym} | ISX Market`,
+      title:       `${sym} — ${enName} | Iraq Stock Exchange`,
       description: desc,
       images:      ['/opengraph-image'],
     },
@@ -59,7 +64,7 @@ export default function CompanyLayout({ children, params }: Props) {
         overflow: 'hidden', clip: 'rect(0,0,0,0)',
         whiteSpace: 'nowrap',
       }}>
-        {company.en} ({sym}) — Iraq Stock Exchange Share Price
+        {company.en} ({sym}) — Iraq Stock Exchange Share Price | {company.ar} سعر السهم في سوق الاسهم العراقي
       </h1>
       {children}
     </>

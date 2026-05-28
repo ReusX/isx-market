@@ -1,0 +1,22 @@
+import type { Metadata } from 'next'
+
+export const metadata: Metadata = {
+  title: 'Iraq Stock Exchange Listed Companies — ISX Companies | الشركات المدرجة في بورصة العراق',
+  description: 'All companies listed on the Iraq Stock Exchange (ISX) — browse by sector including banking, telecom, industry, insurance, and more. الشركات المدرجة في بورصة العراق للأوراق المالية، اسهم العراق، سوق الاسهم العراقي.',
+  alternates: { canonical: 'https://iraqsm.com/companies' },
+  keywords: [
+    'iraq stock exchange companies', 'isx listed companies', 'iraq stock market companies',
+    'الشركات المدرجة في بورصة العراق', 'اسهم العراق', 'سوق الاسهم العراقي',
+    'شركات البورصة العراقية', 'بورصة العراق',
+  ],
+  openGraph: {
+    url: 'https://iraqsm.com/companies',
+    title: 'Iraq Stock Exchange Listed Companies — ISX | الشركات المدرجة في بورصة العراق',
+    description: 'All companies listed on the Iraq Stock Exchange (ISX). الشركات المدرجة في بورصة العراق للأوراق المالية.',
+    images: [{ url: '/opengraph-image', width: 1200, height: 630 }],
+  },
+}
+
+export default function CompaniesLayout({ children }: { children: React.ReactNode }) {
+  return <>{children}</>
+}

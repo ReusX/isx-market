@@ -187,6 +187,11 @@ export default function HomePage() {
 
   return (
     <>
+      {/* ── SEO H1 — visually hidden, crawlable ── */}
+      <h1 style={{ position: 'absolute', width: 1, height: 1, overflow: 'hidden', clip: 'rect(0,0,0,0)', whiteSpace: 'nowrap' }}>
+        Iraq Stock Market — Iraq Stock Exchange (ISX) Live Prices | اسعار الاسهم العراقية | سوق الاسهم العراقي | بورصة العراق
+      </h1>
+
       {/* ── Slim strip — desktop only ── */}
       <div className="desktop-only" style={{
         background: 'var(--surf)', borderBottom: '1px solid var(--line)',

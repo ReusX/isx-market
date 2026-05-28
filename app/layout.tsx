@@ -65,23 +65,34 @@ const thmanyahSerifDisplay = localFont({
 })
 
 export const metadata: Metadata = {
-  title: { default: 'ISX Market — بورصة العراق | تداول، استثمار، أسهم عراقية', template: '%s | ISX Market' },
-  description: 'ISX Market — بورصة العراق للأوراق المالية. تتبع أسعار الاسهم العراقية مباشرة، تداول واستثمار، تحليلات مالية، أخبار السوق، ومؤشر RSISX. Iraq Stock Exchange live prices, trading, investing and analysis.',
+  title: {
+    default: 'Iraq Stock Market — Iraq Stock Exchange ISX | بورصة العراق | اسعار الاسهم العراقية',
+    template: '%s | Iraq Stock Market — iraqsm.com',
+  },
+  description: 'Iraq Stock Market & Iraq Stock Exchange (ISX) — live prices, charts, and analysis for all Iraqi stocks. اسعار الاسهم العراقية مباشرة، تحليلات سوق الاسهم العراقي، مؤشر RSISX، اسهم العراق، بورصة العراق للأوراق المالية.',
   metadataBase: new URL('https://iraqsm.com'),
-  // Root canonical covers the home page (which is 'use client' and can't export metadata).
-  // Pages with their own alternates.canonical automatically override this.
-  alternates: { canonical: 'https://iraqsm.com' },
-  keywords: ['iraq stock market', 'isx market', 'iraq stock exchange', 'الاسهم العراقية', 'بورصة العراق', 'تداول', 'استثمار', 'اسهم', 'RSISX', 'rabee'],
+  alternates: {
+    canonical: 'https://iraqsm.com',
+    languages: {
+      'ar-IQ': 'https://iraqsm.com',
+      'en':    'https://iraqsm.com',
+    },
+  },
+  keywords: [
+    'iraq stock market', 'iraq stock exchange', 'isx stock exchange', 'isx market',
+    'اسعار الاسهم العراقية', 'اسهم العراق', 'سوق الاسهم العراقي', 'بورصة العراق',
+    'أبحاث السوق في العراق', 'الاسهم العراقية', 'تداول', 'استثمار', 'RSISX', 'rabee securities',
+  ],
   openGraph: {
-    title: 'ISX Market — بورصة العراق | Iraq Stock Exchange',
-    description: 'تتبع أسعار الاسهم العراقية مباشرة، مؤشر RSISX، تحليلات مالية وأخبار بورصة العراق. Iraq Stock Exchange live prices, charts, trading and analysis.',
+    title: 'Iraq Stock Market — Iraq Stock Exchange (ISX) | اسعار الاسهم العراقية',
+    description: 'Live prices, charts, and market data for all stocks on the Iraq Stock Exchange (ISX). اسعار الاسهم العراقية مباشرة، سوق الاسهم العراقي، بورصة العراق.',
     url: 'https://iraqsm.com',
-    siteName: 'ISX Market',
+    siteName: 'Iraq Stock Market — iraqsm.com',
     images: [{ url: '/opengraph-image', width: 1200, height: 630 }],
     locale: 'ar_IQ',
     type: 'website',
   },
-  twitter: { card: 'summary_large_image' },
+  twitter: { card: 'summary_large_image', site: '@iraqsm' },
   icons: {
     icon: [{ url: '/favicon.svg', type: 'image/svg+xml' }, { url: '/favicon-32.png', sizes: '32x32' }],
     apple: '/favicon-192.png',
@@ -99,6 +110,45 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="ar" dir="rtl" className={`${inter.variable} ${jetbrainsMono.variable} ${thmanyahSans.variable} ${thmanyahSerifText.variable} ${thmanyahSerifDisplay.variable}`} suppressHydrationWarning>
       <head />
       <body>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify({
+            '@context': 'https://schema.org',
+            '@graph': [
+              {
+                '@type': 'WebSite',
+                '@id': 'https://iraqsm.com/#website',
+                url: 'https://iraqsm.com',
+                name: 'Iraq Stock Market — iraqsm.com',
+                alternateName: ['ISX Market', 'Iraq Stock Exchange', 'بورصة العراق', 'سوق الاسهم العراقي'],
+                description: 'Live prices, charts, and analysis for the Iraq Stock Exchange (ISX). اسعار الاسهم العراقية مباشرة.',
+                inLanguage: ['ar-IQ', 'en'],
+                potentialAction: {
+                  '@type': 'SearchAction',
+                  target: { '@type': 'EntryPoint', urlTemplate: 'https://iraqsm.com/market?q={search_term_string}' },
+                  'query-input': 'required name=search_term_string',
+                },
+              },
+              {
+                '@type': 'Organization',
+                '@id': 'https://iraqsm.com/#organization',
+                name: 'Iraq Stock Market',
+                url: 'https://iraqsm.com',
+                logo: { '@type': 'ImageObject', url: 'https://iraqsm.com/favicon-192.png' },
+                sameAs: ['https://iraqsm.com'],
+              },
+              {
+                '@type': 'FinancialService',
+                '@id': 'https://iraqsm.com/#service',
+                name: 'Iraq Stock Exchange Market Tracker',
+                description: 'Real-time stock market data for the Iraq Stock Exchange (ISX) — prices, charts, indices, and company analysis.',
+                url: 'https://iraqsm.com',
+                areaServed: { '@type': 'Country', name: 'Iraq' },
+                serviceType: 'Stock Market Data',
+              },
+            ],
+          })}}
+        />
         <AppProvider>
           <Navbar />
           <main style={{ paddingTop: 'var(--nav-h)' }}>

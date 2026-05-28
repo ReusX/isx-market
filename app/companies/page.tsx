@@ -1,13 +1,5 @@
 import Link from 'next/link'
-import type { Metadata } from 'next'
 import companiesData from '@/public/data/companies.json'
-
-export const metadata: Metadata = {
-  title: 'الشركات المدرجة | ISX Listed Companies',
-  description: 'قائمة جميع الشركات المدرجة في بورصة العراق للأوراق المالية — 104 شركة في مختلف القطاعات. All 104 companies listed on the Iraq Stock Exchange (ISX).',
-  alternates: { canonical: 'https://iraqsm.com/companies' },
-  openGraph: { url: 'https://iraqsm.com/companies', images: [{ url: '/opengraph-image', width: 1200, height: 630 }] },
-}
 
 const SECTOR_LABELS: Record<string, { ar: string; en: string }> = {
   BNK: { ar: 'المصارف',        en: 'Banking' },
@@ -39,11 +31,12 @@ export default function CompaniesPage() {
   return (
     <div style={{ maxWidth: 1100, margin: '0 auto', padding: '24px 24px 60px' }}>
       <h1 style={{ fontSize: 24, fontWeight: 800, marginBottom: 6 }}>
-        الشركات المدرجة — Iraq Stock Exchange
+        الشركات المدرجة في بورصة العراق — Iraq Stock Exchange Listed Companies
       </h1>
       <p style={{ fontSize: 14, color: 'var(--ink3)', marginBottom: 32 }}>
         {companies.length} شركة مدرجة في بورصة العراق للأوراق المالية (ISX) —&nbsp;
-        {companies.length} companies listed on the Iraq Stock Exchange
+        {companies.length} companies listed on the Iraq Stock Exchange (ISX).
+        تصفح اسهم العراق حسب القطاع — browse Iraq stock market companies by sector.
       </p>
 
       {Object.entries(bySector).sort().map(([sec, cos]) => (
