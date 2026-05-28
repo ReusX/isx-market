@@ -162,73 +162,109 @@ function AdvancedChart({
       if (cancelled || !mainRef.current) return
       state.LC = LC
 
-      const rsData = await fetch(`/api/stock/${sym}`).then(r => r.json()).catch(() => [])
+      // ── Load real ISX data ────────────────────────────────────────────────
+      // ohlcv.json — real O/H/L/C/V from ISX portal (last ~59 trading days)
+      // hist.json  — daily close prices per symbol (s=1Y, l=multi-year)
+      const symUpper = sym.toUpperCase()
+      const days     = TF_DAYS[tf] ?? 30
+      const cutoffD  = new Date(Date.now() - days * 86400 * 1000).toISOString().slice(0, 10)
+
+      const [ohlcvRaw, histRaw] = await Promise.all([
+        fetch('/data/ohlcv.json').then(r => r.json()).catch(() => ({})),
+        fetch('/data/hist.json').then(r => r.json()).catch(() => ({ s: {}, l: {} })),
+      ])
       if (cancelled || !mainRef.current) return
 
-      // ── Data from Rabee Securities SiteRsIndexList ────────────────────────
-      // ISX stocks trade at ONE fixed price per day (no intraday H/L).
-      // Flat runs of 14+ consecutive days at the same price are common.
-      // Strategy: body = prevClose→close | zero wicks | 0.6% min body.
-      const allDaily: { date: string; close: number }[] = rsData ?? []
-      const days    = TF_DAYS[tf] ?? 30
-      const cutoffD = new Date(Date.now() - days * 86400 * 1000).toISOString().slice(0, 10)
-      const daily   = allDaily.filter(p => p.date >= cutoffD)
-      if (!daily.length) return
+      // Build ohlcv lookup: date → {o,h,l,c,v}
+      type OhlcvEntry = { o: number; h: number; l: number; c: number; v: number }
+      const ohlcvByDate: Record<string, OhlcvEntry> = {}
+      for (const [date, stocks] of Object.entries(ohlcvRaw as Record<string, any>)) {
+        const s = stocks[symUpper]
+        if (s) ohlcvByDate[date] = s
+      }
 
-      // ── Aggregate to weekly for 3M+ ───────────────────────────────────────
-      // Each week: open = prev-week's last close, close = this week's last close.
-      // Weekly high = highest close in week, low = lowest close in week
-      // (real weekly range, not fake intraday).
-      type Pt = { date: string; open: number; close: number; high: number; low: number }
+      // Raw points before aggregation
+      type RawPt = { date: string; o: number; h: number; l: number; c: number; v: number; real: boolean }
+      let rawPts: RawPt[] = []
 
-      const points: Pt[] = (() => {
-        if (days < 90) {
-          return daily.map(({ date, close: c }, i) => {
-            const prev = i > 0 ? daily[i - 1].close : c
-            return { date, open: prev, close: c, high: Math.max(prev, c), low: Math.min(prev, c) }
-          })
+      if (days <= 90) {
+        // Short timeframes: use real ohlcv candles only
+        for (const [date, s] of Object.entries(ohlcvByDate)) {
+          if (date >= cutoffD) {
+            rawPts.push({ date, o: s.o, h: s.h, l: s.l, c: s.c, v: s.v ?? 0, real: true })
+          }
         }
-        // Group by Monday of each ISO week
-        const weekMap = new Map<string, { date: string; first: number; last: number; high: number; low: number }>()
-        for (const { date, close: c } of daily) {
-          const d = new Date(date); const dow = d.getUTCDay() || 7
-          const mon = new Date(d); mon.setUTCDate(d.getUTCDate() - dow + 1)
+        rawPts.sort((a, b) => a.date.localeCompare(b.date))
+      } else {
+        // Long timeframes: hist.json close series + overlay real ohlcv where available
+        const series: [number, number][] = (days <= 365 ? histRaw.s : histRaw.l)?.[symUpper] ?? []
+        const seen = new Set<string>()
+        for (const [ts, close] of series) {
+          const date = tsToDate(ts)
+          if (date < cutoffD || seen.has(date)) continue
+          seen.add(date)
+          const real = ohlcvByDate[date]
+          if (real) {
+            rawPts.push({ date, o: real.o, h: real.h, l: real.l, c: real.c, v: real.v ?? 0, real: true })
+          } else {
+            rawPts.push({ date, o: close, h: close, l: close, c: close, v: 0, real: false })
+          }
+        }
+        // series is already time-sorted
+      }
+
+      if (!rawPts.length) return
+
+      // ── Weekly aggregation for 1Y+ (reduces 250+ candles to ~52) ─────────
+      type FinalPt = { date: string; o: number; h: number; l: number; c: number; v: number }
+      const points: FinalPt[] = (() => {
+        if (days < 365) return rawPts  // daily candles for 1D/1W/1M/3M
+        const weekMap = new Map<string, { date: string; o: number; h: number; l: number; c: number; v: number }>()
+        for (const pt of rawPts) {
+          const d   = new Date(pt.date)
+          const dow = d.getUTCDay() || 7
+          const mon = new Date(d)
+          mon.setUTCDate(d.getUTCDate() - dow + 1)
           const key = mon.toISOString().slice(0, 10)
-          if (!weekMap.has(key)) weekMap.set(key, { date: key, first: c, last: c, high: c, low: c })
-          else {
+          if (!weekMap.has(key)) {
+            weekMap.set(key, { date: key, o: pt.o, h: pt.h, l: pt.l, c: pt.c, v: pt.v })
+          } else {
             const w = weekMap.get(key)!
-            w.last = c; w.high = Math.max(w.high, c); w.low = Math.min(w.low, c)
+            w.h  = Math.max(w.h, pt.h)
+            w.l  = Math.min(w.l, pt.l)
+            w.c  = pt.c
+            w.v += pt.v
           }
         }
         const weeks = Array.from(weekMap.values()).sort((a, b) => a.date.localeCompare(b.date))
-        return weeks.map((w, i) => {
-          const prevClose = i > 0 ? weeks[i - 1].last : w.first
-          return { date: w.date, open: prevClose, close: w.last, high: w.high, low: w.low }
-        })
+        // Set weekly open = previous week's close
+        return weeks.map((w, i) => ({
+          ...w,
+          o: i > 0 ? weeks[i - 1].c : w.o,
+        }))
       })()
 
       // ── Build candles ─────────────────────────────────────────────────────
-      // · body  = open → close (green if close > open, red if close < open)
-      // · wicks = real weekly price range for weekly candles; for daily candles
-      //   the wick = body bounds (no fake intraday extension)
-      // · minimum 0.6% body so flat days render as a visible bar, not a dot
+      // For real ohlcv points: use actual O/H/L from the exchange.
+      // For synthetic (hist close-only): open = prev close, no real wicks.
+      // Minimum 0.6% body so flat days render as a visible bar, not a dot.
       const MIN_BODY = 0.006
-      const candles: any[] = points.map(({ date, open: rawOpen, close: c, high: rawH, low: rawL }) => {
-        const cl      = +c.toFixed(4)
-        let   open    = +rawOpen.toFixed(4)
-        const bodyPct = Math.abs(cl - open) / cl
+      const candles: any[] = points.map((pt, i) => {
+        const cl      = +pt.c.toFixed(4)
+        let   open    = +pt.o.toFixed(4)
+        const bodyPct = Math.abs(cl - open) / (cl || 1)
 
         if (bodyPct < MIN_BODY) {
-          // Flat or near-flat: force a visible body in the direction of drift
-          open = cl >= rawOpen
+          const prevC = i > 0 ? points[i - 1].c : pt.c
+          open = cl >= prevC
             ? +(cl - cl * MIN_BODY).toFixed(4)   // green bar
             : +(cl + cl * MIN_BODY).toFixed(4)   // red bar
         }
 
-        const hi = +Math.max(rawH, open, cl).toFixed(4)
-        const lo = +Math.max(0.001, Math.min(rawL, open, cl)).toFixed(4)
+        const hi = +Math.max(pt.h, open, cl).toFixed(4)
+        const lo = +Math.max(0.001, Math.min(pt.l, open, cl)).toFixed(4)
 
-        return { time: date, open, close: cl, high: hi, low: lo, volume: 0 }
+        return { time: pt.date, open, close: cl, high: hi, low: lo, volume: pt.v }
       })
 
       state.candles = candles
