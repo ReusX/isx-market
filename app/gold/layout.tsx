@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
-  title: { absolute: 'سعر الذهب اليوم في العراق | Gold Price in Iraq Today' },
+  title: { absolute: 'سعر الذهب اليوم في العراق | Iraq Gold Rate in IQD' },
   description: 'Gold price in Iraq today in IQD and USD — iraq gold rate today per gram and mithqal for 24K, 21K, 18K. سعر الذهب اليوم في العراق بالدينار العراقي، سعر مثقال الذهب عيار 21، سعر غرام الذهب في العراق، اسعار الذهب العراق اليوم.',
   alternates: { canonical: 'https://iraqsm.com/gold' },
   keywords: [
