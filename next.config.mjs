@@ -16,6 +16,12 @@ const nextConfig = {
       // /en/ was crawled by Google — redirect cleanly to root
       { source: '/en', destination: '/', permanent: true },
       { source: '/en/:path*', destination: '/:path*', permanent: true },
+
+      // Delisted/invalid tickers Google discovered from an old source —
+      // not in companies.json or price data. Send them to the company
+      // list instead of returning a 404.
+      { source: '/c/MTMT', destination: '/companies', permanent: true },
+      { source: '/c/MTRA', destination: '/companies', permanent: true },
     ]
   },
 
