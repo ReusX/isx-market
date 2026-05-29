@@ -120,19 +120,19 @@ function RSISXSpark({ data, up, w = 120, h = 40 }: { data: [number, number][]; u
 
 // ─── Page ────────────────────────────────────────────────────────────────────
 export default function HomeClient(
-  { initialLive = null, initialCompanies = [] }:
-  { initialLive?: LiveData | null; initialCompanies?: Company[] }
+  { initialLive = null }:
+  { initialLive?: LiveData | null }
 ) {
   const { lang, user, profile, authLoading, watchlist, toggleWatchlist, openAuth } = useApp()
   const ar = lang === 'ar'
   const router = useRouter()
 
-  // Seed from server-rendered data so the hero (LCP element) paints in the
-  // initial HTML instead of waiting on a client fetch. The effect below still
-  // refreshes with the latest prices on mount.
-  const [companies, setCompanies] = useState<Company[]>(initialCompanies)
+  // Seed only the small live snapshot from the server so the hero RSISX number
+  // (the LCP element) is present in the initial HTML. The heavy company list
+  // stays client-fetched to keep the HTML document light (fast FCP).
+  const [companies, setCompanies] = useState<Company[]>([])
   const [liveData,  setLiveData]  = useState<LiveData | null>(initialLive)
-  const [loading,   setLoading]   = useState(!initialLive)
+  const [loading,   setLoading]   = useState(true)
   const [sector,    setSector]    = useState('all')
   const [sort,      setSort]      = useState('default')
   const [histShort,  setHistShort]  = useState<Record<string, [number, number][]>>({})
@@ -267,13 +267,13 @@ export default function HomeClient(
                     {ar ? 'مؤشر ربيع RSISX' : 'RSISX Index'} ›
                   </div>
                   <div style={{ fontFamily: 'var(--font-mono)', fontSize: 26, fontWeight: 800, lineHeight: 1 }}>
-                    {loading ? '—' : rsisxVal}
+                    {rsisxVal}
                   </div>
                   {/* Reserve height always — prevents CLS when pct loads */}
                   <div style={{
                     fontSize: 12, fontWeight: 700, marginTop: 4,
                     color: rsisxUp ? 'var(--up)' : 'var(--dn)',
-                    visibility: loading ? 'hidden' : 'visible',
+                    visibility: liveData ? 'visible' : 'hidden',
                     minHeight: 18,
                   }}>
                     {rsisxUp ? '▲' : '▼'} {Math.abs(rsisxPct).toFixed(2)}%
