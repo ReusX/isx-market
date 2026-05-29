@@ -25,9 +25,9 @@
 
 :root {
   --font-en:              'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-  --font-ar:              'ThmanyahSans', var(--font-thmanyah), sans-serif;
-  --font-ar-serif:        'ThmanyahSerifText', var(--font-thmanyah-serif), serif;
-  --font-ar-display:      'ThmanyahSerifDisplay', var(--font-thmanyah-display), serif;
+  --font-ar:              'ThmanyahSans', sans-serif;
+  --font-ar-serif:        'ThmanyahSerifText', serif;
+  --font-ar-display:      'ThmanyahSerifDisplay', serif;
   /* --font-mono set by next/font on <html> via JetBrains_Mono variable */
 
   /* Brand */
@@ -193,7 +193,7 @@ a[href*="tradingview"] { display: none !important; }
 /* ── Arabic: ThmanyahSans for ALL UI elements ── */
 html[lang="ar"],
 html[lang="ar"] * {
-  font-family: 'ThmanyahSans', var(--font-thmanyah), sans-serif !important;
+  font-family: 'ThmanyahSans', sans-serif !important;
 }
 
 /* Long-form Arabic body text (news articles, about page) → Thmanyah Serif Text */
@@ -201,7 +201,7 @@ html[lang="ar"] .wp-content,
 html[lang="ar"] .wp-content p,
 html[lang="ar"] .wp-content li,
 html[lang="ar"] .prose-ar {
-  font-family: 'ThmanyahSerifText', var(--font-thmanyah-serif), serif !important;
+  font-family: 'ThmanyahSerifText', serif !important;
 }
 
 /* Large Arabic display headings → Thmanyah Serif Display */
@@ -209,7 +209,7 @@ html[lang="ar"] .wp-content h1,
 html[lang="ar"] .wp-content h2,
 html[lang="ar"] .wp-content h3,
 html[lang="ar"] .display-ar {
-  font-family: 'ThmanyahSerifDisplay', var(--font-thmanyah-display), serif !important;
+  font-family: 'ThmanyahSerifDisplay', serif !important;
 }
 
 /* Preserve monospace for prices, codes, numbers */

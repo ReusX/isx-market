@@ -1,6 +1,5 @@
 import type { Metadata, Viewport } from 'next'
 import { Inter, JetBrains_Mono } from 'next/font/google'
-import localFont from 'next/font/local'
 import './globals.css'
 import { AppProvider } from '@/context/AppContext'
 import Navbar from '@/components/layout/Navbar'
@@ -25,49 +24,11 @@ const jetbrainsMono = JetBrains_Mono({
   display: 'optional',
 })
 
-// Thmanyah Sans — primary UI font for all Arabic text
-const thmanyahSans = localFont({
-  src: [
-    { path: '../fonts/thmanyahsans-Light.woff2',   weight: '300', style: 'normal' },
-    { path: '../fonts/thmanyahsans-Regular.woff2', weight: '400', style: 'normal' },
-    { path: '../fonts/thmanyahsans-Medium.woff2',  weight: '500', style: 'normal' },
-    { path: '../fonts/thmanyahsans-Bold.woff2',    weight: '700', style: 'normal' },
-    { path: '../fonts/thmanyahsans-Black.woff2',   weight: '900', style: 'normal' },
-  ],
-  variable: '--font-thmanyah',
-  display: 'optional',
-})
-
-// Thmanyah Serif Text — for long-form Arabic body text (news, articles, about)
-const thmanyahSerifText = localFont({
-  src: [
-    { path: '../fonts/thmanyahseriftext-Light.woff2',   weight: '300', style: 'normal' },
-    { path: '../fonts/thmanyahseriftext-Regular.woff2', weight: '400', style: 'normal' },
-    { path: '../fonts/thmanyahseriftext-Medium.woff2',  weight: '500', style: 'normal' },
-    { path: '../fonts/thmanyahseriftext-Bold.woff2',    weight: '700', style: 'normal' },
-    { path: '../fonts/thmanyahseriftext-Black.woff2',   weight: '900', style: 'normal' },
-  ],
-  variable: '--font-thmanyah-serif',
-  display: 'optional',
-  // Only used on long-form pages (news/articles/about) — don't preload it
-  // on every page; it still loads on demand where the CSS variable is used.
-  preload: false,
-})
-
-// Thmanyah Serif Display — for large Arabic headings
-const thmanyahSerifDisplay = localFont({
-  src: [
-    { path: '../fonts/thmanyahserifdisplay-Light.woff2',   weight: '300', style: 'normal' },
-    { path: '../fonts/thmanyahserifdisplay-Regular.woff2', weight: '400', style: 'normal' },
-    { path: '../fonts/thmanyahserifdisplay-Medium.woff2',  weight: '500', style: 'normal' },
-    { path: '../fonts/thmanyahserifdisplay-Bold.woff2',    weight: '700', style: 'normal' },
-    { path: '../fonts/thmanyahserifdisplay-Black.woff2',   weight: '900', style: 'normal' },
-  ],
-  variable: '--font-thmanyah-display',
-  display: 'optional',
-  // Large-heading display face — not needed on the critical path; load on demand.
-  preload: false,
-})
+// Thmanyah families (Sans / Serif Text / Serif Display) are declared via
+// @font-face in globals.css and referenced as the primary font in --font-ar*.
+// They use font-display:optional and load on demand, so we don't declare them
+// through next/font here — doing so emitted duplicate (and preloaded) copies of
+// the same .woff2 files, wasting bandwidth on the critical path.
 
 export const metadata: Metadata = {
   title: {
@@ -116,7 +77,7 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="ar" dir="rtl" className={`${inter.variable} ${jetbrainsMono.variable} ${thmanyahSans.variable} ${thmanyahSerifText.variable} ${thmanyahSerifDisplay.variable}`} suppressHydrationWarning>
+    <html lang="ar" dir="rtl" className={`${inter.variable} ${jetbrainsMono.variable}`} suppressHydrationWarning>
       <head />
       <body>
         <script
