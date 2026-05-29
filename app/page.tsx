@@ -61,6 +61,8 @@ function CoLogo({ sym, color, logo, size = 28 }: { sym: string; color?: string; 
         src={src}
         alt={sym}
         width={size} height={size}
+        loading="lazy"
+        decoding="async"
         style={{ borderRadius: 6, objectFit: 'contain', background: '#fff', padding: 2, flexShrink: 0 }}
         onError={() => setErr(true)}
       />
@@ -128,20 +130,32 @@ export default function HomePage() {
   const [histShort,  setHistShort]  = useState<Record<string, [number, number][]>>({})
   const [rsisxHist,  setRsisxHist]  = useState<[number, number][]>([])
 
+  // Critical path: live prices + company meta are all the list needs to paint.
   useEffect(() => {
-    Promise.all([
-      fetchLive(),
-      fetchCompanyMeta(),
-      fetch(`/data/hist.json?t=${Math.floor(Date.now() / 60000)}`).then(r => r.json()).catch(() => ({})),
-    ])
-      .then(([live, meta, hist]) => {
+    Promise.all([fetchLive(), fetchCompanyMeta()])
+      .then(([live, meta]) => {
         setLiveData(live)
         setCompanies(mergeCompanies(meta, live.stocks))
-        setHistShort(hist.s ?? {})
-        setRsisxHist((hist.rsisx_s ?? []).slice(-90))
       })
       .finally(() => setLoading(false))
   }, [])
+
+  // Sparkline history (hist.json ~1MB) is purely decorative, so fetch it
+  // AFTER the list has painted. Keeping it off the critical path avoids
+  // gating LCP on a large download over slow connections.
+  useEffect(() => {
+    if (!companies.length) return
+    let cancelled = false
+    fetch(`/data/hist.json?t=${Math.floor(Date.now() / 60000)}`)
+      .then(r => r.json())
+      .then(hist => {
+        if (cancelled) return
+        setHistShort(hist.s ?? {})
+        setRsisxHist((hist.rsisx_s ?? []).slice(-90))
+      })
+      .catch(() => {})
+    return () => { cancelled = true }
+  }, [companies.length])
 
   const filtered = useMemo(
     () => filterSort(companies, sector, sort, watchlist),

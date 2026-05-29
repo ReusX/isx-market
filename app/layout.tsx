@@ -49,6 +49,9 @@ const thmanyahSerifText = localFont({
   ],
   variable: '--font-thmanyah-serif',
   display: 'optional',
+  // Only used on long-form pages (news/articles/about) — don't preload it
+  // on every page; it still loads on demand where the CSS variable is used.
+  preload: false,
 })
 
 // Thmanyah Serif Display — for large Arabic headings
@@ -62,6 +65,8 @@ const thmanyahSerifDisplay = localFont({
   ],
   variable: '--font-thmanyah-display',
   display: 'optional',
+  // Large-heading display face — not needed on the critical path; load on demand.
+  preload: false,
 })
 
 export const metadata: Metadata = {
