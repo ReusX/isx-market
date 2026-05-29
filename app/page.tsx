@@ -3,6 +3,7 @@
 import { useEffect, useState, useMemo, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import Image from 'next/image'
 import { useApp } from '@/context/AppContext'
 import { fetchLive, fetchCompanyMeta, mergeCompanies, filterSort, fmtVol, fmtMcap, SECTORS, SORT_OPTIONS } from '@/lib/market'
 import { rankFor, fmtPts } from '@/lib/ranks'
@@ -57,12 +58,13 @@ function CoLogo({ sym, color, logo, size = 28 }: { sym: string; color?: string; 
   const src = !err ? (logo || `https://isc.gov.iq/Uploads/Companies/${sym}.png`) : null
   if (src) {
     return (
-      <img
+      <Image
         src={src}
         alt={sym}
         width={size} height={size}
         loading="lazy"
-        decoding="async"
+        // Logos are tiny in the UI (28–38px); cap optimizer output at 2x DPR.
+        sizes={`${size * 2}px`}
         style={{ borderRadius: 6, objectFit: 'contain', background: '#fff', padding: 2, flexShrink: 0 }}
         onError={() => setErr(true)}
       />
