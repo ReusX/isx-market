@@ -183,35 +183,26 @@ function AdvancedChart({
         if (s) ohlcvByDate[date] = s
       }
 
-      // Raw points before aggregation
+      // Raw points before aggregation.
+      // Spine = hist.json daily close series (continuous, no gaps). Real ohlcv
+      // candles (true O/H/L + volume) are overlaid where available. Building
+      // every timeframe this way keeps the chart continuous even when
+      // ohlcv.json is missing recent trading days for a symbol, while still
+      // surfacing the latest ohlcv-only day (e.g. today) that the hist series
+      // may not have picked up yet.
       type RawPt = { date: string; o: number; h: number; l: number; c: number; v: number; real: boolean }
-      let rawPts: RawPt[] = []
-
-      if (days <= 90) {
-        // Short timeframes: use real ohlcv candles only
-        for (const [date, s] of Object.entries(ohlcvByDate)) {
-          if (date >= cutoffD) {
-            rawPts.push({ date, o: s.o, h: s.h, l: s.l, c: s.c, v: s.v ?? 0, real: true })
-          }
-        }
-        rawPts.sort((a, b) => a.date.localeCompare(b.date))
-      } else {
-        // Long timeframes: hist.json close series + overlay real ohlcv where available
-        const series: [number, number][] = (days <= 365 ? histRaw.s : histRaw.l)?.[symUpper] ?? []
-        const seen = new Set<string>()
-        for (const [ts, close] of series) {
-          const date = tsToDate(ts)
-          if (date < cutoffD || seen.has(date)) continue
-          seen.add(date)
-          const real = ohlcvByDate[date]
-          if (real) {
-            rawPts.push({ date, o: real.o, h: real.h, l: real.l, c: real.c, v: real.v ?? 0, real: true })
-          } else {
-            rawPts.push({ date, o: close, h: close, l: close, c: close, v: 0, real: false })
-          }
-        }
-        // series is already time-sorted
+      const series: [number, number][] = (days <= 365 ? histRaw.s : histRaw.l)?.[symUpper] ?? []
+      const byDate = new Map<string, RawPt>()
+      for (const [ts, close] of series) {
+        const date = tsToDate(ts)
+        if (date < cutoffD || byDate.has(date)) continue
+        byDate.set(date, { date, o: close, h: close, l: close, c: close, v: 0, real: false })
       }
+      for (const [date, s] of Object.entries(ohlcvByDate)) {
+        if (date < cutoffD) continue
+        byDate.set(date, { date, o: s.o, h: s.h, l: s.l, c: s.c, v: s.v ?? 0, real: true })
+      }
+      const rawPts: RawPt[] = Array.from(byDate.values()).sort((a, b) => a.date.localeCompare(b.date))
 
       if (!rawPts.length) return
 
