@@ -201,13 +201,21 @@ function AdvancedChart({
         if (date < cutoffD || byDate.has(date)) continue
         byDate.set(date, { date, o: close, h: close, l: close, c: close, v: 0, real: false })
       }
-      for (const [date, s] of Object.entries(ohlcvByDate)) {
-        if (date < cutoffD) continue
-        const adj = byDate.get(date)
-        // Skip raw ohlcv when it diverges from the adjusted close (corporate
-        // action between then and now); keep the adjusted close-only point.
-        if (adj && adj.c > 0 && Math.abs(s.c - adj.c) / adj.c > 0.015) continue
-        byDate.set(date, { date, o: s.o, h: s.h, l: s.l, c: s.c, v: s.v ?? 0, real: true })
+      // Overlay raw ohlcv candles ONLY on daily timeframes (<=1Y, spine = daily
+      // `s`). The 5Y/Since-2015 views use the weekly `l` spine, which has just
+      // one date per week — so most raw ohlcv days would have no adjusted point
+      // to compare against, slip past the guard, and reintroduce pre-dividend
+      // spikes. Those long views are weekly-aggregated anyway and only need the
+      // adjusted closes.
+      if (days <= 365) {
+        for (const [date, s] of Object.entries(ohlcvByDate)) {
+          if (date < cutoffD) continue
+          const adj = byDate.get(date)
+          // Skip raw ohlcv when it diverges from the adjusted close (corporate
+          // action between then and now); keep the adjusted close-only point.
+          if (adj && adj.c > 0 && Math.abs(s.c - adj.c) / adj.c > 0.015) continue
+          byDate.set(date, { date, o: s.o, h: s.h, l: s.l, c: s.c, v: s.v ?? 0, real: true })
+        }
       }
       const rawPts: RawPt[] = Array.from(byDate.values()).sort((a, b) => a.date.localeCompare(b.date))
 
