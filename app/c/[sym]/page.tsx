@@ -184,12 +184,15 @@ function AdvancedChart({
       }
 
       // Raw points before aggregation.
-      // Spine = hist.json daily close series (continuous, no gaps). Real ohlcv
-      // candles (true O/H/L + volume) are overlaid where available. Building
-      // every timeframe this way keeps the chart continuous even when
-      // ohlcv.json is missing recent trading days for a symbol, while still
-      // surfacing the latest ohlcv-only day (e.g. today) that the hist series
-      // may not have picked up yet.
+      // Spine = hist.json daily close series. These are Rabee's dividend/split
+      // ADJUSTED closes, so the series is continuous across corporate actions.
+      // Real ohlcv candles (true O/H/L + volume) are overlaid on top — but only
+      // where the ohlcv close agrees with the adjusted close. ohlcv is RAW
+      // (unadjusted), so on dates before a later dividend its price sits on a
+      // different scale; overlaying it there would reintroduce the very spikes
+      // the adjusted series removes. Recent days (after the last corporate
+      // action) match, so they still get real candles + volume, and the latest
+      // ohlcv-only day (e.g. today) is still surfaced.
       type RawPt = { date: string; o: number; h: number; l: number; c: number; v: number; real: boolean }
       const series: [number, number][] = (days <= 365 ? histRaw.s : histRaw.l)?.[symUpper] ?? []
       const byDate = new Map<string, RawPt>()
@@ -200,6 +203,10 @@ function AdvancedChart({
       }
       for (const [date, s] of Object.entries(ohlcvByDate)) {
         if (date < cutoffD) continue
+        const adj = byDate.get(date)
+        // Skip raw ohlcv when it diverges from the adjusted close (corporate
+        // action between then and now); keep the adjusted close-only point.
+        if (adj && adj.c > 0 && Math.abs(s.c - adj.c) / adj.c > 0.015) continue
         byDate.set(date, { date, o: s.o, h: s.h, l: s.l, c: s.c, v: s.v ?? 0, real: true })
       }
       const rawPts: RawPt[] = Array.from(byDate.values()).sort((a, b) => a.date.localeCompare(b.date))

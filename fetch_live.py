@@ -25,6 +25,18 @@ def fetch_detail(s):
         hi = d.get('HighPrice') or d.get('HighestPrice') or d.get('DayHigh') or cp
         lo = d.get('LowPrice') or d.get('LowestPrice') or d.get('DayLow') or cp
         deals = int(d.get('TradingDeals') or d.get('NumberOfDeals') or d.get('Deals') or 0)
+        # Full adjusted daily-close history. Rabee back-adjusts these for
+        # corporate actions (dividends, capital increases), so the series is
+        # continuous — re-fetching it every run keeps hist.json self-healing
+        # instead of accumulating stale point-in-time prices.
+        hist_series = []
+        for x in (d.get('SiteRsIndexList') or []):
+            c = x.get('ClosingPrice') or 0
+            if c <= 0:
+                continue
+            ds = (x.get('ISXDate') or '')[:10]
+            if len(ds) == 10:
+                hist_series.append((ds, round(c, 4)))
         return {
             'code': s['StockCode'],
             'close': cp,
@@ -35,6 +47,7 @@ def fetch_detail(s):
             'pct': round(s.get('DTDPriceChange') or 0, 4),
             'vol': int(d.get('TradingVolume') or 0),
             'deals': deals,
+            'hist': hist_series,
         }
     except Exception as e:
         print(f"  Skip {s['StockCode']}: {e}")
@@ -46,6 +59,10 @@ with ThreadPoolExecutor(max_workers=12) as ex:
         v = r.result()
         if v:
             live_stocks.append(v)
+
+# Pull the per-stock adjusted history out of the live records so it doesn't
+# bloat live.json — it's only used to rebuild hist.json below.
+adj_hist = {v['code']: v.pop('hist', None) for v in live_stocks}
 
 print(f"Prices fetched: {len(live_stocks)}")
 
@@ -114,25 +131,40 @@ else:
     else:
         hist = {'s': {}, 'l': {}}
 
-    price_map = {s['code']: s['close'] for s in live_stocks}
-    updated_count = 0
+    def date_to_ts(ds):
+        # 'YYYY-MM-DD' → midnight Baghdad as UTC epoch (same convention as today_ts)
+        y, m, day = int(ds[:4]), int(ds[5:7]), int(ds[8:10])
+        dt = datetime.datetime(y, m, day, tzinfo=baghdad)
+        return int(dt.astimezone(datetime.timezone.utc).timestamp())
 
-    for sym, price in price_map.items():
-        if price <= 0:
+    updated_count = 0
+    for sym, series in adj_hist.items():
+        # Rebuild from Rabee's full adjusted series so dividend/split
+        # re-adjustments propagate to the whole history (no stale cliffs).
+        # If Rabee returned no history, keep whatever we already have.
+        if not series:
             continue
-        for key, max_pts in [('s', 252), ('l', None)]:
-            arr = hist[key].get(sym, [])
-            # Only append if this timestamp isn't already there
-            if not any(p[0] == today_ts for p in arr):
-                arr.append([today_ts, round(price, 4)])
-                arr.sort(key=lambda x: x[0])
-                # deduplicate
-                arr = [v for i, v in enumerate(arr) if i == 0 or v[0] != arr[i-1][0]]
-                if max_pts and len(arr) > max_pts:
-                    arr = arr[-max_pts:]
-                hist[key][sym] = arr
-                if key == 's':
-                    updated_count += 1
+        dedup = {}
+        for ds, px in series:
+            try:
+                dedup[date_to_ts(ds)] = px
+            except Exception:
+                continue
+        if not dedup:
+            continue
+        full = [[ts, dedup[ts]] for ts in sorted(dedup)]
+        # s = last ~1y of daily points (used for 1D–1Y views + homepage sparklines).
+        hist['s'][sym] = full[-252:]
+        # l = multi-year, but only ever used by 5Y/Since-2015 views, which the
+        # chart aggregates to weekly anyway — so store one point per ISO week to
+        # keep the file small without any visible difference.
+        weekly = {}
+        for ts, px in full:
+            d = datetime.datetime.utcfromtimestamp(ts + 10800)  # Baghdad calendar day
+            iso = d.isocalendar()
+            weekly[(iso[0], iso[1])] = [ts, px]   # last point of each week wins
+        hist['l'][sym] = [weekly[k] for k in sorted(weekly)]
+        updated_count += 1
 
     # ── Update RSISX history in hist.json ──
     # Store full RSISX series from API (always replace to stay in sync)
