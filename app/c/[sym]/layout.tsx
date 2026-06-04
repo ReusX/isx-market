@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import companiesData from '@/public/data/companies.json'
 import CompanyProfile from '@/components/company/CompanyProfile'
+import { buildCompanySeo } from '@/lib/companySeo'
 
 const BASE = 'https://iraqsm.com'
 
@@ -17,32 +18,27 @@ export async function generateMetadata({ params }: { params: { sym: string } }):
 
   const enName  = company?.en ?? sym
   const arName  = company?.ar ?? sym
-  const title   = { absolute: `${sym} — ${enName.slice(0, 28)} | Iraq Stock Exchange` }
-  const desc    = `${arName} (${sym}) — سعر السهم في سوق الاسهم العراقي مباشرة. ${enName} (${sym}) live share price, charts, and market data on the Iraq Stock Exchange (ISX).`.slice(0, 158)
+  const seo     = buildCompanySeo(sym, arName, enName)
   const url     = `${BASE}/c/${sym}`
 
   return {
-    title,
-    description: desc,
+    title: { absolute: seo.title },
+    description: seo.description,
     alternates: { canonical: url },
-    keywords: [
-      `${sym}`, `${enName}`, `${arName}`,
-      'iraq stock exchange', 'iraq stock market', 'isx',
-      'اسعار الاسهم العراقية', 'سوق الاسهم العراقي',
-    ],
+    keywords: seo.keywords,
     openGraph: {
-      title:       `${sym} — ${enName} | Iraq Stock Exchange`,
-      description: desc,
+      title:       seo.title,
+      description: seo.description,
       url,
       siteName: 'Iraq Stock Market — iraqsm.com',
-      images:   [{ url: '/opengraph-image', width: 1200, height: 630, alt: `${sym} – Iraq Stock Exchange` }],
+      images:   [{ url: '/opengraph-image', width: 1200, height: 630, alt: `${seo.shortAr} ${sym} – بورصة العراق` }],
       locale:   'ar_IQ',
       type:     'website',
     },
     twitter: {
       card:        'summary_large_image',
-      title:       `${sym} — ${enName} | Iraq Stock Exchange`,
-      description: desc,
+      title:       seo.title,
+      description: seo.description,
       images:      ['/opengraph-image'],
     },
   }
@@ -57,15 +53,32 @@ export default function CompanyLayout({ children, params }: Props) {
   // This prevents soft-404s (200 with empty content) which confuse Google.
   if (!company) notFound()
 
+  const seo = buildCompanySeo(sym, company.ar, company.en)
+  const jsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'Corporation',
+    name: company.en,
+    alternateName: seo.altNames,
+    tickerSymbol: sym,
+    url: `${BASE}/c/${sym}`,
+    description: `${company.en} (${sym}) — Iraq Stock Exchange (ISX) share price and market data.`,
+  }
+
   return (
     <>
-      {/* Server-rendered H1 — visible to crawlers, visually hidden */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
+
+      {/* Server-rendered H1 — visible to crawlers, visually hidden. Arabic-first
+          and built around the real-world "سعر سهم … اليوم" search queries. */}
       <h1 style={{
         position: 'absolute', width: 1, height: 1,
         overflow: 'hidden', clip: 'rect(0,0,0,0)',
         whiteSpace: 'nowrap',
       }}>
-        {company.en} ({sym}) — Iraq Stock Exchange Share Price | {company.ar} سعر السهم في سوق الاسهم العراقي
+        {seo.h1}
       </h1>
       {children}
 

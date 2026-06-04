@@ -51,6 +51,7 @@ function generated(isAr: boolean, p: Props): Profile {
         { label: 'العملة',  value: 'الدينار العراقي (IQD)' },
       ],
       faq: [
+        { q: `كم سعر سهم ${p.ar} اليوم؟`, a: `تابع سعر سهم ${p.ar} (${p.sym}) المباشر اليوم في بورصة العراق على iraqsm.com، مع الرسم البياني والأعلى والأدنى وحجم التداول.` },
         { q: `ما هو رمز سهم ${p.ar}؟`, a: `يتداول سهم ${p.ar} تحت الرمز ${p.sym} في بورصة العراق.` },
         { q: `في أي قطاع تعمل ${p.ar}؟`, a: `تعمل ${p.ar} ضمن قطاع ${sector.ar} في السوق العراقي.` },
         { q: `أين أتابع سعر سهم ${p.sym}؟`, a: `يمكنك متابعة سعر سهم ${p.sym} المباشر، المخططات، وحجم التداول على iraqsm.com.` },
@@ -72,6 +73,7 @@ function generated(isAr: boolean, p: Props): Profile {
       { label: 'Currency', value: 'Iraqi Dinar (IQD)' },
     ],
     faq: [
+      { q: `What is ${p.en}'s share price today?`, a: `Track ${p.en} (${p.sym}) live share price today on the Iraq Stock Exchange (ISX) at iraqsm.com, with charts, highs/lows, and trading volume.` },
       { q: `What is ${p.en}'s ticker symbol?`, a: `${p.en} trades under the ticker ${p.sym} on the Iraq Stock Exchange (ISX).` },
       { q: `What sector is ${p.en} in?`, a: `${p.en} operates in the ${sector.en} sector of the Iraqi market.` },
       { q: `Where can I track ${p.sym}'s share price?`, a: `You can track ${p.sym}'s live price, charts, and trading volume on iraqsm.com.` },
