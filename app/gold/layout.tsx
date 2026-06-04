@@ -97,7 +97,63 @@ export default function GoldLayout({ children }: { children: React.ReactNode }) 
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
       />
+
+      {/* Server-rendered SEO H1 — the gold widget below is client-rendered, so
+          this guarantees crawlers get the Arabic heading + topic text. */}
+      <h1 style={{ position: 'absolute', width: 1, height: 1, overflow: 'hidden', clip: 'rect(0,0,0,0)', whiteSpace: 'nowrap' }}>
+        سعر الذهب اليوم في العراق — سعر مثقال الذهب عيار 21 وسعر غرام الذهب بالدينار العراقي
+      </h1>
+
       {children}
+
+      {/* Server-rendered SEO content (Arabic — matches the top gold queries).
+          The price widget above is client-only, so this gives crawlers the
+          substantial, relevant text the widget doesn't render server-side. */}
+      <section
+        dir="rtl"
+        aria-label="سعر الذهب في العراق"
+        style={{
+          maxWidth: 800, margin: '0 auto', padding: '32px 24px 8px',
+          borderTop: '1px solid var(--line, #1f2937)', lineHeight: 1.85,
+          fontSize: 15, color: 'var(--ink3, #9ca3af)', textAlign: 'right',
+        }}
+      >
+        <h2 style={{ fontSize: 19, fontWeight: 800, color: 'var(--ink, #e5e7eb)', marginBottom: 14 }}>
+          سعر الذهب اليوم في العراق بالدينار العراقي
+        </h2>
+        <p style={{ marginBottom: 16 }}>
+          يُحسب سعر الذهب في العراق من السعر العالمي للأونصة بالدولار الأمريكي، مضروباً في سعر صرف الدينار العراقي مقابل
+          الدولار. الوحدة الأكثر استخداماً في الأسواق العراقية هي المثقال (يساوي 4.608 غرام)، والعيار الأكثر تداولاً هو
+          عيار 21. تتغيّر الأسعار يومياً تبعاً لأسواق الذهب العالمية وسعر صرف الدولار.
+        </p>
+        <p style={{ marginBottom: 24 }}>
+          توفّر هذه الصفحة سعر الذهب اليوم في العراق لكل غرام ومثقال بعياراته المختلفة (24 و21 و18) بالدينار العراقي
+          والدولار الأمريكي، مع حاسبة تتيح تحويل أي وزن إلى قيمته الحالية.
+        </p>
+
+        <h2 style={{ fontSize: 17, fontWeight: 800, color: 'var(--ink, #e5e7eb)', marginBottom: 12 }}>
+          أسئلة شائعة عن سعر الذهب في العراق
+        </h2>
+        {[
+          {
+            q: 'كم سعر مثقال الذهب عيار 21 في العراق اليوم؟',
+            a: 'سعر مثقال الذهب عيار 21 يُحسب من السعر العالمي للذهب بالدولار مضروباً في سعر صرف الدينار العراقي. المثقال يساوي 4.608 غرام، وعيار 21 هو الأكثر تداولاً في الأسواق العراقية. تابع السعر المحدّث في حاسبة الذهب أعلى الصفحة.',
+          },
+          {
+            q: 'كم سعر غرام الذهب في العراق اليوم؟',
+            a: 'يتحدد سعر غرام الذهب حسب العيار: عيار 24 (ذهب خالص) هو الأعلى، يليه عيار 21 الأكثر تداولاً، ثم عيار 18. يمكن حساب السعر الدقيق بالدينار العراقي عبر الحاسبة أعلاه.',
+          },
+          {
+            q: 'ما هو المثقال وكم يساوي بالغرام؟',
+            a: 'المثقال وحدة وزن تقليدية تُستخدم في أسواق الذهب العراقية ويساوي 4.608 غرام. سعر مثقال الذهب عيار 21 هو السعر الأكثر تداولاً في الصاغة والأسواق المحلية.',
+          },
+        ].map(item => (
+          <div key={item.q} style={{ marginBottom: 14 }}>
+            <h3 style={{ fontSize: 15, fontWeight: 700, color: 'var(--ink, #e5e7eb)', margin: '0 0 4px' }}>{item.q}</h3>
+            <p style={{ margin: 0 }}>{item.a}</p>
+          </div>
+        ))}
+      </section>
     </>
   )
 }
