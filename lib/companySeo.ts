@@ -14,7 +14,16 @@ export interface CompanySeo {
 }
 
 export const COMPANY_SEO: Record<string, CompanySeo> = {
+  // Asiacell — searched "اسياسيل" (one word), data has "اسيا سيل".
   TASC: { ar: 'اسياسيل', alts: ['اسيا سيل', 'asiacell'] },
+  // Baghdad Soft Drinks — searched as the brand "بيبسي بغداد" / "بيبسيكو".
+  IBSD: { ar: 'بيبسي بغداد', alts: ['بيبسيكو', 'بيبسي', 'بغداد للمشروبات الغازية', 'baghdad soft drinks'] },
+  // Al-Khatem Telecommunication — the listed entity of Zain Iraq.
+  TZNI: { alts: ['زين العراق', 'زين', 'الخاتم للاتصالات', 'zain iraq'] },
+  // Bank of Baghdad — formal name already matches "مصرف بغداد".
+  BBOB: { alts: ['بنك بغداد', 'bank of baghdad'] },
+  // Dar Es Salaam Investment Bank.
+  BDSI: { alts: ['مصرف دار السلام', 'بنك دار السلام', 'dar es salaam bank'] },
 }
 
 export interface SeoFields {
