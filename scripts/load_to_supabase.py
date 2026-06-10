@@ -100,16 +100,23 @@ def load_file(sb, path: Path) -> None:
         sb.table("daily_index").upsert(batch, on_conflict="date").execute()
 
     mcap = {m["sector"]: m["market_cap"] for m in (data.get("market_cap_by_sector") or [])}
+    def as_int(v):
+        return int(v) if v is not None else None
+
     sector_rows = [{
         "year": year, "month": month, "sector": s["sector"],
         "volume": s.get("volume"), "value": s.get("value"), "trades": s.get("trades"),
-        "traded_companies": s.get("traded_companies"),
-        "listed_companies": s.get("listed_companies"),
+        "traded_companies": as_int(s.get("traded_companies")),
+        "listed_companies": as_int(s.get("listed_companies")),
         "market_cap": mcap.pop(s["sector"], None),
     } for s in (data.get("sectors") or [])]
     # sectors that only appear in the market-cap table
     sector_rows += [{"year": year, "month": month, "sector": sec, "market_cap": cap}
                     for sec, cap in mcap.items()]
+    # a single upsert batch must not contain the same (year,month,sector) twice
+    seen: set[str] = set()
+    sector_rows = [r for r in sector_rows
+                   if not (r["sector"] in seen or seen.add(r["sector"]))]
     for batch in chunked(sector_rows):
         sb.table("sector_monthly").upsert(batch, on_conflict="year,month,sector").execute()
 
