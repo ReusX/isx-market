@@ -169,6 +169,38 @@ function AdvancedChart({
       const days     = TF_DAYS[tf] ?? 30
       const cutoffD  = new Date(Date.now() - days * 86400 * 1000).toISOString().slice(0, 10)
 
+      type RawPt = { date: string; o: number; h: number; l: number; c: number; v: number; real: boolean }
+      let rawPts: RawPt[] = []
+
+      // ── 1D / 1W: live daily_prices table (Supabase, updated by the daily
+      // cron) — real per-session OHLCV, fresher than the static JSON files.
+      // 1D = the latest session; 1W = sessions in the last 7 days. Falls
+      // through to the JSON flow when the table has nothing for this ticker.
+      if (tf === '1D' || tf === '1W') {
+        try {
+          const { createClient } = await import('@/lib/supabase/client')
+          let q = createClient()
+            .from('daily_prices')
+            .select('date,open,high,low,close,volume')
+            .eq('ticker', symUpper)
+            .order('date', { ascending: false })
+          q = tf === '1D'
+            ? q.limit(1)
+            : q.gte('date', new Date(Date.now() - 7 * 86400 * 1000).toISOString().slice(0, 10))
+          const { data } = await q
+          if (cancelled || !mainRef.current) return
+          rawPts = (data ?? [])
+            .reverse()
+            .map(r => ({
+              date: r.date,
+              o: r.open ?? r.close ?? 0, h: r.high ?? r.close ?? 0,
+              l: r.low ?? r.close ?? 0,  c: r.close ?? 0,
+              v: r.volume ?? 0, real: true,
+            }))
+            .filter(p => p.c > 0)
+        } catch { /* fall through to JSON flow */ }
+      }
+
       const [ohlcvRaw, histRaw] = await Promise.all([
         fetch('/data/ohlcv.json').then(r => r.json()).catch(() => ({})),
         fetch('/data/hist.json').then(r => r.json()).catch(() => ({ s: {}, l: {} })),
@@ -183,7 +215,8 @@ function AdvancedChart({
         if (s) ohlcvByDate[date] = s
       }
 
-      // Raw points before aggregation.
+      // Raw points before aggregation (skipped when 1D/1W already came from
+      // daily_prices above).
       // Spine = hist.json daily close series. These are Rabee's dividend/split
       // ADJUSTED closes, so the series is continuous across corporate actions.
       // Real ohlcv candles (true O/H/L + volume) are overlaid on top — but only
@@ -193,31 +226,32 @@ function AdvancedChart({
       // the adjusted series removes. Recent days (after the last corporate
       // action) match, so they still get real candles + volume, and the latest
       // ohlcv-only day (e.g. today) is still surfaced.
-      type RawPt = { date: string; o: number; h: number; l: number; c: number; v: number; real: boolean }
-      const series: [number, number][] = (days <= 365 ? histRaw.s : histRaw.l)?.[symUpper] ?? []
-      const byDate = new Map<string, RawPt>()
-      for (const [ts, close] of series) {
-        const date = tsToDate(ts)
-        if (date < cutoffD || byDate.has(date)) continue
-        byDate.set(date, { date, o: close, h: close, l: close, c: close, v: 0, real: false })
-      }
-      // Overlay raw ohlcv candles ONLY on daily timeframes (<=1Y, spine = daily
-      // `s`). The 5Y/Since-2015 views use the weekly `l` spine, which has just
-      // one date per week — so most raw ohlcv days would have no adjusted point
-      // to compare against, slip past the guard, and reintroduce pre-dividend
-      // spikes. Those long views are weekly-aggregated anyway and only need the
-      // adjusted closes.
-      if (days <= 365) {
-        for (const [date, s] of Object.entries(ohlcvByDate)) {
-          if (date < cutoffD) continue
-          const adj = byDate.get(date)
-          // Skip raw ohlcv when it diverges from the adjusted close (corporate
-          // action between then and now); keep the adjusted close-only point.
-          if (adj && adj.c > 0 && Math.abs(s.c - adj.c) / adj.c > 0.015) continue
-          byDate.set(date, { date, o: s.o, h: s.h, l: s.l, c: s.c, v: s.v ?? 0, real: true })
+      if (!rawPts.length) {
+        const series: [number, number][] = (days <= 365 ? histRaw.s : histRaw.l)?.[symUpper] ?? []
+        const byDate = new Map<string, RawPt>()
+        for (const [ts, close] of series) {
+          const date = tsToDate(ts)
+          if (date < cutoffD || byDate.has(date)) continue
+          byDate.set(date, { date, o: close, h: close, l: close, c: close, v: 0, real: false })
         }
+        // Overlay raw ohlcv candles ONLY on daily timeframes (<=1Y, spine = daily
+        // `s`). The 5Y/Since-2015 views use the weekly `l` spine, which has just
+        // one date per week — so most raw ohlcv days would have no adjusted point
+        // to compare against, slip past the guard, and reintroduce pre-dividend
+        // spikes. Those long views are weekly-aggregated anyway and only need the
+        // adjusted closes.
+        if (days <= 365) {
+          for (const [date, s] of Object.entries(ohlcvByDate)) {
+            if (date < cutoffD) continue
+            const adj = byDate.get(date)
+            // Skip raw ohlcv when it diverges from the adjusted close (corporate
+            // action between then and now); keep the adjusted close-only point.
+            if (adj && adj.c > 0 && Math.abs(s.c - adj.c) / adj.c > 0.015) continue
+            byDate.set(date, { date, o: s.o, h: s.h, l: s.l, c: s.c, v: s.v ?? 0, real: true })
+          }
+        }
+        rawPts = Array.from(byDate.values()).sort((a, b) => a.date.localeCompare(b.date))
       }
-      const rawPts: RawPt[] = Array.from(byDate.values()).sort((a, b) => a.date.localeCompare(b.date))
 
       if (!rawPts.length) return
 
