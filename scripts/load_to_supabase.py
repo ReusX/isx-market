@@ -34,8 +34,25 @@ def chunked(rows: list, n: int = BATCH):
         yield rows[i:i + n]
 
 
+def load_daily_file(sb, path: Path) -> None:
+    """Load parse_daily_xlsx.py output into daily_prices."""
+    data = json.loads(path.read_text())
+    rows = [{
+        "ticker": r["ticker"], "date": r["date"],
+        "open": r.get("open"), "high": r.get("high"), "low": r.get("low"),
+        "close": r.get("close"), "volume": r.get("volume"),
+        "value": r.get("value"), "trades": r.get("trades"),
+    } for r in (data.get("rows") or []) if r.get("date")]
+    for batch in chunked(rows):
+        sb.table("daily_prices").upsert(batch, on_conflict="ticker,date").execute()
+    print(f"  {path.name}: daily_prices rows={len(rows)}")
+
+
 def load_file(sb, path: Path) -> None:
     data = json.loads(path.read_text())
+    if "rows" in data and "companies" not in data:
+        load_daily_file(sb, path)
+        return
     year, month = data.get("year"), data.get("month")
     if not year or not month:
         print(f"  {path.name}: missing year/month — skipped", file=sys.stderr)

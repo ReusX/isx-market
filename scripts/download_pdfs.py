@@ -57,13 +57,22 @@ def slug(text: str, n: int = 28) -> str:
     return re.sub(r"[^\w؀-ۿ]+", "-", text).strip("-")[:n]
 
 
+MAGIC = {
+    "pdf": (b"%PDF",),
+    # OLE2 (legacy .xls) and ZIP (.xlsx)
+    "xls": (b"\xd0\xcf\x11\xe0", b"PK\x03\x04"),
+    "xlsx": (b"PK\x03\x04",),
+}
+
+
 def download(session: requests.Session, url: str, dest: Path) -> bool:
+    expected = MAGIC.get(dest.suffix.lstrip(".").lower(), ())
     for attempt in range(1, RETRIES + 1):
         try:
             r = session.get(url, headers=HEADERS, timeout=120)
             r.raise_for_status()
-            if not r.content.startswith(b"%PDF"):
-                print(f"  WARNING: {url} is not a PDF — skipped", file=sys.stderr)
+            if expected and not r.content.startswith(expected):
+                print(f"  WARNING: {url} is not a valid {dest.suffix} — skipped", file=sys.stderr)
                 return False
             dest.write_bytes(r.content)
             return True
@@ -83,10 +92,20 @@ def main() -> None:
     done = skipped = failed = 0
     for i, rep in enumerate(reports, 1):
         ym = report_month(rep["title"], rep["date"])
-        if rep["title"].strip().startswith(MAIN_TITLE):
-            dest = PDF_DIR / f"{ym}.pdf"
+        ext = rep.get("ext") or rep["url"].rsplit(".", 1)[-1].lower()
+        title = rep["title"].strip()
+        # MAIN monthly report → YYYY-MM.{ext}. Title wording varies by era
+        # ("…لسوق العراق", "…لتداولات سوق العراق", "…للسوق النظامي"); the
+        # second-market (الثاني) and newsletter (الرسالة) files are not main.
+        is_main = (
+            title.startswith("التقرير الشهري")
+            and "الثاني" not in title
+            and "الرسالة" not in title
+        )
+        if is_main:
+            dest = PDF_DIR / f"{ym}.{ext}"
         else:
-            dest = PDF_DIR / f"{ym}_{slug(rep['title'])}.pdf"
+            dest = PDF_DIR / f"{ym}_{slug(title)}.{ext}"
 
         if dest.exists() and dest.stat().st_size > 0:
             skipped += 1

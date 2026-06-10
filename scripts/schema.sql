@@ -68,3 +68,19 @@ create policy "public read companies"      on companies      for select using (t
 create policy "public read monthly_prices" on monthly_prices for select using (true);
 create policy "public read daily_index"    on daily_index    for select using (true);
 create policy "public read sector_monthly" on sector_monthly for select using (true);
+create table if not exists daily_prices (
+  ticker  text not null,
+  date    date not null,
+  open    numeric,
+  high    numeric,
+  low     numeric,
+  close   numeric,
+  volume  numeric,
+  value   numeric,
+  trades  numeric,
+  primary key (ticker, date)
+);
+create index if not exists daily_prices_date on daily_prices (date);
+alter table daily_prices enable row level security;
+drop policy if exists "public read daily_prices" on daily_prices;
+create policy "public read daily_prices" on daily_prices for select using (true);

@@ -64,10 +64,13 @@ def parse_rows(html: str) -> list[dict]:
         date = tds[4].get_text(" ", strip=True)
         if "شهري" not in rtype and "monthly" not in rtype.lower():
             continue
-        if not href.lower().split("?")[0].endswith(".pdf"):
-            continue  # the list also has .xls twins; we only parse PDFs
+        ext = href.lower().split("?")[0].rsplit(".", 1)[-1]
+        if ext not in ("pdf", "xls", "xlsx"):
+            continue
+        # 2012-2018 main monthly reports are .xls; PDFs take over ~2019+,
+        # so both formats must be kept for a full backfill.
         url = href if href.startswith("http") else BASE + href
-        rows.append({"url": url, "date": date, "title": title})
+        rows.append({"url": url, "date": date, "title": title, "ext": ext})
     return rows
 
 
@@ -102,9 +105,10 @@ def main() -> None:
         )
         html = fetch(session, url)
         rows = parse_rows(html)
-        if not rows:
-            print(f"page {page}: no monthly rows — stopping")
-            break
+        # NOTE: don't stop on an empty page — a page can legitimately yield
+        # zero rows after filtering (e.g. only .doc attachments). The loop
+        # ends when `page` passes `last_page`, which find_paging() keeps
+        # extending as displaytag's sliding window reveals more pages.
         all_rows.extend(rows)
         # displaytag shows a sliding window of page links; extend if more appear
         _, seen = find_paging(html)
