@@ -32,3 +32,8 @@ next-env.d.ts
 # Capacitor native projects (generated — run `bash scripts/setup-mobile.sh` to recreate)
 android/
 ios/
+
+# ISX data pipeline (local artifacts — never commit)
+scripts/venv/
+scripts/data/
+scripts/.env
