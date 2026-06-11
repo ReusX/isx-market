@@ -120,8 +120,8 @@ function RSISXSpark({ data, up, w = 120, h = 40 }: { data: [number, number][]; u
 
 // ─── Page ────────────────────────────────────────────────────────────────────
 export default function HomeClient(
-  { initialLive = null }:
-  { initialLive?: LiveData | null }
+  { initialLive = null, initialIndex = null }:
+  { initialLive?: LiveData | null; initialIndex?: { value: number; pct: number } | null }
 ) {
   const { lang, user, profile, authLoading, watchlist, toggleWatchlist, openAuth } = useApp()
   const ar = lang === 'ar'
@@ -136,7 +136,8 @@ export default function HomeClient(
   const [sector,    setSector]    = useState('all')
   const [sort,      setSort]      = useState('default')
   const [histShort,  setHistShort]  = useState<Record<string, [number, number][]>>({})
-  const [rsisxHist,  setRsisxHist]  = useState<[number, number][]>([])
+  const [indexHist,  setIndexHist]  = useState<[number, number][]>([])
+  const [indexNow,   setIndexNow]   = useState<{ value: number; pct: number } | null>(initialIndex ?? null)
 
   // Critical path: live prices + company meta are all the list needs to paint.
   // With SSR seeding this just refreshes to the freshest values after mount.
@@ -149,20 +150,37 @@ export default function HomeClient(
       .finally(() => setLoading(false))
   }, [])
 
-  // Sparkline history (hist.json ~1MB) is purely decorative, so fetch it
-  // AFTER the list has painted. Keeping it off the critical path avoids
-  // gating LCP on a large download over slow connections.
+  // Sparklines + index history come from OUR OWN tables (parsed official ISX
+  // reports, refreshed daily by the cron) — fetched AFTER the list paints so
+  // they stay off the LCP critical path.
   useEffect(() => {
     if (!companies.length) return
     let cancelled = false
-    fetch(`/data/hist.json?t=${Math.floor(Date.now() / 60000)}`)
-      .then(r => r.json())
-      .then(hist => {
+    ;(async () => {
+      try {
+        const { createClient } = await import('@/lib/supabase/client')
+        const db = createClient()
+        const cutoff = new Date(Date.now() - 45 * 86400 * 1000).toISOString().slice(0, 10)
+        const [spark, idx] = await Promise.all([
+          db.from('daily_prices').select('ticker,date,close').gte('date', cutoff).order('date'),
+          db.from('daily_index').select('date,isx60').order('date', { ascending: false }).limit(91),
+        ])
         if (cancelled) return
-        setHistShort(hist.s ?? {})
-        setRsisxHist((hist.rsisx_s ?? []).slice(-90))
-      })
-      .catch(() => {})
+        const bySym: Record<string, [number, number][]> = {}
+        for (const r of spark.data ?? []) {
+          if (r.close == null) continue
+          ;(bySym[r.ticker] ??= []).push([Date.parse(r.date) / 1000, r.close])
+        }
+        setHistShort(bySym)
+        const sessions = (idx.data ?? []).filter(r => r.isx60 != null).reverse()
+        setIndexHist(sessions.map(r => [Date.parse(r.date) / 1000, r.isx60] as [number, number]))
+        const last = sessions[sessions.length - 1], prev = sessions[sessions.length - 2]
+        if (last) setIndexNow({
+          value: last.isx60,
+          pct: prev?.isx60 ? ((last.isx60 - prev.isx60) / prev.isx60) * 100 : 0,
+        })
+      } catch { /* sparklines are decorative — ignore */ }
+    })()
     return () => { cancelled = true }
   }, [companies.length])
 
@@ -171,9 +189,8 @@ export default function HomeClient(
     [companies, sector, sort, watchlist]
   )
 
-  const rsisx    = liveData?.rsisx
-  const rsisxVal = rsisx ? Number(rsisx.value).toFixed(2) : '—'
-  const rsisxPct = rsisx ? Number(rsisx.pct) : 0
+  const rsisxVal = indexNow ? indexNow.value.toFixed(2) : '—'
+  const rsisxPct = indexNow ? indexNow.pct : 0
   const rsisxUp  = rsisxPct >= 0
 
   const gainers = useMemo(() => companies.filter(c => c.pct > 0 && c.close > 0).length, [companies])
@@ -264,7 +281,7 @@ export default function HomeClient(
               <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 8 }}>
                 <div>
                   <div style={{ fontSize: 10, color: 'var(--ink4)', fontWeight: 600, marginBottom: 4 }}>
-                    {ar ? 'مؤشر ربيع RSISX' : 'RSISX Index'} ›
+                    {ar ? 'مؤشر السوق العراقي ISX60' : 'ISX60 Index'} ›
                   </div>
                   <div style={{ fontFamily: 'var(--font-mono)', fontSize: 26, fontWeight: 800, lineHeight: 1 }}>
                     {rsisxVal}
@@ -273,7 +290,7 @@ export default function HomeClient(
                   <div style={{
                     fontSize: 12, fontWeight: 700, marginTop: 4,
                     color: rsisxUp ? 'var(--up)' : 'var(--dn)',
-                    visibility: liveData ? 'visible' : 'hidden',
+                    visibility: indexNow ? 'visible' : 'hidden',
                     minHeight: 18,
                   }}>
                     {rsisxUp ? '▲' : '▼'} {Math.abs(rsisxPct).toFixed(2)}%
@@ -296,8 +313,8 @@ export default function HomeClient(
               </div>
               {/* Sparkline — always reserve 48px height to prevent CLS */}
               <div style={{ marginTop: 4, marginInline: -2, height: 48 }}>
-                {!loading && rsisxHist.length > 2 && (
-                  <RSISXSpark data={rsisxHist} up={rsisxUp} w={320} h={48} />
+                {!loading && indexHist.length > 2 && (
+                  <RSISXSpark data={indexHist} up={rsisxUp} w={320} h={48} />
                 )}
               </div>
             </div>
@@ -543,7 +560,7 @@ export default function HomeClient(
               {/* Left: value + pct */}
               <div>
                 <div style={{ fontSize: 11, color: 'var(--ink4)', fontWeight: 600, marginBottom: 4 }}>
-                  {ar ? 'مؤشر ربيع RSISX' : 'Rabee RSISX Index'} ›
+                  {ar ? 'مؤشر السوق العراقي ISX60' : 'ISX60 Index'} ›
                 </div>
                 <div style={{ display: 'flex', alignItems: 'baseline', gap: 10 }}>
                   <span style={{ fontFamily: 'var(--font-mono)', fontSize: 28, fontWeight: 700 }}>
@@ -557,8 +574,8 @@ export default function HomeClient(
 
               {/* Center: sparkline — reserve height to prevent CLS */}
               <div style={{ minWidth: 0, height: 52 }}>
-                {!loading && rsisxHist.length > 2 && (
-                  <RSISXSpark data={rsisxHist} up={rsisxUp} w={400} h={52} />
+                {!loading && indexHist.length > 2 && (
+                  <RSISXSpark data={indexHist} up={rsisxUp} w={400} h={52} />
                 )}
               </div>
 

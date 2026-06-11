@@ -109,6 +109,45 @@ function parseWorkbook(buf: ArrayBuffer, isoDate: string): DailyRow[] {
   return []
 }
 
+interface IndexRow {
+  date: string; isx60: number | null; isx15: number | null
+  total_volume: number | null; total_value: number | null; total_trades: number | null
+  traded_companies: number | null; listed_companies: number | null
+}
+
+/** Pull ISX60/ISX15 + session totals from the المؤشرات الكلية sheet —
+ *  mirror of extract_index() in scripts/parse_daily_xlsx.py. */
+function parseIndexSheet(wb: XLSX.WorkBook, isoDate: string): IndexRow | null {
+  const name = wb.SheetNames.find(s => s.includes('المؤشرات'))
+  if (!name) return null
+  const grid: unknown[][] = XLSX.utils.sheet_to_json(wb.Sheets[name]!, { header: 1, defval: null })
+  const rightOf = (row: unknown[], i: number) => {
+    for (const v of row.slice(i + 1)) { const n = num(v); if (n !== null) return n }
+    return null
+  }
+  const out: IndexRow = {
+    date: isoDate, isx60: null, isx15: null, total_volume: null,
+    total_value: null, total_trades: null, traded_companies: null, listed_companies: null,
+  }
+  for (const row of grid) {
+    row.forEach((cell, i) => {
+      if (typeof cell !== 'string') return
+      const c = cell.trim()
+      if (c.includes('المؤشر') && c.includes('60') && !c.includes('السابق')) out.isx60 ??= rightOf(row, i)
+      else if (c.includes('المؤشر') && c.includes('15') && !c.includes('السابق')) out.isx15 ??= rightOf(row, i)
+      else if (c.includes('الاسهم المتداولة')) out.total_volume ??= rightOf(row, i)
+      else if (c.includes('قيمة الأسهم') || c.includes('قيمة الاسهم')) out.total_value ??= rightOf(row, i)
+      else if (c.startsWith('صفقات')) out.total_trades ??= rightOf(row, i)
+      else if (c.startsWith('الشركات المتداولة')) out.traded_companies ??= rightOf(row, i)
+      else if (c.startsWith('الشركات المدرجة')) out.listed_companies ??= rightOf(row, i)
+    })
+  }
+  if (out.isx60 === null) return null
+  if (out.traded_companies !== null) out.traded_companies = Math.round(out.traded_companies)
+  if (out.listed_companies !== null) out.listed_companies = Math.round(out.listed_companies)
+  return out
+}
+
 export async function GET(req: NextRequest) {
   const secret = process.env.CRON_SECRET
   if (!secret || req.headers.get('authorization') !== `Bearer ${secret}`) {
@@ -133,11 +172,19 @@ export async function GET(req: NextRequest) {
       try {
         const res = await fetch(encodeURI(file.url), { headers: UA })
         if (!res.ok) throw new Error(`HTTP ${res.status}`)
-        const rows = parseWorkbook(await res.arrayBuffer(), file.isoDate)
+        const buf = await res.arrayBuffer()
+        const rows = parseWorkbook(buf, file.isoDate)
         if (!rows.length) throw new Error('no bulletin rows parsed')
         const { error } = await supabase
           .from('daily_prices').upsert(rows, { onConflict: 'ticker,date' })
         if (error) throw new Error(error.message)
+        // session index/totals → daily_index (keeps the ISX60 series current)
+        const idx = parseIndexSheet(XLSX.read(buf, { type: 'array' }), file.isoDate)
+        if (idx) {
+          const { error: e2 } = await supabase
+            .from('daily_index').upsert([idx], { onConflict: 'date' })
+          if (e2) throw new Error(e2.message)
+        }
         loaded.push({ date: file.isoDate, rows: rows.length })
       } catch (e) {
         failed.push({ date: file.isoDate, error: String(e) })

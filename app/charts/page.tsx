@@ -37,25 +37,22 @@ function RSISXChart({ tf }: { tf: string }) {
     let ro: ResizeObserver | null = null
 
     async function init() {
-      const LC  = await import('lightweight-charts')
-      const res = await fetch('/data/hist.json?t=' + Math.floor(Date.now() / 86400000))
-      const hist = await res.json()
+      const LC = await import('lightweight-charts')
 
+      // ISX60 — the official market index from OUR OWN daily_index table
+      // (parsed ISX reports, 2010 → today, refreshed by the daily cron).
+      const { createClient } = await import('@/lib/supabase/client')
       const tfObj = TF.find(t => t.id === tf) ?? TF[4]
-      const useLong = tfObj.days >= 365
-      const raw: [number, number][] = useLong ? (hist.rsisx_l ?? []) : (hist.rsisx_s ?? [])
-      const cutoff = tfObj.days >= 99999 ? 0 : Date.now() / 1000 - tfObj.days * 86400
-      const filtered = raw.filter(p => p[0] >= cutoff)
-
-      // Convert to date strings (Lightweight Charts is most reliable with YYYY-MM-DD)
-      // Deduplicate: if two entries land on the same date, keep the last one
-      const seen = new Map<string, number>()
-      for (const [ts, v] of filtered) {
-        seen.set(tsToDate(ts), v)
+      let q = createClient()
+        .from('daily_index')
+        .select('date,isx60')
+        .not('isx60', 'is', null)
+        .order('date')
+      if (tfObj.days < 99999) {
+        q = q.gte('date', new Date(Date.now() - tfObj.days * 86400 * 1000).toISOString().slice(0, 10))
       }
-      const data = Array.from(seen.entries())
-        .sort((a, b) => a[0].localeCompare(b[0]))
-        .map(([time, value]) => ({ time: time as any, value }))
+      const { data: rows } = await q
+      const data = (rows ?? []).map(r => ({ time: r.date as any, value: r.isx60 as number }))
 
       if (!data.length || !ref.current) return
 
@@ -237,20 +234,34 @@ export default function ChartsPage() {
   const [histShort, setHistShort] = useState<Record<string, [number,number][]>>({})
 
   useEffect(() => {
-    Promise.all([
-      fetchLive(),
-      fetchCompanyMeta(),
-      fetch('/data/hist.json?t=' + Math.floor(Date.now() / 86400000)).then(r => r.json()).catch(() => ({})),
-    ])
-      .then(([live, meta, hist]) => {
+    ;(async () => {
+      try {
+        const { createClient } = await import('@/lib/supabase/client')
+        const db = createClient()
+        const cutoff = new Date(Date.now() - 60 * 86400 * 1000).toISOString().slice(0, 10)
+        const [live, meta, spark, idx] = await Promise.all([
+          fetchLive(),
+          fetchCompanyMeta(),
+          // sparklines + hero index from OUR OWN tables (parsed ISX reports)
+          db.from('daily_prices').select('ticker,date,close').gte('date', cutoff).order('date'),
+          db.from('daily_index').select('date,isx60').not('isx60', 'is', null)
+            .order('date', { ascending: false }).limit(2),
+        ])
         setCompanies(mergeCompanies(meta, live.stocks))
-        setHistShort(hist.s ?? {})
-        if (live.rsisx) {
-          setRsisxPct(Number(live.rsisx.pct))
-          setRsisxVal(Number(live.rsisx.value).toFixed(2))
+        const bySym: Record<string, [number, number][]> = {}
+        for (const r of spark.data ?? []) {
+          if (r.close == null) continue
+          ;(bySym[r.ticker] ??= []).push([Date.parse(r.date) / 1000, r.close])
         }
-      })
-      .finally(() => setLoading(false))
+        setHistShort(bySym)
+        const [last, prev] = idx.data ?? []
+        if (last?.isx60) {
+          setRsisxVal(Number(last.isx60).toFixed(2))
+          setRsisxPct(prev?.isx60 ? ((last.isx60 - prev.isx60) / prev.isx60) * 100 : 0)
+        }
+      } catch { /* keep defaults */ }
+      setLoading(false)
+    })()
   }, [])
 
   const display = useMemo(() =>
@@ -280,7 +291,7 @@ export default function ChartsPage() {
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 20, flexWrap: 'wrap', gap: 12 }}>
           <div>
             <div style={{ fontSize: 12, color: 'var(--ink4)', fontWeight: 600, marginBottom: 6 }}>
-              {ar ? 'مؤشر ربيع للأوراق المالية' : 'Rabee Securities ISX Index'}
+              {ar ? 'مؤشر السوق العراقي ISX60' : 'ISX60 — Iraq Stock Exchange Index'}
             </div>
             <div style={{ display: 'flex', alignItems: 'baseline', gap: 12 }}>
               <span style={{ fontFamily: 'var(--font-mono)', fontSize: 36, fontWeight: 800, letterSpacing: '-1px' }}>

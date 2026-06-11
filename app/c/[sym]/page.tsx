@@ -9,7 +9,7 @@ import { fetchLive, fetchCompanyMeta, mergeCompanies, fmtVol, fmtMcap } from '@/
 import type { Company } from '@/types'
 
 const TF = ['1D','1W','1M','3M','1Y','5Y'] as const
-const TF_DAYS: Record<string,number> = { '1D':10,'1W':7,'1M':30,'3M':90,'1Y':365,'5Y':1825 }
+const TF_DAYS: Record<string,number> = { '1D':1,'1W':7,'1M':30,'3M':90,'1Y':365,'5Y':1825 }
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 function tsToDate(ts: number): string {
@@ -162,131 +162,64 @@ function AdvancedChart({
       if (cancelled || !mainRef.current) return
       state.LC = LC
 
-      // ── Load real ISX data ────────────────────────────────────────────────
-      // ohlcv.json — real O/H/L/C/V from ISX portal (last ~59 trading days)
-      // hist.json  — daily close prices per symbol (s=1Y, l=multi-year)
+      // ── Load chart data from OUR OWN tables (parsed from official ISX
+      // reports by the data pipeline; updated daily by the Vercel cron):
+      //   daily_prices   — per-session OHLCV  → 1D / 1W / 1M / 3M
+      //   monthly_prices — per-month OHLCV    → 1Y / 5Y (one candle per month)
       const symUpper = sym.toUpperCase()
       const days     = TF_DAYS[tf] ?? 30
-      const cutoffD  = new Date(Date.now() - days * 86400 * 1000).toISOString().slice(0, 10)
 
-      type RawPt = { date: string; o: number; h: number; l: number; c: number; v: number; real: boolean }
-      let rawPts: RawPt[] = []
+      const { createClient } = await import('@/lib/supabase/client')
+      const db = createClient()
 
-      // ── 1D / 1W: live daily_prices table (Supabase, updated by the daily
-      // cron) — real per-session OHLCV, fresher than the static JSON files.
-      // 1D = the latest session; 1W = sessions in the last 7 days. Falls
-      // through to the JSON flow when the table has nothing for this ticker.
-      if (tf === '1D' || tf === '1W') {
-        try {
-          const { createClient } = await import('@/lib/supabase/client')
-          let q = createClient()
-            .from('daily_prices')
-            .select('date,open,high,low,close,volume')
-            .eq('ticker', symUpper)
-            .order('date', { ascending: false })
-          q = tf === '1D'
-            ? q.limit(1)
-            : q.gte('date', new Date(Date.now() - 7 * 86400 * 1000).toISOString().slice(0, 10))
-          const { data } = await q
-          if (cancelled || !mainRef.current) return
-          rawPts = (data ?? [])
-            .reverse()
-            .map(r => ({
-              date: r.date,
-              o: r.open ?? r.close ?? 0, h: r.high ?? r.close ?? 0,
-              l: r.low ?? r.close ?? 0,  c: r.close ?? 0,
-              v: r.volume ?? 0, real: true,
-            }))
-            .filter(p => p.c > 0)
-        } catch { /* fall through to JSON flow */ }
-      }
-
-      const [ohlcvRaw, histRaw] = await Promise.all([
-        fetch('/data/ohlcv.json').then(r => r.json()).catch(() => ({})),
-        fetch('/data/hist.json').then(r => r.json()).catch(() => ({ s: {}, l: {} })),
-      ])
-      if (cancelled || !mainRef.current) return
-
-      // Build ohlcv lookup: date → {o,h,l,c,v}
-      type OhlcvEntry = { o: number; h: number; l: number; c: number; v: number }
-      const ohlcvByDate: Record<string, OhlcvEntry> = {}
-      for (const [date, stocks] of Object.entries(ohlcvRaw as Record<string, any>)) {
-        const s = stocks[symUpper]
-        if (s) ohlcvByDate[date] = s
-      }
-
-      // Raw points before aggregation (skipped when 1D/1W already came from
-      // daily_prices above).
-      // Spine = hist.json daily close series. These are Rabee's dividend/split
-      // ADJUSTED closes, so the series is continuous across corporate actions.
-      // Real ohlcv candles (true O/H/L + volume) are overlaid on top — but only
-      // where the ohlcv close agrees with the adjusted close. ohlcv is RAW
-      // (unadjusted), so on dates before a later dividend its price sits on a
-      // different scale; overlaying it there would reintroduce the very spikes
-      // the adjusted series removes. Recent days (after the last corporate
-      // action) match, so they still get real candles + volume, and the latest
-      // ohlcv-only day (e.g. today) is still surfaced.
-      if (!rawPts.length) {
-        const series: [number, number][] = (days <= 365 ? histRaw.s : histRaw.l)?.[symUpper] ?? []
-        const byDate = new Map<string, RawPt>()
-        for (const [ts, close] of series) {
-          const date = tsToDate(ts)
-          if (date < cutoffD || byDate.has(date)) continue
-          byDate.set(date, { date, o: close, h: close, l: close, c: close, v: 0, real: false })
-        }
-        // Overlay raw ohlcv candles ONLY on daily timeframes (<=1Y, spine = daily
-        // `s`). The 5Y/Since-2015 views use the weekly `l` spine, which has just
-        // one date per week — so most raw ohlcv days would have no adjusted point
-        // to compare against, slip past the guard, and reintroduce pre-dividend
-        // spikes. Those long views are weekly-aggregated anyway and only need the
-        // adjusted closes.
-        if (days <= 365) {
-          for (const [date, s] of Object.entries(ohlcvByDate)) {
-            if (date < cutoffD) continue
-            const adj = byDate.get(date)
-            // Skip raw ohlcv when it diverges from the adjusted close (corporate
-            // action between then and now); keep the adjusted close-only point.
-            if (adj && adj.c > 0 && Math.abs(s.c - adj.c) / adj.c > 0.015) continue
-            byDate.set(date, { date, o: s.o, h: s.h, l: s.l, c: s.c, v: s.v ?? 0, real: true })
-          }
-        }
-        rawPts = Array.from(byDate.values()).sort((a, b) => a.date.localeCompare(b.date))
-      }
-
-      if (!rawPts.length) return
-
-      // ── Weekly aggregation for 1Y+ (reduces 250+ candles to ~52) ─────────
       type FinalPt = { date: string; o: number; h: number; l: number; c: number; v: number }
-      const points: FinalPt[] = (() => {
-        if (days < 365) return rawPts  // daily candles for 1D/1W/1M/3M
-        const weekMap = new Map<string, { date: string; o: number; h: number; l: number; c: number; v: number }>()
-        for (const pt of rawPts) {
-          const d   = new Date(pt.date)
-          const dow = d.getUTCDay() || 7
-          const mon = new Date(d)
-          mon.setUTCDate(d.getUTCDate() - dow + 1)
-          const key = mon.toISOString().slice(0, 10)
-          if (!weekMap.has(key)) {
-            weekMap.set(key, { date: key, o: pt.o, h: pt.h, l: pt.l, c: pt.c, v: pt.v })
-          } else {
-            const w = weekMap.get(key)!
-            w.h  = Math.max(w.h, pt.h)
-            w.l  = Math.min(w.l, pt.l)
-            w.c  = pt.c
-            w.v += pt.v
-          }
-        }
-        const weeks = Array.from(weekMap.values()).sort((a, b) => a.date.localeCompare(b.date))
-        // Set weekly open = previous week's close
-        return weeks.map((w, i) => ({
-          ...w,
-          o: i > 0 ? weeks[i - 1].c : w.o,
-        }))
-      })()
+      let points: FinalPt[] = []
+
+      if (days <= 90) {
+        let q = db
+          .from('daily_prices')
+          .select('date,open,high,low,close,volume')
+          .eq('ticker', symUpper)
+          .order('date', { ascending: false })
+        q = tf === '1D'
+          ? q.limit(1)
+          : q.gte('date', new Date(Date.now() - days * 86400 * 1000).toISOString().slice(0, 10))
+        const { data } = await q
+        if (cancelled || !mainRef.current) return
+        points = (data ?? [])
+          .reverse()
+          .map(r => ({
+            date: r.date,
+            o: r.open ?? r.close ?? 0, h: r.high ?? r.close ?? 0,
+            l: r.low ?? r.close ?? 0,  c: r.close ?? 0,
+            v: r.volume ?? 0,
+          }))
+          .filter(p => p.c > 0)
+      } else {
+        const months = Math.round(days / 30)
+        const { data } = await db
+          .from('monthly_prices')
+          .select('year,month,open,high,low,close,volume')
+          .eq('ticker', symUpper)
+          .order('year', { ascending: false })
+          .order('month', { ascending: false })
+          .limit(months)
+        if (cancelled || !mainRef.current) return
+        points = (data ?? [])
+          .reverse()
+          .map(r => ({
+            date: `${r.year}-${String(r.month).padStart(2, '0')}-01`,
+            o: r.open ?? r.close ?? 0, h: r.high ?? r.close ?? 0,
+            l: r.low ?? r.close ?? 0,  c: r.close ?? 0,
+            v: r.volume ?? 0,
+          }))
+          .filter(p => p.c > 0)
+      }
+
+      if (!points.length) return
 
       // ── Build candles ─────────────────────────────────────────────────────
-      // For real ohlcv points: use actual O/H/L from the exchange.
-      // For synthetic (hist close-only): open = prev close, no real wicks.
+      // All points carry real O/H/L from the official reports.
       // Minimum 0.6% body so flat days render as a visible bar, not a dot.
       const MIN_BODY = 0.006
       const candles: any[] = points.map((pt, i) => {

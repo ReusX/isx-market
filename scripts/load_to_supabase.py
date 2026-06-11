@@ -45,7 +45,19 @@ def load_daily_file(sb, path: Path) -> None:
     } for r in (data.get("rows") or []) if r.get("date")]
     for batch in chunked(rows):
         sb.table("daily_prices").upsert(batch, on_conflict="ticker,date").execute()
-    print(f"  {path.name}: daily_prices rows={len(rows)}")
+
+    # session index/totals → daily_index (keeps ISX60 current between
+    # monthly reports)
+    idx = data.get("index")
+    if idx and idx.get("date") and idx.get("isx60") is not None:
+        sb.table("daily_index").upsert([{
+            "date": idx["date"], "isx60": idx.get("isx60"), "isx15": idx.get("isx15"),
+            "total_volume": idx.get("volume"), "total_value": idx.get("value"),
+            "total_trades": idx.get("trades"),
+            "traded_companies": int(idx["traded_companies"]) if idx.get("traded_companies") is not None else None,
+            "listed_companies": int(idx["listed_companies"]) if idx.get("listed_companies") is not None else None,
+        }], on_conflict="date").execute()
+    print(f"  {path.name}: daily_prices rows={len(rows)} index={'yes' if idx else 'no'}")
 
 
 def load_file(sb, path: Path) -> None:
