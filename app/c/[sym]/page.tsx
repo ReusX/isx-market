@@ -176,25 +176,54 @@ function AdvancedChart({
       let points: FinalPt[] = []
 
       if (days <= 90) {
-        let q = db
-          .from('daily_prices')
-          .select('date,open,high,low,close,volume')
-          .eq('ticker', symUpper)
-          .order('date', { ascending: false })
-        q = tf === '1D'
-          ? q.limit(1)
-          : q.gte('date', new Date(Date.now() - days * 86400 * 1000).toISOString().slice(0, 10))
-        const { data } = await q
-        if (cancelled || !mainRef.current) return
-        points = (data ?? [])
-          .reverse()
-          .map(r => ({
+        const cutoff = new Date(Date.now() - days * 86400 * 1000).toISOString().slice(0, 10)
+        if (tf === '1D') {
+          const { data } = await db
+            .from('daily_prices')
+            .select('date,open,high,low,close,volume')
+            .eq('ticker', symUpper)
+            .order('date', { ascending: false })
+            .limit(1)
+          if (cancelled || !mainRef.current) return
+          points = (data ?? []).map(r => ({
             date: r.date,
             o: r.open ?? r.close ?? 0, h: r.high ?? r.close ?? 0,
             l: r.low ?? r.close ?? 0,  c: r.close ?? 0,
             v: r.volume ?? 0,
-          }))
-          .filter(p => p.c > 0)
+          })).filter(p => p.c > 0)
+        } else {
+          // Illiquid stocks appear in the bulletin only on days they traded,
+          // so their raw series has holes. Build against the market's session
+          // calendar (daily_index) and forward-fill non-traded sessions with
+          // the last close (volume 0); an anchor row from before the window
+          // covers sessions at the start.
+          const [traded, sessions, anchor] = await Promise.all([
+            db.from('daily_prices')
+              .select('date,open,high,low,close,volume')
+              .eq('ticker', symUpper).gte('date', cutoff).order('date'),
+            db.from('daily_index').select('date').gte('date', cutoff).order('date'),
+            db.from('daily_prices').select('date,close')
+              .eq('ticker', symUpper).lt('date', cutoff)
+              .order('date', { ascending: false }).limit(1),
+          ])
+          if (cancelled || !mainRef.current) return
+          const byDate = new Map((traded.data ?? []).map(r => [r.date, r]))
+          let prevClose: number | null = anchor.data?.[0]?.close ?? null
+          for (const s of sessions.data ?? []) {
+            const r = byDate.get(s.date)
+            if (r && r.close != null && r.close > 0) {
+              points.push({
+                date: s.date,
+                o: r.open ?? r.close, h: r.high ?? r.close,
+                l: r.low ?? r.close,  c: r.close,
+                v: r.volume ?? 0,
+              })
+              prevClose = r.close
+            } else if (prevClose != null) {
+              points.push({ date: s.date, o: prevClose, h: prevClose, l: prevClose, c: prevClose, v: 0 })
+            }
+          }
+        }
       } else {
         const months = Math.round(days / 30)
         const { data } = await db
@@ -205,40 +234,63 @@ function AdvancedChart({
           .order('month', { ascending: false })
           .limit(months)
         if (cancelled || !mainRef.current) return
-        points = (data ?? [])
-          .reverse()
-          .map(r => ({
-            date: `${r.year}-${String(r.month).padStart(2, '0')}-01`,
-            o: r.open ?? r.close ?? 0, h: r.high ?? r.close ?? 0,
-            l: r.low ?? r.close ?? 0,  c: r.close ?? 0,
-            v: r.volume ?? 0,
-          }))
-          .filter(p => p.c > 0)
+        const rows = (data ?? []).reverse().filter(r => (r.close ?? 0) > 0)
+        // Forward-fill skipped months (no trading) with the previous close so
+        // long-range charts stay continuous for illiquid companies.
+        const byMonth = new Map(rows.map(r => [`${r.year}-${String(r.month).padStart(2, '0')}`, r]))
+        if (rows.length) {
+          let y = rows[0].year, m = rows[0].month
+          const last = rows[rows.length - 1]
+          let prevClose: number | null = null
+          while (y < last.year || (y === last.year && m <= last.month)) {
+            const key = `${y}-${String(m).padStart(2, '0')}`
+            const r = byMonth.get(key)
+            if (r) {
+              points.push({
+                date: `${key}-01`,
+                o: r.open ?? r.close, h: r.high ?? r.close,
+                l: r.low ?? r.close,  c: r.close,
+                v: r.volume ?? 0,
+              })
+              prevClose = r.close
+            } else if (prevClose != null) {
+              points.push({ date: `${key}-01`, o: prevClose, h: prevClose, l: prevClose, c: prevClose, v: 0 })
+            }
+            m += 1
+            if (m > 12) { m = 1; y += 1 }
+          }
+        }
       }
 
       if (!points.length) return
 
       // ── Build candles ─────────────────────────────────────────────────────
-      // All points carry real O/H/L from the official reports.
-      // Minimum 0.6% body so flat days render as a visible bar, not a dot.
-      const MIN_BODY = 0.006
-      const candles: any[] = points.map((pt, i) => {
-        const cl      = +pt.c.toFixed(4)
-        let   open    = +pt.o.toFixed(4)
-        const bodyPct = Math.abs(cl - open) / (cl || 1)
-
-        if (bodyPct < MIN_BODY) {
-          const prevC = i > 0 ? points[i - 1].c : pt.c
-          open = cl >= prevC
-            ? +(cl - cl * MIN_BODY).toFixed(4)   // green bar
-            : +(cl + cl * MIN_BODY).toFixed(4)   // red bar
-        }
-
+      // All points carry real O/H/L from the official reports. Flat candles
+      // (open == close) are honest — the readable rendering comes from the
+      // minimum price-scale range below, NOT from inflating candle bodies
+      // (the old MIN_BODY hack made flat stocks render as full-height slabs).
+      const candles: any[] = points.map(pt => {
+        const cl   = +pt.c.toFixed(4)
+        const open = +pt.o.toFixed(4)
         const hi = +Math.max(pt.h, open, cl).toFixed(4)
         const lo = +Math.max(0.001, Math.min(pt.l, open, cl)).toFixed(4)
-
         return { time: pt.date, open, close: cl, high: hi, low: lo, volume: pt.v }
       })
+
+      // Keep the visible price range at least ±2.5% around the series mid so
+      // flat/illiquid series render as a thin line in the middle of the chart
+      // instead of auto-zooming into nothing.
+      const autoscaleInfoProvider = (original: () => any) => {
+        const res = original()
+        if (!res?.priceRange) return res
+        const { minValue, maxValue } = res.priceRange
+        const mid = (minValue + maxValue) / 2
+        const minSpan = Math.max(mid * 0.05, 0.002)
+        if (maxValue - minValue < minSpan) {
+          return { ...res, priceRange: { minValue: mid - minSpan / 2, maxValue: mid + minSpan / 2 } }
+        }
+        return res
+      }
 
       state.candles = candles
       state.closes  = candles.map(c => c.close)
@@ -265,6 +317,7 @@ function AdvancedChart({
           borderUpColor: '#22C55E', borderDownColor: '#EF4444',
           wickUpColor: '#22C55E', wickDownColor: '#EF4444',
           priceLineVisible: false,
+          autoscaleInfoProvider,
         })
         priceSeries.setData(candles)
       } else {
@@ -273,6 +326,7 @@ function AdvancedChart({
           lineWidth: 2, priceLineVisible: false,
           crosshairMarkerVisible: true, crosshairMarkerRadius: 4,
           crosshairMarkerBorderColor: lineColor, crosshairMarkerBackgroundColor: lineColor,
+          autoscaleInfoProvider,
         })
         priceSeries.setData(candles.map(c => ({ time: c.time, value: c.close })))
       }
