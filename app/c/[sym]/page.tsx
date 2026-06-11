@@ -164,8 +164,8 @@ function AdvancedChart({
 
       // ── Load chart data from OUR OWN tables (parsed from official ISX
       // reports by the data pipeline; updated daily by the Vercel cron):
-      //   daily_prices   — per-session OHLCV  → 1D / 1W / 1M / 3M
-      //   monthly_prices — per-month OHLCV    → 1Y / 5Y (one candle per month)
+      //   daily_prices   — per-session OHLCV  → 1D / 1W / 1M / 3M / 1Y
+      //   monthly_prices — per-month OHLCV    → 5Y (one candle per month)
       const symUpper = sym.toUpperCase()
       const days     = TF_DAYS[tf] ?? 30
 
@@ -175,7 +175,7 @@ function AdvancedChart({
       type FinalPt = { date: string; o: number; h: number; l: number; c: number; v: number }
       let points: FinalPt[] = []
 
-      if (days <= 90) {
+      if (days <= 365) {
         const cutoff = new Date(Date.now() - days * 86400 * 1000).toISOString().slice(0, 10)
         if (tf === '1D') {
           const { data } = await db
