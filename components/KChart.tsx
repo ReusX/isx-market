@@ -300,14 +300,17 @@ export default function KChart({ sym }: { sym: string }) {
       // DataLoader
       chart.setDataLoader({
         async getBars({ symbol, period, callback }: any) {
+          if (cancelled) return
           setLoading(true)
           try {
             const raw = await fetchRaw(symbol.ticker)
             const allBars = getCandles(raw, period.type as PeriodType)
             const visible = windowFor(tf, allBars)
             callback(visible.length ? visible : allBars, false)
+            // Scroll to the most recent bar so the latest candle is always on the right
+            setTimeout(() => { if (!cancelled) chartRef.current?.scrollToRealTime() }, 80)
           } finally {
-            setLoading(false)
+            if (!cancelled) setLoading(false)
           }
         },
       })
@@ -384,19 +387,24 @@ export default function KChart({ sym }: { sym: string }) {
         : 'relative flex flex-col rounded-xl border border-slate-800 bg-[#0a0f1e] overflow-hidden'}
     >
       {/* ── Top toolbar ── */}
-      <div className="flex items-center gap-2 px-3 py-2 border-b border-slate-800 flex-wrap">
+      <div className="flex items-center gap-2 px-3 py-2 border-b border-slate-800 shrink-0">
 
-        {/* Chart type */}
-        <div className="flex rounded-md overflow-hidden border border-slate-700">
-          <button
-            onClick={() => setChartType('candle_solid')}
-            className={`px-2.5 py-1 text-xs font-medium transition-colors ${chartType === 'candle_solid' ? 'bg-blue-600 text-white' : 'text-slate-400 hover:text-white hover:bg-slate-800'}`}
-          >🕯 شموع</button>
-          <button
-            onClick={() => setChartType('area')}
-            className={`px-2.5 py-1 text-xs font-medium transition-colors ${chartType === 'area' ? 'bg-blue-600 text-white' : 'text-slate-400 hover:text-white hover:bg-slate-800'}`}
-          >📈 خطي</button>
-        </div>
+        {/* Fullscreen */}
+        <button
+          onClick={() => setFullscreen(v => !v)}
+          className="w-7 h-7 flex items-center justify-center text-sm border border-slate-700 rounded text-slate-400 hover:text-white hover:border-slate-500 transition-colors"
+          title={isFullscreen ? 'Exit fullscreen' : 'Fullscreen'}
+        >{isFullscreen ? '⊠' : '⛶'}</button>
+
+        {/* Indicators button */}
+        <button
+          onClick={() => setShowIndicators(v => !v)}
+          className={`px-3 py-1 text-xs rounded border transition-colors ${showIndicators ? 'border-blue-500 text-blue-400' : 'border-slate-700 text-slate-400 hover:text-white hover:border-slate-500'}`}
+        >
+          {activeInds.size > 0 ? `Indicators (${activeInds.size})` : '+ Indicators'}
+        </button>
+
+        <div className="flex-1" />
 
         {/* Timeframes */}
         <div className="flex gap-1">
@@ -409,59 +417,58 @@ export default function KChart({ sym }: { sym: string }) {
           ))}
         </div>
 
-        <div className="flex-1" />
-
-        {/* Indicators button */}
-        <button
-          onClick={() => setShowIndicators(v => !v)}
-          className={`px-3 py-1 text-xs rounded border transition-colors ${showIndicators ? 'border-blue-500 text-blue-400' : 'border-slate-700 text-slate-400 hover:text-white hover:border-slate-500'}`}
-        >
-          {activeInds.size > 0 ? `Indicators (${activeInds.size})` : '+ Indicators'}
-        </button>
-
-        {/* Fullscreen */}
-        <button
-          onClick={() => setFullscreen(v => !v)}
-          className="px-2 py-1 text-xs border border-slate-700 rounded text-slate-400 hover:text-white hover:border-slate-500 transition-colors"
-          title={isFullscreen ? 'Exit fullscreen' : 'Fullscreen'}
-        >{isFullscreen ? '⊠' : '⛶'}</button>
-      </div>
-
-      {/* ── Drawing tools ── */}
-      <div className="flex items-center gap-1 px-3 py-1.5 border-b border-slate-800/60">
-        {DRAW_TOOLS.map(tool => (
+        {/* Chart type */}
+        <div className="flex rounded-md overflow-hidden border border-slate-700 ml-1">
           <button
-            key={tool.key}
-            title={tool.label}
-            onClick={() => activateDraw(tool)}
-            className={`w-7 h-7 flex items-center justify-center text-sm rounded transition-colors ${drawTool === tool.key ? 'bg-blue-600 text-white' : 'text-slate-500 hover:text-white hover:bg-slate-800'}`}
-          >{tool.icon}</button>
-        ))}
-        <div className="w-px h-4 bg-slate-700 mx-1" />
-        <button
-          onClick={clearDrawings}
-          title="Clear all drawings"
-          className="px-2 h-7 text-xs text-slate-500 hover:text-red-400 hover:bg-slate-800 rounded transition-colors"
-        >🗑</button>
+            onClick={() => setChartType('candle_solid')}
+            className={`px-2.5 py-1 text-xs font-medium transition-colors ${chartType === 'candle_solid' ? 'bg-blue-600 text-white' : 'text-slate-400 hover:text-white hover:bg-slate-800'}`}
+          >🕯 شموع</button>
+          <button
+            onClick={() => setChartType('area')}
+            className={`px-2.5 py-1 text-xs font-medium transition-colors ${chartType === 'area' ? 'bg-blue-600 text-white' : 'text-slate-400 hover:text-white hover:bg-slate-800'}`}
+          >📈 خطي</button>
+        </div>
       </div>
 
-      {/* ── Chart canvas ── */}
-      <div className="relative flex-1" style={{ minHeight: isFullscreen ? 'calc(100vh - 96px)' : '480px' }}>
-        {loading && (
-          <div className="absolute inset-0 flex items-center justify-center z-10 pointer-events-none">
-            <div className="flex gap-1.5">
-              {[0,1,2].map(i => (
-                <div key={i} className="w-1.5 h-6 bg-blue-500 rounded-full animate-pulse" style={{ animationDelay: `${i * 150}ms` }} />
-              ))}
+      {/* ── Body: left sidebar + chart canvas ── */}
+      <div className="flex flex-1 min-h-0">
+
+        {/* ── Left drawing tools sidebar (TradingView style) ── */}
+        <div className="flex flex-col items-center gap-1 py-2 px-1 border-r border-slate-800 shrink-0 w-9">
+          {DRAW_TOOLS.map(tool => (
+            <button
+              key={tool.key}
+              title={tool.label}
+              onClick={() => activateDraw(tool)}
+              className={`w-7 h-7 flex items-center justify-center text-sm rounded transition-colors ${drawTool === tool.key ? 'bg-blue-600 text-white' : 'text-slate-500 hover:text-white hover:bg-slate-800'}`}
+            >{tool.icon}</button>
+          ))}
+          <div className="h-px w-5 bg-slate-700 my-1" />
+          <button
+            onClick={clearDrawings}
+            title="Clear all drawings"
+            className="w-7 h-7 flex items-center justify-center text-sm text-slate-500 hover:text-red-400 hover:bg-slate-800 rounded transition-colors"
+          >🗑</button>
+        </div>
+
+        {/* ── Chart canvas ── */}
+        <div className="relative flex-1 min-w-0" style={{ minHeight: isFullscreen ? 'calc(100vh - 41px)' : '480px' }}>
+          {loading && (
+            <div className="absolute inset-0 flex items-center justify-center z-10 pointer-events-none">
+              <div className="flex gap-1.5">
+                {[0,1,2].map(i => (
+                  <div key={i} className="w-1.5 h-6 bg-blue-500 rounded-full animate-pulse" style={{ animationDelay: `${i * 150}ms` }} />
+                ))}
+              </div>
             </div>
-          </div>
-        )}
-        <div ref={containerRef} className="absolute inset-0" />
+          )}
+          <div ref={containerRef} className="absolute inset-0" />
+        </div>
       </div>
 
       {/* ── Indicator panel (overlay) ── */}
       {showIndicators && (
-        <div className="absolute top-[88px] right-3 w-72 max-h-[420px] flex flex-col rounded-xl border border-slate-700 bg-[#0d1526] shadow-2xl z-40 overflow-hidden">
+        <div className="absolute top-[45px] right-3 w-72 max-h-[420px] flex flex-col rounded-xl border border-slate-700 bg-[#0d1526] shadow-2xl z-40 overflow-hidden">
           <div className="px-3 pt-3 pb-2 border-b border-slate-800">
             <div className="flex items-center justify-between mb-2">
               <span className="text-xs font-semibold text-white">Indicators</span>
