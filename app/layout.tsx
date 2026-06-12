@@ -2,9 +2,7 @@ import type { Metadata, Viewport } from 'next'
 import { Inter, JetBrains_Mono } from 'next/font/google'
 import './globals.css'
 import { AppProvider } from '@/context/AppContext'
-import Navbar from '@/components/layout/Navbar'
-import BottomNav from '@/components/layout/BottomNav'
-import Footer from '@/components/layout/Footer'
+import AppShell from '@/components/layout/AppShell'
 import { Analytics } from '@vercel/analytics/react'
 import { SpeedInsights } from '@vercel/speed-insights/next'
 import NativeBridge from '@/components/NativeBridge'
@@ -127,12 +125,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           })}}
         />
         <AppProvider>
-          <Navbar />
-          <main style={{ paddingTop: 'var(--nav-h)' }}>
+          <AppShell>
             {children}
-          </main>
-          <Footer />
-          <BottomNav />
+          </AppShell>
           <NativeBridge />
           <ChatWidget />
           <Analytics />

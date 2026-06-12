@@ -1,0 +1,375 @@
+'use client'
+
+import { useState, useEffect, useCallback } from 'react'
+import Link from 'next/link'
+import { usePathname } from 'next/navigation'
+import Image from 'next/image'
+
+// ── IraqSM dark palette ───────────────────────────────────────────────────────
+const K = {
+  bg:        '#0F172A',
+  sidebar:   '#111827',
+  surf2:     '#1E293B',
+  surf3:     '#273449',
+  hover:     '#1E293B',
+  activeBg:  'rgba(59,130,246,0.12)',
+  border:    '#334155',
+  brand:     '#3B82F6',
+  brandSoft: 'rgba(59,130,246,0.15)',
+  ink:       '#F8FAFC',
+  ink2:      '#E2E8F0',
+  ink3:      '#94A3B8',
+  ink4:      '#64748B',
+  badge:     '#1E3A5F',
+  badgeTxt:  '#60A5FA',
+}
+
+// ── SVG icon ──────────────────────────────────────────────────────────────────
+function Icon({ d, size = 14, sw = 1.6 }: { d: string; size?: number; sw?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none"
+      stroke="currentColor" strokeWidth={sw} strokeLinecap="round" strokeLinejoin="round">
+      <path d={d} />
+    </svg>
+  )
+}
+
+const IC = {
+  home:     'M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z',
+  bars:     'M18 20V10M12 20V4M6 20v-6',
+  chart:    'M3 3v18h18 M7 16l4-4 4 4 4-8',
+  news:     'M4 6h16M4 12h16M4 18h10',
+  shield:   'M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z',
+  star:     'M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z',
+  fx:       'M7 16V4m0 0L4 7m3-3l3 3 M17 8v12m0 0l3-3m-3 3l-3-3',
+  search:   'M21 21l-4.35-4.35M17 11A6 6 0 115 11a6 6 0 0112 0z',
+  chevD:    'M6 9l6 6 6-6',
+  chevU:    'M18 15l-6-6-6 6',
+  menu:     'M3 12h18M3 6h18M3 18h18',
+  bell:     'M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9 M13.73 21a2 2 0 01-3.46 0',
+  user:     'M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2 M12 11a4 4 0 100-8 4 4 0 000 8z',
+  settings: 'M12 20a8 8 0 100-16 8 8 0 000 16z M12 14a2 2 0 100-4 2 2 0 000 4z',
+  scatter:  'M3 3l18 18M3 21L21 3',
+}
+
+// ── Nav tree (mirrors Koyfin section structure) ───────────────────────────────
+const NAV: {
+  id: string; label?: string; collapsible?: boolean;
+  items: { href: string; icon: keyof typeof IC; ar: string; badge?: string }[]
+}[] = [
+  {
+    id: 'main',
+    items: [
+      { href: '/',       icon: 'home',   ar: 'الرئيسية',        badge: 'الآن' },
+    ],
+  },
+  {
+    id: 'favorites', label: 'المفضلة', collapsible: true,
+    items: [
+      { href: '/news',   icon: 'news',   ar: 'أخبار السوق',     badge: 'أخبار' },
+      { href: '/market', icon: 'bars',   ar: 'حركة السوق',      badge: 'حركة'  },
+    ],
+  },
+  {
+    id: 'myisx', label: 'منصتي', collapsible: true,
+    items: [
+      { href: '/watchlist', icon: 'star',   ar: 'قوائم المتابعة', badge: 'متابعة' },
+      { href: '/charts',    icon: 'chart',  ar: 'رسوماتي',         badge: 'رسم'    },
+      { href: '/foreign',   icon: 'shield', ar: 'تدفق الأجانب',   badge: 'أجانب'  },
+    ],
+  },
+  {
+    id: 'market', label: 'نظرة السوق', collapsible: true,
+    items: [
+      { href: '/market', icon: 'bars', ar: 'لوحات السوق'  },
+      { href: '/fx',     icon: 'fx',   ar: 'سعر الصرف'    },
+    ],
+  },
+  {
+    id: 'tools', label: 'أدوات البحث', collapsible: true,
+    items: [
+      { href: '/charts',  icon: 'chart',   ar: 'الرسوم البيانية', badge: 'رسم'   },
+      { href: '/foreign', icon: 'scatter', ar: 'المستثمر الأجنبي' },
+    ],
+  },
+]
+
+// ── AppShell ──────────────────────────────────────────────────────────────────
+export default function AppShell({ children }: { children: React.ReactNode }) {
+  const pathname = usePathname()
+  const [collapsed, setCollapsed] = useState(false)
+  const [openSections, setOpenSections] = useState<Record<string, boolean>>({
+    favorites: true, myisx: true, market: false, tools: false,
+  })
+
+  useEffect(() => {
+    const saved = localStorage.getItem('kf-sidebar')
+    if (saved !== null) setCollapsed(saved === '0')
+  }, [])
+
+  const toggleSidebar = useCallback(() => {
+    setCollapsed(v => {
+      localStorage.setItem('kf-sidebar', v ? '1' : '0')
+      return !v
+    })
+  }, [])
+
+  const toggleSection = (id: string) => {
+    setOpenSections(p => ({ ...p, [id]: !p[id] }))
+  }
+
+  const SW = collapsed ? 48 : 192
+
+  return (
+    <div style={{ display: 'flex', minHeight: '100dvh', background: K.bg, color: K.ink }}>
+
+      {/* ── Sidebar ── */}
+      <aside style={{
+        position: 'fixed', top: 0, right: 0, bottom: 0,
+        width: SW, zIndex: 200,
+        background: K.sidebar,
+        borderInlineStart: `1px solid ${K.border}`,
+        display: 'flex', flexDirection: 'column',
+        transition: 'width 0.18s cubic-bezier(0.4,0,0.2,1)',
+        overflow: 'hidden',
+      }}>
+
+        {/* Header row: logo + menu toggle */}
+        <div style={{
+          height: 48, display: 'flex', alignItems: 'center',
+          padding: collapsed ? '0 10px' : '0 10px 0 14px',
+          justifyContent: collapsed ? 'center' : 'space-between',
+          borderBottom: `1px solid ${K.border}`,
+          flexShrink: 0, gap: 8,
+        }}>
+          {!collapsed && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 7, minWidth: 0 }}>
+              <Image src="/favicon-192.png" alt="ISX" width={22} height={22}
+                style={{ borderRadius: 5, flexShrink: 0 }} />
+              <span style={{
+                fontWeight: 800, fontSize: 13, color: K.ink,
+                whiteSpace: 'nowrap',
+              }}>
+                بورصة العراق
+              </span>
+            </div>
+          )}
+          <button onClick={toggleSidebar} style={{
+            width: 28, height: 28, borderRadius: 5,
+            background: 'transparent', border: 'none',
+            color: K.ink4, display: 'flex', alignItems: 'center',
+            justifyContent: 'center', cursor: 'pointer', flexShrink: 0,
+            transition: 'color 0.12s',
+          }}
+          onMouseEnter={e => (e.currentTarget.style.color = K.ink)}
+          onMouseLeave={e => (e.currentTarget.style.color = K.ink4)}
+          >
+            <Icon d={IC.menu} size={15} />
+          </button>
+        </div>
+
+        {/* Nav scroll area */}
+        <nav style={{
+          flex: 1, overflowY: 'auto', overflowX: 'hidden',
+          padding: '6px 0',
+          scrollbarWidth: 'none',
+        }}>
+          {NAV.map(section => (
+            <div key={section.id}>
+
+              {/* Section header — only when expanded */}
+              {section.label && !collapsed && (
+                <div
+                  onClick={() => section.collapsible && toggleSection(section.id)}
+                  style={{
+                    display: 'flex', alignItems: 'center',
+                    justifyContent: 'space-between',
+                    padding: '12px 14px 3px',
+                    fontSize: 10, fontWeight: 700,
+                    color: K.ink4, letterSpacing: '0.07em',
+                    cursor: section.collapsible ? 'pointer' : 'default',
+                    userSelect: 'none', textTransform: 'uppercase',
+                  }}
+                >
+                  <span>{section.label}</span>
+                  {section.collapsible && (
+                    <span style={{ color: K.ink4, opacity: 0.7 }}>
+                      <Icon d={openSections[section.id] ? IC.chevU : IC.chevD} size={9} />
+                    </span>
+                  )}
+                </div>
+              )}
+
+              {/* Collapsed section divider */}
+              {section.label && collapsed && (
+                <div style={{ height: 1, background: K.border, margin: '6px 8px' }} />
+              )}
+
+              {/* Items */}
+              {(!section.collapsible || openSections[section.id] || !section.label) &&
+                section.items.map(item => {
+                  const active = item.href === '/'
+                    ? pathname === '/'
+                    : pathname === item.href || pathname.startsWith(item.href + '/')
+                  return (
+                    <Link
+                      key={item.href + item.ar}
+                      href={item.href}
+                      title={collapsed ? item.ar : undefined}
+                      style={{
+                        display: 'flex', alignItems: 'center',
+                        height: 32, gap: 8,
+                        padding: collapsed ? '0' : '0 14px',
+                        justifyContent: collapsed ? 'center' : 'flex-start',
+                        color: active ? K.brand : K.ink3,
+                        background: active ? K.activeBg : 'transparent',
+                        borderInlineStart: active
+                          ? `2px solid ${K.brand}`
+                          : '2px solid transparent',
+                        textDecoration: 'none',
+                        fontSize: 12.5, fontWeight: active ? 600 : 400,
+                        transition: 'background 0.1s, color 0.1s',
+                        whiteSpace: 'nowrap',
+                      }}
+                      onMouseEnter={e => {
+                        if (!active) e.currentTarget.style.background = K.hover
+                        if (!active) e.currentTarget.style.color = K.ink2
+                      }}
+                      onMouseLeave={e => {
+                        if (!active) e.currentTarget.style.background = 'transparent'
+                        if (!active) e.currentTarget.style.color = K.ink3
+                      }}
+                    >
+                      <span style={{ flexShrink: 0, color: active ? K.brand : K.ink4 }}>
+                        <Icon d={IC[item.icon]} size={13} />
+                      </span>
+                      {!collapsed && (
+                        <>
+                          <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                            {item.ar}
+                          </span>
+                          {item.badge && (
+                            <span style={{
+                              fontSize: 9, fontWeight: 700,
+                              padding: '1px 5px', borderRadius: 3,
+                              background: K.badge, color: K.badgeTxt,
+                              flexShrink: 0,
+                            }}>
+                              {item.badge}
+                            </span>
+                          )}
+                        </>
+                      )}
+                    </Link>
+                  )
+                })
+              }
+            </div>
+          ))}
+        </nav>
+
+        {/* Bottom user strip */}
+        <div style={{
+          borderTop: `1px solid ${K.border}`,
+          padding: collapsed ? '10px 0' : '8px 12px',
+          display: 'flex', alignItems: 'center',
+          justifyContent: collapsed ? 'center' : 'flex-start',
+          gap: 8, flexShrink: 0,
+        }}>
+          <div style={{
+            width: 26, height: 26, borderRadius: '50%',
+            background: 'linear-gradient(135deg, #4D83FF, #7C3AED)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            flexShrink: 0, cursor: 'pointer',
+          }}>
+            <Icon d={IC.user} size={13} />
+          </div>
+          {!collapsed && (
+            <div style={{ minWidth: 0 }}>
+              <div style={{ fontSize: 11.5, fontWeight: 600, color: K.ink2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                المستثمر
+              </div>
+              <div style={{ fontSize: 10, color: K.ink4 }}>الحساب المجاني</div>
+            </div>
+          )}
+        </div>
+      </aside>
+
+      {/* ── Main content ── */}
+      <div style={{
+        flex: 1,
+        marginInlineStart: SW,
+        transition: 'margin-inline-start 0.18s cubic-bezier(0.4,0,0.2,1)',
+        display: 'flex', flexDirection: 'column',
+        minHeight: '100dvh', minWidth: 0,
+      }}>
+
+        {/* Topbar */}
+        <header style={{
+          position: 'sticky', top: 0, zIndex: 100,
+          height: 48, display: 'flex', alignItems: 'center',
+          padding: '0 16px', gap: 12,
+          background: K.sidebar,
+          borderBottom: `1px solid ${K.border}`,
+          flexShrink: 0,
+        }}>
+          {/* Global search */}
+          <div style={{ flex: 1, maxWidth: 480, position: 'relative', display: 'flex', alignItems: 'center' }}>
+            <span style={{
+              position: 'absolute', insetInlineStart: 10,
+              color: K.ink4, pointerEvents: 'none', display: 'flex',
+            }}>
+              <Icon d={IC.search} size={13} />
+            </span>
+            <input
+              placeholder="ابحث عن شركة أو رمز..."
+              style={{
+                width: '100%', height: 33, borderRadius: 6,
+                background: K.surf2, border: `1px solid ${K.border}`,
+                color: K.ink, fontSize: 12.5,
+                padding: '0 10px 0 32px',
+                outline: 'none', fontFamily: 'inherit', direction: 'rtl',
+              }}
+              onFocus={e => (e.currentTarget.style.borderColor = K.brand)}
+              onBlur={e => (e.currentTarget.style.borderColor = K.border)}
+            />
+            <kbd style={{
+              position: 'absolute', insetInlineEnd: 8,
+              fontSize: 9, color: K.ink4,
+              background: K.surf3, border: `1px solid ${K.border}`,
+              borderRadius: 3, padding: '1px 4px', pointerEvents: 'none',
+              fontFamily: 'var(--font-mono)',
+            }}>/</kbd>
+          </div>
+
+          <div style={{ flex: 1 }} />
+
+          <button style={{
+            background: 'none', border: 'none', color: K.ink4,
+            cursor: 'pointer', padding: 4, display: 'flex',
+            transition: 'color 0.12s',
+          }}
+          onMouseEnter={e => (e.currentTarget.style.color = K.ink)}
+          onMouseLeave={e => (e.currentTarget.style.color = K.ink4)}
+          >
+            <Icon d={IC.bell} size={15} />
+          </button>
+
+          <div style={{
+            width: 28, height: 28, borderRadius: '50%',
+            background: 'linear-gradient(135deg, #4D83FF, #7C3AED)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            cursor: 'pointer', flexShrink: 0,
+          }}>
+            <Icon d={IC.user} size={13} />
+          </div>
+        </header>
+
+        {/* Page */}
+        <main style={{ flex: 1, overflow: 'auto' }}>
+          {children}
+        </main>
+      </div>
+    </div>
+  )
+}
