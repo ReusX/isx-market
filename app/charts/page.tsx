@@ -43,14 +43,18 @@ function RSISXChart({ tf }: { tf: string }) {
       // (parsed ISX reports, 2010 → today, refreshed by the daily cron).
       const { createClient } = await import('@/lib/supabase/client')
       const tfObj = TF.find(t => t.id === tf) ?? TF[4]
-      let q = createClient()
+      // 2023-01-01 minimum: excludes the incompatible 2010-2015 PDF-era series
+      // (different base/methodology — can't be joined to the 2024+ daily workbook data)
+      const minDate = '2023-01-01'
+      const fromDate = tfObj.days < 99999
+        ? new Date(Date.now() - tfObj.days * 86400 * 1000).toISOString().slice(0, 10)
+        : minDate
+      const q = createClient()
         .from('daily_index')
         .select('date,isx60')
         .not('isx60', 'is', null)
+        .gte('date', fromDate)
         .order('date')
-      if (tfObj.days < 99999) {
-        q = q.gte('date', new Date(Date.now() - tfObj.days * 86400 * 1000).toISOString().slice(0, 10))
-      }
       const { data: rows } = await q
       const data = (rows ?? []).map(r => ({ time: r.date as any, value: r.isx60 as number }))
 
