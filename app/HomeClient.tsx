@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useMemo, useRef } from 'react'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import Image from 'next/image'
 import { useApp } from '@/context/AppContext'
 import {
@@ -268,8 +269,10 @@ export default function HomeClient() {
           </div>
         ))}
 
-        {/* ISX60 chart fills remaining space */}
-        <ISX60Chart />
+        {/* ISX60 chart — click to open full chart page */}
+        <Link href="/charts" style={{ flex: 1, display: 'flex', minWidth: 0, textDecoration: 'none' }}>
+          <ISX60Chart />
+        </Link>
       </div>
 
       {/* ── Toolbar ── */}
