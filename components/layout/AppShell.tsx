@@ -5,23 +5,23 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import Image from 'next/image'
 
-// ── IraqSM dark palette ───────────────────────────────────────────────────────
+// ── IraqSM terminal dark palette ──────────────────────────────────────────────
 const K = {
-  bg:        '#0F172A',
-  sidebar:   '#111827',
-  surf2:     '#1E293B',
-  surf3:     '#273449',
-  hover:     '#1E293B',
-  activeBg:  'rgba(59,130,246,0.12)',
-  border:    '#334155',
-  brand:     '#3B82F6',
-  brandSoft: 'rgba(59,130,246,0.15)',
-  ink:       '#F8FAFC',
-  ink2:      '#E2E8F0',
-  ink3:      '#94A3B8',
-  ink4:      '#64748B',
-  badge:     '#1E3A5F',
-  badgeTxt:  '#60A5FA',
+  bg:        '#1E252F',
+  sidebar:   '#191E24',
+  surf2:     '#222933',
+  surf3:     '#363D47',
+  hover:     '#222933',
+  activeBg:  'rgba(48,138,224,0.14)',
+  border:    '#2E353F',
+  brand:     '#308AE0',
+  brandSoft: 'rgba(48,138,224,0.16)',
+  ink:       '#E0E4ED',
+  ink2:      '#A0A8B4',
+  ink3:      '#8A929E',
+  ink4:      '#6A727E',
+  badge:     '#266EC3',
+  badgeTxt:  '#FFFFFF',
 }
 
 // ── SVG icon ──────────────────────────────────────────────────────────────────
@@ -50,6 +50,7 @@ const IC = {
   user:     'M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2 M12 11a4 4 0 100-8 4 4 0 000 8z',
   settings: 'M12 20a8 8 0 100-16 8 8 0 000 16z M12 14a2 2 0 100-4 2 2 0 000 4z',
   scatter:  'M3 3l18 18M3 21L21 3',
+  stats:    'M3 3v18h18 M7 14l3-3 3 3 4-6 M7 14v4 M10 11v7 M13 14v4 M17 8v10',
 }
 
 // ── Nav tree (mirrors Koyfin section structure) ───────────────────────────────
@@ -73,9 +74,10 @@ const NAV: {
   {
     id: 'myisx', label: 'منصتي', collapsible: true,
     items: [
-      { href: '/watchlist', icon: 'star',   ar: 'قوائم المتابعة', badge: 'متابعة' },
-      { href: '/charts',    icon: 'chart',  ar: 'رسوماتي',         badge: 'رسم'    },
-      { href: '/foreign',   icon: 'shield', ar: 'تدفق الأجانب',   badge: 'أجانب'  },
+      { href: '/watchlist',  icon: 'star',   ar: 'قوائم المتابعة', badge: 'متابعة' },
+      { href: '/charts',     icon: 'chart',  ar: 'رسوماتي',         badge: 'رسم'    },
+      { href: '/statistics', icon: 'stats',  ar: 'الإحصائيات',      badge: 'جديد'   },
+      { href: '/foreign',    icon: 'shield', ar: 'تدفق الأجانب',   badge: 'أجانب'  },
     ],
   },
   {
