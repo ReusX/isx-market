@@ -8,8 +8,8 @@ import { useQuestTrack } from '@/lib/useQuestTrack'
 import { fetchLive, fetchCompanyMeta, mergeCompanies, fmtVol, fmtMcap } from '@/lib/market'
 import type { Company } from '@/types'
 
-const TF = ['1D','1W','1M','3M','1Y','5Y'] as const
-const TF_DAYS: Record<string,number> = { '1D':1,'1W':7,'1M':30,'3M':90,'1Y':365,'5Y':1825 }
+const TF = ['1D','1W','1M','3M','1Y','5Y','All'] as const
+const TF_DAYS: Record<string,number> = { '1D':1,'1W':7,'1M':30,'3M':90,'1Y':365,'5Y':1825,'All':0 }
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 function tsToDate(ts: number): string {
@@ -162,10 +162,10 @@ function AdvancedChart({
       if (cancelled || !mainRef.current) return
       state.LC = LC
 
-      // ── Load chart data from OUR OWN tables (parsed from official ISX
-      // reports by the data pipeline; updated daily by the Vercel cron):
-      //   daily_prices   — per-session OHLCV  → 1D / 1W / 1M / 3M / 1Y
-      //   monthly_prices — per-month OHLCV    → 5Y (one candle per month)
+      // ── Load chart data from daily_prices (all timeframes) ──────────────────
+      // daily_prices holds per-session OHLCV from 2010→today.
+      // 1D/1W/1M/3M/1Y → raw daily candles with forward-fill from session calendar
+      // 5Y/All          → daily rows aggregated into monthly candles in JS
       const symUpper = sym.toUpperCase()
       const days     = TF_DAYS[tf] ?? 30
 
@@ -174,6 +174,34 @@ function AdvancedChart({
 
       type FinalPt = { date: string; o: number; h: number; l: number; c: number; v: number }
       let points: FinalPt[] = []
+
+      // Helper: aggregate daily rows into one candle per month
+      function aggregateMonthly(daily: {date:string,open:number|null,high:number|null,low:number|null,close:number|null,volume:number|null}[]): FinalPt[] {
+        const byMonth = new Map<string, typeof daily>()
+        for (const r of daily) {
+          const key = r.date.slice(0, 7) // YYYY-MM
+          if (!byMonth.has(key)) byMonth.set(key, [])
+          byMonth.get(key)!.push(r)
+        }
+        const result: FinalPt[] = []
+        let prevClose: number | null = null
+        const keys = Array.from(byMonth.keys()).sort()
+        for (const key of keys) {
+          const rows = byMonth.get(key)!.filter(r => (r.close ?? 0) > 0)
+          if (rows.length) {
+            const o = rows[0].open ?? rows[0].close!
+            const c = rows[rows.length - 1].close!
+            const h = Math.max(...rows.map(r => r.high ?? r.close!))
+            const l = Math.min(...rows.map(r => r.low  ?? r.close!))
+            const v = rows.reduce((s, r) => s + (r.volume ?? 0), 0)
+            result.push({ date: `${key}-01`, o, h, l, c, v })
+            prevClose = c
+          } else if (prevClose != null) {
+            result.push({ date: `${key}-01`, o: prevClose, h: prevClose, l: prevClose, c: prevClose, v: 0 })
+          }
+        }
+        return result
+      }
 
       if (days <= 365) {
         const cutoff = new Date(Date.now() - days * 86400 * 1000).toISOString().slice(0, 10)
@@ -225,41 +253,18 @@ function AdvancedChart({
           }
         }
       } else {
-        const months = Math.round(days / 30)
+        // 5Y or All — fetch all daily rows and aggregate monthly
+        const cutoff = days === 0
+          ? '2010-01-01'
+          : new Date(Date.now() - days * 86400 * 1000).toISOString().slice(0, 10)
         const { data } = await db
-          .from('monthly_prices')
-          .select('year,month,open,high,low,close,volume')
+          .from('daily_prices')
+          .select('date,open,high,low,close,volume')
           .eq('ticker', symUpper)
-          .order('year', { ascending: false })
-          .order('month', { ascending: false })
-          .limit(months)
+          .gte('date', cutoff)
+          .order('date')
         if (cancelled || !mainRef.current) return
-        const rows = (data ?? []).reverse().filter(r => (r.close ?? 0) > 0)
-        // Forward-fill skipped months (no trading) with the previous close so
-        // long-range charts stay continuous for illiquid companies.
-        const byMonth = new Map(rows.map(r => [`${r.year}-${String(r.month).padStart(2, '0')}`, r]))
-        if (rows.length) {
-          let y = rows[0].year, m = rows[0].month
-          const last = rows[rows.length - 1]
-          let prevClose: number | null = null
-          while (y < last.year || (y === last.year && m <= last.month)) {
-            const key = `${y}-${String(m).padStart(2, '0')}`
-            const r = byMonth.get(key)
-            if (r) {
-              points.push({
-                date: `${key}-01`,
-                o: r.open ?? r.close, h: r.high ?? r.close,
-                l: r.low ?? r.close,  c: r.close,
-                v: r.volume ?? 0,
-              })
-              prevClose = r.close
-            } else if (prevClose != null) {
-              points.push({ date: `${key}-01`, o: prevClose, h: prevClose, l: prevClose, c: prevClose, v: 0 })
-            }
-            m += 1
-            if (m > 12) { m = 1; y += 1 }
-          }
-        }
+        points = aggregateMonthly(data ?? [])
       }
 
       if (!points.length) return

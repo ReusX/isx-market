@@ -37,12 +37,21 @@ def chunked(rows: list, n: int = BATCH):
 def load_daily_file(sb, path: Path) -> None:
     """Load parse_daily_xlsx.py output into daily_prices."""
     data = json.loads(path.read_text())
-    rows = [{
-        "ticker": r["ticker"], "date": r["date"],
-        "open": r.get("open"), "high": r.get("high"), "low": r.get("low"),
-        "close": r.get("close"), "volume": r.get("volume"),
-        "value": r.get("value"), "trades": r.get("trades"),
-    } for r in (data.get("rows") or []) if r.get("date")]
+    seen: set[tuple] = set()
+    rows = []
+    for r in (data.get("rows") or []):
+        if not r.get("date"):
+            continue
+        key = (r["ticker"], r["date"])
+        if key in seen:
+            continue
+        seen.add(key)
+        rows.append({
+            "ticker": r["ticker"], "date": r["date"],
+            "open": r.get("open"), "high": r.get("high"), "low": r.get("low"),
+            "close": r.get("close"), "volume": r.get("volume"),
+            "value": r.get("value"), "trades": r.get("trades"),
+        })
     for batch in chunked(rows):
         sb.table("daily_prices").upsert(batch, on_conflict="ticker,date").execute()
 

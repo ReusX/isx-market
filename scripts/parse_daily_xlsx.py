@@ -87,18 +87,22 @@ def parse_daily(path: Path) -> dict:
             "open":   col("افتتاح"),
             "high":   col("اعلى"),
             "low":    col("ادنى"),
-            "close":  col("سعر الاغلاق", "الاغلاق"),
+            "close":  col("سعر الاغلاق", "الاغلاق", "اغلاق"),
             "trades": col("الصفقات"),
             "volume": col("الاسهم المتداولة"),
             "value":  col("القيمة المتداولة"),
         }
         if c["code"] is None or c["close"] is None:
             continue
+        seen_codes: set[str] = set()
         for _, row in df.iloc[hdr_i + 1:].iterrows():
             cells = [str(v) for v in row]
             code = cells[c["code"]].strip() if c["code"] < len(cells) else ""
             if not CODE_RE.match(code):
                 continue
+            if code in seen_codes:
+                break  # hit repeated summary section (top-gainers etc.) — stop
+            seen_codes.add(code)
             rec = {"ticker": code, "date": date}
             for key in ("open", "high", "low", "close", "trades", "volume", "value"):
                 rec[key] = num(cells[c[key]]) if c[key] is not None else None
