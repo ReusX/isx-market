@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 type FlowRow   = { year: number; month: number; side: 'buy' | 'sell'; value: number | null }
@@ -70,55 +70,138 @@ function Soon({ note }: { note: string }) {
 }
 
 // ── 1. Foreign flow — monthly net bars ────────────────────────────────────────
+// Small segmented control used by the interactive panels
+function Seg<T extends string | number>({ value, onChange, options }: {
+  value: T; onChange: (v: T) => void; options: [T, string][]
+}) {
+  return (
+    <div style={{ display: 'inline-flex', background: 'var(--surf2)', borderRadius: 7, padding: 2, gap: 2 }}>
+      {options.map(([v, label]) => {
+        const on = v === value
+        return (
+          <button key={String(v)} onClick={() => onChange(v)} style={{
+            border: 'none', borderRadius: 5, padding: '4px 10px', fontSize: 11, fontWeight: 700,
+            cursor: 'pointer', whiteSpace: 'nowrap',
+            background: on ? 'var(--brand)' : 'transparent',
+            color: on ? '#fff' : 'var(--ink3)',
+          }}>{label}</button>
+        )
+      })}
+    </div>
+  )
+}
+
 function ForeignFlowChart({ rows }: { rows: FlowRow[] }) {
-  const byMonth = new Map<string, { buy: number; sell: number; y: number; m: number }>()
-  for (const r of rows) {
-    const k = monthKey(r.year, r.month)
-    const e = byMonth.get(k) ?? { buy: 0, sell: 0, y: r.year, m: r.month }
-    e[r.side] += r.value ?? 0
-    byMonth.set(k, e)
-  }
-  const series = Array.from(byMonth.entries())
-    .sort((a, b) => a[0].localeCompare(b[0]))
-    .slice(-12)
-    .map(([k, v]) => ({ k, net: v.buy - v.sell, y: v.y, m: v.m }))
+  const [range, setRange] = useState<number>(12)
+  const [mode,  setMode]  = useState<'net' | 'split'>('net')
+  const [hover, setHover] = useState<number | null>(null)
 
-  if (!series.length) return <Soon note="لا توجد بيانات تدفق." />
+  const all = useMemo(() => {
+    const byMonth = new Map<string, { buy: number; sell: number; y: number; m: number }>()
+    for (const r of rows) {
+      const k = monthKey(r.year, r.month)
+      const e = byMonth.get(k) ?? { buy: 0, sell: 0, y: r.year, m: r.month }
+      e[r.side] += r.value ?? 0
+      byMonth.set(k, e)
+    }
+    return Array.from(byMonth.entries())
+      .sort((a, b) => a[0].localeCompare(b[0]))
+      .map(([k, v]) => ({ k, buy: v.buy, sell: v.sell, net: v.buy - v.sell, y: v.y, m: v.m }))
+  }, [rows])
 
-  const maxAbs = Math.max(...series.map(s => Math.abs(s.net)), 1)
-  const W = 100 / series.length
+  if (!all.length) return <Soon note="لا توجد بيانات تدفق." />
+
+  const series  = range >= 999 ? all : all.slice(-range)
+  const maxAbs  = Math.max(...series.map(s => mode === 'net' ? Math.abs(s.net) : Math.max(s.buy, s.sell)), 1)
+  const totNet  = series.reduce((a, s) => a + s.net, 0)
+  const hv      = hover != null ? series[hover] : null
+  const gap     = series.length > 24 ? 1 : series.length > 14 ? 2 : 4
+  const labelEvery = Math.ceil(series.length / 12)
 
   return (
     <div>
-      <div style={{ display: 'flex', alignItems: 'stretch', height: 200, gap: 2, position: 'relative' }}>
-        {/* zero line */}
-        <div style={{ position: 'absolute', insetInline: 0, top: '50%', height: 1, background: 'var(--line)' }} />
-        {series.map(s => {
-          const up = s.net >= 0
-          const h = (Math.abs(s.net) / maxAbs) * 48  // % of half-height
+      {/* controls */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8, marginBottom: 12, flexWrap: 'wrap' }}>
+        <Seg value={mode}  onChange={setMode}  options={[['net', 'صافي'], ['split', 'شراء/بيع']]} />
+        <Seg value={range} onChange={setRange} options={[[12, 'سنة'], [24, 'سنتان'], [999, 'الكل']]} />
+      </div>
+
+      {/* period summary / live readout */}
+      <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, marginBottom: 10, minHeight: 34 }}>
+        {hv ? (
+          <>
+            <span style={{ fontSize: 13, fontWeight: 800, color: 'var(--ink)' }}>{arMonth[hv.m]} {hv.y}</span>
+            <span style={{ fontSize: 16, fontWeight: 800, fontFamily: 'var(--font-mono)', color: hv.net >= 0 ? 'var(--up)' : 'var(--dn)' }}>
+              {hv.net >= 0 ? '+' : '−'}{fmtIQD(Math.abs(hv.net))}
+            </span>
+            <span style={{ fontSize: 11, color: 'var(--ink4)', fontFamily: 'var(--font-mono)' }}>
+              شراء {fmtIQD(hv.buy)} · بيع {fmtIQD(hv.sell)}
+            </span>
+          </>
+        ) : (
+          <>
+            <span style={{ fontSize: 11, color: 'var(--ink4)' }}>صافي التدفق للفترة</span>
+            <span style={{ fontSize: 16, fontWeight: 800, fontFamily: 'var(--font-mono)', color: totNet >= 0 ? 'var(--up)' : 'var(--dn)' }}>
+              {totNet >= 0 ? '+' : '−'}{fmtIQD(Math.abs(totNet))}
+            </span>
+            <span style={{ fontSize: 10, color: 'var(--ink4)' }}>دينار</span>
+          </>
+        )}
+      </div>
+
+      {/* chart */}
+      <div style={{ position: 'relative', height: 190, display: 'flex', alignItems: 'stretch', gap }}
+        onMouseLeave={() => setHover(null)}>
+        <div style={{ position: 'absolute', insetInline: 0, top: '50%', height: 1, background: 'var(--line2)' }} />
+        {series.map((s, i) => {
+          const active = hover === i
+          if (mode === 'net') {
+            const up = s.net >= 0
+            const h = (Math.abs(s.net) / maxAbs) * 100
+            const col = up ? 'var(--up)' : 'var(--dn)'
+            return (
+              <div key={s.k} onMouseEnter={() => setHover(i)}
+                style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, cursor: 'pointer',
+                  background: active ? 'var(--surf2)' : 'transparent', borderRadius: 4 }}>
+                <div style={{ height: '50%', display: 'flex', alignItems: 'flex-end' }}>
+                  {up && <div style={{ width: '72%', margin: '0 auto', height: `${h}%`, background: col, borderRadius: '3px 3px 0 0', opacity: active ? 1 : 0.85 }} />}
+                </div>
+                <div style={{ height: '50%', display: 'flex', alignItems: 'flex-start' }}>
+                  {!up && <div style={{ width: '72%', margin: '0 auto', height: `${h}%`, background: col, borderRadius: '0 0 3px 3px', opacity: active ? 1 : 0.85 }} />}
+                </div>
+              </div>
+            )
+          }
+          // split: buy up (green), sell down (red) — tug of war
+          const bh = (s.buy  / maxAbs) * 100
+          const sh = (s.sell / maxAbs) * 100
           return (
-            <div key={s.k} title={`${arMonth[s.m]} ${s.y}: ${fmtIQD(s.net)}`}
-              style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', position: 'relative', minWidth: 0 }}>
+            <div key={s.k} onMouseEnter={() => setHover(i)}
+              style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, cursor: 'pointer',
+                background: active ? 'var(--surf2)' : 'transparent', borderRadius: 4 }}>
               <div style={{ height: '50%', display: 'flex', alignItems: 'flex-end' }}>
-                {up && <div style={{ width: '70%', margin: '0 auto', height: `${h * 2}%`, background: 'var(--up)', borderRadius: '3px 3px 0 0' }} />}
+                <div style={{ width: '72%', margin: '0 auto', height: `${bh}%`, background: 'var(--up)', borderRadius: '3px 3px 0 0', opacity: active ? 1 : 0.8 }} />
               </div>
               <div style={{ height: '50%', display: 'flex', alignItems: 'flex-start' }}>
-                {!up && <div style={{ width: '70%', margin: '0 auto', height: `${h * 2}%`, background: 'var(--dn)', borderRadius: '0 0 3px 3px' }} />}
+                <div style={{ width: '72%', margin: '0 auto', height: `${sh}%`, background: 'var(--dn)', borderRadius: '0 0 3px 3px', opacity: active ? 1 : 0.8 }} />
               </div>
             </div>
           )
         })}
       </div>
-      <div style={{ display: 'flex', gap: 2, marginTop: 6 }}>
-        {series.map(s => (
-          <div key={s.k} style={{ flex: 1, textAlign: 'center', fontSize: 8, color: 'var(--ink4)', minWidth: 0 }}>
-            {s.m}/{String(s.y).slice(2)}
+
+      {/* x labels */}
+      <div style={{ display: 'flex', gap, marginTop: 6 }}>
+        {series.map((s, i) => (
+          <div key={s.k} style={{ flex: 1, textAlign: 'center', fontSize: 8, color: hover === i ? 'var(--ink2)' : 'var(--ink4)', minWidth: 0, fontFamily: 'var(--font-mono)' }}>
+            {i % labelEvery === 0 ? `${s.m}/${String(s.y).slice(2)}` : ''}
           </div>
         ))}
       </div>
+
       <div style={{ display: 'flex', gap: 14, marginTop: 12, fontSize: 11 }}>
-        <span style={{ color: 'var(--up)' }}>■ صافي شراء أجنبي</span>
-        <span style={{ color: 'var(--dn)' }}>■ صافي بيع أجنبي</span>
+        <span style={{ color: 'var(--up)' }}>■ {mode === 'net' ? 'صافي شراء أجنبي' : 'شراء أجنبي'}</span>
+        <span style={{ color: 'var(--dn)' }}>■ {mode === 'net' ? 'صافي بيع أجنبي' : 'بيع أجنبي'}</span>
       </div>
     </div>
   )
@@ -270,8 +353,24 @@ export default function StatisticsPage() {
       try {
         const { createClient } = await import('@/lib/supabase/client')
         const db = createClient()
+
+        // foreign_flow_daily exceeds the 1000-row API cap (~1.4k rows), which
+        // silently dropped the most recent months — page through it fully.
+        const fetchAllFlow = async (): Promise<FlowRow[]> => {
+          const out: FlowRow[] = []
+          for (let from = 0; ; from += 1000) {
+            const { data } = await db
+              .from('foreign_flow_daily').select('year,month,side,value')
+              .order('year').order('month').range(from, from + 999)
+            if (!data?.length) break
+            out.push(...(data as FlowRow[]))
+            if (data.length < 1000) break
+          }
+          return out
+        }
+
         const [f, s, sh, ownRes] = await Promise.all([
-          db.from('foreign_flow_daily').select('year,month,side,value'),
+          fetchAllFlow(),
           db.from('foreign_flow_sector').select('year,month,sector,side,value'),
           db.from('major_shareholders').select('company_name_ar,rank,name_ar,nationality,curr_pct,change_pct')
             .order('year', { ascending: false }).order('month', { ascending: false }).limit(400),
@@ -279,7 +378,7 @@ export default function StatisticsPage() {
           db.from('ownership_monthly').select('name_ar,sector,iraqi_shares,foreign_shares')
             .eq('year', 2026).eq('month', 4),
         ])
-        setFlow((f.data as FlowRow[]) ?? [])
+        setFlow(f)
         setSector((s.data as SectorRow[]) ?? [])
         setShares((sh.data as ShareRow[]) ?? [])
         setOwn((ownRes.data as OwnRow[]) ?? [])
