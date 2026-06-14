@@ -422,6 +422,77 @@ def parse_ownership(pdf) -> list[dict]:
                     "foreign_count":     int(fc) if fc is not None else None,
                 })
 
+    # Many reports (e.g. 2025-06/07/08, 2026-01/02/03) render the ownership
+    # table with no ruling lines — pdfplumber finds no grid, so the loop above
+    # yields nothing. Fall back to a line-based reader over the raw text.
+    if not out:
+        out = _parse_ownership_text(pdf)
+    return out
+
+
+# pdfplumber emits Arabic in visual (reversed) order, so we reverse the readable
+# needles to match. These mark sector-header / subtotal lines to skip.
+_OWN_SKIP = tuple(w[::-1] for w in ("قطاع", "المجموع", "الكلي", "الشهر", "السنة"))
+_OWN_NUM  = re.compile(r"^\(?-?[\d,]+(?:\.\d+)?\)?%?$")
+
+
+def _parse_ownership_text(pdf) -> list[dict]:
+    """Line-based ownership reader for reports with no table grid.
+
+    Whether the table is text-only or rotated, the raw text lays each company
+    out as the same fixed record: 8 numeric fields, then the Arabic name (one
+    word per line), then a rank number. Field order matches the grid layout:
+      foreign_count, iraqi_count, total_count, foreign_shares, iraqi_shares,
+      deposit_ratio, deposited_capital, capital
+    """
+    out: list[dict] = []
+    seen: set[str] = set()
+
+    for page in pdf.pages:
+        raw = page.extract_text() or ""
+        # ownership page signal: "non-Iraqi" plus the ratio or capital heading
+        if "نييقارع" not in raw or ("عاديا" not in raw and fix_arabic("رأس المال") not in raw):
+            continue
+
+        nums: list[float] = []
+        name: list[str] = []
+        for line in (clean(l) for l in raw.split("\n")):
+            if not line:
+                continue
+            if AR_CELL.search(line) and any(m in line for m in _OWN_SKIP):
+                nums, name = [], []           # sector/total divider — reset
+                continue
+            if _OWN_NUM.match(line):
+                v = num(line)
+                if name:                      # name complete → this number is the rank
+                    if len(nums) >= 8 and v is not None:
+                        f = nums[:8]
+                        name_ar = fix_arabic(" ".join(name))
+                        cap = f[7]
+                        ishr, fshr = f[4], f[3]
+                        # guard against mis-grouped rows: shares can't exceed capital
+                        if name_ar not in seen and not (cap and ishr + fshr > cap * 1.05):
+                            seen.add(name_ar)
+                            out.append({
+                                "name_ar":           name_ar,
+                                "sector":            None,
+                                "capital":           cap,
+                                "deposited_capital": f[6],
+                                "deposit_ratio":     f[5],
+                                "iraqi_shares":      ishr,
+                                "foreign_shares":    fshr,
+                                "iraqi_count":       int(f[1]) if f[1] is not None else None,
+                                "foreign_count":     int(f[0]) if f[0] is not None else None,
+                            })
+                    nums, name = [], []
+                elif v is not None:
+                    nums.append(v)
+            elif AR_CELL.search(line):
+                if len(nums) >= 8:
+                    name.append(line)         # part of the company name
+                else:
+                    nums, name = [], []       # stray Arabic before fields complete
+
     return out
 
 
