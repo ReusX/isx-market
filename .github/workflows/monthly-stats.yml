@@ -1,0 +1,44 @@
+name: Monthly Statistics Update
+
+# Ingests new ISX monthly reports (ownership, foreign flow, depository, major
+# shareholders, capital events, sectors, market caps) into Supabase. These
+# power the /statistics page. ISX publishes the prior month's report in the
+# first ~10 days of each month, so we run on several early-month days; the
+# scrape/download/parse steps skip anything already processed, and the loader
+# upserts (idempotent), so extra runs are cheap no-ops when nothing is new.
+
+on:
+  schedule:
+    # 09:00 UTC on the 4th, 7th, 10th, 14th of each month
+    - cron: '0 9 4,7,10,14 * *'
+  workflow_dispatch:
+
+concurrency:
+  group: monthly-stats
+  cancel-in-progress: false
+
+jobs:
+  ingest:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: pip
+          cache-dependency-path: scripts/requirements.txt
+
+      - name: Install dependencies
+        run: pip install -r scripts/requirements.txt -q
+
+      - name: Scrape report list, download new PDFs, parse (full), load to Supabase
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        run: |
+          cd scripts
+          python3 scrape_isx_reports.py           # refresh monthly_reports.json
+          python3 download_pdfs.py                 # download any new monthly PDFs (skips existing)
+          bash run_parse_full.sh                   # full parse with fixed RTL parser (skips existing)
+          python3 load_to_supabase_v2.py data/parsed_full/   # upsert all 7 statistics tables

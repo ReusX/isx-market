@@ -1,11 +1,64 @@
 import type { Company, CompanyMeta, LiveData, LiveStock } from '@/types'
+import { createClient } from '@/lib/supabase/client'
 
 // ─── Data fetchers ──────────────────────────────────────────────────────────
 
+// Live prices come from OUR OWN pipeline: the ISX official daily report
+// workbooks parsed into Supabase `daily_prices` (refreshed by the daily cron
+// at /api/cron/daily-prices). We take the latest trading session for current
+// prices and the prior session to compute the day-over-day change.
 export async function fetchLive(): Promise<LiveData> {
-  const res = await fetch('/data/live.json', { next: { revalidate: 1800 } })
-  if (!res.ok) throw new Error('Failed to fetch live data')
-  return res.json()
+  const sb = createClient()
+
+  // most recent session date
+  const { data: latestRow } = await sb
+    .from('daily_prices').select('date').order('date', { ascending: false }).limit(1)
+  const latest = latestRow?.[0]?.date as string | undefined
+  if (!latest) {
+    return { updated: '', stocks: [], rsisx: null, breadth: { up: 0, dn: 0, fl: 0 }, sectors: {} }
+  }
+
+  // the session immediately before it (for change %)
+  const { data: prevRow } = await sb
+    .from('daily_prices').select('date').lt('date', latest)
+    .order('date', { ascending: false }).limit(1)
+  const prev = prevRow?.[0]?.date as string | undefined
+
+  // all rows for both sessions (≈100 companies each, well under the row cap)
+  const dates = prev ? [latest, prev] : [latest]
+  const { data: rows } = await sb
+    .from('daily_prices')
+    .select('ticker,date,open,high,low,close,volume,trades')
+    .in('date', dates)
+
+  const prevClose = new Map<string, number>()
+  if (prev) for (const r of rows ?? []) {
+    if (r.date === prev && r.close != null) prevClose.set(r.ticker as string, r.close as number)
+  }
+
+  const stocks: LiveStock[] = []
+  let up = 0, dn = 0, fl = 0
+  for (const r of rows ?? []) {
+    if (r.date !== latest) continue
+    const close = (r.close as number) ?? 0
+    const pc = prevClose.get(r.ticker as string)
+    const change = pc != null ? close - pc : 0
+    const pct = pc ? (change / pc) * 100 : 0
+    if (change > 0) up++; else if (change < 0) dn++; else fl++
+    stocks.push({
+      code: r.ticker as string,
+      close,
+      open:  (r.open  as number) ?? close,
+      high:  (r.high  as number) ?? close,
+      low:   (r.low   as number) ?? close,
+      change,
+      pct,
+      vol:   (r.volume as number) ?? 0,
+      deals: (r.trades as number) ?? 0,
+    })
+  }
+
+  return { updated: latest, stocks, rsisx: null, breadth: { up, dn, fl }, sectors: {} }
 }
 
 export async function fetchCompanyMeta(): Promise<CompanyMeta[]> {
