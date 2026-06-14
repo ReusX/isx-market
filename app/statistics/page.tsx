@@ -209,41 +209,80 @@ function ForeignFlowChart({ rows }: { rows: FlowRow[] }) {
 
 // ── 2. Sector rotation — horizontal bars ──────────────────────────────────────
 function SectorRotation({ rows }: { rows: SectorRow[] }) {
-  // latest month with known-sector buy data
-  const months = Array.from(new Set(rows.map(r => monthKey(r.year, r.month)))).sort()
-  let pick: SectorRow[] = []
-  for (const mk of months.reverse()) {
-    const [y, m] = mk.split('-').map(Number)
-    const sub = rows.filter(r => r.year === y && r.month === m && r.side === 'buy' && KNOWN_SECTORS.has(r.sector))
-    if (sub.length >= 2) { pick = sub; break }
-  }
-  if (!pick.length) return <Soon note="لا توجد بيانات قطاعية نظيفة." />
+  const [side,  setSide]  = useState<'buy' | 'sell'>('buy')
+  const [mk,    setMk]    = useState<string | null>(null)
+  const [hover, setHover] = useState<string | null>(null)
 
-  const agg = new Map<string, number>()
-  for (const r of pick) agg.set(r.sector, (agg.get(r.sector) ?? 0) + (r.value ?? 0))
-  const data = Array.from(agg.entries()).sort((a, b) => b[1] - a[1])
-  const max = Math.max(...data.map(d => d[1]), 1)
-  const my = pick[0]
+  // per-month sector aggregates for the selected side (known sectors only)
+  const byMonth = useMemo(() => {
+    const map = new Map<string, Map<string, number>>()
+    for (const r of rows) {
+      if (r.side !== side || !KNOWN_SECTORS.has(r.sector)) continue
+      const k = monthKey(r.year, r.month)
+      const sm = map.get(k) ?? new Map<string, number>()
+      sm.set(r.sector, (sm.get(r.sector) ?? 0) + (r.value ?? 0))
+      map.set(k, sm)
+    }
+    return map
+  }, [rows, side])
+
+  const months = useMemo(() => Array.from(byMonth.keys()).sort(), [byMonth])
+  if (!months.length) return <Soon note="لا توجد بيانات قطاعية نظيفة." />
+
+  const cur = (mk && byMonth.has(mk)) ? mk : months[months.length - 1]
+  const idx = months.indexOf(cur)
+  const [y, m] = cur.split('-').map(Number)
+  const data  = Array.from(byMonth.get(cur)!.entries()).sort((a, b) => b[1] - a[1])
+  const max   = Math.max(...data.map(d => d[1]), 1)
+  const total = data.reduce((s, d) => s + d[1], 0)
+  const col   = side === 'buy' ? 'var(--up)' : 'var(--dn)'
+
+  const step = (d: number) => { const n = idx + d; if (n >= 0 && n < months.length) setMk(months[n]) }
+  const arrow = (label: string, d: number, disabled: boolean) => (
+    <button onClick={() => step(d)} disabled={disabled} style={{
+      border: 'none', background: 'var(--surf2)', color: disabled ? 'var(--ink5)' : 'var(--ink2)',
+      borderRadius: 6, width: 24, height: 22, fontSize: 13, cursor: disabled ? 'default' : 'pointer',
+    }}>{label}</button>
+  )
 
   return (
     <div>
-      <div style={{ fontSize: 11, color: 'var(--ink4)', marginBottom: 10 }}>
-        شراء الأجانب حسب القطاع — {arMonth[my.month]} {my.year}
+      {/* controls */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8, marginBottom: 12, flexWrap: 'wrap' }}>
+        <Seg value={side} onChange={(v) => { setSide(v); setMk(null) }} options={[['buy', 'شراء'], ['sell', 'بيع']]} />
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+          {arrow('›', -1, idx <= 0)}
+          <span style={{ fontSize: 11, color: 'var(--ink2)', minWidth: 78, textAlign: 'center' }}>{arMonth[m]} {y}</span>
+          {arrow('‹', +1, idx >= months.length - 1)}
+        </div>
       </div>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-        {data.map(([sec, val]) => (
-          <div key={sec} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <div style={{ width: 70, fontSize: 11, color: 'var(--ink2)', textAlign: 'start', flexShrink: 0 }}>
-              {SECTOR_AR[sec] ?? sec}
+
+      {/* total for the month */}
+      <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, marginBottom: 12 }}>
+        <span style={{ fontSize: 11, color: 'var(--ink4)' }}>إجمالي {side === 'buy' ? 'شراء' : 'بيع'} الأجانب</span>
+        <span style={{ fontSize: 16, fontWeight: 800, fontFamily: 'var(--font-mono)', color: col }}>{fmtIQD(total)}</span>
+      </div>
+
+      {/* bars */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 7 }} onMouseLeave={() => setHover(null)}>
+        {data.map(([sec, val]) => {
+          const active = hover === sec
+          return (
+            <div key={sec} onMouseEnter={() => setHover(sec)}
+              style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'default',
+                background: active ? 'var(--surf2)' : 'transparent', borderRadius: 5, padding: '2px 4px', margin: '0 -4px' }}>
+              <div style={{ width: 70, fontSize: 11, color: active ? 'var(--ink)' : 'var(--ink2)', textAlign: 'start', flexShrink: 0 }}>
+                {SECTOR_AR[sec] ?? sec}
+              </div>
+              <div style={{ flex: 1, height: 16, background: 'var(--surf2)', borderRadius: 4, overflow: 'hidden' }}>
+                <div style={{ width: `${(val / max) * 100}%`, height: '100%', background: col, borderRadius: 4, opacity: active ? 1 : 0.85, transition: 'width .2s' }} />
+              </div>
+              <div style={{ width: 64, fontSize: 11, fontFamily: 'var(--font-mono)', color: active ? 'var(--ink)' : 'var(--ink2)', textAlign: 'end', flexShrink: 0 }}>
+                {active ? `${((val / total) * 100).toFixed(0)}%` : fmtIQD(val)}
+              </div>
             </div>
-            <div style={{ flex: 1, height: 18, background: 'var(--surf2)', borderRadius: 4, overflow: 'hidden' }}>
-              <div style={{ width: `${(val / max) * 100}%`, height: '100%', background: 'var(--brand)', borderRadius: 4 }} />
-            </div>
-            <div style={{ width: 56, fontSize: 11, fontFamily: 'var(--font-mono)', color: 'var(--ink2)', textAlign: 'end', flexShrink: 0 }}>
-              {fmtIQD(val)}
-            </div>
-          </div>
-        ))}
+          )
+        })}
       </div>
     </div>
   )
