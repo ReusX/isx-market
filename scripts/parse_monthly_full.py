@@ -126,7 +126,7 @@ def parse_foreign_daily(pdf) -> dict:
 
     for page in pdf.pages:
         raw = page.extract_text() or ""
-        if "Non-Iraqi" not in raw:
+        if "non-iraqi" not in raw.lower():  # buy pages use "non-Iraqi", sell "Non-Iraqi"
             continue
 
         for tbl in page.extract_tables():
@@ -160,28 +160,26 @@ def parse_foreign_daily(pdf) -> dict:
             if not rows:
                 continue
 
-            # Priority: canonical table number (3) > other labeled tables (1)
-            is_tbl6 = "Table No.(6)" in raw or "Table No. (6)" in raw
-            is_tbl7 = "Table No.(7)" in raw or "Table No. (7)" in raw
-            is_sell = "(Sales)" in raw
-            is_buy_pg = "(Purchase)" in raw
-
-            if is_tbl6:
-                buy_candidates.append((3, rows))
-            elif is_tbl7:
-                sell_candidates.append((3, rows))
-            elif is_buy_pg and not is_sell:
+            # Side is keyed off the "Purchase"/"Sales" page heading, NOT the
+            # table number — the table numbering shifts between report formats
+            # (buy is Table 6 in some years, 7 or 21 in others). A dedicated buy
+            # page says Purchase and not Sales; a sell page vice-versa. Pages
+            # with both (summaries / combined sector tables) are ambiguous for
+            # side attribution and are skipped. The daily per-session table is
+            # then the candidate with the most date rows (sector/company
+            # breakdowns have no date column and were dropped above).
+            is_sell = "Sales" in raw
+            is_buy  = "Purchase" in raw
+            if is_buy and not is_sell:
                 buy_candidates.append((1, rows))
-            elif is_sell and not is_buy_pg:
+            elif is_sell and not is_buy:
                 sell_candidates.append((1, rows))
 
-    # Pick highest priority; break ties by most rows
+    # Most date rows wins (the daily session table)
     if buy_candidates:
-        buy_candidates.sort(key=lambda x: (x[0], len(x[1])), reverse=True)
-        buy = buy_candidates[0][1]
+        buy = max(buy_candidates, key=lambda x: len(x[1]))[1]
     if sell_candidates:
-        sell_candidates.sort(key=lambda x: (x[0], len(x[1])), reverse=True)
-        sell = sell_candidates[0][1]
+        sell = max(sell_candidates, key=lambda x: len(x[1]))[1]
 
     return {"buy": buy, "sell": sell}
 
@@ -197,7 +195,7 @@ def parse_foreign_sector(pdf) -> dict:
 
     for page in pdf.pages:
         raw = page.extract_text() or ""
-        if "Non-Iraqi" not in raw:
+        if "non-iraqi" not in raw.lower():  # buy pages use "non-Iraqi", sell "Non-Iraqi"
             continue
         # Must mention sectors too
         if "Sector" not in raw and "SECTOR" not in raw:
