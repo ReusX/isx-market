@@ -1,9 +1,10 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import Image from 'next/image'
+import { useApp } from '@/context/AppContext'
 
 // ── IraqSM terminal dark palette ──────────────────────────────────────────────
 const K = {
@@ -99,10 +100,25 @@ const NAV: {
 // ── AppShell ──────────────────────────────────────────────────────────────────
 export default function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
+  const { user, profile, openAuth, signOut } = useApp()
   const [collapsed, setCollapsed] = useState(false)
+  const [menuOpen, setMenuOpen] = useState(false)
+  const menuRef = useRef<HTMLDivElement>(null)
   const [openSections, setOpenSections] = useState<Record<string, boolean>>({
     favorites: true, myisx: true, market: false, tools: false,
   })
+
+  // close the account menu on outside click
+  useEffect(() => {
+    if (!menuOpen) return
+    const onDown = (e: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) setMenuOpen(false)
+    }
+    document.addEventListener('mousedown', onDown)
+    return () => document.removeEventListener('mousedown', onDown)
+  }, [menuOpen])
+
+  const initial = (profile?.username ?? user?.email ?? '?').trim()[0]?.toUpperCase() ?? '?'
 
   useEffect(() => {
     const saved = localStorage.getItem('kf-sidebar')
@@ -271,30 +287,61 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
         </nav>
 
         {/* Bottom user strip */}
-        <div style={{
-          borderTop: `1px solid ${K.border}`,
-          padding: collapsed ? '10px 0' : '8px 12px',
-          display: 'flex', alignItems: 'center',
-          justifyContent: collapsed ? 'center' : 'flex-start',
-          gap: 8, flexShrink: 0,
-        }}>
-          <div style={{
-            width: 26, height: 26, borderRadius: '50%',
-            background: 'linear-gradient(135deg, #4D83FF, #7C3AED)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            flexShrink: 0, cursor: 'pointer',
+        {user ? (
+          <Link href="/profile" style={{
+            borderTop: `1px solid ${K.border}`,
+            padding: collapsed ? '10px 0' : '8px 12px',
+            display: 'flex', alignItems: 'center',
+            justifyContent: collapsed ? 'center' : 'flex-start',
+            gap: 8, flexShrink: 0, textDecoration: 'none',
           }}>
-            <Icon d={IC.user} size={13} />
-          </div>
-          {!collapsed && (
-            <div style={{ minWidth: 0 }}>
-              <div style={{ fontSize: 11.5, fontWeight: 600, color: K.ink2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                المستثمر
-              </div>
-              <div style={{ fontSize: 10, color: K.ink4 }}>الحساب المجاني</div>
+            <div style={{
+              width: 26, height: 26, borderRadius: '50%',
+              background: K.brand, color: '#fff', fontWeight: 700, fontSize: 12,
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              flexShrink: 0,
+            }}>
+              {initial}
             </div>
-          )}
-        </div>
+            {!collapsed && (
+              <div style={{ minWidth: 0 }}>
+                <div style={{ fontSize: 11.5, fontWeight: 600, color: K.ink, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                  {profile?.username ?? user?.email?.split('@')[0]}
+                </div>
+                <div style={{ fontSize: 10, color: K.ink4 }}>
+                  {profile?.points != null ? `${profile.points.toLocaleString('en')} نقطة` : 'الحساب المجاني'}
+                </div>
+              </div>
+            )}
+          </Link>
+        ) : (
+          <button onClick={() => openAuth('signup')} style={{
+            borderTop: `1px solid ${K.border}`,
+            padding: collapsed ? '10px 0' : '8px 12px',
+            display: 'flex', alignItems: 'center',
+            justifyContent: collapsed ? 'center' : 'flex-start',
+            gap: 8, flexShrink: 0, width: '100%',
+            background: 'none', border: 'none', borderTopWidth: 1,
+            cursor: 'pointer', fontFamily: 'inherit', textAlign: 'start',
+          }}>
+            <div style={{
+              width: 26, height: 26, borderRadius: '50%',
+              background: K.brandSoft, color: K.brand,
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              flexShrink: 0,
+            }}>
+              <Icon d={IC.user} size={13} />
+            </div>
+            {!collapsed && (
+              <div style={{ minWidth: 0 }}>
+                <div style={{ fontSize: 11.5, fontWeight: 700, color: K.brand, whiteSpace: 'nowrap' }}>
+                  تسجيل الدخول
+                </div>
+                <div style={{ fontSize: 10, color: K.ink4 }}>أنشئ حسابك المجاني</div>
+              </div>
+            )}
+          </button>
+        )}
       </aside>
 
       {/* ── Main content ── */}
@@ -357,14 +404,65 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
             <Icon d={IC.bell} size={15} />
           </button>
 
-          <div style={{
-            width: 28, height: 28, borderRadius: '50%',
-            background: 'linear-gradient(135deg, #4D83FF, #7C3AED)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            cursor: 'pointer', flexShrink: 0,
-          }}>
-            <Icon d={IC.user} size={13} />
-          </div>
+          {user ? (
+            <div ref={menuRef} style={{ position: 'relative', flexShrink: 0 }}>
+              <button
+                onClick={() => setMenuOpen(v => !v)}
+                style={{
+                  width: 28, height: 28, borderRadius: '50%', border: 'none',
+                  background: K.brand, color: '#fff', cursor: 'pointer',
+                  fontWeight: 700, fontSize: 12, fontFamily: 'inherit',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                }}
+              >
+                {initial}
+              </button>
+              {menuOpen && (
+                <div style={{
+                  position: 'absolute', top: 'calc(100% + 8px)', insetInlineEnd: 0,
+                  background: K.surf2, border: `1px solid ${K.border}`,
+                  borderRadius: 12, padding: 6, minWidth: 190, zIndex: 300,
+                  boxShadow: '0 12px 40px rgba(0,0,0,0.5)',
+                }}>
+                  <div style={{ padding: '10px 12px', borderBottom: `1px solid ${K.border}`, marginBottom: 4 }}>
+                    <div style={{ fontWeight: 700, fontSize: 13, color: K.ink, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                      {profile?.username ?? user?.email?.split('@')[0]}
+                    </div>
+                    <div style={{ fontSize: 11, color: K.ink4, marginTop: 2 }}>{user?.email}</div>
+                  </div>
+                  {[
+                    { href: '/profile', label: 'الملف الشخصي' },
+                    { href: '/wallet',  label: 'المحفظة' },
+                  ].map(it => (
+                    <Link key={it.href} href={it.href} onClick={() => setMenuOpen(false)}
+                      style={{ display: 'block', padding: '8px 12px', fontSize: 13, borderRadius: 8, color: K.ink2 }}>
+                      {it.label}
+                    </Link>
+                  ))}
+                  <button onClick={() => { signOut(); setMenuOpen(false) }}
+                    style={{
+                      display: 'block', width: '100%', textAlign: 'start',
+                      padding: '8px 12px', fontSize: 13, borderRadius: 8,
+                      color: '#EF6E72', background: 'none', border: 'none',
+                      marginTop: 4, cursor: 'pointer', fontFamily: 'inherit',
+                    }}>
+                    تسجيل الخروج
+                  </button>
+                </div>
+              )}
+            </div>
+          ) : (
+            <button
+              onClick={() => openAuth('signin')}
+              style={{
+                flexShrink: 0, padding: '7px 16px', background: K.brand,
+                border: 'none', borderRadius: 8, color: '#fff',
+                fontWeight: 700, fontSize: 12.5, fontFamily: 'inherit', cursor: 'pointer',
+              }}
+            >
+              دخول
+            </button>
+          )}
         </header>
 
         {/* Page */}

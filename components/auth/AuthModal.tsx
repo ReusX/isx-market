@@ -94,11 +94,25 @@ export default function AuthModal({ onClose, defaultTab = 'signin', lang = 'ar' 
         }}
       >
         {/* Header */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
-          <span style={{ fontWeight: 800, fontSize: 17 }}>
-            {ar ? 'مرحباً بك' : 'Welcome'}
-          </span>
-          <button onClick={onClose} style={{ background: 'none', border: 'none', color: 'var(--ink3)', fontSize: 20 }}>×</button>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 20 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <span style={{
+              width: 38, height: 38, borderRadius: 11, flexShrink: 0,
+              background: 'var(--brand-soft)', border: '1px solid var(--line2)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+            }}>
+              <img src="/favicon-192.png" alt="ISX" width={22} height={22} style={{ borderRadius: 5 }} />
+            </span>
+            <div>
+              <div style={{ fontWeight: 800, fontSize: 16, color: 'var(--ink)' }}>
+                {ar ? 'مرحباً بك في بورصة العراق' : 'Welcome to ISX'}
+              </div>
+              <div style={{ fontSize: 11.5, color: 'var(--ink4)', marginTop: 2 }}>
+                {ar ? 'تابع السوق وأنشئ قوائمك الخاصة' : 'Track the market and build your watchlists'}
+              </div>
+            </div>
+          </div>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', color: 'var(--ink3)', fontSize: 20, cursor: 'pointer', lineHeight: 1 }}>×</button>
         </div>
 
         {/* Tabs */}
