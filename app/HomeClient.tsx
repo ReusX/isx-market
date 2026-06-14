@@ -165,13 +165,13 @@ function ChangeBadge({ val }: { val: number }) {
 // ── Sortable column header ────────────────────────────────────────────────────
 type SortKey = 'close' | 'pct' | 'mcap' | 'vol'
 
-function SortTh({ label, col, sort, dir, onSort }: {
+function SortTh({ label, col, sort, dir, onSort, className }: {
   label: string; col: SortKey; sort: SortKey | null; dir: 'asc' | 'desc';
-  onSort: (col: SortKey) => void;
+  onSort: (col: SortKey) => void; className?: string;
 }) {
   const active = sort === col
   return (
-    <th onClick={() => onSort(col)} style={{
+    <th className={className} onClick={() => onSort(col)} style={{
       padding: '0 14px', height: 36, textAlign: 'end',
       fontSize: 11, fontWeight: 600,
       color: active ? 'var(--ink)' : 'var(--ink4)',
@@ -277,37 +277,42 @@ export default function HomeClient() {
 
       {/* ── Toolbar ── */}
       <div style={{
-        padding: '8px 20px', flexShrink: 0,
+        padding: '8px 16px', flexShrink: 0,
         borderBottom: '1px solid var(--line)',
-        display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap',
+        display: 'flex', alignItems: 'center', gap: 8,
         background: 'var(--bg)',
       }}>
-        {SECTORS.map(s => (
-          <button key={s.id} onClick={() => setSector(s.id)} style={{
-            padding: '4px 11px', borderRadius: 7, fontSize: 12, fontWeight: 600,
-            border: sector === s.id ? '1px solid var(--brand)' : '1px solid var(--line)',
-            background: sector === s.id ? 'var(--brand-soft)' : 'transparent',
-            color: sector === s.id ? 'var(--brand)' : 'var(--ink3)',
-            cursor: 'pointer', transition: 'all 0.12s',
-          }}>
-            {s.ar}
-          </button>
-        ))}
-        <div style={{ flex: 1 }} />
+        {/* Sector chips — single horizontal scroll row */}
+        <div className="chip-scroll" style={{
+          display: 'flex', alignItems: 'center', gap: 6,
+          overflowX: 'auto', flex: 1, minWidth: 0,
+        }}>
+          {SECTORS.map(s => (
+            <button key={s.id} onClick={() => setSector(s.id)} style={{
+              padding: '5px 12px', borderRadius: 8, fontSize: 12.5, fontWeight: 600,
+              border: sector === s.id ? '1px solid var(--brand)' : '1px solid var(--line)',
+              background: sector === s.id ? 'var(--brand-soft)' : 'transparent',
+              color: sector === s.id ? 'var(--brand)' : 'var(--ink3)',
+              cursor: 'pointer', transition: 'all 0.12s', whiteSpace: 'nowrap', flexShrink: 0,
+            }}>
+              {s.ar}
+            </button>
+          ))}
+        </div>
         <input
           value={query}
           onChange={e => setQuery(e.target.value)}
           placeholder="بحث..."
           style={{
-            width: 150, height: 30, borderRadius: 7,
+            width: 130, flexShrink: 0, height: 32, borderRadius: 8,
             background: 'var(--surf2)', border: '1px solid var(--line)',
-            color: 'var(--ink)', fontSize: 12, padding: '0 10px',
+            color: 'var(--ink)', fontSize: 12.5, padding: '0 10px',
             outline: 'none', fontFamily: 'inherit', direction: 'rtl',
           }}
           onFocus={e => e.currentTarget.style.borderColor = 'var(--brand)'}
           onBlur={e => e.currentTarget.style.borderColor = 'var(--line)'}
         />
-        <span style={{ fontSize: 11, color: 'var(--ink4)', whiteSpace: 'nowrap' }}>
+        <span className="desktop-only" style={{ fontSize: 11, color: 'var(--ink4)', whiteSpace: 'nowrap' }}>
           {rows.length} شركة
         </span>
       </div>
@@ -322,7 +327,7 @@ export default function HomeClient() {
             جارٍ تحميل البيانات...
           </div>
         ) : (
-          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
+          <table className="home-table" style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
             <thead>
               <tr>
                 {/* Star */}
@@ -332,7 +337,7 @@ export default function HomeClient() {
                   position: 'sticky', top: 0, zIndex: 1,
                 }} />
                 {/* Company */}
-                <th style={{
+                <th className="home-col-co" style={{
                   padding: '0 14px', height: 36, textAlign: 'start',
                   fontSize: 11, fontWeight: 600, color: 'var(--ink4)',
                   background: 'var(--surf2)', borderBottom: '1px solid var(--line)',
@@ -343,10 +348,10 @@ export default function HomeClient() {
                 </th>
                 <SortTh label="السعر"           col="close" sort={sortCol} dir={sortDir} onSort={handleSort} />
                 <SortTh label="التغيير%"        col="pct"   sort={sortCol} dir={sortDir} onSort={handleSort} />
-                <SortTh label="القيمة السوقية"  col="mcap"  sort={sortCol} dir={sortDir} onSort={handleSort} />
-                <SortTh label="الحجم"           col="vol"   sort={sortCol} dir={sortDir} onSort={handleSort} />
+                <SortTh label="القيمة السوقية"  col="mcap"  sort={sortCol} dir={sortDir} onSort={handleSort} className="mobcol-hide" />
+                <SortTh label="الحجم"           col="vol"   sort={sortCol} dir={sortDir} onSort={handleSort} className="mobcol-hide" />
                 {/* Sector */}
-                <th style={{
+                <th className="mobcol-hide" style={{
                   padding: '0 14px', height: 36, textAlign: 'start',
                   fontSize: 11, fontWeight: 600, color: 'var(--ink4)',
                   background: 'var(--surf2)', borderBottom: '1px solid var(--line)',
@@ -385,7 +390,7 @@ export default function HomeClient() {
                     </td>
 
                     {/* Company cell */}
-                    <td style={{ padding: '0 14px', minWidth: 180 }}>
+                    <td className="home-col-co" style={{ padding: '0 14px', minWidth: 180 }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 8, height: 42 }}>
                         <CoLogo sym={co.sym} logo={co.logo} />
                         <div style={{ minWidth: 0 }}>
@@ -416,21 +421,21 @@ export default function HomeClient() {
                       <ChangeBadge val={co.pct} />
                     </td>
 
-                    <td style={{
+                    <td className="mobcol-hide" style={{
                       padding: '0 14px', textAlign: 'end',
                       fontFamily: 'var(--font-mono)', fontSize: 12, color: 'var(--ink3)',
                     }}>
                       {fmtMcap(co.mcap)}
                     </td>
 
-                    <td style={{
+                    <td className="mobcol-hide" style={{
                       padding: '0 14px', textAlign: 'end',
                       fontFamily: 'var(--font-mono)', fontSize: 12, color: 'var(--ink3)',
                     }}>
                       {fmtVol(co.vol)}
                     </td>
 
-                    <td style={{ padding: '0 14px' }}>
+                    <td className="mobcol-hide" style={{ padding: '0 14px' }}>
                       <span style={{
                         fontSize: 10, fontWeight: 600, padding: '2px 6px',
                         background: 'var(--surf3)', borderRadius: 4,

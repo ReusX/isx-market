@@ -175,17 +175,50 @@ button { cursor: pointer; font-family: inherit; }
 }
 .wp-content th { font-weight: 700; color: var(--ink3); background: var(--surf2); }
 
+/* ── Off-canvas drawer (mobile) ── */
+.app-hamburger,
+.app-mobile-logo { display: none; }
+.app-backdrop {
+  position: fixed; inset: 0; z-index: 150;
+  background: rgba(0,0,0,0.55);
+  -webkit-backdrop-filter: blur(2px); backdrop-filter: blur(2px);
+  animation: app-fade 0.18s ease;
+}
+@keyframes app-fade { from { opacity: 0; } to { opacity: 1; } }
+
+/* Hide scrollbars on horizontal chip rows */
+.chip-scroll { scrollbar-width: none; }
+.chip-scroll::-webkit-scrollbar { display: none; }
+
 /* ── Mobile responsive ── */
 @media (max-width: 768px) {
-  main { padding-bottom: 72px !important; }
   .desktop-only { display: none !important; }
+  .app-hamburger,
+  .app-mobile-logo { display: flex !important; }
 
-  /* Hide scrollbars on mobile chip rows */
-  .chip-scroll { scrollbar-width: none; }
-  .chip-scroll::-webkit-scrollbar { display: none; }
+  /* Sidebar becomes an off-canvas drawer that slides in from the right (RTL) */
+  .app-sidebar {
+    width: 272px !important;
+    transform: translateX(100%);
+    transition: transform 0.26s cubic-bezier(0.32,0.72,0,1) !important;
+    box-shadow: -16px 0 48px rgba(0,0,0,0.55);
+  }
+  .app-sidebar.open { transform: translateX(0); }
+
+  /* Content takes the full width — no margin reserved for the sidebar */
+  .app-main { margin-inline-start: 0 !important; }
+
+  /* Homepage: hide low-priority table columns so it breathes */
+  .mobcol-hide { display: none !important; }
+
+  /* Fixed layout so the remaining columns fit the viewport (no h-scroll) */
+  .home-table { table-layout: fixed; width: 100%; }
+  .home-table th, .home-table td { overflow: hidden; }
+  .home-table .home-col-co { min-width: 0 !important; }
 }
 @media (min-width: 769px) {
   .mobile-only { display: none !important; }
+  .app-backdrop { display: none !important; }
 }
 
 /* Hide TradingView attribution injected by lightweight-charts */

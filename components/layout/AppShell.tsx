@@ -100,12 +100,14 @@ const NAV: {
 export default function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
   const { user, profile, openAuth, signOut } = useApp()
-  const [collapsed, setCollapsed] = useState(false)
+  const [collapsedPref, setCollapsed] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
   const menuRef = useRef<HTMLDivElement>(null)
   const [openSections, setOpenSections] = useState<Record<string, boolean>>({
     favorites: true, myisx: true, market: false, tools: false,
   })
+  const [drawerOpen, setDrawerOpen] = useState(false)
+  const [isMobile, setIsMobile]     = useState(false)
 
   // close the account menu on outside click
   useEffect(() => {
@@ -131,9 +133,34 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
     })
   }, [])
 
+  // The drawer always shows full labels on mobile, regardless of the
+  // desktop collapse preference.
+  const collapsed = collapsedPref && !isMobile
+
   const toggleSection = (id: string) => {
     setOpenSections(p => ({ ...p, [id]: !p[id] }))
   }
+
+  // Close the mobile drawer whenever the route changes
+  useEffect(() => { setDrawerOpen(false) }, [pathname])
+
+  // Track the mobile breakpoint for drawer-specific behavior
+  useEffect(() => {
+    const mq = window.matchMedia('(max-width: 768px)')
+    const update = () => setIsMobile(mq.matches)
+    update()
+    mq.addEventListener('change', update)
+    return () => mq.removeEventListener('change', update)
+  }, [])
+
+  // Lock body scroll while the drawer is open
+  useEffect(() => {
+    if (drawerOpen) {
+      const prev = document.body.style.overflow
+      document.body.style.overflow = 'hidden'
+      return () => { document.body.style.overflow = prev }
+    }
+  }, [drawerOpen])
 
   const SW = collapsed ? 48 : 192
 
@@ -141,7 +168,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
     <div style={{ display: 'flex', minHeight: '100dvh', background: K.bg, color: K.ink }}>
 
       {/* ── Sidebar ── */}
-      <aside style={{
+      <aside className={`app-sidebar${drawerOpen ? ' open' : ''}`} style={{
         position: 'fixed', top: 0, right: 0, bottom: 0,
         width: SW, zIndex: 200,
         background: K.sidebar,
@@ -171,7 +198,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
               </span>
             </div>
           )}
-          <button onClick={toggleSidebar} style={{
+          <button onClick={() => { isMobile ? setDrawerOpen(false) : toggleSidebar() }} style={{
             width: 28, height: 28, borderRadius: 5,
             background: 'transparent', border: 'none',
             color: K.ink4, display: 'flex', alignItems: 'center',
@@ -233,6 +260,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
                       key={item.href + item.ar}
                       href={item.href}
                       title={collapsed ? item.ar : undefined}
+                      onClick={() => setDrawerOpen(false)}
                       style={{
                         display: 'flex', alignItems: 'center',
                         height: 32, gap: 8,
@@ -341,8 +369,13 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
         )}
       </aside>
 
+      {/* ── Mobile drawer backdrop ── */}
+      {drawerOpen && (
+        <div className="app-backdrop" onClick={() => setDrawerOpen(false)} />
+      )}
+
       {/* ── Main content ── */}
-      <div style={{
+      <div className="app-main" style={{
         flex: 1,
         marginInlineStart: SW,
         transition: 'margin-inline-start 0.18s cubic-bezier(0.4,0,0.2,1)',
@@ -359,8 +392,33 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
           borderBottom: `1px solid ${K.border}`,
           flexShrink: 0,
         }}>
+          {/* Mobile: hamburger to open the drawer */}
+          <button
+            className="app-hamburger"
+            onClick={() => setDrawerOpen(true)}
+            aria-label="القائمة"
+            style={{
+              width: 34, height: 34, borderRadius: 8, flexShrink: 0,
+              background: 'transparent', border: 'none', color: K.ink,
+              alignItems: 'center', justifyContent: 'center', cursor: 'pointer',
+            }}
+          >
+            <Icon d={IC.menu} size={20} />
+          </button>
+
+          {/* Mobile: brand logo */}
+          <Link href="/" className="app-mobile-logo" style={{
+            alignItems: 'center', gap: 7, flexShrink: 0, textDecoration: 'none',
+          }}>
+            <Image src="/favicon-192.png" alt="ISX" width={24} height={24}
+              style={{ borderRadius: 6 }} />
+            <span style={{ fontWeight: 800, fontSize: 14, color: K.ink, whiteSpace: 'nowrap' }}>
+              بورصة العراق
+            </span>
+          </Link>
+
           {/* Global search */}
-          <div style={{ flex: 1, maxWidth: 480, position: 'relative', display: 'flex', alignItems: 'center' }}>
+          <div className="desktop-only" style={{ flex: 1, maxWidth: 480, position: 'relative', display: 'flex', alignItems: 'center' }}>
             <span style={{
               position: 'absolute', insetInlineStart: 10,
               color: K.ink4, pointerEvents: 'none', display: 'flex',
@@ -390,9 +448,9 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
 
           <div style={{ flex: 1 }} />
 
-          <button style={{
+          <button className="desktop-only" style={{
             background: 'none', border: 'none', color: K.ink4,
-            cursor: 'pointer', padding: 4, display: 'flex',
+            cursor: 'pointer', padding: 4,
             transition: 'color 0.12s',
           }}
           onMouseEnter={e => (e.currentTarget.style.color = K.ink)}
