@@ -5,7 +5,7 @@ import { useEffect, useMemo, useState } from 'react'
 // ── Types ─────────────────────────────────────────────────────────────────────
 type FlowRow   = { year: number; month: number; side: 'buy' | 'sell'; value: number | null }
 type SectorRow = { year: number; month: number; sector: string; side: string; value: number | null }
-type ShareRow  = { company_name_ar: string; rank: number; name_ar: string | null; nationality: string | null; curr_pct: number | null; change_pct: number | null }
+type ShareRow  = { year?: number; month?: number; company_name_ar: string; rank: number; name_ar: string | null; nationality: string | null; curr_pct: number | null; change_pct: number | null }
 type OwnRow    = { name_ar: string; sector: string | null; iraqi_shares: number | null; foreign_shares: number | null }
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -385,6 +385,7 @@ export default function StatisticsPage() {
   const [sector,  setSector]  = useState<SectorRow[]>([])
   const [shares,  setShares]  = useState<ShareRow[]>([])
   const [own,     setOwn]     = useState<OwnRow[]>([])
+  const [ownMonth, setOwnMonth] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -408,15 +409,23 @@ export default function StatisticsPage() {
           return out
         }
 
+        // latest month for which ownership has been parsed (no longer pinned)
+        const { data: ownLatest } = await db.from('ownership_monthly')
+          .select('year,month').order('year', { ascending: false })
+          .order('month', { ascending: false }).limit(1)
+        const oy = ownLatest?.[0]?.year, om = ownLatest?.[0]?.month
+
         const [f, s, sh, ownRes] = await Promise.all([
           fetchAllFlow(),
           db.from('foreign_flow_sector').select('year,month,sector,side,value'),
-          db.from('major_shareholders').select('company_name_ar,rank,name_ar,nationality,curr_pct,change_pct')
+          db.from('major_shareholders').select('year,month,company_name_ar,rank,name_ar,nationality,curr_pct,change_pct')
             .order('year', { ascending: false }).order('month', { ascending: false }).limit(400),
-          // 2026-04 is the last clean ownership month (column-shift corrupts 2026-05)
-          db.from('ownership_monthly').select('name_ar,sector,iraqi_shares,foreign_shares')
-            .eq('year', 2026).eq('month', 4),
+          oy
+            ? db.from('ownership_monthly').select('name_ar,sector,iraqi_shares,foreign_shares')
+                .eq('year', oy).eq('month', om)
+            : Promise.resolve({ data: [] as OwnRow[] }),
         ])
+        if (oy && om) setOwnMonth(`${arMonth[om]} ${oy}`)
         setFlow(f)
         setSector((s.data as SectorRow[]) ?? [])
         setShares((sh.data as ShareRow[]) ?? [])
@@ -436,6 +445,14 @@ export default function StatisticsPage() {
     )
   }
 
+  // newest month present in the shareholders rows (they arrive newest-first)
+  const shM = shares.reduce((best, r) => {
+    if (r.year == null || r.month == null) return best
+    const v = r.year * 12 + r.month
+    return v > best ? v : best
+  }, 0)
+  const shareMonth = shM ? `${arMonth[((shM - 1) % 12) + 1]} ${Math.floor((shM - 1) / 12)}` : null
+
   return (
     <div style={{ padding: '20px 24px 60px', maxWidth: 1400, margin: '0 auto' }}>
       <div style={{ marginBottom: 20 }}>
@@ -454,11 +471,11 @@ export default function StatisticsPage() {
           <SectorRotation rows={sector} />
         </Panel>
 
-        <Panel title="هيكل الملكية" subtitle="عراقي مقابل أجنبي" badge="حصري">
+        <Panel title="هيكل الملكية" subtitle={ownMonth ? `عراقي مقابل أجنبي · ${ownMonth}` : 'عراقي مقابل أجنبي'} badge="حصري">
           <Ownership rows={own} />
         </Panel>
 
-        <Panel title="كبار المساهمين" subtitle="من يملك ماذا + الجنسية" badge="حصري">
+        <Panel title="كبار المساهمين" subtitle={shareMonth ? `من يملك ماذا + الجنسية · ${shareMonth}` : 'من يملك ماذا + الجنسية'} badge="حصري">
           <MajorShareholders rows={shares} />
         </Panel>
 
