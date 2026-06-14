@@ -6,7 +6,6 @@ import AppShell from '@/components/layout/AppShell'
 import { Analytics } from '@vercel/analytics/react'
 import { SpeedInsights } from '@vercel/speed-insights/next'
 import NativeBridge from '@/components/NativeBridge'
-import ChatWidget from '@/components/chat/ChatWidgetLazy'
 
 const inter = Inter({
   subsets: ['latin'],
@@ -129,7 +128,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             {children}
           </AppShell>
           <NativeBridge />
-          <ChatWidget />
           <Analytics />
           <SpeedInsights />
         </AppProvider>

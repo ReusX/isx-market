@@ -50,7 +50,7 @@ const faqSchema = {
           name: 'What is the gold price in Iraq today?',
           acceptedAnswer: {
             '@type': 'Answer',
-            text: 'The gold price in Iraq today is calculated from the international spot price (USD per troy ounce) converted to Iraqi Dinar at the current IQD/USD exchange rate (~1310 IQD). The most traded karat in Iraq is 21K (عيار 21). Check iraqsm.com/gold for the live rate.',
+            text: 'The gold price in Iraq today is calculated from the international spot price (USD per troy ounce) converted to Iraqi Dinar at the current IQD/USD exchange rate. The most traded karat in Iraq is 21K (عيار 21). Check iraqsm.com/gold for the live rate.',
           },
         },
         {
@@ -66,7 +66,7 @@ const faqSchema = {
           name: 'What is the gold price in Iraqi Dinar (IQD)?',
           acceptedAnswer: {
             '@type': 'Answer',
-            text: 'The gold price in Iraqi Dinar is the international USD spot price multiplied by the IQD/USD rate (approximately 1310 IQD per USD). One gram of 21K gold in Iraq typically ranges between 2,500,000 and 3,500,000 IQD depending on the current global spot price.',
+            text: 'The gold price in Iraqi Dinar tracks the international USD spot price converted at the current IQD/USD exchange rate. One gram of 21K gold in Iraq typically ranges between roughly 140,000 and 180,000 IQD (around 650,000–830,000 IQD per mithqal of 4.608 g) depending on the current global spot price.',
           },
         },
         {
@@ -74,7 +74,7 @@ const faqSchema = {
           name: 'سعر مثقال الذهب عيار 21 في العراق اليوم؟',
           acceptedAnswer: {
             '@type': 'Answer',
-            text: 'سعر مثقال الذهب عيار 21 في العراق يُحسب بضرب السعر العالمي للذهب بالدولار في سعر صرف الدينار العراقي (1310 دينار تقريباً لكل دولار). المثقال يساوي 4.608 غرام. يتغيّر السعر يومياً تبعاً لأسواق السلع العالمية.',
+            text: 'سعر مثقال الذهب عيار 21 في العراق يُحسب بضرب السعر العالمي للذهب بالدولار في سعر صرف الدينار العراقي الحالي. المثقال يساوي 4.608 غرام. يتغيّر السعر يومياً تبعاً لأسواق السلع العالمية.',
           },
         },
         {
