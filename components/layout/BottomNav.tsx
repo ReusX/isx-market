@@ -2,20 +2,17 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { useApp } from '@/context/AppContext'
+
+const tabs = [
+  { href: '/',           icon: '🏠', ar: 'الرئيسية' },
+  { href: '/market',     icon: '📊', ar: 'السوق'    },
+  { href: '/news',       icon: '📰', ar: 'الأخبار'  },
+  { href: '/statistics', icon: '📈', ar: 'إحصائيات' },
+  { href: '/profile',    icon: '👤', ar: 'الملف'    },
+]
 
 export default function BottomNav() {
   const pathname = usePathname()
-  const { lang } = useApp()
-  const ar = lang === 'ar'
-
-  const tabs = [
-    { href: '/',            icon: '🏠', labelAr: 'الرئيسية', labelEn: 'Home'      },
-    { href: '/market',      icon: '📊', labelAr: 'السوق',    labelEn: 'Market'    },
-    { href: '/rewards/spin',icon: '🎡', labelAr: 'دوّر',     labelEn: 'Spin',  special: true },
-    { href: '/quests',      icon: '⭐', labelAr: 'المهمات',  labelEn: 'Quests'    },
-    { href: '/profile',     icon: '👤', labelAr: 'الملف',    labelEn: 'Profile'   },
-  ]
 
   return (
     <nav className="mobile-only" style={{
@@ -29,53 +26,23 @@ export default function BottomNav() {
       paddingBottom: 'env(safe-area-inset-bottom)',
     }}>
       {tabs.map(tab => {
-        const active = tab.href === '/'
-          ? pathname === '/'
-          : pathname.startsWith(tab.href)
-
+        const active = tab.href === '/' ? pathname === '/' : pathname.startsWith(tab.href)
         return (
-          <Link
-            key={tab.href}
-            href={tab.href}
-            style={{
-              flex: 1,
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: 2,
-              paddingTop: tab.special ? 0 : 6,
-              paddingBottom: 6,
-              color: active ? 'var(--brand)' : 'var(--ink4)',
-              textDecoration: 'none',
-              position: 'relative',
-            }}
-          >
-            {tab.special ? (
-              <div style={{
-                width: 46, height: 46,
-                borderRadius: '50%',
-                background: 'linear-gradient(135deg, #4F6BFF, #A855F7)',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                fontSize: 22,
-                boxShadow: '0 4px 16px rgba(79,107,255,0.5)',
-                marginTop: -22,
-                border: '3px solid var(--bg)',
-              }}>
-                {tab.icon}
-              </div>
-            ) : (
-              <span style={{ fontSize: 22, lineHeight: 1 }}>{tab.icon}</span>
-            )}
+          <Link key={tab.href} href={tab.href} style={{
+            flex: 1, display: 'flex', flexDirection: 'column',
+            alignItems: 'center', justifyContent: 'center',
+            gap: 2, paddingTop: 6, paddingBottom: 6,
+            color: active ? 'var(--brand)' : 'var(--ink4)',
+            textDecoration: 'none', position: 'relative',
+          }}>
+            <span style={{ fontSize: 20, lineHeight: 1 }}>{tab.icon}</span>
             <span style={{
-              fontSize: 9,
-              fontWeight: active ? 700 : 500,
-              letterSpacing: '0.01em',
+              fontSize: 9, fontWeight: active ? 700 : 500,
               color: active ? 'var(--brand)' : 'var(--ink4)',
             }}>
-              {ar ? tab.labelAr : tab.labelEn}
+              {tab.ar}
             </span>
-            {active && !tab.special && (
+            {active && (
               <div style={{
                 position: 'absolute', top: 0, left: '50%',
                 transform: 'translateX(-50%)',

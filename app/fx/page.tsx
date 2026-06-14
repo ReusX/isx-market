@@ -1,8 +1,8 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import Link from 'next/link'
 import { useApp } from '@/context/AppContext'
-import { useQuestTrack } from '@/lib/useQuestTrack'
 
 interface FxRate {
   source: string
@@ -21,9 +21,29 @@ const RATES: FxRate[] = [
   { source: 'Hawala (est.)',    sourceAr: 'حوالة (تقريبي)',          buy: 1318, sell: 1328, noteAr: 'يتفاوت حسب الموقع' },
 ]
 
+function TabBar({ ar }: { ar: boolean }) {
+  return (
+    <div style={{ display: 'flex', gap: 4, marginBottom: 24, background: 'var(--surf)', border: '1px solid var(--line)', borderRadius: 10, padding: 4 }}>
+      <div style={{
+        flex: 1, padding: '8px 0', textAlign: 'center', fontSize: 13, fontWeight: 700,
+        borderRadius: 7, background: 'var(--brand)', color: '#fff',
+      }}>
+        {ar ? 'سعر الصرف' : 'Exchange Rate'}
+      </div>
+      <Link href="/gold" style={{
+        flex: 1, padding: '8px 0', textAlign: 'center', fontSize: 13, fontWeight: 700,
+        borderRadius: 7, color: 'var(--ink3)', textDecoration: 'none',
+        display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5,
+      }}>
+        <span style={{ color: '#F5C84B' }}>◆</span>
+        {ar ? 'سعر الذهب' : 'Gold Price'}
+      </Link>
+    </div>
+  )
+}
+
 export default function FxPage() {
   const { lang } = useApp()
-  useQuestTrack('currency_convert')
   const ar = lang === 'ar'
 
   const [usd, setUsd] = useState('')
@@ -45,14 +65,16 @@ export default function FxPage() {
 
   return (
     <div style={{ maxWidth: 800, margin: '0 auto', padding: '24px' }}>
-      <div style={{ marginBottom: 24 }}>
+      <div style={{ marginBottom: 20 }}>
         <h1 style={{ fontSize: 22, fontWeight: 800, margin: '0 0 4px' }}>
-          {ar ? 'تحويل IQD ⇄ USD' : 'IQD ⇄ USD Exchange'}
+          {ar ? 'سعر الصرف والذهب' : 'Exchange Rate & Gold'}
         </h1>
         <p style={{ fontSize: 13, color: 'var(--ink3)', margin: 0 }}>
           {ar ? 'أسعار صرف الدينار العراقي مقابل الدولار الأمريكي' : 'Iraqi Dinar vs US Dollar exchange rates'}
         </p>
       </div>
+
+      <TabBar ar={ar} />
 
       {/* Converter */}
       <div style={{ background: 'var(--surf)', border: '1px solid var(--line)', borderRadius: 20, padding: '24px', marginBottom: 20 }}>
@@ -60,7 +82,6 @@ export default function FxPage() {
           {ar ? 'حاسبة التحويل' : 'Converter'}
         </div>
 
-        {/* Rate selector */}
         <div style={{ marginBottom: 16 }}>
           <label style={{ fontSize: 11, color: 'var(--ink4)', display: 'block', marginBottom: 6 }}>
             {ar ? 'اختر سعر الصرف' : 'Select rate'}
@@ -75,7 +96,7 @@ export default function FxPage() {
                 padding: '5px 11px', borderRadius: 999, border: 'none',
                 background: rate === r.buy ? 'var(--brand)' : 'var(--surf3)',
                 color: rate === r.buy ? '#fff' : 'var(--ink3)',
-                fontSize: 11, fontWeight: 600, fontFamily: 'inherit',
+                fontSize: 11, fontWeight: 600, fontFamily: 'inherit', cursor: 'pointer',
               }}>
                 {ar ? r.sourceAr : r.source}
               </button>
@@ -110,9 +131,7 @@ export default function FxPage() {
         </div>
 
         <div style={{ marginTop: 14, padding: '10px 14px', background: 'var(--surf3)', borderRadius: 10, fontSize: 12, color: 'var(--ink3)', textAlign: 'center' }}>
-          {ar ? `1 USD = ${rate.toLocaleString('en')} IQD` : `1 USD = ${rate.toLocaleString('en')} IQD`}
-          &nbsp;•&nbsp;
-          {ar ? `1 IQD = ${(1 / rate).toFixed(6)} USD` : `1 IQD = ${(1 / rate).toFixed(6)} USD`}
+          1 USD = {rate.toLocaleString('en')} IQD &nbsp;•&nbsp; 1 IQD = {(1 / rate).toFixed(6)} USD
         </div>
       </div>
 
@@ -140,8 +159,8 @@ export default function FxPage() {
               cursor: 'pointer', transition: 'background 0.12s',
               background: rate === r.buy ? 'var(--brand-soft)' : '',
             }}
-            onMouseEnter={e => e.currentTarget.style.background = rate === r.buy ? 'var(--brand-soft)' : 'var(--surf2)'}
-            onMouseLeave={e => e.currentTarget.style.background = rate === r.buy ? 'var(--brand-soft)' : ''}
+            onMouseEnter={e => (e.currentTarget.style.background = rate === r.buy ? 'var(--brand-soft)' : 'var(--surf2)')}
+            onMouseLeave={e => (e.currentTarget.style.background = rate === r.buy ? 'var(--brand-soft)' : '')}
           >
             <div>
               <div style={{ fontSize: 13, fontWeight: 600 }}>{ar ? r.sourceAr : r.source}</div>

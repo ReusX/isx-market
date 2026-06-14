@@ -190,8 +190,8 @@ export default function AuthModal({ onClose, defaultTab = 'signin', lang = 'ar' 
             {tab === 'signup' && (
               <p style={{ fontSize: 10, color: 'var(--ink4)', textAlign: 'center', margin: 0 }}>
                 {ar
-                  ? 'بالتسجيل تحصل على 1000 نقطة ترحيبية 🎉'
-                  : 'Sign up and earn 1,000 welcome points 🎉'}
+                  ? 'انضم إلى مجتمع مستثمري بورصة العراق'
+                  : 'Join the Iraq Stock Market investor community'}
               </p>
             )}
           </form>

@@ -78,7 +78,6 @@ const NAV: {
       { href: '/watchlist',  icon: 'star',   ar: 'قوائم المتابعة', badge: 'متابعة' },
       { href: '/charts',     icon: 'chart',  ar: 'رسوماتي',         badge: 'رسم'    },
       { href: '/statistics', icon: 'stats',  ar: 'الإحصائيات',      badge: 'جديد'   },
-      { href: '/foreign',    icon: 'shield', ar: 'تدفق الأجانب',   badge: 'أجانب'  },
     ],
   },
   {
@@ -91,8 +90,8 @@ const NAV: {
   {
     id: 'tools', label: 'أدوات البحث', collapsible: true,
     items: [
-      { href: '/charts',  icon: 'chart',   ar: 'الرسوم البيانية', badge: 'رسم'   },
-      { href: '/foreign', icon: 'scatter', ar: 'المستثمر الأجنبي' },
+      { href: '/charts',  icon: 'chart', ar: 'الرسوم البيانية', badge: 'رسم' },
+      { href: '/gold',    icon: 'fx',    ar: 'سعر الذهب'                      },
     ],
   },
 ]
@@ -308,9 +307,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
                 <div style={{ fontSize: 11.5, fontWeight: 600, color: K.ink, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                   {profile?.username ?? user?.email?.split('@')[0]}
                 </div>
-                <div style={{ fontSize: 10, color: K.ink4 }}>
-                  {profile?.points != null ? `${profile.points.toLocaleString('en')} نقطة` : 'الحساب المجاني'}
-                </div>
+                <div style={{ fontSize: 10, color: K.ink4 }}>الحساب المجاني</div>
               </div>
             )}
           </Link>
@@ -432,7 +429,6 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
                   </div>
                   {[
                     { href: '/profile', label: 'الملف الشخصي' },
-                    { href: '/wallet',  label: 'المحفظة' },
                   ].map(it => (
                     <Link key={it.href} href={it.href} onClick={() => setMenuOpen(false)}
                       style={{ display: 'block', padding: '8px 12px', fontSize: 13, borderRadius: 8, color: K.ink2 }}>

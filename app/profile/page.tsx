@@ -3,13 +3,10 @@
 export const dynamic = 'force-dynamic'
 
 import { useState, useEffect, useCallback } from 'react'
-import Link from 'next/link'
 import { useApp } from '@/context/AppContext'
-import { rankFor, fmtPts, rankProgress, nextRank } from '@/lib/ranks'
 import { createClient } from '@/lib/supabase/client'
 
 function genCode(uid: string): string {
-  // Deterministic 8-char code from user ID prefix + random suffix
   const prefix = uid.replace(/-/g, '').slice(0, 4).toUpperCase()
   const suffix = Math.random().toString(36).slice(2, 6).toUpperCase()
   return `${prefix}${suffix}`
@@ -19,13 +16,12 @@ export default function ProfilePage() {
   const { lang, user, profile, authLoading, refreshProfile, signOut, openAuth } = useApp()
   const ar = lang === 'ar'
   const sb = createClient()
-  const [editing,   setEditing]   = useState(false)
-  const [username,  setUsername]  = useState(profile?.username ?? '')
-  const [saving,    setSaving]    = useState(false)
-  const [saved,     setSaved]     = useState(false)
-  const [copied,    setCopied]    = useState(false)
+  const [editing,  setEditing]  = useState(false)
+  const [username, setUsername] = useState(profile?.username ?? '')
+  const [saving,   setSaving]   = useState(false)
+  const [saved,    setSaved]    = useState(false)
+  const [copied,   setCopied]   = useState(false)
 
-  // Auto-generate referral code if missing
   useEffect(() => {
     if (!user || !profile || profile.referral_code) return
     const code = genCode(user.id)
@@ -65,21 +61,17 @@ export default function ProfilePage() {
   )
 
   if (!profile) return (
-    <div style={{ maxWidth: 700, margin: '40px auto', padding: '0 24px' }}>
+    <div style={{ maxWidth: 600, margin: '40px auto', padding: '0 24px' }}>
       {[80, 120, 80].map((h, i) => (
         <div key={i} className="skeleton" style={{ height: h, borderRadius: 16, marginBottom: 12 }} />
       ))}
     </div>
   )
 
-  const rank     = rankFor(profile.points)
-  const progress = rankProgress(profile.points)
-  const nxt      = nextRank(rank)
-
   async function saveUsername() {
     if (!username.trim() || username === profile?.username) { setEditing(false); return }
     setSaving(true)
-    await sb.from('profiles').update({ username: username.trim() }).eq('id', user.id)
+    await sb.from('profiles').update({ username: username.trim() }).eq('id', user!.id)
     await refreshProfile()
     setSaving(false)
     setEditing(false)
@@ -87,16 +79,8 @@ export default function ProfilePage() {
     setTimeout(() => setSaved(false), 2000)
   }
 
-  const statCard = (icon: string, label: string, val: string | number) => (
-    <div style={{ background: 'var(--surf)', border: '1px solid var(--line)', borderRadius: 14, padding: '14px 16px' }}>
-      <div style={{ fontSize: 20, marginBottom: 6 }}>{icon}</div>
-      <div style={{ fontFamily: 'var(--font-mono)', fontSize: 18, fontWeight: 800 }}>{val}</div>
-      <div style={{ fontSize: 10, color: 'var(--ink4)', marginTop: 2 }}>{label}</div>
-    </div>
-  )
-
   return (
-    <div style={{ maxWidth: 700, margin: '0 auto', padding: '24px' }}>
+    <div style={{ maxWidth: 600, margin: '0 auto', padding: '24px' }}>
       {/* Avatar & name */}
       <div style={{
         background: 'var(--surf)', border: '1px solid var(--line)',
@@ -136,50 +120,18 @@ export default function ProfilePage() {
               {saved && <span style={{ fontSize: 11, color: 'var(--up)' }}>✓</span>}
               <button onClick={() => setEditing(true)} style={{
                 background: 'none', border: '1px solid var(--line)', borderRadius: 6,
-                padding: '3px 9px', fontSize: 11, color: 'var(--ink4)', fontFamily: 'inherit',
+                padding: '3px 9px', fontSize: 11, color: 'var(--ink4)', fontFamily: 'inherit', cursor: 'pointer',
               }}>
                 {ar ? 'تعديل' : 'Edit'}
               </button>
             </div>
           )}
-          <div style={{ fontSize: 12, color: 'var(--ink4)', marginTop: 3 }}>{user.email}</div>
-          <div style={{ marginTop: 6 }}>
-            <span style={{
-              padding: '3px 10px', borderRadius: 999, fontSize: 11, fontWeight: 700,
-              background: `${rank.color}22`, color: rank.color, border: `1px solid ${rank.color}`,
-            }}>
-              {rank.icon} {ar ? rank.ar : rank.en}
-            </span>
-          </div>
+          <div style={{ fontSize: 12, color: 'var(--ink4)', marginTop: 4 }}>{user.email}</div>
         </div>
       </div>
 
-      {/* Stats grid */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10, marginBottom: 16 }}>
-        {statCard('🪙', ar ? 'نقطة' : 'Points', fmtPts(profile.points))}
-        {statCard('🔥', ar ? 'تسلسل' : 'Streak', `${profile.streak ?? 0}d`)}
-        {statCard(rank.icon, ar ? 'الرتبة' : 'Rank', ar ? rank.ar : rank.en)}
-      </div>
-
-      {/* Progress bar */}
-      {nxt && (
-        <div style={{ background: 'var(--surf)', border: '1px solid var(--line)', borderRadius: 14, padding: '14px 16px', marginBottom: 16 }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, marginBottom: 8 }}>
-            <span style={{ color: rank.color, fontWeight: 700 }}>{ar ? rank.ar : rank.en}</span>
-            <span style={{ color: 'var(--ink4)' }}>{Math.round(progress)}%</span>
-            <span style={{ color: nxt.color, fontWeight: 700 }}>{ar ? nxt.ar : nxt.en}</span>
-          </div>
-          <div style={{ height: 8, background: 'var(--surf3)', borderRadius: 4 }}>
-            <div style={{ height: '100%', borderRadius: 4, background: `linear-gradient(90deg, ${rank.color}, ${nxt.color})`, width: `${progress}%`, transition: 'width 0.5s' }} />
-          </div>
-          <div style={{ fontSize: 10, color: 'var(--ink4)', marginTop: 6 }}>
-            {fmtPts(nxt.min - profile.points)} {ar ? 'نقطة متبقية' : 'pts to next rank'}
-          </div>
-        </div>
-      )}
-
-      {/* Referral section */}
-      <div id="referral" style={{ background: 'var(--surf)', border: '1px solid var(--line)', borderRadius: 14, padding: '16px', marginBottom: 16 }}>
+      {/* Referral */}
+      <div style={{ background: 'var(--surf)', border: '1px solid var(--line)', borderRadius: 14, padding: '16px', marginBottom: 16 }}>
         <div style={{ fontWeight: 700, fontSize: 13, marginBottom: 10 }}>
           {ar ? '👥 رمز الإحالة' : '👥 Referral Code'}
         </div>
@@ -191,23 +143,20 @@ export default function ProfilePage() {
           }}>
             {profile.referral_code ?? (ar ? 'جاري الإنشاء...' : 'Generating...')}
           </div>
-          <button
-            onClick={copyCode}
-            disabled={!profile.referral_code}
-            style={{
-              padding: '10px 16px', borderRadius: 10, border: '1px solid var(--line)',
-              background: copied ? 'var(--up)' : 'var(--surf3)',
-              color: copied ? '#fff' : 'var(--ink3)',
-              fontSize: 12, fontFamily: 'inherit', fontWeight: 700,
-              transition: 'all 0.2s', cursor: profile.referral_code ? 'pointer' : 'not-allowed',
-            }}>
+          <button onClick={copyCode} disabled={!profile.referral_code} style={{
+            padding: '10px 16px', borderRadius: 10, border: '1px solid var(--line)',
+            background: copied ? 'var(--up)' : 'var(--surf3)',
+            color: copied ? '#fff' : 'var(--ink3)',
+            fontSize: 12, fontFamily: 'inherit', fontWeight: 700,
+            transition: 'all 0.2s', cursor: profile.referral_code ? 'pointer' : 'not-allowed',
+          }}>
             {copied ? '✓' : (ar ? 'نسخ' : 'Copy')}
           </button>
         </div>
         <div style={{ fontSize: 11, color: 'var(--ink4)', lineHeight: 1.6 }}>
           {ar
-            ? 'شارك رمزك واحصل على 500 نقطة لكل صديق يسجّل معك!'
-            : 'Share your code and earn 500 pts for every friend who signs up!'}
+            ? 'شارك رمزك مع أصدقائك وادعهم للانضمام إلى منصة بورصة العراق'
+            : 'Share your code and invite friends to join Iraq Stock Market'}
         </div>
       </div>
 
@@ -215,7 +164,7 @@ export default function ProfilePage() {
       <button onClick={signOut} style={{
         width: '100%', padding: '11px', borderRadius: 12,
         background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.25)',
-        color: 'var(--dn)', fontWeight: 700, fontSize: 14, fontFamily: 'inherit',
+        color: 'var(--dn)', fontWeight: 700, fontSize: 14, fontFamily: 'inherit', cursor: 'pointer',
       }}>
         {ar ? 'تسجيل الخروج' : 'Sign Out'}
       </button>

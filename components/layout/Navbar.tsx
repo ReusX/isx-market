@@ -3,7 +3,6 @@
 import Link from 'next/link'
 import { useState } from 'react'
 import { useApp } from '@/context/AppContext'
-import { fmtPts } from '@/lib/ranks'
 
 export default function Navbar() {
   const { lang, setLang, user, profile, signOut, openAuth } = useApp()
@@ -87,7 +86,7 @@ export default function Navbar() {
                   fontFamily: 'serif', letterSpacing: 0,
                 }}>د.ع</div>
                 <span style={{ fontFamily: 'var(--font-mono)', fontSize: 11, fontWeight: 700, color: 'var(--gold)' }}>
-                  {fmtPts(profile.points)}
+                  {profile?.points?.toLocaleString("en") ?? ""}
                 </span>
               </div>
             </div>

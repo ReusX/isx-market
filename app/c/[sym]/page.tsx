@@ -4,7 +4,6 @@ import { useEffect, useState } from 'react'
 import { useParams } from 'next/navigation'
 import Link from 'next/link'
 import { useApp } from '@/context/AppContext'
-import { useQuestTrack } from '@/lib/useQuestTrack'
 import { fetchLive, fetchCompanyMeta, mergeCompanies, fmtVol, fmtMcap } from '@/lib/market'
 import type { Company } from '@/types'
 import KChart from '@/components/KChart'
@@ -31,7 +30,6 @@ export default function CompanyPage() {
   const { sym }      = useParams<{ sym: string }>()
   const { lang, watchlist, toggleWatchlist, user, profile, authLoading, openAuth, refreshProfile } = useApp()
   const ar = lang === 'ar'
-  useQuestTrack('chart_view')
 
   const [co, setCo]           = useState<Company | null>(null)
   const [loading, setLoading] = useState(true)

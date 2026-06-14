@@ -1,7 +1,30 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import Link from 'next/link'
 import { useApp } from '@/context/AppContext'
+
+function TabBar({ ar }: { ar: boolean }) {
+  return (
+    <div style={{ display: 'flex', gap: 4, marginBottom: 24, background: 'var(--surf)', border: '1px solid var(--line)', borderRadius: 10, padding: 4 }}>
+      <Link href="/fx" style={{
+        flex: 1, padding: '8px 0', textAlign: 'center', fontSize: 13, fontWeight: 700,
+        borderRadius: 7, color: 'var(--ink3)', textDecoration: 'none',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+      }}>
+        {ar ? 'سعر الصرف' : 'Exchange Rate'}
+      </Link>
+      <div style={{
+        flex: 1, padding: '8px 0', textAlign: 'center', fontSize: 13, fontWeight: 700,
+        borderRadius: 7, background: 'var(--gold)', color: '#1a1200',
+        display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5,
+      }}>
+        <span>◆</span>
+        {ar ? 'سعر الذهب' : 'Gold Price'}
+      </div>
+    </div>
+  )
+}
 
 const IQD_PER_USD = 1310  // Official rate fallback
 
@@ -75,6 +98,7 @@ export default function GoldPage() {
     /* ─────────────────── ENGLISH VERSION ─────────────────── */
     return (
       <div style={{ maxWidth: 800, margin: '0 auto', padding: '24px 16px 80px', direction: 'ltr', fontFamily: 'var(--font-en)' }}>
+        <TabBar ar={false} />
 
         {/* H1 */}
         <h1 style={{ fontSize: 24, fontWeight: 800, marginBottom: 4, lineHeight: 1.3 }}>
@@ -265,6 +289,7 @@ export default function GoldPage() {
   /* ─────────────────── ARABIC VERSION (original) ─────────────────── */
   return (
     <div style={{ maxWidth: 800, margin: '0 auto', padding: '24px 16px 80px' }}>
+      <TabBar ar={true} />
 
       {/* H1 */}
       <h1 style={{ fontSize: 24, fontWeight: 800, marginBottom: 4, lineHeight: 1.3 }}>
