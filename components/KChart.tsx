@@ -34,6 +34,10 @@ const TF_CONFIG: Record<TFKey, { period: PeriodType; label: string }> = {
   'All': { period: 'month', label: 'All' },
 }
 const TF_KEYS = Object.keys(TF_CONFIG) as TFKey[]
+const TF_MS: Record<TFKey, number> = {
+  '1W': 7 * 86400_000, '1M': 30 * 86400_000, '3M': 90 * 86400_000,
+  '1Y': 365 * 86400_000, '5Y': 5 * 365 * 86400_000, 'All': Infinity,
+}
 
 // ── Indicators ────────────────────────────────────────────────────────────────
 type IndicatorDef = { name: string; label: string; desc: string; group: string; pane: 'candle' | 'new' }
@@ -135,24 +139,13 @@ function getCandles(rows: RawRow[], period: PeriodType): KlineBar[] {
   return aggregateDaily(rows)
 }
 
-// Trim to visible date window based on timeframe
-function windowFor(tf: TFKey, bars: KlineBar[]): KlineBar[] {
-  if (!bars.length || tf === 'All') return bars
-  const now   = Date.now()
-  const msMap: Record<TFKey, number> = {
-    '1W': 7 * 86400_000, '1M': 30 * 86400_000, '3M': 90 * 86400_000,
-    '1Y': 365 * 86400_000, '5Y': 5 * 365 * 86400_000, 'All': Infinity,
-  }
-  const from = now - msMap[tf]
-  return bars.filter(b => b.timestamp >= from)
-}
-
 // ── KChart Component ──────────────────────────────────────────────────────────
 export default function KChart({ sym }: { sym: string }) {
   const containerRef  = useRef<HTMLDivElement>(null)
   const chartRef      = useRef<any>(null)
   const rawCache      = useRef<Map<string, RawRow[]>>(new Map())
-  const paneIds       = useRef<Map<string, string>>(new Map()) // indicator name → pane id
+  const paneIds       = useRef<Map<string, string>>(new Map())
+  const disposeRef    = useRef<((el: HTMLDivElement) => void) | null>(null)
 
   const [tf, setTf]               = useState<TFKey>('1Y')
   const [isFullscreen, setFullscreen] = useState(false)
@@ -179,11 +172,16 @@ export default function KChart({ sym }: { sym: string }) {
 
     ;(async () => {
       const { init, dispose } = await import('klinecharts')
+      disposeRef.current = dispose
+
+      // If cleanup already fired before this resolved, bail out
+      if (cancelled) return
 
       // Dispose previous instance
       if (chartRef.current) {
         dispose(containerRef.current!)
         chartRef.current = null
+        paneIds.current.clear()
       }
 
       const chart = init(containerRef.current!, {
@@ -299,16 +297,28 @@ export default function KChart({ sym }: { sym: string }) {
 
       // DataLoader
       chart.setDataLoader({
-        async getBars({ symbol, period, callback }: any) {
+        async getBars(params: any) {
           if (cancelled) return
+          const { symbol, period, callback } = params
           setLoading(true)
           try {
             const raw = await fetchRaw(symbol.ticker)
             const allBars = getCandles(raw, period.type as PeriodType)
-            const visible = windowFor(tf, allBars)
-            callback(visible.length ? visible : allBars, false)
-            // Scroll to the most recent bar so the latest candle is always on the right
-            setTimeout(() => { if (!cancelled) chartRef.current?.scrollToRealTime() }, 80)
+            // Pass only the bars in the TF window so barSpace fills the canvas correctly
+            const startMs = tf === 'All' ? -Infinity : Date.now() - TF_MS[tf]
+            const bars = tf === 'All' ? allBars : allBars.filter(b => b.timestamp >= startMs)
+            // false = no more historical data; prevents klinecharts from re-calling getBars
+            callback(bars.length ? bars : [], false)
+            setTimeout(() => {
+              if (cancelled || !chartRef.current || !containerRef.current) return
+              if (bars.length > 0) {
+                // klinecharts clamps barSpace to [1, 50] (BarSpaceLimitConstants)
+                const availW = Math.max(containerRef.current.offsetWidth - 60, 200)
+                const space = Math.min(Math.max(Math.floor(availW / bars.length), 1), 50)
+                chartRef.current.setBarSpace(space)
+              }
+              chartRef.current.scrollToRealTime()
+            }, 80)
           } finally {
             if (!cancelled) setLoading(false)
           }
@@ -316,15 +326,15 @@ export default function KChart({ sym }: { sym: string }) {
       })
     })()
 
+    // Synchronous cleanup — uses stored disposeRef to avoid the async race where
+    // the old effect's import().then(dispose) would fire after the new chart was created
     return () => {
       cancelled = true
-      if (containerRef.current) {
-        import('klinecharts').then(({ dispose }) => {
-          if (containerRef.current) dispose(containerRef.current)
-          chartRef.current = null
-          paneIds.current.clear()
-        })
+      if (disposeRef.current && containerRef.current) {
+        disposeRef.current(containerRef.current)
       }
+      chartRef.current = null
+      paneIds.current.clear()
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sym, tf, chartType])
