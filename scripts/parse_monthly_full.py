@@ -186,66 +186,80 @@ def parse_foreign_daily(pdf) -> dict:
 
 # ── foreign flow — by sector ──────────────────────────────────────────────────
 
+# Foreign tables list companies grouped under "<Sector> Sector" headers with a
+# "Total <Sector> sector" subtotal row. Aggregate off those subtotal rows — the
+# sector names are clean English regardless of report format. Normalise the
+# singular labels to the plural forms the frontend keys on.
+_SECTOR_TOTAL = re.compile(r"Total\s+([A-Za-z][A-Za-z &-]*?)\s+sector", re.I)
+_SECTOR_CANON = {
+    "Bank": "Banks", "Banking": "Banks", "Hotel": "Hotels",
+    "Service": "Services", "Tourism": "Hotels", "Agricultural": "Agriculture",
+}
+
+
 def parse_foreign_sector(pdf) -> dict:
-    """Non-Iraqi buy and sell broken down by sector.
-    Returns {'buy': [...], 'sell': [...]}
+    """Non-Iraqi buy and sell by sector, read from the "Total <Sector> sector"
+    subtotal rows (clean English sector names in every report format).
+
+    Two layouts occur: newer reports put buy and sell on separate Purchase /
+    Sales pages; older ones stack a buy block above a sell block on one combined
+    page. In both, a "Grand Total" row terminates each block, so we flatten the
+    page's rows in reading order and split on Grand Total: on a combined page the
+    first block is buy and the second sell; on a single-side page every block
+    goes to that side. First numeric per row is value, then volume, then trades.
     """
-    buy: list[dict] = []
-    sell: list[dict] = []
+    buy: dict[str, dict] = {}
+    sell: dict[str, dict] = {}
+
+    def add(target: dict, block: list[tuple[str, list[float]]]):
+        for sec, nums in block:
+            target.setdefault(sec, {
+                "sector": sec, "value": nums[0],
+                "volume": nums[1] if len(nums) > 1 else None,
+                "trades": nums[2] if len(nums) > 2 else None,
+                "companies": None, "listed": None,
+            })
 
     for page in pdf.pages:
         raw = page.extract_text() or ""
-        if "non-iraqi" not in raw.lower():  # buy pages use "non-Iraqi", sell "Non-Iraqi"
+        if "non-iraqi" not in raw.lower():
             continue
-        # Must mention sectors too
-        if "Sector" not in raw and "SECTOR" not in raw:
+        page_buy, page_sell = "Purchase" in raw, "Sales" in raw
+        if not (page_buy or page_sell):
             continue
 
+        # flatten rows across the page's tables, splitting blocks on "Grand Total"
+        blocks: list[list[tuple[str, list[float]]]] = []
+        cur: list[tuple[str, list[float]]] = []
         for tbl in page.extract_tables():
-            if not tbl or len(tbl) < 3:
-                continue
+            for row in (tbl or []):
+                c0 = clean(row[0] or "") if row and row[0] else ""
+                if c0.startswith("Grand Total"):
+                    if cur:
+                        blocks.append(cur); cur = []
+                    continue
+                m = _SECTOR_TOTAL.match(c0)
+                if not m:
+                    continue
+                nums = [num(c) for c in row[1:] if num(c) is not None]
+                if nums:
+                    sec = m.group(1).strip()
+                    cur.append((_SECTOR_CANON.get(sec, sec), nums))
+        if cur:
+            blocks.append(cur)
+        if not blocks:
+            continue
 
-            # Skip merged-title row; use row 1 as real header
-            hdr0 = tbl[0]
-            is_merged_title = sum(1 for c in hdr0 if c is not None) <= 1
-            hdr = tbl[1] if is_merged_title else hdr0
-            data_start = 2 if is_merged_title else 1
+        if page_buy and page_sell:          # combined page: block 0 buy, block 1 sell
+            add(buy, blocks[0])
+            if len(blocks) > 1:
+                add(sell, blocks[1])
+        else:
+            tgt = buy if page_buy else sell
+            for b in blocks:
+                add(tgt, b)
 
-            # Sector column — last column in RTL tables
-            sc = header_index(hdr, "SECTOR", "Sector", "عاطقلا")
-            if sc is None:
-                sc = len(hdr) - 1  # fallback: last col
-
-            vc  = header_index(hdr, "Traded Volume", "Volume", "مهسلاا")
-            lc  = header_index(hdr, "Traded Value",  "Value",  "ةميقلا")
-            tc  = header_index(hdr, "Trades", "Trans", "تاقفصلا")
-            coc = header_index(hdr, "Traded Co", "Co.", "تاكشرلا")
-            lstc= header_index(hdr, "Listed Co", "Listed", "ةجردملا")
-
-            if vc is None and lc is None:
-                continue
-
-            rows = []
-            for row in tbl[data_start:]:
-                r = _sector_row(row, sc, vc, lc, tc, coc, lstc)
-                if r:
-                    rows.append(r)
-
-            if not rows:
-                continue
-
-            is_sell = "(Sales)" in raw or "Table No.(10)" in raw or "Table No. (10)" in raw
-            is_buy  = "(Purchase)" in raw and "(Sales)" not in raw
-            is_buy  = is_buy or "Table No.(9)" in raw or "Table No. (9)" in raw
-
-            if is_buy and not buy:
-                buy = rows
-            elif is_sell and not sell:
-                sell = rows
-            elif not buy:
-                buy = rows
-
-    return {"buy": buy, "sell": sell}
+    return {"buy": list(buy.values()), "sell": list(sell.values())}
 
 
 # ── company caps (Table 14) ───────────────────────────────────────────────────
