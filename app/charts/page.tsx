@@ -40,23 +40,34 @@ function RSISXChart({ tf }: { tf: string }) {
       const LC = await import('lightweight-charts')
 
       // ISX60 — the official market index from OUR OWN daily_index table
-      // (parsed ISX reports, 2010 → today, refreshed by the daily cron).
+      // (parsed ISX daily workbooks, refreshed by the daily cron).
       const { createClient } = await import('@/lib/supabase/client')
       const tfObj = TF.find(t => t.id === tf) ?? TF[4]
-      // 2023-01-01 minimum: excludes the incompatible 2010-2015 PDF-era series
-      // (different base/methodology — can't be joined to the 2024+ daily workbook data)
-      const minDate = '2023-01-01'
+      // 2015-03-05 minimum: ISX60 was rebased here (~70 → ~850 base). Earlier
+      // values are on the old base and would distort the series, so we floor
+      // at the rebase date and show one continuous scale from there to today.
+      const minDate = '2015-03-05'
       const fromDate = tfObj.days < 99999
         ? new Date(Date.now() - tfObj.days * 86400 * 1000).toISOString().slice(0, 10)
         : minDate
-      const q = createClient()
-        .from('daily_index')
-        .select('date,isx60')
-        .not('isx60', 'is', null)
-        .gte('date', fromDate)
-        .order('date')
-      const { data: rows } = await q
-      const data = (rows ?? []).map(r => ({ time: r.date as any, value: r.isx60 as number }))
+      // The project caps API responses at 1000 rows, so page through with
+      // .range() until a short page comes back (full history ≈ 2.6k+ points).
+      const sb = createClient()
+      const PAGE = 1000
+      const rows: { date: string; isx60: number }[] = []
+      for (let from = 0; ; from += PAGE) {
+        const { data: page } = await sb
+          .from('daily_index')
+          .select('date,isx60')
+          .not('isx60', 'is', null)
+          .gte('date', fromDate)
+          .order('date')
+          .range(from, from + PAGE - 1)
+        if (!page?.length) break
+        rows.push(...(page as any))
+        if (page.length < PAGE) break
+      }
+      const data = rows.map(r => ({ time: r.date as any, value: r.isx60 as number }))
 
       if (!data.length || !ref.current) return
 
@@ -81,6 +92,10 @@ function RSISXChart({ tf }: { tf: string }) {
         timeScale: {
           borderColor: 'rgba(255,255,255,0.07)',
           timeVisible: false,
+          // allow fitContent to compress the full multi-year daily series
+          // (~2.6k points) into a narrow container; the default minBarSpacing
+          // (~0.5px) otherwise clips the view to the most recent ~800 days.
+          minBarSpacing: 0.02,
         },
         watermark: {
           visible:   true,

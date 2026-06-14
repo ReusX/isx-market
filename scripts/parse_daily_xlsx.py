@@ -33,33 +33,51 @@ def _value_right_of(row: list, label_idx: int):
     return None
 
 
-def extract_index(xl: pd.ExcelFile, date: str | None) -> dict | None:
-    """Pull ISX60/ISX15 and session totals from the المؤشرات الكلية sheet."""
-    sheet = next((s for s in xl.sheet_names if "المؤشرات" in s), None)
-    if not sheet:
-        return None
-    df = xl.parse(sheet, header=None)
+def _scan_index_sheet(df: pd.DataFrame, date: str | None) -> dict | None:
+    """Scan one sheet for ISX60/ISX15 and session totals. Handles both the
+    modern dedicated-sheet labels ("المؤشر60 ISX اليوم", "قيمة الاسهم") and the
+    2016–2022 bulletin labels ("المؤشر60", "القيمة المتداولة", "الصفقات")."""
     out: dict = {"date": date, "isx60": None, "isx15": None, "volume": None,
                  "value": None, "trades": None, "traded_companies": None,
                  "listed_companies": None}
     for _, row in df.iterrows():
         cells = [str(v) for v in row.tolist()]
         for i, cell in enumerate(cells):
-            if "المؤشر" in cell and "60" in cell and "السابق" not in cell:
+            c = cell.strip()
+            if "المؤشر" in c and "60" in c and "السابق" not in c:
                 out["isx60"] = out["isx60"] or _value_right_of(cells, i)
-            elif "المؤشر" in cell and "15" in cell and "السابق" not in cell:
+            elif "المؤشر" in c and "15" in c and "السابق" not in c:
                 out["isx15"] = out["isx15"] or _value_right_of(cells, i)
-            elif "الاسهم المتداولة" in cell:
+            elif "الاسهم المتداولة" in c:  # volume — both eras
                 out["volume"] = out["volume"] or _value_right_of(cells, i)
-            elif "قيمة الأسهم" in cell or "قيمة الاسهم" in cell:
+            elif "قيمة الأسهم" in c or "قيمة الاسهم" in c or "القيمة المتداولة" in c:
                 out["value"] = out["value"] or _value_right_of(cells, i)
-            elif cell.strip().startswith("صفقات"):
+            elif c.startswith("صفقات") or c == "الصفقات":
                 out["trades"] = out["trades"] or _value_right_of(cells, i)
-            elif cell.strip().startswith("الشركات المتداولة"):
+            elif c.startswith("الشركات المتداولة"):
                 out["traded_companies"] = out["traded_companies"] or _value_right_of(cells, i)
-            elif cell.strip().startswith("الشركات المدرجة"):
+            elif c.startswith("الشركات المدرجة"):
                 out["listed_companies"] = out["listed_companies"] or _value_right_of(cells, i)
     return out if out["isx60"] is not None else None
+
+
+def extract_index(xl: pd.ExcelFile, date: str | None) -> dict | None:
+    """Pull ISX60/ISX15 and session totals.
+
+    Modern workbooks (2023+) carry these on a dedicated "المؤشرات الكلية" sheet;
+    2016–2022 workbooks put them on the trading bulletin ("نشرة التداول") with
+    bare labels. Try the dedicated sheet first, then fall back to every sheet."""
+    dedicated = [s for s in xl.sheet_names if "المؤشرات" in s]
+    others = [s for s in xl.sheet_names if s not in dedicated]
+    for sheet in dedicated + others:
+        try:
+            df = xl.parse(sheet, header=None)
+        except Exception:
+            continue
+        result = _scan_index_sheet(df, date)
+        if result:
+            return result
+    return None
 
 
 def parse_daily(path: Path) -> dict:
