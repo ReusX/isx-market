@@ -1,29 +1,31 @@
-name: Update Live Market Data
+name: Daily Price Update
 
 on:
   schedule:
-    # Every hour 07:00–15:00 UTC (= 10:00–18:00 Baghdad) — covers full ISX trading day + post-close
-    - cron: '0 7-15 * * 0-4'   # Sun–Thu (ISX trading days)
-    # Every 3 hours overnight / weekends to keep RSISX fresh
-    - cron: '0 */3 * * *'
-  workflow_dispatch:
+    # 11:30 UTC = 2:30pm Baghdad (UTC+3) — 30 min after ISX close, Sun–Thu
+    - cron: '30 11 * * 0-4'
+  workflow_dispatch:  # allow manual run from GitHub Actions tab
 
 jobs:
   update:
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
     steps:
       - uses: actions/checkout@v4
 
-      - name: Fetch live data
-        run: |
-          pip install requests openpyxl -q
-          python3 fetch_live.py
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: pip
+          cache-dependency-path: scripts/requirements.txt
 
-      - name: Commit
+      - name: Install dependencies
+        run: pip install -r scripts/requirements.txt -q
+
+      - name: Fetch today's session workbook from ISX and push to Supabase
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
         run: |
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git config user.name "github-actions[bot]"
-          git add public/data/live.json public/data/hist.json public/data/ohlcv.json
-          git diff --cached --quiet && echo "No changes" || (git commit -m "chore: live data update [skip ci]" && git push)
+          cd scripts
+          # --days 5 catches Mon after a Thu close + any missed days
+          python3 run_pipeline.py --mode daily --days 5
