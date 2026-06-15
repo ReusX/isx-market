@@ -30,8 +30,9 @@ export default function FxClient({ fx }: { fx: FxData | null }) {
   const { lang } = useApp()
   const ar = lang === 'ar'
 
-  // Rate used for conversion: prefer the headline (buy) rate.
-  const rate = fx?.buy ?? fx?.sell ?? null
+  // Rate used for conversion: the quoted selling price (سعر البيع) is what
+  // Iraqis cite as "سعر الدولار"; fall back to buy.
+  const rate = fx?.sell ?? fx?.buy ?? null
 
   const [usd, setUsd] = useState('100')
   const [iqd, setIqd] = useState(() => (rate ? String(Math.round(100 * rate)) : ''))

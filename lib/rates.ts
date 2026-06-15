@@ -65,49 +65,88 @@ export async function fetchGold(): Promise<GoldData | null> {
 
 // ── USD / IQD (black market) ─────────────────────────────────────────────────
 export interface FxData {
-  buy: number | null
-  sell: number | null
-  change: number | null   // vs yesterday's last price
+  buy: number | null      // شراء — what changers pay for a dollar
+  sell: number | null     // بيع  — what changers sell a dollar for (the quoted price)
+  change: number | null   // vs yesterday's last price (egcurrency only)
   date: string | null
   source: string
   sourceUrl: string
   fetchedAt: string
 }
 
-const FX_URL = 'https://egcurrency.com/en/currency/USD-to-IQD/blackMarket'
-// egcurrency is behind Cloudflare and blocks datacenter IPs (e.g. Vercel), so a
-// direct fetch works locally but 403s in production. r.jina.ai fetches the page
-// from its own infra and returns clean text — a reliable proxy fallback.
-const FX_PROXY = 'https://r.jina.ai/' + FX_URL
+const jina = (url: string) => 'https://r.jina.ai/' + url
 
-// Handles both the raw egcurrency HTML and the r.jina.ai markdown rendering.
-function parseFx(raw: string): Omit<FxData, 'source' | 'sourceUrl' | 'fetchedAt'> | null {
+// ── Primary source: Alsumaria daily dollar article ──────────────────────────
+// Alsumaria posts a "أسعار الدولار مع إغلاق التداولات" article every day. The
+// economy listing is JS-rendered, so we discover the latest article through the
+// r.jina.ai reader (which executes JS), then parse the buy/sell prices (quoted
+// per 100 USD) from the article body.
+const ALS_LIST = 'https://www.alsumaria.tv/economy-news'
+
+async function discoverDollarArticle(): Promise<string | null> {
+  try {
+    const res = await fetch(jina(ALS_LIST), { headers: UA, next: { revalidate: REVALIDATE } })
+    if (!res.ok) return null
+    const md = await res.text()
+    let best: { id: number; url: string } | null = null
+    const matches = Array.from(md.matchAll(/\((https:\/\/www\.alsumaria\.tv\/news\/economy\/(\d+)\/[^)]+)\)/g))
+    for (const m of matches) {
+      const url = m[1], id = +m[2]
+      const dec = decodeURIComponent(url)
+      // dollar price articles: title mentions الدولار + a market verb
+      if (/دولار/.test(dec) && /(إغلاق|التداولات|السوق|الأسواق|ارتفاع|تراجع|يستقر|قفزة|أسعار)/.test(dec)) {
+        if (!best || id > best.id) best = { id, url }
+      }
+    }
+    return best?.url ?? null
+  } catch {
+    return null
+  }
+}
+
+function parseAlsumaria(raw: string, url: string): FxData | null {
+  const t = raw.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ')
+  const n = (s: string) => parseInt(s.replace(/[,،]/g, ''), 10)
+  const per100 = (re: RegExp) => { const m = t.match(re); return m ? n(m[1]) / 100 : null }
+  // Prices are quoted "… ديناراً مقابل/لكل 100 دولار" — take the first (wholesale Baghdad) pair.
+  const sell = per100(/بيع[:\s"]*([\d,،]+)\s*دينار\S*\s*(?:مقابل|لكل)\s*100\s*دولار/)
+  const buy  = per100(/(?:ال)?شراء[:\s"]*([\d,،]+)\s*دينار\S*\s*(?:مقابل|لكل)\s*100\s*دولار/)
+  if (sell == null && buy == null) return null
+  const date = raw.match(/"datePublished":\s*"([^"]+)"/)?.[1]?.slice(0, 10) ?? null
+  return { buy, sell, change: null, date, source: 'alsumaria.tv', sourceUrl: url, fetchedAt: new Date().toISOString() }
+}
+
+// ── Fallback source: egcurrency black-market page ───────────────────────────
+const EG_URL = 'https://egcurrency.com/en/currency/USD-to-IQD/blackMarket'
+
+function parseEgcurrency(raw: string): FxData | null {
   const t = raw.replace(/<[^>]+>/g, ' ').replace(/\*\*/g, ' ').replace(/&nbsp;/g, ' ').replace(/\s+/g, ' ')
   const date = t.match(/Black Market,\s*([A-Za-z]+,\s*[\d.]+\s+[\d:]+)/)?.[1] ?? null
   const buy  = floatNum(t.match(/Black Market,\s*[A-Za-z]+,\s*[\d.]+\s+[\d:]+\s+([\d,]+(?:\.\d+)?)/)?.[1])
   const sell = floatNum(t.match(/Sell Price:?\s*([\d,]+(?:\.\d+)?)/)?.[1])
   const change = floatNum(t.match(/Sell Price:?\s*[\d,.]+\s*([\-+]?[\d,]+\.?\d*)\s*Compared/i)?.[1])
   if (buy == null && sell == null) return null
-  return { buy, sell, change, date }
+  return { buy, sell, change, date, source: 'egcurrency.com', sourceUrl: EG_URL, fetchedAt: new Date().toISOString() }
+}
+
+async function tryFetch(url: string, parse: (raw: string, url: string) => FxData | null): Promise<FxData | null> {
+  try {
+    const res = await fetch(url, { headers: UA, next: { revalidate: REVALIDATE } })
+    if (res.ok) return parse(await res.text(), url)
+  } catch { /* ignore */ }
+  return null
 }
 
 export async function fetchFx(): Promise<FxData | null> {
-  const base = { source: 'egcurrency.com', sourceUrl: FX_URL, fetchedAt: new Date().toISOString() }
-  // 1) direct (fast, works where egcurrency isn't IP-blocked)
-  try {
-    const res = await fetch(FX_URL, { headers: UA, next: { revalidate: REVALIDATE } })
-    if (res.ok) {
-      const parsed = parseFx(await res.text())
-      if (parsed) return { ...parsed, ...base }
-    }
-  } catch { /* fall through to proxy */ }
-  // 2) proxy fallback (works from datacenter IPs)
-  try {
-    const res = await fetch(FX_PROXY, { headers: UA, next: { revalidate: REVALIDATE } })
-    if (res.ok) {
-      const parsed = parseFx(await res.text())
-      if (parsed) return { ...parsed, ...base }
-    }
-  } catch { /* give up */ }
-  return null
+  // 1) Alsumaria (primary): discover latest article, then read it (direct, then proxy)
+  const article = await discoverDollarArticle()
+  if (article) {
+    const direct = await tryFetch(encodeURI(article), parseAlsumaria)
+    if (direct) return direct
+    const viaProxy = await tryFetch(jina(article), (raw) => parseAlsumaria(raw, article))
+    if (viaProxy) return viaProxy
+  }
+  // 2) egcurrency (fallback): direct, then proxy
+  return (await tryFetch(EG_URL, (raw) => parseEgcurrency(raw)))
+      ?? (await tryFetch(jina(EG_URL), (raw) => parseEgcurrency(raw)))
 }
