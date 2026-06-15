@@ -67,6 +67,7 @@ export async function fetchGold(): Promise<GoldData | null> {
 export interface FxData {
   buy: number | null
   sell: number | null
+  change: number | null   // vs yesterday's last price
   date: string | null
   source: string
   sourceUrl: string
@@ -74,27 +75,39 @@ export interface FxData {
 }
 
 const FX_URL = 'https://egcurrency.com/en/currency/USD-to-IQD/blackMarket'
+// egcurrency is behind Cloudflare and blocks datacenter IPs (e.g. Vercel), so a
+// direct fetch works locally but 403s in production. r.jina.ai fetches the page
+// from its own infra and returns clean text — a reliable proxy fallback.
+const FX_PROXY = 'https://r.jina.ai/' + FX_URL
+
+// Handles both the raw egcurrency HTML and the r.jina.ai markdown rendering.
+function parseFx(raw: string): Omit<FxData, 'source' | 'sourceUrl' | 'fetchedAt'> | null {
+  const t = raw.replace(/<[^>]+>/g, ' ').replace(/\*\*/g, ' ').replace(/&nbsp;/g, ' ').replace(/\s+/g, ' ')
+  const date = t.match(/Black Market,\s*([A-Za-z]+,\s*[\d.]+\s+[\d:]+)/)?.[1] ?? null
+  const buy  = floatNum(t.match(/Black Market,\s*[A-Za-z]+,\s*[\d.]+\s+[\d:]+\s+([\d,]+(?:\.\d+)?)/)?.[1])
+  const sell = floatNum(t.match(/Sell Price:?\s*([\d,]+(?:\.\d+)?)/)?.[1])
+  const change = floatNum(t.match(/Sell Price:?\s*[\d,.]+\s*([\-+]?[\d,]+\.?\d*)\s*Compared/i)?.[1])
+  if (buy == null && sell == null) return null
+  return { buy, sell, change, date }
+}
 
 export async function fetchFx(): Promise<FxData | null> {
+  const base = { source: 'egcurrency.com', sourceUrl: FX_URL, fetchedAt: new Date().toISOString() }
+  // 1) direct (fast, works where egcurrency isn't IP-blocked)
   try {
     const res = await fetch(FX_URL, { headers: UA, next: { revalidate: REVALIDATE } })
-    if (!res.ok) return null
-    const t = strip(await res.text())
-
-    const buyM = t.match(/Black Market,\s*([A-Za-z]+,\s*[\d.]+\s+[\d:]+)\s*([\d,]+\.\d+)/)
-    const sell = t.match(/Sell Price:\s*([\d,]+\.\d+)/)?.[1]
-    const buy = buyM?.[2]
-    if (!buy && !sell) return null
-
-    return {
-      buy: floatNum(buy),
-      sell: floatNum(sell),
-      date: buyM?.[1] ?? null,
-      source: 'egcurrency.com',
-      sourceUrl: FX_URL,
-      fetchedAt: new Date().toISOString(),
+    if (res.ok) {
+      const parsed = parseFx(await res.text())
+      if (parsed) return { ...parsed, ...base }
     }
-  } catch {
-    return null
-  }
+  } catch { /* fall through to proxy */ }
+  // 2) proxy fallback (works from datacenter IPs)
+  try {
+    const res = await fetch(FX_PROXY, { headers: UA, next: { revalidate: REVALIDATE } })
+    if (res.ok) {
+      const parsed = parseFx(await res.text())
+      if (parsed) return { ...parsed, ...base }
+    }
+  } catch { /* give up */ }
+  return null
 }

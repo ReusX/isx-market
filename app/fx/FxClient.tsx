@@ -91,6 +91,23 @@ export default function FxClient({ fx }: { fx: FxData | null }) {
             {fmt(rate, 0)}
           </span>
           <span style={{ fontSize: 15, fontWeight: 700, color: 'var(--ink3)' }}>{ar ? 'د.ع لكل دولار' : 'IQD / $1'}</span>
+          {fx.change != null && fx.change !== 0 && (
+            <span style={{
+              display: 'inline-flex', alignItems: 'center', gap: 3, marginInlineStart: 4,
+              fontSize: 13, fontWeight: 700, fontFamily: 'var(--font-mono)',
+              color: fx.change > 0 ? 'var(--up)' : 'var(--dn)',
+            }}>
+              <svg width="8" height="8" viewBox="0 0 8 8" fill="currentColor">
+                {fx.change > 0 ? <polygon points="4,1 7,6 1,6" /> : <polygon points="4,7 7,2 1,2" />}
+              </svg>
+              {fmt(Math.abs(fx.change), 2)}
+            </span>
+          )}
+        </div>
+        <div style={{ fontSize: 11, color: 'var(--ink4)', marginTop: 6 }}>
+          {fx.change != null && fx.change !== 0
+            ? (ar ? 'مقارنة بسعر أمس' : 'vs. yesterday')
+            : ''}
         </div>
         {fx.date && (
           <div style={{ fontSize: 11.5, color: 'var(--ink4)', marginTop: 10 }}>
