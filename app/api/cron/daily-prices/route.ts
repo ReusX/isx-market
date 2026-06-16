@@ -148,6 +148,63 @@ function parseIndexSheet(wb: XLSX.WorkBook, isoDate: string): IndexRow | null {
   return out
 }
 
+interface ForeignRow {
+  date: string; ticker: string; side: 'buy' | 'sell'
+  trades: number | null; volume: number | null; value: number | null
+}
+
+// Section-label + sheet-name keywords — mirror of scripts/parse_foreign_company.py.
+const FOREIGN_SHEET_KW = ['اجانب', 'أجانب', 'العراقيين']
+const BUY_KW = ['المشتراة', 'المشتراه', 'الشراء']   // foreign buying  → inflow
+const SELL_KW = ['المباعة', 'المباعه', 'البيع']      // foreign selling → outflow
+
+/** Parse the foreign-investor sheet into per-company buy/sell rows, summed
+ *  across markets/sectors. Mirror of scripts/parse_foreign_company.py: a
+ *  ticker-shaped cell marks a real company row; sector dividers and totals
+ *  carry no ticker and are skipped. */
+function parseForeignFlow(wb: XLSX.WorkBook, isoDate: string): ForeignRow[] {
+  const name = wb.SheetNames.find(s => FOREIGN_SHEET_KW.some(k => s.includes(k)))
+  if (!name) return []
+  const grid: unknown[][] = XLSX.utils.sheet_to_json(wb.Sheets[name]!, { header: 1, defval: null })
+
+  const agg = new Map<string, ForeignRow>()
+  let side: 'buy' | 'sell' | null = null
+
+  for (const row of grid) {
+    const cells = row.map(c => (c === null || c === undefined ? '' : String(c)))
+    const line = cells.filter(Boolean).join(' ')
+    if (!line.trim()) continue
+
+    const isBuy = BUY_KW.some(k => line.includes(k))
+    const isSell = SELL_KW.some(k => line.includes(k))
+    if (isBuy && !isSell) { side = 'buy'; continue }
+    if (isSell && !isBuy) { side = 'sell'; continue }
+    if (side === null) continue
+
+    const tickI = cells.findIndex(c => CODE_RE.test(c.trim()))
+    if (tickI < 0) continue
+    const ticker = cells[tickI].trim()
+
+    const rest = cells.slice(tickI + 1).map(num).filter((n): n is number => n !== null)
+    if (rest.length < 3) continue
+    const [trades, volume, value] = rest
+
+    const key = `${ticker}|${side}`
+    const e = agg.get(key)
+    if (!e) {
+      agg.set(key, { date: isoDate, ticker, side, trades, volume, value })
+    } else {
+      e.trades = (e.trades ?? 0) + (trades ?? 0)
+      e.volume = (e.volume ?? 0) + (volume ?? 0)
+      e.value = (e.value ?? 0) + (value ?? 0)
+    }
+  }
+
+  const rows = Array.from(agg.values())
+  for (const r of rows) if (r.trades !== null) r.trades = Math.round(r.trades)
+  return rows
+}
+
 export async function GET(req: NextRequest) {
   const secret = process.env.CRON_SECRET
   if (!secret || req.headers.get('authorization') !== `Bearer ${secret}`) {
@@ -165,7 +222,7 @@ export async function GET(req: NextRequest) {
     const have = new Set((existing ?? []).map(r => r.date))
 
     const todo = listed.filter(f => force || !have.has(f.isoDate))
-    const loaded: { date: string; rows: number }[] = []
+    const loaded: { date: string; rows: number; foreign: number }[] = []
     const failed: { date: string; error: string }[] = []
 
     for (const file of todo.slice(0, 6)) {
@@ -179,13 +236,21 @@ export async function GET(req: NextRequest) {
           .from('daily_prices').upsert(rows, { onConflict: 'ticker,date' })
         if (error) throw new Error(error.message)
         // session index/totals → daily_index (keeps the ISX60 series current)
-        const idx = parseIndexSheet(XLSX.read(buf, { type: 'array' }), file.isoDate)
+        const wb = XLSX.read(buf, { type: 'array' })
+        const idx = parseIndexSheet(wb, file.isoDate)
         if (idx) {
           const { error: e2 } = await supabase
             .from('daily_index').upsert([idx], { onConflict: 'date' })
           if (e2) throw new Error(e2.message)
         }
-        loaded.push({ date: file.isoDate, rows: rows.length })
+        // per-company foreign buy/sell → foreign_flow_company_daily (live daily flow)
+        const frows = parseForeignFlow(wb, file.isoDate)
+        if (frows.length) {
+          const { error: e3 } = await supabase
+            .from('foreign_flow_company_daily').upsert(frows, { onConflict: 'date,ticker,side' })
+          if (e3) throw new Error(e3.message)
+        }
+        loaded.push({ date: file.isoDate, rows: rows.length, foreign: frows.length })
       } catch (e) {
         failed.push({ date: file.isoDate, error: String(e) })
       }

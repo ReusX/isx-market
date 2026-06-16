@@ -1,12 +1,13 @@
 'use client'
 
 import { useEffect, useMemo, useState } from 'react'
+import DailyForeignFlow from './DailyForeignFlow'
+import OwnershipPanel, { type OwnRow } from './OwnershipPanel'
+import MajorShareholdersPanel, { type ShareRow } from './MajorShareholdersPanel'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 type FlowRow   = { year: number; month: number; side: 'buy' | 'sell'; value: number | null }
 type SectorRow = { year: number; month: number; sector: string; side: string; value: number | null }
-type ShareRow  = { year?: number; month?: number; company_name_ar: string; rank: number; name_ar: string | null; nationality: string | null; curr_pct: number | null; change_pct: number | null }
-type OwnRow    = { name_ar: string; sector: string | null; iraqi_shares: number | null; foreign_shares: number | null }
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 const monthKey = (y: number, m: number) => `${y}-${String(m).padStart(2, '0')}`
@@ -288,96 +289,6 @@ function SectorRotation({ rows }: { rows: SectorRow[] }) {
   )
 }
 
-// ── 3. Ownership Iraqi vs Foreign — donut + list ──────────────────────────────
-function Ownership({ rows }: { rows: OwnRow[] }) {
-  const clean = rows.filter(r => (r.iraqi_shares ?? 0) > 0 || (r.foreign_shares ?? 0) > 0)
-  if (!clean.length) return <Soon note="بيانات الملكية تحتاج إعادة معالجة (انزياح أعمدة)." />
-
-  const totIraqi   = clean.reduce((s, r) => s + (r.iraqi_shares ?? 0), 0)
-  const totForeign = clean.reduce((s, r) => s + (r.foreign_shares ?? 0), 0)
-  const tot = totIraqi + totForeign || 1
-  const fPct = (totForeign / tot) * 100
-
-  const topForeign = clean
-    .map(r => ({ name: r.name_ar, pct: ((r.foreign_shares ?? 0) / ((r.iraqi_shares ?? 0) + (r.foreign_shares ?? 0) || 1)) * 100 }))
-    .filter(r => r.pct > 0)
-    .sort((a, b) => b.pct - a.pct)
-    .slice(0, 6)
-
-  const R = 42, C = 2 * Math.PI * R
-  const fLen = (fPct / 100) * C
-
-  return (
-    <div style={{ display: 'flex', gap: 18, flexWrap: 'wrap' }}>
-      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6 }}>
-        <svg width="110" height="110" viewBox="0 0 110 110">
-          <circle cx="55" cy="55" r={R} fill="none" stroke="var(--brand)" strokeWidth="14" />
-          <circle cx="55" cy="55" r={R} fill="none" stroke="var(--gold)" strokeWidth="14"
-            strokeDasharray={`${fLen} ${C - fLen}`} strokeDashoffset={C / 4} transform="rotate(-90 55 55)" />
-          <text x="55" y="52" textAnchor="middle" fontSize="18" fontWeight="800" fill="var(--ink)" fontFamily="var(--font-mono)">{fPct.toFixed(1)}%</text>
-          <text x="55" y="68" textAnchor="middle" fontSize="9" fill="var(--ink4)">أجنبي</text>
-        </svg>
-        <div style={{ fontSize: 10, display: 'flex', gap: 10 }}>
-          <span style={{ color: 'var(--brand)' }}>■ عراقي</span>
-          <span style={{ color: 'var(--gold)' }}>■ أجنبي</span>
-        </div>
-      </div>
-      <div style={{ flex: 1, minWidth: 160 }}>
-        <div style={{ fontSize: 11, color: 'var(--ink4)', marginBottom: 6 }}>أعلى ملكية أجنبية</div>
-        {topForeign.map(r => (
-          <div key={r.name} style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, padding: '3px 0', borderBottom: '1px solid var(--line)' }}>
-            <span style={{ color: 'var(--ink2)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: 140 }}>{r.name}</span>
-            <span style={{ color: 'var(--gold)', fontFamily: 'var(--font-mono)', fontWeight: 700 }}>{r.pct.toFixed(1)}%</span>
-          </div>
-        ))}
-      </div>
-    </div>
-  )
-}
-
-// ── 4. Major shareholders — table ─────────────────────────────────────────────
-function MajorShareholders({ rows }: { rows: ShareRow[] }) {
-  // rows arrive newest-first; keep first (latest) occurrence per company+holder
-  const seen = new Set<string>()
-  const uniq: ShareRow[] = []
-  for (const r of rows) {
-    if (r.curr_pct == null || !r.name_ar) continue
-    const k = `${r.company_name_ar}|${r.name_ar}`
-    if (seen.has(k)) continue
-    seen.add(k)
-    uniq.push(r)
-  }
-  const top = uniq.sort((a, b) => (b.curr_pct ?? 0) - (a.curr_pct ?? 0)).slice(0, 10)
-  if (!top.length) return <Soon note="لا توجد بيانات مساهمين." />
-
-  return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
-      {top.map((r, i) => {
-        const up = (r.change_pct ?? 0) > 0, dn = (r.change_pct ?? 0) < 0
-        return (
-          <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '7px 0', borderBottom: '1px solid var(--line)' }}>
-            <span style={{ width: 18, fontSize: 11, color: 'var(--ink4)', fontFamily: 'var(--font-mono)' }}>{i + 1}</span>
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ fontSize: 12, color: 'var(--ink)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{r.name_ar}</div>
-              <div style={{ fontSize: 10, color: 'var(--ink4)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{r.company_name_ar}</div>
-            </div>
-            <span style={{
-              fontSize: 9, fontWeight: 700, padding: '1px 5px', borderRadius: 4,
-              background: r.nationality === 'Foreign' ? 'var(--gold-s, rgba(224,169,59,0.15))' : 'var(--brand-soft)',
-              color: r.nationality === 'Foreign' ? 'var(--gold)' : 'var(--brand)',
-            }}>{r.nationality === 'Foreign' ? 'أجنبي' : 'عراقي'}</span>
-            <span style={{ width: 48, textAlign: 'end', fontSize: 12, fontWeight: 700, fontFamily: 'var(--font-mono)', color: 'var(--ink)' }}>
-              {r.curr_pct?.toFixed(1)}%
-            </span>
-            <span style={{ width: 42, textAlign: 'end', fontSize: 10, fontFamily: 'var(--font-mono)', color: up ? 'var(--up)' : dn ? 'var(--dn)' : 'var(--ink4)' }}>
-              {up ? '+' : ''}{(r.change_pct ?? 0).toFixed(1)}
-            </span>
-          </div>
-        )
-      })}
-    </div>
-  )
-}
 
 // ── Page ──────────────────────────────────────────────────────────────────────
 export default function StatisticsPage() {
@@ -418,10 +329,11 @@ export default function StatisticsPage() {
         const [f, s, sh, ownRes] = await Promise.all([
           fetchAllFlow(),
           db.from('foreign_flow_sector').select('year,month,sector,side,value'),
-          db.from('major_shareholders').select('year,month,company_name_ar,rank,name_ar,nationality,curr_pct,change_pct')
-            .order('year', { ascending: false }).order('month', { ascending: false }).limit(400),
+          db.from('major_shareholders').select('year,month,company_name_ar,rank,name_ar,nationality,curr_shares,curr_pct,prev_pct,change_pct')
+            .order('year', { ascending: false }).order('month', { ascending: false }).limit(1000),
           oy
-            ? db.from('ownership_monthly').select('name_ar,sector,iraqi_shares,foreign_shares')
+            ? db.from('ownership_monthly')
+                .select('name_ar,sector,capital,deposited_capital,deposit_ratio,iraqi_shares,foreign_shares,iraqi_count,foreign_count')
                 .eq('year', oy).eq('month', om)
             : Promise.resolve({ data: [] as OwnRow[] }),
         ])
@@ -458,27 +370,32 @@ export default function StatisticsPage() {
       <div style={{ marginBottom: 20 }}>
         <h1 style={{ fontSize: 22, fontWeight: 800, color: 'var(--ink)', margin: 0 }}>الإحصائيات</h1>
         <p style={{ fontSize: 12, color: 'var(--ink4)', marginTop: 4 }}>
-          بيانات حصرية مستخرجة من التقارير الشهرية لسوق العراق للأوراق المالية
+          بيانات حصرية مستخرجة من تقارير سوق العراق للأوراق المالية — تدفق الأجانب اليومي حيّ، والبيانات الشهرية تُحدَّث مع كل تقرير
         </p>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(360px, 1fr))', gap: 16, alignItems: 'start' }}>
-        <Panel title="تدفق المستثمر الأجنبي" subtitle="صافي الشراء/البيع شهرياً" badge="حصري">
+      {/* ── Live daily foreign flow — headline ── */}
+      <DailyForeignFlow />
+
+      {/* ── Monthly foreign flow + sector rotation ── */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(360px, 1fr))', gap: 16, alignItems: 'start', marginBottom: 16 }}>
+        <Panel title="تدفق المستثمر الأجنبي" subtitle={ownMonth ? `صافي الشراء/البيع شهرياً · حتى ${ownMonth}` : 'صافي الشراء/البيع شهرياً'} badge="شهري">
           <ForeignFlowChart rows={flow} />
         </Panel>
 
-        <Panel title="دوران القطاعات" subtitle="أين يتدفق المال الأجنبي" badge="حصري">
+        <Panel title="دوران القطاعات" subtitle="أين يتدفق المال الأجنبي شهرياً" badge="شهري">
           <SectorRotation rows={sector} />
         </Panel>
+      </div>
 
-        <Panel title="هيكل الملكية" subtitle={ownMonth ? `عراقي مقابل أجنبي · ${ownMonth}` : 'عراقي مقابل أجنبي'} badge="حصري">
-          <Ownership rows={own} />
-        </Panel>
+      {/* ── Ownership structure (full width, expandable) ── */}
+      <OwnershipPanel rows={own} month={ownMonth} />
 
-        <Panel title="كبار المساهمين" subtitle={shareMonth ? `من يملك ماذا + الجنسية · ${shareMonth}` : 'من يملك ماذا + الجنسية'} badge="حصري">
-          <MajorShareholders rows={shares} />
-        </Panel>
+      {/* ── Major shareholders (full width, searchable, expandable) ── */}
+      <MajorShareholdersPanel rows={shares} month={shareMonth} />
 
+      {/* ── Still-to-come data sources ── */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(360px, 1fr))', gap: 16, alignItems: 'start' }}>
         <Panel title="عدد المودعين لكل شركة" subtitle="كم شخص يملك هذا السهم">
           <Soon note="عدّاد المودعين غير مستخرج بعد من التقارير — يحتاج تحديث المُحلِّل (Table 26)." />
         </Panel>
