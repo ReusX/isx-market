@@ -1,9 +1,9 @@
 'use client'
 
 import { useEffect, useMemo, useState } from 'react'
-import DailyForeignFlow from './DailyForeignFlow'
-import OwnershipPanel, { type OwnRow } from './OwnershipPanel'
-import MajorShareholdersPanel, { type ShareRow } from './MajorShareholdersPanel'
+import { DailyForeignFlowPreview } from './DailyForeignFlow'
+import { OwnershipPreview } from './OwnershipPanel'
+import { ShareholdersPreview } from './MajorShareholdersPanel'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 type FlowRow   = { year: number; month: number; side: 'buy' | 'sell'; value: number | null }
@@ -292,11 +292,8 @@ function SectorRotation({ rows }: { rows: SectorRow[] }) {
 
 // ── Page ──────────────────────────────────────────────────────────────────────
 export default function StatisticsPage() {
-  const [flow,    setFlow]    = useState<FlowRow[]>([])
-  const [sector,  setSector]  = useState<SectorRow[]>([])
-  const [shares,  setShares]  = useState<ShareRow[]>([])
-  const [own,     setOwn]     = useState<OwnRow[]>([])
-  const [ownMonth, setOwnMonth] = useState<string | null>(null)
+  const [flow,   setFlow]   = useState<FlowRow[]>([])
+  const [sector, setSector] = useState<SectorRow[]>([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -320,50 +317,22 @@ export default function StatisticsPage() {
           return out
         }
 
-        // latest month for which ownership has been parsed (no longer pinned)
-        const { data: ownLatest } = await db.from('ownership_monthly')
-          .select('year,month').order('year', { ascending: false })
-          .order('month', { ascending: false }).limit(1)
-        const oy = ownLatest?.[0]?.year, om = ownLatest?.[0]?.month
-
-        const [f, s, sh, ownRes] = await Promise.all([
+        const [f, s] = await Promise.all([
           fetchAllFlow(),
           db.from('foreign_flow_sector').select('year,month,sector,side,value'),
-          db.from('major_shareholders').select('year,month,company_name_ar,rank,name_ar,nationality,curr_shares,curr_pct,prev_pct,change_pct')
-            .order('year', { ascending: false }).order('month', { ascending: false }).limit(1000),
-          oy
-            ? db.from('ownership_monthly')
-                .select('name_ar,sector,capital,deposited_capital,deposit_ratio,iraqi_shares,foreign_shares,iraqi_count,foreign_count')
-                .eq('year', oy).eq('month', om)
-            : Promise.resolve({ data: [] as OwnRow[] }),
         ])
-        if (oy && om) setOwnMonth(`${arMonth[om]} ${oy}`)
         setFlow(f)
         setSector((s.data as SectorRow[]) ?? [])
-        setShares((sh.data as ShareRow[]) ?? [])
-        setOwn((ownRes.data as OwnRow[]) ?? [])
       } catch { /* keep empty */ }
       setLoading(false)
     })()
   }, [])
 
-  if (loading) {
-    return (
-      <div style={{ padding: 24, display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))', gap: 16 }}>
-        {Array.from({ length: 6 }).map((_, i) => (
-          <div key={i} className="skeleton" style={{ height: 280, borderRadius: 12 }} />
-        ))}
-      </div>
-    )
-  }
-
-  // newest month present in the shareholders rows (they arrive newest-first)
-  const shM = shares.reduce((best, r) => {
-    if (r.year == null || r.month == null) return best
-    const v = r.year * 12 + r.month
-    return v > best ? v : best
-  }, 0)
-  const shareMonth = shM ? `${arMonth[((shM - 1) % 12) + 1]} ${Math.floor((shM - 1) / 12)}` : null
+  // newest month present in the monthly flow rows → badge label
+  const flowMonth = useMemo(() => {
+    const m = flow.reduce((best, r) => Math.max(best, r.year * 12 + r.month), 0)
+    return m ? `${arMonth[((m - 1) % 12) + 1]} ${Math.floor((m - 1) / 12)}` : null
+  }, [flow])
 
   return (
     <div style={{ padding: '20px 24px 60px', maxWidth: 1400, margin: '0 auto' }}>
@@ -374,28 +343,24 @@ export default function StatisticsPage() {
         </p>
       </div>
 
-      {/* ── Live daily foreign flow — headline ── */}
-      <DailyForeignFlow />
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))', gap: 16, alignItems: 'start' }}>
+        {/* live daily foreign flow */}
+        <DailyForeignFlowPreview />
 
-      {/* ── Monthly foreign flow + sector rotation ── */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(360px, 1fr))', gap: 16, alignItems: 'start', marginBottom: 16 }}>
-        <Panel title="تدفق المستثمر الأجنبي" subtitle={ownMonth ? `صافي الشراء/البيع شهرياً · حتى ${ownMonth}` : 'صافي الشراء/البيع شهرياً'} badge="شهري">
-          <ForeignFlowChart rows={flow} />
+        {/* monthly foreign flow + sector rotation */}
+        <Panel title="تدفق المستثمر الأجنبي" subtitle={flowMonth ? `صافي الشراء/البيع شهرياً · حتى ${flowMonth}` : 'صافي الشراء/البيع شهرياً'} badge="شهري">
+          {loading ? <Skel /> : <ForeignFlowChart rows={flow} />}
         </Panel>
 
         <Panel title="دوران القطاعات" subtitle="أين يتدفق المال الأجنبي شهرياً" badge="شهري">
-          <SectorRotation rows={sector} />
+          {loading ? <Skel /> : <SectorRotation rows={sector} />}
         </Panel>
-      </div>
 
-      {/* ── Ownership structure (full width, expandable) ── */}
-      <OwnershipPanel rows={own} month={ownMonth} />
+        {/* ownership + major shareholders (compact, expand to full page) */}
+        <OwnershipPreview />
+        <ShareholdersPreview />
 
-      {/* ── Major shareholders (full width, searchable, expandable) ── */}
-      <MajorShareholdersPanel rows={shares} month={shareMonth} />
-
-      {/* ── Still-to-come data sources ── */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(360px, 1fr))', gap: 16, alignItems: 'start' }}>
+        {/* still-to-come data sources */}
         <Panel title="عدد المودعين لكل شركة" subtitle="كم شخص يملك هذا السهم">
           <Soon note="عدّاد المودعين غير مستخرج بعد من التقارير — يحتاج تحديث المُحلِّل (Table 26)." />
         </Panel>
@@ -410,4 +375,8 @@ export default function StatisticsPage() {
       </div>
     </div>
   )
+}
+
+function Skel() {
+  return <div className="skeleton" style={{ height: 220, borderRadius: 10 }} />
 }
