@@ -232,24 +232,31 @@ export async function GET(req: NextRequest) {
         const buf = await res.arrayBuffer()
         const rows = parseWorkbook(buf, file.isoDate)
         if (!rows.length) throw new Error('no bulletin rows parsed')
-        const { error } = await supabase
-          .from('daily_prices').upsert(rows, { onConflict: 'ticker,date' })
-        if (error) throw new Error(error.message)
-        // session index/totals → daily_index (keeps the ISX60 series current)
         const wb = XLSX.read(buf, { type: 'array' })
-        const idx = parseIndexSheet(wb, file.isoDate)
-        if (idx) {
-          const { error: e2 } = await supabase
-            .from('daily_index').upsert([idx], { onConflict: 'date' })
-          if (e2) throw new Error(e2.message)
-        }
-        // per-company foreign buy/sell → foreign_flow_company_daily (live daily flow)
+
+        // per-company foreign buy/sell → foreign_flow_company_daily (live daily flow).
+        // Written BEFORE daily_prices so daily_prices (the skip marker on the next
+        // run) only carries a date once its foreign flow has also landed — otherwise
+        // a date present in daily_prices but missing foreign data would be skipped
+        // forever (which is exactly how the two tables drifted once before).
         const frows = parseForeignFlow(wb, file.isoDate)
         if (frows.length) {
           const { error: e3 } = await supabase
             .from('foreign_flow_company_daily').upsert(frows, { onConflict: 'date,ticker,side' })
           if (e3) throw new Error(e3.message)
         }
+        // session index/totals → daily_index (keeps the ISX60 series current)
+        const idx = parseIndexSheet(wb, file.isoDate)
+        if (idx) {
+          const { error: e2 } = await supabase
+            .from('daily_index').upsert([idx], { onConflict: 'date' })
+          if (e2) throw new Error(e2.message)
+        }
+        // daily_prices LAST — its presence is the "fully processed" marker
+        const { error } = await supabase
+          .from('daily_prices').upsert(rows, { onConflict: 'ticker,date' })
+        if (error) throw new Error(error.message)
+
         loaded.push({ date: file.isoDate, rows: rows.length, foreign: frows.length })
       } catch (e) {
         failed.push({ date: file.isoDate, error: String(e) })
