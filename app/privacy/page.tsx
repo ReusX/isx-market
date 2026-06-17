@@ -26,7 +26,7 @@ export default function PrivacyPage() {
           {ar ? 'كيف نتعامل مع بياناتك' : 'How We Handle Your Data'}
         </h1>
         <p style={{ fontSize: 13, color: 'var(--ink5)', margin: 0 }}>
-          {ar ? 'آخر تحديث: مايو 2025' : 'Last updated: May 2025'}
+          {ar ? 'آخر تحديث: يونيو 2026' : 'Last updated: June 2026'}
         </p>
       </div>
       <div style={{ height: 1, background: 'var(--line)', marginBottom: 40 }} />
@@ -35,11 +35,11 @@ export default function PrivacyPage() {
         <>
           <Section title="المعلومات التي نجمعها">
             <p>عند إنشاء حساب، نجمع عنوان بريدك الإلكتروني واسم المستخدم الذي تختاره. لا نطلب بيانات مالية حقيقية كأرقام الحسابات البنكية أو بيانات البطاقات الائتمانية.</p>
-            <p>نجمع أيضاً بيانات النشاط على المنصة: النقاط المكتسبة، الصفقات التجريبية، المحافظ الاستثمارية الافتراضية، وسجل المكافآت.</p>
+            <p>نجمع أيضاً تفضيلاتك على المنصة، مثل قوائم المتابعة وتفضيل اللغة.</p>
           </Section>
           <Section title="كيف نستخدم بياناتك">
             <ul style={{ paddingInlineStart: 20, margin: 0 }}>
-              <li style={{ marginBottom: 8 }}>تشغيل الحساب وعرض رصيد النقاط والمحفظة</li>
+              <li style={{ marginBottom: 8 }}>تشغيل حسابك وحفظ قوائم المتابعة والتفضيلات</li>
               <li style={{ marginBottom: 8 }}>تحسين تجربة المنصة وإصلاح الأخطاء</li>
               <li style={{ marginBottom: 8 }}>تواصلنا معك بخصوص حسابك عند الضرورة</li>
             </ul>
@@ -64,11 +64,11 @@ export default function PrivacyPage() {
         <>
           <Section title="Information We Collect">
             <p>When you create an account, we collect your email address and the username you choose. We do not request real financial data such as bank account numbers or credit card details.</p>
-            <p>We also collect platform activity data: points earned, demo trades, simulated holdings, and reward history.</p>
+            <p>We also store your platform preferences, such as your watchlists and language preference.</p>
           </Section>
           <Section title="How We Use Your Data">
             <ul style={{ paddingInlineStart: 20, margin: 0 }}>
-              <li style={{ marginBottom: 8 }}>Running your account and displaying your points balance and portfolio</li>
+              <li style={{ marginBottom: 8 }}>Running your account and saving your watchlists and preferences</li>
               <li style={{ marginBottom: 8 }}>Improving the platform and fixing bugs</li>
               <li style={{ marginBottom: 8 }}>Contacting you about your account when necessary</li>
             </ul>

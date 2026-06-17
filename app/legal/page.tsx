@@ -27,7 +27,7 @@ export default function LegalPage() {
           {ar ? 'إخلاء المسؤولية والشروط' : 'Disclaimer & Terms'}
         </h1>
         <p style={{ fontSize: 13, color: 'var(--ink5)', margin: 0 }}>
-          {ar ? 'آخر تحديث: مايو 2025' : 'Last updated: May 2025'}
+          {ar ? 'آخر تحديث: يونيو 2026' : 'Last updated: June 2026'}
         </p>
       </div>
 
@@ -56,26 +56,22 @@ export default function LegalPage() {
           <Section title="2. دقة البيانات">
             <p>نسعى لتقديم بيانات دقيقة ومحدّثة، لكننا لا نضمن دقة المعلومات أو اكتمالها أو توقيتها. أسعار الأسهم قد تتأخر أو تختلف عن أسعار السوق الفعلية. لا نتحمل مسؤولية أي خسائر ناجمة عن الاعتماد على بيانات المنصة.</p>
           </Section>
-          <Section title="3. نظام النقاط والتداول التجريبي">
-            <p>نقاط ISX Market ونظام التداول التجريبي هي ميزات تعليمية وترفيهية فقط. لا تمثل النقاط عملة حقيقية ولا يمكن استبدالها بنقود، إلا وفق شروط السحب المحددة في صفحة نظام النقاط.</p>
-            <p>الصفقات التجريبية لا تُنفَّذ في بورصة العراق الحقيقية وليس لها أي قيمة مالية.</p>
-          </Section>
-          <Section title="4. حدود المسؤولية">
+          <Section title="3. حدود المسؤولية">
             <p>لا تتحمل ISX Market أي مسؤولية عن الأضرار المباشرة أو غير المباشرة أو العرضية الناجمة عن استخدام المنصة أو عدم القدرة على استخدامها، بما فيها خسائر الاستثمار أو ضياع البيانات.</p>
           </Section>
-          <Section title="5. روابط خارجية">
+          <Section title="4. روابط خارجية">
             <p>قد تحتوي المنصة على روابط لمواقع خارجية. لا نتحمل مسؤولية محتوى هذه المواقع أو ممارساتها في مجال الخصوصية.</p>
           </Section>
-          <Section title="6. الملكية الفكرية">
+          <Section title="5. الملكية الفكرية">
             <p>جميع محتويات المنصة — من تصميم وشعارات ونصوص وكود — محمية بحقوق الملكية الفكرية لصالح ISX Market ما لم يُذكر غير ذلك. لا يحق إعادة نشرها أو نسخها دون إذن مسبق.</p>
           </Section>
-          <Section title="7. القانون المطبّق">
+          <Section title="6. القانون المطبّق">
             <p>تخضع هذه الشروط لقوانين جمهورية العراق. أي نزاعات تُحسم عبر المحاكم المختصة في جمهورية العراق.</p>
           </Section>
-          <Section title="8. التعديلات">
+          <Section title="7. التعديلات">
             <p>نحتفظ بحق تعديل هذه الشروط في أي وقت. سيتم إبلاغ المستخدمين بأي تغييرات جوهرية عبر المنصة. الاستمرار في استخدام المنصة بعد نشر التعديلات يعني قبولك لها.</p>
           </Section>
-          <Section title="9. تواصل معنا">
+          <Section title="8. تواصل معنا">
             <p>لأي استفسار قانوني، راسلنا على <a href="mailto:boatlef@gmail.com" style={{ color: 'var(--brand)' }}>boatlef@gmail.com</a>.</p>
           </Section>
         </>
@@ -88,26 +84,22 @@ export default function LegalPage() {
           <Section title="2. Data Accuracy">
             <p>We strive to provide accurate and up-to-date data, but we do not guarantee the accuracy, completeness, or timeliness of information on this platform. Stock prices may be delayed or differ from actual market prices. We accept no liability for any losses arising from reliance on platform data.</p>
           </Section>
-          <Section title="3. Points System & Demo Trading">
-            <p>ISX Market points and demo trading are educational and entertainment features only. Points do not represent real currency and cannot be exchanged for cash except under the specific withdrawal terms described in the Points System page.</p>
-            <p>Demo trades are not executed on the real Iraq Stock Exchange and carry no real financial value.</p>
-          </Section>
-          <Section title="4. Limitation of Liability">
+          <Section title="3. Limitation of Liability">
             <p>ISX Market shall not be liable for any direct, indirect, or incidental damages arising from the use or inability to use this platform, including investment losses or data loss.</p>
           </Section>
-          <Section title="5. External Links">
+          <Section title="4. External Links">
             <p>The platform may contain links to external websites. We are not responsible for the content or privacy practices of those sites.</p>
           </Section>
-          <Section title="6. Intellectual Property">
+          <Section title="5. Intellectual Property">
             <p>All platform content — including design, logos, copy, and code — is the intellectual property of ISX Market unless otherwise stated. Reproduction or republication without prior permission is prohibited.</p>
           </Section>
-          <Section title="7. Governing Law">
+          <Section title="6. Governing Law">
             <p>These terms are governed by the laws of the Republic of Iraq. Any disputes shall be resolved through competent courts in the Republic of Iraq.</p>
           </Section>
-          <Section title="8. Changes to These Terms">
+          <Section title="7. Changes to These Terms">
             <p>We reserve the right to modify these terms at any time. Users will be notified of material changes through the platform. Continued use after changes are posted constitutes acceptance of the updated terms.</p>
           </Section>
-          <Section title="9. Contact">
+          <Section title="8. Contact">
             <p>For legal inquiries, email us at <a href="mailto:boatlef@gmail.com" style={{ color: 'var(--brand)' }}>boatlef@gmail.com</a>.</p>
           </Section>
         </>

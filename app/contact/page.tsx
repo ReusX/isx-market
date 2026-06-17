@@ -58,6 +58,28 @@ export default function ContactPage() {
         </a>
       </div>
 
+      {/* Phone card */}
+      <div style={{
+        background: 'var(--surf)', border: '1px solid var(--line)',
+        borderRadius: 18, padding: '32px 28px', marginBottom: 32,
+      }}>
+        <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--ink4)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 20 }}>
+          {ar ? 'الهاتف' : 'Phone'}
+        </div>
+        <a href="tel:+9647737339919" style={{ display: 'flex', alignItems: 'center', gap: 14, textDecoration: 'none' }}>
+          <div style={{
+            width: 48, height: 48, borderRadius: 14, background: 'var(--brand)', flexShrink: 0,
+            display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22,
+          }}>📞</div>
+          <div>
+            <div style={{ fontWeight: 800, fontSize: 18, color: 'var(--brand)' }} dir="ltr">+964 773 733 9919</div>
+            <div style={{ fontSize: 13, color: 'var(--ink4)', marginTop: 3 }}>
+              {ar ? 'للاتصال المباشر' : 'Direct line'}
+            </div>
+          </div>
+        </a>
+      </div>
+
       {/* Social */}
       <div style={{
         background: 'var(--surf)', border: '1px solid var(--line)',
@@ -110,7 +132,7 @@ export default function ContactPage() {
             { icon: '🐛', en: 'Bug reports & issues', ar: 'الأخطاء والمشاكل التقنية' },
             { icon: '💡', en: 'Feature suggestions', ar: 'اقتراحات الميزات الجديدة' },
             { icon: '📊', en: 'Data corrections', ar: 'تصحيح البيانات' },
-            { icon: '💸', en: 'Withdrawal requests', ar: 'طلبات السحب' },
+            { icon: '❓', en: 'General inquiries', ar: 'استفسارات عامة' },
             { icon: '🤝', en: 'Partnership inquiries', ar: 'استفسارات الشراكة' },
             { icon: '🔒', en: 'Privacy & legal', ar: 'الخصوصية والمسائل القانونية' },
           ].map(t => (

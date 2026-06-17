@@ -41,17 +41,8 @@ export default function AuthModal({ onClose, defaultTab = 'signin', lang = 'ar' 
             username: username || email.split('@')[0],
             referral_code: Math.random().toString(36).slice(2, 8).toUpperCase(),
             referred_by: refCode || null,
-            points: 0,
             streak: 0,
           })
-          // Award referrer bonus if valid ref code
-          if (refCode) {
-            const { data: ref } = await sb.from('profiles')
-              .select('id, points').eq('referral_code', refCode.toUpperCase()).single()
-            if (ref) {
-              await sb.from('profiles').update({ points: (ref.points ?? 0) + 500 }).eq('id', ref.id)
-            }
-          }
         }
         setDone(true)
       }
