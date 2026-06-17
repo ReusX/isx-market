@@ -71,6 +71,7 @@ const NAV: {
       { href: '/news',   icon: 'news',   ar: 'أخبار السوق',     badge: 'أخبار' },
       { href: '/market', icon: 'bars',   ar: 'حركة السوق',      badge: 'حركة'  },
       { href: '/pulse',  icon: 'stats',  ar: 'نبض السوق',       badge: 'مباشر' },
+      { href: '/screener', icon: 'search', ar: 'فارز الأسهم',   badge: 'جديد'  },
     ],
   },
   {
