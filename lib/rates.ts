@@ -105,12 +105,26 @@ async function discoverDollarArticle(): Promise<string | null> {
 }
 
 function parseAlsumaria(raw: string, url: string): FxData | null {
-  const t = raw.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ')
+  // Normalize both the direct HTML and the r.jina.ai markdown: strip tags, then
+  // collapse markdown links `[text](url)` → text and drop bare URLs. Jina renders
+  // "بغداد" as a link, which otherwise injects a long URL between the البيع label
+  // and its figure and breaks the bounded-gap match below.
+  const t = raw
+    .replace(/<[^>]+>/g, ' ')
+    .replace(/\[([^\]]*)\]\([^)]*\)/g, '$1')
+    .replace(/https?:\/\/\S+/g, ' ')
+    .replace(/\s+/g, ' ')
   const n = (s: string) => parseInt(s.replace(/[,،]/g, ''), 10)
-  const per100 = (re: RegExp) => { const m = t.match(re); return m ? n(m[1]) / 100 : null }
-  // Prices are quoted "… ديناراً مقابل/لكل 100 دولار" — take the first (wholesale Baghdad) pair.
-  const sell = per100(/بيع[:\s"]*([\d,،]+)\s*دينار\S*\s*(?:مقابل|لكل)\s*100\s*دولار/)
-  const buy  = per100(/(?:ال)?شراء[:\s"]*([\d,،]+)\s*دينار\S*\s*(?:مقابل|لكل)\s*100\s*دولار/)
+  // Prices are quoted "<label> … NNNNNN ديناراً مقابل/لكل 100 دولار". The label
+  // and its figure may be separated by a clause (e.g. البيع "في محال الصيرفة
+  // بالأسواق المحلية في بغداد" 156750 …), so allow a bounded gap and anchor on
+  // the "… 100 دولار" tail. Non-greedy → takes the figure nearest each label.
+  const per100 = (label: string) => {
+    const m = t.match(new RegExp(label + String.raw`[\s\S]{0,90}?([\d,،]{5,7})\s*دينار\S*\s*(?:مقابل|لكل)\s*100\s*دولار`))
+    return m ? n(m[1]) / 100 : null
+  }
+  const sell = per100('(?:ال)?بيع')
+  const buy  = per100('(?:ال)?شراء')
   if (sell == null && buy == null) return null
   const date = raw.match(/"datePublished":\s*"([^"]+)"/)?.[1]?.slice(0, 10) ?? null
   return { buy, sell, change: null, date, source: 'alsumaria.tv', sourceUrl: url, fetchedAt: new Date().toISOString() }
