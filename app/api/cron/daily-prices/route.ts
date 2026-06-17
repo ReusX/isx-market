@@ -263,11 +263,21 @@ export async function GET(req: NextRequest) {
       }
     }
 
+    // Refresh the derived materialized views (breadth_daily, company_metrics).
+    // Additive + best-effort: isolated so a failure here can't fail the
+    // price/foreign/index writes above. Only runs when something new landed.
+    let metricsRefreshed = false
+    if (loaded.length || force) {
+      const { error: eM } = await supabase.rpc('refresh_isx_metrics')
+      if (eM) failed.push({ date: 'metrics', error: `refresh_isx_metrics: ${eM.message}` })
+      else metricsRefreshed = true
+    }
+
     return NextResponse.json({
       ok: failed.length === 0,
       listed: listed.length,
       skipped: listed.length - todo.length,
-      loaded, failed,
+      loaded, failed, metricsRefreshed,
     })
   } catch (e) {
     return NextResponse.json({ ok: false, error: String(e) }, { status: 500 })

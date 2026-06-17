@@ -36,6 +36,7 @@ export default function Navbar() {
           <div className="desktop-only" style={{ display: 'flex', alignItems: 'center', gap: 2, flex: 1 }}>
             {[
               { href: '/market',     ar: 'السوق',      en: 'Market' },
+              { href: '/pulse',      ar: 'نبض السوق',  en: 'Pulse' },
               { href: '/news',       ar: 'الأخبار',    en: 'News' },
               { href: '/analysis',   ar: 'تحليل',      en: 'Analysis' },
               { href: '/research',   ar: 'أبحاث',      en: 'Research' },

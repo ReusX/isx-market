@@ -1,6 +1,7 @@
 {
   "version": "0.0.1",
   "configurations": [
-    { "name": "isx-market", "runtimeExecutable": "npm", "runtimeArgs": ["run", "start"], "port": 3299 }
+    { "name": "isx-market", "runtimeExecutable": "npm", "runtimeArgs": ["run", "start"], "port": 3299 },
+    { "name": "isx-dev", "runtimeExecutable": "npm", "runtimeArgs": ["run", "dev", "--", "-p", "3300"], "port": 3300 }
   ]
 }
