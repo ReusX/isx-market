@@ -10,86 +10,88 @@ export default function AboutPage() {
     <div style={{ maxWidth: 760, margin: '0 auto', padding: '48px 24px 80px' }}>
 
       {/* Header */}
-      <div style={{ marginBottom: 48 }}>
+      <div style={{ marginBottom: 40 }}>
         <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--brand)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 12 }}>
-          {ar ? 'من نحن' : 'About Us'}
+          {ar ? 'من نحن' : 'About'}
         </div>
         <h1 style={{ fontSize: 32, fontWeight: 900, lineHeight: 1.2, margin: '0 0 16px', color: 'var(--ink)' }}>
-          {ar ? 'بنيناها لأننا كنا نحتاجها' : 'We Built It Because We Needed It'}
+          {ar ? 'أهلاً بك، عزيزي المستثمر' : 'Welcome, Dear Investor'}
         </h1>
         <p style={{ fontSize: 16, color: 'var(--ink3)', lineHeight: 1.8, margin: 0 }}>
           {ar
-            ? 'منصة الاستثمار في بورصة العراق — بيانات حية، تحليل موضوعي، لا تعقيد.'
-            : 'Iraq Stock Exchange platform — live data, honest analysis, zero noise.'}
+            ? 'منصّة مجانية تساعد المستثمر العراقي على اتخاذ قراراته ببيانات يومية موثوقة.'
+            : 'A free platform helping Iraqi investors decide — with reliable daily data.'}
         </p>
       </div>
 
-      {/* Divider */}
       <div style={{ height: 1, background: 'var(--line)', marginBottom: 40 }} />
 
-      {ar ? (
-        /* ── Arabic content ── */
-        <div style={{ fontSize: 16, lineHeight: 1.95, color: 'var(--ink2)' }}>
-          <p>
-            نحن مجموعة من المستثمرين المستقلين اكتشفنا بالتجربة أن الاستثمار في بورصة العراق أصعب مما ينبغي. معلومات متناثرة، أدوات متقادمة، ولا دعم حقيقي للمبتدئين. فقررنا أن نبني المنصة التي كنا نتمنى وجودها.
-          </p>
-          <p>
-            <strong style={{ color: 'var(--ink)' }}>ISX Market</strong> منصة بناها مستثمرون لمستثمرين. نتابع أسعار الأسهم العراقية لحظة بلحظة، ونرصد الأخبار التي تحرك السوق فعلاً، ونوفر أدوات البحث والتحليل التي تحتاجها لتتخذ قراراتك بثقة. سواء كنت تضع أولى استثماراتك أو تدير محفظة متكاملة، هذا هو مقرك الأساسي.
-          </p>
-          <p>
-            العراق واحدة من أكثر قصص الاستثمار إثارة في المنطقة وأقلها انتباهاً. شعب شاب، بنية تحتية في طور إعادة البناء، وسوق مالي لا يزال بعيداً عن أعين كثير من المستثمرين الإقليميين والدوليين. الإمكانات حقيقية، والعائق الوحيد كان دائماً هو صعوبة الوصول.
-          </p>
-          <p>
-            نحن هنا لإزالة هذا العائق. لا تعقيد، لا ضجيج، فقط بيانات دقيقة وتحليل موضوعي. السوق العراقي في نمو مستمر، ونريدك أن تكون جزءاً من هذا النمو.
-          </p>
-        </div>
-      ) : (
-        /* ── English content ── */
-        <div style={{ fontSize: 16, lineHeight: 1.95, color: 'var(--ink2)' }}>
-          <p>
-            We are independent investors who found out the hard way that navigating the Iraqi Stock Exchange is harder than it needs to be. Outdated tools, scattered information, zero hand-holding for newcomers. So we built the thing we wished existed.
-          </p>
-          <p>
-            <strong style={{ color: 'var(--ink)' }}>ISX Market</strong> is a platform built by investors, for investors. We track live prices on the Iraq Stock Exchange, surface the news that actually moves markets, and give you the research tools to make decisions with confidence. Whether you are putting in your first dinar or managing a serious position, this is your home base.
-          </p>
-          <p>
-            Iraq is one of the most underrated investment stories in the region. A young population, rebuilding infrastructure, a stock market that most outsiders have never touched. The upside is real. The friction has just always been too high.
-          </p>
-          <p>
-            We are here to fix that. No gatekeeping, no noise, just clean data and honest analysis. The Iraqi market is growing. We want you to grow with it.
-          </p>
-        </div>
-      )}
+      {/* Welcome letter */}
+      <div style={{ fontSize: 16.5, lineHeight: 2, color: 'var(--ink2)' }}>
+        {ar ? (
+          <>
+            <p>
+              ترحيبٌ خاصٌّ بك، عزيزي المستثمر. أنشأ هذا الموقع <strong style={{ color: 'var(--ink)' }}>أحمد بلحة</strong>،
+              كاتبٌ ماليّ ومستثمرٌ في الأسهم الأمريكية والعراقية.
+            </p>
+            <p>
+              الموقع مجانيّ تماماً، وقد صُمّم لمساعدة المستثمرين العراقيين على اتخاذ قراراتهم. لا يزال قيد التطوير
+              وستُضاف إليه ميزاتٌ أكثر بكثير، لكن يمكنك الاعتماد عليه في الحصول على معلوماتك اليومية بكل تأكيد.
+            </p>
+            <p style={{ marginTop: 28 }}>
+              مع كل الشكر،<br />
+              <strong style={{ color: 'var(--ink)' }}>أحمد.</strong>
+            </p>
+          </>
+        ) : (
+          <>
+            <p>
+              A special welcome to you, our dear investor. This website was created by{' '}
+              <strong style={{ color: 'var(--ink)' }}>Ahmed Balaha</strong>, a finance writer and investor in
+              US and Iraqi equities.
+            </p>
+            <p>
+              The site is completely free and designed to help Iraqi investors make their decisions. It is still
+              under development and many more features will be added — but you can rely on it for your daily
+              information, for sure.
+            </p>
+            <p style={{ marginTop: 28 }}>
+              With all thanks,<br />
+              <strong style={{ color: 'var(--ink)' }}>Ahmed.</strong>
+            </p>
+          </>
+        )}
+      </div>
 
-      {/* Values grid */}
-      <div style={{ marginTop: 56 }}>
-        <div style={{ height: 1, background: 'var(--line)', marginBottom: 40 }} />
-        <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--ink4)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 24 }}>
-          {ar ? 'مبادئنا' : 'Our Principles'}
+      {/* Contact card */}
+      <div style={{
+        marginTop: 40, background: 'var(--surf)', border: '1px solid var(--line)',
+        borderRadius: 16, padding: '22px 24px',
+      }}>
+        <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--ink4)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 16 }}>
+          {ar ? 'للتواصل' : 'Contact'}
         </div>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 16 }}>
-          {[
-            { icon: '📊', en: 'Accuracy First', ar: 'الدقة أولاً', descEn: 'Data straight from official ISX sources. No estimates, no guesses.', descAr: 'بيانات مباشرة من بورصة العراق. لا تقديرات، لا تخمينات.' },
-            { icon: '🔓', en: 'No Gatekeeping', ar: 'لا حواجز', descEn: 'Everything on this platform is free to use. Knowledge belongs to everyone.', descAr: 'كل ما على المنصة مجاني. المعرفة للجميع.' },
-            { icon: '🧭', en: 'Investor-Led', ar: 'بيد المستثمرين', descEn: 'We use this platform ourselves. Every feature exists because we needed it.', descAr: 'نستخدم المنصة بأنفسنا. كل ميزة موجودة لأننا احتجناها.' },
-            { icon: '🌱', en: 'Built for Growth', ar: 'بُني للنمو', descEn: 'As the Iraqi market grows, this platform grows with it.', descAr: 'مع نمو السوق العراقي، تنمو المنصة معه.' },
-          ].map(v => (
-            <div key={v.en} style={{
-              background: 'var(--surf)', border: '1px solid var(--line)',
-              borderRadius: 14, padding: '20px 18px',
-            }}>
-              <div style={{ fontSize: 24, marginBottom: 10 }}>{v.icon}</div>
-              <div style={{ fontWeight: 700, fontSize: 14, color: 'var(--ink)', marginBottom: 6 }}>
-                {ar ? v.ar : v.en}
-              </div>
-              <div style={{ fontSize: 12, color: 'var(--ink4)', lineHeight: 1.65 }}>
-                {ar ? v.descAr : v.descEn}
-              </div>
-            </div>
-          ))}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+          <a href="mailto:boatlef@gmail.com" style={contactRow}>
+            <span style={iconWrap}>✉️</span>
+            <span style={{ fontFamily: 'var(--font-mono)', fontSize: 14.5, color: 'var(--ink)' }} dir="ltr">boatlef@gmail.com</span>
+          </a>
+          <a href="tel:+9647737339919" style={contactRow}>
+            <span style={iconWrap}>📞</span>
+            <span style={{ fontFamily: 'var(--font-mono)', fontSize: 14.5, color: 'var(--ink)' }} dir="ltr">+964 773 733 9919</span>
+          </a>
         </div>
       </div>
 
     </div>
   )
+}
+
+const contactRow: React.CSSProperties = {
+  display: 'flex', alignItems: 'center', gap: 12, textDecoration: 'none',
+}
+const iconWrap: React.CSSProperties = {
+  width: 36, height: 36, borderRadius: 9, background: 'var(--surf2)',
+  border: '1px solid var(--line)', display: 'flex', alignItems: 'center',
+  justifyContent: 'center', fontSize: 16, flexShrink: 0,
 }

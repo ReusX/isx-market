@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import Image from 'next/image'
 import { useApp } from '@/context/AppContext'
+import SiteFooter from '@/components/layout/SiteFooter'
 
 // ── IraqSM terminal dark palette ──────────────────────────────────────────────
 const K = {
@@ -524,6 +525,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
         {/* Page */}
         <main style={{ flex: 1, overflow: 'auto' }}>
           {children}
+          <SiteFooter />
         </main>
       </div>
     </div>
