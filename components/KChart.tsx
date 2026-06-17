@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState, useCallback } from 'react'
+import { compositeWatermark, downloadImage, copyImage } from '@/lib/watermark'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 type RawRow = {
@@ -155,6 +156,7 @@ export default function KChart({ sym }: { sym: string }) {
   const [chartType, setChartType]     = useState<'candle_solid' | 'area'>('candle_solid')
   const [indSearch, setIndSearch]     = useState('')
   const [loading, setLoading]         = useState(true)
+  const [exportMsg, setExportMsg]     = useState('')
 
   // ── Load raw data ───────────────────────────────────────────────────────────
   const fetchRaw = useCallback(async (ticker: string): Promise<RawRow[]> => {
@@ -381,6 +383,27 @@ export default function KChart({ sym }: { sym: string }) {
     setDrawTool('pointer')
   }, [])
 
+  // ── Export: download / copy the chart as a watermarked PNG ───────────────────
+  const exportImage = useCallback(async (mode: 'download' | 'copy') => {
+    const chart = chartRef.current
+    if (!chart) return
+    try {
+      // includeOverlay=true keeps drawings; bake the chart bg so PNG isn't transparent
+      const src = chart.getConvertPictureUrl(true, 'png', '#0a0f1e')
+      const { blob, url } = await compositeWatermark(src, { bg: '#0a0f1e', label: sym.toUpperCase() })
+      if (mode === 'download') {
+        downloadImage(url, `${sym.toUpperCase()}-iraqsm.png`)
+        setExportMsg('تم التنزيل ✓')
+      } else {
+        const ok = await copyImage(blob)
+        setExportMsg(ok ? 'تم النسخ ✓' : 'النسخ غير مدعوم — استخدم التنزيل')
+      }
+    } catch {
+      setExportMsg('تعذّر التصدير')
+    }
+    setTimeout(() => setExportMsg(''), 2200)
+  }, [sym])
+
   // ── Filtered indicators for search ─────────────────────────────────────────
   const filteredInds = indSearch
     ? INDICATORS.filter(i =>
@@ -413,6 +436,21 @@ export default function KChart({ sym }: { sym: string }) {
         >
           {activeInds.size > 0 ? `Indicators (${activeInds.size})` : '+ Indicators'}
         </button>
+
+        {/* Download / Copy */}
+        <button
+          onClick={() => exportImage('download')}
+          title="تنزيل صورة الرسم (PNG)"
+          className="w-7 h-7 flex items-center justify-center text-sm border border-slate-700 rounded text-slate-400 hover:text-white hover:border-slate-500 transition-colors"
+        >⬇</button>
+        <button
+          onClick={() => exportImage('copy')}
+          title="نسخ صورة الرسم"
+          className="w-7 h-7 flex items-center justify-center text-sm border border-slate-700 rounded text-slate-400 hover:text-white hover:border-slate-500 transition-colors"
+        >⧉</button>
+        {exportMsg && (
+          <span className="text-[11px] font-medium text-blue-400 whitespace-nowrap">{exportMsg}</span>
+        )}
 
         <div className="flex-1" />
 
@@ -473,6 +511,16 @@ export default function KChart({ sym }: { sym: string }) {
             </div>
           )}
           <div ref={containerRef} className="absolute inset-0" />
+          {/* Brand watermark — visible on the live chart */}
+          <div
+            className="absolute inset-0 flex items-center justify-center pointer-events-none select-none z-0"
+            aria-hidden
+          >
+            <span
+              className="font-extrabold tracking-tight"
+              style={{ fontSize: 'clamp(28px, 7vw, 72px)', color: 'rgba(148,163,184,0.07)', transform: 'rotate(-12deg)' }}
+            >iraqsm.com</span>
+          </div>
         </div>
       </div>
 

@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState, useMemo } from 'react'
 import { useApp } from '@/context/AppContext'
 import { fetchLive, fetchCompanyMeta, mergeCompanies } from '@/lib/market'
+import { compositeWatermark, downloadImage, copyImage } from '@/lib/watermark'
 import type { Company } from '@/types'
 import Link from 'next/link'
 
@@ -30,6 +31,29 @@ function RSISXChart({ tf }: { tf: string }) {
   const ref     = useRef<HTMLDivElement>(null)
   const tipRef  = useRef<HTMLDivElement>(null)
   const wrapRef = useRef<HTMLDivElement>(null)
+  const chartInst = useRef<any>(null)
+  const [exportMsg, setExportMsg] = useState('')
+
+  const exportImage = async (mode: 'download' | 'copy') => {
+    const chart = chartInst.current
+    if (!chart) return
+    try {
+      const shot = chart.takeScreenshot() as HTMLCanvasElement
+      const { blob, url } = await compositeWatermark(shot.toDataURL('image/png'), {
+        bg: '#0b0f1a', label: 'ISX60',
+      })
+      if (mode === 'download') {
+        downloadImage(url, 'ISX60-iraqsm.png')
+        setExportMsg('تم التنزيل ✓')
+      } else {
+        const ok = await copyImage(blob)
+        setExportMsg(ok ? 'تم النسخ ✓' : 'النسخ غير مدعوم — استخدم التنزيل')
+      }
+    } catch {
+      setExportMsg('تعذّر التصدير')
+    }
+    setTimeout(() => setExportMsg(''), 2200)
+  }
 
   useEffect(() => {
     if (!ref.current) return
@@ -100,15 +124,16 @@ function RSISXChart({ tf }: { tf: string }) {
         watermark: {
           visible:   true,
           text:      'iraqsm.com',
-          fontSize:  16,
-          color:     'rgba(79,107,255,0.18)',
-          horzAlign: 'left',
-          vertAlign:  'bottom',
+          fontSize:  64,
+          color:     'rgba(79,107,255,0.16)',
+          horzAlign: 'center',
+          vertAlign:  'center',
           fontStyle:  'bold',
         },
         handleScroll: true,
         handleScale:  true,
       })
+      chartInst.current = chart
 
       const up = data[data.length - 1].value >= data[0].value
       const lineColor = up ? '#22C55E' : '#EF4444'
@@ -188,6 +213,16 @@ function RSISXChart({ tf }: { tf: string }) {
 
   return (
     <div ref={wrapRef} style={{ position: 'relative', width: '100%' }}>
+      {/* Export controls */}
+      <div style={{ position: 'absolute', top: 8, insetInlineEnd: 8, zIndex: 12, display: 'flex', alignItems: 'center', gap: 6 }}>
+        {exportMsg && (
+          <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--brand)', background: 'var(--surf)', border: '1px solid var(--line)', borderRadius: 6, padding: '3px 7px' }}>{exportMsg}</span>
+        )}
+        <button onClick={() => exportImage('download')} title="تنزيل صورة الرسم (PNG)"
+          style={{ width: 28, height: 28, display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: 7, background: 'var(--surf)', border: '1px solid var(--line)', color: 'var(--ink3)', cursor: 'pointer', fontSize: 14 }}>⬇</button>
+        <button onClick={() => exportImage('copy')} title="نسخ صورة الرسم"
+          style={{ width: 28, height: 28, display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: 7, background: 'var(--surf)', border: '1px solid var(--line)', color: 'var(--ink3)', cursor: 'pointer', fontSize: 14 }}>⧉</button>
+      </div>
       <div ref={ref} style={{ width: '100%', height: 420 }} />
       <div ref={tipRef} style={{
         display: 'none',
