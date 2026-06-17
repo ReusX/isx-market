@@ -1,20 +1,21 @@
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
-  title: { absolute: 'سعر الذهب اليوم في العراق | Iraq Gold Rate in IQD' },
-  description: 'Gold price in Iraq today in IQD and USD — iraq gold rate today per gram and mithqal for 24K, 21K, 18K. سعر الذهب اليوم في العراق بالدينار العراقي، سعر مثقال الذهب عيار 21، سعر غرام الذهب في العراق، اسعار الذهب العراق اليوم.',
+  title: { absolute: 'سعر الذهب مباشر اليوم في العراق | اسعار الذهب عالمياً بالدينار' },
+  description: 'سعر الذهب مباشر اليوم في العراق بالدينار العراقي — اسعار الذهب عالمياً وسعر مثقال الذهب عيار 21 وسعر غرام الذهب عيار 24 و18 لحظة بلحظة. Live gold price in Iraq today in IQD and USD, per gram and mithqal for 24K, 21K, 18K, with the global spot rate.',
   alternates: { canonical: 'https://iraqsm.com/gold' },
   keywords: [
     'gold price in iraq', 'iraq gold price today', 'gold price iraq 2026',
     'gold price in iraqi dinar', 'iraq gold rate today',
-    'سعر الذهب اليوم في العراق', 'سعر مثقال الذهب عيار 21',
+    'سعر الذهب مباشر', 'سعر الذهب اليوم', 'سعر الذهب اليوم في العراق',
+    'اسعار الذهب عالميا', 'اسعار الذهب اليوم في العراق', 'سعر مثقال الذهب عيار 21',
     'سعر غرام الذهب في العراق', 'اسعار الذهب العراق اليوم',
     'سعر الذهب بالدينار العراقي',
   ],
   openGraph: {
     url: 'https://iraqsm.com/gold',
-    title: 'Gold Price in Iraq Today | Iraq Gold Rate — سعر الذهب اليوم في العراق',
-    description: 'Iraq gold price today per gram and mithqal in IQD & USD. سعر مثقال الذهب عيار 21 في العراق اليوم، اسعار الذهب العراق.',
+    title: 'سعر الذهب مباشر اليوم في العراق | اسعار الذهب عالمياً — Iraq Gold Rate',
+    description: 'سعر الذهب مباشر اليوم في العراق لكل غرام ومثقال بالدينار العراقي والدولار، مع السعر العالمي للأونصة. Live Iraq gold price per gram & mithqal.',
     images: [{ url: '/opengraph-image', width: 1200, height: 630 }],
   },
 }
