@@ -197,12 +197,25 @@ export default function HomeClient() {
   const [query, setQuery] = useState('')
   const [sortCol, setSortCol] = useState<SortKey | null>('mcap')
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc')
+  // latest market breadth from our own /pulse data (refreshed daily by the cron)
+  const [breadth, setBreadth] = useState<{ advancers: number; decliners: number; unchanged: number } | null>(null)
   useEffect(() => {
     Promise.all([fetchLive(), fetchCompanyMeta()])
       .then(([live, meta]) => {
         setCompanies(mergeCompanies(meta, live.stocks))
       })
       .finally(() => setLoading(false))
+  }, [])
+  useEffect(() => {
+    ;(async () => {
+      const { createClient } = await import('@/lib/supabase/client')
+      const { data } = await createClient()
+        .from('breadth_daily')
+        .select('advancers,decliners,unchanged')
+        .order('date', { ascending: false })
+        .limit(1)
+      if (data?.[0]) setBreadth(data[0] as any)
+    })()
   }, [])
 
   const handleSort = (col: SortKey) => {
@@ -251,23 +264,25 @@ export default function HomeClient() {
         display: 'flex', alignItems: 'center', gap: 8,
         background: 'var(--surf)',
       }}>
-        {/* Gainers / Losers / Flat */}
-        {[
-          { label: 'رابح',   count: stats.gainers, color: 'var(--up)', bg: 'var(--up-s)', border: 'rgba(22,163,74,0.2)' },
-          { label: 'خاسر',   count: stats.losers,  color: 'var(--dn)', bg: 'var(--dn-s)', border: 'rgba(220,38,38,0.2)' },
-          { label: 'مستقر',  count: stats.flat,    color: 'var(--ink4)', bg: 'var(--surf2)', border: 'var(--line)' },
-        ].map(s => (
-          <div key={s.label} style={{
-            display: 'flex', alignItems: 'center', gap: 5,
-            padding: '4px 10px', background: s.bg,
-            border: `1px solid ${s.border}`, borderRadius: 7, flexShrink: 0,
-          }}>
-            <span style={{ fontSize: 11, color: s.color, fontWeight: 600 }}>{s.label}</span>
-            <span style={{ fontSize: 14, fontWeight: 800, color: s.color, fontFamily: 'var(--font-mono)' }}>
-              {s.count}
-            </span>
-          </div>
-        ))}
+        {/* Gainers / Losers / Flat — from our own breadth (/pulse), click to open */}
+        <Link href="/pulse" title="نبض السوق" style={{ display: 'flex', alignItems: 'center', gap: 8, textDecoration: 'none', flexShrink: 0 }}>
+          {[
+            { label: 'رابح',   count: breadth ? breadth.advancers : stats.gainers, color: 'var(--up)', bg: 'var(--up-s)', border: 'rgba(22,163,74,0.2)' },
+            { label: 'خاسر',   count: breadth ? breadth.decliners : stats.losers,  color: 'var(--dn)', bg: 'var(--dn-s)', border: 'rgba(220,38,38,0.2)' },
+            { label: 'مستقر',  count: breadth ? breadth.unchanged : stats.flat,    color: 'var(--ink4)', bg: 'var(--surf2)', border: 'var(--line)' },
+          ].map(s => (
+            <div key={s.label} style={{
+              display: 'flex', alignItems: 'center', gap: 5,
+              padding: '4px 10px', background: s.bg,
+              border: `1px solid ${s.border}`, borderRadius: 7, flexShrink: 0,
+            }}>
+              <span style={{ fontSize: 11, color: s.color, fontWeight: 600 }}>{s.label}</span>
+              <span style={{ fontSize: 14, fontWeight: 800, color: s.color, fontFamily: 'var(--font-mono)' }}>
+                {s.count}
+              </span>
+            </div>
+          ))}
+        </Link>
 
         {/* ISX60 chart — click to open full chart page */}
         <Link href="/charts" style={{ flex: 1, display: 'flex', minWidth: 0, textDecoration: 'none' }}>
