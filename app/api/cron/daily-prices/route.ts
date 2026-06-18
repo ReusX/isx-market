@@ -36,7 +36,16 @@ async function fetchDailyList(): Promise<ListedFile[]> {
   const to = new Date()
   const from = new Date(Date.now() - DAYS_BACK * 86400_000)
   const body = new URLSearchParams({ reporttype: '40', date: ddmmyyyy(from), toDate: ddmmyyyy(to) })
-  const res = await fetch(LIST_URL, { method: 'POST', headers: { ...UA, 'Content-Type': 'application/x-www-form-urlencoded' }, body })
+  // Cache-bust aggressively: the ISX list was served from a stale edge cache to
+  // Vercel's region (a ~1-day-old snapshot missing the newest report), so the
+  // cron never "saw" the day's report. Unique URL param + no-cache headers +
+  // no-store defeat both upstream CDN caching and Next's data cache.
+  const res = await fetch(`${LIST_URL}?_=${Date.now()}`, {
+    method: 'POST',
+    cache: 'no-store',
+    headers: { ...UA, 'Content-Type': 'application/x-www-form-urlencoded', 'Cache-Control': 'no-cache', 'Pragma': 'no-cache' },
+    body,
+  })
   if (!res.ok) throw new Error(`ISX list HTTP ${res.status}`)
   const html = decodeEntities(await res.text())
 
