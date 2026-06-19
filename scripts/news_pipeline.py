@@ -42,10 +42,15 @@ def _load_env():
 
 _load_env()
 
-WP_URL      = os.environ.get("WP_URL", "https://paleturquoise-deer-610016.hostingersite.com").rstrip("/")
-WP_USER     = os.environ.get("WP_USERNAME", "")
-WP_PASS     = os.environ.get("WP_APP_PASSWORD", "")
-ANTH_KEY    = os.environ.get("ANTHROPIC_API_KEY", "")
+WP_URL          = os.environ.get("WP_URL", "https://paleturquoise-deer-610016.hostingersite.com").rstrip("/")
+WP_USER         = os.environ.get("WP_USERNAME", "")
+WP_PASS         = os.environ.get("WP_APP_PASSWORD", "")
+ANTH_KEY        = os.environ.get("ANTHROPIC_API_KEY", "")
+# Proxy URL: GitHub Actions routes through Vercel to bypass Wordfence IP-block.
+# Set PROXY_URL=https://iraqsm.com (or the Vercel deploy URL) in GH secrets.
+# When unset, falls back to direct WP calls (works fine from local IPs).
+PROXY_URL       = os.environ.get("PROXY_URL", "").rstrip("/")
+PIPELINE_SECRET = os.environ.get("PIPELINE_SECRET", "isx-pipeline-2026-secret")
 SB_URL      = (os.environ.get("NEXT_PUBLIC_SUPABASE_URL") or os.environ.get("SUPABASE_URL", ""))
 SB_KEY      = os.environ.get("SUPABASE_SERVICE_ROLE_KEY", "")
 if not SB_URL.startswith("http") and SB_URL:
@@ -417,46 +422,64 @@ def get_image(article: dict, image_query: str) -> tuple[bytes | None, str]:
     return None, "image/jpeg"
 
 def wp_post(rewritten: dict, article: dict, dry_run: bool = False) -> int | None:
-    """Create a WordPress post with Yoast SEO meta. Returns WP post ID."""
+    """Create a WordPress post with Yoast SEO meta. Returns WP post ID.
+
+    Routes through the Vercel proxy (/api/wp-publish) when PROXY_URL is set,
+    so GitHub Actions IPs bypass Wordfence's IP block on the Hostinger server.
+    Falls back to direct WP REST calls (works fine from local/trusted IPs).
+    """
     if dry_run:
         print(f"  [DRY-RUN] would post: {rewritten['title']}")
         return None
 
-    # Get image URL — embed it in content instead of featured_media.
-    # Hostinger's AiTheme plugin crashes with featured_media set via REST API,
-    # so we prepend the image directly into the post content instead.
     img_url = article.get("image_url")
     content = rewritten["content"]
     if img_url and "placeholder" not in img_url.lower():
         content = f'<figure class="wp-block-image"><img src="{img_url}" alt="{rewritten["title"]}" /></figure>\n\n' + content
 
     payload = {
-        "title":         rewritten["title"],
-        "content":       content,
-        "excerpt":       rewritten.get("excerpt", ""),
-        "status":        "publish",
-        "categories":    [WP_NEWS_CAT],
+        "title":      rewritten["title"],
+        "content":    content,
+        "excerpt":    rewritten.get("excerpt", ""),
+        "status":     "publish",
+        "categories": [WP_NEWS_CAT],
         "meta": {
             "_yoast_wpseo_title":    rewritten.get("seo_title", rewritten["title"]),
             "_yoast_wpseo_metadesc": rewritten.get("seo_desc", ""),
             "_yoast_wpseo_focuskw":  rewritten.get("focus_keyword", ""),
-            # canonical → original source URL (avoids duplicate-content penalty)
             "_yoast_wpseo_canonical": article["url"],
         },
     }
 
-    r = requests.post(
-        f"{WP_URL}/wp-json/wp/v2/posts",
-        headers={**wp_auth_header(), "Content-Type": "application/json"},
-        json=payload, timeout=30,
-    )
+    if PROXY_URL:
+        # Route through Vercel proxy to avoid Wordfence IP-blocking GH Actions.
+        # Send WP credentials as X-Wp-Auth (base64 user:pass) so the proxy can
+        # forward them to WordPress even without Vercel env vars configured.
+        wp_b64 = base64.b64encode(f"{WP_USER}:{WP_PASS}".encode()).decode()
+        r = requests.post(
+            f"{PROXY_URL}/api/wp-publish",
+            headers={
+                "Content-Type":      "application/json",
+                "X-Pipeline-Secret": PIPELINE_SECRET,
+                "X-Wp-Auth":         wp_b64,
+            },
+            json={"endpoint": "/wp-json/wp/v2/posts", "method": "POST", "payload": payload},
+            timeout=40,
+        )
+    else:
+        r = requests.post(
+            f"{WP_URL}/wp-json/wp/v2/posts",
+            headers={**wp_auth_header(), "Content-Type": "application/json"},
+            json=payload, timeout=30,
+        )
+
     if r.ok:
         wp_id = r.json().get("id")
         wp_link = r.json().get("link", "")
         print(f"  ✓ posted → {wp_link} (id={wp_id})")
         return wp_id
     else:
-        print(f"  ! WP post failed: {r.status_code} {r.text[:200]}")
+        print(f"  ! WP post failed: {r.status_code} {r.text[:300]}")
         return None
 
 # ── main ───────────────────────────────────────────────────────────────────────
