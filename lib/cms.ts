@@ -29,7 +29,7 @@ export const CATEGORY_IDS = {
 
 export type Section = keyof typeof CATEGORY_IDS
 
-const BASE_FIELDS = 'id,slug,date,modified,title,excerpt,featured_media,categories,tags,_embedded'
+const BASE_FIELDS = 'id,slug,date,modified,title,excerpt,content,featured_media,categories,tags,_embedded'
 
 // ── Fetch list of posts for a section ────────────────────────────────────────
 export async function getPosts(
@@ -81,15 +81,22 @@ function rewriteImgUrl(url: string | null | undefined): string | null {
 
 export function featuredImage(post: WPPost, size = 'medium_large'): string | null {
   const media = post._embedded?.['wp:featuredmedia']?.[0]
-  if (!media) return null
-  const url =
-    media.media_details?.sizes?.[size]?.source_url
-    ?? media.media_details?.sizes?.['large']?.source_url
-    ?? media.media_details?.sizes?.['medium_large']?.source_url
-    ?? media.media_details?.sizes?.['medium']?.source_url
-    ?? media.source_url
-    ?? null
-  return rewriteImgUrl(url)
+  if (media) {
+    const url =
+      media.media_details?.sizes?.[size]?.source_url
+      ?? media.media_details?.sizes?.['large']?.source_url
+      ?? media.media_details?.sizes?.['medium_large']?.source_url
+      ?? media.media_details?.sizes?.['medium']?.source_url
+      ?? media.source_url
+      ?? null
+    return rewriteImgUrl(url)
+  }
+  // fallback: extract first real image URL from post content.
+  // Hostinger lazy-load plugin puts real URL in data-src, so check that first.
+  const html = post.content?.rendered ?? ''
+  const m = html.match(/\bdata-src="(https?:\/\/[^"]+)"/)
+    ?? html.match(/\bsrc="(https?:\/\/[^"]+)"/)
+  return m?.[1] ?? null
 }
 
 // ── Author name ───────────────────────────────────────────────────────────────
