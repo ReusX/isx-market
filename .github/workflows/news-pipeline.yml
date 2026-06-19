@@ -5,8 +5,8 @@ name: News Pipeline
 
 on:
   schedule:
-    # Every 3 hours, 7am-11pm Baghdad time (UTC+3 = 04:00-20:00 UTC)
-    - cron: '0 4,7,10,13,16,19 * * *'
+    # Every 30 minutes, 7am-11pm Baghdad time (UTC+3 = 04:00-20:00 UTC)
+    - cron: '*/30 4-20 * * *'
   workflow_dispatch:
     inputs:
       source:
