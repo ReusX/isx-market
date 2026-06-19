@@ -113,10 +113,18 @@ export default function Financials({ sym }: { sym: string }) {
     return allCols.filter(c => want(c.p)).slice(0, 6)
   }, [allCols, pmode])
 
-  // Last 2 quarters for the QoQ box
-  const qCols = useMemo(() =>
-    allCols.filter(c => c.p !== 'ANNUAL').slice(0, 2),
-    [allCols])
+  // QoQ box: most recent quarter vs same quarter prior year (YoY).
+  // Falls back to sequential-quarter comparison if same-period prior year is missing.
+  const qCols = useMemo(() => {
+    const nonAnnual = allCols.filter(c => c.p !== 'ANNUAL')
+    if (nonAnnual.length === 0) return []
+    const curr = nonAnnual[0]
+    // Try same period, prior year
+    const yoy = nonAnnual.find(c => c.p === curr.p && c.y === curr.y - 1)
+    if (yoy) return [curr, yoy]
+    // Fall back to second most-recent quarter (sequential)
+    return nonAnnual.slice(0, 2)
+  }, [allCols])
 
   const factMap = useMemo(() => {
     const m = new Map<string, number | null>()
@@ -201,7 +209,7 @@ export default function Financials({ sym }: { sym: string }) {
           <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', flexWrap: 'wrap', gap: 8, marginBottom: 18 }}>
             <div>
               <h2 style={{ fontSize: 16, fontWeight: 800, margin: '0 0 2px', color: 'var(--ink)' }}>
-                {ar ? 'مقارنة آخر ربعين' : 'Latest Quarters'}
+                {ar ? 'مقارنة ربعية' : 'Quarterly Comparison'}
               </h2>
               <div style={{ fontSize: 11, color: 'var(--ink4)' }}>
                 {qCurr && colLabel(qCurr.y, qCurr.p, ar)}
