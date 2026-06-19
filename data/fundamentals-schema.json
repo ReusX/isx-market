@@ -1,0 +1,157 @@
+{
+  "_doc": "Canonical chart-of-accounts for ISX fundamentals. ar[] = match synonyms seen in the (old Iraqi Unified Accounting System) PDFs — used ONLY by the extractor to map labels. name_ar/name_en = the PROFESSIONAL display label shown in the UI (modern IFRS-style Arabic). source_label_ar (stored per fact) keeps the literal PDF wording for audit. identities = accounting checks. ratio_defs include desc_ar/desc_en beginner explanations for the (؟) tooltips. concept_help = explanations for headline line items.",
+  "templates": {
+    "industrial": {
+      "label_ar": "شركة تجارية/صناعية",
+      "label_en": "Industrial / Commercial",
+      "statements": {
+        "income": {
+          "label_ar": "قائمة الدخل",
+          "lines": [
+            { "key": "revenue",                  "name_ar": "الإيرادات",                       "name_en": "Revenue",              "ar": ["ايراد النشاط الجاري", "الايرادات الجارية", "صافي المبيعات", "الإيرادات"] },
+            { "key": "salaries_wages",            "name_ar": "الرواتب والأجور",                 "name_en": "Salaries & Wages",     "ar": ["الرواتب والأجور"] },
+            { "key": "goods_supplies",            "name_ar": "المستلزمات السلعية",              "name_en": "Material Supplies",    "ar": ["المستلزمات السلعية"] },
+            { "key": "service_supplies",          "name_ar": "المستلزمات الخدمية",              "name_en": "Service Supplies",     "ar": ["المستلزمات الخدمية"] },
+            { "key": "contracts_services",        "name_ar": "المقاولات والخدمات",              "name_en": "Contracts & Services", "ar": ["مقاولات وخدمات", "عقود مساندة"] },
+            { "key": "purchases_opex",            "name_ar": "تكلفة المبيعات ومصاريف التشغيل",  "name_en": "Cost of Sales & Operating Costs", "ar": ["مشتريات بغرض البيع ومصاريف التشغيل"] },
+            { "key": "interest_expense",          "name_ar": "مصروفات الفوائد",                 "name_en": "Interest Expense",     "ar": ["فوائد مدينة", "مصروفات الفوائد"] },
+            { "key": "depreciation_amortization", "name_ar": "الاندثار والإطفاء",               "name_en": "Depreciation & Amortization", "ar": ["الاندثارات والاطفاءات", "الاندثار والاطفاء"] },
+            { "key": "taxes_fees",                "name_ar": "الضرائب والرسوم",                 "name_en": "Taxes & Fees",         "ar": ["الضرائب والرسوم"] },
+            { "key": "total_operating_expenses",  "name_ar": "إجمالي المصروفات التشغيلية",      "name_en": "Total Operating Expenses", "ar": ["مجموع المصروفات الجارية"] },
+            { "key": "operating_income",          "name_ar": "الربح التشغيلي",                  "name_en": "Operating Profit",     "ar": ["فائض العمليات الجارية", "الربح التشغيلي"] },
+            { "key": "other_income",              "name_ar": "إيرادات أخرى",                    "name_en": "Other Income",         "ar": ["الايرادات الأخرى", "ايرادات الاستثمارات المالية"] },
+            { "key": "other_expenses",            "name_ar": "مصروفات أخرى",                    "name_en": "Other Expenses",       "ar": ["المصروفات الأخرى", "المصروفات التحويلية"] },
+            { "key": "pretax_income",             "name_ar": "الربح قبل الضريبة",               "name_en": "Pre-Tax Profit",       "ar": ["فائض العمليات الجارية (المرحلة الثانية)", "الربح قبل الضريبة"] },
+            { "key": "tax",                       "name_ar": "ضريبة الدخل",                     "name_en": "Income Tax",           "ar": ["ينزل الضريبة", "مخصص الضريبة", "الضريبة", "مصرف ضريبة الدخل"] },
+            { "key": "net_income",                "name_ar": "صافي الربح",                      "name_en": "Net Profit",           "ar": ["الفائض بعد الضريبة", "صافي الربح", "صافي الدخل", "الربح (الخسارة) بعد الضريبة"] }
+          ]
+        },
+        "balance": {
+          "label_ar": "قائمة المركز المالي",
+          "lines": [
+            { "key": "net_fixed_assets",            "name_ar": "الأصول الثابتة (صافي)",          "name_en": "Net Fixed Assets",     "ar": ["الموجودات الثابتة (بالقيمة الدفترية)", "صافي الموجودات الثابتة", "الممتلكات والآلات والمعدات"] },
+            { "key": "deferred_revenue_expenses",   "name_ar": "النفقات الإيرادية المؤجلة",       "name_en": "Deferred Revenue Expenses", "ar": ["نفقات ايرادية مؤجلة"] },
+            { "key": "projects_under_construction",  "name_ar": "مشاريع تحت التنفيذ",             "name_en": "Projects Under Construction", "ar": ["مشروعات تحت التنفيذ"] },
+            { "key": "total_fixed_assets",          "name_ar": "إجمالي الأصول الثابتة",          "name_en": "Total Fixed Assets",   "ar": ["مجموع الموجودات الثابتة"] },
+            { "key": "inventory",                   "name_ar": "المخزون",                        "name_en": "Inventory",            "ar": ["المخزون"] },
+            { "key": "investments",                 "name_ar": "الاستثمارات",                    "name_en": "Investments",          "ar": ["الاستثمارات"] },
+            { "key": "receivables",                 "name_ar": "الذمم المدينة",                  "name_en": "Receivables",          "ar": ["المدينون", "الذمم المدينة", "ذمم مدينة"] },
+            { "key": "cash",                        "name_ar": "النقد وما يعادله",               "name_en": "Cash & Equivalents",   "ar": ["النقود", "النقد", "النقد وما يعادله"] },
+            { "key": "total_current_assets",        "name_ar": "إجمالي الأصول المتداولة",        "name_en": "Total Current Assets", "ar": ["مجموع الموجودات المتداولة", "مجموع الأصول المتداولة"] },
+            { "key": "total_assets",                "name_ar": "إجمالي الأصول",                  "name_en": "Total Assets",         "ar": ["مجموع الموجودات", "مجموع الأصول"] },
+            { "key": "paid_capital",                "name_ar": "رأس المال المدفوع",              "name_en": "Paid-in Capital",      "ar": ["رأس المال المدفوع", "رأس المال"] },
+            { "key": "reserves",                    "name_ar": "الاحتياطيات",                    "name_en": "Reserves",             "ar": ["الاحتياطيات", "رأس المال الإضافي"] },
+            { "key": "retained_earnings",           "name_ar": "الأرباح المُدوّرة",              "name_en": "Retained Earnings",    "ar": ["الفائض المتراكم", "الأرباح المدورة", "الأرباح المحتجزة"] },
+            { "key": "long_term_provisions",        "name_ar": "المخصصات طويلة الأجل",           "name_en": "Long-term Provisions", "ar": ["تخصيصات طويلة الأجل"] },
+            { "key": "long_term_payables",          "name_ar": "المطلوبات طويلة الأجل",          "name_en": "Long-term Liabilities","ar": ["الدائنون (طويلة الأجل)", "مطلوبات طويلة الأجل"] },
+            { "key": "short_term_provisions",       "name_ar": "المخصصات قصيرة الأجل",           "name_en": "Short-term Provisions","ar": ["تخصيصات قصيرة الأجل"] },
+            { "key": "short_term_payables",         "name_ar": "المطلوبات قصيرة الأجل",          "name_en": "Short-term Liabilities","ar": ["الدائنون (قصيرة الأجل)", "مطلوبات قصيرة الأجل"] },
+            { "key": "total_equity",                "name_ar": "إجمالي حقوق المساهمين",          "name_en": "Total Equity",         "ar": ["حقوق المساهمين", "مجموع حقوق الملكية"] },
+            { "key": "total_equity_and_liabilities","name_ar": "إجمالي المطلوبات وحقوق المساهمين","name_en": "Total Liabilities & Equity", "ar": ["مجموع مصادر التمويل", "مجموع المطلوبات وحقوق الملكية", "مجموع الالتزامات وحقوق الملكية"] }
+          ]
+        },
+        "cashflow": {
+          "label_ar": "قائمة التدفقات النقدية",
+          "lines": [
+            { "key": "cfo",                "name_ar": "صافي التدفق النقدي من (المستخدم في) الأنشطة التشغيلية", "name_en": "Cash Flow from Operations", "ar": ["صافي التدفقات النقدية من الأنشطة التشغيلية"] },
+            { "key": "capex",              "name_ar": "النفقات الرأسمالية",                     "name_en": "Capital Expenditure", "ar": ["صافي الزيادة في الموجودات الثابتة ومشروعات تحت التنفيذ", "النفقات الرأسمالية"] },
+            { "key": "cfi",                "name_ar": "صافي التدفق النقدي من (المستخدم في) الأنشطة الاستثمارية","name_en": "Cash Flow from Investing", "ar": ["صافي التدفقات النقدية المستخدمة في الأنشطة الاستثمارية", "صافي التدفقات النقدية من الأنشطة الاستثمارية"] },
+            { "key": "dividends_paid",     "name_ar": "توزيعات الأرباح المدفوعة",                "name_en": "Dividends Paid", "ar": ["توزيع ارباح نقدية مدفوعة للمساهمين", "الأرباح الموزعة", "توزيعات الأرباح"] },
+            { "key": "cff",                "name_ar": "صافي التدفق النقدي من (المستخدم في) الأنشطة التمويلية", "name_en": "Cash Flow from Financing", "ar": ["صافي التدفقات النقدية المستخدمة في الأنشطة التمويلية", "صافي التدفقات النقدية من الأنشطة التمويلية"] },
+            { "key": "net_change_in_cash", "name_ar": "صافي التغير في النقد",                   "name_en": "Net Change in Cash", "ar": ["التغير في النقدية"] },
+            { "key": "cash_beginning",     "name_ar": "النقد في بداية الفترة",                  "name_en": "Cash at Beginning", "ar": ["رصيد النقدية كما في 1-1", "رصيد النقد في بداية الفترة"] },
+            { "key": "cash_ending",        "name_ar": "النقد في نهاية الفترة",                  "name_en": "Cash at End", "ar": ["رصيد النقد في نهاية الفترة"] }
+          ]
+        }
+      },
+      "identities": [
+        { "name": "balance_balances", "lhs": "total_assets", "rhs": "total_equity_and_liabilities", "tol": 0.005 },
+        { "name": "is_operating",     "lhs": "operating_income", "rhs": "revenue - total_operating_expenses", "tol": 0.01 },
+        { "name": "is_net",           "lhs": "net_income", "rhs": "pretax_income - tax", "tol": 0.01 },
+        { "name": "cf_change",        "lhs": "net_change_in_cash", "rhs": "cfo + cfi + cff", "tol": 0.01 },
+        { "name": "cf_ending",        "lhs": "cash_ending", "rhs": "cash_beginning + net_change_in_cash", "tol": 0.005 },
+        { "name": "cross_cash",       "lhs": "cash", "rhs": "cash_ending", "tol": 0.005 }
+      ],
+      "ratios": ["eps","bvps","pe","pb","ps","dividend_yield","roe","roa","gross_margin","operating_margin","net_margin","revenue_growth_yoy","net_income_growth_yoy","current_ratio","debt_to_equity","debt_to_assets"]
+    },
+
+    "bank": {
+      "label_ar": "مصرف",
+      "label_en": "Bank",
+      "statements": {
+        "income": {
+          "label_ar": "قائمة الدخل",
+          "lines": [
+            { "key": "financing_income",       "name_ar": "صافي إيرادات الفوائد والتمويل",     "name_en": "Net Interest / Financing Income", "ar": ["الدخل من التمويلات الاسلامية", "صافي دخل الفوائد", "الدخل من الفوائد", "صافي إيرادات الفوائد"] },
+            { "key": "revenue_and_commissions", "name_ar": "صافي إيرادات العمولات والأعمال المصرفية", "name_en": "Net Commission & Banking Income", "ar": ["ايراد وعمولات العمليات المصرفية", "إيرادات العمولات", "الدخل من العمولات", "صافي إيرادات العمولات"] },
+            { "key": "ga_expenses",            "name_ar": "المصروفات العمومية والإدارية",     "name_en": "General & Admin Expenses", "ar": ["مصاريف عمومية وادارية", "المصاريف الإدارية والعمومية"] },
+            { "key": "pretax_income",          "name_ar": "الربح قبل الضريبة",                "name_en": "Pre-Tax Profit", "ar": ["الربح قبل الضريبة", "ربح قبل الضريبة"] },
+            { "key": "tax",                    "name_ar": "ضريبة الدخل",                      "name_en": "Income Tax", "ar": ["مخصص الضريبة", "الضريبة"] },
+            { "key": "net_income",             "name_ar": "صافي الربح",                       "name_en": "Net Profit", "ar": ["صافي الربح", "الربح بعد الضريبة", "صافي الدخل"] }
+          ]
+        },
+        "balance": {
+          "label_ar": "قائمة المركز المالي",
+          "lines": [
+            { "key": "cash_and_cbi",        "name_ar": "النقد والأرصدة لدى البنك المركزي", "name_en": "Cash & Central Bank Balances", "ar": ["نقد وأرصدة لدى البنك المركزي", "النقد والأرصدة لدى البنك المركزي"] },
+            { "key": "due_from_banks",      "name_ar": "الأرصدة لدى المصارف",             "name_en": "Due from Banks", "ar": ["أرصدة لدى المصارف", "مستحقات من مصارف"] },
+            { "key": "islamic_financing",   "name_ar": "صافي التسهيلات الائتمانية والتمويل", "name_en": "Net Credit Facilities / Financing", "ar": ["التمويلات الاسلامية", "صافي التمويل", "تسهيلات ائتمانية مباشرة", "صافي التسهيلات الائتمانية"] },
+            { "key": "investments",         "name_ar": "الاستثمارات",                     "name_en": "Investments", "ar": ["الاستثمارات"] },
+            { "key": "fixed_assets",        "name_ar": "الأصول الثابتة",                  "name_en": "Fixed Assets", "ar": ["الموجودات الثابتة", "صافي الموجودات الثابتة"] },
+            { "key": "total_assets",        "name_ar": "إجمالي الأصول",                   "name_en": "Total Assets", "ar": ["مجموع الموجودات", "إجمالي الموجودات"] },
+            { "key": "customer_deposits",   "name_ar": "ودائع العملاء",                   "name_en": "Customer Deposits", "ar": ["تأمينات الزبائن عن أنشطة مصرفية", "ودائع العملاء", "ودائع الزبائن"] },
+            { "key": "due_to_banks",        "name_ar": "الأرصدة المستحقة للمصارف",        "name_en": "Due to Banks", "ar": ["أرصدة مستحقة للمصارف", "مستحقات لمصارف"] },
+            { "key": "other_liabilities",   "name_ar": "مطلوبات أخرى",                    "name_en": "Other Liabilities", "ar": ["المطلوبات الاخرى", "مطلوبات أخرى"] },
+            { "key": "paid_capital",        "name_ar": "رأس المال المدفوع",               "name_en": "Paid-in Capital", "ar": ["رأس المال المدفوع", "رأس المال"] },
+            { "key": "reserves",            "name_ar": "الاحتياطيات",                     "name_en": "Reserves", "ar": ["الاحتياطيات"] },
+            { "key": "retained_earnings",   "name_ar": "الأرباح المُدوّرة",               "name_en": "Retained Earnings", "ar": ["الأرباح المدورة", "الفائض المتراكم"] },
+            { "key": "total_equity",        "name_ar": "إجمالي حقوق المساهمين",           "name_en": "Total Equity", "ar": ["حقوق المساهمين", "مجموع حقوق الملكية", "إجمالي حقوق المساهمين"] },
+            { "key": "total_liabilities_and_equity", "name_ar": "إجمالي المطلوبات وحقوق المساهمين", "name_en": "Total Liabilities & Equity", "ar": ["مجموع المطلوبات وحقوق المساهمين", "إجمالي المطلوبات وحقوق المساهمين"] }
+          ]
+        }
+      },
+      "metrics": {
+        "label_ar": "المؤشرات المصرفية",
+        "lines": [
+          { "key": "capital_adequacy_ratio", "name_ar": "نسبة كفاية رأس المال", "name_en": "Capital Adequacy Ratio", "ar": ["نسبة كفاية رأس المال"] },
+          { "key": "lcr",                    "name_ar": "نسبة تغطية السيولة",   "name_en": "Liquidity Coverage Ratio", "ar": ["نسبة تغطية السيولة", "LCR"] },
+          { "key": "nsfr",                   "name_ar": "نسبة صافي التمويل المستقر", "name_en": "Net Stable Funding Ratio", "ar": ["صافي التمويل المستقر", "NSFR"] },
+          { "key": "npl_ratio",              "name_ar": "نسبة القروض المتعثرة", "name_en": "Non-Performing Loans Ratio", "ar": ["نسبة الديون غير العاملة", "نسبة التعثر"] }
+        ]
+      },
+      "identities": [
+        { "name": "balance_balances", "lhs": "total_assets", "rhs": "total_liabilities_and_equity", "tol": 0.005 },
+        { "name": "is_net",           "lhs": "net_income", "rhs": "pretax_income - tax", "tol": 0.02 }
+      ],
+      "ratios": ["eps","bvps","pe","pb","roe","roa","net_margin","capital_adequacy_ratio","npl_ratio","loan_to_deposit","deposit_growth_yoy","net_income_growth_yoy"]
+    }
+  },
+
+  "concept_help": {
+    "revenue":    { "ar": "إجمالي ما حققته الشركة من إيرادات نشاطها خلال الفترة، قبل خصم أي مصروفات.", "en": "Total income the company earned from its activity during the period, before any expenses." },
+    "net_income": { "ar": "ما تبقّى من الأرباح بعد خصم جميع المصروفات والضرائب — وهو الربح الصافي الفعلي للشركة.", "en": "What remains after all expenses and taxes — the company's actual bottom-line profit." }
+  },
+
+  "ratio_defs": {
+    "eps":                     { "ar": "ربحية السهم", "en": "EPS", "unit": "IQD", "desc_ar": "حصة السهم الواحد من صافي أرباح الشركة (بالدينار). تُحسب بقسمة صافي الربح على عدد الأسهم.", "desc_en": "Each share's portion of net profit, in IQD." },
+    "bvps":                    { "ar": "القيمة الدفترية للسهم", "en": "Book Value / Share", "unit": "IQD", "desc_ar": "حصة السهم الواحد من حقوق الملكية (صافي قيمة أصول الشركة بعد خصم الديون).", "desc_en": "Each share's portion of equity (net assets)." },
+    "pe":                      { "ar": "مكرر الربحية", "en": "P/E", "unit": "x", "desc_ar": "سعر السهم مقسوماً على ربحية السهم السنوية — كم يدفع المستثمر مقابل كل دينار من أرباح الشركة. الأقل قد يعني أرخص.", "desc_en": "Share price ÷ EPS — how much investors pay per dinar of earnings." },
+    "pb":                      { "ar": "مكرر القيمة الدفترية", "en": "P/B", "unit": "x", "desc_ar": "سعر السهم مقسوماً على القيمة الدفترية للسهم — يقارن سعر السوق بصافي قيمة أصول الشركة.", "desc_en": "Share price ÷ book value per share." },
+    "ps":                      { "ar": "مكرر المبيعات", "en": "P/S", "unit": "x", "desc_ar": "القيمة السوقية للشركة مقسومة على إيراداتها السنوية.", "desc_en": "Market cap ÷ annual revenue." },
+    "dividend_yield":          { "ar": "عائد التوزيعات", "en": "Dividend Yield", "unit": "%", "desc_ar": "نسبة التوزيعات النقدية السنوية إلى القيمة السوقية — كم يحصل المستثمر سنوياً كأرباح موزّعة مقابل سعر السهم.", "desc_en": "Annual cash dividends as a % of market value." },
+    "roe":                     { "ar": "العائد على حقوق الملكية", "en": "ROE", "unit": "%", "desc_ar": "صافي الربح كنسبة من حقوق المساهمين — كفاءة الشركة في تحقيق أرباح من أموال المالكين. الأعلى أفضل.", "desc_en": "Net profit as a % of shareholders' equity." },
+    "roa":                     { "ar": "العائد على الأصول", "en": "ROA", "unit": "%", "desc_ar": "صافي الربح كنسبة من إجمالي الموجودات — مدى كفاءة الشركة في استخدام أصولها لتوليد الأرباح.", "desc_en": "Net profit as a % of total assets." },
+    "gross_margin":            { "ar": "هامش الربح الإجمالي", "en": "Gross Margin", "unit": "%", "desc_ar": "مجمل الربح كنسبة من الإيرادات.", "desc_en": "Gross profit as a % of revenue." },
+    "operating_margin":        { "ar": "هامش الربح التشغيلي", "en": "Operating Margin", "unit": "%", "desc_ar": "الربح التشغيلي كنسبة من الإيرادات — ربحية النشاط الأساسي قبل البنود الأخرى.", "desc_en": "Operating profit as a % of revenue." },
+    "net_margin":              { "ar": "هامش صافي الربح", "en": "Net Margin", "unit": "%", "desc_ar": "نسبة صافي الربح إلى الإيرادات — كم يتبقّى من كل دينار مبيعات كربح صافٍ بعد كل المصروفات.", "desc_en": "Net profit as a % of revenue." },
+    "revenue_growth_yoy":      { "ar": "نمو الإيرادات السنوي", "en": "Revenue Growth YoY", "unit": "%", "desc_ar": "نسبة تغيّر الإيرادات مقارنةً بالسنة المالية السابقة.", "desc_en": "Revenue change vs the prior fiscal year." },
+    "net_income_growth_yoy":   { "ar": "نمو صافي الربح السنوي", "en": "Net Profit Growth YoY", "unit": "%", "desc_ar": "نسبة تغيّر صافي الربح مقارنةً بالسنة المالية السابقة.", "desc_en": "Net profit change vs the prior fiscal year." },
+    "current_ratio":           { "ar": "نسبة التداول", "en": "Current Ratio", "unit": "x", "desc_ar": "الموجودات المتداولة مقسومة على المطلوبات قصيرة الأجل — قدرة الشركة على سداد التزاماتها القصيرة. أعلى من 1 أفضل.", "desc_en": "Current assets ÷ short-term liabilities." },
+    "debt_to_equity":          { "ar": "نسبة الدين إلى حقوق الملكية", "en": "Debt / Equity", "unit": "x", "desc_ar": "إجمالي المطلوبات مقسوماً على حقوق الملكية — مدى اعتماد الشركة على الديون مقابل أموال المالكين.", "desc_en": "Total liabilities ÷ equity." },
+    "debt_to_assets":          { "ar": "نسبة الدين إلى الموجودات", "en": "Debt / Assets", "unit": "x", "desc_ar": "إجمالي المطلوبات كنسبة من إجمالي الموجودات.", "desc_en": "Total liabilities as a fraction of assets." },
+    "capital_adequacy_ratio":  { "ar": "نسبة كفاية رأس المال", "en": "Capital Adequacy", "unit": "%", "desc_ar": "نسبة رأس مال المصرف إلى أصوله المرجّحة بالمخاطر — مؤشر أساسي على متانة المصرف. الحد الأدنى المطلوب 12%.", "desc_en": "Bank capital vs risk-weighted assets (min 12%)." },
+    "npl_ratio":               { "ar": "نسبة القروض المتعثرة", "en": "NPL Ratio", "unit": "%", "desc_ar": "نسبة القروض المتعثرة (غير العاملة) إلى إجمالي القروض — الأقل أفضل.", "desc_en": "Non-performing loans as a % of total loans." },
+    "loan_to_deposit":         { "ar": "نسبة القروض إلى الودائع", "en": "Loan / Deposit", "unit": "%", "desc_ar": "إجمالي التمويل مقسوماً على ودائع العملاء — مدى توظيف المصرف للودائع في الإقراض.", "desc_en": "Total financing ÷ customer deposits." },
+    "deposit_growth_yoy":      { "ar": "نمو الودائع السنوي", "en": "Deposit Growth YoY", "unit": "%", "desc_ar": "نسبة تغيّر ودائع العملاء مقارنةً بالسنة السابقة.", "desc_en": "Customer-deposit change vs the prior year." }
+  }
+}

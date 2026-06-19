@@ -7,6 +7,7 @@ import { useApp } from '@/context/AppContext'
 import { fetchLive, fetchCompanyMeta, mergeCompanies, fmtVol, fmtMcap } from '@/lib/market'
 import type { Company } from '@/types'
 import KChart from '@/components/KChart'
+import FinancialHighlights from '@/components/FinancialHighlights'
 
 // ─── Logo ────────────────────────────────────────────────────────────────────
 function CoLogo({ sym, logo, color }: { sym: string; logo?: string; color?: string }) {
@@ -111,8 +112,21 @@ export default function CompanyPage() {
         </div>
       </div>
 
+      {/* ── Tab nav ── */}
+      <div style={{ display: 'flex', gap: 6, marginBottom: 16 }}>
+        <span style={{ padding: '8px 16px', borderRadius: 10, fontSize: 13, fontWeight: 700, border: '1px solid var(--line)', background: 'var(--brand)', color: '#fff' }}>
+          {ar ? 'نظرة عامة' : 'Overview'}
+        </span>
+        <Link href={`/c/${co.sym}/financials`} style={{ padding: '8px 16px', borderRadius: 10, fontSize: 13, fontWeight: 700, border: '1px solid var(--line)', background: 'transparent', color: 'var(--ink3)', textDecoration: 'none' }}>
+          {ar ? 'البيانات المالية' : 'Financials'}
+        </Link>
+      </div>
+
       {/* ── Chart card ── */}
       <KChart sym={co.sym} />
+
+      {/* ── Inline financial highlights (renders only if published) ── */}
+      <FinancialHighlights sym={co.sym} />
     </div>
   )
 }
