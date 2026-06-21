@@ -211,12 +211,14 @@ def gemini_extract(file_uri, prompt):
     body = {"contents": [{"parts": [{"file_data": {"mime_type": "application/pdf", "file_uri": file_uri}},
                                     {"text": prompt}]}],
             "generationConfig": {"temperature": 0, "response_mime_type": "application/json"}}
-    for attempt in range(6):
+    MAX_RETRIES = 12
+    for attempt in range(MAX_RETRIES):
         r = requests.post(f"{GBASE}/v1beta/models/{MODEL}:generateContent?key={GKEY}",
                           headers={"Content-Type": "application/json"}, data=json.dumps(body), timeout=300)
-        if r.status_code == 429:
-            wait = 60 * (2 ** attempt)
-            print(f"    429 rate-limited, retrying in {wait}s (attempt {attempt+1}/6)…")
+        if r.status_code in (429, 503):
+            wait = min(30 * (2 ** attempt), 1800)  # cap at 30 min
+            label = '429 rate-limited' if r.status_code == 429 else '503 overloaded'
+            print(f"    {label}, retrying in {wait}s (attempt {attempt+1}/{MAX_RETRIES})…")
             time.sleep(wait)
             continue
         if r.status_code >= 300:

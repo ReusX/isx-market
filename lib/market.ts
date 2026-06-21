@@ -28,7 +28,7 @@ export async function fetchLive(): Promise<LiveData> {
   const dates = prev ? [latest, prev] : [latest]
   const { data: rows } = await sb
     .from('daily_prices')
-    .select('ticker,date,open,high,low,close,volume,trades')
+    .select('ticker,date,open,high,low,close,volume,value,trades')
     .in('date', dates)
 
   const prevClose = new Map<string, number>()
@@ -53,7 +53,7 @@ export async function fetchLive(): Promise<LiveData> {
       low:   (r.low   as number) ?? close,
       change,
       pct,
-      vol:   (r.volume as number) ?? 0,
+      vol:   (r.value  as number) ?? 0,
       deals: (r.trades as number) ?? 0,
     })
   }
@@ -73,9 +73,14 @@ export function mergeCompanies(meta: CompanyMeta[], stocks: LiveStock[]): Compan
   const priceMap = new Map(stocks.map(s => [s.code, s]))
   return meta.map(m => {
     const live = priceMap.get(m.sym)
+    const close = live?.close ?? 0
+    const mcap = (close > 0 && m.shares)
+      ? (close * m.shares) / 1_000_000
+      : m.mcap
     return {
       ...m,
-      close:  live?.close  ?? 0,
+      mcap,
+      close,
       open:   live?.open   ?? 0,
       high:   live?.high   ?? 0,
       low:    live?.low    ?? 0,

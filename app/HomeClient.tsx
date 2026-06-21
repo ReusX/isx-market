@@ -13,6 +13,10 @@ import type { Company } from '@/types'
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 function fmtPrice(v: number) { return v.toFixed(3) }
+function fmtPE(v: number | undefined) {
+  if (v == null || !isFinite(v)) return '—'
+  return v >= 100 ? Math.round(v).toString() : v.toFixed(1)
+}
 
 // ── ISX60 compact chart ───────────────────────────────────────────────────────
 function ISX60Chart() {
@@ -163,7 +167,7 @@ function ChangeBadge({ val }: { val: number }) {
 }
 
 // ── Sortable column header ────────────────────────────────────────────────────
-type SortKey = 'close' | 'pct' | 'mcap' | 'vol'
+type SortKey = 'close' | 'pct' | 'mcap' | 'vol' | 'pe'
 
 function SortTh({ label, col, sort, dir, onSort, className }: {
   label: string; col: SortKey; sort: SortKey | null; dir: 'asc' | 'desc';
@@ -172,15 +176,15 @@ function SortTh({ label, col, sort, dir, onSort, className }: {
   const active = sort === col
   return (
     <th className={className} onClick={() => onSort(col)} style={{
-      padding: '0 14px', height: 36, textAlign: 'end',
-      fontSize: 11, fontWeight: 600,
-      color: active ? 'var(--ink)' : 'var(--ink4)',
+      padding: '0 14px', height: 38, textAlign: 'end',
+      fontSize: 11.5, fontWeight: 700, letterSpacing: '0.01em',
+      color: active ? 'var(--brand)' : 'var(--ink3)',
       cursor: 'pointer', userSelect: 'none', whiteSpace: 'nowrap',
       background: 'var(--surf2)', borderBottom: '1px solid var(--line)',
       position: 'sticky', top: 0, zIndex: 1, transition: 'color 0.15s',
     }}>
+      {active && <span style={{ marginInlineEnd: 3, fontSize: 9 }}>{dir === 'asc' ? '▲' : '▼'}</span>}
       {label}
-      {active && <span style={{ marginInlineStart: 3, fontSize: 9 }}>{dir === 'asc' ? '▲' : '▼'}</span>}
     </th>
   )
 }
@@ -217,11 +221,40 @@ export default function HomeClient() {
       if (data?.[0]) setBreadth(data[0] as any)
     })()
   }, [])
+  // pull latest published annual net income per ticker (for trailing P/E)
+  const [netInc, setNetInc] = useState<Record<string, number>>({})
+  useEffect(() => {
+    ;(async () => {
+      const { createClient } = await import('@/lib/supabase/client')
+      const { data } = await createClient()
+        .from('financial_facts_public')
+        .select('ticker,fiscal_year,value_iqd')
+        .eq('line_key', 'net_income')
+        .eq('period', 'ANNUAL')
+        .order('fiscal_year', { ascending: false })
+      const m: Record<string, number> = {}
+      for (const r of (data ?? []) as any[]) {
+        // rows arrive newest-first → keep the first (latest) per ticker
+        if (!(r.ticker in m) && r.value_iqd != null) m[r.ticker] = r.value_iqd as number
+      }
+      setNetInc(m)
+    })()
+  }, [])
 
   const handleSort = (col: SortKey) => {
     if (sortCol === col) setSortDir(d => d === 'asc' ? 'desc' : 'asc')
     else { setSortCol(col); setSortDir('desc') }
   }
+
+  // trailing P/E per ticker = market cap (millions IQD) ÷ latest annual net income (base IQD)
+  const peMap = useMemo(() => {
+    const m: Record<string, number> = {}
+    for (const c of companies) {
+      const ni = netInc[c.sym]
+      if (ni && ni > 0 && c.mcap && c.mcap > 0) m[c.sym] = (c.mcap * 1_000_000) / ni
+    }
+    return m
+  }, [companies, netInc])
 
   const rows = useMemo(() => {
     let list = companies.filter(c => c.close > 0)
@@ -236,13 +269,17 @@ export default function HomeClient() {
     }
     if (sortCol) {
       list = [...list].sort((a, b) => {
-        const av = ((a as any)[sortCol] ?? 0) as number
-        const bv = ((b as any)[sortCol] ?? 0) as number
+        const get = (c: Company) => sortCol === 'pe' ? (peMap[c.sym] ?? null) : (((c as any)[sortCol]) ?? null)
+        const av = get(a), bv = get(b)
+        // rows with no value for this column always sort to the bottom
+        if (av == null && bv == null) return 0
+        if (av == null) return 1
+        if (bv == null) return -1
         return sortDir === 'asc' ? av - bv : bv - av
       })
     }
     return list
-  }, [companies, sector, query, sortCol, sortDir])
+  }, [companies, sector, query, sortCol, sortDir, peMap])
 
   const stats = useMemo(() => {
     const active = companies.filter(c => c.close > 0)
@@ -365,6 +402,7 @@ export default function HomeClient() {
                 <SortTh label="التغيير%"        col="pct"   sort={sortCol} dir={sortDir} onSort={handleSort} />
                 <SortTh label="القيمة السوقية"  col="mcap"  sort={sortCol} dir={sortDir} onSort={handleSort} className="mobcol-hide" />
                 <SortTh label="الحجم"           col="vol"   sort={sortCol} dir={sortDir} onSort={handleSort} className="mobcol-hide" />
+                <SortTh label="مكرر الربحية"     col="pe"    sort={sortCol} dir={sortDir} onSort={handleSort} className="mobcol-hide" />
                 {/* Sector */}
                 <th className="mobcol-hide" style={{
                   padding: '0 14px', height: 36, textAlign: 'start',
@@ -427,7 +465,7 @@ export default function HomeClient() {
 
                     <td style={{
                       padding: '0 14px', textAlign: 'end',
-                      fontFamily: 'var(--font-mono)', fontWeight: 600, color: 'var(--ink)',
+                      fontFamily: 'var(--font-mono)', fontSize: 13.5, fontWeight: 700, color: 'var(--ink)',
                     }}>
                       {fmtPrice(co.close)}
                     </td>
@@ -438,16 +476,24 @@ export default function HomeClient() {
 
                     <td className="mobcol-hide" style={{
                       padding: '0 14px', textAlign: 'end',
-                      fontFamily: 'var(--font-mono)', fontSize: 12, color: 'var(--ink3)',
+                      fontFamily: 'var(--font-mono)', fontSize: 13, fontWeight: 700, color: 'var(--ink)',
                     }}>
                       {fmtMcap(co.mcap)}
                     </td>
 
                     <td className="mobcol-hide" style={{
                       padding: '0 14px', textAlign: 'end',
-                      fontFamily: 'var(--font-mono)', fontSize: 12, color: 'var(--ink3)',
+                      fontFamily: 'var(--font-mono)', fontSize: 13, fontWeight: 700, color: 'var(--ink2)',
                     }}>
                       {fmtVol(co.vol)}
+                    </td>
+
+                    <td className="mobcol-hide" style={{
+                      padding: '0 14px', textAlign: 'end',
+                      fontFamily: 'var(--font-mono)', fontSize: 13, fontWeight: 700,
+                      color: peMap[co.sym] != null ? 'var(--ink)' : 'var(--ink5)',
+                    }}>
+                      {fmtPE(peMap[co.sym])}
                     </td>
 
                     <td className="mobcol-hide" style={{ padding: '0 14px' }}>

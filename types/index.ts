@@ -3,13 +3,14 @@
 export type Sector = 'BANK' | 'IND' | 'SVC' | 'HTL' | 'AGR' | 'INS' | 'INV' | 'TEL'
 
 export interface CompanyMeta {
-  sym:   string
-  ar:    string
-  en:    string
-  logo:  string
-  sec:   Sector | string
-  color: string
-  mcap:  number  // millions IQD (static baseline)
+  sym:    string
+  ar:     string
+  en:     string
+  logo:   string
+  sec:    Sector | string
+  color:  string
+  mcap:   number  // millions IQD (static fallback when no live price)
+  shares?: number // paid-in capital in IQD = share count (par = 1 IQD)
 }
 
 export interface LiveStock {

@@ -40,6 +40,33 @@ function periodCmp(a: { y: number; p: string }, b: { y: number; p: string }): nu
   return (PERIOD_ORDER[b.p] ?? 9) - (PERIOD_ORDER[a.p] ?? 9)
 }
 
+// On ISX the Q4 report is year-to-date cumulative, i.e. effectively the full year.
+// When a year's audited ANNUAL is thin (e.g. only net income from a summary source)
+// but we hold a detailed Q4, fill the missing ANNUAL line items from that Q4 so the
+// annual comparison isn't mostly blank. Audited ANNUAL values always take precedence.
+function fillThinAnnual(facts: Fact[]): Fact[] {
+  const incomeCount = (y: number, p: string) =>
+    facts.filter(f => f.fiscal_year === y && f.period === p && f.statement === 'income').length
+  const has = new Set(facts.filter(f => f.period === 'ANNUAL')
+    .map(f => `${f.statement}:${f.line_key}:${f.fiscal_year}:ANNUAL`))
+  const years = Array.from(new Set(facts.filter(f => f.period === 'ANNUAL').map(f => f.fiscal_year)))
+  const extra: Fact[] = []
+  for (const y of years) {
+    // Fill annual gaps from Q4 whenever the Q4 (year-to-date) report carries more
+    // income-statement detail than the audited annual we hold. Audited annual values
+    // always win — only line items missing from the annual are pulled from Q4.
+    if (incomeCount(y, 'Q4') <= incomeCount(y, 'ANNUAL')) continue
+    for (const f of facts) {
+      if (f.fiscal_year !== y || f.period !== 'Q4') continue
+      const key = `${f.statement}:${f.line_key}:${y}:ANNUAL`
+      if (has.has(key)) continue
+      has.add(key)
+      extra.push({ ...f, period: 'ANNUAL' })
+    }
+  }
+  return extra.length ? [...facts, ...extra] : facts
+}
+
 const GROUPS: { ar: string; en: string; keys: string[] }[] = [
   { ar: 'التقييم', en: 'Valuation', keys: ['pe', 'pb', 'ps', 'dividend_yield', 'eps', 'bvps'] },
   { ar: 'الربحية', en: 'Profitability', keys: ['roe', 'roa', 'net_margin', 'operating_margin'] },
@@ -90,7 +117,7 @@ export default function Financials({ sym }: { sym: string }) {
       sb.from('financial_ratios_public').select('fiscal_year,ratio_key,value').eq('ticker', sym),
       sb.from('financial_reports_public').select('fiscal_year,template').eq('ticker', sym).order('fiscal_year', { ascending: false }).limit(1),
     ]).then(([f, r, rep]) => {
-      setFacts((f.data as Fact[]) || [])
+      setFacts(fillThinAnnual((f.data as Fact[]) || []))
       setRatios((r.data as Ratio[]) || [])
       const t = (rep.data as Report[])?.[0]?.template
       if (t) setTpl(t)
