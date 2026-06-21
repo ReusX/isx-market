@@ -100,7 +100,7 @@ function ISX60Chart() {
         justifyContent: 'center', gap: 2, flexShrink: 0,
         borderInlineEnd: '1px solid var(--line)',
       }}>
-        <div style={{ fontSize: 9, fontWeight: 700, color: 'var(--ink4)', letterSpacing: '0.06em', textTransform: 'uppercase' }}>
+        <div style={{ fontSize: 9, fontWeight: 700, color: 'var(--ink3)', letterSpacing: '0.06em', textTransform: 'uppercase' }}>
           مؤشر ISX60
         </div>
         <div style={{ fontFamily: 'var(--font-mono)', fontSize: 20, fontWeight: 800, color: 'var(--ink)', lineHeight: 1 }}>
@@ -306,14 +306,14 @@ export default function HomeClient() {
           {[
             { label: 'رابح',   count: breadth ? breadth.advancers : stats.gainers, color: 'var(--up)', bg: 'var(--up-s)', border: 'rgba(22,163,74,0.2)' },
             { label: 'خاسر',   count: breadth ? breadth.decliners : stats.losers,  color: 'var(--dn)', bg: 'var(--dn-s)', border: 'rgba(220,38,38,0.2)' },
-            { label: 'مستقر',  count: breadth ? breadth.unchanged : stats.flat,    color: 'var(--ink4)', bg: 'var(--surf2)', border: 'var(--line)' },
+            { label: 'مستقر',  count: breadth ? breadth.unchanged : stats.flat,    color: 'var(--ink3)', bg: 'var(--surf2)', border: 'var(--line)' },
           ].map(s => (
             <div key={s.label} style={{
               display: 'flex', alignItems: 'center', gap: 5,
               padding: '4px 10px', background: s.bg,
               border: `1px solid ${s.border}`, borderRadius: 7, flexShrink: 0,
             }}>
-              <span style={{ fontSize: 11, color: s.color, fontWeight: 600 }}>{s.label}</span>
+              <span style={{ fontSize: 11, color: s.color, fontWeight: 700 }}>{s.label}</span>
               <span style={{ fontSize: 14, fontWeight: 800, color: s.color, fontFamily: 'var(--font-mono)' }}>
                 {s.count}
               </span>
@@ -341,10 +341,10 @@ export default function HomeClient() {
         }}>
           {SECTORS.map(s => (
             <button key={s.id} onClick={() => setSector(s.id)} style={{
-              padding: '5px 12px', borderRadius: 8, fontSize: 12.5, fontWeight: 600,
+              padding: '5px 12px', borderRadius: 8, fontSize: 12.5, fontWeight: 700,
               border: sector === s.id ? '1px solid var(--brand)' : '1px solid var(--line)',
               background: sector === s.id ? 'var(--brand-soft)' : 'transparent',
-              color: sector === s.id ? 'var(--brand)' : 'var(--ink3)',
+              color: sector === s.id ? 'var(--brand)' : 'var(--ink2)',
               cursor: 'pointer', transition: 'all 0.12s', whiteSpace: 'nowrap', flexShrink: 0,
             }}>
               {s.ar}
@@ -364,7 +364,7 @@ export default function HomeClient() {
           onFocus={e => e.currentTarget.style.borderColor = 'var(--brand)'}
           onBlur={e => e.currentTarget.style.borderColor = 'var(--line)'}
         />
-        <span className="desktop-only" style={{ fontSize: 11, color: 'var(--ink4)', whiteSpace: 'nowrap' }}>
+        <span className="desktop-only" style={{ fontSize: 11, color: 'var(--ink3)', whiteSpace: 'nowrap' }}>
           {rows.length} شركة
         </span>
       </div>
@@ -374,7 +374,7 @@ export default function HomeClient() {
         {loading ? (
           <div style={{
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            height: 200, color: 'var(--ink4)', fontSize: 13,
+            height: 200, color: 'var(--ink3)', fontSize: 13,
           }}>
             جارٍ تحميل البيانات...
           </div>
@@ -391,7 +391,7 @@ export default function HomeClient() {
                 {/* Company */}
                 <th className="home-col-co" style={{
                   padding: '0 14px', height: 36, textAlign: 'start',
-                  fontSize: 11, fontWeight: 600, color: 'var(--ink4)',
+                  fontSize: 11, fontWeight: 700, color: 'var(--ink3)',
                   background: 'var(--surf2)', borderBottom: '1px solid var(--line)',
                   position: 'sticky', top: 0, zIndex: 1, whiteSpace: 'nowrap',
                   minWidth: 180,
@@ -406,7 +406,7 @@ export default function HomeClient() {
                 {/* Sector */}
                 <th className="mobcol-hide" style={{
                   padding: '0 14px', height: 36, textAlign: 'start',
-                  fontSize: 11, fontWeight: 600, color: 'var(--ink4)',
+                  fontSize: 11, fontWeight: 700, color: 'var(--ink3)',
                   background: 'var(--surf2)', borderBottom: '1px solid var(--line)',
                   position: 'sticky', top: 0, zIndex: 1, whiteSpace: 'nowrap',
                   minWidth: 80,
@@ -435,7 +435,7 @@ export default function HomeClient() {
                         onClick={e => { e.stopPropagation(); toggleWatchlist(co.sym) }}
                         style={{
                           background: 'none', border: 'none', padding: 0, cursor: 'pointer',
-                          fontSize: 12, color: inWl ? 'var(--gold)' : 'var(--ink5)', lineHeight: 1,
+                          fontSize: 12, color: inWl ? 'var(--gold)' : 'var(--ink4)', lineHeight: 1,
                         }}
                       >
                         {inWl ? '★' : '☆'}
@@ -454,7 +454,7 @@ export default function HomeClient() {
                             {co.sym}
                           </div>
                           <div style={{
-                            fontSize: 10, color: 'var(--ink4)',
+                            fontSize: 11, color: 'var(--ink3)',
                             overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
                           }}>
                             {co.ar || co.en || ''}
@@ -491,16 +491,16 @@ export default function HomeClient() {
                     <td className="mobcol-hide" style={{
                       padding: '0 14px', textAlign: 'end',
                       fontFamily: 'var(--font-mono)', fontSize: 13, fontWeight: 700,
-                      color: peMap[co.sym] != null ? 'var(--ink)' : 'var(--ink5)',
+                      color: peMap[co.sym] != null ? 'var(--ink)' : 'var(--ink4)',
                     }}>
                       {fmtPE(peMap[co.sym])}
                     </td>
 
                     <td className="mobcol-hide" style={{ padding: '0 14px' }}>
                       <span style={{
-                        fontSize: 10, fontWeight: 600, padding: '2px 6px',
+                        fontSize: 10, fontWeight: 700, padding: '2px 6px',
                         background: 'var(--surf3)', borderRadius: 4,
-                        color: 'var(--ink3)', whiteSpace: 'nowrap',
+                        color: 'var(--ink2)', whiteSpace: 'nowrap',
                       }}>
                         {SECTORS.find(s => s.id === co.sec)?.ar || co.sec || '—'}
                       </span>
