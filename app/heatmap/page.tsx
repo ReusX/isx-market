@@ -151,14 +151,14 @@ export default function HeatmapPage() {
 
   // sector header boxes (for labels)
   const secHeaders = useMemo(() => {
-    if (!width || !rows.length) return [] as { sec: string; x: number; y: number; w: number; h: number; total: number }[]
+    if (!width || !rows.length) return [] as { sec: string; x: number; y: number; w: number; h: number }[]
     const bySector = new Map<string, Row[]>()
     for (const r of rows) (bySector.get(r.sector) ?? bySector.set(r.sector, []).get(r.sector)!).push(r)
     const sectors = Array.from(bySector.entries()).map(([sec, list]) => ({
       item: { sec, list }, value: list.reduce((s, r) => s + r.mcap, 0),
     }))
     return squarify(sectors, 1, 1, width - 2, H - 2).map(b => ({
-      sec: b.item.sec, x: b.x, y: b.y, w: b.w, h: b.h, total: b.value,
+      sec: b.item.sec, x: b.x, y: b.y, w: b.w, h: b.h,
     }))
   }, [rows, width, H])
 
