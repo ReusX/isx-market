@@ -79,6 +79,8 @@ const NAV: {
   {
     id: 'myisx', label: 'منصتي', collapsible: true,
     items: [
+      { href: '/portfolio',  icon: 'scatter',ar: 'محفظتي',          badge: 'جديد'   },
+      { href: '/alerts',     icon: 'bell',   ar: 'تنبيهات الأسعار', badge: 'جديد'   },
       { href: '/watchlist',  icon: 'star',   ar: 'قوائم المتابعة', badge: 'متابعة' },
       { href: '/charts',     icon: 'chart',  ar: 'رسوماتي',         badge: 'رسم'    },
       { href: '/statistics', icon: 'stats',  ar: 'الإحصائيات',      badge: 'جديد'   },
