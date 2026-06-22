@@ -93,8 +93,8 @@ async function discoverDollarArticle(): Promise<string | null> {
     for (const m of matches) {
       const url = m[1], id = +m[2]
       const dec = decodeURIComponent(url)
-      // dollar price articles: title mentions الدولار + a market verb
-      if (/دولار/.test(dec) && /(إغلاق|التداولات|السوق|الأسواق|ارتفاع|تراجع|يستقر|قفزة|أسعار)/.test(dec)) {
+      // dollar price articles: title mentions الدولار + a market verb, but NOT gold/oil/other-commodity articles
+      if (/دولار/.test(dec) && /(إغلاق|التداولات|السوق|الأسواق|ارتفاع|تراجع|يستقر|قفزة|أسعار|الصرف)/.test(dec) && !/ذهب|نفط|بترول/.test(dec)) {
         if (!best || id > best.id) best = { id, url }
       }
     }
