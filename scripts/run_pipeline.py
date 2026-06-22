@@ -58,9 +58,11 @@ DAILY_PARSED_DIR = DATA / "daily_parsed"
 
 def run_daily(args, processed: dict[str, dict]) -> None:
     """Daily mode: scrape the daily list, download session workbooks named
-    YYYY-MM-DD.{xls,xlsx}, parse, and load into daily_prices."""
+    YYYY-MM-DD.{xls,xlsx}, parse, and load into daily_prices +
+    foreign_flow_company_daily."""
     import requests
     from parse_daily_xlsx import parse_daily
+    from parse_foreign_company import parse_foreign_company
 
     DAILY_DIR.mkdir(parents=True, exist_ok=True)
     DAILY_PARSED_DIR.mkdir(parents=True, exist_ok=True)
@@ -84,11 +86,26 @@ def run_daily(args, processed: dict[str, dict]) -> None:
 
     ok = skipped = failed = 0
     to_load: list[Path] = []
+    foreign_rows: list[dict] = []
+
     for wb in sorted(DAILY_DIR.glob("*.xls*")):
         key = f"daily:{wb.name}"
-        if processed.get(key, {}).get("status") == "ok":
+        already_done = processed.get(key, {}).get("status") == "ok"
+        if already_done:
             skipped += 1
+            # Still collect foreign rows for workbooks that were previously
+            # parsed but whose foreign data may not have been loaded yet.
+            fkey = f"daily_foreign:{wb.name}"
+            if not processed.get(fkey, {}).get("status") == "ok":
+                try:
+                    frows = parse_foreign_company(wb)
+                    foreign_rows.extend(frows)
+                    processed[fkey] = {"status": "ok", "rows": len(frows),
+                                       "parsed_at": time.strftime("%Y-%m-%d %H:%M:%S")}
+                except Exception as e:
+                    log_error(f"foreign:{wb.name}", e)
             continue
+
         out = DAILY_PARSED_DIR / f"{wb.stem}.json"
         try:
             result = parse_daily(wb)
@@ -99,7 +116,19 @@ def run_daily(args, processed: dict[str, dict]) -> None:
                               "parsed_at": time.strftime("%Y-%m-%d %H:%M:%S")}
             to_load.append(out)
             ok += 1
-            print(f"  parsed {wb.name}: rows={len(result['rows'])}")
+
+            # Parse foreign-investor sheet from the same workbook.
+            fkey = f"daily_foreign:{wb.name}"
+            try:
+                frows = parse_foreign_company(wb)
+                foreign_rows.extend(frows)
+                processed[fkey] = {"status": "ok", "rows": len(frows),
+                                   "parsed_at": time.strftime("%Y-%m-%d %H:%M:%S")}
+                print(f"  parsed {wb.name}: rows={len(result['rows'])} foreign={len(frows)}")
+            except Exception as e:
+                log_error(f"foreign:{wb.name}", e)
+                print(f"  parsed {wb.name}: rows={len(result['rows'])} foreign=ERROR({e})")
+
         except Exception as e:
             failed += 1
             processed[key] = {"status": "error", "error": str(e)}
@@ -108,13 +137,46 @@ def run_daily(args, processed: dict[str, dict]) -> None:
         finally:
             PROCESSED_FILE.write_text(json.dumps(processed, ensure_ascii=False, indent=1))
 
-    print(f"\ndaily parse summary: ok={ok} skipped={skipped} failed={failed}")
+    print(f"\ndaily parse summary: ok={ok} skipped={skipped} failed={failed} "
+          f"foreign_rows={len(foreign_rows)}")
+
     if to_load and not args.skip_load:
         if not run_step("load", ["load_to_supabase.py", *[str(p) for p in to_load]]):
             sys.exit(1)
     elif not to_load:
         print("nothing new to load")
+
+    # Upsert foreign flow rows collected this run.
+    if foreign_rows and not args.skip_load:
+        _upsert_foreign(foreign_rows)
+
     print("\ndaily pipeline complete")
+
+
+def _upsert_foreign(rows: list[dict]) -> None:
+    """Upsert foreign_flow_company_daily rows to Supabase."""
+    import os
+    try:
+        from supabase import create_client
+    except ImportError:
+        print("  supabase-py not installed — skipping foreign upsert", file=sys.stderr)
+        return
+
+    url = os.environ.get("NEXT_PUBLIC_SUPABASE_URL")
+    key = os.environ.get("SUPABASE_SERVICE_ROLE_KEY")
+    if not url or not key:
+        print("  SUPABASE env vars missing — skipping foreign upsert", file=sys.stderr)
+        return
+
+    client = create_client(url, key)
+    BATCH = 500
+    written = 0
+    for i in range(0, len(rows), BATCH):
+        client.table("foreign_flow_company_daily").upsert(
+            rows[i:i + BATCH], on_conflict="date,ticker,side"
+        ).execute()
+        written += len(rows[i:i + BATCH])
+    print(f"  foreign_flow_company_daily: upserted {written} rows")
 
 
 def main() -> None:
