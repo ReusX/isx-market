@@ -272,11 +272,14 @@ export async function GET(req: NextRequest) {
       }
     }
 
-    // Refresh the derived materialized views (breadth_daily, company_metrics).
-    // Additive + best-effort: isolated so a failure here can't fail the
-    // price/foreign/index writes above. Only runs when something new landed.
+    // Refresh the derived materialized views (breadth_daily, company_metrics)
+    // that /screener, /heatmap and /pulse read. Done on EVERY run, not just when
+    // this cron loaded a session: base rows can land via a manual/Python load or
+    // a partial earlier run, leaving the views stale with nothing here to trigger
+    // a refresh. An unconditional refresh is cheap and idempotent, and keeps the
+    // views in lock-step with daily_prices/daily_index no matter who wrote them.
     let metricsRefreshed = false
-    if (loaded.length || force) {
+    {
       const { error: eM } = await supabase.rpc('refresh_isx_metrics')
       if (eM) failed.push({ date: 'metrics', error: `refresh_isx_metrics: ${eM.message}` })
       else metricsRefreshed = true
