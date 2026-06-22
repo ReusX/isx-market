@@ -138,10 +138,33 @@ async function tryFetch(url: string, parse: (raw: string, url: string) => FxData
   return null
 }
 
+const CACHE_KEY = 'fx'
+
+async function readFxCache(): Promise<FxData | null> {
+  try {
+    const { createClient } = await import('@/lib/supabase/server')
+    const sb = await createClient()
+    const { data } = await sb.from('rates_cache').select('data').eq('key', CACHE_KEY).single()
+    return (data?.data as FxData) ?? null
+  } catch { return null }
+}
+
+async function writeFxCache(fx: FxData): Promise<void> {
+  try {
+    const { createClient } = await import('@/lib/supabase/server')
+    const sb = await createClient()
+    await sb.from('rates_cache').upsert({ key: CACHE_KEY, data: fx, updated_at: new Date().toISOString() })
+  } catch { /* best-effort */ }
+}
+
 export async function fetchFx(): Promise<FxData | null> {
   const article = await discoverDollarArticle()
-  if (!article) return null
-  const direct = await tryFetch(encodeURI(article), parseAlsumaria)
-  if (direct) return direct
-  return tryFetch(jina(article), (raw) => parseAlsumaria(raw, article))
+  if (article) {
+    const direct = await tryFetch(encodeURI(article), parseAlsumaria)
+    if (direct) { await writeFxCache(direct); return direct }
+    const viaProxy = await tryFetch(jina(article), (raw) => parseAlsumaria(raw, article))
+    if (viaProxy) { await writeFxCache(viaProxy); return viaProxy }
+  }
+  // Alsumaria unavailable — serve last known rate from cache
+  return readFxCache()
 }
