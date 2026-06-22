@@ -8,21 +8,23 @@ import { useApp } from '@/context/AppContext'
 import SiteFooter from '@/components/layout/SiteFooter'
 
 // ── IraqSM terminal dark palette ──────────────────────────────────────────────
+// Maps to the CSS theme tokens in globals.css so the shell flips with the
+// light/dark theme instead of being pinned to dark hex values.
 const K = {
-  bg:        '#1E252F',
-  sidebar:   '#191E24',
-  surf2:     '#222933',
-  surf3:     '#363D47',
-  hover:     '#222933',
-  activeBg:  'rgba(48,138,224,0.14)',
-  border:    '#2E353F',
-  brand:     '#308AE0',
-  brandSoft: 'rgba(48,138,224,0.16)',
-  ink:       '#E0E4ED',
-  ink2:      '#A0A8B4',
-  ink3:      '#8A929E',
-  ink4:      '#6A727E',
-  badge:     '#266EC3',
+  bg:        'var(--bg)',
+  sidebar:   'var(--sidebar)',
+  surf2:     'var(--surf2)',
+  surf3:     'var(--surf3)',
+  hover:     'var(--surf2)',
+  activeBg:  'var(--brand-soft)',
+  border:    'var(--line)',
+  brand:     'var(--brand)',
+  brandSoft: 'var(--brand-soft)',
+  ink:       'var(--ink)',
+  ink2:      'var(--ink2)',
+  ink3:      'var(--ink3)',
+  ink4:      'var(--ink4)',
+  badge:     'var(--badge)',
   badgeTxt:  '#FFFFFF',
 }
 
@@ -105,7 +107,7 @@ const NAV: {
 // ── AppShell ──────────────────────────────────────────────────────────────────
 export default function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
-  const { user, profile, openAuth, signOut } = useApp()
+  const { user, profile, openAuth, signOut, theme, toggleTheme } = useApp()
   const [collapsedPref, setCollapsed] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
   const menuRef = useRef<HTMLDivElement>(null)
@@ -453,6 +455,30 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
           </div>
 
           <div style={{ flex: 1 }} />
+
+          {/* Theme toggle (dark ⇄ light) */}
+          <button
+            onClick={toggleTheme}
+            aria-label={theme === 'dark' ? 'الوضع الفاتح' : 'الوضع الداكن'}
+            title={theme === 'dark' ? 'الوضع الفاتح' : 'الوضع الداكن'}
+            style={{
+              background: 'none', border: 'none', color: K.ink4,
+              cursor: 'pointer', padding: 4, display: 'flex',
+              transition: 'color 0.12s',
+            }}
+            onMouseEnter={e => (e.currentTarget.style.color = K.ink)}
+            onMouseLeave={e => (e.currentTarget.style.color = K.ink4)}
+          >
+            {theme === 'dark' ? (
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <circle cx="12" cy="12" r="4" /><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" />
+              </svg>
+            ) : (
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z" />
+              </svg>
+            )}
+          </button>
 
           <button className="desktop-only" style={{
             background: 'none', border: 'none', color: K.ink4,

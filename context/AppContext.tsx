@@ -5,13 +5,17 @@ import type { UserProfile, Lang } from '@/types'
 import { createClient } from '@/lib/supabase/client'
 import AuthModal from '@/components/auth/AuthModal'
 
+type Theme = 'dark' | 'light'
+
 interface AppState {
   lang:        Lang
+  theme:       Theme
   user:        any | null
   profile:     UserProfile | null
   watchlist:   string[]
   authLoading: boolean
   setLang:     (l: Lang) => void
+  toggleTheme: () => void
   toggleWatchlist: (sym: string) => void
   refreshProfile:  () => Promise<void>
   signOut:     () => Promise<void>
@@ -25,16 +29,20 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const supabase = useMemo(() => createClient(), [])
 
   const [lang, setLangState]   = useState<Lang>('ar')
+  const [theme, setThemeState] = useState<Theme>('dark')
   const [user, setUser]         = useState<any | null>(null)
   const [profile, setProfile]   = useState<UserProfile | null>(null)
   const [watchlist, setWatchlist] = useState<string[]>([])
   const [authLoading, setAuthLoading] = useState(true)
   const [authModalTab, setAuthModalTab] = useState<'signin' | 'signup' | null>(null)
 
-  // Init lang + watchlist from localStorage
+  // Init lang + theme + watchlist from localStorage
   useEffect(() => {
     const saved = localStorage.getItem('lang') as Lang | null
     if (saved) setLangState(saved)
+    const savedTheme = (localStorage.getItem('theme') as Theme | null) ?? 'dark'
+    setThemeState(savedTheme)
+    document.documentElement.setAttribute('data-theme', savedTheme)
     try {
       const wl = JSON.parse(localStorage.getItem('isx_watchlist') ?? '[]')
       setWatchlist(wl)
@@ -99,6 +107,15 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     document.documentElement.setAttribute('dir', l === 'ar' ? 'rtl' : 'ltr')
   }
 
+  const toggleTheme = () => {
+    setThemeState(prev => {
+      const next: Theme = prev === 'dark' ? 'light' : 'dark'
+      localStorage.setItem('theme', next)
+      document.documentElement.setAttribute('data-theme', next)
+      return next
+    })
+  }
+
   const toggleWatchlist = (sym: string) => {
     setWatchlist(prev => {
       const updated = prev.includes(sym) ? prev.filter(s => s !== sym) : [...prev, sym]
@@ -118,8 +135,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   return (
     <AppContext.Provider value={{
-      lang, user, profile, watchlist, authLoading,
-      setLang, toggleWatchlist, refreshProfile, signOut, openAuth,
+      lang, theme, user, profile, watchlist, authLoading,
+      setLang, toggleTheme, toggleWatchlist, refreshProfile, signOut, openAuth,
     }}>
       {children}
       {authModalTab && !user && (

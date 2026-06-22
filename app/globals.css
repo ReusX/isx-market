@@ -50,10 +50,11 @@
   --purple:    #7C5CE0;
 
   /* Surfaces — IraqSM terminal dark */
-  --bg:    #1E252F;
-  --surf:  #282F39;
-  --surf2: #222933;
-  --surf3: #363D47;
+  --bg:      #1E252F;
+  --surf:    #282F39;
+  --surf2:   #222933;
+  --surf3:   #363D47;
+  --sidebar: #191E24;
 
   /* Ink */
   --ink:  #EAEEF6;
@@ -66,8 +67,50 @@
   --line:  #2E353F;
   --line2: #363D47;
 
+  /* Badge */
+  --badge: #266EC3;
+
   /* Nav */
   --nav-h: 48px;
+
+  color-scheme: dark;
+}
+
+/* ── Light theme — identical token names, light values. Toggled via
+   <html data-theme="light">; default (no attribute) stays dark above. ── */
+html[data-theme="light"] {
+  --brand:      #1F7FD6;
+  --brand-deep: #1565B0;
+  --brand-soft: rgba(31,127,214,0.12);
+  --link:       #1366C6;
+  --brand-mute: #5B8FC4;
+
+  --up:   #15924C;
+  --dn:   #D33B40;
+  --up-s: rgba(21,146,76,0.12);
+  --dn-s: rgba(211,59,64,0.10);
+
+  --gold:      #B07D17;
+  --gold-deep: #8A610F;
+
+  --bg:      #F4F6F9;
+  --surf:    #FFFFFF;
+  --surf2:   #EEF1F5;
+  --surf3:   #E2E6EC;
+  --sidebar: #FFFFFF;
+
+  --ink:  #131A24;
+  --ink2: #3A4453;
+  --ink3: #5A6573;
+  --ink4: #7C8593;
+  --ink5: #9AA3B1;
+
+  --line:  #E4E8ED;
+  --line2: #D5DAE2;
+
+  --badge: #1F7FD6;
+
+  color-scheme: light;
 }
 
 * { box-sizing: border-box; }
