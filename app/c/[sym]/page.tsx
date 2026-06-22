@@ -34,12 +34,22 @@ export default function CompanyPage() {
 
   const [co, setCo]           = useState<Company | null>(null)
   const [loading, setLoading] = useState(true)
+  const [pe, setPe]           = useState<number | null>(null)
 
   useEffect(() => {
     Promise.all([fetchLive(), fetchCompanyMeta()])
       .then(([live, meta]) => {
         const all = mergeCompanies(meta, live.stocks)
-        setCo(all.find(c => c.sym === sym) ?? null)
+        const found = all.find(c => c.sym === sym) ?? null
+        setCo(found)
+        if (found?.close) {
+          ;(async () => {
+            const { createClient } = await import('@/lib/supabase/client')
+            const { fetchTtmPe } = await import('@/lib/fundamentals')
+            const results = await fetchTtmPe(createClient(), { [sym]: found.close })
+            if (results[sym]) setPe(results[sym].pe)
+          })()
+        }
       })
       .finally(() => setLoading(false))
   }, [sym])
@@ -109,6 +119,10 @@ export default function CompanyPage() {
           {stat(ar ? 'الحجم' : 'Vol', fmtVol(co.vol))}
           {stat(ar ? 'القيمة السوقية' : 'Mkt Cap', fmtMcap(co.mcap))}
           {stat(ar ? 'الصفقات' : 'Deals', (co.deals ?? 0).toLocaleString('en'))}
+          {pe != null && stat(
+            ar ? 'مكرر الربحية TTM' : 'P/E (TTM)',
+            pe >= 100 ? Math.round(pe) + '×' : pe.toFixed(1) + '×',
+          )}
         </div>
       </div>
 

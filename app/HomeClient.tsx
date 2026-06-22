@@ -221,40 +221,28 @@ export default function HomeClient() {
       if (data?.[0]) setBreadth(data[0] as any)
     })()
   }, [])
-  // pull latest published annual net income per ticker (for trailing P/E)
-  const [netInc, setNetInc] = useState<Record<string, number>>({})
+  // TTM P/E: fetches net_income + paid_capital for Q1_2026, Annual_2025, Q4_2025, Q1_2025
+  const [peMap, setPeMap] = useState<Record<string, number>>({})
   useEffect(() => {
     ;(async () => {
       const { createClient } = await import('@/lib/supabase/client')
-      const { data } = await createClient()
-        .from('financial_facts_public')
-        .select('ticker,fiscal_year,value_iqd')
-        .eq('line_key', 'net_income')
-        .eq('period', 'ANNUAL')
-        .order('fiscal_year', { ascending: false })
+      const { fetchTtmPe } = await import('@/lib/fundamentals')
+      const sb = createClient()
+      // price map from current companies state
+      const prices: Record<string, number> = {}
+      for (const c of companies) if (c.close > 0) prices[c.sym] = c.close
+      if (!Object.keys(prices).length) return
+      const results = await fetchTtmPe(sb, prices)
       const m: Record<string, number> = {}
-      for (const r of (data ?? []) as any[]) {
-        // rows arrive newest-first → keep the first (latest) per ticker
-        if (!(r.ticker in m) && r.value_iqd != null) m[r.ticker] = r.value_iqd as number
-      }
-      setNetInc(m)
+      for (const [sym, r] of Object.entries(results)) m[sym] = r.pe
+      setPeMap(m)
     })()
-  }, [])
+  }, [companies])
 
   const handleSort = (col: SortKey) => {
     if (sortCol === col) setSortDir(d => d === 'asc' ? 'desc' : 'asc')
     else { setSortCol(col); setSortDir('desc') }
   }
-
-  // trailing P/E per ticker = market cap (millions IQD) ÷ latest annual net income (base IQD)
-  const peMap = useMemo(() => {
-    const m: Record<string, number> = {}
-    for (const c of companies) {
-      const ni = netInc[c.sym]
-      if (ni && ni > 0 && c.mcap && c.mcap > 0) m[c.sym] = (c.mcap * 1_000_000) / ni
-    }
-    return m
-  }, [companies, netInc])
 
   const rows = useMemo(() => {
     let list = companies.filter(c => c.close > 0)

@@ -1,0 +1,7 @@
+scripts/
+android/
+ios/
+_archive/
+*.pdf
+*.xls
+*.xlsx
