@@ -130,19 +130,6 @@ function parseAlsumaria(raw: string, url: string): FxData | null {
   return { buy, sell, change: null, date, source: 'alsumaria.tv', sourceUrl: url, fetchedAt: new Date().toISOString() }
 }
 
-// ── Fallback source: egcurrency black-market page ───────────────────────────
-const EG_URL = 'https://egcurrency.com/en/currency/USD-to-IQD/blackMarket'
-
-function parseEgcurrency(raw: string): FxData | null {
-  const t = raw.replace(/<[^>]+>/g, ' ').replace(/\*\*/g, ' ').replace(/&nbsp;/g, ' ').replace(/\s+/g, ' ')
-  const date = t.match(/Black Market,\s*([A-Za-z]+,\s*[\d.]+\s+[\d:]+)/)?.[1] ?? null
-  const buy  = floatNum(t.match(/Black Market,\s*[A-Za-z]+,\s*[\d.]+\s+[\d:]+\s+([\d,]+(?:\.\d+)?)/)?.[1])
-  const sell = floatNum(t.match(/Sell Price:?\s*([\d,]+(?:\.\d+)?)/)?.[1])
-  const change = floatNum(t.match(/Sell Price:?\s*[\d,.]+\s*([\-+]?[\d,]+\.?\d*)\s*Compared/i)?.[1])
-  if (buy == null && sell == null) return null
-  return { buy, sell, change, date, source: 'egcurrency.com', sourceUrl: EG_URL, fetchedAt: new Date().toISOString() }
-}
-
 async function tryFetch(url: string, parse: (raw: string, url: string) => FxData | null): Promise<FxData | null> {
   try {
     const res = await fetch(url, { headers: UA, next: { revalidate: REVALIDATE } })
@@ -152,15 +139,9 @@ async function tryFetch(url: string, parse: (raw: string, url: string) => FxData
 }
 
 export async function fetchFx(): Promise<FxData | null> {
-  // 1) Alsumaria (primary): discover latest article, then read it (direct, then proxy)
   const article = await discoverDollarArticle()
-  if (article) {
-    const direct = await tryFetch(encodeURI(article), parseAlsumaria)
-    if (direct) return direct
-    const viaProxy = await tryFetch(jina(article), (raw) => parseAlsumaria(raw, article))
-    if (viaProxy) return viaProxy
-  }
-  // 2) egcurrency (fallback): direct, then proxy
-  return (await tryFetch(EG_URL, (raw) => parseEgcurrency(raw)))
-      ?? (await tryFetch(jina(EG_URL), (raw) => parseEgcurrency(raw)))
+  if (!article) return null
+  const direct = await tryFetch(encodeURI(article), parseAlsumaria)
+  if (direct) return direct
+  return tryFetch(jina(article), (raw) => parseAlsumaria(raw, article))
 }
