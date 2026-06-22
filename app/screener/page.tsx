@@ -8,13 +8,18 @@ import type { CompanyMeta } from '@/types'
 // ── types ────────────────────────────────────────────────────────────────────
 type Metric = {
   ticker: string; sector: string; name_en: string | null; name_ar: string | null
+  last_date: string | null
   last_close: number; prev_close: number | null
   close_1w: number | null; close_1m: number | null; close_3m: number | null
   close_yend: number | null; close_52w: number | null
   high_52w: number | null; low_52w: number | null
   avg_value_20d: number | null; days_since_trade: number | null; ff_net_30d: number | null
 }
-type Row = Metric & { name: string; logo?: string; color?: string; mcap?: number }
+type Row = Metric & { name: string; logo?: string; color?: string; mcap?: number; pe?: number | null }
+
+// A quote older than this (no trades) is treated as suspended/delisted and
+// hidden by default — its "price" and period % would be misleading otherwise.
+const STALE_DAYS = 60
 
 // ── period config: which "as-of" close drives the % column ──────────────────
 const PERIODS = [
@@ -38,6 +43,7 @@ const PRESETS = [
   { id: 'gainers', label: 'الرابحون' },
   { id: 'losers',  label: 'الخاسرون' },
   { id: 'liquid',  label: 'الأكثر سيولة' },
+  { id: 'cheap',   label: 'الأرخص (مكرر)' },
   { id: 'fbuy',    label: 'شراء أجنبي' },
   { id: 'fsell',   label: 'بيع أجنبي' },
   { id: 'nearhi',  label: 'قرب القمة' },
@@ -61,8 +67,7 @@ function Logo({ sym, logo, color }: { sym: string; logo?: string; color?: string
   return <div style={{ width: 26, height: 26, borderRadius: 6, flexShrink: 0, background: color || 'var(--brand)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 9, fontWeight: 800, color: '#fff' }}>{sym.slice(0, 3)}</div>
 }
 
-type SortKey = 'mcap' | 'pct' | 'price' | 'liq' | 'foreign' | 'pos52'
-const ar = (s: string) => s
+type SortKey = 'mcap' | 'pct' | 'price' | 'liq' | 'foreign' | 'pos52' | 'pe'
 
 export default function ScreenerPage() {
   const router = useRouter()
@@ -74,25 +79,41 @@ export default function ScreenerPage() {
   const [preset, setPreset]   = useState<PresetId>('all')
   const [sortKey, setSortKey] = useState<SortKey>('mcap')
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc')
+  const [showStale, setShowStale] = useState(false)
 
   useEffect(() => {
     ;(async () => {
       try {
         const { createClient } = await import('@/lib/supabase/client')
+        const sb = createClient()
         const [{ data }, meta] = await Promise.all([
-          createClient().from('company_metrics').select('*'),
+          sb.from('company_metrics').select('*'),
           fetchCompanyMeta().catch(() => [] as CompanyMeta[]),
         ])
         const metaBy = new Map(meta.map(m => [m.sym, m]))
         const merged: Row[] = ((data ?? []) as Metric[]).map(m => {
           const meta = metaBy.get(m.ticker)
+          // Market cap consistent with the displayed price: price × shares.
+          // Falls back to the static figure only when share count is unknown.
+          const mcap = (m.last_close > 0 && meta?.shares)
+            ? (m.last_close * meta.shares) / 1_000_000
+            : meta?.mcap
           return {
             ...m,
             name: meta?.ar || m.name_ar || m.name_en || m.ticker,
-            logo: meta?.logo, color: meta?.color, mcap: meta?.mcap,
+            logo: meta?.logo, color: meta?.color, mcap,
           }
         })
         setRows(merged)
+
+        // TTM P/E (Yahoo-style) for every ticker that has enough financials.
+        try {
+          const { fetchTtmPe } = await import('@/lib/fundamentals')
+          const prices: Record<string, number> = {}
+          for (const r of merged) if (r.last_close > 0) prices[r.ticker] = r.last_close
+          const pe = await fetchTtmPe(sb, prices)
+          setRows(prev => prev.map(r => ({ ...r, pe: pe[r.ticker]?.pe ?? null })))
+        } catch { /* P/E is best-effort; screener still works without it */ }
       } finally { setLoading(false) }
     })()
   }, [])
@@ -102,8 +123,16 @@ export default function ScreenerPage() {
     return ['all', ...s]
   }, [rows])
 
+  // count of suspended rows (hidden by default) for the toggle label
+  const staleCount = useMemo(
+    () => rows.filter(r => (r.days_since_trade ?? 0) > STALE_DAYS).length,
+    [rows],
+  )
+
   const view = useMemo(() => {
     let list = rows.slice()
+    // hide suspended / long-untraded quotes unless explicitly shown
+    if (!showStale) list = list.filter(r => (r.days_since_trade ?? 0) <= STALE_DAYS)
     // search
     if (q.trim()) {
       const k = q.trim().toLowerCase()
@@ -115,6 +144,7 @@ export default function ScreenerPage() {
     if (preset === 'gainers') list = list.filter(r => (pctFor(r, period) ?? 0) > 0)
     else if (preset === 'losers') list = list.filter(r => (pctFor(r, period) ?? 0) < 0)
     else if (preset === 'liquid') list = list.filter(r => (r.avg_value_20d ?? 0) > 0)
+    else if (preset === 'cheap')  list = list.filter(r => r.pe != null && r.pe > 0)
     else if (preset === 'fbuy')   list = list.filter(r => (r.ff_net_30d ?? 0) > 0)
     else if (preset === 'fsell')  list = list.filter(r => (r.ff_net_30d ?? 0) < 0)
     else if (preset === 'nearhi') list = list.filter(r => r.high_52w && (r.high_52w - r.last_close) / r.high_52w <= 0.05)
@@ -122,6 +152,7 @@ export default function ScreenerPage() {
     // implicit sort for some presets
     let sk = sortKey, sd = sortDir
     if (preset === 'liquid') { sk = 'liq'; sd = 'desc' }
+    else if (preset === 'cheap') { sk = 'pe'; sd = 'asc' }
 
     const val = (r: Row): number => {
       switch (sk) {
@@ -130,12 +161,13 @@ export default function ScreenerPage() {
         case 'liq':     return r.avg_value_20d ?? -Infinity
         case 'foreign': return r.ff_net_30d ?? 0
         case 'pos52':   return r.high_52w && r.low_52w && r.high_52w !== r.low_52w ? (r.last_close - r.low_52w) / (r.high_52w - r.low_52w) : -Infinity
+        case 'pe':      return r.pe != null && r.pe > 0 ? r.pe : (sd === 'asc' ? Infinity : -Infinity)
         default:        return r.mcap ?? -Infinity
       }
     }
     list.sort((a, b) => sd === 'asc' ? val(a) - val(b) : val(b) - val(a))
     return list
-  }, [rows, q, sector, preset, period, sortKey, sortDir])
+  }, [rows, q, sector, preset, period, sortKey, sortDir, showStale])
 
   const toggleSort = (k: SortKey) => {
     if (sortKey === k) setSortDir(d => d === 'asc' ? 'desc' : 'asc')
@@ -148,7 +180,7 @@ export default function ScreenerPage() {
       <div style={{ marginBottom: 16 }}>
         <h2 style={{ fontSize: 22, fontWeight: 800, margin: 0, color: 'var(--ink)' }}>فارز الأسهم</h2>
         <p style={{ fontSize: 12.5, color: 'var(--ink4)', margin: '6px 0 0' }}>
-          فلترة وترتيب كل أسهم السوق حسب الأداء والسيولة وتدفق الأجانب — {rows.length || '…'} شركة
+          فلترة وترتيب أسهم السوق حسب الأداء والسيولة والمكرر وتدفق الأجانب — {rows.length ? rows.length - staleCount : '…'} شركة نشطة
         </p>
       </div>
 
@@ -185,6 +217,14 @@ export default function ScreenerPage() {
             </div>
           </div>
         </div>
+        {/* suspended toggle */}
+        {staleCount > 0 && (
+          <label style={{ display: 'flex', alignItems: 'center', gap: 7, fontSize: 11.5, color: 'var(--ink4)', cursor: 'pointer', userSelect: 'none' }}>
+            <input type="checkbox" checked={showStale} onChange={e => setShowStale(e.target.checked)}
+              style={{ accentColor: 'var(--brand)', width: 14, height: 14, cursor: 'pointer' }} />
+            عرض الأسهم المتوقفة عن التداول ({staleCount}) — آخر تداول لها قبل أكثر من {STALE_DAYS} يوماً
+          </label>
+        )}
       </div>
 
       {/* table */}
@@ -193,12 +233,13 @@ export default function ScreenerPage() {
       ) : (
         <div style={{ border: '1px solid var(--line)', borderRadius: 14, overflow: 'hidden', background: 'var(--surf)' }}>
           <div style={{ overflowX: 'auto' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 760 }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 840 }}>
               <thead>
                 <tr style={{ borderBottom: '1px solid var(--line)', background: 'var(--surf2)' }}>
                   <Th label="الشركة" align="start" />
                   <Th label="السعر" onClick={() => toggleSort('price')} active={sortKey === 'price'} dir={sortDir} />
                   <Th label={`التغيّر (${PERIODS.find(p => p.id === period)!.label})`} onClick={() => toggleSort('pct')} active={sortKey === 'pct'} dir={sortDir} />
+                  <Th label="مكرر (TTM)" onClick={() => toggleSort('pe')} active={sortKey === 'pe'} dir={sortDir} />
                   <Th label="٥٢ أسبوع" onClick={() => toggleSort('pos52')} active={sortKey === 'pos52'} dir={sortDir} />
                   <Th label="السيولة (٢٠ي)" onClick={() => toggleSort('liq')} active={sortKey === 'liq'} dir={sortDir} />
                   <Th label="أجانب (٣٠ي)" onClick={() => toggleSort('foreign')} active={sortKey === 'foreign'} dir={sortDir} />
@@ -225,10 +266,23 @@ export default function ScreenerPage() {
                           </div>
                         </div>
                       </td>
-                      {/* price */}
-                      <td style={tdNum}>{r.last_close.toLocaleString('en-US', { maximumFractionDigits: 3 })}</td>
+                      {/* price (+ last-trade date when not from the latest session) */}
+                      <td style={tdNum}>
+                        <div>{r.last_close.toLocaleString('en-US', { maximumFractionDigits: 3 })}</div>
+                        {(r.days_since_trade ?? 0) > 5 && r.last_date && (
+                          <div style={{ fontSize: 9, color: 'var(--ink5)', fontWeight: 600 }}>
+                            {`آخر تداول ${fmtDate(r.last_date)}`}
+                          </div>
+                        )}
+                      </td>
                       {/* change */}
                       <td style={{ ...tdNum, color: toneColor(p), fontWeight: 800 }}>{fmtPct(p)}</td>
+                      {/* P/E (TTM) */}
+                      <td style={tdNum}>
+                        {r.pe != null && r.pe > 0
+                          ? (r.pe >= 100 ? Math.round(r.pe) : r.pe.toFixed(1)) + '×'
+                          : <span style={{ color: 'var(--ink4)' }}>—</span>}
+                      </td>
                       {/* 52w position */}
                       <td style={{ padding: '10px 12px', minWidth: 130 }}>
                         {pos == null ? <span style={{ color: 'var(--ink4)' }}>—</span> : (
@@ -255,7 +309,7 @@ export default function ScreenerPage() {
                   )
                 })}
                 {view.length === 0 && (
-                  <tr><td colSpan={7} style={{ padding: 40, textAlign: 'center', color: 'var(--ink4)' }}>لا توجد نتائج مطابقة.</td></tr>
+                  <tr><td colSpan={8} style={{ padding: 40, textAlign: 'center', color: 'var(--ink4)' }}>لا توجد نتائج مطابقة.</td></tr>
                 )}
               </tbody>
             </table>
@@ -263,7 +317,7 @@ export default function ScreenerPage() {
         </div>
       )}
       <p style={{ fontSize: 11, color: 'var(--ink5)', marginTop: 12 }}>
-        البيانات من نشرات التداول الرسمية، تُحدَّث يومياً · القيمة السوقية تقريبية
+        الأسعار من آخر نشرة تداول رسمية لكل سهم · القيمة السوقية = السعر × الأسهم المصدرة · المكرر (P/E) محسوب على آخر ١٢ شهراً (TTM) ويظهر فقط للشركات التي توفّرت بياناتها المالية
       </p>
     </div>
   )
@@ -297,4 +351,9 @@ function fmtIQDc(v: number): string {
   if (v >= 1e6) return (v / 1e6).toFixed(1) + ' مليون'
   if (v >= 1e3) return (v / 1e3).toFixed(0) + ' ألف'
   return Math.round(v).toString()
+}
+// YYYY-MM-DD → DD/MM/YYYY (last-trade hint)
+function fmtDate(d: string): string {
+  const [y, m, day] = d.split('-')
+  return day && m && y ? `${day}/${m}/${y}` : d
 }
