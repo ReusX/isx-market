@@ -10,17 +10,17 @@ import KChart from '@/components/KChart'
 import FinancialHighlights from '@/components/FinancialHighlights'
 
 // ─── Logo ────────────────────────────────────────────────────────────────────
-function CoLogo({ sym, logo, color }: { sym: string; logo?: string; color?: string }) {
+function CoLogo({ sym, logo, color, size = 40 }: { sym: string; logo?: string; color?: string; size?: number }) {
   const [err, setErr] = useState(false)
   if (logo && !err) return (
-    <img src={logo} alt={sym} width={48} height={48}
-      style={{ borderRadius: 10, objectFit: 'contain', background: '#fff', padding: 3 }}
+    <img src={logo} alt={sym} width={size} height={size}
+      style={{ borderRadius: 10, objectFit: 'contain', background: '#fff', padding: 3, flexShrink: 0 }}
       onError={() => setErr(true)} />
   )
   return (
     <div style={{
-      width: 48, height: 48, borderRadius: 10, background: color || 'var(--brand)',
-      display: 'flex', alignItems: 'center', justifyContent: 'center',
+      width: size, height: size, borderRadius: 10, background: color || 'var(--brand)',
+      display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
       fontSize: 12, fontWeight: 800, color: '#fff',
     }}>{sym.slice(0, 3)}</div>
   )
@@ -55,8 +55,9 @@ export default function CompanyPage() {
   }, [sym])
 
   if (loading) return (
-    <div style={{ maxWidth: 900, margin: '40px auto', padding: '0 24px' }}>
-      <div className="skeleton" style={{ height: 220, borderRadius: 16 }} />
+    <div style={{ padding: 24 }}>
+      <div className="skeleton" style={{ height: 64, borderRadius: 12, marginBottom: 12 }} />
+      <div className="skeleton" style={{ height: 'calc(100dvh - 200px)', borderRadius: 12 }} />
     </div>
   )
   if (!co) return (
@@ -71,76 +72,83 @@ export default function CompanyPage() {
 
   const up   = co.pct >= 0
   const inWL = watchlist.includes(co.sym)
-  const stat = (label: string, value: string) => (
-    <div>
-      <div style={{ fontSize: 10, color: 'var(--ink4)', fontWeight: 600, marginBottom: 3 }}>{label}</div>
-      <div style={{ fontFamily: 'var(--font-mono)', fontSize: 13, fontWeight: 600 }}>{value}</div>
+
+  // compact OHLC / key-stat chip
+  const Stat = ({ label, value }: { label: string; value: string }) => (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 2, minWidth: 0 }}>
+      <span style={{ fontSize: 10, color: 'var(--ink4)', fontWeight: 700, whiteSpace: 'nowrap' }}>{label}</span>
+      <span style={{ fontSize: 12.5, fontFamily: 'var(--font-mono)', fontWeight: 700, color: 'var(--ink)', whiteSpace: 'nowrap' }}>{value}</span>
     </div>
   )
 
+  const tabBase: React.CSSProperties = {
+    padding: '10px 2px', fontSize: 13, fontWeight: 700, textDecoration: 'none',
+    borderBottom: '2px solid transparent', whiteSpace: 'nowrap',
+  }
+
   return (
-    <div style={{ maxWidth: 900, margin: '0 auto', padding: '24px' }}>
+    <div>
+      {/* ── Full-bleed terminal section (header + chart fill the viewport) ── */}
+      <section style={{ display: 'flex', flexDirection: 'column', height: 'calc(100dvh - 48px)', minHeight: 520 }}>
 
-      {/* Breadcrumb */}
-      <div style={{ fontSize: 11, color: 'var(--ink4)', marginBottom: 16 }}>
-        <Link href="/market" style={{ color: 'var(--ink4)' }}>{ar ? 'السوق' : 'Market'}</Link>
-        <span style={{ margin: '0 6px' }}>›</span>
-        <span style={{ color: 'var(--ink)' }}>{co.sym}</span>
-      </div>
+        {/* ── Symbol header ── */}
+        <div style={{ padding: '14px 20px 0', borderBottom: '1px solid var(--line)', flexShrink: 0 }}>
+          <div style={{ display: 'flex', alignItems: 'flex-start', gap: 14, flexWrap: 'wrap' }}>
+            <CoLogo sym={co.sym} logo={co.logo} color={co.color} size={44} />
 
-      {/* Hero card */}
-      <div style={{ background: 'var(--surf)', border: '1px solid var(--line)', borderRadius: 20, padding: '20px 24px', marginBottom: 16 }}>
-        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 16, flexWrap: 'wrap' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-            <CoLogo sym={co.sym} logo={co.logo} color={co.color} />
-            <div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                <span style={{ fontSize: 20, fontWeight: 800 }}>{ar ? co.ar : co.en}</span>
-                <button onClick={() => toggleWatchlist(co.sym)}
-                  style={{ background: 'none', border: 'none', fontSize: 16, color: inWL ? 'var(--gold)' : 'var(--ink4)', cursor: 'pointer' }}>★</button>
+            {/* name + price block */}
+            <div style={{ flex: 1, minWidth: 220 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                <div style={{ fontSize: 19, fontWeight: 800, color: 'var(--ink)' }}>{ar ? co.ar : co.en}</div>
+                <button onClick={() => toggleWatchlist(co.sym)} title={inWL ? 'إزالة من المتابعة' : 'إضافة للمتابعة'}
+                  style={{ background: 'none', border: 'none', fontSize: 17, lineHeight: 1, color: inWL ? 'var(--gold)' : 'var(--ink4)', cursor: 'pointer' }}>★</button>
               </div>
-              <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginTop: 3 }}>
-                <span style={{ fontFamily: 'var(--font-mono)', fontSize: 12, color: 'var(--ink4)' }}>{co.sym}</span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 4 }}>
+                <span style={{ fontFamily: 'var(--font-mono)', fontSize: 12, fontWeight: 700, color: 'var(--ink3)' }}>{co.sym}</span>
+                <span style={{ fontSize: 11, color: 'var(--ink4)' }}>· {ar ? 'بورصة العراق ISX' : 'Iraq Stock Exchange'}</span>
                 <span style={{ padding: '2px 8px', borderRadius: 999, fontSize: 10, fontWeight: 700, background: 'var(--surf3)', color: 'var(--ink3)' }}>{co.sec}</span>
               </div>
+
+              {/* big price + change */}
+              <div style={{ display: 'flex', alignItems: 'flex-end', gap: 12, marginTop: 10, flexWrap: 'wrap' }}>
+                <span style={{ fontFamily: 'var(--font-mono)', fontSize: 30, fontWeight: 800, color: 'var(--ink)', lineHeight: 1 }}>{co.close.toFixed(3)}</span>
+                <span style={{ fontSize: 11, color: 'var(--ink4)', fontWeight: 700, marginBottom: 3 }}>IQD</span>
+                <span style={{ fontSize: 15, fontWeight: 800, color: up ? 'var(--up)' : 'var(--dn)', marginBottom: 1 }}>
+                  {up ? '▲' : '▼'} {co.change >= 0 ? '+' : '−'}{Math.abs(co.change).toFixed(3)} ({co.pct >= 0 ? '+' : '−'}{Math.abs(co.pct).toFixed(2)}%)
+                </span>
+              </div>
             </div>
           </div>
-          <div style={{ textAlign: 'end' }}>
-            <div style={{ fontFamily: 'var(--font-mono)', fontSize: 32, fontWeight: 800 }}>{co.close.toFixed(3)}</div>
-            <div style={{ fontSize: 14, fontWeight: 700, color: up ? 'var(--up)' : 'var(--dn)' }}>
-              {up ? '▲' : '▼'} {Math.abs(co.pct).toFixed(2)}% ({co.change >= 0 ? '+' : ''}{co.change.toFixed(3)})
-            </div>
+
+          {/* OHLC / key-stat strip */}
+          <div className="chip-scroll" style={{ display: 'flex', gap: 22, overflowX: 'auto', padding: '12px 0 10px' }}>
+            <Stat label={ar ? 'افتتاح' : 'Open'} value={co.open.toFixed(3)} />
+            <Stat label={ar ? 'أعلى' : 'High'} value={co.high.toFixed(3)} />
+            <Stat label={ar ? 'أدنى' : 'Low'} value={co.low.toFixed(3)} />
+            <Stat label={ar ? 'حجم التداول' : 'Volume'} value={fmtVol(co.vol)} />
+            <Stat label={ar ? 'القيمة السوقية' : 'Mkt Cap'} value={fmtMcap(co.mcap)} />
+            <Stat label={ar ? 'الصفقات' : 'Deals'} value={(co.deals ?? 0).toLocaleString('en')} />
+            {pe != null && <Stat label={ar ? 'مكرر الربحية TTM' : 'P/E (TTM)'} value={pe >= 100 ? Math.round(pe) + '×' : pe.toFixed(1) + '×'} />}
+          </div>
+
+          {/* tabs */}
+          <div className="chip-scroll" style={{ display: 'flex', gap: 22, overflowX: 'auto' }}>
+            <span style={{ ...tabBase, color: 'var(--ink)', borderBottomColor: 'var(--brand)' }}>{ar ? 'نظرة عامة' : 'Overview'}</span>
+            <Link href={`/c/${co.sym}/financials`} style={{ ...tabBase, color: 'var(--ink3)' }}>{ar ? 'البيانات المالية' : 'Financials'}</Link>
+            <a href="#profile" style={{ ...tabBase, color: 'var(--ink3)' }}>{ar ? 'عن الشركة' : 'Profile'}</a>
           </div>
         </div>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(100px, 1fr))', gap: 16, marginTop: 20, paddingTop: 20, borderTop: '1px solid var(--line)' }}>
-          {stat(ar ? 'فتح' : 'Open', co.open.toFixed(3))}
-          {stat(ar ? 'أعلى' : 'High', co.high.toFixed(3))}
-          {stat(ar ? 'أدنى' : 'Low', co.low.toFixed(3))}
-          {stat(ar ? 'الحجم' : 'Vol', fmtVol(co.vol))}
-          {stat(ar ? 'القيمة السوقية' : 'Mkt Cap', fmtMcap(co.mcap))}
-          {stat(ar ? 'الصفقات' : 'Deals', (co.deals ?? 0).toLocaleString('en'))}
-          {pe != null && stat(
-            ar ? 'مكرر الربحية TTM' : 'P/E (TTM)',
-            pe >= 100 ? Math.round(pe) + '×' : pe.toFixed(1) + '×',
-          )}
+
+        {/* ── Chart fills the rest ── */}
+        <div style={{ flex: 1, minHeight: 0 }}>
+          <KChart sym={co.sym} fill />
         </div>
+      </section>
+
+      {/* ── Below the fold ── */}
+      <div style={{ maxWidth: 1100, margin: '0 auto', padding: '24px 20px' }} id="profile">
+        <FinancialHighlights sym={co.sym} />
       </div>
-
-      {/* ── Tab nav ── */}
-      <div style={{ display: 'flex', gap: 6, marginBottom: 16 }}>
-        <span style={{ padding: '8px 16px', borderRadius: 10, fontSize: 13, fontWeight: 700, border: '1px solid var(--line)', background: 'var(--brand)', color: '#fff' }}>
-          {ar ? 'نظرة عامة' : 'Overview'}
-        </span>
-        <Link href={`/c/${co.sym}/financials`} style={{ padding: '8px 16px', borderRadius: 10, fontSize: 13, fontWeight: 700, border: '1px solid var(--line)', background: 'transparent', color: 'var(--ink3)', textDecoration: 'none' }}>
-          {ar ? 'البيانات المالية' : 'Financials'}
-        </Link>
-      </div>
-
-      {/* ── Chart card ── */}
-      <KChart sym={co.sym} />
-
-      {/* ── Inline financial highlights (renders only if published) ── */}
-      <FinancialHighlights sym={co.sym} />
     </div>
   )
 }

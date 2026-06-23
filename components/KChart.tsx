@@ -141,7 +141,7 @@ function getCandles(rows: RawRow[], period: PeriodType): KlineBar[] {
 }
 
 // ── KChart Component ──────────────────────────────────────────────────────────
-export default function KChart({ sym }: { sym: string }) {
+export default function KChart({ sym, fill = false }: { sym: string; fill?: boolean }) {
   const containerRef  = useRef<HTMLDivElement>(null)
   const chartRef      = useRef<any>(null)
   const rawCache      = useRef<Map<string, RawRow[]>>(new Map())
@@ -392,7 +392,7 @@ export default function KChart({ sym }: { sym: string }) {
       const src = chart.getConvertPictureUrl(true, 'png', '#0a0f1e')
       const { blob, url } = await compositeWatermark(src, { bg: '#0a0f1e', label: sym.toUpperCase() })
       if (mode === 'download') {
-        downloadImage(url, `${sym.toUpperCase()}-iraqsm.png`)
+        downloadImage(url, `${sym.toUpperCase()}-iqwealth.png`)
         setExportMsg('تم التنزيل ✓')
       } else {
         const ok = await copyImage(blob)
@@ -417,7 +417,7 @@ export default function KChart({ sym }: { sym: string }) {
     <div
       className={isFullscreen
         ? 'fixed inset-0 z-50 flex flex-col bg-[#0a0f1e]'
-        : 'relative flex flex-col rounded-xl border border-slate-800 bg-[#0a0f1e] overflow-hidden'}
+        : `relative flex flex-col border border-slate-800 bg-[#0a0f1e] overflow-hidden ${fill ? 'h-full rounded-none' : 'rounded-xl'}`}
     >
       {/* ── Top toolbar ── */}
       <div className="flex items-center gap-2 px-3 py-2 border-b border-slate-800 shrink-0">
@@ -500,7 +500,7 @@ export default function KChart({ sym }: { sym: string }) {
         </div>
 
         {/* ── Chart canvas ── */}
-        <div className="relative flex-1 min-w-0" style={{ minHeight: isFullscreen ? 'calc(100vh - 41px)' : '480px' }}>
+        <div className="relative flex-1 min-w-0 min-h-0" style={{ minHeight: isFullscreen ? 'calc(100vh - 41px)' : (fill ? 0 : '480px') }}>
           {loading && (
             <div className="absolute inset-0 flex items-center justify-center z-10 pointer-events-none">
               <div className="flex gap-1.5">
@@ -519,7 +519,7 @@ export default function KChart({ sym }: { sym: string }) {
             <span
               className="font-extrabold tracking-tight"
               style={{ fontSize: 'clamp(28px, 7vw, 72px)', color: 'rgba(148,163,184,0.07)', transform: 'rotate(-12deg)' }}
-            >iraqsm.com</span>
+            >IQWealth</span>
           </div>
         </div>
       </div>
