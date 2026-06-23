@@ -3,7 +3,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import Image from 'next/image'
 import { useApp } from '@/context/AppContext'
 import SiteFooter from '@/components/layout/SiteFooter'
 
@@ -65,44 +64,46 @@ const NAV: {
   {
     id: 'main',
     items: [
-      { href: '/',       icon: 'home',   ar: 'الرئيسية',        badge: 'الآن' },
+      { href: '/', icon: 'home', ar: 'الرئيسية' },
     ],
   },
   {
-    id: 'favorites', label: 'المفضلة', collapsible: true,
+    id: 'market', label: 'السوق', collapsible: true,
     items: [
-      { href: '/news',   icon: 'news',   ar: 'أخبار السوق',     badge: 'أخبار' },
-      { href: '/market', icon: 'bars',   ar: 'حركة السوق',      badge: 'حركة'  },
-      { href: '/pulse',  icon: 'stats',  ar: 'نبض السوق',       badge: 'مباشر' },
-      { href: '/screener', icon: 'search', ar: 'فارز الأسهم',   badge: 'جديد'  },
-      { href: '/heatmap',  icon: 'bars',   ar: 'خريطة السوق',   badge: 'جديد'  },
+      { href: '/market',   icon: 'bars',   ar: 'حركة السوق'  },
+      { href: '/pulse',    icon: 'stats',  ar: 'نبض السوق'   },
+      { href: '/heatmap',  icon: 'bars',   ar: 'خريطة السوق' },
+      { href: '/screener', icon: 'search', ar: 'فارز الأسهم' },
+      { href: '/news',     icon: 'news',   ar: 'أخبار السوق' },
     ],
   },
   {
-    id: 'myisx', label: 'منصتي', collapsible: true,
+    id: 'platform', label: 'منصتي', collapsible: true,
     items: [
-      { href: '/portfolio',  icon: 'scatter',ar: 'محفظتي',          badge: 'جديد'   },
-      { href: '/alerts',     icon: 'bell',   ar: 'تنبيهات الأسعار', badge: 'جديد'   },
-      { href: '/watchlist',  icon: 'star',   ar: 'قوائم المتابعة', badge: 'متابعة' },
-      { href: '/charts',     icon: 'chart',  ar: 'رسوماتي',         badge: 'رسم'    },
-      { href: '/statistics', icon: 'stats',  ar: 'الإحصائيات',      badge: 'جديد'   },
+      { href: '/portfolio',  icon: 'scatter', ar: 'محفظتي',          badge: 'جديد' },
+      { href: '/alerts',     icon: 'bell',    ar: 'تنبيهات الأسعار', badge: 'جديد' },
+      { href: '/watchlist',  icon: 'star',    ar: 'قوائم المتابعة' },
+      { href: '/charts',     icon: 'chart',   ar: 'رسوماتي'         },
+      { href: '/statistics', icon: 'stats',   ar: 'الإحصائيات'      },
     ],
   },
   {
-    id: 'market', label: 'نظرة السوق', collapsible: true,
+    id: 'tools', label: 'أدوات', collapsible: true,
     items: [
-      { href: '/market', icon: 'bars', ar: 'لوحات السوق'  },
-      { href: '/fx',     icon: 'fx',   ar: 'سعر الصرف'    },
-    ],
-  },
-  {
-    id: 'tools', label: 'أدوات البحث', collapsible: true,
-    items: [
-      { href: '/charts',  icon: 'chart', ar: 'الرسوم البيانية', badge: 'رسم' },
-      { href: '/gold',    icon: 'fx',    ar: 'سعر الذهب'                      },
+      { href: '/fx',   icon: 'fx', ar: 'سعر الصرف' },
+      { href: '/gold', icon: 'fx', ar: 'سعر الذهب' },
     ],
   },
 ]
+
+// ── Brand mark (Star of Ishtar) — currentColor so it follows the theme ────────
+function StarMark({ size = 22 }: { size?: number }) {
+  return (
+    <svg viewBox="0 0 96 96" width={size} height={size} aria-hidden="true" style={{ flexShrink: 0, color: 'var(--ink)' }}>
+      <path fillRule="evenodd" fill="currentColor" d="M48 11 L53.7 34.6 L73.9 21.8 L61.1 42 L85 48 L61.1 54 L73.9 74.2 L53.7 61.4 L48 85 L42.3 61.4 L22.1 74.2 L34.9 54 L11 48 L34.9 42 L22.1 21.8 L42.3 34.6 Z M40 48 a8 8 0 1 0 16 0 a8 8 0 1 0 -16 0 Z" />
+    </svg>
+  )
+}
 
 // ── AppShell ──────────────────────────────────────────────────────────────────
 export default function AppShell({ children }: { children: React.ReactNode }) {
@@ -112,7 +113,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   const [menuOpen, setMenuOpen] = useState(false)
   const menuRef = useRef<HTMLDivElement>(null)
   const [openSections, setOpenSections] = useState<Record<string, boolean>>({
-    favorites: true, myisx: true, market: false, tools: false,
+    market: true, platform: true, tools: false,
   })
   const [drawerOpen, setDrawerOpen] = useState(false)
   const [isMobile, setIsMobile]     = useState(false)
@@ -196,8 +197,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
         }}>
           {!collapsed && (
             <div style={{ display: 'flex', alignItems: 'center', gap: 7, minWidth: 0 }}>
-              <Image src="/favicon-192.png" alt="ISX" width={22} height={22}
-                style={{ borderRadius: 5, flexShrink: 0 }} />
+              <StarMark size={20} />
               <span style={{
                 fontWeight: 800, fontSize: 13, color: K.ink,
                 whiteSpace: 'nowrap',
@@ -418,8 +418,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
           <Link href="/" className="app-mobile-logo" style={{
             alignItems: 'center', gap: 7, flexShrink: 0, textDecoration: 'none',
           }}>
-            <Image src="/favicon-192.png" alt="ISX" width={24} height={24}
-              style={{ borderRadius: 6 }} />
+            <StarMark size={22} />
             <span style={{ fontWeight: 800, fontSize: 14, color: K.ink, whiteSpace: 'nowrap' }}>
               بورصة العراق
             </span>
