@@ -96,7 +96,7 @@ export default function AuthModal({ onClose, defaultTab = 'signin', lang = 'ar' 
             </span>
             <div>
               <div style={{ fontWeight: 800, fontSize: 16, color: 'var(--ink)' }}>
-                {ar ? 'مرحباً بك في بورصة العراق' : 'Welcome to ISX'}
+                {ar ? 'مرحباً بك في IQWealth' : 'Welcome to IQWealth'}
               </div>
               <div style={{ fontSize: 11.5, color: 'var(--ink4)', marginTop: 2 }}>
                 {ar ? 'تابع السوق وأنشئ قوائمك الخاصة' : 'Track the market and build your watchlists'}
@@ -181,8 +181,8 @@ export default function AuthModal({ onClose, defaultTab = 'signin', lang = 'ar' 
             {tab === 'signup' && (
               <p style={{ fontSize: 10, color: 'var(--ink4)', textAlign: 'center', margin: 0 }}>
                 {ar
-                  ? 'انضم إلى مجتمع مستثمري بورصة العراق'
-                  : 'Join the Iraq Stock Market investor community'}
+                  ? 'انضم إلى مجتمع مستثمري IQWealth'
+                  : 'Join the IQWealth investor community'}
               </p>
             )}
           </form>

@@ -49,7 +49,7 @@ export default function SiteFooter() {
           {/* Brand */}
           <div>
             <div style={{ fontSize: 16, fontWeight: 800, color: 'var(--ink)', marginBottom: 10 }}>
-              {ar ? 'بورصة العراق' : 'Iraq Stock Exchange'}
+              IQWealth
             </div>
             <p style={{ fontSize: 12.5, color: 'var(--ink4)', lineHeight: 1.8, margin: 0, maxWidth: 280 }}>
               {ar
@@ -81,7 +81,7 @@ export default function SiteFooter() {
           display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, flexWrap: 'wrap',
         }}>
           <span style={{ fontSize: 12, color: 'var(--ink4)' }}>
-            © {year} {ar ? 'بورصة العراق · صُمّم بواسطة أحمد بلحة' : 'Iraq Stock Exchange · Built by Ahmed Balaha'}
+            © {year} {ar ? 'IQWealth · صُمّم بواسطة أحمد بلحة' : 'IQWealth · Built by Ahmed Balaha'}
           </span>
           <span style={{ fontSize: 11, color: 'var(--ink5)', maxWidth: 460, textAlign: ar ? 'left' : 'right' }}>
             {ar

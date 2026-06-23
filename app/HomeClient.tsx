@@ -218,7 +218,7 @@ export default function HomeClient({ news }: { news: News[] }) {
       <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1.5fr) minmax(0,1fr)', gap: 14, marginBottom: 14 }} className="home-hero">
         <Card style={{ padding: 18 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
-            <span style={{ fontSize: 12, color: 'var(--ink3)', fontWeight: 700 }}>مؤشر ISX60</span>
+            <span style={{ fontSize: 12, color: 'var(--ink3)', fontWeight: 700 }}>مؤشر السوق العام ISX60</span>
             <span style={{ fontSize: 11, color: 'var(--ink4)' }}>آخر تحديث {updated}</span>
           </div>
           <div style={{ display: 'flex', alignItems: 'flex-end', gap: 10, marginTop: 6 }}>
@@ -230,7 +230,7 @@ export default function HomeClient({ news }: { news: News[] }) {
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
           <Card style={{ padding: 14 }}>
-            <div style={{ fontSize: 11.5, color: 'var(--ink3)', fontWeight: 700, marginBottom: 8 }}>اتساع السوق اليوم</div>
+            <div style={{ fontSize: 11.5, color: 'var(--ink3)', fontWeight: 700, marginBottom: 8 }}>نشاط السوق اليوم</div>
             {breadth ? (
               <>
                 <div style={{ display: 'flex', height: 8, borderRadius: 4, overflow: 'hidden' }}>
@@ -249,7 +249,7 @@ export default function HomeClient({ news }: { news: News[] }) {
           <div style={{ display: 'flex', gap: 10 }}>
             {[
               { l: 'قيمة التداول', v: fmtBig(index?.total_value) },
-              { l: 'الحجم', v: fmtBig(index?.total_volume) },
+              { l: 'حجم التداول', v: fmtBig(index?.total_volume) },
               { l: 'الصفقات', v: index?.total_trades ? Math.round(index.total_trades).toLocaleString('en') : '—' },
             ].map(s => (
               <Card key={s.l} style={{ padding: '10px 12px', flex: 1 }}>
@@ -276,8 +276,8 @@ export default function HomeClient({ news }: { news: News[] }) {
       ) : (
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 10, background: 'var(--brand-soft)', border: '1px solid var(--line)', borderRadius: 'var(--r-lg)', padding: '12px 16px', marginBottom: 14 }}>
           <div>
-            <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--ink)' }}>تابع محفظتك لحظياً</div>
-            <div style={{ fontSize: 11.5, color: 'var(--ink3)' }}>أرباحك، توزيعك، وتنبيهات الأسعار في مكان واحد</div>
+            <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--ink)' }}>سوِّ حساب وتابع استثماراتك بدقة</div>
+            <div style={{ fontSize: 11.5, color: 'var(--ink3)' }}>كل شي تحتاجه كمستثمر بالسوق العراقي بمكان واحد</div>
           </div>
           <div style={{ display: 'flex', gap: 8 }}>
             <Link href="/portfolio" style={{ fontSize: 12.5, fontWeight: 700, background: 'var(--brand)', color: '#fff', padding: '8px 14px', borderRadius: 'var(--r-md)', textDecoration: 'none' }}>أنشئ محفظتك</Link>
@@ -292,8 +292,10 @@ export default function HomeClient({ news }: { news: News[] }) {
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
             <h2 style={{ fontSize: 14, fontWeight: 800, margin: 0, color: 'var(--ink)' }}>الأكثر حركة</h2>
             <div style={{ display: 'flex', gap: 4 }}>
-              {([['gainers', 'الرابحون'], ['losers', 'الخاسرون'], ['active', 'الأنشط']] as const).map(([id, lbl]) => (
-                <button key={id} onClick={() => setMoversTab(id)} style={{ fontSize: 11.5, fontWeight: 700, padding: '4px 10px', borderRadius: 'var(--r-sm)', border: 'none', cursor: 'pointer', fontFamily: 'inherit', background: moversTab === id ? 'var(--brand)' : 'transparent', color: moversTab === id ? '#fff' : 'var(--ink3)' }}>{lbl}</button>
+              {([['gainers', 'أعلى الرابحين', '▲'], ['losers', 'أعلى الخاسرين', '▼'], ['active', 'الأنشط', '']] as const).map(([id, lbl, arrow]) => (
+                <button key={id} onClick={() => setMoversTab(id)} style={{ fontSize: 11.5, fontWeight: 700, padding: '4px 10px', borderRadius: 'var(--r-sm)', border: 'none', cursor: 'pointer', fontFamily: 'inherit', display: 'inline-flex', alignItems: 'center', gap: 4, background: moversTab === id ? 'var(--brand)' : 'transparent', color: moversTab === id ? '#fff' : 'var(--ink3)' }}>
+                  {arrow && <span style={{ fontSize: 8 }}>{arrow}</span>}{lbl}
+                </button>
               ))}
             </div>
           </div>
@@ -308,7 +310,7 @@ export default function HomeClient({ news }: { news: News[] }) {
         </Card>
 
         <Card>
-          <SectionTitle title="تدفق المستثمر الأجنبي اليوم" href="/statistics/foreign-flow" action="التفاصيل" />
+          <SectionTitle title="حركة المستثمرين الأجانب" href="/statistics/foreign-flow" action="التفاصيل" />
           {foreign.length ? foreign.map(f => {
             const co = coBy.get(f.ticker)
             return (

@@ -202,7 +202,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
                 fontWeight: 800, fontSize: 13, color: K.ink,
                 whiteSpace: 'nowrap',
               }}>
-                بورصة العراق
+                IQWealth
               </span>
             </div>
           )}
@@ -420,7 +420,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
           }}>
             <StarMark size={22} />
             <span style={{ fontWeight: 800, fontSize: 14, color: K.ink, whiteSpace: 'nowrap' }}>
-              بورصة العراق
+              IQWealth
             </span>
           </Link>
 
