@@ -22,8 +22,14 @@ const fmtBig = (v: number | null | undefined) => {
   return String(Math.round(v))
 }
 const fmtPct = (v: number) => `${v >= 0 ? '+' : '−'}${Math.abs(v).toFixed(2)}%`
-// Market cap — always expressed in مليار (billions) with 2 decimals, e.g. "5254.50 مليار"
-const fmtMcap = (v: number) => (v ? (v / 1e9).toFixed(2) + ' مليار' : '—')
+// Market cap — compact T/B/M suffixes, e.g. "7.7T", "480.0B"
+const fmtMcap = (v: number) => {
+  if (!v) return '—'
+  if (v >= 1e12) return (v / 1e12).toFixed(1) + 'T'
+  if (v >= 1e9)  return (v / 1e9).toFixed(1) + 'B'
+  if (v >= 1e6)  return (v / 1e6).toFixed(1) + 'M'
+  return Math.round(v).toLocaleString('en')
+}
 const tone = (v: number) => (v > 0 ? 'var(--up)' : v < 0 ? 'var(--dn)' : 'var(--ink3)')
 const sectorAr = (id: string) => SECTORS.find(s => s.id === id)?.ar ?? id
 
@@ -105,6 +111,8 @@ export default function HomeClient({ news }: { news: News[] }) {
   const [peMap, setPeMap]     = useState<Record<string, number>>({})
   const [flow, setFlow]       = useState<Flow[]>([])
   const [moversTab, setMoversTab] = useState<'gainers' | 'losers' | 'active'>('gainers')
+  const [sortKey, setSortKey] = useState<'price' | 'change' | 'volume' | 'mcap'>('mcap')
+  const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc')
 
   // prices + companies
   useEffect(() => {
@@ -168,10 +176,19 @@ export default function HomeClient({ news }: { news: News[] }) {
 
   // live market cap (IQD): close × shares when known, else static fallback
   const liveMcap = (c: Company) => (c.shares && c.close > 0 ? c.close * c.shares : (c.mcap || 0) * 1e6)
+  const sortVal = (c: Company, k: typeof sortKey) =>
+    k === 'price' ? c.close : k === 'change' ? c.pct : k === 'volume' ? (c.vol ?? 0) : liveMcap(c)
   const topCompanies = useMemo(
-    () => [...active].sort((a, b) => liveMcap(b) - liveMcap(a)).slice(0, 25),
-    [active],
+    () => [...active].sort((a, b) => {
+      const d = sortVal(a, sortKey) - sortVal(b, sortKey)
+      return sortDir === 'desc' ? -d : d
+    }).slice(0, 25),
+    [active, sortKey, sortDir],
   )
+  const toggleSort = (k: typeof sortKey) => {
+    if (sortKey === k) setSortDir(d => (d === 'desc' ? 'asc' : 'desc'))
+    else { setSortKey(k); setSortDir('desc') }
+  }
 
   const cheap = useMemo(() => {
     return Object.entries(peMap).filter(([, pe]) => pe > 0).sort((a, b) => a[1] - b[1]).slice(0, 5)
@@ -368,10 +385,15 @@ export default function HomeClient({ news }: { news: News[] }) {
             <thead>
               <tr style={{ fontSize: 11, color: 'var(--ink3)', textAlign: 'start' }}>
                 <th style={{ textAlign: 'start', fontWeight: 700, padding: '6px 16px' }}>الشركة</th>
-                <th style={{ textAlign: 'end', fontWeight: 700, padding: '6px 8px' }}>السعر</th>
-                <th style={{ textAlign: 'end', fontWeight: 700, padding: '6px 8px' }}>نسبة التغير</th>
-                <th className="mobcol-hide" style={{ textAlign: 'end', fontWeight: 700, padding: '6px 8px' }}>حجم التداول</th>
-                <th className="mobcol-hide" style={{ textAlign: 'end', fontWeight: 700, padding: '6px 16px' }}>القيمة السوقية</th>
+                {([['price', 'السعر', '8px', false], ['change', 'نسبة التغير', '8px', false], ['volume', 'حجم التداول', '8px', true], ['mcap', 'القيمة السوقية', '16px', true]] as const).map(([key, lbl, padX, mob]) => {
+                  const on = sortKey === key
+                  return (
+                    <th key={key} className={mob ? 'mobcol-hide' : undefined} onClick={() => toggleSort(key)}
+                      style={{ textAlign: 'end', fontWeight: 700, padding: `6px ${padX}`, cursor: 'pointer', userSelect: 'none', color: on ? 'var(--brand)' : undefined, whiteSpace: 'nowrap' }}>
+                      {lbl}<span style={{ fontSize: 8, marginInlineStart: 3, opacity: on ? 1 : 0.4 }}>{on ? (sortDir === 'desc' ? '▼' : '▲') : '▼'}</span>
+                    </th>
+                  )
+                })}
               </tr>
             </thead>
             <tbody>
