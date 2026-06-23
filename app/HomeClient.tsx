@@ -22,6 +22,8 @@ const fmtBig = (v: number | null | undefined) => {
   return String(Math.round(v))
 }
 const fmtPct = (v: number) => `${v >= 0 ? '+' : '−'}${Math.abs(v).toFixed(2)}%`
+// Market cap — always expressed in مليار (billions) with 2 decimals, e.g. "5254.50 مليار"
+const fmtMcap = (v: number) => (v ? (v / 1e9).toFixed(2) + ' مليار' : '—')
 const tone = (v: number) => (v > 0 ? 'var(--up)' : v < 0 ? 'var(--dn)' : 'var(--ink3)')
 const sectorAr = (id: string) => SECTORS.find(s => s.id === id)?.ar ?? id
 
@@ -67,7 +69,7 @@ function SectionTitle({ title, href, action }: { title: string; href?: string; a
   return (
     <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 10 }}>
       <h2 style={{ fontSize: 14, fontWeight: 800, margin: 0, color: 'var(--ink)' }}>{title}</h2>
-      {href && <Link href={href} style={{ fontSize: 11.5, color: 'var(--brand)', fontWeight: 600 }}>{action ?? 'عرض الكل'} ←</Link>}
+      {href && <Link href={href} style={{ fontSize: 11.5, color: 'var(--brand)', fontWeight: 700 }}>{action ?? 'عرض الكل'} ←</Link>}
     </div>
   )
 }
@@ -83,7 +85,7 @@ function CoRow({ co, right }: { co: Company; right: React.ReactNode }) {
       <MiniLogo sym={co.sym} logo={co.logo} />
       <div style={{ minWidth: 0, flex: 1 }}>
         <div style={{ fontSize: 12.5, fontWeight: 700, color: 'var(--ink)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{co.ar || co.en || co.sym}</div>
-        <div style={{ fontSize: 10.5, color: 'var(--ink4)', fontFamily: 'var(--font-mono)' }}>{co.sym}</div>
+        <div style={{ fontSize: 10.5, color: 'var(--ink4)', fontWeight: 600, fontFamily: 'var(--font-mono)' }}>{co.sym}</div>
       </div>
       {right}
     </Link>
@@ -164,8 +166,6 @@ export default function HomeClient({ news }: { news: News[] }) {
     return [...active].sort((a, b) => (b.vol ?? 0) - (a.vol ?? 0)).slice(0, 6)
   }, [active, moversTab])
 
-  const tape = useMemo(() => [...active].sort((a, b) => Math.abs(b.pct) - Math.abs(a.pct)).slice(0, 14), [active])
-
   // live market cap (IQD): close × shares when known, else static fallback
   const liveMcap = (c: Company) => (c.shares && c.close > 0 ? c.close * c.shares : (c.mcap || 0) * 1e6)
   const topCompanies = useMemo(
@@ -209,26 +209,12 @@ export default function HomeClient({ news }: { news: News[] }) {
   return (
     <div style={{ maxWidth: 1180, margin: '0 auto', padding: '16px 16px 80px' }}>
 
-      {/* ── Ticker tape ── */}
-      {tape.length > 0 && (
-        <div className="ticker-mask" style={{ overflow: 'hidden', borderBottom: '1px solid var(--line)', margin: '-16px -16px 16px', padding: '8px 16px', background: 'var(--surf)' }}>
-          <div className="ticker-track">
-            {[...tape, ...tape].map((c, i) => (
-              <Link key={i} href={`/c/${c.sym}`} style={{ fontSize: 12, color: 'var(--ink3)', textDecoration: 'none' }}>
-                <span style={{ fontFamily: 'var(--font-mono)', color: 'var(--ink2)', fontWeight: 700 }}>{c.sym}</span>{' '}
-                {c.close.toFixed(2)} <span style={{ color: tone(c.pct), fontWeight: 700 }}>{c.pct >= 0 ? '▲' : '▼'}{Math.abs(c.pct).toFixed(1)}%</span>
-              </Link>
-            ))}
-          </div>
-        </div>
-      )}
-
       {/* ── Hero: index + breadth + totals ── */}
       <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1.5fr) minmax(0,1fr)', gap: 14, marginBottom: 14 }} className="home-hero">
         <Card style={{ padding: 18 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
             <span style={{ fontSize: 12, color: 'var(--ink3)', fontWeight: 700 }}>مؤشر السوق العام ISX60</span>
-            <span style={{ fontSize: 11, color: 'var(--ink4)' }}>آخر تحديث {updated}</span>
+            <span style={{ fontSize: 11, color: 'var(--ink4)', fontWeight: 600 }}>آخر تحديث {updated}</span>
           </div>
           <div style={{ display: 'flex', alignItems: 'flex-end', gap: 10, marginTop: 6 }}>
             <span style={{ fontSize: 30, fontWeight: 800, fontFamily: 'var(--font-mono)', color: 'var(--ink)', lineHeight: 1 }}>{index ? index.isx60.toFixed(2) : '—'}</span>
@@ -262,7 +248,7 @@ export default function HomeClient({ news }: { news: News[] }) {
               { l: 'الصفقات', v: index?.total_trades ? Math.round(index.total_trades).toLocaleString('en') : '—' },
             ].map(s => (
               <Card key={s.l} style={{ padding: '10px 12px', flex: 1 }}>
-                <div style={{ fontSize: 10, color: 'var(--ink4)', fontWeight: 600 }}>{s.l}</div>
+                <div style={{ fontSize: 10, color: 'var(--ink3)', fontWeight: 700 }}>{s.l}</div>
                 <div style={{ fontSize: 14, fontWeight: 800, fontFamily: 'var(--font-mono)', color: 'var(--ink)', marginTop: 3 }}>{s.v}</div>
               </Card>
             ))}
@@ -275,9 +261,9 @@ export default function HomeClient({ news }: { news: News[] }) {
         <Link href="/portfolio" style={{ textDecoration: 'none' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 10, background: 'var(--brand-soft)', border: '1px solid var(--line)', borderRadius: 'var(--r-lg)', padding: '12px 16px', marginBottom: 14 }}>
             <div style={{ display: 'flex', gap: 22, flexWrap: 'wrap' }}>
-              <div><div style={{ fontSize: 10.5, color: 'var(--ink4)', fontWeight: 600 }}>قيمة محفظتي</div><div style={{ fontSize: 16, fontWeight: 800, fontFamily: 'var(--font-mono)', color: 'var(--ink)' }}>{fmtIQD(port.value)} د.ع</div></div>
-              <div><div style={{ fontSize: 10.5, color: 'var(--ink4)', fontWeight: 600 }}>تغيّر اليوم</div><div style={{ fontSize: 16, fontWeight: 800, fontFamily: 'var(--font-mono)', color: tone(port.today) }}>{port.today >= 0 ? '+' : '−'}{fmtIQD(Math.abs(port.today))}</div></div>
-              <div><div style={{ fontSize: 10.5, color: 'var(--ink4)', fontWeight: 600 }}>إجمالي العائد</div><div style={{ fontSize: 16, fontWeight: 800, fontFamily: 'var(--font-mono)', color: tone(port.pl) }}>{fmtPct(port.plPct)}</div></div>
+              <div><div style={{ fontSize: 10.5, color: 'var(--ink3)', fontWeight: 700 }}>قيمة محفظتي</div><div style={{ fontSize: 16, fontWeight: 800, fontFamily: 'var(--font-mono)', color: 'var(--ink)' }}>{fmtIQD(port.value)} د.ع</div></div>
+              <div><div style={{ fontSize: 10.5, color: 'var(--ink3)', fontWeight: 700 }}>تغيّر اليوم</div><div style={{ fontSize: 16, fontWeight: 800, fontFamily: 'var(--font-mono)', color: tone(port.today) }}>{port.today >= 0 ? '+' : '−'}{fmtIQD(Math.abs(port.today))}</div></div>
+              <div><div style={{ fontSize: 10.5, color: 'var(--ink3)', fontWeight: 700 }}>إجمالي العائد</div><div style={{ fontSize: 16, fontWeight: 800, fontFamily: 'var(--font-mono)', color: tone(port.pl) }}>{fmtPct(port.plPct)}</div></div>
             </div>
             <span style={{ fontSize: 12, color: 'var(--brand)', fontWeight: 700 }}>إدارة المحفظة ←</span>
           </div>
@@ -286,7 +272,7 @@ export default function HomeClient({ news }: { news: News[] }) {
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 10, background: 'var(--brand-soft)', border: '1px solid var(--line)', borderRadius: 'var(--r-lg)', padding: '12px 16px', marginBottom: 14 }}>
           <div>
             <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--ink)' }}>سوي حساب وتابع استثماراتك بدقة</div>
-            <div style={{ fontSize: 11.5, color: 'var(--ink3)' }}>كل شي تحتاجه كمستثمر بالسوق العراقي بمكان واحد</div>
+            <div style={{ fontSize: 11.5, color: 'var(--ink3)', fontWeight: 600 }}>كل شي تحتاجه كمستثمر بالسوق العراقي بمكان واحد</div>
           </div>
           <div style={{ display: 'flex', gap: 8 }}>
             <Link href="/portfolio" style={{ fontSize: 12.5, fontWeight: 700, background: 'var(--brand)', color: '#fff', padding: '8px 14px', borderRadius: 'var(--r-md)', textDecoration: 'none' }}>أنشئ محفظتك</Link>
@@ -331,7 +317,7 @@ export default function HomeClient({ news }: { news: News[] }) {
                 <span style={{ fontFamily: 'var(--font-mono)', fontSize: 12, fontWeight: 700, color: tone(f.v) }}>{f.v >= 0 ? '+' : '−'}{fmtBig(Math.abs(f.v))}</span>
               </Link>
             )
-          }) : <div style={{ fontSize: 12, color: 'var(--ink4)', padding: '20px 0', textAlign: 'center' }}>لا توجد بيانات لليوم</div>}
+          }) : <div style={{ fontSize: 12, color: 'var(--ink4)', fontWeight: 600, padding: '20px 0', textAlign: 'center' }}>لا توجد بيانات لليوم</div>}
         </Card>
       </div>
 
@@ -341,7 +327,7 @@ export default function HomeClient({ news }: { news: News[] }) {
           <SectionTitle title="أداء القطاعات" href="/heatmap" action="الخريطة الحرارية" />
           {sectorPerf.length ? sectorPerf.slice(0, 6).map(s => (
             <div key={s.sec} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '6px 0' }}>
-              <span style={{ fontSize: 12, color: 'var(--ink2)', width: 90, flexShrink: 0 }}>{sectorAr(s.sec)}</span>
+              <span style={{ fontSize: 12, color: 'var(--ink2)', fontWeight: 600, width: 90, flexShrink: 0 }}>{sectorAr(s.sec)}</span>
               <div style={{ flex: 1, height: 6, background: 'var(--surf3)', borderRadius: 3, position: 'relative', overflow: 'hidden' }}>
                 <div style={{ position: 'absolute', insetInlineStart: '50%', top: 0, bottom: 0, width: `${Math.min(Math.abs(s.avg) * 8, 50)}%`, transform: s.avg >= 0 ? 'none' : 'translateX(-100%)', background: tone(s.avg) }} />
               </div>
@@ -351,8 +337,8 @@ export default function HomeClient({ news }: { news: News[] }) {
         </Card>
 
         <Card>
-          <SectionTitle title="الأرخص تقييماً" href="/screener" action="الفارز" />
-          <div style={{ fontSize: 10.5, color: 'var(--ink4)', marginTop: -6, marginBottom: 4 }}>مكرر الربحية (TTM)</div>
+          <SectionTitle title="الشركات الأرخص سعراً مقابل الربح" href="/screener" action="الفارز" />
+          <div style={{ fontSize: 10.5, color: 'var(--ink4)', fontWeight: 600, marginTop: -6, marginBottom: 4 }}>مكرر الربحية (TTM)</div>
           {cheap.length ? cheap.map(({ co, pe }) => (
             <CoRow key={co.sym} co={co} right={<span style={{ fontSize: 13, fontWeight: 800, fontFamily: 'var(--font-mono)', color: 'var(--ink)' }}>{pe >= 100 ? Math.round(pe) : pe.toFixed(1)}×</span>} />
           )) : <div className="skeleton" style={{ height: 180 }} />}
@@ -366,7 +352,7 @@ export default function HomeClient({ news }: { news: News[] }) {
           {news.map(n => (
             <Link key={n.slug} href={`/news/${n.slug}`} style={{ display: 'flex', gap: 10, padding: '9px 0', borderBottom: '1px solid var(--line)', textDecoration: 'none' }}>
               <span style={{ fontSize: 11, color: 'var(--ink4)', fontFamily: 'var(--font-mono)', flexShrink: 0, width: 64 }}>{n.date.slice(0, 10).split('-').reverse().slice(0, 2).join('/')}</span>
-              <span style={{ fontSize: 12.5, color: 'var(--ink2)', lineHeight: 1.5 }}>{n.title}</span>
+              <span style={{ fontSize: 12.5, color: 'var(--ink2)', fontWeight: 600, lineHeight: 1.5 }}>{n.title}</span>
             </Link>
           ))}
         </Card>
@@ -380,12 +366,12 @@ export default function HomeClient({ news }: { news: News[] }) {
         {topCompanies.length ? (
           <table className="home-table" style={{ width: '100%', borderCollapse: 'collapse' }}>
             <thead>
-              <tr style={{ fontSize: 10.5, color: 'var(--ink4)', textAlign: 'start' }}>
-                <th style={{ textAlign: 'start', fontWeight: 600, padding: '6px 16px' }}>الشركة</th>
-                <th style={{ textAlign: 'end', fontWeight: 600, padding: '6px 8px' }}>السعر</th>
-                <th style={{ textAlign: 'end', fontWeight: 600, padding: '6px 8px' }}>التغيّر</th>
-                <th className="mobcol-hide" style={{ textAlign: 'end', fontWeight: 600, padding: '6px 8px' }}>الحجم</th>
-                <th className="mobcol-hide" style={{ textAlign: 'end', fontWeight: 600, padding: '6px 16px' }}>القيمة السوقية</th>
+              <tr style={{ fontSize: 11, color: 'var(--ink3)', textAlign: 'start' }}>
+                <th style={{ textAlign: 'start', fontWeight: 700, padding: '6px 16px' }}>الشركة</th>
+                <th style={{ textAlign: 'end', fontWeight: 700, padding: '6px 8px' }}>السعر</th>
+                <th style={{ textAlign: 'end', fontWeight: 700, padding: '6px 8px' }}>نسبة التغير</th>
+                <th className="mobcol-hide" style={{ textAlign: 'end', fontWeight: 700, padding: '6px 8px' }}>حجم التداول</th>
+                <th className="mobcol-hide" style={{ textAlign: 'end', fontWeight: 700, padding: '6px 16px' }}>القيمة السوقية</th>
               </tr>
             </thead>
             <tbody>
@@ -396,14 +382,14 @@ export default function HomeClient({ news }: { news: News[] }) {
                       <MiniLogo sym={co.sym} logo={co.logo} size={22} />
                       <span style={{ minWidth: 0 }} className="home-col-co">
                         <span style={{ display: 'block', fontSize: 12.5, fontWeight: 700, color: 'var(--ink)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{co.ar || co.en || co.sym}</span>
-                        <span style={{ display: 'block', fontSize: 10, color: 'var(--ink4)', fontFamily: 'var(--font-mono)' }}>{co.sym}</span>
+                        <span style={{ display: 'block', fontSize: 10, color: 'var(--ink4)', fontWeight: 600, fontFamily: 'var(--font-mono)' }}>{co.sym}</span>
                       </span>
                     </Link>
                   </td>
                   <td style={{ textAlign: 'end', padding: '8px', fontSize: 12.5, fontWeight: 700, fontFamily: 'var(--font-mono)', color: 'var(--ink)' }}>{co.close.toFixed(2)}</td>
                   <td style={{ textAlign: 'end', padding: '8px', fontSize: 12, fontWeight: 700, fontFamily: 'var(--font-mono)', color: tone(co.pct) }}>{fmtPct(co.pct)}</td>
-                  <td className="mobcol-hide" style={{ textAlign: 'end', padding: '8px', fontSize: 12, fontFamily: 'var(--font-mono)', color: 'var(--ink3)' }}>{fmtBig(co.vol)}</td>
-                  <td className="mobcol-hide" style={{ textAlign: 'end', padding: '8px 16px', fontSize: 12, fontFamily: 'var(--font-mono)', color: 'var(--ink3)' }}>{fmtBig(liveMcap(co))}</td>
+                  <td className="mobcol-hide" style={{ textAlign: 'end', padding: '8px', fontSize: 12, fontWeight: 600, fontFamily: 'var(--font-mono)', color: 'var(--ink2)' }}>{fmtBig(co.vol)}</td>
+                  <td className="mobcol-hide" style={{ textAlign: 'end', padding: '8px 16px', fontSize: 12, fontWeight: 600, fontFamily: 'var(--font-mono)', color: 'var(--ink2)' }}>{fmtMcap(liveMcap(co))}</td>
                 </tr>
               ))}
             </tbody>
@@ -414,7 +400,7 @@ export default function HomeClient({ news }: { news: News[] }) {
         </Link>
       </Card>
 
-      <p style={{ fontSize: 11, color: 'var(--ink5)', marginTop: 16, textAlign: 'center' }}>
+      <p style={{ fontSize: 11, color: 'var(--ink5)', fontWeight: 600, marginTop: 16, textAlign: 'center' }}>
         البيانات من نشرات التداول الرسمية لبورصة العراق، تُحدَّث يومياً · القيمة السوقية والمكرر تقريبية
       </p>
     </div>
