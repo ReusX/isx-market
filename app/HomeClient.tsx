@@ -1,505 +1,369 @@
 'use client'
 
-import { useEffect, useState, useMemo, useRef } from 'react'
-import { useRouter } from 'next/navigation'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import Link from 'next/link'
-import Image from 'next/image'
 import { useApp } from '@/context/AppContext'
-import {
-  fetchLive, fetchCompanyMeta, mergeCompanies,
-  fmtVol, fmtMcap, SECTORS,
-} from '@/lib/market'
+import { fetchLive, fetchCompanyMeta, mergeCompanies, SECTORS } from '@/lib/market'
+import { usePortfolio, aggregate, totals, fmtIQD } from '@/lib/portfolio'
 import type { Company } from '@/types'
 
-// ── Helpers ──────────────────────────────────────────────────────────────────
-function fmtPrice(v: number) { return v.toFixed(3) }
-function fmtPE(v: number | undefined) {
-  if (v == null || !isFinite(v)) return '—'
-  return v >= 100 ? Math.round(v).toString() : v.toFixed(1)
+type News = { slug: string; title: string; date: string }
+type IndexRow = { date: string; isx60: number; total_value: number | null; total_volume: number | null; total_trades: number | null; traded_companies: number | null; listed_companies: number | null }
+type Breadth = { advancers: number; decliners: number; unchanged: number }
+type Flow = { ticker: string; side: 'buy' | 'sell'; value: number }
+
+// ── format helpers ────────────────────────────────────────────────────────────
+const fmtBig = (v: number | null | undefined) => {
+  if (v == null) return '—'
+  const a = Math.abs(v)
+  if (a >= 1e9) return (v / 1e9).toFixed(2) + ' مليار'
+  if (a >= 1e6) return (v / 1e6).toFixed(1) + ' مليون'
+  if (a >= 1e3) return Math.round(v).toLocaleString('en')
+  return String(Math.round(v))
 }
+const fmtPct = (v: number) => `${v >= 0 ? '+' : '−'}${Math.abs(v).toFixed(2)}%`
+const tone = (v: number) => (v > 0 ? 'var(--up)' : v < 0 ? 'var(--dn)' : 'var(--ink3)')
+const sectorAr = (id: string) => SECTORS.find(s => s.id === id)?.ar ?? id
 
-// ── ISX60 compact chart ───────────────────────────────────────────────────────
-function ISX60Chart() {
-  const ref    = useRef<HTMLDivElement>(null)
-  const [val, setVal] = useState<string>('—')
-  const [pct, setPct] = useState<number>(0)
-
+// ── ISX60 sparkline (lightweight-charts area) ─────────────────────────────────
+function Sparkline({ data, up }: { data: { time: string; value: number }[]; up: boolean }) {
+  const ref = useRef<HTMLDivElement>(null)
   useEffect(() => {
-    if (!ref.current) return
-    let chart: any = null
-    let ro: ResizeObserver | null = null
-
+    if (!ref.current || data.length < 2) return
+    let chart: any = null, ro: ResizeObserver | null = null
     ;(async () => {
       const LC = await import('lightweight-charts')
-      const { createClient } = await import('@/lib/supabase/client')
-
-      const { data: rows } = await createClient()
-        .from('daily_index')
-        .select('date,isx60')
-        .not('isx60', 'is', null)
-        .order('date')
-        .gte('date', new Date(Date.now() - 365 * 86400 * 1000).toISOString().slice(0, 10))
-
-      const data = (rows ?? []).map(r => ({ time: r.date as any, value: r.isx60 as number }))
-      if (!data.length || !ref.current) return
-
-      const last = data[data.length - 1].value
-      const prev = data.length > 1 ? data[data.length - 2].value : last
-      const dp   = prev ? ((last - prev) / prev) * 100 : 0
-      setVal(last.toFixed(2))
-      setPct(dp)
-      const up = last >= data[0].value
-      const color = up ? '#22C55E' : '#EF4444'
-
+      if (!ref.current) return
+      const color = up ? '#22C55E' : '#EF5350'
       chart = LC.createChart(ref.current, {
-        width:  ref.current.clientWidth,
-        height: ref.current.clientHeight,
+        width: ref.current.clientWidth, height: ref.current.clientHeight,
         layout: { background: { color: 'transparent' }, textColor: 'transparent' },
-        grid:   { vertLines: { visible: false }, horzLines: { visible: false } },
-        crosshair: { mode: LC.CrosshairMode.Hidden ?? 0 },
-        rightPriceScale: { visible: false },
-        leftPriceScale:  { visible: false },
-        timeScale: { visible: false },
-        handleScroll: false,
-        handleScale:  false,
+        grid: { vertLines: { visible: false }, horzLines: { visible: false } },
+        crosshair: { mode: LC.CrosshairMode?.Hidden ?? 0 },
+        rightPriceScale: { visible: false }, leftPriceScale: { visible: false },
+        timeScale: { visible: false }, handleScroll: false, handleScale: false,
       })
-
       const area = chart.addAreaSeries({
-        lineColor:   color,
-        topColor:    color + '30',
-        bottomColor: color + '00',
-        lineWidth:   2,
-        priceLineVisible: false,
-        lastValueVisible: false,
-        crosshairMarkerVisible: false,
+        lineColor: color, topColor: color + '33', bottomColor: color + '00',
+        lineWidth: 2, priceLineVisible: false, lastValueVisible: false, crosshairMarkerVisible: false,
       })
       area.setData(data)
       chart.timeScale().fitContent()
-
-      ro = new ResizeObserver(() => {
-        if (chart && ref.current)
-          chart.applyOptions({ width: ref.current.clientWidth, height: ref.current.clientHeight })
-      })
+      ro = new ResizeObserver(() => chart && ref.current && chart.applyOptions({ width: ref.current.clientWidth, height: ref.current.clientHeight }))
       ro.observe(ref.current)
     })()
-
     return () => { ro?.disconnect(); chart?.remove() }
-  }, [])
+  }, [data, up])
+  return <div ref={ref} style={{ width: '100%', height: 60 }} />
+}
 
-  const up = pct >= 0
-
+// ── small atoms ───────────────────────────────────────────────────────────────
+function Card({ children, style }: { children: React.ReactNode; style?: React.CSSProperties }) {
+  return <div style={{ background: 'var(--surf)', border: '1px solid var(--line)', borderRadius: 'var(--r-lg)', padding: 16, ...style }}>{children}</div>
+}
+function SectionTitle({ title, href, action }: { title: string; href?: string; action?: string }) {
   return (
-    <div style={{
-      flex: 1, display: 'flex', alignItems: 'stretch', gap: 0,
-      background: 'var(--surf2)', border: '1px solid var(--line)',
-      borderRadius: 8, overflow: 'hidden', minWidth: 0,
-    }}>
-      {/* Left: label + value */}
-      <div style={{
-        padding: '8px 14px', display: 'flex', flexDirection: 'column',
-        justifyContent: 'center', gap: 2, flexShrink: 0,
-        borderInlineEnd: '1px solid var(--line)',
-      }}>
-        <div style={{ fontSize: 9, fontWeight: 700, color: 'var(--ink3)', letterSpacing: '0.06em', textTransform: 'uppercase' }}>
-          مؤشر ISX60
-        </div>
-        <div style={{ fontFamily: 'var(--font-mono)', fontSize: 20, fontWeight: 800, color: 'var(--ink)', lineHeight: 1 }}>
-          {val}
-        </div>
-        <div style={{
-          fontSize: 11, fontWeight: 700,
-          color: up ? 'var(--up)' : 'var(--dn)',
-          display: 'flex', alignItems: 'center', gap: 2,
-        }}>
-          <svg width="7" height="7" viewBox="0 0 8 8" fill="currentColor">
-            {up ? <polygon points="4,1 7,6 1,6" /> : <polygon points="4,7 7,2 1,2" />}
-          </svg>
-          {Math.abs(pct).toFixed(2)}%
-        </div>
-      </div>
-
-      {/* Right: chart canvas */}
-      <div ref={ref} style={{ flex: 1, minWidth: 0, minHeight: 70 }} />
+    <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 10 }}>
+      <h2 style={{ fontSize: 14, fontWeight: 800, margin: 0, color: 'var(--ink)' }}>{title}</h2>
+      {href && <Link href={href} style={{ fontSize: 11.5, color: 'var(--brand)', fontWeight: 600 }}>{action ?? 'عرض الكل'} ←</Link>}
     </div>
   )
 }
-
-// ── Company logo ─────────────────────────────────────────────────────────────
-function CoLogo({ sym, logo, size = 26 }: { sym: string; logo?: string; size?: number }) {
+function MiniLogo({ sym, logo, size = 24 }: { sym: string; logo?: string; size?: number }) {
   const [err, setErr] = useState(false)
   const src = !err ? (logo || `https://isc.gov.iq/Uploads/Companies/${sym}.png`) : null
-  if (src) {
-    return (
-      <Image src={src} alt={sym} width={size} height={size} loading="lazy"
-        sizes={`${size * 2}px`}
-        style={{ borderRadius: 4, objectFit: 'contain', background: '#fff', padding: 1, flexShrink: 0 }}
-        onError={() => setErr(true)}
-      />
-    )
-  }
+  if (src) return <img src={src} alt="" width={size} height={size} loading="lazy" onError={() => setErr(true)} style={{ borderRadius: 5, objectFit: 'contain', background: '#fff', padding: 1, flexShrink: 0 }} />
+  return <div style={{ width: size, height: size, borderRadius: 5, flexShrink: 0, background: 'var(--surf3)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 8, fontWeight: 800, color: 'var(--ink3)' }}>{sym.slice(0, 3)}</div>
+}
+function CoRow({ co, right }: { co: Company; right: React.ReactNode }) {
   return (
-    <div style={{
-      width: size, height: size, borderRadius: 4, flexShrink: 0,
-      background: 'var(--surf3)',
-      display: 'flex', alignItems: 'center', justifyContent: 'center',
-      fontSize: 8, fontWeight: 800, color: 'var(--ink3)',
-    }}>
-      {sym.slice(0, 3)}
-    </div>
+    <Link href={`/c/${co.sym}`} style={{ display: 'flex', alignItems: 'center', gap: 9, padding: '8px 0', borderBottom: '1px solid var(--line)', textDecoration: 'none' }}>
+      <MiniLogo sym={co.sym} logo={co.logo} />
+      <div style={{ minWidth: 0, flex: 1 }}>
+        <div style={{ fontSize: 12.5, fontWeight: 700, color: 'var(--ink)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{co.ar || co.en || co.sym}</div>
+        <div style={{ fontSize: 10.5, color: 'var(--ink4)', fontFamily: 'var(--font-mono)' }}>{co.sym}</div>
+      </div>
+      {right}
+    </Link>
   )
 }
 
-// ── Change badge ─────────────────────────────────────────────────────────────
-function ChangeBadge({ val }: { val: number }) {
-  const up = val >= 0
-  return (
-    <span style={{
-      display: 'inline-flex', alignItems: 'center', gap: 2,
-      fontSize: 12, fontWeight: 700, fontFamily: 'var(--font-mono)',
-      color: up ? 'var(--up)' : 'var(--dn)',
-    }}>
-      <svg width="7" height="7" viewBox="0 0 8 8" fill="currentColor">
-        {up ? <polygon points="4,1 7,6 1,6" /> : <polygon points="4,7 7,2 1,2" />}
-      </svg>
-      {Math.abs(val).toFixed(2)}%
-    </span>
-  )
-}
-
-// ── Sortable column header ────────────────────────────────────────────────────
-type SortKey = 'close' | 'pct' | 'mcap' | 'vol' | 'pe'
-
-function SortTh({ label, col, sort, dir, onSort, className }: {
-  label: string; col: SortKey; sort: SortKey | null; dir: 'asc' | 'desc';
-  onSort: (col: SortKey) => void; className?: string;
-}) {
-  const active = sort === col
-  return (
-    <th className={className} onClick={() => onSort(col)} style={{
-      padding: '0 14px', height: 38, textAlign: 'end',
-      fontSize: 11.5, fontWeight: 700, letterSpacing: '0.01em',
-      color: active ? 'var(--brand)' : 'var(--ink3)',
-      cursor: 'pointer', userSelect: 'none', whiteSpace: 'nowrap',
-      background: 'var(--surf2)', borderBottom: '1px solid var(--line)',
-      position: 'sticky', top: 0, zIndex: 1, transition: 'color 0.15s',
-    }}>
-      {active && <span style={{ marginInlineEnd: 3, fontSize: 9 }}>{dir === 'asc' ? '▲' : '▼'}</span>}
-      {label}
-    </th>
-  )
-}
-
-
-// ── Main ─────────────────────────────────────────────────────────────────────
-export default function HomeClient() {
-  const { watchlist, toggleWatchlist } = useApp()
-  const router = useRouter()
+// ── main ──────────────────────────────────────────────────────────────────────
+export default function HomeClient({ news }: { news: News[] }) {
+  const { user, openAuth } = useApp()
+  const { lots } = usePortfolio()
 
   const [companies, setCompanies] = useState<Company[]>([])
-  const [loading, setLoading] = useState(true)
-  const [sector, setSector] = useState('all')
-  const [query, setQuery] = useState('')
-  const [sortCol, setSortCol] = useState<SortKey | null>('mcap')
-  const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc')
-  // latest market breadth from our own /pulse data (refreshed daily by the cron)
-  const [breadth, setBreadth] = useState<{ advancers: number; decliners: number; unchanged: number } | null>(null)
+  const [series, setSeries]   = useState<{ time: string; value: number }[]>([])
+  const [index, setIndex]     = useState<IndexRow | null>(null)
+  const [prevIsx, setPrevIsx] = useState<number | null>(null)
+  const [breadth, setBreadth] = useState<Breadth | null>(null)
+  const [peMap, setPeMap]     = useState<Record<string, number>>({})
+  const [flow, setFlow]       = useState<Flow[]>([])
+  const [moversTab, setMoversTab] = useState<'gainers' | 'losers' | 'active'>('gainers')
+
+  // prices + companies
   useEffect(() => {
     Promise.all([fetchLive(), fetchCompanyMeta()])
-      .then(([live, meta]) => {
-        setCompanies(mergeCompanies(meta, live.stocks))
-      })
-      .finally(() => setLoading(false))
+      .then(([live, meta]) => setCompanies(mergeCompanies(meta, live.stocks)))
+      .catch(() => {})
   }, [])
+
+  // index series + breadth + foreign flow
   useEffect(() => {
     ;(async () => {
       const { createClient } = await import('@/lib/supabase/client')
-      const { data } = await createClient()
-        .from('breadth_daily')
-        .select('advancers,decliners,unchanged')
-        .order('date', { ascending: false })
-        .limit(1)
-      if (data?.[0]) setBreadth(data[0] as any)
+      const sb = createClient()
+      const since = new Date(Date.now() - 180 * 86400_000).toISOString().slice(0, 10)
+      const [{ data: idx }, { data: br }, { data: ff }] = await Promise.all([
+        sb.from('daily_index').select('date,isx60,total_value,total_volume,total_trades,traded_companies,listed_companies').not('isx60', 'is', null).gte('date', since).order('date'),
+        sb.from('breadth_daily').select('advancers,decliners,unchanged').order('date', { ascending: false }).limit(1),
+        sb.from('foreign_flow_company_daily').select('date,ticker,side,value').order('date', { ascending: false }).limit(40),
+      ])
+      const rows = (idx ?? []) as IndexRow[]
+      if (rows.length) {
+        setSeries(rows.map(r => ({ time: r.date, value: r.isx60 })))
+        setIndex(rows[rows.length - 1])
+        setPrevIsx(rows.length > 1 ? rows[rows.length - 2].isx60 : rows[rows.length - 1].isx60)
+      }
+      if (br?.[0]) setBreadth(br[0] as Breadth)
+      if (ff?.length) {
+        const latest = (ff as any[])[0].date
+        setFlow((ff as any[]).filter(r => r.date === latest).map(r => ({ ticker: r.ticker, side: r.side, value: r.value })))
+      }
     })()
   }, [])
-  // TTM P/E: fetches net_income + paid_capital for Q1_2026, Annual_2025, Q4_2025, Q1_2025
-  const [peMap, setPeMap] = useState<Record<string, number>>({})
+
+  // TTM P/E
   useEffect(() => {
+    if (!companies.length) return
     ;(async () => {
       const { createClient } = await import('@/lib/supabase/client')
       const { fetchTtmPe } = await import('@/lib/fundamentals')
-      const sb = createClient()
-      // price map from current companies state
       const prices: Record<string, number> = {}
       for (const c of companies) if (c.close > 0) prices[c.sym] = c.close
       if (!Object.keys(prices).length) return
-      const results = await fetchTtmPe(sb, prices)
+      const res = await fetchTtmPe(createClient(), prices)
       const m: Record<string, number> = {}
-      for (const [sym, r] of Object.entries(results)) m[sym] = r.pe
+      for (const [s, r] of Object.entries(res)) m[s] = r.pe
       setPeMap(m)
     })()
   }, [companies])
 
-  const handleSort = (col: SortKey) => {
-    if (sortCol === col) setSortDir(d => d === 'asc' ? 'desc' : 'asc')
-    else { setSortCol(col); setSortDir('desc') }
-  }
+  const active = useMemo(() => companies.filter(c => c.close > 0), [companies])
+  const coBy   = useMemo(() => new Map(active.map(c => [c.sym, c])), [active])
 
-  const rows = useMemo(() => {
-    let list = companies.filter(c => c.close > 0)
-    if (sector !== 'all') list = list.filter(c => c.sec === sector)
-    if (query.trim()) {
-      const q = query.trim().toLowerCase()
-      list = list.filter(c =>
-        c.sym.toLowerCase().includes(q) ||
-        (c.ar || '').includes(query.trim()) ||
-        (c.en || '').toLowerCase().includes(q)
-      )
-    }
-    if (sortCol) {
-      list = [...list].sort((a, b) => {
-        const get = (c: Company) => sortCol === 'pe' ? (peMap[c.sym] ?? null) : (((c as any)[sortCol]) ?? null)
-        const av = get(a), bv = get(b)
-        // rows with no value for this column always sort to the bottom
-        if (av == null && bv == null) return 0
-        if (av == null) return 1
-        if (bv == null) return -1
-        return sortDir === 'asc' ? av - bv : bv - av
-      })
-    }
-    return list
-  }, [companies, sector, query, sortCol, sortDir, peMap])
+  const isxChange = index && prevIsx ? ((index.isx60 - prevIsx) / prevIsx) * 100 : 0
+  const isxUp = isxChange >= 0
 
-  const stats = useMemo(() => {
-    const active = companies.filter(c => c.close > 0)
-    return {
-      gainers: active.filter(c => c.pct > 0).length,
-      losers:  active.filter(c => c.pct < 0).length,
-      flat:    active.filter(c => c.pct === 0).length,
-      totalMcap: active.reduce((s, c) => s + (c.mcap ?? 0), 0),
-    }
-  }, [companies])
+  const movers = useMemo(() => {
+    if (moversTab === 'gainers') return [...active].filter(c => c.pct > 0).sort((a, b) => b.pct - a.pct).slice(0, 6)
+    if (moversTab === 'losers')  return [...active].filter(c => c.pct < 0).sort((a, b) => a.pct - b.pct).slice(0, 6)
+    return [...active].sort((a, b) => (b.vol ?? 0) - (a.vol ?? 0)).slice(0, 6)
+  }, [active, moversTab])
+
+  const tape = useMemo(() => [...active].sort((a, b) => Math.abs(b.pct) - Math.abs(a.pct)).slice(0, 14), [active])
+
+  const cheap = useMemo(() => {
+    return Object.entries(peMap).filter(([, pe]) => pe > 0).sort((a, b) => a[1] - b[1]).slice(0, 5)
+      .map(([sym, pe]) => ({ co: coBy.get(sym), pe })).filter(x => x.co) as { co: Company; pe: number }[]
+  }, [peMap, coBy])
+
+  const foreign = useMemo(() => {
+    const net = new Map<string, number>()
+    for (const f of flow) net.set(f.ticker, (net.get(f.ticker) ?? 0) + (f.side === 'buy' ? f.value : -f.value))
+    return Array.from(net.entries()).map(([ticker, v]) => ({ ticker, v })).sort((a, b) => Math.abs(b.v) - Math.abs(a.v)).slice(0, 5)
+  }, [flow])
+
+  const sectorPerf = useMemo(() => {
+    const m = new Map<string, { sum: number; n: number }>()
+    for (const c of active) { const e = m.get(c.sec) ?? { sum: 0, n: 0 }; e.sum += c.pct; e.n++; m.set(c.sec, e) }
+    return Array.from(m.entries()).map(([sec, e]) => ({ sec, avg: e.sum / e.n })).filter(x => x.sec).sort((a, b) => b.avg - a.avg)
+  }, [active])
+
+  // portfolio snapshot (today's move)
+  const port = useMemo(() => {
+    if (!lots.length) return null
+    const prices: Record<string, number> = {}
+    for (const c of active) prices[c.sym] = c.close
+    const holdings = aggregate(lots, prices)
+    if (!holdings.length) return null
+    const t = totals(holdings)
+    let today = 0
+    for (const h of holdings) { const c = coBy.get(h.sym); if (c) today += h.qty * (c.change ?? 0) }
+    const todayPct = t.value - today > 0 ? (today / (t.value - today)) * 100 : 0
+    return { value: t.value, pl: t.pl, plPct: t.plPct, today, todayPct, n: holdings.length }
+  }, [lots, active, coBy])
+
+  const updated = index?.date ? index.date.split('-').reverse().join('/') : '—'
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: 'calc(100dvh - 52px)' }}>
+    <div style={{ maxWidth: 1180, margin: '0 auto', padding: '16px 16px 80px' }}>
 
-      {/* ── Market summary strip ── */}
-      <div style={{
-        padding: '8px 16px', flexShrink: 0,
-        borderBottom: '1px solid var(--line)',
-        display: 'flex', alignItems: 'center', gap: 8,
-        background: 'var(--surf)',
-      }}>
-        {/* Gainers / Losers / Flat — from our own breadth (/pulse), click to open */}
-        <Link href="/pulse" title="نبض السوق" style={{ display: 'flex', alignItems: 'center', gap: 8, textDecoration: 'none', flexShrink: 0 }}>
-          {[
-            { label: 'رابح',   count: breadth ? breadth.advancers : stats.gainers, color: 'var(--up)', bg: 'var(--up-s)', border: 'rgba(22,163,74,0.2)' },
-            { label: 'خاسر',   count: breadth ? breadth.decliners : stats.losers,  color: 'var(--dn)', bg: 'var(--dn-s)', border: 'rgba(220,38,38,0.2)' },
-            { label: 'مستقر',  count: breadth ? breadth.unchanged : stats.flat,    color: 'var(--ink3)', bg: 'var(--surf2)', border: 'var(--line)' },
-          ].map(s => (
-            <div key={s.label} style={{
-              display: 'flex', alignItems: 'center', gap: 5,
-              padding: '4px 10px', background: s.bg,
-              border: `1px solid ${s.border}`, borderRadius: 7, flexShrink: 0,
-            }}>
-              <span style={{ fontSize: 11, color: s.color, fontWeight: 700 }}>{s.label}</span>
-              <span style={{ fontSize: 14, fontWeight: 800, color: s.color, fontFamily: 'var(--font-mono)' }}>
-                {s.count}
-              </span>
-            </div>
-          ))}
-        </Link>
-
-        {/* ISX60 chart — click to open full chart page */}
-        <Link href="/charts" style={{ flex: 1, display: 'flex', minWidth: 0, textDecoration: 'none' }}>
-          <ISX60Chart />
-        </Link>
-      </div>
-
-      {/* ── Toolbar ── */}
-      <div style={{
-        padding: '8px 16px', flexShrink: 0,
-        borderBottom: '1px solid var(--line)',
-        display: 'flex', alignItems: 'center', gap: 8,
-        background: 'var(--bg)',
-      }}>
-        {/* Sector chips — single horizontal scroll row */}
-        <div className="chip-scroll" style={{
-          display: 'flex', alignItems: 'center', gap: 6,
-          overflowX: 'auto', flex: 1, minWidth: 0,
-        }}>
-          {SECTORS.map(s => (
-            <button key={s.id} onClick={() => setSector(s.id)} style={{
-              padding: '5px 12px', borderRadius: 8, fontSize: 12.5, fontWeight: 700,
-              border: sector === s.id ? '1px solid var(--brand)' : '1px solid var(--line)',
-              background: sector === s.id ? 'var(--brand-soft)' : 'transparent',
-              color: sector === s.id ? 'var(--brand)' : 'var(--ink2)',
-              cursor: 'pointer', transition: 'all 0.12s', whiteSpace: 'nowrap', flexShrink: 0,
-            }}>
-              {s.ar}
-            </button>
-          ))}
-        </div>
-        <input
-          value={query}
-          onChange={e => setQuery(e.target.value)}
-          placeholder="بحث..."
-          style={{
-            width: 130, flexShrink: 0, height: 32, borderRadius: 8,
-            background: 'var(--surf2)', border: '1px solid var(--line)',
-            color: 'var(--ink)', fontSize: 12.5, padding: '0 10px',
-            outline: 'none', fontFamily: 'inherit', direction: 'rtl',
-          }}
-          onFocus={e => e.currentTarget.style.borderColor = 'var(--brand)'}
-          onBlur={e => e.currentTarget.style.borderColor = 'var(--line)'}
-        />
-        <span className="desktop-only" style={{ fontSize: 11, color: 'var(--ink3)', whiteSpace: 'nowrap' }}>
-          {rows.length} شركة
-        </span>
-      </div>
-
-      {/* ── Table ── */}
-      <div style={{ flex: 1, overflow: 'auto' }}>
-        {loading ? (
-          <div style={{
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            height: 200, color: 'var(--ink3)', fontSize: 13,
-          }}>
-            جارٍ تحميل البيانات...
+      {/* ── Ticker tape ── */}
+      {tape.length > 0 && (
+        <div className="ticker-mask" style={{ overflow: 'hidden', borderBottom: '1px solid var(--line)', margin: '-16px -16px 16px', padding: '8px 16px', background: 'var(--surf)' }}>
+          <div className="ticker-track">
+            {[...tape, ...tape].map((c, i) => (
+              <Link key={i} href={`/c/${c.sym}`} style={{ fontSize: 12, color: 'var(--ink3)', textDecoration: 'none' }}>
+                <span style={{ fontFamily: 'var(--font-mono)', color: 'var(--ink2)', fontWeight: 700 }}>{c.sym}</span>{' '}
+                {c.close.toFixed(2)} <span style={{ color: tone(c.pct), fontWeight: 700 }}>{c.pct >= 0 ? '▲' : '▼'}{Math.abs(c.pct).toFixed(1)}%</span>
+              </Link>
+            ))}
           </div>
-        ) : (
-          <table className="home-table" style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
-            <thead>
-              <tr>
-                {/* Star */}
-                <th style={{
-                  width: 34, padding: '0 8px', height: 36,
-                  background: 'var(--surf2)', borderBottom: '1px solid var(--line)',
-                  position: 'sticky', top: 0, zIndex: 1,
-                }} />
-                {/* Company */}
-                <th className="home-col-co" style={{
-                  padding: '0 14px', height: 36, textAlign: 'start',
-                  fontSize: 11, fontWeight: 700, color: 'var(--ink3)',
-                  background: 'var(--surf2)', borderBottom: '1px solid var(--line)',
-                  position: 'sticky', top: 0, zIndex: 1, whiteSpace: 'nowrap',
-                  minWidth: 180,
-                }}>
-                  الشركة
-                </th>
-                <SortTh label="السعر"           col="close" sort={sortCol} dir={sortDir} onSort={handleSort} />
-                <SortTh label="التغيير%"        col="pct"   sort={sortCol} dir={sortDir} onSort={handleSort} />
-                <SortTh label="القيمة السوقية"  col="mcap"  sort={sortCol} dir={sortDir} onSort={handleSort} className="mobcol-hide" />
-                <SortTh label="الحجم"           col="vol"   sort={sortCol} dir={sortDir} onSort={handleSort} className="mobcol-hide" />
-                <SortTh label="مكرر الربحية"     col="pe"    sort={sortCol} dir={sortDir} onSort={handleSort} className="mobcol-hide" />
-                {/* Sector */}
-                <th className="mobcol-hide" style={{
-                  padding: '0 14px', height: 36, textAlign: 'start',
-                  fontSize: 11, fontWeight: 700, color: 'var(--ink3)',
-                  background: 'var(--surf2)', borderBottom: '1px solid var(--line)',
-                  position: 'sticky', top: 0, zIndex: 1, whiteSpace: 'nowrap',
-                  minWidth: 80,
-                }}>
-                  القطاع
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {rows.map((co, i) => {
-                const inWl = watchlist.includes(co.sym)
-                return (
-                  <tr
-                    key={co.sym}
-                    onClick={() => router.push(`/c/${co.sym}`)}
-                    style={{
-                      cursor: 'pointer',
-                      background: i % 2 === 0 ? 'transparent' : 'rgba(255,255,255,0.013)',
-                      borderBottom: '1px solid rgba(255,255,255,0.04)',
-                    }}
-                    onMouseEnter={e => (e.currentTarget.style.background = 'var(--surf2)')}
-                    onMouseLeave={e => (e.currentTarget.style.background = i % 2 === 0 ? 'transparent' : 'rgba(255,255,255,0.013)')}
-                  >
-                    <td style={{ width: 34, padding: '0 8px', textAlign: 'center' }}>
-                      <button
-                        onClick={e => { e.stopPropagation(); toggleWatchlist(co.sym) }}
-                        style={{
-                          background: 'none', border: 'none', padding: 0, cursor: 'pointer',
-                          fontSize: 12, color: inWl ? 'var(--gold)' : 'var(--ink4)', lineHeight: 1,
-                        }}
-                      >
-                        {inWl ? '★' : '☆'}
-                      </button>
-                    </td>
+        </div>
+      )}
 
-                    {/* Company cell */}
-                    <td className="home-col-co" style={{ padding: '0 14px', minWidth: 180 }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 8, height: 42 }}>
-                        <CoLogo sym={co.sym} logo={co.logo} />
-                        <div style={{ minWidth: 0 }}>
-                          <div style={{
-                            fontSize: 13, fontWeight: 700, color: 'var(--ink)',
-                            overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-                          }}>
-                            {co.sym}
-                          </div>
-                          <div style={{
-                            fontSize: 11, color: 'var(--ink3)',
-                            overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-                          }}>
-                            {co.ar || co.en || ''}
-                          </div>
-                        </div>
-                      </div>
-                    </td>
+      {/* ── Hero: index + breadth + totals ── */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1.5fr) minmax(0,1fr)', gap: 14, marginBottom: 14 }} className="home-hero">
+        <Card style={{ padding: 18 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
+            <span style={{ fontSize: 12, color: 'var(--ink3)', fontWeight: 700 }}>مؤشر ISX60</span>
+            <span style={{ fontSize: 11, color: 'var(--ink4)' }}>آخر تحديث {updated}</span>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'flex-end', gap: 10, marginTop: 6 }}>
+            <span style={{ fontSize: 30, fontWeight: 800, fontFamily: 'var(--font-mono)', color: 'var(--ink)', lineHeight: 1 }}>{index ? index.isx60.toFixed(2) : '—'}</span>
+            <span style={{ fontSize: 14, fontWeight: 700, color: tone(isxChange) }}>{isxUp ? '▲' : '▼'} {fmtPct(isxChange)}</span>
+          </div>
+          {series.length > 1 && <Sparkline data={series} up={isxUp} />}
+        </Card>
 
-                    <td style={{
-                      padding: '0 14px', textAlign: 'end',
-                      fontFamily: 'var(--font-mono)', fontSize: 13.5, fontWeight: 700, color: 'var(--ink)',
-                    }}>
-                      {fmtPrice(co.close)}
-                    </td>
-
-                    <td style={{ padding: '0 14px', textAlign: 'end' }}>
-                      <ChangeBadge val={co.pct} />
-                    </td>
-
-                    <td className="mobcol-hide" style={{
-                      padding: '0 14px', textAlign: 'end',
-                      fontFamily: 'var(--font-mono)', fontSize: 13, fontWeight: 700, color: 'var(--ink)',
-                    }}>
-                      {fmtMcap(co.mcap)}
-                    </td>
-
-                    <td className="mobcol-hide" style={{
-                      padding: '0 14px', textAlign: 'end',
-                      fontFamily: 'var(--font-mono)', fontSize: 13, fontWeight: 700, color: 'var(--ink2)',
-                    }}>
-                      {fmtVol(co.vol)}
-                    </td>
-
-                    <td className="mobcol-hide" style={{
-                      padding: '0 14px', textAlign: 'end',
-                      fontFamily: 'var(--font-mono)', fontSize: 13, fontWeight: 700,
-                      color: peMap[co.sym] != null ? 'var(--ink)' : 'var(--ink4)',
-                    }}>
-                      {fmtPE(peMap[co.sym])}
-                    </td>
-
-                    <td className="mobcol-hide" style={{ padding: '0 14px' }}>
-                      <span style={{
-                        fontSize: 10, fontWeight: 700, padding: '2px 6px',
-                        background: 'var(--surf3)', borderRadius: 4,
-                        color: 'var(--ink2)', whiteSpace: 'nowrap',
-                      }}>
-                        {SECTORS.find(s => s.id === co.sec)?.ar || co.sec || '—'}
-                      </span>
-                    </td>
-                  </tr>
-                )
-              })}
-            </tbody>
-          </table>
-        )}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+          <Card style={{ padding: 14 }}>
+            <div style={{ fontSize: 11.5, color: 'var(--ink3)', fontWeight: 700, marginBottom: 8 }}>اتساع السوق اليوم</div>
+            {breadth ? (
+              <>
+                <div style={{ display: 'flex', height: 8, borderRadius: 4, overflow: 'hidden' }}>
+                  <div style={{ flex: Math.max(breadth.advancers, 1), background: 'var(--up)' }} />
+                  <div style={{ flex: Math.max(breadth.unchanged, 1), background: 'var(--surf3)' }} />
+                  <div style={{ flex: Math.max(breadth.decliners, 1), background: 'var(--dn)' }} />
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11.5, marginTop: 6, fontFamily: 'var(--font-mono)', fontWeight: 700 }}>
+                  <span style={{ color: 'var(--up)' }}>{breadth.advancers} ▲</span>
+                  <span style={{ color: 'var(--ink4)' }}>{breadth.unchanged} —</span>
+                  <span style={{ color: 'var(--dn)' }}>{breadth.decliners} ▼</span>
+                </div>
+              </>
+            ) : <div className="skeleton" style={{ height: 28 }} />}
+          </Card>
+          <div style={{ display: 'flex', gap: 10 }}>
+            {[
+              { l: 'قيمة التداول', v: fmtBig(index?.total_value) },
+              { l: 'الحجم', v: fmtBig(index?.total_volume) },
+              { l: 'الصفقات', v: index?.total_trades ? Math.round(index.total_trades).toLocaleString('en') : '—' },
+            ].map(s => (
+              <Card key={s.l} style={{ padding: '10px 12px', flex: 1 }}>
+                <div style={{ fontSize: 10, color: 'var(--ink4)', fontWeight: 600 }}>{s.l}</div>
+                <div style={{ fontSize: 14, fontWeight: 800, fontFamily: 'var(--font-mono)', color: 'var(--ink)', marginTop: 3 }}>{s.v}</div>
+              </Card>
+            ))}
+          </div>
+        </div>
       </div>
+
+      {/* ── Portfolio band ── */}
+      {port ? (
+        <Link href="/portfolio" style={{ textDecoration: 'none' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 10, background: 'var(--brand-soft)', border: '1px solid var(--line)', borderRadius: 'var(--r-lg)', padding: '12px 16px', marginBottom: 14 }}>
+            <div style={{ display: 'flex', gap: 22, flexWrap: 'wrap' }}>
+              <div><div style={{ fontSize: 10.5, color: 'var(--ink4)', fontWeight: 600 }}>قيمة محفظتي</div><div style={{ fontSize: 16, fontWeight: 800, fontFamily: 'var(--font-mono)', color: 'var(--ink)' }}>{fmtIQD(port.value)} د.ع</div></div>
+              <div><div style={{ fontSize: 10.5, color: 'var(--ink4)', fontWeight: 600 }}>تغيّر اليوم</div><div style={{ fontSize: 16, fontWeight: 800, fontFamily: 'var(--font-mono)', color: tone(port.today) }}>{port.today >= 0 ? '+' : '−'}{fmtIQD(Math.abs(port.today))}</div></div>
+              <div><div style={{ fontSize: 10.5, color: 'var(--ink4)', fontWeight: 600 }}>إجمالي العائد</div><div style={{ fontSize: 16, fontWeight: 800, fontFamily: 'var(--font-mono)', color: tone(port.pl) }}>{fmtPct(port.plPct)}</div></div>
+            </div>
+            <span style={{ fontSize: 12, color: 'var(--brand)', fontWeight: 700 }}>إدارة المحفظة ←</span>
+          </div>
+        </Link>
+      ) : (
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 10, background: 'var(--brand-soft)', border: '1px solid var(--line)', borderRadius: 'var(--r-lg)', padding: '12px 16px', marginBottom: 14 }}>
+          <div>
+            <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--ink)' }}>تابع محفظتك لحظياً</div>
+            <div style={{ fontSize: 11.5, color: 'var(--ink3)' }}>أرباحك، توزيعك، وتنبيهات الأسعار في مكان واحد</div>
+          </div>
+          <div style={{ display: 'flex', gap: 8 }}>
+            <Link href="/portfolio" style={{ fontSize: 12.5, fontWeight: 700, background: 'var(--brand)', color: '#fff', padding: '8px 14px', borderRadius: 'var(--r-md)', textDecoration: 'none' }}>أنشئ محفظتك</Link>
+            {!user && <button onClick={() => openAuth('signin')} style={{ fontSize: 12.5, fontWeight: 700, background: 'transparent', color: 'var(--brand)', border: '1px solid var(--brand)', padding: '8px 14px', borderRadius: 'var(--r-md)', cursor: 'pointer', fontFamily: 'inherit' }}>دخول</button>}
+          </div>
+        </div>
+      )}
+
+      {/* ── Movers + Foreign flow ── */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1.3fr) minmax(0,1fr)', gap: 14, marginBottom: 14 }} className="home-2col">
+        <Card>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+            <h2 style={{ fontSize: 14, fontWeight: 800, margin: 0, color: 'var(--ink)' }}>الأكثر حركة</h2>
+            <div style={{ display: 'flex', gap: 4 }}>
+              {([['gainers', 'الرابحون'], ['losers', 'الخاسرون'], ['active', 'الأنشط']] as const).map(([id, lbl]) => (
+                <button key={id} onClick={() => setMoversTab(id)} style={{ fontSize: 11.5, fontWeight: 700, padding: '4px 10px', borderRadius: 'var(--r-sm)', border: 'none', cursor: 'pointer', fontFamily: 'inherit', background: moversTab === id ? 'var(--brand)' : 'transparent', color: moversTab === id ? '#fff' : 'var(--ink3)' }}>{lbl}</button>
+              ))}
+            </div>
+          </div>
+          {active.length ? movers.map(co => (
+            <CoRow key={co.sym} co={co} right={
+              <div style={{ textAlign: 'end' }}>
+                <div style={{ fontSize: 12.5, fontWeight: 700, fontFamily: 'var(--font-mono)', color: 'var(--ink)' }}>{co.close.toFixed(2)}</div>
+                <div style={{ fontSize: 11, fontWeight: 700, color: tone(co.pct) }}>{moversTab === 'active' ? fmtBig(co.vol) : fmtPct(co.pct)}</div>
+              </div>
+            } />
+          )) : <div className="skeleton" style={{ height: 200, marginTop: 8 }} />}
+        </Card>
+
+        <Card>
+          <SectionTitle title="تدفق المستثمر الأجنبي اليوم" href="/statistics/foreign-flow" action="التفاصيل" />
+          {foreign.length ? foreign.map(f => {
+            const co = coBy.get(f.ticker)
+            return (
+              <Link key={f.ticker} href={`/c/${f.ticker}`} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid var(--line)', textDecoration: 'none' }}>
+                <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <MiniLogo sym={f.ticker} logo={co?.logo} size={22} />
+                  <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--ink)' }}>{co?.ar || f.ticker}</span>
+                </span>
+                <span style={{ fontFamily: 'var(--font-mono)', fontSize: 12, fontWeight: 700, color: tone(f.v) }}>{f.v >= 0 ? '+' : '−'}{fmtBig(Math.abs(f.v))}</span>
+              </Link>
+            )
+          }) : <div style={{ fontSize: 12, color: 'var(--ink4)', padding: '20px 0', textAlign: 'center' }}>لا توجد بيانات لليوم</div>}
+        </Card>
+      </div>
+
+      {/* ── Sectors + Value (P/E) ── */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) minmax(0,1fr)', gap: 14, marginBottom: 14 }} className="home-2col">
+        <Card>
+          <SectionTitle title="أداء القطاعات" href="/heatmap" action="الخريطة الحرارية" />
+          {sectorPerf.length ? sectorPerf.slice(0, 6).map(s => (
+            <div key={s.sec} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '6px 0' }}>
+              <span style={{ fontSize: 12, color: 'var(--ink2)', width: 90, flexShrink: 0 }}>{sectorAr(s.sec)}</span>
+              <div style={{ flex: 1, height: 6, background: 'var(--surf3)', borderRadius: 3, position: 'relative', overflow: 'hidden' }}>
+                <div style={{ position: 'absolute', insetInlineStart: '50%', top: 0, bottom: 0, width: `${Math.min(Math.abs(s.avg) * 8, 50)}%`, transform: s.avg >= 0 ? 'none' : 'translateX(-100%)', background: tone(s.avg) }} />
+              </div>
+              <span style={{ fontSize: 11.5, fontWeight: 700, fontFamily: 'var(--font-mono)', color: tone(s.avg), width: 52, textAlign: 'end' }}>{fmtPct(s.avg)}</span>
+            </div>
+          )) : <div className="skeleton" style={{ height: 180 }} />}
+        </Card>
+
+        <Card>
+          <SectionTitle title="الأرخص تقييماً" href="/screener" action="الفارز" />
+          <div style={{ fontSize: 10.5, color: 'var(--ink4)', marginTop: -6, marginBottom: 4 }}>مكرر الربحية (TTM)</div>
+          {cheap.length ? cheap.map(({ co, pe }) => (
+            <CoRow key={co.sym} co={co} right={<span style={{ fontSize: 13, fontWeight: 800, fontFamily: 'var(--font-mono)', color: 'var(--ink)' }}>{pe >= 100 ? Math.round(pe) : pe.toFixed(1)}×</span>} />
+          )) : <div className="skeleton" style={{ height: 180 }} />}
+        </Card>
+      </div>
+
+      {/* ── News ── */}
+      {news.length > 0 && (
+        <Card>
+          <SectionTitle title="أخبار السوق" href="/news" />
+          {news.map(n => (
+            <Link key={n.slug} href={`/news/${n.slug}`} style={{ display: 'flex', gap: 10, padding: '9px 0', borderBottom: '1px solid var(--line)', textDecoration: 'none' }}>
+              <span style={{ fontSize: 11, color: 'var(--ink4)', fontFamily: 'var(--font-mono)', flexShrink: 0, width: 64 }}>{n.date.slice(0, 10).split('-').reverse().slice(0, 2).join('/')}</span>
+              <span style={{ fontSize: 12.5, color: 'var(--ink2)', lineHeight: 1.5 }}>{n.title}</span>
+            </Link>
+          ))}
+        </Card>
+      )}
+
+      <p style={{ fontSize: 11, color: 'var(--ink5)', marginTop: 16, textAlign: 'center' }}>
+        البيانات من نشرات التداول الرسمية لبورصة العراق، تُحدَّث يومياً · القيمة السوقية والمكرر تقريبية
+      </p>
     </div>
   )
 }

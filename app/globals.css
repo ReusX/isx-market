@@ -204,6 +204,14 @@ button { cursor: pointer; font-family: inherit; }
 }
 .skeleton { animation: pulse 1.8s infinite; background: var(--surf3); border-radius: 6px; }
 
+/* ── Ticker tape ── */
+@keyframes ticker-scroll { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+.ticker-track { display: inline-flex; gap: 26px; white-space: nowrap; animation: ticker-scroll 50s linear infinite; }
+.ticker-mask:hover .ticker-track { animation-play-state: paused; }
+@media (max-width: 760px) {
+  .home-hero, .home-2col { grid-template-columns: 1fr !important; }
+}
+
 /* ── WordPress article content ── */
 .wp-content { font-size: 15px; line-height: 1.8; color: var(--ink2); }
 /* Override any WordPress inline color styles that would be invisible on dark bg */
