@@ -29,10 +29,10 @@ const jetbrainsMono = JetBrains_Mono({
 
 export const metadata: Metadata = {
   title: {
-    default: 'Iraq Stock Market ISX — بورصة العراق | اسعار الاسهم العراقية',
-    template: '%s | iraqsm.com',
+    default: 'IQWealth — Iraq Stock Market Intelligence Platform',
+    template: '%s | IQWealth',
   },
-  description: 'Iraq Stock Market & Iraq Stock Exchange (ISX) — live prices, charts, and analysis for all Iraqi stocks. اسعار الاسهم العراقية مباشرة، تحليلات سوق الاسهم العراقي، مؤشر RSISX، اسهم العراق، بورصة العراق للأوراق المالية.',
+  description: 'IQWealth is Iraq’s premier stock market platform, providing real-time ISX quotes, powerful analytics, and seamless portfolio management. اسعار الاسهم العراقية مباشرة، تحليلات سوق الاسهم العراقي، مؤشر ISX60، إدارة المحافظ.',
   metadataBase: new URL('https://iraqsm.com'),
   alternates: {
     canonical: 'https://iraqsm.com',

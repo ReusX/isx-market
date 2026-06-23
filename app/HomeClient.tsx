@@ -30,10 +30,12 @@ function Sparkline({ data, up }: { data: { time: string; value: number }[]; up: 
   const ref = useRef<HTMLDivElement>(null)
   useEffect(() => {
     if (!ref.current || data.length < 2) return
-    let chart: any = null, ro: ResizeObserver | null = null
+    let chart: any = null, ro: ResizeObserver | null = null, cancelled = false
+    // Clear any orphan canvas left by a prior aborted async run
+    ref.current.innerHTML = ''
     ;(async () => {
       const LC = await import('lightweight-charts')
-      if (!ref.current) return
+      if (cancelled || !ref.current) return
       const color = up ? '#22C55E' : '#EF5350'
       chart = LC.createChart(ref.current, {
         width: ref.current.clientWidth, height: ref.current.clientHeight,
@@ -52,7 +54,7 @@ function Sparkline({ data, up }: { data: { time: string; value: number }[]; up: 
       ro = new ResizeObserver(() => chart && ref.current && chart.applyOptions({ width: ref.current.clientWidth, height: ref.current.clientHeight }))
       ro.observe(ref.current)
     })()
-    return () => { ro?.disconnect(); chart?.remove() }
+    return () => { cancelled = true; ro?.disconnect(); chart?.remove() }
   }, [data, up])
   return <div ref={ref} style={{ width: '100%', height: 60 }} />
 }
@@ -163,6 +165,13 @@ export default function HomeClient({ news }: { news: News[] }) {
   }, [active, moversTab])
 
   const tape = useMemo(() => [...active].sort((a, b) => Math.abs(b.pct) - Math.abs(a.pct)).slice(0, 14), [active])
+
+  // live market cap (IQD): close × shares when known, else static fallback
+  const liveMcap = (c: Company) => (c.shares && c.close > 0 ? c.close * c.shares : (c.mcap || 0) * 1e6)
+  const topCompanies = useMemo(
+    () => [...active].sort((a, b) => liveMcap(b) - liveMcap(a)).slice(0, 25),
+    [active],
+  )
 
   const cheap = useMemo(() => {
     return Object.entries(peMap).filter(([, pe]) => pe > 0).sort((a, b) => a[1] - b[1]).slice(0, 5)
@@ -276,7 +285,7 @@ export default function HomeClient({ news }: { news: News[] }) {
       ) : (
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 10, background: 'var(--brand-soft)', border: '1px solid var(--line)', borderRadius: 'var(--r-lg)', padding: '12px 16px', marginBottom: 14 }}>
           <div>
-            <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--ink)' }}>سوِّ حساب وتابع استثماراتك بدقة</div>
+            <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--ink)' }}>سوي حساب وتابع استثماراتك بدقة</div>
             <div style={{ fontSize: 11.5, color: 'var(--ink3)' }}>كل شي تحتاجه كمستثمر بالسوق العراقي بمكان واحد</div>
           </div>
           <div style={{ display: 'flex', gap: 8 }}>
@@ -362,6 +371,48 @@ export default function HomeClient({ news }: { news: News[] }) {
           ))}
         </Card>
       )}
+
+      {/* ── Company list (top 25 by market cap) ── */}
+      <Card style={{ marginTop: 14, padding: 0, overflow: 'hidden' }}>
+        <div style={{ padding: '14px 16px 6px' }}>
+          <SectionTitle title="الشركات المدرجة" href="/market" action="عرض كل الشركات" />
+        </div>
+        {topCompanies.length ? (
+          <table className="home-table" style={{ width: '100%', borderCollapse: 'collapse' }}>
+            <thead>
+              <tr style={{ fontSize: 10.5, color: 'var(--ink4)', textAlign: 'start' }}>
+                <th style={{ textAlign: 'start', fontWeight: 600, padding: '6px 16px' }}>الشركة</th>
+                <th style={{ textAlign: 'end', fontWeight: 600, padding: '6px 8px' }}>السعر</th>
+                <th style={{ textAlign: 'end', fontWeight: 600, padding: '6px 8px' }}>التغيّر</th>
+                <th className="mobcol-hide" style={{ textAlign: 'end', fontWeight: 600, padding: '6px 8px' }}>الحجم</th>
+                <th className="mobcol-hide" style={{ textAlign: 'end', fontWeight: 600, padding: '6px 16px' }}>القيمة السوقية</th>
+              </tr>
+            </thead>
+            <tbody>
+              {topCompanies.map(co => (
+                <tr key={co.sym} style={{ borderTop: '1px solid var(--line)' }}>
+                  <td style={{ padding: '8px 16px' }}>
+                    <Link href={`/c/${co.sym}`} style={{ display: 'flex', alignItems: 'center', gap: 9, textDecoration: 'none', minWidth: 0 }}>
+                      <MiniLogo sym={co.sym} logo={co.logo} size={22} />
+                      <span style={{ minWidth: 0 }} className="home-col-co">
+                        <span style={{ display: 'block', fontSize: 12.5, fontWeight: 700, color: 'var(--ink)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{co.ar || co.en || co.sym}</span>
+                        <span style={{ display: 'block', fontSize: 10, color: 'var(--ink4)', fontFamily: 'var(--font-mono)' }}>{co.sym}</span>
+                      </span>
+                    </Link>
+                  </td>
+                  <td style={{ textAlign: 'end', padding: '8px', fontSize: 12.5, fontWeight: 700, fontFamily: 'var(--font-mono)', color: 'var(--ink)' }}>{co.close.toFixed(2)}</td>
+                  <td style={{ textAlign: 'end', padding: '8px', fontSize: 12, fontWeight: 700, fontFamily: 'var(--font-mono)', color: tone(co.pct) }}>{fmtPct(co.pct)}</td>
+                  <td className="mobcol-hide" style={{ textAlign: 'end', padding: '8px', fontSize: 12, fontFamily: 'var(--font-mono)', color: 'var(--ink3)' }}>{fmtBig(co.vol)}</td>
+                  <td className="mobcol-hide" style={{ textAlign: 'end', padding: '8px 16px', fontSize: 12, fontFamily: 'var(--font-mono)', color: 'var(--ink3)' }}>{fmtBig(liveMcap(co))}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        ) : <div className="skeleton" style={{ height: 300, margin: 16 }} />}
+        <Link href="/market" style={{ display: 'block', textAlign: 'center', padding: '12px', borderTop: '1px solid var(--line)', fontSize: 12.5, fontWeight: 700, color: 'var(--brand)', textDecoration: 'none' }}>
+          عرض جميع الشركات ←
+        </Link>
+      </Card>
 
       <p style={{ fontSize: 11, color: 'var(--ink5)', marginTop: 16, textAlign: 'center' }}>
         البيانات من نشرات التداول الرسمية لبورصة العراق، تُحدَّث يومياً · القيمة السوقية والمكرر تقريبية
