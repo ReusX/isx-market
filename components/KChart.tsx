@@ -1,7 +1,26 @@
 'use client'
 
-import { useEffect, useRef, useState, useCallback } from 'react'
+import { useEffect, useRef, useState, useCallback, type ReactNode } from 'react'
+import { createPortal } from 'react-dom'
 import { compositeWatermark, downloadImage, copyImage } from '@/lib/watermark'
+
+// ── Palette (matches TradingView "dark" theme) ─────────────────────────────────
+const C = {
+  bg:      '#131722',
+  panel:   '#1c2030',
+  border:  '#2a2e39',
+  hover:   '#2a2e39',
+  text:    '#d1d4dc',
+  icon:    '#b2b5be', // brighter idle colour for toolbar buttons (more contrast)
+  muted:   '#787b86',
+  faint:   '#5d606b',
+  accent:  '#2962ff',
+  up:      '#26a69a',
+  down:    '#ef5350',
+  grid:    '#1e222d',
+  cross:   '#9598a1',
+  crossBg: '#363a45',
+}
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 type RawRow = {
@@ -27,12 +46,12 @@ type KlineBar = {
 type TFKey = '1W' | '1M' | '3M' | '1Y' | '5Y' | 'All'
 type PeriodType = 'day' | 'week' | 'month'
 const TF_CONFIG: Record<TFKey, { period: PeriodType; label: string }> = {
-  '1W':  { period: 'day',   label: '1 Week' },
-  '1M':  { period: 'day',   label: '1 Month' },
-  '3M':  { period: 'day',   label: '3 Months' },
-  '1Y':  { period: 'day',   label: '1 Year' },
-  '5Y':  { period: 'week',  label: '5 Years' },
-  'All': { period: 'month', label: 'All' },
+  '1W':  { period: 'day',   label: 'أسبوع' },
+  '1M':  { period: 'day',   label: 'شهر' },
+  '3M':  { period: 'day',   label: '3 أشهر' },
+  '1Y':  { period: 'day',   label: 'سنة' },
+  '5Y':  { period: 'week',  label: '5 سنوات' },
+  'All': { period: 'month', label: 'الكل' },
 }
 const TF_KEYS = Object.keys(TF_CONFIG) as TFKey[]
 const TF_MS: Record<TFKey, number> = {
@@ -42,47 +61,57 @@ const TF_MS: Record<TFKey, number> = {
 
 // ── Indicators ────────────────────────────────────────────────────────────────
 type IndicatorDef = { name: string; label: string; desc: string; group: string; pane: 'candle' | 'new' }
+// Curated for ISX: every indicator here derives cleanly from our daily OHLCV.
+// We deliberately exclude volume-flow oscillators (OBV, MFI) and fast
+// stochastics (KDJ, WR, CCI) — in a thin, low-liquidity market they whipsaw on
+// single prints and zero-volume days, giving false signals. What remains are the
+// price-based, must-have tools that stay accurate even on light trading.
 const INDICATORS: IndicatorDef[] = [
-  // Overlays on candle pane
-  { name: 'MA',   label: 'MA',             desc: 'Simple Moving Average',         group: 'Moving Averages', pane: 'candle' },
-  { name: 'EMA',  label: 'EMA',            desc: 'Exponential Moving Average',    group: 'Moving Averages', pane: 'candle' },
-  { name: 'BOLL', label: 'Bollinger',      desc: 'Bollinger Bands (20, ±2σ)',      group: 'Moving Averages', pane: 'candle' },
-  { name: 'SAR',  label: 'Parabolic SAR',  desc: 'Parabolic Stop & Reverse',      group: 'Moving Averages', pane: 'candle' },
-  // Sub-pane
-  { name: 'VOL',  label: 'Volume',         desc: 'Trading Volume',                group: 'Volume',          pane: 'new' },
-  { name: 'OBV',  label: 'OBV',            desc: 'On-Balance Volume',             group: 'Volume',          pane: 'new' },
-  { name: 'MFI',  label: 'MFI',            desc: 'Money Flow Index',              group: 'Volume',          pane: 'new' },
-  { name: 'VR',   label: 'Volume Ratio',   desc: 'Volume Ratio',                  group: 'Volume',          pane: 'new' },
-  { name: 'MACD', label: 'MACD',           desc: 'MACD (12, 26, 9)',              group: 'Momentum',        pane: 'new' },
-  { name: 'RSI',  label: 'RSI',            desc: 'Relative Strength Index (14)',  group: 'Momentum',        pane: 'new' },
-  { name: 'KDJ',  label: 'Stochastic KDJ', desc: 'Stochastic Oscillator',        group: 'Momentum',        pane: 'new' },
-  { name: 'CCI',  label: 'CCI',            desc: 'Commodity Channel Index (20)',  group: 'Momentum',        pane: 'new' },
-  { name: 'WR',   label: "Williams %R",    desc: "Williams Percent Range (14)",   group: 'Momentum',        pane: 'new' },
-  { name: 'MTM',  label: 'Momentum',       desc: 'Price Rate of Change',          group: 'Momentum',        pane: 'new' },
-  { name: 'BIAS', label: 'BIAS',           desc: 'Bias Ratio from Moving Avg',    group: 'Momentum',        pane: 'new' },
-  { name: 'DMI',  label: 'ADX / DMI',      desc: 'Average Directional Index',     group: 'Trend',           pane: 'new' },
-  { name: 'TRIX', label: 'TRIX',           desc: 'Triple Exponential Average',    group: 'Trend',           pane: 'new' },
-  { name: 'EMV',  label: 'EMV',            desc: 'Ease of Movement',              group: 'Trend',           pane: 'new' },
-  { name: 'DPO',  label: 'DPO',            desc: 'Detrended Price Oscillator',    group: 'Trend',           pane: 'new' },
-  { name: 'PSY',  label: 'PSY',            desc: 'Psychological Line',            group: 'Other',           pane: 'new' },
-  { name: 'BRAR', label: 'BRAR',           desc: 'Bull & Bear Ratio',             group: 'Other',           pane: 'new' },
-  { name: 'CR',   label: 'CR',             desc: 'Price Momentum Indicator',      group: 'Other',           pane: 'new' },
+  { name: 'MA',   label: 'المتوسط المتحرك',    desc: 'Moving Average — 5/10/30/60', group: 'المتوسطات', pane: 'candle' },
+  { name: 'EMA',  label: 'المتوسط الأسي',      desc: 'Exponential Moving Average',   group: 'المتوسطات', pane: 'candle' },
+  { name: 'BOLL', label: 'بولينجر باند',       desc: 'Bollinger Bands (20, ±2σ)',    group: 'المتوسطات', pane: 'candle' },
+  { name: 'VOL',  label: 'حجم التداول',        desc: 'Volume',                       group: 'مؤشرات منفصلة', pane: 'new' },
+  { name: 'MACD', label: 'ماكد',               desc: 'MACD (12, 26, 9)',             group: 'مؤشرات منفصلة', pane: 'new' },
+  { name: 'RSI',  label: 'مؤشر القوة النسبية', desc: 'Relative Strength Index (14)', group: 'مؤشرات منفصلة', pane: 'new' },
 ]
 const IND_GROUPS = Array.from(new Set(INDICATORS.map(i => i.group)))
 
-// ── Drawing tools ─────────────────────────────────────────────────────────────
-type DrawTool = { key: string; overlay: string; icon: string; label: string }
+// ── Drawing tools (only valid klinecharts v10 overlay templates) ────────────────
+type DrawTool = { key: string; overlay: string; label: string; icon: JSX.Element }
+const I = (path: JSX.Element) => (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+    strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">{path}</svg>
+)
 const DRAW_TOOLS: DrawTool[] = [
-  { key: 'pointer',   overlay: '',                      icon: '↗', label: 'Select' },
-  { key: 'trend',     overlay: 'segment',               icon: '⟋', label: 'Trend Line' },
-  { key: 'ray',       overlay: 'rayLine',               icon: '→', label: 'Ray' },
-  { key: 'hline',     overlay: 'horizontalStraightLine', icon: '—', label: 'Horizontal' },
-  { key: 'vline',     overlay: 'verticalLine',          icon: '|', label: 'Vertical' },
-  { key: 'arrow',     overlay: 'arrow',                 icon: '↑', label: 'Arrow' },
-  { key: 'text',      overlay: 'text',                  icon: 'T', label: 'Text' },
-  { key: 'fib',       overlay: 'fibonacciLine',         icon: 'ϕ', label: 'Fibonacci' },
-  { key: 'priceline', overlay: 'priceLine',             icon: '$', label: 'Price Level' },
+  { key: 'cursor',   overlay: '',                       label: 'المؤشر',          icon: I(<><path d="M5 12h5M14 12h5M12 5v5M12 14v5" /><circle cx="12" cy="12" r="1.2" fill="currentColor" /></>) },
+  { key: 'trend',    overlay: 'segment',                label: 'خط الاتجاه',      icon: I(<><line x1="4" y1="19" x2="20" y2="5" /><circle cx="4" cy="19" r="1.6" fill="currentColor" /><circle cx="20" cy="5" r="1.6" fill="currentColor" /></>) },
+  { key: 'ray',      overlay: 'rayLine',                label: 'شعاع',            icon: I(<><line x1="4" y1="19" x2="20" y2="5" /><circle cx="4" cy="19" r="1.6" fill="currentColor" /></>) },
+  { key: 'extended', overlay: 'straightLine',           label: 'خط ممتد',         icon: I(<><line x1="3" y1="20" x2="21" y2="4" /></>) },
+  { key: 'hline',    overlay: 'horizontalStraightLine', label: 'خط أفقي',         icon: I(<><line x1="3" y1="12" x2="21" y2="12" /><circle cx="12" cy="12" r="1.6" fill="currentColor" /></>) },
+  { key: 'vline',    overlay: 'verticalStraightLine',   label: 'خط عمودي',        icon: I(<><line x1="12" y1="3" x2="12" y2="21" /><circle cx="12" cy="12" r="1.6" fill="currentColor" /></>) },
+  { key: 'parallel', overlay: 'parallelStraightLine',   label: 'قناة متوازية',    icon: I(<><line x1="3" y1="16" x2="21" y2="8" /><line x1="3" y1="20" x2="21" y2="12" /></>) },
+  { key: 'fib',      overlay: 'fibonacciLine',          label: 'فيبوناتشي',       icon: I(<><line x1="4" y1="5" x2="20" y2="5" /><line x1="4" y1="10" x2="20" y2="10" /><line x1="4" y1="14" x2="20" y2="14" /><line x1="4" y1="19" x2="20" y2="19" /></>) },
+  { key: 'text',     overlay: 'simpleAnnotation',       label: 'نص',              icon: I(<><path d="M5 6h14M12 6v13" /></>) },
 ]
+const TrashIcon = I(<><path d="M4 7h16M9 7V5a1 1 0 011-1h4a1 1 0 011 1v2M6 7l1 13a1 1 0 001 1h8a1 1 0 001-1l1-13" /></>)
+
+// Hover tooltip — small label that appears beside/below a button on hover
+function Tip({ label, side = 'right', children }: { label: string; side?: 'right' | 'bottom' | 'top'; children: ReactNode }) {
+  const pos =
+    side === 'right'  ? { left: '100%', marginLeft: 8, top: '50%', transform: 'translateY(-50%)' }
+    : side === 'top'  ? { bottom: '100%', marginBottom: 8, left: '50%', transform: 'translateX(-50%)' }
+    : { top: '100%', marginTop: 8, left: '50%', transform: 'translateX(-50%)' }
+  return (
+    <span className="relative group/tip inline-flex">
+      {children}
+      <span
+        dir="rtl"
+        className="pointer-events-none absolute z-[60] whitespace-nowrap rounded px-2 py-1 text-[11px] font-semibold opacity-0 transition-opacity duration-100 group-hover/tip:opacity-100 shadow-lg"
+        style={{ background: '#2a2e39', color: '#eceef2', border: `1px solid ${C.crossBg}`, ...pos }}
+      >{label}</span>
+    </span>
+  )
+}
 
 // ── Data aggregation ──────────────────────────────────────────────────────────
 function toMs(date: string) { return new Date(date + 'T00:00:00Z').getTime() }
@@ -125,7 +154,7 @@ function aggregateByKey(rows: RawRow[], keyFn: (d: string) => string, tsDate: (k
 function aggregateWeekly(rows: RawRow[]): KlineBar[] {
   return aggregateByKey(rows, date => {
     const d = new Date(date + 'T00:00:00Z')
-    d.setUTCDate(d.getUTCDate() - d.getUTCDay()) // Sunday-start week
+    d.setUTCDate(d.getUTCDate() - d.getUTCDay())
     return d.toISOString().slice(0, 10)
   }, k => k)
 }
@@ -141,22 +170,30 @@ function getCandles(rows: RawRow[], period: PeriodType): KlineBar[] {
 }
 
 // ── KChart Component ──────────────────────────────────────────────────────────
-export default function KChart({ sym, fill = false }: { sym: string; fill?: boolean }) {
+export default function KChart({ sym, name, fill = false }: { sym: string; name?: string; fill?: boolean }) {
   const containerRef  = useRef<HTMLDivElement>(null)
   const chartRef      = useRef<any>(null)
   const rawCache      = useRef<Map<string, RawRow[]>>(new Map())
   const paneIds       = useRef<Map<string, string>>(new Map())
   const disposeRef    = useRef<((el: HTMLDivElement) => void) | null>(null)
+  const activeIndsRef = useRef<Set<string>>(new Set(['VOL']))
 
-  const [tf, setTf]               = useState<TFKey>('1Y')
+  const [tf, setTf]                   = useState<TFKey>('1Y')
   const [isFullscreen, setFullscreen] = useState(false)
   const [showIndicators, setShowIndicators] = useState(false)
-  const [activeInds, setActiveInds]   = useState<Set<string>>(new Set())
-  const [drawTool, setDrawTool]       = useState('pointer')
+  const [activeInds, setActiveInds]   = useState<Set<string>>(new Set(['VOL']))
+  const [drawTool, setDrawTool]       = useState('cursor')
   const [chartType, setChartType]     = useState<'candle_solid' | 'area'>('candle_solid')
   const [indSearch, setIndSearch]     = useState('')
   const [loading, setLoading]         = useState(true)
   const [exportMsg, setExportMsg]     = useState('')
+  const [bars, setBars]               = useState<KlineBar[]>([])
+  const [cursorIdx, setCursorIdx]     = useState<number | null>(null)
+  const [ctxMenu, setCtxMenu]         = useState<{ x: number; y: number } | null>(null)
+  const [mounted, setMounted]         = useState(false)
+
+  useEffect(() => { setMounted(true) }, [])
+  useEffect(() => { activeIndsRef.current = activeInds }, [activeInds])
 
   // ── Load raw data ───────────────────────────────────────────────────────────
   const fetchRaw = useCallback(async (ticker: string): Promise<RawRow[]> => {
@@ -167,137 +204,122 @@ export default function KChart({ sym, fill = false }: { sym: string; fill?: bool
     return data
   }, [])
 
-  // ── Init or refresh chart when sym / tf / chartType changes ────────────────
+  // ── Refit the candles to fill the canvas (used on init + "reset view") ───────
+  const fitView = useCallback((count: number) => {
+    const chart = chartRef.current, el = containerRef.current
+    if (!chart || !el || count <= 0) return
+    // Keep only a tight right gap (a few px) so candles fill the canvas instead
+    // of floating in blank space — important when a thin ISX name has few bars.
+    chart.setOffsetRightDistance(12)
+    const availW = Math.max(el.offsetWidth - 76, 200)
+    const space = Math.min(Math.max(Math.floor(availW / count), 3), 60)
+    chart.setBarSpace(space)
+    chart.scrollToRealTime()
+  }, [])
+
+  // ── Init / refresh chart ──────────────────────────────────────────────────────
+  // Re-runs on fullscreen toggle too: the container node changes (card ⇄ portal),
+  // so we dispose the *captured* element and build fresh — which also refits the
+  // window, fixing the "opens at the old zoom and looks unresponsive" problem.
   useEffect(() => {
-    if (!containerRef.current) return
+    const el = containerRef.current
+    if (!el) return
     let cancelled = false
 
     ;(async () => {
       const { init, dispose } = await import('klinecharts')
       disposeRef.current = dispose
-
-      // If cleanup already fired before this resolved, bail out
       if (cancelled) return
 
-      // Dispose previous instance
-      if (chartRef.current) {
-        dispose(containerRef.current!)
-        chartRef.current = null
-        paneIds.current.clear()
-      }
-
-      const chart = init(containerRef.current!, {
+      const chart = init(el, {
         locale: 'en-US',
         timezone: 'Asia/Baghdad',
         styles: {
           grid: {
             show: true,
-            horizontal: { show: true, size: 1, color: '#1e293b', style: 'dashed', dashedValue: [2, 2] },
-            vertical:   { show: true, size: 1, color: '#1e293b', style: 'dashed', dashedValue: [2, 2] },
+            horizontal: { show: true, size: 1, color: C.grid, style: 'solid' },
+            vertical:   { show: true, size: 1, color: C.grid, style: 'solid' },
           },
           candle: {
             type: chartType,
             bar: {
-              upColor:             '#26a69a',
-              downColor:           '#ef5350',
-              noChangeColor:       '#888888',
-              upBorderColor:       '#26a69a',
-              downBorderColor:     '#ef5350',
-              noChangeBorderColor: '#888888',
-              upWickColor:         '#26a69a',
-              downWickColor:       '#ef5350',
-              noChangeWickColor:   '#888888',
+              upColor: C.up, downColor: C.down, noChangeColor: C.muted,
+              upBorderColor: C.up, downBorderColor: C.down, noChangeBorderColor: C.muted,
+              upWickColor: C.up, downWickColor: C.down, noChangeWickColor: C.muted,
             },
             area: {
-              lineSize: 2,
-              lineColor: '#3b82f6',
-              value: 'close',
+              lineSize: 2, lineColor: C.accent, value: 'close',
               backgroundColor: [
-                { offset: 0, color: 'rgba(59,130,246,0.25)' },
-                { offset: 1, color: 'rgba(59,130,246,0.02)' },
+                { offset: 0, color: 'rgba(41,98,255,0.25)' },
+                { offset: 1, color: 'rgba(41,98,255,0.01)' },
               ],
             },
             priceMark: {
               last: {
-                upColor:   '#26a69a',
-                downColor: '#ef5350',
-                noChangeColor: '#888888',
+                show: true, upColor: C.up, downColor: C.down, noChangeColor: C.muted,
+                line: { show: true, style: 'dashed', dashedValue: [4, 4], size: 1 },
+                text: { show: true, size: 11, paddingLeft: 4, paddingRight: 4, paddingTop: 3, paddingBottom: 3, borderRadius: 2, color: '#ffffff' },
               },
+              high: { show: true, color: C.muted, textSize: 10 },
+              low:  { show: true, color: C.muted, textSize: 10 },
             },
-            tooltip: {
-              showRule: 'always',
-              showType: 'rect',
-              rect: {
-                paddingLeft: 8, paddingRight: 8,
-                paddingTop: 6, paddingBottom: 6,
-                offsetLeft: 8, offsetTop: 8,
-                borderRadius: 4,
-                borderSize: 1,
-                borderColor: '#334155',
-                color: '#0f172a',
-              },
-            },
+            // Built-in OHLC tooltip off — we draw our own live legend
+            tooltip: { showRule: 'none' },
           },
           indicator: {
-            ohlc: { upColor: '#26a69a', downColor: '#ef5350', noChangeColor: '#888888' },
-            lines: [{ size: 1, style: 'solid', smooth: false, color: '#3b82f6' }, { size: 1, style: 'solid', smooth: false, color: '#f59e0b' }, { size: 1, style: 'solid', smooth: false, color: '#a855f7' }],
-            bars:    [{ style: 'fill' as any, borderStyle: 'fill' as any, upColor: '#26a69a', downColor: '#ef5350', noChangeColor: '#888888' }],
-            circles: [{ style: 'fill' as any, borderStyle: 'fill' as any, upColor: '#26a69a', downColor: '#ef5350', noChangeColor: '#888888' }],
+            ohlc: { upColor: C.up, downColor: C.down, noChangeColor: C.muted },
+            lines: [
+              { size: 1, style: 'solid', smooth: false, color: '#2962ff' },
+              { size: 1, style: 'solid', smooth: false, color: '#ff9800' },
+              { size: 1, style: 'solid', smooth: false, color: '#e91e63' },
+              { size: 1, style: 'solid', smooth: false, color: '#9c27b0' },
+            ],
+            bars:    [{ style: 'fill' as any, borderStyle: 'fill' as any, upColor: 'rgba(38,166,154,0.55)', downColor: 'rgba(239,83,80,0.55)', noChangeColor: C.muted }],
             tooltip: {
               showRule: 'always',
               showType: 'standard',
-              title: { show: true, showName: true, showParams: true, color: '#94a3b8', size: 12, family: 'monospace', weight: 'normal' },
-              legend: { color: '#cbd5e1', size: 12, family: 'monospace', weight: 'normal' },
+              title:  { show: true, showName: true, showParams: true, color: C.muted, size: 11, family: 'inherit', weight: 'normal' },
+              legend: { color: C.text, size: 11, family: 'inherit', weight: 'normal' },
             },
           },
           xAxis: {
-            show: true,
-            size: 'auto',
-            axisLine: { show: true, size: 1, color: '#334155' },
-            tickLine:  { show: true, size: 5, length: 3, color: '#334155' },
-            tickText:  { show: true, color: '#64748b', size: 11, family: 'monospace', weight: 'normal', marginStart: 4, marginEnd: 4 },
+            show: true, size: 'auto',
+            axisLine: { show: true, size: 1, color: C.border },
+            tickLine: { show: true, size: 1, length: 3, color: C.border },
+            tickText: { show: true, color: C.muted, size: 11, family: 'inherit', weight: 'normal', marginStart: 4, marginEnd: 4 },
           },
           yAxis: {
-            show: true,
-            size: 'auto',
-            axisLine: { show: true, size: 1, color: '#334155' },
-            tickLine:  { show: true, size: 5, length: 3, color: '#334155' },
-            tickText:  { show: true, color: '#64748b', size: 11, family: 'monospace', weight: 'normal', marginStart: 4, marginEnd: 4 },
+            show: true, size: 'auto',
+            axisLine: { show: true, size: 1, color: C.border },
+            tickLine: { show: true, size: 1, length: 3, color: C.border },
+            tickText: { show: true, color: C.muted, size: 11, family: 'inherit', weight: 'normal', marginStart: 4, marginEnd: 4 },
           },
-          separator: {
-            size: 1, color: '#1e293b', fill: true,
-            activeBackgroundColor: 'rgba(30,41,59,0.5)',
-          },
+          separator: { size: 1, color: C.border, fill: true, activeBackgroundColor: 'rgba(42,46,57,0.6)' },
           crosshair: {
             show: true,
             horizontal: {
-              show: true, line: { show: true, style: 'dashed', dashedValue: [4, 2], size: 1, color: '#475569' },
-              text: { show: true, size: 11, family: 'monospace', weight: 'normal', color: '#f1f5f9', paddingLeft: 4, paddingRight: 4, paddingTop: 3, paddingBottom: 3, borderSize: 1, borderColor: '#475569', borderStyle: 'solid', borderRadius: 2, backgroundColor: '#1e293b' },
+              show: true, line: { show: true, style: 'dashed', dashedValue: [4, 3], size: 1, color: C.cross },
+              text: { show: true, size: 11, family: 'inherit', weight: 'normal', color: '#ffffff', paddingLeft: 4, paddingRight: 4, paddingTop: 3, paddingBottom: 3, borderSize: 0, borderColor: C.crossBg, borderRadius: 2, backgroundColor: C.crossBg },
             },
             vertical: {
-              show: true, line: { show: true, style: 'dashed', dashedValue: [4, 2], size: 1, color: '#475569' },
-              text: { show: true, size: 11, family: 'monospace', weight: 'normal', color: '#f1f5f9', paddingLeft: 4, paddingRight: 4, paddingTop: 3, paddingBottom: 3, borderSize: 1, borderColor: '#475569', borderStyle: 'solid', borderRadius: 2, backgroundColor: '#1e293b' },
+              show: true, line: { show: true, style: 'dashed', dashedValue: [4, 3], size: 1, color: C.cross },
+              text: { show: true, size: 11, family: 'inherit', weight: 'normal', color: '#ffffff', paddingLeft: 4, paddingRight: 4, paddingTop: 3, paddingBottom: 3, borderSize: 0, borderColor: C.crossBg, borderRadius: 2, backgroundColor: C.crossBg },
             },
           },
           overlay: {
-            line:   { style: 'solid', smooth: false, size: 1, color: '#3b82f6', dashedValue: [4, 2] },
-            rect:   { style: 'fill', borderStyle: 'solid', color: 'rgba(59,130,246,0.15)', borderColor: '#3b82f6', borderSize: 1 },
-            polygon: { style: 'fill', borderStyle: 'solid', color: 'rgba(59,130,246,0.15)', borderColor: '#3b82f6', borderSize: 1 },
-            circle:  { style: 'fill', borderStyle: 'solid', color: 'rgba(59,130,246,0.15)', borderColor: '#3b82f6', borderSize: 1 },
-            arc:     { style: 'solid', size: 1, color: '#3b82f6' },
-            text:    { style: 'fill', color: '#f1f5f9', size: 13, family: 'sans-serif', weight: 'normal', borderStyle: 'solid', borderDashedValue: [2, 2], borderSize: 1, borderRadius: 2, borderColor: '#3b82f6', paddingLeft: 4, paddingRight: 4, paddingTop: 4, paddingBottom: 4, backgroundColor: 'rgba(15,23,42,0.85)' },
-            rectText: { style: 'fill', color: '#f1f5f9', size: 13, family: 'sans-serif', weight: 'normal', borderStyle: 'solid', borderDashedValue: [2, 2], borderSize: 1, borderRadius: 2, borderColor: '#3b82f6', paddingLeft: 4, paddingRight: 4, paddingTop: 4, paddingBottom: 4, backgroundColor: 'rgba(15,23,42,0.85)' },
+            line:    { style: 'solid', smooth: false, size: 1, color: C.accent, dashedValue: [4, 2] },
+            rect:    { style: 'fill', borderStyle: 'solid', color: 'rgba(41,98,255,0.12)', borderColor: C.accent, borderSize: 1 },
+            polygon: { style: 'fill', borderStyle: 'solid', color: 'rgba(41,98,255,0.12)', borderColor: C.accent, borderSize: 1 },
+            text:    { style: 'fill', color: '#ffffff', size: 12, family: 'inherit', weight: 'normal', backgroundColor: 'rgba(41,98,255,0.9)', borderRadius: 3, paddingLeft: 5, paddingRight: 5, paddingTop: 3, paddingBottom: 3 },
           },
         },
       })
       if (!chart || cancelled) return
       chartRef.current = chart
 
-      // Symbol + period
       chart.setSymbol({ ticker: sym.toUpperCase(), pricePrecision: 4, volumePrecision: 0 })
       chart.setPeriod({ type: TF_CONFIG[tf].period, span: 1 })
 
-      // DataLoader
       chart.setDataLoader({
         async getBars(params: any) {
           if (cancelled) return
@@ -306,271 +328,410 @@ export default function KChart({ sym, fill = false }: { sym: string; fill?: bool
           try {
             const raw = await fetchRaw(symbol.ticker)
             const allBars = getCandles(raw, period.type as PeriodType)
-            // Pass only the bars in the TF window so barSpace fills the canvas correctly
             const startMs = tf === 'All' ? -Infinity : Date.now() - TF_MS[tf]
-            const bars = tf === 'All' ? allBars : allBars.filter(b => b.timestamp >= startMs)
-            // false = no more historical data; prevents klinecharts from re-calling getBars
-            callback(bars.length ? bars : [], false)
-            setTimeout(() => {
-              if (cancelled || !chartRef.current || !containerRef.current) return
-              if (bars.length > 0) {
-                // klinecharts clamps barSpace to [1, 50] (BarSpaceLimitConstants)
-                const availW = Math.max(containerRef.current.offsetWidth - 60, 200)
-                const space = Math.min(Math.max(Math.floor(availW / bars.length), 1), 50)
-                chartRef.current.setBarSpace(space)
-              }
-              chartRef.current.scrollToRealTime()
-            }, 80)
+            const windowed = tf === 'All' ? allBars : allBars.filter(b => b.timestamp >= startMs)
+            callback(windowed.length ? windowed : [], false)
+            if (!cancelled) { setBars(windowed); setCursorIdx(null) }
+            setTimeout(() => { if (!cancelled) fitView(windowed.length) }, 80)
           } finally {
             if (!cancelled) setLoading(false)
           }
         },
       })
+
+      // Re-apply indicators (+ default Volume) so they survive every rebuild.
+      // v10 signature: createIndicator(name, { pane: { id } }); overlays go on
+      // the candle pane, oscillators get their own pane.
+      paneIds.current.clear()
+      for (const def of INDICATORS) {
+        if (!activeIndsRef.current.has(def.name)) continue
+        const id = def.pane === 'candle'
+          ? chart.createIndicator(def.name, { pane: { id: 'candle_pane' } })
+          : chart.createIndicator(def.name)
+        if (id) paneIds.current.set(def.name, id)
+      }
+
+      chart.subscribeAction('onCrosshairChange', (data: any) => {
+        if (cancelled) return
+        const idx = data?.kLineData ? (data.dataIndex ?? data.realDataIndex ?? null) : null
+        setCursorIdx(typeof idx === 'number' ? idx : null)
+      })
     })()
 
-    // Synchronous cleanup — uses stored disposeRef to avoid the async race where
-    // the old effect's import().then(dispose) would fire after the new chart was created
     return () => {
       cancelled = true
-      if (disposeRef.current && containerRef.current) {
-        disposeRef.current(containerRef.current)
-      }
+      if (disposeRef.current) disposeRef.current(el)
       chartRef.current = null
       paneIds.current.clear()
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [sym, tf, chartType])
+  }, [sym, tf, chartType, isFullscreen])
 
-  // Resize when fullscreen toggles
+  // Fullscreen: lock body scroll, Escape to exit
   useEffect(() => {
-    setTimeout(() => chartRef.current?.resize(), 50)
+    if (!isFullscreen) return
+    const prev = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setFullscreen(false) }
+    window.addEventListener('keydown', onKey)
+    return () => { document.body.style.overflow = prev; window.removeEventListener('keydown', onKey) }
   }, [isFullscreen])
 
+  // Resize on any layout change
+  useEffect(() => {
+    const onResize = () => chartRef.current?.resize()
+    window.addEventListener('resize', onResize)
+    return () => window.removeEventListener('resize', onResize)
+  }, [])
+
   // ── Indicator toggle ────────────────────────────────────────────────────────
+  // Chart mutations happen OUTSIDE the state updater on purpose: React StrictMode
+  // double-invokes set-state updaters in dev, which would create two indicators.
   const toggleIndicator = useCallback((ind: IndicatorDef) => {
     const chart = chartRef.current
     if (!chart) return
+    const has = activeIndsRef.current.has(ind.name)
+    if (has) {
+      chart.removeIndicator({ name: ind.name })
+      paneIds.current.delete(ind.name)
+    } else {
+      const id = ind.pane === 'candle'
+        ? chart.createIndicator(ind.name, { pane: { id: 'candle_pane' } })
+        : chart.createIndicator(ind.name)
+      if (id) paneIds.current.set(ind.name, id)
+    }
     setActiveInds(prev => {
       const next = new Set(prev)
-      if (next.has(ind.name)) {
-        chart.removeIndicator({ name: ind.name })
-        paneIds.current.delete(ind.name)
-        next.delete(ind.name)
-      } else {
-        const id = chart.createIndicator(
-          ind.name,
-          false,
-          ind.pane === 'candle' ? { id: 'candle_pane' } : undefined,
-        )
-        if (id) paneIds.current.set(ind.name, id)
-        next.add(ind.name)
-      }
+      if (has) next.delete(ind.name); else next.add(ind.name)
       return next
     })
   }, [])
 
-  // ── Drawing tool activation ─────────────────────────────────────────────────
+  const removeAllIndicators = useCallback(() => {
+    const chart = chartRef.current
+    if (!chart) return
+    for (const name of Array.from(activeIndsRef.current)) chart.removeIndicator({ name })
+    paneIds.current.clear()
+    setActiveInds(new Set())
+    setCtxMenu(null)
+  }, [])
+
+  // ── Drawing ───────────────────────────────────────────────────────────────────
   const activateDraw = useCallback((tool: DrawTool) => {
     const chart = chartRef.current
     if (!chart) return
     setDrawTool(tool.key)
-    if (tool.key === 'pointer') return
-    chart.createOverlay({ name: tool.overlay })
+    if (!tool.overlay) return
+    if (tool.overlay === 'simpleAnnotation') {
+      chart.createOverlay({ name: tool.overlay, extendData: 'نص' })
+    } else {
+      chart.createOverlay({ name: tool.overlay })
+    }
   }, [])
 
   const clearDrawings = useCallback(() => {
-    chartRef.current?.removeOverlay({})
-    setDrawTool('pointer')
+    chartRef.current?.removeOverlay()
+    setDrawTool('cursor')
   }, [])
 
-  // ── Export: download / copy the chart as a watermarked PNG ───────────────────
+  const resetView = useCallback(() => {
+    fitView(bars.length)
+    setCtxMenu(null)
+  }, [bars.length, fitView])
+
+  // ── Export ─────────────────────────────────────────────────────────────────────
   const exportImage = useCallback(async (mode: 'download' | 'copy') => {
     const chart = chartRef.current
     if (!chart) return
     try {
-      // includeOverlay=true keeps drawings; bake the chart bg so PNG isn't transparent
-      const src = chart.getConvertPictureUrl(true, 'png', '#0a0f1e')
-      const { blob, url } = await compositeWatermark(src, { bg: '#0a0f1e', label: sym.toUpperCase() })
+      const src = chart.getConvertPictureUrl(true, 'png', C.bg)
+      const { blob, url } = await compositeWatermark(src, { bg: C.bg, label: sym.toUpperCase() })
       if (mode === 'download') {
         downloadImage(url, `${sym.toUpperCase()}-iqwealth.png`)
         setExportMsg('تم التنزيل ✓')
       } else {
         const ok = await copyImage(blob)
-        setExportMsg(ok ? 'تم النسخ ✓' : 'النسخ غير مدعوم — استخدم التنزيل')
+        setExportMsg(ok ? 'تم النسخ ✓' : 'النسخ غير مدعوم')
       }
-    } catch {
-      setExportMsg('تعذّر التصدير')
-    }
-    setTimeout(() => setExportMsg(''), 2200)
+    } catch { setExportMsg('تعذّر التصدير') }
+    setTimeout(() => setExportMsg(''), 2000)
   }, [sym])
 
-  // ── Filtered indicators for search ─────────────────────────────────────────
+  // ── Live OHLC legend ────────────────────────────────────────────────────────────
+  const legendIdx = cursorIdx != null && cursorIdx >= 0 && cursorIdx < bars.length ? cursorIdx : bars.length - 1
+  const legendBar = bars[legendIdx]
+  const legendPrev = legendIdx > 0 ? bars[legendIdx - 1] : undefined
+  const legendChg  = legendBar && legendPrev ? legendBar.close - legendPrev.close : 0
+  const legendPct  = legendBar && legendPrev && legendPrev.close ? (legendChg / legendPrev.close) * 100 : 0
+  const legendUp   = legendBar ? (legendPrev ? legendChg >= 0 : legendBar.close >= legendBar.open) : true
+  const legColor   = legendUp ? C.up : C.down
+  const fmtP = (n?: number) => (n == null ? '—' : n.toFixed(3))
+  const fmtV = (n?: number) => {
+    if (!n) return '—'
+    if (n >= 1e9) return (n / 1e9).toFixed(2) + 'B'
+    if (n >= 1e6) return (n / 1e6).toFixed(2) + 'M'
+    if (n >= 1e3) return (n / 1e3).toFixed(1) + 'K'
+    return String(n)
+  }
+  const legendDate = legendBar
+    ? new Date(legendBar.timestamp).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })
+    : ''
+
   const filteredInds = indSearch
-    ? INDICATORS.filter(i =>
-        i.label.toLowerCase().includes(indSearch.toLowerCase()) ||
-        i.desc.toLowerCase().includes(indSearch.toLowerCase())
-      )
+    ? INDICATORS.filter(i => i.label.includes(indSearch) || i.desc.toLowerCase().includes(indSearch.toLowerCase()) || i.name.toLowerCase().includes(indSearch.toLowerCase()))
     : INDICATORS
 
-  // ── Render ──────────────────────────────────────────────────────────────────
-  return (
+  // ── Reusable bits ───────────────────────────────────────────────────────────────
+  const iconBtn = 'w-8 h-8 flex items-center justify-center rounded transition-colors'
+
+  // ── Chart shell (used both inline and inside the fullscreen portal) ─────────────
+  const shell = (
     <div
-      className={isFullscreen
-        ? 'fixed inset-0 z-50 flex flex-col bg-[#0a0f1e]'
-        : `relative flex flex-col border border-slate-800 bg-[#0a0f1e] overflow-hidden ${fill ? 'h-full rounded-none' : 'rounded-xl'}`}
+      dir="ltr"
+      onClick={() => ctxMenu && setCtxMenu(null)}
+      className="flex flex-col overflow-hidden select-none"
+      style={isFullscreen
+        ? { position: 'fixed', inset: 0, zIndex: 2147483000, background: C.bg }
+        : { position: 'relative', borderRadius: fill ? 0 : 12, border: `1px solid ${C.border}`, background: C.bg, height: fill ? '100%' : undefined }}
     >
-      {/* ── Top toolbar ── */}
-      <div className="flex items-center gap-2 px-3 py-2 border-b border-slate-800 shrink-0">
-
-        {/* Fullscreen */}
-        <button
-          onClick={() => setFullscreen(v => !v)}
-          className="w-7 h-7 flex items-center justify-center text-sm border border-slate-700 rounded text-slate-400 hover:text-white hover:border-slate-500 transition-colors"
-          title={isFullscreen ? 'Exit fullscreen' : 'Fullscreen'}
-        >{isFullscreen ? '⊠' : '⛶'}</button>
-
-        {/* Indicators button */}
-        <button
-          onClick={() => setShowIndicators(v => !v)}
-          className={`px-3 py-1 text-xs rounded border transition-colors ${showIndicators ? 'border-blue-500 text-blue-400' : 'border-slate-700 text-slate-400 hover:text-white hover:border-slate-500'}`}
-        >
-          {activeInds.size > 0 ? `Indicators (${activeInds.size})` : '+ Indicators'}
-        </button>
-
-        {/* Download / Copy */}
-        <button
-          onClick={() => exportImage('download')}
-          title="تنزيل صورة الرسم (PNG)"
-          className="w-7 h-7 flex items-center justify-center text-sm border border-slate-700 rounded text-slate-400 hover:text-white hover:border-slate-500 transition-colors"
-        >⬇</button>
-        <button
-          onClick={() => exportImage('copy')}
-          title="نسخ صورة الرسم"
-          className="w-7 h-7 flex items-center justify-center text-sm border border-slate-700 rounded text-slate-400 hover:text-white hover:border-slate-500 transition-colors"
-        >⧉</button>
-        {exportMsg && (
-          <span className="text-[11px] font-medium text-blue-400 whitespace-nowrap">{exportMsg}</span>
-        )}
-
-        <div className="flex-1" />
-
-        {/* Timeframes */}
-        <div className="flex gap-1">
-          {TF_KEYS.map(t => (
-            <button
-              key={t}
-              onClick={() => setTf(t)}
-              className={`px-2.5 py-1 text-xs font-mono rounded transition-colors ${tf === t ? 'bg-blue-600 text-white' : 'text-slate-400 hover:text-white hover:bg-slate-800'}`}
-            >{t}</button>
-          ))}
+      {/* ── Top bar ── */}
+      <div className="flex items-center gap-1 px-2 shrink-0" style={{ height: 46, borderBottom: `1px solid ${C.border}` }}>
+        {/* Symbol block */}
+        <div className="flex items-center gap-2 pr-2" style={{ borderRight: `1px solid ${C.border}` }}>
+          <div className="w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold text-white" style={{ background: C.accent }}>
+            {sym.slice(0, 2).toUpperCase()}
+          </div>
+          <span className="text-[15px] font-bold" style={{ color: C.text }}>{sym.toUpperCase()}</span>
+          {name && <span className="text-[12px] max-w-[180px] truncate" style={{ color: C.muted }}>{name}</span>}
         </div>
 
         {/* Chart type */}
-        <div className="flex rounded-md overflow-hidden border border-slate-700 ml-1">
-          <button
-            onClick={() => setChartType('candle_solid')}
-            className={`px-2.5 py-1 text-xs font-medium transition-colors ${chartType === 'candle_solid' ? 'bg-blue-600 text-white' : 'text-slate-400 hover:text-white hover:bg-slate-800'}`}
-          >🕯 شموع</button>
-          <button
-            onClick={() => setChartType('area')}
-            className={`px-2.5 py-1 text-xs font-medium transition-colors ${chartType === 'area' ? 'bg-blue-600 text-white' : 'text-slate-400 hover:text-white hover:bg-slate-800'}`}
-          >📈 خطي</button>
+        <div className="flex items-center gap-1 px-1.5" style={{ borderRight: `1px solid ${C.border}` }}>
+          {([['candle_solid', '🕯', 'شموع'], ['area', '〜', 'خطي']] as const).map(([t, ic, lbl]) => {
+            const on = chartType === t
+            return (
+              <Tip key={t} label={lbl} side="bottom">
+                <button onClick={() => setChartType(t)} aria-label={lbl} className={iconBtn}
+                  style={{ color: on ? '#fff' : C.icon, background: on ? C.accent : 'transparent', fontWeight: 700 }}
+                  onMouseEnter={e => { if (!on) { e.currentTarget.style.background = C.hover; e.currentTarget.style.color = '#fff' } }}
+                  onMouseLeave={e => { if (!on) { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = C.icon } }}>
+                  {ic}
+                </button>
+              </Tip>
+            )
+          })}
         </div>
+
+        {/* Indicators */}
+        <button onClick={() => setShowIndicators(v => !v)}
+          className="flex items-center gap-1.5 h-8 px-3 rounded-md text-[13px] font-bold transition-colors"
+          style={{ color: showIndicators ? '#fff' : C.text, background: showIndicators ? C.accent : C.hover }}
+          onMouseEnter={e => { if (!showIndicators) e.currentTarget.style.background = '#363a45' }}
+          onMouseLeave={e => { if (!showIndicators) e.currentTarget.style.background = C.hover }}>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M3 14l4-5 4 3 5-7 5 9" /></svg>
+          المؤشرات{activeInds.size > 0 ? ` (${activeInds.size})` : ''}
+        </button>
+
+        <div className="flex-1" />
+
+        {exportMsg && <span className="text-[12px] font-semibold mr-1" style={{ color: C.accent }}>{exportMsg}</span>}
+        <Tip label="تنزيل صورة PNG" side="bottom">
+          <button onClick={() => exportImage('download')} aria-label="تنزيل" className={iconBtn} style={{ color: C.icon }}
+            onMouseEnter={e => { e.currentTarget.style.background = C.hover; e.currentTarget.style.color = '#fff' }}
+            onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = C.icon }}>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 4v11m0 0l-4-4m4 4l4-4M5 19h14" /></svg>
+          </button>
+        </Tip>
+        <Tip label="نسخ الصورة" side="bottom">
+          <button onClick={() => exportImage('copy')} aria-label="نسخ" className={iconBtn} style={{ color: C.icon }}
+            onMouseEnter={e => { e.currentTarget.style.background = C.hover; e.currentTarget.style.color = '#fff' }}
+            onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = C.icon }}>
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="9" y="9" width="11" height="11" rx="2" /><path d="M5 15V5a2 2 0 012-2h10" /></svg>
+          </button>
+        </Tip>
+        <button onClick={() => setFullscreen(v => !v)}
+          className="flex items-center gap-1.5 h-8 px-3 ml-1 rounded-md text-[13px] font-bold transition-colors"
+          style={{ color: '#fff', background: C.hover }}
+          onMouseEnter={e => { e.currentTarget.style.background = '#363a45' }}
+          onMouseLeave={e => { e.currentTarget.style.background = C.hover }}>
+          {isFullscreen
+            ? <><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 9L4 4m0 5V4h5M15 9l5-5m0 5V4h-5M9 15l-5 5m0-5v5h5M15 15l5 5m0-5v5h-5" /></svg>خروج</>
+            : <><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5" /></svg>ملء الشاشة</>}
+        </button>
       </div>
 
-      {/* ── Body: left sidebar + chart canvas ── */}
+      {/* ── Body: left toolbar + canvas ── */}
       <div className="flex flex-1 min-h-0">
-
-        {/* ── Left drawing tools sidebar (TradingView style) ── */}
-        <div className="flex flex-col items-center gap-1 py-2 px-1 border-r border-slate-800 shrink-0 w-9">
-          {DRAW_TOOLS.map(tool => (
-            <button
-              key={tool.key}
-              title={tool.label}
-              onClick={() => activateDraw(tool)}
-              className={`w-7 h-7 flex items-center justify-center text-sm rounded transition-colors ${drawTool === tool.key ? 'bg-blue-600 text-white' : 'text-slate-500 hover:text-white hover:bg-slate-800'}`}
-            >{tool.icon}</button>
-          ))}
-          <div className="h-px w-5 bg-slate-700 my-1" />
-          <button
-            onClick={clearDrawings}
-            title="Clear all drawings"
-            className="w-7 h-7 flex items-center justify-center text-sm text-slate-500 hover:text-red-400 hover:bg-slate-800 rounded transition-colors"
-          >🗑</button>
+        {/* Left drawing toolbar */}
+        <div className="flex flex-col items-center gap-1 py-2 shrink-0" style={{ width: 48, borderRight: `1px solid ${C.border}` }}>
+          {DRAW_TOOLS.map(tool => {
+            const on = drawTool === tool.key
+            return (
+              <Tip key={tool.key} label={tool.label} side="right">
+                <button onClick={() => activateDraw(tool)} aria-label={tool.label}
+                  className="w-9 h-9 flex items-center justify-center rounded-md transition-colors"
+                  style={{ color: on ? '#fff' : C.icon, background: on ? C.accent : 'transparent' }}
+                  onMouseEnter={e => { if (!on) { e.currentTarget.style.background = C.hover; e.currentTarget.style.color = '#fff' } }}
+                  onMouseLeave={e => { if (!on) { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = C.icon } }}>
+                  {tool.icon}
+                </button>
+              </Tip>
+            )
+          })}
+          <div className="my-1" style={{ height: 1, width: 24, background: C.border }} />
+          <Tip label="مسح الرسومات" side="right">
+            <button onClick={clearDrawings} aria-label="مسح الرسومات"
+              className="w-9 h-9 flex items-center justify-center rounded-md transition-colors"
+              style={{ color: C.icon }}
+              onMouseEnter={e => { e.currentTarget.style.background = C.hover; e.currentTarget.style.color = C.down }}
+              onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = C.icon }}>
+              {TrashIcon}
+            </button>
+          </Tip>
         </div>
 
-        {/* ── Chart canvas ── */}
-        <div className="relative flex-1 min-w-0 min-h-0" style={{ minHeight: isFullscreen ? 'calc(100vh - 41px)' : (fill ? 0 : '480px') }}>
+        {/* Canvas */}
+        <div
+          className="relative flex-1 min-w-0 min-h-0"
+          style={{ minHeight: isFullscreen ? undefined : (fill ? 0 : 520) }}
+          onContextMenu={e => { e.preventDefault(); setCtxMenu({ x: e.clientX, y: e.clientY }) }}
+        >
+          {/* Live OHLC legend (top-left, TradingView style) */}
+          {legendBar && (
+            <div className="absolute top-2 left-2 z-20 pointer-events-none flex flex-col gap-1">
+              <div className="flex items-center gap-2 text-[12px]" style={{ color: C.muted }}>
+                <span className="font-bold" style={{ color: C.text }}>{sym.toUpperCase()}</span>
+                {name && <span className="max-w-[180px] truncate">{name}</span>}
+                <span style={{ color: C.faint }}>· {TF_CONFIG[tf].period === 'day' ? 'يومي' : TF_CONFIG[tf].period === 'week' ? 'أسبوعي' : 'شهري'} · {legendDate}</span>
+              </div>
+              <div className="flex items-center gap-2.5 text-[12px] flex-wrap" style={{ fontVariantNumeric: 'tabular-nums' }}>
+                {([['O', legendBar.open], ['H', legendBar.high], ['L', legendBar.low], ['C', legendBar.close]] as const).map(([k, v]) => (
+                  <span key={k} className="flex items-center gap-1">
+                    <span style={{ color: C.muted }}>{k}</span>
+                    <span className="font-semibold" style={{ color: legColor }}>{fmtP(v)}</span>
+                  </span>
+                ))}
+                <span className="font-semibold" style={{ color: legColor }}>
+                  {legendChg >= 0 ? '+' : ''}{legendChg.toFixed(3)} ({legendPct >= 0 ? '+' : ''}{legendPct.toFixed(2)}%)
+                </span>
+                <span className="flex items-center gap-1">
+                  <span style={{ color: C.muted }}>Vol</span>
+                  <span className="font-semibold" style={{ color: C.text }}>{fmtV(legendBar.volume)}</span>
+                </span>
+              </div>
+            </div>
+          )}
+
           {loading && (
             <div className="absolute inset-0 flex items-center justify-center z-10 pointer-events-none">
               <div className="flex gap-1.5">
-                {[0,1,2].map(i => (
-                  <div key={i} className="w-1.5 h-6 bg-blue-500 rounded-full animate-pulse" style={{ animationDelay: `${i * 150}ms` }} />
+                {[0, 1, 2].map(i => (
+                  <div key={i} className="w-1.5 h-6 rounded-full animate-pulse" style={{ background: C.accent, animationDelay: `${i * 150}ms` }} />
                 ))}
               </div>
             </div>
           )}
+
           <div ref={containerRef} className="absolute inset-0" />
-          {/* Brand watermark — visible on the live chart */}
-          <div
-            className="absolute inset-0 flex items-center justify-center pointer-events-none select-none z-0"
-            aria-hidden
-          >
-            <span
-              className="font-extrabold tracking-tight"
-              style={{ fontSize: 'clamp(28px, 7vw, 72px)', color: 'rgba(148,163,184,0.07)', transform: 'rotate(-12deg)' }}
-            >IQWealth</span>
+
+          {/* Watermark */}
+          <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-0" aria-hidden>
+            <span className="font-extrabold tracking-tight" style={{ fontSize: 'clamp(28px, 7vw, 80px)', color: 'rgba(120,123,134,0.06)', transform: 'rotate(-10deg)' }}>IQWealth</span>
           </div>
+
+          {/* Right-click context menu */}
+          {ctxMenu && (
+            <div className="fixed z-50 py-1 rounded-md shadow-2xl text-[13px]"
+              style={{ top: ctxMenu.y, left: ctxMenu.x, background: C.panel, border: `1px solid ${C.border}`, minWidth: 180 }}>
+              {[
+                { label: 'إعادة ضبط العرض', act: resetView },
+                { label: 'إزالة جميع المؤشرات', act: removeAllIndicators },
+                { label: 'إزالة جميع الرسومات', act: () => { clearDrawings(); setCtxMenu(null) } },
+                { label: isFullscreen ? 'خروج من ملء الشاشة' : 'ملء الشاشة', act: () => { setFullscreen(v => !v); setCtxMenu(null) } },
+              ].map(item => (
+                <button key={item.label} onClick={item.act}
+                  className="w-full text-right px-3 py-1.5 transition-colors"
+                  style={{ color: C.text }}
+                  onMouseEnter={e => { e.currentTarget.style.background = C.hover }}
+                  onMouseLeave={e => { e.currentTarget.style.background = 'transparent' }}>
+                  {item.label}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
       </div>
 
-      {/* ── Indicator panel (overlay) ── */}
+      {/* ── Bottom range bar ── */}
+      <div className="flex items-center gap-1 px-2 shrink-0" style={{ height: 38, borderTop: `1px solid ${C.border}` }}>
+        {TF_KEYS.map(t => (
+          <Tip key={t} label={TF_CONFIG[t].label} side="top">
+            <button onClick={() => setTf(t)}
+              className="h-7 px-3 rounded-md text-[12px] font-bold transition-colors"
+              style={{ color: tf === t ? '#fff' : C.icon, background: tf === t ? C.accent : 'transparent' }}
+              onMouseEnter={e => { if (tf !== t) { e.currentTarget.style.background = C.hover; e.currentTarget.style.color = '#fff' } }}
+              onMouseLeave={e => { if (tf !== t) { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = C.icon } }}>
+              {t}
+            </button>
+          </Tip>
+        ))}
+        <div className="flex-1" />
+        <span className="text-[11px]" style={{ color: C.faint }}>بغداد · GMT+3</span>
+      </div>
+
+      {/* ── Indicators modal ── */}
       {showIndicators && (
-        <div className="absolute top-[45px] right-3 w-72 max-h-[420px] flex flex-col rounded-xl border border-slate-700 bg-[#0d1526] shadow-2xl z-40 overflow-hidden">
-          <div className="px-3 pt-3 pb-2 border-b border-slate-800">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-xs font-semibold text-white">Indicators</span>
-              <button onClick={() => setShowIndicators(false)} className="text-slate-500 hover:text-white text-sm leading-none">✕</button>
+        <div className="absolute inset-0 z-40 flex items-start justify-center pt-16" style={{ background: 'rgba(0,0,0,0.45)' }}
+          onClick={() => setShowIndicators(false)}>
+          <div className="flex flex-col rounded-lg overflow-hidden shadow-2xl"
+            style={{ width: 420, maxHeight: '80%', background: C.panel, border: `1px solid ${C.border}` }}
+            onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between px-4 h-12 shrink-0" style={{ borderBottom: `1px solid ${C.border}` }}>
+              <span className="text-[14px] font-semibold" style={{ color: C.text }}>المؤشرات الفنية</span>
+              <button onClick={() => setShowIndicators(false)} style={{ color: C.muted }} className="text-lg leading-none">✕</button>
             </div>
-            <input
-              type="text"
-              placeholder="Search indicators..."
-              value={indSearch}
-              onChange={e => setIndSearch(e.target.value)}
-              className="w-full bg-slate-800 border border-slate-700 rounded-md px-2.5 py-1.5 text-xs text-white placeholder-slate-500 outline-none focus:border-blue-500"
-            />
-          </div>
-          <div className="overflow-y-auto flex-1 py-1">
-            {(indSearch ? ['Results'] : IND_GROUPS).map(group => {
-              const inds = filteredInds.filter(i => indSearch ? true : i.group === group)
-              if (!inds.length) return null
-              return (
-                <div key={group}>
-                  {!indSearch && (
-                    <div className="px-3 py-1.5 text-[10px] font-semibold uppercase tracking-wider text-slate-500">{group}</div>
-                  )}
-                  {inds.map(ind => (
-                    <button
-                      key={ind.name}
-                      onClick={() => toggleIndicator(ind)}
-                      className={`w-full flex items-center justify-between px-3 py-2 hover:bg-slate-800 transition-colors text-left ${activeInds.has(ind.name) ? 'text-blue-400' : 'text-slate-300'}`}
-                    >
-                      <div>
-                        <div className="text-xs font-medium">{ind.label}</div>
-                        <div className="text-[10px] text-slate-500">{ind.desc}</div>
-                      </div>
-                      {activeInds.has(ind.name) && <span className="text-blue-400 text-sm ml-2">✓</span>}
-                    </button>
-                  ))}
-                </div>
-              )
-            })}
-            {filteredInds.length === 0 && (
-              <div className="px-3 py-6 text-center text-xs text-slate-500">No indicators found</div>
-            )}
+            <div className="px-4 py-3 shrink-0" style={{ borderBottom: `1px solid ${C.border}` }}>
+              <input autoFocus value={indSearch} onChange={e => setIndSearch(e.target.value)} placeholder="ابحث عن مؤشر..."
+                className="w-full h-9 px-3 rounded text-[13px] outline-none"
+                style={{ background: C.bg, border: `1px solid ${C.border}`, color: C.text }} />
+            </div>
+            <div className="overflow-y-auto flex-1 py-1">
+              {(indSearch ? ['نتائج'] : IND_GROUPS).map(group => {
+                const inds = filteredInds.filter(i => indSearch ? true : i.group === group)
+                if (!inds.length) return null
+                return (
+                  <div key={group}>
+                    {!indSearch && (
+                      <div className="px-4 py-1.5 text-[10px] font-bold tracking-wider" style={{ color: C.faint }}>{group}</div>
+                    )}
+                    {inds.map(ind => {
+                      const on = activeInds.has(ind.name)
+                      return (
+                        <button key={ind.name} onClick={() => toggleIndicator(ind)}
+                          className="w-full flex items-center justify-between px-4 py-2 transition-colors text-right"
+                          style={{ background: 'transparent' }}
+                          onMouseEnter={e => { e.currentTarget.style.background = C.hover }}
+                          onMouseLeave={e => { e.currentTarget.style.background = 'transparent' }}>
+                          <div>
+                            <div className="text-[13px] font-medium" style={{ color: on ? C.accent : C.text }}>{ind.label}</div>
+                            <div className="text-[11px]" style={{ color: C.muted }}>{ind.desc}</div>
+                          </div>
+                          {on && <span style={{ color: C.accent }}>✓</span>}
+                        </button>
+                      )
+                    })}
+                  </div>
+                )
+              })}
+              {filteredInds.length === 0 && (
+                <div className="px-4 py-8 text-center text-[13px]" style={{ color: C.muted }}>لا توجد نتائج</div>
+              )}
+            </div>
           </div>
         </div>
       )}
     </div>
   )
+
+  return isFullscreen && mounted ? createPortal(shell, document.body) : shell
 }

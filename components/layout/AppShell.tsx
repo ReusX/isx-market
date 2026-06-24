@@ -38,22 +38,24 @@ function Icon({ d, size = 14, sw = 1.6 }: { d: string; size?: number; sw?: numbe
 }
 
 const IC = {
-  home:     'M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z',
-  bars:     'M18 20V10M12 20V4M6 20v-6',
-  chart:    'M3 3v18h18 M7 16l4-4 4 4 4-8',
-  news:     'M4 6h16M4 12h16M4 18h10',
-  shield:   'M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z',
-  star:     'M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z',
-  fx:       'M7 16V4m0 0L4 7m3-3l3 3 M17 8v12m0 0l3-3m-3 3l-3-3',
-  search:   'M21 21l-4.35-4.35M17 11A6 6 0 115 11a6 6 0 0112 0z',
-  chevD:    'M6 9l6 6 6-6',
-  chevU:    'M18 15l-6-6-6 6',
-  menu:     'M3 12h18M3 6h18M3 18h18',
-  bell:     'M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9 M13.73 21a2 2 0 01-3.46 0',
-  user:     'M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2 M12 11a4 4 0 100-8 4 4 0 000 8z',
-  settings: 'M12 20a8 8 0 100-16 8 8 0 000 16z M12 14a2 2 0 100-4 2 2 0 000 4z',
-  scatter:  'M3 3l18 18M3 21L21 3',
-  stats:    'M3 3v18h18 M7 14l3-3 3 3 4-6 M7 14v4 M10 11v7 M13 14v4 M17 8v10',
+  home:      'M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z',
+  bars:      'M18 20V10M12 20V4M6 20v-6',
+  chart:     'M3 3v18h18 M7 16l4-4 4 4 4-8',
+  news:      'M4 6h16M4 12h16M4 18h10',
+  star:      'M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z',
+  fx:        'M7 16V4m0 0L4 7m3-3l3 3 M17 8v12m0 0l3-3m-3 3l-3-3',
+  search:    'M21 21l-4.35-4.35M17 11A6 6 0 115 11a6 6 0 0112 0z',
+  chevD:     'M6 9l6 6 6-6',
+  chevU:     'M18 15l-6-6-6 6',
+  menu:      'M3 12h18M3 6h18M3 18h18',
+  bell:      'M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9 M13.73 21a2 2 0 01-3.46 0',
+  user:      'M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2 M12 11a4 4 0 100-8 4 4 0 000 8z',
+  stats:     'M3 3v18h18 M7 14l3-3 3 3 4-6 M7 14v4 M10 11v7 M13 14v4 M17 8v10',
+  grid:      'M4 4h7v7H4z M13 4h7v7h-7z M13 13h7v7h-7z M4 13h7v7H4z',   // heatmap (treemap)
+  pulse:     'M3 12h4l2 6 4-12 2 6h6',                                   // market breadth
+  filter:    'M4 5h16M7 12h10M10 19h4',                                  // screener
+  briefcase: 'M3 8h18v12H3z M8 8V5a2 2 0 012-2h4a2 2 0 012 2v3',         // portfolio
+  coin:      'M12 3a9 9 0 100 18 9 9 0 000-18z M8 10h8M8 14h8',          // gold
 }
 
 // ── Nav tree (mirrors Koyfin section structure) ───────────────────────────────
@@ -70,28 +72,27 @@ const NAV: {
   {
     id: 'market', label: 'السوق', collapsible: true,
     items: [
-      { href: '/market',   icon: 'bars',   ar: 'حركة السوق'  },
-      { href: '/pulse',    icon: 'stats',  ar: 'نبض السوق'   },
-      { href: '/heatmap',  icon: 'bars',   ar: 'خريطة السوق' },
-      { href: '/screener', icon: 'search', ar: 'فارز الأسهم' },
-      { href: '/news',     icon: 'news',   ar: 'أخبار السوق' },
+      { href: '/market',     icon: 'bars',   ar: 'حركة السوق'  },
+      { href: '/screener',   icon: 'filter', ar: 'فارز الأسهم' },
+      { href: '/statistics', icon: 'stats',  ar: 'الإحصائيات'  },
+      { href: '/heatmap',    icon: 'grid',   ar: 'خريطة السوق' },
+      { href: '/pulse',      icon: 'pulse',  ar: 'نبض السوق'   },
+      { href: '/news',       icon: 'news',   ar: 'أخبار السوق' },
     ],
   },
   {
     id: 'platform', label: 'منصتي', collapsible: true,
     items: [
-      { href: '/portfolio',  icon: 'scatter', ar: 'محفظتي',          badge: 'جديد' },
-      { href: '/alerts',     icon: 'bell',    ar: 'تنبيهات الأسعار', badge: 'جديد' },
-      { href: '/watchlist',  icon: 'star',    ar: 'قوائم المتابعة' },
-      { href: '/charts',     icon: 'chart',   ar: 'رسوماتي'         },
-      { href: '/statistics', icon: 'stats',   ar: 'الإحصائيات'      },
+      { href: '/portfolio',  icon: 'briefcase', ar: 'محفظتي',          badge: 'جديد' },
+      { href: '/watchlist',  icon: 'star',      ar: 'قوائم المتابعة' },
+      { href: '/alerts',     icon: 'bell',      ar: 'تنبيهات الأسعار', badge: 'جديد' },
     ],
   },
   {
     id: 'tools', label: 'أدوات', collapsible: true,
     items: [
-      { href: '/fx',   icon: 'fx', ar: 'سعر الصرف' },
-      { href: '/gold', icon: 'fx', ar: 'سعر الذهب' },
+      { href: '/fx',   icon: 'fx',   ar: 'سعر الصرف' },
+      { href: '/gold', icon: 'coin', ar: 'سعر الذهب' },
     ],
   },
 ]
@@ -113,7 +114,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   const [menuOpen, setMenuOpen] = useState(false)
   const menuRef = useRef<HTMLDivElement>(null)
   const [openSections, setOpenSections] = useState<Record<string, boolean>>({
-    market: true, platform: true, tools: false,
+    market: true, platform: true, tools: true,
   })
   const [drawerOpen, setDrawerOpen] = useState(false)
   const [isMobile, setIsMobile]     = useState(false)
@@ -171,7 +172,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
     }
   }, [drawerOpen])
 
-  const SW = collapsed ? 48 : 192
+  const SW = collapsed ? 52 : 212
 
   return (
     <div style={{ display: 'flex', minHeight: '100dvh', background: K.bg, color: K.ink }}>
@@ -197,9 +198,9 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
         }}>
           {!collapsed && (
             <div style={{ display: 'flex', alignItems: 'center', gap: 7, minWidth: 0 }}>
-              <StarMark size={20} />
+              <StarMark size={22} />
               <span style={{
-                fontWeight: 800, fontSize: 13, color: K.ink,
+                fontWeight: 800, fontSize: 15, color: K.ink,
                 whiteSpace: 'nowrap',
               }}>
                 IQWealth
@@ -236,17 +237,17 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
                   style={{
                     display: 'flex', alignItems: 'center',
                     justifyContent: 'space-between',
-                    padding: '12px 14px 3px',
-                    fontSize: 10, fontWeight: 700,
-                    color: K.ink4, letterSpacing: '0.07em',
+                    padding: '16px 16px 6px',
+                    fontSize: 11.5, fontWeight: 800,
+                    color: K.ink3, letterSpacing: '0.04em',
                     cursor: section.collapsible ? 'pointer' : 'default',
-                    userSelect: 'none', textTransform: 'uppercase',
+                    userSelect: 'none',
                   }}
                 >
                   <span>{section.label}</span>
                   {section.collapsible && (
                     <span style={{ color: K.ink4, opacity: 0.7 }}>
-                      <Icon d={openSections[section.id] ? IC.chevU : IC.chevD} size={9} />
+                      <Icon d={openSections[section.id] ? IC.chevU : IC.chevD} size={12} />
                     </span>
                   )}
                 </div>
@@ -271,16 +272,16 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
                       onClick={() => setDrawerOpen(false)}
                       style={{
                         display: 'flex', alignItems: 'center',
-                        height: 32, gap: 8,
-                        padding: collapsed ? '0' : '0 14px',
+                        height: 40, gap: 11,
+                        padding: collapsed ? '0' : '0 16px',
                         justifyContent: collapsed ? 'center' : 'flex-start',
-                        color: active ? K.brand : K.ink3,
+                        color: active ? K.brand : K.ink2,
                         background: active ? K.activeBg : 'transparent',
                         borderInlineStart: active
-                          ? `2px solid ${K.brand}`
-                          : '2px solid transparent',
+                          ? `3px solid ${K.brand}`
+                          : '3px solid transparent',
                         textDecoration: 'none',
-                        fontSize: 12.5, fontWeight: active ? 600 : 400,
+                        fontSize: 14.5, fontWeight: active ? 700 : 500,
                         transition: 'background 0.1s, color 0.1s',
                         whiteSpace: 'nowrap',
                       }}
@@ -293,8 +294,8 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
                         if (!active) e.currentTarget.style.color = K.ink3
                       }}
                     >
-                      <span style={{ flexShrink: 0, color: active ? K.brand : K.ink4 }}>
-                        <Icon d={IC[item.icon]} size={13} />
+                      <span style={{ flexShrink: 0, color: active ? K.brand : K.ink3 }}>
+                        <Icon d={IC[item.icon]} size={17} />
                       </span>
                       {!collapsed && (
                         <>
@@ -303,8 +304,8 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
                           </span>
                           {item.badge && (
                             <span style={{
-                              fontSize: 9, fontWeight: 700,
-                              padding: '1px 5px', borderRadius: 3,
+                              fontSize: 10, fontWeight: 700,
+                              padding: '2px 7px', borderRadius: 4,
                               background: K.badge, color: K.badgeTxt,
                               flexShrink: 0,
                             }}>
@@ -340,10 +341,10 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
             </div>
             {!collapsed && (
               <div style={{ minWidth: 0 }}>
-                <div style={{ fontSize: 11.5, fontWeight: 600, color: K.ink, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                <div style={{ fontSize: 13, fontWeight: 700, color: K.ink, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                   {profile?.username ?? user?.email?.split('@')[0]}
                 </div>
-                <div style={{ fontSize: 10, color: K.ink4 }}>الحساب المجاني</div>
+                <div style={{ fontSize: 11, color: K.ink4 }}>الحساب المجاني</div>
               </div>
             )}
           </Link>
@@ -367,10 +368,10 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
             </div>
             {!collapsed && (
               <div style={{ minWidth: 0 }}>
-                <div style={{ fontSize: 11.5, fontWeight: 700, color: K.brand, whiteSpace: 'nowrap' }}>
+                <div style={{ fontSize: 13, fontWeight: 700, color: K.brand, whiteSpace: 'nowrap' }}>
                   تسجيل الدخول
                 </div>
-                <div style={{ fontSize: 10, color: K.ink4 }}>أنشئ حسابك المجاني</div>
+                <div style={{ fontSize: 11, color: K.ink4 }}>أنشئ حسابك المجاني</div>
               </div>
             )}
           </button>
