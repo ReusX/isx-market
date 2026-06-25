@@ -191,8 +191,15 @@ export default function KChart({ sym, name, fill = false }: { sym: string; name?
   const [cursorIdx, setCursorIdx]     = useState<number | null>(null)
   const [ctxMenu, setCtxMenu]         = useState<{ x: number; y: number } | null>(null)
   const [mounted, setMounted]         = useState(false)
+  const [isMobile, setIsMobile]       = useState(false)
 
   useEffect(() => { setMounted(true) }, [])
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < 680)
+    check()
+    window.addEventListener('resize', check)
+    return () => window.removeEventListener('resize', check)
+  }, [])
   useEffect(() => { activeIndsRef.current = activeInds }, [activeInds])
 
   // ── Load raw data ───────────────────────────────────────────────────────────
@@ -497,73 +504,87 @@ export default function KChart({ sym, name, fill = false }: { sym: string; name?
       {/* ── Top bar ── */}
       <div className="flex items-center gap-1 px-2 shrink-0" style={{ height: 46, borderBottom: `1px solid ${C.border}` }}>
         {/* Symbol block */}
-        <div className="flex items-center gap-2 pr-2" style={{ borderRight: `1px solid ${C.border}` }}>
-          <div className="w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold text-white" style={{ background: C.accent }}>
+        <div className="flex items-center gap-2 shrink-0" style={{ borderRight: `1px solid ${C.border}`, paddingRight: 8, marginRight: 2 }}>
+          <div className="w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold text-white shrink-0" style={{ background: C.accent }}>
             {sym.slice(0, 2).toUpperCase()}
           </div>
           <span className="text-[15px] font-bold" style={{ color: C.text }}>{sym.toUpperCase()}</span>
-          {name && <span className="text-[12px] max-w-[180px] truncate" style={{ color: C.muted }}>{name}</span>}
+          {name && !isMobile && <span className="text-[12px] max-w-[180px] truncate" style={{ color: C.muted }}>{name}</span>}
         </div>
 
-        {/* Chart type */}
-        <div className="flex items-center gap-1 px-1.5" style={{ borderRight: `1px solid ${C.border}` }}>
-          {([['candle_solid', '🕯', 'شموع'], ['area', '〜', 'خطي']] as const).map(([t, ic, lbl]) => {
-            const on = chartType === t
-            return (
-              <Tip key={t} label={lbl} side="bottom">
-                <button onClick={() => setChartType(t)} aria-label={lbl} className={iconBtn}
-                  style={{ color: on ? '#fff' : C.icon, background: on ? C.accent : 'transparent', fontWeight: 700 }}
-                  onMouseEnter={e => { if (!on) { e.currentTarget.style.background = C.hover; e.currentTarget.style.color = '#fff' } }}
-                  onMouseLeave={e => { if (!on) { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = C.icon } }}>
-                  {ic}
-                </button>
-              </Tip>
-            )
-          })}
-        </div>
+        {/* Chart type — hidden on mobile */}
+        {!isMobile && (
+          <div className="flex items-center gap-1 px-1.5" style={{ borderRight: `1px solid ${C.border}` }}>
+            {([['candle_solid', '🕯', 'شموع'], ['area', '〜', 'خطي']] as const).map(([t, ic, lbl]) => {
+              const on = chartType === t
+              return (
+                <Tip key={t} label={lbl} side="bottom">
+                  <button onClick={() => setChartType(t)} aria-label={lbl} className={iconBtn}
+                    style={{ color: on ? '#fff' : C.icon, background: on ? C.accent : 'transparent', fontWeight: 700 }}
+                    onMouseEnter={e => { if (!on) { e.currentTarget.style.background = C.hover; e.currentTarget.style.color = '#fff' } }}
+                    onMouseLeave={e => { if (!on) { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = C.icon } }}>
+                    {ic}
+                  </button>
+                </Tip>
+              )
+            })}
+          </div>
+        )}
 
-        {/* Indicators */}
-        <button onClick={() => setShowIndicators(v => !v)}
-          className="flex items-center gap-1.5 h-8 px-3 rounded-md text-[13px] font-bold transition-colors"
-          style={{ color: showIndicators ? '#fff' : C.text, background: showIndicators ? C.accent : C.hover }}
-          onMouseEnter={e => { if (!showIndicators) e.currentTarget.style.background = '#363a45' }}
-          onMouseLeave={e => { if (!showIndicators) e.currentTarget.style.background = C.hover }}>
+        {/* Indicators — icon-only on mobile, with count badge */}
+        <button onClick={() => setShowIndicators(v => !v)} aria-label="المؤشرات"
+          className="flex items-center gap-1.5 rounded-md font-bold transition-colors shrink-0"
+          style={{
+            height: 32, padding: isMobile ? '0 8px' : '0 12px',
+            color: showIndicators ? '#fff' : C.text,
+            background: showIndicators ? C.accent : C.hover,
+            fontSize: 13,
+          }}>
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M3 14l4-5 4 3 5-7 5 9" /></svg>
-          المؤشرات{activeInds.size > 0 ? ` (${activeInds.size})` : ''}
+          {!isMobile && <>المؤشرات{activeInds.size > 0 ? ` (${activeInds.size})` : ''}</>}
+          {isMobile && activeInds.size > 0 && (
+            <span className="text-[11px] font-bold px-1 rounded-full" style={{ background: 'rgba(255,255,255,0.25)' }}>{activeInds.size}</span>
+          )}
         </button>
 
         <div className="flex-1" />
 
-        {exportMsg && <span className="text-[12px] font-semibold mr-1" style={{ color: C.accent }}>{exportMsg}</span>}
-        <Tip label="تنزيل صورة PNG" side="bottom">
-          <button onClick={() => exportImage('download')} aria-label="تنزيل" className={iconBtn} style={{ color: C.icon }}
-            onMouseEnter={e => { e.currentTarget.style.background = C.hover; e.currentTarget.style.color = '#fff' }}
-            onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = C.icon }}>
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 4v11m0 0l-4-4m4 4l4-4M5 19h14" /></svg>
-          </button>
-        </Tip>
-        <Tip label="نسخ الصورة" side="bottom">
-          <button onClick={() => exportImage('copy')} aria-label="نسخ" className={iconBtn} style={{ color: C.icon }}
-            onMouseEnter={e => { e.currentTarget.style.background = C.hover; e.currentTarget.style.color = '#fff' }}
-            onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = C.icon }}>
-            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="9" y="9" width="11" height="11" rx="2" /><path d="M5 15V5a2 2 0 012-2h10" /></svg>
-          </button>
-        </Tip>
-        <button onClick={() => setFullscreen(v => !v)}
-          className="flex items-center gap-1.5 h-8 px-3 ml-1 rounded-md text-[13px] font-bold transition-colors"
-          style={{ color: '#fff', background: C.hover }}
-          onMouseEnter={e => { e.currentTarget.style.background = '#363a45' }}
-          onMouseLeave={e => { e.currentTarget.style.background = C.hover }}>
+        {exportMsg && <span className="text-[11px] font-semibold" style={{ color: C.accent }}>{exportMsg}</span>}
+
+        {/* Export — hidden on mobile */}
+        {!isMobile && <>
+          <Tip label="تنزيل صورة PNG" side="bottom">
+            <button onClick={() => exportImage('download')} aria-label="تنزيل" className={iconBtn} style={{ color: C.icon }}
+              onMouseEnter={e => { e.currentTarget.style.background = C.hover; e.currentTarget.style.color = '#fff' }}
+              onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = C.icon }}>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 4v11m0 0l-4-4m4 4l4-4M5 19h14" /></svg>
+            </button>
+          </Tip>
+          <Tip label="نسخ الصورة" side="bottom">
+            <button onClick={() => exportImage('copy')} aria-label="نسخ" className={iconBtn} style={{ color: C.icon }}
+              onMouseEnter={e => { e.currentTarget.style.background = C.hover; e.currentTarget.style.color = '#fff' }}
+              onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = C.icon }}>
+              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="9" y="9" width="11" height="11" rx="2" /><path d="M5 15V5a2 2 0 012-2h10" /></svg>
+            </button>
+          </Tip>
+        </>}
+
+        {/* Fullscreen — icon-only on mobile */}
+        <button onClick={() => setFullscreen(v => !v)} aria-label={isFullscreen ? 'خروج' : 'ملء الشاشة'}
+          className="flex items-center gap-1.5 rounded-md font-bold transition-colors shrink-0"
+          style={{ height: 32, padding: isMobile ? '0 8px' : '0 12px', marginLeft: 4, color: '#fff', background: C.hover, fontSize: 13 }}>
           {isFullscreen
-            ? <><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 9L4 4m0 5V4h5M15 9l5-5m0 5V4h-5M9 15l-5 5m0-5v5h5M15 15l5 5m0-5v5h-5" /></svg>خروج</>
-            : <><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5" /></svg>ملء الشاشة</>}
+            ? <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 9L4 4m0 5V4h5M15 9l5-5m0 5V4h-5M9 15l-5 5m0-5v5h5M15 15l5 5m0-5v5h-5" /></svg>
+            : <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5" /></svg>}
+          {!isMobile && (isFullscreen ? 'خروج' : 'ملء الشاشة')}
         </button>
       </div>
 
       {/* ── Body: left toolbar + canvas ── */}
       <div className="flex flex-1 min-h-0">
-        {/* Left drawing toolbar */}
-        <div className="flex flex-col items-center gap-1 py-2 shrink-0" style={{ width: 48, borderRight: `1px solid ${C.border}` }}>
+        {/* Left drawing toolbar — hidden on mobile (touch drawing is impractical) */}
+        <div className="flex flex-col items-center gap-1 py-2 shrink-0"
+          style={{ width: 48, borderRight: `1px solid ${C.border}`, display: isMobile ? 'none' : 'flex' }}>
           {DRAW_TOOLS.map(tool => {
             const on = drawTool === tool.key
             return (
@@ -593,11 +614,11 @@ export default function KChart({ sym, name, fill = false }: { sym: string; name?
         {/* Canvas */}
         <div
           className="relative flex-1 min-w-0 min-h-0"
-          style={{ minHeight: isFullscreen ? undefined : (fill ? 0 : 520) }}
+          style={{ minHeight: isFullscreen ? undefined : (fill ? 0 : isMobile ? 340 : 520) }}
           onContextMenu={e => { e.preventDefault(); setCtxMenu({ x: e.clientX, y: e.clientY }) }}
         >
-          {/* Live OHLC legend (top-left, TradingView style) */}
-          {legendBar && (
+          {/* Live OHLC legend */}
+          {legendBar && !isMobile && (
             <div className="absolute top-2 left-2 z-20 pointer-events-none flex flex-col gap-1">
               <div className="flex items-center gap-2 text-[12px]" style={{ color: C.muted }}>
                 <span className="font-bold" style={{ color: C.text }}>{sym.toUpperCase()}</span>
@@ -621,6 +642,17 @@ export default function KChart({ sym, name, fill = false }: { sym: string; name?
               </div>
             </div>
           )}
+          {/* Mobile: compact single-line legend */}
+          {legendBar && isMobile && (
+            <div className="absolute top-1.5 left-1.5 z-20 pointer-events-none flex items-center gap-2 text-[11px] rounded px-2 py-1"
+              style={{ background: 'rgba(19,23,34,0.75)', fontVariantNumeric: 'tabular-nums' }}>
+              <span className="font-bold" style={{ color: legColor }}>{fmtP(legendBar.close)}</span>
+              <span className="font-semibold" style={{ color: legColor }}>
+                {legendPct >= 0 ? '+' : ''}{legendPct.toFixed(2)}%
+              </span>
+              <span style={{ color: C.faint }}>{legendDate}</span>
+            </div>
+          )}
 
           {loading && (
             <div className="absolute inset-0 flex items-center justify-center z-10 pointer-events-none">
@@ -636,7 +668,7 @@ export default function KChart({ sym, name, fill = false }: { sym: string; name?
 
           {/* Watermark */}
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-0" aria-hidden>
-            <span className="font-extrabold tracking-tight" style={{ fontSize: 'clamp(28px, 7vw, 80px)', color: 'rgba(120,123,134,0.06)', transform: 'rotate(-10deg)' }}>IQWealth</span>
+            <span className="font-extrabold tracking-tight" style={{ fontSize: 'clamp(22px, 5vw, 64px)', color: 'rgba(120,123,134,0.06)', transform: 'rotate(-10deg)' }}>iraqsm.com</span>
           </div>
 
           {/* Right-click context menu */}
@@ -663,12 +695,12 @@ export default function KChart({ sym, name, fill = false }: { sym: string; name?
       </div>
 
       {/* ── Bottom range bar ── */}
-      <div className="flex items-center gap-1 px-2 shrink-0" style={{ height: 38, borderTop: `1px solid ${C.border}` }}>
+      <div className="flex items-center gap-1 px-2 shrink-0" style={{ height: isMobile ? 44 : 38, borderTop: `1px solid ${C.border}` }}>
         {TF_KEYS.map(t => (
           <Tip key={t} label={TF_CONFIG[t].label} side="top">
             <button onClick={() => setTf(t)}
-              className="h-7 px-3 rounded-md text-[12px] font-bold transition-colors"
-              style={{ color: tf === t ? '#fff' : C.icon, background: tf === t ? C.accent : 'transparent' }}
+              className="rounded-md font-bold transition-colors"
+              style={{ height: isMobile ? 34 : 28, padding: isMobile ? '0 10px' : '0 12px', fontSize: isMobile ? 13 : 12, color: tf === t ? '#fff' : C.icon, background: tf === t ? C.accent : 'transparent' }}
               onMouseEnter={e => { if (tf !== t) { e.currentTarget.style.background = C.hover; e.currentTarget.style.color = '#fff' } }}
               onMouseLeave={e => { if (tf !== t) { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = C.icon } }}>
               {t}
@@ -681,18 +713,24 @@ export default function KChart({ sym, name, fill = false }: { sym: string; name?
 
       {/* ── Indicators modal ── */}
       {showIndicators && (
-        <div className="absolute inset-0 z-40 flex items-start justify-center pt-16" style={{ background: 'rgba(0,0,0,0.45)' }}
+        <div
+          className="z-40 flex items-start justify-center"
+          style={isMobile
+            ? { position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', paddingTop: 0 }
+            : { position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.45)', paddingTop: 64 }}
           onClick={() => setShowIndicators(false)}>
-          <div className="flex flex-col rounded-lg overflow-hidden shadow-2xl"
-            style={{ width: 420, maxHeight: '80%', background: C.panel, border: `1px solid ${C.border}` }}
+          <div className="flex flex-col overflow-hidden shadow-2xl"
+            style={isMobile
+              ? { width: '100%', height: '100%', background: C.panel, borderTop: `1px solid ${C.border}` }
+              : { width: 420, maxHeight: '80%', borderRadius: 8, background: C.panel, border: `1px solid ${C.border}` }}
             onClick={e => e.stopPropagation()}>
-            <div className="flex items-center justify-between px-4 h-12 shrink-0" style={{ borderBottom: `1px solid ${C.border}` }}>
-              <span className="text-[14px] font-semibold" style={{ color: C.text }}>المؤشرات الفنية</span>
-              <button onClick={() => setShowIndicators(false)} style={{ color: C.muted }} className="text-lg leading-none">✕</button>
+            <div className="flex items-center justify-between px-4 shrink-0" style={{ height: 52, borderBottom: `1px solid ${C.border}` }}>
+              <span className="text-[15px] font-semibold" style={{ color: C.text }}>المؤشرات الفنية</span>
+              <button onClick={() => setShowIndicators(false)} style={{ color: C.muted, fontSize: 20, lineHeight: 1 }}>✕</button>
             </div>
             <div className="px-4 py-3 shrink-0" style={{ borderBottom: `1px solid ${C.border}` }}>
-              <input autoFocus value={indSearch} onChange={e => setIndSearch(e.target.value)} placeholder="ابحث عن مؤشر..."
-                className="w-full h-9 px-3 rounded text-[13px] outline-none"
+              <input autoFocus={!isMobile} value={indSearch} onChange={e => setIndSearch(e.target.value)} placeholder="ابحث عن مؤشر..."
+                className="w-full h-10 px-3 rounded text-[14px] outline-none"
                 style={{ background: C.bg, border: `1px solid ${C.border}`, color: C.text }} />
             </div>
             <div className="overflow-y-auto flex-1 py-1">
@@ -708,8 +746,8 @@ export default function KChart({ sym, name, fill = false }: { sym: string; name?
                       const on = activeInds.has(ind.name)
                       return (
                         <button key={ind.name} onClick={() => toggleIndicator(ind)}
-                          className="w-full flex items-center justify-between px-4 py-2 transition-colors text-right"
-                          style={{ background: 'transparent' }}
+                          className="w-full flex items-center justify-between px-4 transition-colors text-right"
+                          style={{ paddingTop: isMobile ? 14 : 8, paddingBottom: isMobile ? 14 : 8, background: 'transparent' }}
                           onMouseEnter={e => { e.currentTarget.style.background = C.hover }}
                           onMouseLeave={e => { e.currentTarget.style.background = 'transparent' }}>
                           <div>
