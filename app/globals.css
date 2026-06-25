@@ -355,3 +355,9 @@ html[lang="ar"] .wp-content pre {
   -webkit-user-select: none;
   user-select: none;
 }
+
+/* Clickable hero cards on the homepage — subtle lift + brand border on hover */
+.home-card-link { transition: transform 0.12s ease; }
+.home-card-link > div { transition: border-color 0.12s ease, box-shadow 0.12s ease; }
+.home-card-link:hover { transform: translateY(-1px); }
+.home-card-link:hover > div { border-color: var(--brand); box-shadow: 0 4px 16px rgba(0,0,0,0.18); }

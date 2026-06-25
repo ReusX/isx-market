@@ -228,46 +228,52 @@ export default function HomeClient({ news }: { news: News[] }) {
 
       {/* ── Hero: index + breadth + totals ── */}
       <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1.5fr) minmax(0,1fr)', gap: 14, marginBottom: 14 }} className="home-hero">
-        <Card style={{ padding: 18 }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
-            <span style={{ fontSize: 12, color: 'var(--ink3)', fontWeight: 700 }}>مؤشر السوق العام ISX60</span>
-            <span style={{ fontSize: 11, color: 'var(--ink4)', fontWeight: 600 }}>آخر تحديث {updated}</span>
-          </div>
-          <div style={{ display: 'flex', alignItems: 'flex-end', gap: 10, marginTop: 6 }}>
-            <span style={{ fontSize: 30, fontWeight: 800, fontFamily: 'var(--font-mono)', color: 'var(--ink)', lineHeight: 1 }}>{index ? index.isx60.toFixed(2) : '—'}</span>
-            <span style={{ fontSize: 14, fontWeight: 700, color: tone(isxChange) }}>{isxUp ? '▲' : '▼'} {fmtPct(isxChange)}</span>
-          </div>
-          {series.length > 1 && <Sparkline data={series} up={isxUp} />}
-        </Card>
+        <Link href="/charts" className="home-card-link" style={{ textDecoration: 'none', display: 'block' }}>
+          <Card style={{ padding: 18 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
+              <span style={{ fontSize: 12, color: 'var(--ink3)', fontWeight: 700 }}>مؤشر السوق العام ISX60</span>
+              <span style={{ fontSize: 11, color: 'var(--ink4)', fontWeight: 600 }}>آخر تحديث {updated}</span>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'flex-end', gap: 10, marginTop: 6 }}>
+              <span style={{ fontSize: 30, fontWeight: 800, fontFamily: 'var(--font-mono)', color: 'var(--ink)', lineHeight: 1 }}>{index ? index.isx60.toFixed(2) : '—'}</span>
+              <span style={{ fontSize: 14, fontWeight: 700, color: tone(isxChange) }}>{isxUp ? '▲' : '▼'} {fmtPct(isxChange)}</span>
+            </div>
+            {series.length > 1 && <Sparkline data={series} up={isxUp} />}
+          </Card>
+        </Link>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-          <Card style={{ padding: 14 }}>
-            <div style={{ fontSize: 11.5, color: 'var(--ink3)', fontWeight: 700, marginBottom: 8 }}>نشاط السوق اليوم</div>
-            {breadth ? (
-              <>
-                <div style={{ display: 'flex', height: 8, borderRadius: 4, overflow: 'hidden' }}>
-                  <div style={{ flex: Math.max(breadth.advancers, 1), background: 'var(--up)' }} />
-                  <div style={{ flex: Math.max(breadth.unchanged, 1), background: 'var(--surf3)' }} />
-                  <div style={{ flex: Math.max(breadth.decliners, 1), background: 'var(--dn)' }} />
-                </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11.5, marginTop: 6, fontFamily: 'var(--font-mono)', fontWeight: 700 }}>
-                  <span style={{ color: 'var(--up)' }}>{breadth.advancers} ▲</span>
-                  <span style={{ color: 'var(--ink4)' }}>{breadth.unchanged} —</span>
-                  <span style={{ color: 'var(--dn)' }}>{breadth.decliners} ▼</span>
-                </div>
-              </>
-            ) : <div className="skeleton" style={{ height: 28 }} />}
-          </Card>
+          <Link href="/pulse" className="home-card-link" style={{ textDecoration: 'none', display: 'block' }}>
+            <Card style={{ padding: 14 }}>
+              <div style={{ fontSize: 11.5, color: 'var(--ink3)', fontWeight: 700, marginBottom: 8 }}>نشاط السوق اليوم</div>
+              {breadth ? (
+                <>
+                  <div style={{ display: 'flex', height: 8, borderRadius: 4, overflow: 'hidden' }}>
+                    <div style={{ flex: Math.max(breadth.advancers, 1), background: 'var(--up)' }} />
+                    <div style={{ flex: Math.max(breadth.unchanged, 1), background: 'var(--surf3)' }} />
+                    <div style={{ flex: Math.max(breadth.decliners, 1), background: 'var(--dn)' }} />
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11.5, marginTop: 6, fontFamily: 'var(--font-mono)', fontWeight: 700 }}>
+                    <span style={{ color: 'var(--up)' }}>{breadth.advancers} ▲</span>
+                    <span style={{ color: 'var(--ink4)' }}>{breadth.unchanged} —</span>
+                    <span style={{ color: 'var(--dn)' }}>{breadth.decliners} ▼</span>
+                  </div>
+                </>
+              ) : <div className="skeleton" style={{ height: 28 }} />}
+            </Card>
+          </Link>
           <div style={{ display: 'flex', gap: 10 }}>
             {[
               { l: 'قيمة التداول', v: fmtBig(index?.total_value) },
               { l: 'حجم التداول', v: fmtBig(index?.total_volume) },
               { l: 'الصفقات', v: index?.total_trades ? Math.round(index.total_trades).toLocaleString('en') : '—' },
             ].map(s => (
-              <Card key={s.l} style={{ padding: '10px 12px', flex: 1 }}>
-                <div style={{ fontSize: 10, color: 'var(--ink3)', fontWeight: 700 }}>{s.l}</div>
-                <div style={{ fontSize: 14, fontWeight: 800, fontFamily: 'var(--font-mono)', color: 'var(--ink)', marginTop: 3 }}>{s.v}</div>
-              </Card>
+              <Link key={s.l} href="/pulse" className="home-card-link" style={{ textDecoration: 'none', display: 'block', flex: 1 }}>
+                <Card style={{ padding: '10px 12px' }}>
+                  <div style={{ fontSize: 10, color: 'var(--ink3)', fontWeight: 700 }}>{s.l}</div>
+                  <div style={{ fontSize: 14, fontWeight: 800, fontFamily: 'var(--font-mono)', color: 'var(--ink)', marginTop: 3 }}>{s.v}</div>
+                </Card>
+              </Link>
             ))}
           </div>
         </div>
