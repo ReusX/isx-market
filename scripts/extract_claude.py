@@ -53,6 +53,11 @@ def _env():
 SB_URL, SB_KEY = _env()
 SB_H = {"apikey": SB_KEY, "Authorization": f"Bearer {SB_KEY}"}
 
+# _env() loaded .env.local into the environment; resolve the API key + model now
+# so they can live in .env.local (gitignored) instead of the shell.
+AKEY  = AKEY  or os.environ.get("ANTHROPIC_API_KEY")
+MODEL = os.environ.get("CLAUDE_MODEL", MODEL)
+
 
 def all_reports(ticker):
     params = {"ticker": f"eq.{ticker}", "select": "id,pdf_url,fiscal_year,period,status",

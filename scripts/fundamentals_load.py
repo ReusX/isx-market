@@ -126,8 +126,18 @@ def load_set(s):
     fact_rows = []
     for stmt, lines in s["facts"].items():
         norm[stmt] = {}
+        if not isinstance(lines, dict):
+            continue  # malformed extraction (e.g. a statement returned as a list)
         for line_key, rec in lines.items():
-            raw = rec["v"]
+            # tolerate sloppy model output: bare number, or [number], instead of {"v":…}
+            if isinstance(rec, dict):
+                raw = rec.get("v")
+            elif isinstance(rec, (int, float)):
+                raw, rec = rec, {"v": rec}
+            elif isinstance(rec, list) and rec and isinstance(rec[0], (int, float)):
+                raw, rec = rec[0], {"v": rec[0]}
+            else:
+                continue  # unusable line, skip rather than crash the whole set
             # metrics (ratios like %, x) are NOT scaled by unit
             is_metric = stmt == "metrics"
             v_iqd = raw if is_metric else (raw * mult if raw is not None else None)
