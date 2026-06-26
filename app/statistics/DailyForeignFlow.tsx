@@ -174,7 +174,7 @@ export function DailyForeignFlowFull() {
 
       {trend.length >= 5 && (
         <div style={{ marginBottom: 16 }}>
-          <div style={{ fontSize: 10.5, color: 'var(--ink4)', marginBottom: 4 }}>صافي التدفق الأجنبي — آخر {trend.length} جلسة</div>
+          <div style={{ fontSize: 10.5, color: 'var(--ink4)', marginBottom: 4 }}>صافي التدفق الأجنبي · آخر {trend.length} جلسة</div>
           <NetTrend series={trend} />
         </div>
       )}

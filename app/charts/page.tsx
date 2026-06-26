@@ -47,7 +47,7 @@ function RSISXChart({ tf }: { tf: string }) {
         setExportMsg('تم التنزيل ✓')
       } else {
         const ok = await copyImage(blob)
-        setExportMsg(ok ? 'تم النسخ ✓' : 'النسخ غير مدعوم — استخدم التنزيل')
+        setExportMsg(ok ? 'تم النسخ ✓' : 'النسخ غير مدعوم · استخدم التنزيل')
       }
     } catch {
       setExportMsg('تعذّر التصدير')
@@ -63,7 +63,7 @@ function RSISXChart({ tf }: { tf: string }) {
     async function init() {
       const LC = await import('lightweight-charts')
 
-      // ISX60 — the official market index from OUR OWN daily_index table
+      // ISX60 · the official market index from OUR OWN daily_index table
       // (parsed ISX daily workbooks, refreshed by the daily cron).
       const { createClient } = await import('@/lib/supabase/client')
       const tfObj = TF.find(t => t.id === tf) ?? TF[4]
@@ -281,7 +281,7 @@ export default function ChartsPage() {
 
   const [companies, setCompanies] = useState<Company[]>([])
   const [rsisxPct, setRsisxPct]   = useState(0)
-  const [rsisxVal, setRsisxVal]   = useState('—')
+  const [rsisxVal, setRsisxVal]   = useState('·')
   const [loading,  setLoading]    = useState(true)
   const [tf,       setTf]         = useState('1Y')
   const [view,     setView]       = useState<'grid' | 'watchlist'>('grid')
@@ -345,7 +345,7 @@ export default function ChartsPage() {
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 20, flexWrap: 'wrap', gap: 12 }}>
           <div>
             <div style={{ fontSize: 12, color: 'var(--ink4)', fontWeight: 600, marginBottom: 6 }}>
-              {ar ? 'مؤشر السوق العراقي ISX60' : 'ISX60 — Iraq Stock Exchange Index'}
+              {ar ? 'مؤشر السوق العراقي ISX60' : 'ISX60 · Iraq Stock Exchange Index'}
             </div>
             <div style={{ display: 'flex', alignItems: 'baseline', gap: 12 }}>
               <span style={{ fontFamily: 'var(--font-mono)', fontSize: 36, fontWeight: 800, letterSpacing: '-1px' }}>
@@ -412,8 +412,8 @@ export default function ChartsPage() {
       ) : display.length === 0 ? (
         <div style={{ textAlign: 'center', padding: '60px', color: 'var(--ink4)', fontSize: 13 }}>
           {ar
-            ? 'قائمة المراقبة فارغة — أضف شركات من صفحة السوق ★'
-            : 'Watchlist empty — add companies from Market page ★'
+            ? 'قائمة المراقبة فارغة · أضف شركات من صفحة السوق ★'
+            : 'Watchlist empty · add companies from Market page ★'
           }
         </div>
       ) : (
@@ -461,7 +461,7 @@ export default function ChartsPage() {
                   <MiniSpark points={pts} up={up} />
 
                   <div style={{ padding: '4px 12px 10px', fontFamily: 'var(--font-mono)', fontSize: 13, fontWeight: 700 }}>
-                    {co.close > 0 ? co.close.toFixed(3) : '—'}
+                    {co.close > 0 ? co.close.toFixed(3) : '·'}
                   </div>
                 </div>
               </Link>

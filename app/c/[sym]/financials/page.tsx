@@ -33,7 +33,7 @@ export default function CompanyFinancialsPage() {
 
       <h1 style={{ fontSize: 22, fontWeight: 800, margin: '0 0 4px' }}>{name}</h1>
       <div style={{ fontSize: 12, color: 'var(--ink4)', marginBottom: 18 }}>
-        {ar ? `البيانات المالية — ${sym}` : `Financial Statements — ${sym}`}
+        {ar ? `البيانات المالية · ${sym}` : `Financial Statements · ${sym}`}
       </div>
 
       {/* tab nav */}

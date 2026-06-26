@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 
-// Note: does NOT import useApp — AppContext imports this file, so importing
+// Note: does NOT import useApp · AppContext imports this file, so importing
 // useApp here would create a circular dependency. Lang is passed as a prop instead.
 interface Props { onClose: () => void; defaultTab?: 'signin' | 'signup'; lang?: string }
 

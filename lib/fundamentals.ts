@@ -15,7 +15,7 @@ export interface PeResult {
  *   TTM NI = Q1_2026 + Annual_2025 - Q1_2025
  *   Falls back to: Q1_2026 + Q4_2025 - Q1_2025 when Annual_2025 is absent.
  *
- * Shares = paid_capital (IQD) — ISX par value is 1 IQD/share.
+ * Shares = paid_capital (IQD) · ISX par value is 1 IQD/share.
  * P/E    = price / (TTM NI / shares)
  *
  * @param sb   Supabase client (anon or service role)

@@ -19,7 +19,7 @@ const periodRank = (y: number, p: string) => {
   return y * 100 + m
 }
 function fmtIQD(v: number | null, ar: boolean): string {
-  if (v == null) return '—'
+  if (v == null) return '·'
   const neg = v < 0, a = Math.abs(v)
   const u = (n: number, w: string) => `${neg ? '−' : ''}${(a / n).toLocaleString('en', { maximumFractionDigits: 2 })} ${w}`
   if (a >= 1e12) return u(1e12, ar ? 'تريليون' : 'T')
@@ -28,7 +28,7 @@ function fmtIQD(v: number | null, ar: boolean): string {
   return `${neg ? '−' : ''}${a.toLocaleString('en')}`
 }
 function fmtRatio(v: number | null, unit: string): string {
-  if (v == null) return '—'
+  if (v == null) return '·'
   if (unit === '%') return `${(v * 100).toFixed(1)}%`
   if (unit === 'x') return `${v.toFixed(2)}×`
   return v.toFixed(2)

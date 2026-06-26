@@ -68,7 +68,7 @@ export default function ArticlePage({ post, section, backHref }: Props) {
         </div>
       )}
 
-      {/* Content — rewrite any cms.iraqsm.com image src URLs to Hostinger temp domain */}
+      {/* Content · rewrite any cms.iraqsm.com image src URLs to Hostinger temp domain */}
       <div
         className="wp-content"
         dangerouslySetInnerHTML={{

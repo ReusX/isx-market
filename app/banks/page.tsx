@@ -40,7 +40,7 @@ export default function BanksPage() {
         المصارف العراقية
       </h1>
       <p style={{ fontSize: 14, color: 'var(--ink3)', marginBottom: 32 }}>
-        {listed.length} مصرفاً مدرجاً في بورصة العراق للأوراق المالية (ISX) — اضغط على أي مصرف لعرض سعر سهمه ومخططاته.
+        {listed.length} مصرفاً مدرجاً في بورصة العراق للأوراق المالية (ISX) · اضغط على أي مصرف لعرض سعر سهمه ومخططاته.
       </p>
 
       {/* Non-listed major banks */}

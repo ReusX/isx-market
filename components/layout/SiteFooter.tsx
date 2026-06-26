@@ -53,8 +53,8 @@ export default function SiteFooter() {
             </div>
             <p style={{ fontSize: 12.5, color: 'var(--ink4)', lineHeight: 1.8, margin: 0, maxWidth: 280 }}>
               {ar
-                ? 'منصّة مجانية للمستثمر العراقي — بيانات يومية من المصادر الرسمية، تحليل، وأدوات بحث.'
-                : 'A free platform for the Iraqi investor — daily data from official sources, analysis, and research tools.'}
+                ? 'منصّة مجانية للمستثمر العراقي · بيانات يومية من المصادر الرسمية، تحليل، وأدوات بحث.'
+                : 'A free platform for the Iraqi investor · daily data from official sources, analysis, and research tools.'}
             </p>
           </div>
 

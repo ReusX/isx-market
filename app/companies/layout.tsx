@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
   title: { absolute: 'الشركات المدرجة في بورصة العراق | ISX Listed Companies' },
-  description: 'All companies listed on the Iraq Stock Exchange (ISX) — browse by sector including banking, telecom, industry, insurance, and more. الشركات المدرجة في بورصة العراق للأوراق المالية، اسهم العراق، سوق الاسهم العراقي.',
+  description: 'All companies listed on the Iraq Stock Exchange (ISX) · browse by sector including banking, telecom, industry, insurance, and more. الشركات المدرجة في بورصة العراق للأوراق المالية، اسهم العراق، سوق الاسهم العراقي.',
   alternates: { canonical: 'https://iraqsm.com/companies' },
   keywords: [
     'iraq stock exchange companies', 'isx listed companies', 'iraq stock market companies',
@@ -11,7 +11,7 @@ export const metadata: Metadata = {
   ],
   openGraph: {
     url: 'https://iraqsm.com/companies',
-    title: 'Iraq Stock Exchange Listed Companies — ISX | الشركات المدرجة في بورصة العراق',
+    title: 'Iraq Stock Exchange Listed Companies · ISX | الشركات المدرجة في بورصة العراق',
     description: 'All companies listed on the Iraq Stock Exchange (ISX). الشركات المدرجة في بورصة العراق للأوراق المالية.',
     images: [{ url: '/opengraph-image', width: 1200, height: 630 }],
   },

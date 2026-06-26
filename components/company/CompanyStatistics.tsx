@@ -11,7 +11,7 @@ type Row   = { label: string; value: string }
 
 // ── Formatters ──────────────────────────────────────────────────────────────────
 const money = (v: number | null): string => {
-  if (v == null) return '—'
+  if (v == null) return '·'
   const neg = v < 0, a = Math.abs(v)
   const u = (n: number, w: string) => `${neg ? '−' : ''}${(a / n).toFixed(2)}${w}`
   if (a >= 1e12) return u(1e12, 'T')
@@ -20,9 +20,9 @@ const money = (v: number | null): string => {
   if (a >= 1e3)  return u(1e3, 'K')
   return `${neg ? '−' : ''}${a.toFixed(0)}`
 }
-const pct = (v: number | null) => (v == null ? '—' : `${(v * 100).toFixed(2)}%`)
-const mult = (v: number | null) => (v == null ? '—' : `${v.toFixed(2)}×`)
-const num  = (v: number | null) => (v == null ? '—' : v.toFixed(2))
+const pct = (v: number | null) => (v == null ? '·' : `${(v * 100).toFixed(2)}%`)
+const mult = (v: number | null) => (v == null ? '·' : `${v.toFixed(2)}×`)
+const num  = (v: number | null) => (v == null ? '·' : v.toFixed(2))
 
 export default function CompanyStatistics({ sym, price, shares, mcapFallback }: {
   sym: string; price: number; shares?: number; mcapFallback?: number
@@ -106,7 +106,7 @@ export default function CompanyStatistics({ sym, price, shares, mcapFallback }: 
     { label: ar ? 'السعر/المبيعات' : 'Price/Sales (ttm)', value: mult(psLive) },
     { label: ar ? 'السعر/القيمة الدفترية' : 'Price/Book', value: mult(pbLive) },
     { label: ar ? 'عائد التوزيعات' : 'Dividend Yield', value: pct(ratioMap.get('dividend_yield') ?? null) },
-  ].filter(r => r.value !== '—' || r.label.includes('Market') || r.label.includes('السوقية'))
+  ].filter(r => r.value !== '·' || r.label.includes('Market') || r.label.includes('السوقية'))
 
   // Margin computed on the SAME (TTM) basis as the revenue/NI shown below it, so
   // the numbers reconcile; falls back to the latest annual ratio.
@@ -118,7 +118,7 @@ export default function CompanyStatistics({ sym, price, shares, mcapFallback }: 
     { label: ar ? (isBank ? 'الدخل التشغيلي (TTM)' : 'الإيرادات (TTM)') : (isBank ? 'Operating Income (ttm)' : 'Revenue (ttm)'), value: money(ttmRev) },
     { label: ar ? 'صافي الربح (TTM)' : 'Net Income (ttm)', value: money(ttmNi) },
     { label: ar ? 'ربحية السهم (TTM)' : 'Diluted EPS (ttm)', value: num(ttm?.eps ?? ratioMap.get('eps') ?? null) },
-  ].filter(r => r.value !== '—')
+  ].filter(r => r.value !== '·')
 
   const balance: Row[] = (isBank
     ? [
@@ -132,7 +132,7 @@ export default function CompanyStatistics({ sym, price, shares, mcapFallback }: 
         { label: ar ? 'القيمة الدفترية للسهم' : 'Book Value/Share', value: num(ratioMap.get('bvps') ?? null) },
         { label: ar ? 'الدين/حقوق الملكية' : 'Total Debt/Equity (mrq)', value: pct(ratioMap.get('debt_to_equity') ?? null) },
         { label: ar ? 'التدفق النقدي الحر (TTM)' : 'Free Cash Flow (ttm)', value: money(fcf) },
-      ]).filter(r => r.value !== '—')
+      ]).filter(r => r.value !== '·')
 
   const lockedRows = [
     ar ? 'قيمة المنشأة' : 'Enterprise Value',
@@ -215,8 +215,8 @@ export default function CompanyStatistics({ sym, price, shares, mcapFallback }: 
           <div style={{ fontSize: 22 }}>🔒</div>
           <div style={{ fontSize: 15, fontWeight: 800, color: 'var(--ink)' }}>{ar ? 'تحليلات متقدمة' : 'Advanced Analytics'}</div>
           <div style={{ fontSize: 12.5, color: 'var(--ink4)', textAlign: 'center', maxWidth: 360 }}>
-            {ar ? 'قيمة المنشأة، المكررات الآجلة، مقارنة النظراء والمزيد — متاحة قريباً للمشتركين.'
-                : 'Enterprise value, forward multiples, peer comparison & more — coming soon for subscribers.'}
+            {ar ? 'قيمة المنشأة، المكررات الآجلة، مقارنة النظراء والمزيد · متاحة قريباً للمشتركين.'
+                : 'Enterprise value, forward multiples, peer comparison & more · coming soon for subscribers.'}
           </div>
           <span style={{ marginTop: 4, padding: '7px 16px', borderRadius: 999, background: 'var(--brand)', color: '#fff', fontSize: 12.5, fontWeight: 700, opacity: 0.95 }}>
             {ar ? 'قريباً' : 'Coming soon'}

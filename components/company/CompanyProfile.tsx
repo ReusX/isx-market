@@ -16,7 +16,7 @@ const SECTORS: Record<string, { en: string; ar: string }> = {
 
 // Market cap is stored in millions of IQD.
 function fmtMcap(v?: number): string {
-  if (!v) return '—'
+  if (!v) return '·'
   if (v >= 1e6) return (v / 1e6).toFixed(1) + 'T'
   if (v >= 1e3) return (v / 1e3).toFixed(1) + 'B'
   return v.toLocaleString('en', { maximumFractionDigits: 0 }) + 'M'

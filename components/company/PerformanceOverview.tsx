@@ -84,7 +84,7 @@ export default function PerformanceOverview({ sym }: { sym: string }) {
   ]
 
   const Pct = ({ v }: { v: number | null }) => {
-    if (v == null) return <span style={{ fontFamily: 'var(--font-mono)', fontSize: 17, fontWeight: 800, color: 'var(--ink4)' }}>—</span>
+    if (v == null) return <span style={{ fontFamily: 'var(--font-mono)', fontSize: 17, fontWeight: 800, color: 'var(--ink4)' }}>·</span>
     const up = v >= 0
     return (
       <span style={{ fontFamily: 'var(--font-mono)', fontSize: 17, fontWeight: 800, color: up ? 'var(--up)' : 'var(--dn)' }}>

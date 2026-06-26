@@ -70,7 +70,30 @@ function Soon({ note }: { note: string }) {
   )
 }
 
-// ── 1. Foreign flow — monthly net bars ────────────────────────────────────────
+// Compact, uniform placeholder for data sources still being wired up. Grouped
+// in their own row so they read as "upcoming" rather than broken/empty panels.
+function ComingCard({ title, subtitle, note }: { title: string; subtitle: string; note: string }) {
+  return (
+    <div style={{
+      background: 'var(--surf)', border: '1px solid var(--line)', borderRadius: 12,
+      padding: '14px 16px', display: 'flex', flexDirection: 'column', gap: 6, minHeight: 124,
+    }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
+        <span style={{ width: 26, height: 26, borderRadius: 7, background: 'var(--surf3)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, color: 'var(--ink4)' }}>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 2" /></svg>
+        </span>
+        <div style={{ minWidth: 0 }}>
+          <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--ink2)' }}>{title}</div>
+          <div style={{ fontSize: 10.5, color: 'var(--ink4)' }}>{subtitle}</div>
+        </div>
+        <span style={{ marginInlineStart: 'auto', fontSize: 9, fontWeight: 700, padding: '2px 7px', borderRadius: 5, background: 'var(--surf3)', color: 'var(--ink4)', whiteSpace: 'nowrap' }}>قريباً</span>
+      </div>
+      <div style={{ fontSize: 11, color: 'var(--ink4)', lineHeight: 1.6 }}>{note}</div>
+    </div>
+  )
+}
+
+// ── 1. Foreign flow · monthly net bars ────────────────────────────────────────
 // Small segmented control used by the interactive panels
 function Seg<T extends string | number>({ value, onChange, options }: {
   value: T; onChange: (v: T) => void; options: [T, string][]
@@ -173,7 +196,7 @@ function ForeignFlowChart({ rows }: { rows: FlowRow[] }) {
               </div>
             )
           }
-          // split: buy up (green), sell down (red) — tug of war
+          // split: buy up (green), sell down (red) · tug of war
           const bh = (s.buy  / maxAbs) * 100
           const sh = (s.sell / maxAbs) * 100
           return (
@@ -208,7 +231,7 @@ function ForeignFlowChart({ rows }: { rows: FlowRow[] }) {
   )
 }
 
-// ── 2. Sector rotation — horizontal bars ──────────────────────────────────────
+// ── 2. Sector rotation · horizontal bars ──────────────────────────────────────
 function SectorRotation({ rows }: { rows: SectorRow[] }) {
   const [side,  setSide]  = useState<'buy' | 'sell'>('buy')
   const [mk,    setMk]    = useState<string | null>(null)
@@ -303,7 +326,7 @@ export default function StatisticsPage() {
         const db = createClient()
 
         // foreign_flow_daily exceeds the 1000-row API cap (~1.4k rows), which
-        // silently dropped the most recent months — page through it fully.
+        // silently dropped the most recent months · page through it fully.
         const fetchAllFlow = async (): Promise<FlowRow[]> => {
           const out: FlowRow[] = []
           for (let from = 0; ; from += 1000) {
@@ -339,43 +362,52 @@ export default function StatisticsPage() {
       <div style={{ marginBottom: 20 }}>
         <h1 style={{ fontSize: 22, fontWeight: 800, color: 'var(--ink)', margin: 0 }}>الإحصائيات</h1>
         <p style={{ fontSize: 12, color: 'var(--ink4)', marginTop: 4 }}>
-          بيانات حصرية مستخرجة من تقارير سوق العراق للأوراق المالية — تدفق الأجانب اليومي حيّ، والبيانات الشهرية تُحدَّث مع كل تقرير
+          بيانات حصرية مستخرجة من تقارير سوق العراق للأوراق المالية · تدفق الأجانب اليومي حيّ، والبيانات الشهرية تُحدَّث مع كل تقرير
         </p>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))', gap: 16, alignItems: 'start' }}>
+      {/* Real data panels · masonry (CSS columns) so cards of differing height
+          pack tightly instead of leaving ragged row gaps. */}
+      <div style={{ columnWidth: 360, columnGap: 16 }}>
         {/* live daily foreign flow */}
-        <DailyForeignFlowPreview />
+        <div style={brk}><DailyForeignFlowPreview /></div>
 
-        {/* monthly foreign flow + sector rotation */}
-        <Panel title="تدفق المستثمر الأجنبي" subtitle={flowMonth ? `صافي الشراء/البيع شهرياً · حتى ${flowMonth}` : 'صافي الشراء/البيع شهرياً'} badge="شهري">
-          {loading ? <Skel /> : <ForeignFlowChart rows={flow} />}
-        </Panel>
+        {/* monthly foreign flow */}
+        <div style={brk}>
+          <Panel title="تدفق المستثمر الأجنبي" subtitle={flowMonth ? `صافي الشراء/البيع شهرياً · حتى ${flowMonth}` : 'صافي الشراء/البيع شهرياً'} badge="شهري">
+            {loading ? <Skel /> : <ForeignFlowChart rows={flow} />}
+          </Panel>
+        </div>
 
-        <Panel title="دوران القطاعات" subtitle="أين يتدفق المال الأجنبي شهرياً" badge="شهري">
-          {loading ? <Skel /> : <SectorRotation rows={sector} />}
-        </Panel>
+        {/* ownership */}
+        <div style={brk}><OwnershipPreview /></div>
 
-        {/* ownership + major shareholders (compact, expand to full page) */}
-        <OwnershipPreview />
-        <ShareholdersPreview />
+        {/* sector rotation */}
+        <div style={brk}>
+          <Panel title="دوران القطاعات" subtitle="أين يتدفق المال الأجنبي شهرياً" badge="شهري">
+            {loading ? <Skel /> : <SectorRotation rows={sector} />}
+          </Panel>
+        </div>
 
-        {/* still-to-come data sources */}
-        <Panel title="عدد المودعين لكل شركة" subtitle="كم شخص يملك هذا السهم">
-          <Soon note="عدّاد المودعين غير مستخرج بعد من التقارير — يحتاج تحديث المُحلِّل (Table 26)." />
-        </Panel>
+        {/* major shareholders */}
+        <div style={brk}><ShareholdersPreview /></div>
+      </div>
 
-        <Panel title="سوق السندات" subtitle="متابعة السندات الحكومية والشركات">
-          <Soon note="لا يوجد مصدر بيانات للسندات بعد — يحتاج إضافة مصدر." />
-        </Panel>
-
-        <Panel title="أحداث رأس المال" subtitle="زيادات رأس المال، الرهون، الإرث">
-          <Soon note="جدول الأحداث فارغ — يحتاج استخراج الجداول 28/34 من التقارير." />
-        </Panel>
+      {/* Upcoming data sources · grouped, compact, uniform */}
+      <div style={{ marginTop: 26 }}>
+        <div style={{ fontSize: 12.5, fontWeight: 800, color: 'var(--ink3)', marginBottom: 12 }}>مصادر بيانات قادمة</div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 14 }}>
+          <ComingCard title="عدد المودعين لكل شركة" subtitle="كم شخص يملك هذا السهم" note="عدّاد المودعين غير مستخرج بعد من التقارير · يحتاج تحديث المُحلِّل (Table 26)." />
+          <ComingCard title="سوق السندات" subtitle="السندات الحكومية والشركات" note="لا يوجد مصدر بيانات للسندات بعد · يحتاج إضافة مصدر." />
+          <ComingCard title="أحداث رأس المال" subtitle="زيادات رأس المال، الرهون، الإرث" note="جدول الأحداث فارغ · يحتاج استخراج الجداول 28/34 من التقارير." />
+        </div>
       </div>
     </div>
   )
 }
+
+// each masonry item must avoid breaking across columns + carry the gap
+const brk: React.CSSProperties = { breakInside: 'avoid', marginBottom: 16 }
 
 function Skel() {
   return <div className="skeleton" style={{ height: 220, borderRadius: 10 }} />

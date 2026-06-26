@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
   title: { absolute: 'سعر الدولار اليوم في العراق | الدولار مقابل الدينار العراقي USD/IQD' },
-  description: 'كم سعر الدولار اليوم في العراق؟ سعر صرف الدولار الأمريكي مقابل الدينار العراقي اليوم ٢٠٢٦ — السعر الرسمي للبنك المركزي والسوق الموازية، سعر 100 دولار بالدينار، ومحول العملات IQD/USD المباشر. Live USD to Iraqi Dinar (IQD) exchange rate and currency converter.',
+  description: 'كم سعر الدولار اليوم في العراق؟ سعر صرف الدولار الأمريكي مقابل الدينار العراقي اليوم ٢٠٢٦ · السعر الرسمي للبنك المركزي والسوق الموازية، سعر 100 دولار بالدينار، ومحول العملات IQD/USD المباشر. Live USD to Iraqi Dinar (IQD) exchange rate and currency converter.',
   alternates: { canonical: 'https://iraqsm.com/fx' },
   keywords: [
     'سعر الدولار اليوم في العراق', 'سعر الدولار مقابل الدينار العراقي',
@@ -15,7 +15,7 @@ export const metadata: Metadata = {
   openGraph: {
     url: 'https://iraqsm.com/fx',
     title: 'سعر الدولار اليوم في العراق | سعر صرف الدينار العراقي مقابل الدولار',
-    description: 'سعر صرف الدولار مقابل الدينار العراقي اليوم — السعر الرسمي والسوق الموازية ومحول فوري IQD/USD.',
+    description: 'سعر صرف الدولار مقابل الدينار العراقي اليوم · السعر الرسمي والسوق الموازية ومحول فوري IQD/USD.',
     images: [{ url: '/opengraph-image', width: 1200, height: 630 }],
   },
 }
@@ -27,7 +27,7 @@ const fxSchema = {
       '@type': 'WebPage',
       '@id': 'https://iraqsm.com/fx',
       url: 'https://iraqsm.com/fx',
-      name: 'سعر الدولار اليوم في العراق — الدولار مقابل الدينار العراقي',
+      name: 'سعر الدولار اليوم في العراق · الدولار مقابل الدينار العراقي',
       description: 'سعر صرف الدولار الأمريكي مقابل الدينار العراقي اليوم، السعر الرسمي والسوق الموازية، ومحول العملات IQD/USD.',
       inLanguage: ['ar-IQ', 'en'],
       breadcrumb: {
@@ -84,12 +84,12 @@ export default function FxLayout({ children }: { children: React.ReactNode }) {
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(fxSchema) }} />
 
       <h1 style={{ position: 'absolute', width: 1, height: 1, overflow: 'hidden', clip: 'rect(0,0,0,0)', whiteSpace: 'nowrap' }}>
-        سعر الدولار اليوم في العراق — سعر صرف الدينار العراقي مقابل الدولار الأمريكي USD/IQD
+        سعر الدولار اليوم في العراق · سعر صرف الدينار العراقي مقابل الدولار الأمريكي USD/IQD
       </h1>
 
       {children}
 
-      {/* Server-rendered SEO content (Arabic — matches the top dollar queries).
+      {/* Server-rendered SEO content (Arabic · matches the top dollar queries).
           The converter above is the interactive part; this gives crawlers
           substantial, relevant text the client-only widget doesn't. */}
       <section
@@ -112,7 +112,7 @@ export default function FxLayout({ children }: { children: React.ReactNode }) {
         </p>
         <p style={{ marginBottom: 24 }}>
           توفّر هذه الصفحة محوّل عملات فوري بين الدينار العراقي والدولار الأمريكي، إضافة إلى مقارنة بين السعر الرسمي،
-          ومزاد العملة، وسعر السوق، وأسعار الحوالات. لحساب سعر أي مبلغ — مثل سعر 100 دولار بالدينار العراقي — أدخل القيمة
+          ومزاد العملة، وسعر السوق، وأسعار الحوالات. لحساب سعر أي مبلغ · مثل سعر 100 دولار بالدينار العراقي · أدخل القيمة
           في الحاسبة أعلاه واختر السعر المطلوب.
         </p>
 

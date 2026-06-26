@@ -11,8 +11,13 @@ type Metric = {
   last_close: number; prev_close: number | null
   close_1w: number | null; close_1m: number | null; close_3m: number | null
   close_yend: number | null; close_52w: number | null
+  days_since_trade: number | null
 }
 type Row = Metric & { name: string; mcap: number }
+
+// Hide stocks that haven't traded in this many days · suspended/delisted names
+// would otherwise fill the map with dead, neutral 0% tiles.
+const STALE_DAYS = 60
 
 // ── period config ─────────────────────────────────────────────────────────────
 const PERIODS = [
@@ -104,14 +109,20 @@ export default function HeatmapPage() {
       try {
         const { createClient } = await import('@/lib/supabase/client')
         const [{ data }, meta] = await Promise.all([
-          createClient().from('company_metrics').select('ticker,sector,name_en,name_ar,last_close,prev_close,close_1w,close_1m,close_3m,close_yend,close_52w'),
+          createClient().from('company_metrics').select('ticker,sector,name_en,name_ar,last_close,prev_close,close_1w,close_1m,close_3m,close_yend,close_52w,days_since_trade'),
           fetchCompanyMeta().catch(() => [] as CompanyMeta[]),
         ])
         const metaBy = new Map(meta.map(m => [m.sym, m]))
         const merged: Row[] = ((data ?? []) as Metric[]).map(m => {
           const mt = metaBy.get(m.ticker)
-          return { ...m, name: mt?.ar || m.name_ar || m.name_en || m.ticker, mcap: mt?.mcap ?? 0 }
-        }).filter(r => r.mcap > 0)
+          // Market cap consistent with the live price (price × shares), like the
+          // screener · the static companies.json figure is stale. Fall back to it
+          // only when the share count is unknown.
+          const mcap = (m.last_close > 0 && mt?.shares)
+            ? m.last_close * mt.shares
+            : (mt?.mcap ?? 0)
+          return { ...m, name: mt?.ar || m.name_ar || m.name_en || m.ticker, mcap }
+        }).filter(r => r.mcap > 0 && (r.days_since_trade ?? 0) <= STALE_DAYS)
         setRows(merged)
       } finally { setLoading(false) }
     })()
@@ -169,7 +180,7 @@ export default function HeatmapPage() {
         <div>
           <h2 style={{ fontSize: 22, fontWeight: 800, margin: 0, color: 'var(--ink)' }}>خريطة السوق الحرارية</h2>
           <p style={{ fontSize: 12.5, color: 'var(--ink4)', margin: '6px 0 0' }}>
-            حجم المربع = القيمة السوقية · اللون = التغيّر · مرتبة حسب القطاع — {rows.length || '…'} شركة
+            حجم المربع = القيمة السوقية · اللون = التغيّر · مرتبة حسب القطاع · {rows.length || '…'} شركة
           </p>
         </div>
         {/* period toggle */}
@@ -207,7 +218,7 @@ export default function HeatmapPage() {
               const med = t.w > 34 && t.h > 18
               const pctTxt = t.pct == null ? '' : `${t.pct >= 0 ? '+' : ''}${t.pct.toFixed(1)}%`
               return (
-                <div key={t.r.ticker} title={`${t.r.name} (${t.r.ticker}) · ${pctTxt || '—'}`}
+                <div key={t.r.ticker} title={`${t.r.name} (${t.r.ticker}) · ${pctTxt || '·'}`}
                   onClick={() => router.push(`/c/${t.r.ticker}`)}
                   style={{
                     position: 'absolute', left: t.x, top: t.y, width: t.w, height: t.h,

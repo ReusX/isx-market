@@ -57,8 +57,8 @@ export default function AnalysisListPage() {
         </h1>
         <p style={{ fontSize: 15, color: 'var(--ink3)', margin: 0, lineHeight: 1.6 }}>
           {ar
-            ? 'تحليلات استثمارية بناءً على التقارير المالية الرسمية — الحالات الإيجابية والسلبية، محركات السوق، والتوقعات المستقبلية.'
-            : 'Investment analysis based on official ISC filings — bull & bear cases, key themes, and forward outlook.'}
+            ? 'تحليلات استثمارية بناءً على التقارير المالية الرسمية · الحالات الإيجابية والسلبية، محركات السوق، والتوقعات المستقبلية.'
+            : 'Investment analysis based on official ISC filings · bull & bear cases, key themes, and forward outlook.'}
         </p>
       </div>
 

@@ -13,7 +13,7 @@ const QLABEL: Record<string, string> = { Q1: 'الربع الأول', Q2: 'ال�
 const periodRank = (y: number, p: string) => y * 100 + (p === 'ANNUAL' ? 12 : ({ Q1: 3, Q2: 6, Q3: 9, Q4: 12 } as Record<string, number>)[p] ?? 12)
 
 function fmtIQD(v: number | null, ar: boolean): string {
-  if (v == null) return '—'
+  if (v == null) return '·'
   const neg = v < 0, a = Math.abs(v)
   const u = (n: number, w: string) => `${neg ? '−' : ''}${(a / n).toLocaleString('en', { maximumFractionDigits: 2 })} ${w}`
   if (a >= 1e12) return u(1e12, ar ? 'ت' : 'T')
@@ -49,7 +49,7 @@ export default function EarningsTrends({ sym }: { sym: string }) {
     const a = val(y, 'ANNUAL', k), q1 = val(y, 'Q1', k), q2 = val(y, 'Q2', k), q3 = val(y, 'Q3', k)
     return [a, q1, q2, q3].every(v => v != null) ? a! - q1! - q2! - q3! : null
   }
-  // Banks don't report a single "revenue" line — their top line is net interest/
+  // Banks don't report a single "revenue" line · their top line is net interest/
   // financing income + net commission income. Fall back to that composite.
   const effRev = (y: number, p: string): number | null => {
     const r = sq(y, p, 'revenue')
@@ -81,7 +81,7 @@ export default function EarningsTrends({ sym }: { sym: string }) {
   const series = mode === 'annual' ? annual : quarterly
   const hasQuarterly = quarterly.length > 0
   const latest = series[series.length - 1]
-  // Banks have no single "revenue" line — we use net interest + commission income
+  // Banks have no single "revenue" line · we use net interest + commission income
   // as the top line ("operating income"), and we suppress net-margin because the
   // proxy understates total bank income (would otherwise show >100% margins).
   const hasRevenue = facts.some(f => f.line_key === 'revenue')
@@ -157,7 +157,7 @@ function NetProfitCard({ series, mode, setMode, hasQuarterly, latest, ar, hasRev
             <div key={`${p.y}-${p.p}`} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6, height: '100%', justifyContent: 'flex-end' }}>
               {hasRevenue && (
                 <span style={{ fontSize: 10, fontWeight: 700, color: m != null ? (m >= 0 ? 'var(--up)' : 'var(--dn)') : 'var(--ink4)' }}>
-                  {m != null ? `${(m * 100).toFixed(0)}%` : '—'}
+                  {m != null ? `${(m * 100).toFixed(0)}%` : '·'}
                 </span>
               )}
               <div style={{ width: '70%', maxWidth: 38, height: `${h}%`, minHeight: 3, borderRadius: '4px 4px 0 0',

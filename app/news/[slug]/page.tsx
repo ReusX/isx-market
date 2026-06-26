@@ -7,11 +7,11 @@ function buildDesc(raw: string, section: string): string {
   const clean = raw.trim().slice(0, 140)
   if (clean.length >= 100) return clean
   const suffix: Record<string, string> = {
-    news:     ' — أخبار بورصة العراق للأوراق المالية على ISX Market.',
-    research: ' — تحليلات ومقالات بورصة العراق على ISX Market.',
-    learn:    ' — تعلّم الاستثمار في بورصة العراق على ISX Market.',
+    news:     ' · أخبار بورصة العراق للأوراق المالية على ISX Market.',
+    research: ' · تحليلات ومقالات بورصة العراق على ISX Market.',
+    learn:    ' · تعلّم الاستثمار في بورصة العراق على ISX Market.',
   }
-  return clean + (suffix[section] ?? ' — بورصة العراق | ISX Market.')
+  return clean + (suffix[section] ?? ' · بورصة العراق | ISX Market.')
 }
 
 export const revalidate = 300

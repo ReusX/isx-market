@@ -50,7 +50,7 @@ export default function LegalPage() {
       {ar ? (
         <>
           <Section title="1. إخلاء المسؤولية الاستثمارية">
-            <p>المعلومات الواردة على منصة ISX Market — بما فيها أسعار الأسهم، والتحليلات، والأخبار، وبيانات الشركات — هي لأغراض إعلامية فقط وليست توصيات استثمارية ولا نصيحة مالية.</p>
+            <p>المعلومات الواردة على منصة ISX Market · بما فيها أسعار الأسهم، والتحليلات، والأخبار، وبيانات الشركات · هي لأغراض إعلامية فقط وليست توصيات استثمارية ولا نصيحة مالية.</p>
             <p>لا تعتمد على هذه المعلومات وحدها لاتخاذ قرارات استثمارية. استشر متخصصاً مالياً مؤهلاً قبل الاستثمار.</p>
           </Section>
           <Section title="2. دقة البيانات">
@@ -63,7 +63,7 @@ export default function LegalPage() {
             <p>قد تحتوي المنصة على روابط لمواقع خارجية. لا نتحمل مسؤولية محتوى هذه المواقع أو ممارساتها في مجال الخصوصية.</p>
           </Section>
           <Section title="5. الملكية الفكرية">
-            <p>جميع محتويات المنصة — من تصميم وشعارات ونصوص وكود — محمية بحقوق الملكية الفكرية لصالح ISX Market ما لم يُذكر غير ذلك. لا يحق إعادة نشرها أو نسخها دون إذن مسبق.</p>
+            <p>جميع محتويات المنصة · من تصميم وشعارات ونصوص وكود · محمية بحقوق الملكية الفكرية لصالح ISX Market ما لم يُذكر غير ذلك. لا يحق إعادة نشرها أو نسخها دون إذن مسبق.</p>
           </Section>
           <Section title="6. القانون المطبّق">
             <p>تخضع هذه الشروط لقوانين جمهورية العراق. أي نزاعات تُحسم عبر المحاكم المختصة في جمهورية العراق.</p>
@@ -78,7 +78,7 @@ export default function LegalPage() {
       ) : (
         <>
           <Section title="1. Investment Disclaimer">
-            <p>Information provided on ISX Market — including stock prices, analysis, news, and company data — is for informational purposes only and does not constitute investment advice or a financial recommendation.</p>
+            <p>Information provided on ISX Market · including stock prices, analysis, news, and company data · is for informational purposes only and does not constitute investment advice or a financial recommendation.</p>
             <p>Do not rely solely on this information to make investment decisions. Consult a qualified financial professional before investing.</p>
           </Section>
           <Section title="2. Data Accuracy">
@@ -91,7 +91,7 @@ export default function LegalPage() {
             <p>The platform may contain links to external websites. We are not responsible for the content or privacy practices of those sites.</p>
           </Section>
           <Section title="5. Intellectual Property">
-            <p>All platform content — including design, logos, copy, and code — is the intellectual property of ISX Market unless otherwise stated. Reproduction or republication without prior permission is prohibited.</p>
+            <p>All platform content · including design, logos, copy, and code · is the intellectual property of ISX Market unless otherwise stated. Reproduction or republication without prior permission is prohibited.</p>
           </Section>
           <Section title="6. Governing Law">
             <p>These terms are governed by the laws of the Republic of Iraq. Any disputes shall be resolved through competent courts in the Republic of Iraq.</p>

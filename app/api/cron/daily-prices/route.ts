@@ -4,7 +4,7 @@ import * as XLSX from 'xlsx'
 
 // Vercel cron: fetch the last week of ISX daily-report workbooks and upsert
 // per-company rows into daily_prices. TypeScript port of the local Python
-// daily pipeline (scripts/run_pipeline.py --mode daily) — serverless functions
+// daily pipeline (scripts/run_pipeline.py --mode daily) · serverless functions
 // can't run Python, and the daily_prices table itself serves as the
 // "already processed" state, so no local processed.json is needed.
 
@@ -31,7 +31,7 @@ function decodeEntities(s: string): string {
 
 interface ListedFile { url: string; isoDate: string }
 
-/** Page 1 of the daily filter covers ~10 files — more than a week of sessions. */
+/** Page 1 of the daily filter covers ~10 files · more than a week of sessions. */
 async function fetchDailyList(): Promise<ListedFile[]> {
   const to = new Date()
   const from = new Date(Date.now() - DAYS_BACK * 86400_000)
@@ -124,7 +124,7 @@ interface IndexRow {
   traded_companies: number | null; listed_companies: number | null
 }
 
-/** Pull ISX60/ISX15 + session totals from the المؤشرات الكلية sheet —
+/** Pull ISX60/ISX15 + session totals from the المؤشرات الكلية sheet ·
  *  mirror of extract_index() in scripts/parse_daily_xlsx.py. */
 function parseIndexSheet(wb: XLSX.WorkBook, isoDate: string): IndexRow | null {
   const name = wb.SheetNames.find(s => s.includes('المؤشرات'))
@@ -162,7 +162,7 @@ interface ForeignRow {
   trades: number | null; volume: number | null; value: number | null
 }
 
-// Section-label + sheet-name keywords — mirror of scripts/parse_foreign_company.py.
+// Section-label + sheet-name keywords · mirror of scripts/parse_foreign_company.py.
 const FOREIGN_SHEET_KW = ['اجانب', 'أجانب', 'العراقيين']
 const BUY_KW = ['المشتراة', 'المشتراه', 'الشراء']   // foreign buying  → inflow
 const SELL_KW = ['المباعة', 'المباعه', 'البيع']      // foreign selling → outflow
@@ -245,7 +245,7 @@ export async function GET(req: NextRequest) {
 
         // per-company foreign buy/sell → foreign_flow_company_daily (live daily flow).
         // Written BEFORE daily_prices so daily_prices (the skip marker on the next
-        // run) only carries a date once its foreign flow has also landed — otherwise
+        // run) only carries a date once its foreign flow has also landed · otherwise
         // a date present in daily_prices but missing foreign data would be skipped
         // forever (which is exactly how the two tables drifted once before).
         const frows = parseForeignFlow(wb, file.isoDate)
@@ -261,7 +261,7 @@ export async function GET(req: NextRequest) {
             .from('daily_index').upsert([idx], { onConflict: 'date' })
           if (e2) throw new Error(e2.message)
         }
-        // daily_prices LAST — its presence is the "fully processed" marker
+        // daily_prices LAST · its presence is the "fully processed" marker
         const { error } = await supabase
           .from('daily_prices').upsert(rows, { onConflict: 'ticker,date' })
         if (error) throw new Error(error.message)

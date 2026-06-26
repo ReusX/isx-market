@@ -19,8 +19,8 @@ export default function ContactPage() {
         </h1>
         <p style={{ fontSize: 16, color: 'var(--ink3)', lineHeight: 1.7, margin: 0 }}>
           {ar
-            ? 'سواء كان لديك سؤال، اقتراح، أو تريد الإبلاغ عن مشكلة — نحن هنا.'
-            : 'Whether you have a question, suggestion, or want to report an issue — we\'re here.'}
+            ? 'سواء كان لديك سؤال، اقتراح، أو تريد الإبلاغ عن مشكلة · نحن هنا.'
+            : 'Whether you have a question, suggestion, or want to report an issue · we\'re here.'}
         </p>
       </div>
 

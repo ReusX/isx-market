@@ -8,7 +8,7 @@ const UA = {
   'User-Agent':
     'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124 Safari/537.36 (+iraqsm.com)',
 }
-const REVALIDATE = 60 * 60 * 3 // 3 hours — picks up the daily update reliably
+const REVALIDATE = 60 * 60 * 3 // 3 hours · picks up the daily update reliably
 
 const intNum = (s: string) => parseInt(s.replace(/[^\d]/g, ''), 10)
 const floatNum = (s: string | undefined | null) =>
@@ -65,8 +65,8 @@ export async function fetchGold(): Promise<GoldData | null> {
 
 // ── USD / IQD (black market) ─────────────────────────────────────────────────
 export interface FxData {
-  buy: number | null      // شراء — what changers pay for a dollar
-  sell: number | null     // بيع  — what changers sell a dollar for (the quoted price)
+  buy: number | null      // شراء · what changers pay for a dollar
+  sell: number | null     // بيع  · what changers sell a dollar for (the quoted price)
   change: number | null   // vs yesterday's last price (egcurrency only)
   date: string | null
   source: string
@@ -165,6 +165,70 @@ export async function fetchFx(): Promise<FxData | null> {
     const viaProxy = await tryFetch(jina(article), (raw) => parseAlsumaria(raw, article))
     if (viaProxy) { await writeFxCache(viaProxy); return viaProxy }
   }
-  // Alsumaria unavailable — serve last known rate from cache
+  // Alsumaria unavailable · serve last known rate from cache
   return readFxCache()
+}
+
+// ── Oil prices ───────────────────────────────────────────────────────────────
+// oilprice.com/ar serves the full quote tables in static HTML (each blend is a
+// <tr data-name=…> with a data-price cell, a signed change/percent cell, and a
+// data-stamp), so a per-row regex pass is enough · no JS reader needed. We keep
+// every blend; the page curates which to feature (Iraq's Basrah crude first).
+export interface OilBlend {
+  key: string            // oilprice slug, e.g. "Brent-Crude"
+  name: string           // Arabic blend name as published
+  country: string | null // flag code, e.g. "iraq", "uk", "usa"
+  usd: number            // last price, USD per barrel (gas blends per MMBtu/gal)
+  change: number         // signed daily change
+  pct: number            // signed daily change, %
+  stamp: number | null   // unix seconds of the source's last update
+}
+export interface OilData {
+  blends: OilBlend[]
+  source: string
+  sourceUrl: string
+  fetchedAt: string
+}
+
+const OIL_URL = 'https://oilprice.com/ar/oil-price-charts'
+
+export async function fetchOil(): Promise<OilData | null> {
+  try {
+    const res = await fetch(OIL_URL, { headers: UA, next: { revalidate: REVALIDATE } })
+    if (!res.ok) return null
+    const html = await res.text()
+
+    const blends: OilBlend[] = []
+    const seen = new Set<string>()
+    const sign = (cls?: string) => (cls === 'change_down' ? -1 : 1)
+    const mag  = (s?: string) => (s ? Math.abs(parseFloat(s.replace(/[^\d.]/g, ''))) : 0)
+
+    // Each quote row starts at `data-name='…'` and runs until the next row /
+    // table close. Pull the fields out of that bounded chunk.
+    const rowRe = /data-name='([^']+)'([\s\S]*?)(?=data-name='|<\/table>)/g
+    let m: RegExpExecArray | null
+    while ((m = rowRe.exec(html))) {
+      const key = m[1], chunk = m[2]
+      if (seen.has(key)) continue
+      const name  = chunk.match(/blend_name_span">([^<]+)</)?.[1]?.trim()
+      const price = chunk.match(/last_price'\s*data-price='([\d.]+)'/)?.[1]
+      if (!name || !price) continue
+      const country = chunk.match(/<div class='flag_(\w+)'/)?.[1] ?? null
+      const ch  = chunk.match(/class='(change_up|change_down|no_change)(?:\s+flat_change_cell)?'>([^<]+)</)
+      const pc  = chunk.match(/class='(change_up|change_down|no_change)_percent[^']*'>([^<%]+)%/)
+      const st  = chunk.match(/data-stamp='(\d+)'/)?.[1]
+      seen.add(key)
+      blends.push({
+        key, name, country,
+        usd: parseFloat(price),
+        change: ch ? sign(ch[1]) * mag(ch[2]) : 0,
+        pct:    pc ? sign(pc[1]) * mag(pc[2]) : 0,
+        stamp:  st ? +st : null,
+      })
+    }
+    if (!blends.length) return null
+    return { blends, source: 'oilprice.com', sourceUrl: OIL_URL, fetchedAt: new Date().toISOString() }
+  } catch {
+    return null
+  }
 }

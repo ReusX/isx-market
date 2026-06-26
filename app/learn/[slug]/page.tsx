@@ -6,7 +6,7 @@ import type { Metadata } from 'next'
 function buildDesc(raw: string): string {
   const clean = raw.trim().slice(0, 140)
   if (clean.length >= 100) return clean
-  return clean + ' — تعلّم الاستثمار في بورصة العراق على ISX Market.'
+  return clean + ' · تعلّم الاستثمار في بورصة العراق على ISX Market.'
 }
 
 export const revalidate = 300

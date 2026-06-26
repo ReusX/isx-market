@@ -57,7 +57,7 @@ export default function PortfolioPage() {
         <div>
           <h2 style={{ fontSize: 22, fontWeight: 800, margin: 0, color: 'var(--ink)' }}>محفظتي</h2>
           <p style={{ fontSize: 12.5, color: 'var(--ink4)', margin: '6px 0 0' }}>
-            تتبّع استثماراتك في سوق العراق — القيمة الحالية والأرباح والتوزيع حسب القطاع
+            تتبّع استثماراتك في سوق العراق · القيمة الحالية والأرباح والتوزيع حسب القطاع
           </p>
         </div>
         <button onClick={() => setShowForm(s => !s)} style={btn(true)}>
@@ -185,7 +185,7 @@ function HoldingRow({ h, name, logo, color, weight, onRemove }: {
       </td>
       <td style={td}>{h.qty.toLocaleString('en')}</td>
       <td style={td}>{h.avg.toLocaleString('en', { maximumFractionDigits: 3 })}</td>
-      <td style={td}>{h.price ? h.price.toLocaleString('en', { maximumFractionDigits: 3 }) : '—'}</td>
+      <td style={td}>{h.price ? h.price.toLocaleString('en', { maximumFractionDigits: 3 }) : '·'}</td>
       <td style={td}>{fmtIQD(h.value)}</td>
       <td style={{ ...td, color: tone(h.pl), fontWeight: 800 }}>
         <div>{h.pl >= 0 ? '+' : '−'}{fmtIQD(Math.abs(h.pl))}</div>

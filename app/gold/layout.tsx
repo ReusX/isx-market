@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
   title: { absolute: 'سعر الذهب مباشر اليوم في العراق | اسعار الذهب عالمياً بالدينار' },
-  description: 'سعر الذهب مباشر اليوم في العراق بالدينار العراقي — اسعار الذهب عالمياً وسعر مثقال الذهب عيار 21 وسعر غرام الذهب عيار 24 و18 لحظة بلحظة. Live gold price in Iraq today in IQD and USD, per gram and mithqal for 24K, 21K, 18K, with the global spot rate.',
+  description: 'سعر الذهب مباشر اليوم في العراق بالدينار العراقي · اسعار الذهب عالمياً وسعر مثقال الذهب عيار 21 وسعر غرام الذهب عيار 24 و18 لحظة بلحظة. Live gold price in Iraq today in IQD and USD, per gram and mithqal for 24K, 21K, 18K, with the global spot rate.',
   alternates: { canonical: 'https://iraqsm.com/gold' },
   keywords: [
     'gold price in iraq', 'iraq gold price today', 'gold price iraq 2026',
@@ -14,7 +14,7 @@ export const metadata: Metadata = {
   ],
   openGraph: {
     url: 'https://iraqsm.com/gold',
-    title: 'سعر الذهب مباشر اليوم في العراق | اسعار الذهب عالمياً — Iraq Gold Rate',
+    title: 'سعر الذهب مباشر اليوم في العراق | اسعار الذهب عالمياً · Iraq Gold Rate',
     description: 'سعر الذهب مباشر اليوم في العراق لكل غرام ومثقال بالدينار العراقي والدولار، مع السعر العالمي للأونصة. Live Iraq gold price per gram & mithqal.',
     images: [{ url: '/opengraph-image', width: 1200, height: 630 }],
   },
@@ -27,8 +27,8 @@ const faqSchema = {
       '@type': 'WebPage',
       '@id': 'https://iraqsm.com/gold',
       url: 'https://iraqsm.com/gold',
-      name: 'Gold Price in Iraq Today — Iraq Gold Rate in Iraqi Dinar',
-      description: 'Live gold price in Iraq today in IQD and USD — per gram and mithqal for 24K, 21K, and 18K gold.',
+      name: 'Gold Price in Iraq Today · Iraq Gold Rate in Iraqi Dinar',
+      description: 'Live gold price in Iraq today in IQD and USD · per gram and mithqal for 24K, 21K, and 18K gold.',
       inLanguage: ['ar-IQ', 'en'],
       about: {
         '@type': 'Thing',
@@ -99,15 +99,15 @@ export default function GoldLayout({ children }: { children: React.ReactNode }) 
         dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
       />
 
-      {/* Server-rendered SEO H1 — the gold widget below is client-rendered, so
+      {/* Server-rendered SEO H1 · the gold widget below is client-rendered, so
           this guarantees crawlers get the Arabic heading + topic text. */}
       <h1 style={{ position: 'absolute', width: 1, height: 1, overflow: 'hidden', clip: 'rect(0,0,0,0)', whiteSpace: 'nowrap' }}>
-        سعر الذهب اليوم في العراق — سعر مثقال الذهب عيار 21 وسعر غرام الذهب بالدينار العراقي
+        سعر الذهب اليوم في العراق · سعر مثقال الذهب عيار 21 وسعر غرام الذهب بالدينار العراقي
       </h1>
 
       {children}
 
-      {/* Server-rendered SEO content (Arabic — matches the top gold queries).
+      {/* Server-rendered SEO content (Arabic · matches the top gold queries).
           The price widget above is client-only, so this gives crawlers the
           substantial, relevant text the widget doesn't render server-side. */}
       <section

@@ -1,7 +1,7 @@
 import { ImageResponse } from 'next/og'
 
 export const runtime = 'edge'
-export const alt = 'ISX Market — Iraq Stock Exchange Live Prices & Analysis'
+export const alt = 'ISX Market · Iraq Stock Exchange Live Prices & Analysis'
 export const size = { width: 1200, height: 630 }
 export const contentType = 'image/png'
 
@@ -45,7 +45,7 @@ export default function OGImage() {
           display: 'flex',
         }} />
 
-        {/* Top row — domain badge */}
+        {/* Top row · domain badge */}
         <div style={{
           display: 'flex',
           alignItems: 'center',

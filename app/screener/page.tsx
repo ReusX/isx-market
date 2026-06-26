@@ -18,7 +18,7 @@ type Metric = {
 type Row = Metric & { name: string; logo?: string; color?: string; mcap?: number; pe?: number | null }
 
 // A quote older than this (no trades) is treated as suspended/delisted and
-// hidden by default — its "price" and period % would be misleading otherwise.
+// hidden by default · its "price" and period % would be misleading otherwise.
 const STALE_DAYS = 60
 
 // ── period config: which "as-of" close drives the % column ──────────────────
@@ -56,15 +56,15 @@ function pctFor(r: Row, p: PeriodId): number | null {
   if (!ref) return null
   return ((r.last_close - ref) / ref) * 100
 }
-const fmtPct = (v: number | null) => v == null ? '—' : `${v >= 0 ? '+' : ''}${v.toFixed(1)}%`
+const fmtPct = (v: number | null) => v == null ? '·' : `${v >= 0 ? '+' : ''}${v.toFixed(2)}%`
 const toneColor = (v: number | null) => v == null ? 'var(--ink4)' : v > 0 ? 'var(--up)' : v < 0 ? 'var(--dn)' : 'var(--ink3)'
 
 // ── logo ──────────────────────────────────────────────────────────────────────
 function Logo({ sym, logo, color }: { sym: string; logo?: string; color?: string }) {
   const [err, setErr] = useState(false)
-  if (logo && !err) return <img src={logo} alt={sym} width={26} height={26} onError={() => setErr(true)}
+  if (logo && !err) return <img src={logo} alt={sym} width={24} height={24} onError={() => setErr(true)}
     style={{ borderRadius: 6, objectFit: 'contain', background: '#fff', padding: 2, flexShrink: 0 }} />
-  return <div style={{ width: 26, height: 26, borderRadius: 6, flexShrink: 0, background: color || 'var(--brand)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 9, fontWeight: 800, color: '#fff' }}>{sym.slice(0, 3)}</div>
+  return <div style={{ width: 24, height: 24, borderRadius: 6, flexShrink: 0, background: color || 'var(--brand)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 8.5, fontWeight: 800, color: '#fff' }}>{sym.slice(0, 3)}</div>
 }
 
 type SortKey = 'mcap' | 'pct' | 'price' | 'liq' | 'foreign' | 'pos52' | 'pe'
@@ -128,6 +128,7 @@ export default function ScreenerPage() {
     () => rows.filter(r => (r.days_since_trade ?? 0) > STALE_DAYS).length,
     [rows],
   )
+  const activeCount = rows.length ? rows.length - staleCount : 0
 
   const view = useMemo(() => {
     let list = rows.slice()
@@ -174,27 +175,35 @@ export default function ScreenerPage() {
     else { setSortKey(k); setSortDir(k === 'price' || k === 'pos52' ? 'asc' : 'desc') }
   }
 
+  const periodLabel = PERIODS.find(p => p.id === period)!.label
+
   return (
     <div style={{ padding: '20px 24px 80px', maxWidth: 1180, margin: '0 auto' }}>
       {/* header */}
       <div style={{ marginBottom: 16 }}>
-        <h2 style={{ fontSize: 22, fontWeight: 800, margin: 0, color: 'var(--ink)' }}>فارز الأسهم</h2>
+        <h2 style={{ fontSize: 22, fontWeight: 800, margin: 0, color: 'var(--ink)', letterSpacing: '-0.01em' }}>فارز الأسهم</h2>
         <p style={{ fontSize: 12.5, color: 'var(--ink4)', margin: '6px 0 0' }}>
-          فلترة وترتيب أسهم السوق حسب الأداء والسيولة والمكرر وتدفق الأجانب — {rows.length ? rows.length - staleCount : '…'} شركة نشطة
+          فلترة وترتيب أسهم السوق حسب الأداء والسيولة والمكرر وتدفق الأجانب
+          {activeCount ? <> · {activeCount} شركة نشطة</> : null}
         </p>
       </div>
 
-      {/* controls */}
+      {/* ── filter bar ── */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 14 }}>
         {/* presets + search */}
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
-          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', flex: 1 }}>
+          <div className="chip-scroll" style={{ display: 'flex', gap: 6, overflowX: 'auto', flex: 1, minWidth: 0 }}>
             {PRESETS.map(p => (
               <button key={p.id} onClick={() => setPreset(p.id)} style={chip(preset === p.id)}>{p.label}</button>
             ))}
           </div>
-          <input value={q} onChange={e => setQ(e.target.value)} placeholder="بحث باسم أو رمز…"
-            style={{ width: 180, height: 34, borderRadius: 9, background: 'var(--surf2)', border: '1px solid var(--line)', color: 'var(--ink)', fontSize: 13, padding: '0 12px', outline: 'none', fontFamily: 'inherit', direction: 'rtl' }} />
+          <div style={{ position: 'relative', flexShrink: 0 }}>
+            <span style={{ position: 'absolute', insetInlineStart: 11, top: '50%', transform: 'translateY(-50%)', color: 'var(--ink4)', pointerEvents: 'none', display: 'flex' }}>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="7" /><path d="M21 21l-4-4" /></svg>
+            </span>
+            <input value={q} onChange={e => setQ(e.target.value)} placeholder="بحث باسم أو رمز…"
+              style={{ width: 190, height: 34, borderRadius: 9, background: 'var(--surf2)', border: '1px solid var(--line)', color: 'var(--ink)', fontSize: 13, padding: '0 12px 0 32px', outline: 'none', fontFamily: 'inherit', direction: 'rtl' }} />
+          </div>
         </div>
         {/* sector + period */}
         <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -205,13 +214,13 @@ export default function ScreenerPage() {
               </button>
             ))}
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
-            <span style={{ fontSize: 11, color: 'var(--ink4)', fontWeight: 600 }}>التغيّر:</span>
-            <div style={{ display: 'inline-flex', background: 'var(--surf2)', borderRadius: 8, padding: 2, gap: 2 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 7, flexShrink: 0 }}>
+            <span style={{ fontSize: 11, color: 'var(--ink4)', fontWeight: 600 }}>التغيّر</span>
+            <div style={{ display: 'inline-flex', background: 'var(--surf2)', borderRadius: 8, padding: 2, gap: 2, border: '1px solid var(--line)' }}>
               {PERIODS.map(p => (
                 <button key={p.id} onClick={() => setPeriod(p.id)} style={{
-                  border: 'none', borderRadius: 6, padding: '5px 10px', fontSize: 11.5, fontWeight: 700, cursor: 'pointer',
-                  background: period === p.id ? 'var(--brand)' : 'transparent', color: period === p.id ? '#fff' : 'var(--ink3)',
+                  border: 'none', borderRadius: 6, padding: '5px 10px', fontSize: 11.5, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit',
+                  background: period === p.id ? 'var(--surf3)' : 'transparent', color: period === p.id ? 'var(--ink)' : 'var(--ink4)',
                 }}>{p.label}</button>
               ))}
             </div>
@@ -222,101 +231,102 @@ export default function ScreenerPage() {
           <label style={{ display: 'flex', alignItems: 'center', gap: 7, fontSize: 11.5, color: 'var(--ink4)', cursor: 'pointer', userSelect: 'none' }}>
             <input type="checkbox" checked={showStale} onChange={e => setShowStale(e.target.checked)}
               style={{ accentColor: 'var(--brand)', width: 14, height: 14, cursor: 'pointer' }} />
-            عرض الأسهم المتوقفة عن التداول ({staleCount}) — آخر تداول لها قبل أكثر من {STALE_DAYS} يوماً
+            عرض الأسهم المتوقفة عن التداول ({staleCount}) · آخر تداول لها قبل أكثر من {STALE_DAYS} يوماً
           </label>
         )}
       </div>
 
       {/* table */}
       {loading ? (
-        <div className="skeleton" style={{ height: 480, borderRadius: 14 }} />
+        <div className="skeleton" style={{ height: 480, borderRadius: 12 }} />
       ) : (
-        <div style={{ border: '1px solid var(--line)', borderRadius: 14, overflow: 'hidden', background: 'var(--surf)' }}>
+        <div style={{ border: '1px solid var(--line)', borderRadius: 12, overflow: 'hidden', background: 'var(--surf)' }}>
           <div style={{ overflowX: 'auto' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 840 }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 880 }}>
               <thead>
-                <tr style={{ borderBottom: '1px solid var(--line)', background: 'var(--surf2)' }}>
-                  <Th label="الشركة" align="start" />
+                <tr style={{ borderBottom: '1px solid var(--line)' }}>
+                  <Th label={`الشركة · ${view.length}`} align="start" />
                   <Th label="السعر" onClick={() => toggleSort('price')} active={sortKey === 'price'} dir={sortDir} />
-                  <Th label={`التغيّر (${PERIODS.find(p => p.id === period)!.label})`} onClick={() => toggleSort('pct')} active={sortKey === 'pct'} dir={sortDir} />
-                  <Th label="مكرر (TTM)" onClick={() => toggleSort('pe')} active={sortKey === 'pe'} dir={sortDir} />
+                  <Th label={`التغيّر · ${periodLabel}`} onClick={() => toggleSort('pct')} active={sortKey === 'pct'} dir={sortDir} />
+                  <Th label="مكرر" onClick={() => toggleSort('pe')} active={sortKey === 'pe'} dir={sortDir} />
                   <Th label="٥٢ أسبوع" onClick={() => toggleSort('pos52')} active={sortKey === 'pos52'} dir={sortDir} />
-                  <Th label="السيولة (٢٠ي)" onClick={() => toggleSort('liq')} active={sortKey === 'liq'} dir={sortDir} />
+                  <Th label="السيولة" onClick={() => toggleSort('liq')} active={sortKey === 'liq'} dir={sortDir} />
                   <Th label="أجانب (٣٠ي)" onClick={() => toggleSort('foreign')} active={sortKey === 'foreign'} dir={sortDir} />
                   <Th label="القيمة السوقية" onClick={() => toggleSort('mcap')} active={sortKey === 'mcap'} dir={sortDir} />
+                  <Th label="القطاع" align="start" />
                 </tr>
               </thead>
               <tbody>
-                {view.map(r => {
+                {view.map((r, i) => {
                   const p = pctFor(r, period)
                   const pos = r.high_52w && r.low_52w && r.high_52w !== r.low_52w
                     ? Math.max(0, Math.min(100, ((r.last_close - r.low_52w) / (r.high_52w - r.low_52w)) * 100)) : null
                   return (
                     <tr key={r.ticker} onClick={() => router.push(`/c/${r.ticker}`)}
-                      style={{ borderBottom: '1px solid var(--line)', cursor: 'pointer' }}
+                      style={{ borderBottom: i === view.length - 1 ? 'none' : '1px solid var(--line)', cursor: 'pointer', transition: 'background .1s' }}
                       onMouseEnter={e => (e.currentTarget.style.background = 'var(--surf2)')}
                       onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}>
-                      {/* company */}
-                      <td style={{ padding: '10px 12px' }}>
+                      {/* company · logo + symbol badge + name */}
+                      <td style={{ padding: '9px 12px' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
                           <Logo sym={r.ticker} logo={r.logo} color={r.color} />
-                          <div style={{ minWidth: 0 }}>
-                            <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--ink)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 170 }}>{r.name}</div>
-                            <div style={{ fontSize: 10.5, color: 'var(--ink4)', fontFamily: 'var(--font-mono)' }}>{r.ticker} · {SECTOR_AR[r.sector] ?? r.sector}</div>
-                          </div>
+                          <span style={{ fontSize: 10.5, fontWeight: 700, fontFamily: 'var(--font-mono)', color: 'var(--ink3)', background: 'var(--surf3)', borderRadius: 5, padding: '2px 6px', flexShrink: 0 }}>{r.ticker}</span>
+                          <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--ink)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 210 }}>{r.name}</span>
                         </div>
                       </td>
                       {/* price (+ last-trade date when not from the latest session) */}
                       <td style={tdNum}>
-                        <div>{r.last_close.toLocaleString('en-US', { maximumFractionDigits: 3 })}</div>
+                        <div style={{ color: 'var(--ink)' }}>{r.last_close.toLocaleString('en-US', { maximumFractionDigits: 3 })}</div>
                         {(r.days_since_trade ?? 0) > 5 && r.last_date && (
                           <div style={{ fontSize: 9, color: 'var(--ink5)', fontWeight: 600 }}>
                             {`آخر تداول ${fmtDate(r.last_date)}`}
                           </div>
                         )}
                       </td>
-                      {/* change */}
-                      <td style={{ ...tdNum, color: toneColor(p), fontWeight: 800 }}>{fmtPct(p)}</td>
+                      {/* change · plain colored text, TradingView style */}
+                      <td style={{ ...tdNum, color: toneColor(p), fontWeight: 700 }}>{fmtPct(p)}</td>
                       {/* P/E (TTM) */}
                       <td style={tdNum}>
                         {r.pe != null && r.pe > 0
-                          ? (r.pe >= 100 ? Math.round(r.pe) : r.pe.toFixed(1)) + '×'
-                          : <span style={{ color: 'var(--ink4)' }}>—</span>}
+                          ? (r.pe >= 100 ? Math.round(r.pe) : r.pe.toFixed(1))
+                          : <span style={{ color: 'var(--ink5)' }}>·</span>}
                       </td>
-                      {/* 52w position */}
-                      <td style={{ padding: '10px 12px', minWidth: 130 }}>
-                        {pos == null ? <span style={{ color: 'var(--ink4)' }}>—</span> : (
+                      {/* 52w position · neutral track + marker */}
+                      <td style={{ padding: '9px 12px', minWidth: 120 }}>
+                        {pos == null ? <span style={{ color: 'var(--ink5)' }}>·</span> : (
                           <div>
-                            <div style={{ position: 'relative', height: 5, borderRadius: 3, background: 'var(--surf3)' }}>
-                              <div style={{ position: 'absolute', insetInlineStart: 0, top: 0, bottom: 0, width: `${pos}%`, background: 'linear-gradient(90deg,var(--dn),var(--gold),var(--up))', borderRadius: 3, opacity: 0.5 }} />
-                              <div style={{ position: 'absolute', insetInlineStart: `calc(${pos}% - 3px)`, top: -2, width: 6, height: 9, borderRadius: 2, background: 'var(--ink)' }} />
+                            <div style={{ position: 'relative', height: 4, borderRadius: 2, background: 'var(--surf3)' }}>
+                              <div style={{ position: 'absolute', insetInlineStart: 0, top: 0, bottom: 0, width: `${pos}%`, background: 'var(--brand-mute)', borderRadius: 2, opacity: 0.5 }} />
+                              <div style={{ position: 'absolute', insetInlineStart: `calc(${pos}% - 2px)`, top: -2, width: 4, height: 8, borderRadius: 1, background: 'var(--ink2)' }} />
                             </div>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 9.5, color: 'var(--ink4)', fontFamily: 'var(--font-mono)', marginTop: 3 }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 9, color: 'var(--ink5)', fontFamily: 'var(--font-mono)', marginTop: 3 }}>
                               <span>{r.low_52w}</span><span>{r.high_52w}</span>
                             </div>
                           </div>
                         )}
                       </td>
                       {/* liquidity */}
-                      <td style={tdNum}>{r.avg_value_20d ? fmtIQDc(r.avg_value_20d) : '—'}</td>
+                      <td style={tdNum}>{r.avg_value_20d ? fmtIQDc(r.avg_value_20d) : <span style={{ color: 'var(--ink5)' }}>·</span>}</td>
                       {/* foreign */}
-                      <td style={{ ...tdNum, color: toneColor(r.ff_net_30d ?? null), fontWeight: 700 }}>
-                        {r.ff_net_30d ? `${r.ff_net_30d > 0 ? '+' : '−'}${fmtIQDc(Math.abs(r.ff_net_30d))}` : '—'}
+                      <td style={{ ...tdNum, color: toneColor(r.ff_net_30d ?? null), fontWeight: 600 }}>
+                        {r.ff_net_30d ? `${r.ff_net_30d > 0 ? '+' : '−'}${fmtIQDc(Math.abs(r.ff_net_30d))}` : <span style={{ color: 'var(--ink5)' }}>·</span>}
                       </td>
                       {/* mcap */}
-                      <td style={tdNum}>{fmtMcap(r.mcap)}</td>
+                      <td style={{ ...tdNum, color: 'var(--ink)' }}>{fmtMcap(r.mcap)}</td>
+                      {/* sector */}
+                      <td style={{ padding: '9px 12px', fontSize: 11.5, color: 'var(--ink4)', whiteSpace: 'nowrap' }}>{SECTOR_AR[r.sector] ?? r.sector}</td>
                     </tr>
                   )
                 })}
                 {view.length === 0 && (
-                  <tr><td colSpan={8} style={{ padding: 40, textAlign: 'center', color: 'var(--ink4)' }}>لا توجد نتائج مطابقة.</td></tr>
+                  <tr><td colSpan={9} style={{ padding: 48, textAlign: 'center', color: 'var(--ink4)', fontSize: 13 }}>لا توجد نتائج مطابقة · جرّب تعديل الفلاتر.</td></tr>
                 )}
               </tbody>
             </table>
           </div>
         </div>
       )}
-      <p style={{ fontSize: 11, color: 'var(--ink5)', marginTop: 12 }}>
+      <p style={{ fontSize: 11, color: 'var(--ink5)', marginTop: 12, lineHeight: 1.7 }}>
         الأسعار من آخر نشرة تداول رسمية لكل سهم · القيمة السوقية = السعر × الأسهم المصدرة · المكرر (P/E) محسوب على آخر ١٢ شهراً (TTM) ويظهر فقط للشركات التي توفّرت بياناتها المالية
       </p>
     </div>
@@ -327,24 +337,25 @@ export default function ScreenerPage() {
 function Th({ label, onClick, active, dir, align }: { label: string; onClick?: () => void; active?: boolean; dir?: 'asc' | 'desc'; align?: 'start' }) {
   return (
     <th onClick={onClick} style={{
-      padding: '10px 12px', textAlign: align ?? 'end', fontSize: 11, fontWeight: 700,
-      color: active ? 'var(--brand)' : 'var(--ink4)', whiteSpace: 'nowrap',
-      cursor: onClick ? 'pointer' : 'default', userSelect: 'none',
+      padding: '10px 12px', textAlign: align ?? 'end', fontSize: 11, fontWeight: 600,
+      color: active ? 'var(--ink)' : 'var(--ink4)', whiteSpace: 'nowrap',
+      cursor: onClick ? 'pointer' : 'default', userSelect: 'none', transition: 'color .1s',
     }}>
-      {label}{active && (dir === 'asc' ? ' ↑' : ' ↓')}
+      {active && (dir === 'asc' ? '↑ ' : '↓ ')}{label}
     </th>
   )
 }
+// Neutral filter chip · single brand accent on active, no per-item colours.
 function chip(on: boolean, soft = false): React.CSSProperties {
   return {
-    padding: '6px 12px', borderRadius: 8, fontSize: 12.5, fontWeight: 600, whiteSpace: 'nowrap', flexShrink: 0, cursor: 'pointer',
-    border: on ? '1px solid var(--brand)' : '1px solid var(--line)',
+    padding: '6px 13px', borderRadius: 8, fontSize: 12.5, fontWeight: 600, whiteSpace: 'nowrap', flexShrink: 0, cursor: 'pointer',
+    border: `1px solid ${on ? 'var(--brand)' : 'var(--line)'}`,
     background: on ? (soft ? 'var(--brand-soft)' : 'var(--brand)') : 'transparent',
     color: on ? (soft ? 'var(--brand)' : '#fff') : 'var(--ink3)',
-    fontFamily: 'inherit',
+    fontFamily: 'inherit', transition: 'background .1s, border-color .1s, color .1s',
   }
 }
-const tdNum: React.CSSProperties = { padding: '10px 12px', textAlign: 'end', fontSize: 13, fontFamily: 'var(--font-mono)', color: 'var(--ink2)', whiteSpace: 'nowrap' }
+const tdNum: React.CSSProperties = { padding: '9px 12px', textAlign: 'end', fontSize: 12.5, fontFamily: 'var(--font-mono)', color: 'var(--ink2)', whiteSpace: 'nowrap' }
 // compact IQD for the value columns (millions/billions)
 function fmtIQDc(v: number): string {
   if (v >= 1e9) return (v / 1e9).toFixed(2) + ' مليار'

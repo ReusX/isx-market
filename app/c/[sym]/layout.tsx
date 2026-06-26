@@ -30,7 +30,7 @@ export async function generateMetadata({ params }: { params: { sym: string } }):
       title:       seo.title,
       description: seo.description,
       url,
-      siteName: 'Iraq Stock Market — iraqsm.com',
+      siteName: 'Iraq Stock Market · iraqsm.com',
       images:   [{ url: '/opengraph-image', width: 1200, height: 630, alt: `${seo.shortAr} ${sym} – بورصة العراق` }],
       locale:   'ar_IQ',
       type:     'website',
@@ -61,7 +61,7 @@ export default function CompanyLayout({ children, params }: Props) {
     alternateName: seo.altNames,
     tickerSymbol: sym,
     url: `${BASE}/c/${sym}`,
-    description: `${company.en} (${sym}) — Iraq Stock Exchange (ISX) share price and market data.`,
+    description: `${company.en} (${sym}) · Iraq Stock Exchange (ISX) share price and market data.`,
   }
 
   return (
@@ -71,7 +71,7 @@ export default function CompanyLayout({ children, params }: Props) {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
 
-      {/* Server-rendered H1 — visible to crawlers, visually hidden. Arabic-first
+      {/* Server-rendered H1 · visible to crawlers, visually hidden. Arabic-first
           and built around the real-world "سعر سهم … اليوم" search queries. */}
       <h1 style={{
         position: 'absolute', width: 1, height: 1,
@@ -82,7 +82,7 @@ export default function CompanyLayout({ children, params }: Props) {
       </h1>
       {children}
 
-      {/* Unique company profile — language-aware (Arabic on the Arabic
+      {/* Unique company profile · language-aware (Arabic on the Arabic
           site, English on the English site). SSRs in Arabic since `lang`
           defaults to 'ar', so crawlers still get unique content per page. */}
       <CompanyProfile

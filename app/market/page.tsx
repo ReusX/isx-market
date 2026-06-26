@@ -69,7 +69,7 @@ export default function MarketPage() {
           {ar ? 'السوق' : 'Market'}
         </h1>
         <p style={{ fontSize: 13, color: 'var(--ink3)', margin: 0 }}>
-          {ar ? 'بورصة العراق للأوراق المالية — جميع الأسهم المدرجة' : 'Iraq Stock Exchange — all listed companies'}
+          {ar ? 'بورصة العراق للأوراق المالية · جميع الأسهم المدرجة' : 'Iraq Stock Exchange · all listed companies'}
         </p>
       </div>
 

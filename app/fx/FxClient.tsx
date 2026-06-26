@@ -17,10 +17,13 @@ function TabBar({ ar }: { ar: boolean }) {
   return (
     <div style={{ display: 'flex', gap: 4, marginBottom: 22, background: 'var(--surf)', border: '1px solid var(--line)', borderRadius: 12, padding: 4 }}>
       <div style={{ ...base, background: 'var(--brand)', color: '#fff' }}>
-        💵 {ar ? 'سعر الدولار' : 'USD Rate'}
+        💵 {ar ? 'الدولار' : 'USD'}
       </div>
       <Link href="/gold" style={{ ...base, color: 'var(--ink3)' }}>
-        🏅 {ar ? 'سعر الذهب' : 'Gold Price'}
+        🏅 {ar ? 'الذهب' : 'Gold'}
+      </Link>
+      <Link href="/oil" style={{ ...base, color: 'var(--ink3)' }}>
+        🛢️ {ar ? 'النفط' : 'Oil'}
       </Link>
     </div>
   )

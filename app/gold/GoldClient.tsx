@@ -19,11 +19,14 @@ function TabBar({ ar }: { ar: boolean }) {
   return (
     <div style={{ display: 'flex', gap: 4, marginBottom: 22, background: 'var(--surf)', border: '1px solid var(--line)', borderRadius: 12, padding: 4 }}>
       <Link href="/fx" style={{ ...base, color: 'var(--ink3)' }}>
-        💵 {ar ? 'سعر الدولار' : 'USD Rate'}
+        💵 {ar ? 'الدولار' : 'USD'}
       </Link>
       <div style={{ ...base, background: 'linear-gradient(135deg,#F5C451,#D4A22A)', color: '#3a2700' }}>
-        🏅 {ar ? 'سعر الذهب' : 'Gold Price'}
+        🏅 {ar ? 'الذهب' : 'Gold'}
       </div>
+      <Link href="/oil" style={{ ...base, color: 'var(--ink3)' }}>
+        🛢️ {ar ? 'النفط' : 'Oil'}
+      </Link>
     </div>
   )
 }
@@ -126,10 +129,10 @@ export default function GoldClient({ gold, fx }: { gold: GoldData | null; fx: Fx
       {(gold.ounceBuy || gold.ounceSell) && (
         <div style={{ display: 'flex', gap: 10, marginBottom: 18, flexWrap: 'wrap' }}>
           {gold.ounceBuy && (
-            <OunceCard ar={ar} label={ar ? 'أونصة — شراء' : 'Ounce — Buy'} d={gold.ounceBuy} up />
+            <OunceCard ar={ar} label={ar ? 'أونصة · شراء' : 'Ounce · Buy'} d={gold.ounceBuy} up />
           )}
           {gold.ounceSell && (
-            <OunceCard ar={ar} label={ar ? 'أونصة — بيع' : 'Ounce — Sell'} d={gold.ounceSell} />
+            <OunceCard ar={ar} label={ar ? 'أونصة · بيع' : 'Ounce · Sell'} d={gold.ounceSell} />
           )}
         </div>
       )}

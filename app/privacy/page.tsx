@@ -51,7 +51,7 @@ export default function PrivacyPage() {
             <p>نستخدم ملفات كوكيز ضرورية فقط للحفاظ على جلسة تسجيل الدخول وحفظ تفضيل اللغة. لا نستخدم كوكيز تتبع من أطراف خارجية.</p>
           </Section>
           <Section title="أمان البيانات">
-            <p>جميع البيانات مشفرة أثناء النقل (HTTPS). كلمات المرور لا يتم تخزينها بأي شكل قابل للقراءة — نعتمد على Supabase Auth للمصادقة الآمنة.</p>
+            <p>جميع البيانات مشفرة أثناء النقل (HTTPS). كلمات المرور لا يتم تخزينها بأي شكل قابل للقراءة · نعتمد على Supabase Auth للمصادقة الآمنة.</p>
           </Section>
           <Section title="حذف الحساب">
             <p>يمكنك طلب حذف حسابك وجميع بياناتك في أي وقت بالتواصل معنا على <a href="mailto:boatlef@gmail.com" style={{ color: 'var(--brand)' }}>boatlef@gmail.com</a>. سنعالج طلبك خلال 7 أيام عمل.</p>
@@ -80,7 +80,7 @@ export default function PrivacyPage() {
             <p>We use only essential cookies to maintain your login session and save your language preference. We do not use third-party tracking cookies.</p>
           </Section>
           <Section title="Data Security">
-            <p>All data is encrypted in transit (HTTPS). Passwords are never stored in readable form — we rely on Supabase Auth for secure authentication.</p>
+            <p>All data is encrypted in transit (HTTPS). Passwords are never stored in readable form · we rely on Supabase Auth for secure authentication.</p>
           </Section>
           <Section title="Account Deletion">
             <p>You can request deletion of your account and all associated data at any time by contacting us at <a href="mailto:boatlef@gmail.com" style={{ color: 'var(--brand)' }}>boatlef@gmail.com</a>. We will process your request within 7 business days.</p>

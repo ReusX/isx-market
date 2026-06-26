@@ -5,7 +5,7 @@ export const revalidate = 300
 
 export const metadata = {
   title: 'تعلّم الاستثمار | ISX Market',
-  description: 'دليلك الشامل للاستثمار في بورصة العراق — من المبتدئ إلى المحترف',
+  description: 'دليلك الشامل للاستثمار في بورصة العراق · من المبتدئ إلى المحترف',
 }
 
 export default async function LearnPage() {

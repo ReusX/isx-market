@@ -95,7 +95,7 @@ export function mergeCompanies(meta: CompanyMeta[], stocks: LiveStock[]): Compan
 // ─── Formatters ─────────────────────────────────────────────────────────────
 
 export function fmtVol(v: number | null | undefined): string {
-  if (!v) return '—'
+  if (!v) return '·'
   if (v >= 1e9) return (v / 1e9).toFixed(1) + 'B'
   if (v >= 1e6) return (v / 1e6).toFixed(1) + 'M'
   if (v >= 1e3) return (v / 1e3).toFixed(0) + 'K'
@@ -103,14 +103,14 @@ export function fmtVol(v: number | null | undefined): string {
 }
 
 export function fmtMcap(v: number | null | undefined): string {
-  if (!v) return '—'
+  if (!v) return '·'
   if (v >= 1e6) return (v / 1e6).toFixed(1) + 'T'
   if (v >= 1e3) return (v / 1e3).toFixed(1) + 'B'
   return v.toLocaleString('en', { maximumFractionDigits: 0 }) + 'M'
 }
 
 export function fmtRsisxVal(v: string | number | null | undefined): string {
-  if (v == null) return '—'
+  if (v == null) return '·'
   return Number(v).toFixed(2)
 }
 

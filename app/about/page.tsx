@@ -20,7 +20,7 @@ export default function AboutPage() {
         <p style={{ fontSize: 16, color: 'var(--ink3)', lineHeight: 1.8, margin: 0 }}>
           {ar
             ? 'منصّة مجانية تساعد المستثمر العراقي على اتخاذ قراراته ببيانات يومية موثوقة.'
-            : 'A free platform helping Iraqi investors decide — with reliable daily data.'}
+            : 'A free platform helping Iraqi investors decide · with reliable daily data.'}
         </p>
       </div>
 
@@ -52,7 +52,7 @@ export default function AboutPage() {
             </p>
             <p>
               The site is completely free and designed to help Iraqi investors make their decisions. It is still
-              under development and many more features will be added — but you can rely on it for your daily
+              under development and many more features will be added · but you can rely on it for your daily
               information, for sure.
             </p>
             <p style={{ marginTop: 28 }}>

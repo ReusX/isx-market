@@ -14,7 +14,7 @@ const RATIO_DEFS = (schema as any).ratio_defs as Record<string, { ar: string; en
 const TEMPLATES  = (schema as any).templates as Record<string, any>
 
 function fmtIQD(v: number | null, ar: boolean): string {
-  if (v == null) return '—'
+  if (v == null) return '·'
   const neg = v < 0, a = Math.abs(v)
   const u = (n: number, w: string) => `${neg ? '−' : ''}${(a / n).toLocaleString('en', { maximumFractionDigits: 2 })} ${w}`
   if (a >= 1e12) return u(1e12, ar ? 'تريليون' : 'T')
@@ -23,7 +23,7 @@ function fmtIQD(v: number | null, ar: boolean): string {
   return `${neg ? '−' : ''}${a.toLocaleString('en')}`
 }
 function fmtRatio(v: number | null, unit: string): string {
-  if (v == null) return '—'
+  if (v == null) return '·'
   if (unit === '%') return `${(v * 100).toFixed(1)}%`
   if (unit === 'x') return `${v.toFixed(2)}×`
   if (unit === 'IQD') return v.toLocaleString('en', { maximumFractionDigits: 2 })
@@ -54,7 +54,7 @@ function fillThinAnnual(facts: Fact[]): Fact[] {
   for (const y of years) {
     // Fill annual gaps from Q4 whenever the Q4 (year-to-date) report carries more
     // income-statement detail than the audited annual we hold. Audited annual values
-    // always win — only line items missing from the annual are pulled from Q4.
+    // always win · only line items missing from the annual are pulled from Q4.
     if (incomeCount(y, 'Q4') <= incomeCount(y, 'ANNUAL')) continue
     for (const f of facts) {
       if (f.fiscal_year !== y || f.period !== 'Q4') continue
@@ -87,7 +87,7 @@ function delta(curr: number | null, prev: number | null): number | null {
 }
 
 function DeltaBadge({ pct }: { pct: number | null }) {
-  if (pct == null) return <span style={{ color: 'var(--ink4)', fontSize: 11 }}>—</span>
+  if (pct == null) return <span style={{ color: 'var(--ink4)', fontSize: 11 }}>·</span>
   const up = pct >= 0
   return (
     <span style={{
@@ -182,7 +182,7 @@ export default function Financials({ sym }: { sym: string }) {
     return m
   }, [ratios, latestAnnual])
 
-  // Derived from schema only (cheap; doesn't depend on loaded data) — must stay above early returns
+  // Derived from schema only (cheap; doesn't depend on loaded data) · must stay above early returns
   const tplDef = TEMPLATES[tpl]
   const allLineDefs: Record<string, string> = (() => {
     const m: Record<string, string> = {}
@@ -419,7 +419,7 @@ export default function Financials({ sym }: { sym: string }) {
                       const v = factMap.get(`${activeTab}:${ld.key}:${c.y}:${c.p}`) ?? null
                       return (
                         <td key={`${c.y}:${c.p}`} style={{ textAlign: ar ? 'left' : 'right', padding: '8px 6px', fontFamily: 'var(--font-mono)', fontSize: 12, color: 'var(--ink2, var(--ink))', fontWeight: isSub ? 800 : 500, whiteSpace: 'nowrap' }}>
-                          {activeTab === 'metrics' ? (v == null ? '—' : `${v}%`) : fmtIQD(v, ar)}
+                          {activeTab === 'metrics' ? (v == null ? '·' : `${v}%`) : fmtIQD(v, ar)}
                         </td>
                       )
                     })}

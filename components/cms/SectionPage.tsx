@@ -48,7 +48,7 @@ export default function SectionPage({ section, posts }: Props) {
           color: 'var(--ink4)', fontSize: 14,
         }}>
           <div style={{ fontSize: 40, marginBottom: 12 }}>{meta.icon}</div>
-          {ar ? 'لا توجد مقالات بعد — تابعنا قريباً!' : 'No posts yet — check back soon!'}
+          {ar ? 'لا توجد مقالات بعد · تابعنا قريباً!' : 'No posts yet · check back soon!'}
         </div>
       ) : (
         <div style={{

@@ -2,7 +2,7 @@
 // page to render unique, high-quality content (overrides the generated
 // fallback in components/company/CompanyProfile.tsx).
 //
-// Add `en` blocks as English copy becomes available — until then the
+// Add `en` blocks as English copy becomes available · until then the
 // component falls back to generated English for the English view.
 
 export interface Fact { label: string; value: string }

@@ -31,12 +31,12 @@ export default function CompaniesPage() {
   return (
     <div style={{ maxWidth: 1100, margin: '0 auto', padding: '24px 24px 60px' }}>
       <h1 style={{ fontSize: 24, fontWeight: 800, marginBottom: 6 }}>
-        الشركات المدرجة في بورصة العراق — Iraq Stock Exchange Listed Companies
+        الشركات المدرجة في بورصة العراق · Iraq Stock Exchange Listed Companies
       </h1>
       <p style={{ fontSize: 14, color: 'var(--ink3)', marginBottom: 32 }}>
-        {companies.length} شركة مدرجة في بورصة العراق للأوراق المالية (ISX) —&nbsp;
+        {companies.length} شركة مدرجة في بورصة العراق للأوراق المالية (ISX) ·&nbsp;
         {companies.length} companies listed on the Iraq Stock Exchange (ISX).
-        تصفح اسهم العراق حسب القطاع — browse Iraq stock market companies by sector.
+        تصفح اسهم العراق حسب القطاع · browse Iraq stock market companies by sector.
       </p>
 
       {Object.entries(bySector).sort().map(([sec, cos]) => (
@@ -47,7 +47,7 @@ export default function CompaniesPage() {
             marginBottom: 12, paddingBottom: 6,
             borderBottom: '1px solid var(--line)',
           }}>
-            {SECTOR_LABELS[sec]?.ar ?? sec} — {SECTOR_LABELS[sec]?.en ?? sec}
+            {SECTOR_LABELS[sec]?.ar ?? sec} · {SECTOR_LABELS[sec]?.en ?? sec}
           </h2>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
             {cos.map(co => (

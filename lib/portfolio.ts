@@ -123,7 +123,7 @@ export function useMarketData() {
 // ─── Synced storage (localStorage + optional Supabase profile column) ──────────
 // Works fully offline/anonymous via localStorage. When signed in, the matching
 // profiles JSONB column (portfolio / price_alerts) is read once and written on
-// every change — best-effort, so the feature still works if the column has not
+// every change · best-effort, so the feature still works if the column has not
 // been created yet (the update simply no-ops on a PostgREST error).
 function useSyncedList<T extends { id: string }>(
   lsKey: string,

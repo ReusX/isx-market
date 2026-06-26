@@ -1,5 +1,5 @@
 // WordPress headless CMS integration
-// Primary WP URL — falls back to temp Hostinger URL until cms.iraqsm.com DNS propagates
+// Primary WP URL · falls back to temp Hostinger URL until cms.iraqsm.com DNS propagates
 const WP = process.env.WP_API_URL
   ?? 'https://paleturquoise-deer-610016.hostingersite.com'
 

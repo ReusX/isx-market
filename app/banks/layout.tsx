@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 export const metadata: Metadata = {
   title: { absolute: 'المصارف العراقية المدرجة في بورصة العراق | ISX Banks' },
-  description: 'دليل شامل للمصارف العراقية المدرجة في بورصة العراق للأوراق المالية — مصرف الرافدين، مصرف الرشيد، مصرف بغداد، وجميع المصارف الاستثمارية والإسلامية. Iraq listed banks on ISX with stock prices.',
+  description: 'دليل شامل للمصارف العراقية المدرجة في بورصة العراق للأوراق المالية · مصرف الرافدين، مصرف الرشيد، مصرف بغداد، وجميع المصارف الاستثمارية والإسلامية. Iraq listed banks on ISX with stock prices.',
   alternates: { canonical: 'https://iraqsm.com/banks' },
   openGraph: {
     url: 'https://iraqsm.com/banks',

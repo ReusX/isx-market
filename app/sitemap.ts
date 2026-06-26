@@ -15,6 +15,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${BASE}/charts`,    lastModified: now, changeFrequency: 'daily',   priority: 0.9 },
     { url: `${BASE}/news`,      lastModified: now, changeFrequency: 'hourly',  priority: 0.9 },
     { url: `${BASE}/gold`,      lastModified: now, changeFrequency: 'hourly',  priority: 0.9 },
+    { url: `${BASE}/oil`,       lastModified: now, changeFrequency: 'hourly',  priority: 0.9 },
     { url: `${BASE}/fx`,        lastModified: now, changeFrequency: 'daily',   priority: 0.8 },
     { url: `${BASE}/statistics`,lastModified: now, changeFrequency: 'weekly',  priority: 0.8 },
     { url: `${BASE}/research`,  lastModified: now, changeFrequency: 'daily',   priority: 0.8 },

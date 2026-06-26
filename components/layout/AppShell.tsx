@@ -56,6 +56,7 @@ const IC = {
   filter:    'M4 5h16M7 12h10M10 19h4',                                  // screener
   briefcase: 'M3 8h18v12H3z M8 8V5a2 2 0 012-2h4a2 2 0 012 2v3',         // portfolio
   coin:      'M12 3a9 9 0 100 18 9 9 0 000-18z M8 10h8M8 14h8',          // gold
+  oil:       'M12 2s6 7 6 11a6 6 0 11-12 0c0-4 6-11 6-11z',              // oil drop
 }
 
 // ── Nav tree (mirrors Koyfin section structure) ───────────────────────────────
@@ -93,11 +94,12 @@ const NAV: {
     items: [
       { href: '/fx',   icon: 'fx',   ar: 'سعر الصرف' },
       { href: '/gold', icon: 'coin', ar: 'سعر الذهب' },
+      { href: '/oil',  icon: 'oil',  ar: 'سعر النفط' },
     ],
   },
 ]
 
-// ── Brand mark (Star of Ishtar) — currentColor so it follows the theme ────────
+// ── Brand mark (Star of Ishtar) · currentColor so it follows the theme ────────
 function StarMark({ size = 22 }: { size?: number }) {
   return (
     <svg viewBox="0 0 96 96" width={size} height={size} aria-hidden="true" style={{ flexShrink: 0, color: 'var(--ink)' }}>
@@ -230,7 +232,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
           {NAV.map(section => (
             <div key={section.id}>
 
-              {/* Section header — only when expanded */}
+              {/* Section header · only when expanded */}
               {section.label && !collapsed && (
                 <div
                   onClick={() => section.collapsible && toggleSection(section.id)}

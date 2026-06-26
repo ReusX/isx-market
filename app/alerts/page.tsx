@@ -141,7 +141,7 @@ function AlertRow({ a, name, logo, color, price, onRemove, hit }: {
         </div>
       </Link>
       <div style={{ textAlign: 'end', flexShrink: 0 }}>
-        <div style={{ fontSize: 13, fontWeight: 700, fontFamily: 'var(--font-mono)', color: 'var(--ink)' }}>{price ? price.toLocaleString('en', { maximumFractionDigits: 3 }) : '—'}</div>
+        <div style={{ fontSize: 13, fontWeight: 700, fontFamily: 'var(--font-mono)', color: 'var(--ink)' }}>{price ? price.toLocaleString('en', { maximumFractionDigits: 3 }) : '·'}</div>
         {hit ? (
           <div style={{ fontSize: 10.5, fontWeight: 800, color: 'var(--up)' }}>تحقّق الهدف ✓</div>
         ) : dist != null ? (

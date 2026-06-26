@@ -49,7 +49,7 @@
   --gold-grad: linear-gradient(135deg,#F2D58A 0%,#E0A93B 45%,#A8741B 100%);
   --purple:    #7C5CE0;
 
-  /* Surfaces — IraqSM terminal dark */
+  /* Surfaces · IraqSM terminal dark */
   --bg:      #1E252F;
   --surf:    #282F39;
   --surf2:   #222933;
@@ -80,7 +80,7 @@
   --r-xl: 18px;
   --r-pill: 999px;
 
-  /* Elevation — stronger in dark for separation on near-black surfaces */
+  /* Elevation · stronger in dark for separation on near-black surfaces */
   --shadow-sm:  0 1px 2px rgba(0,0,0,0.35);
   --shadow-md:  0 8px 24px rgba(0,0,0,0.40);
   --shadow-pop: 0 12px 40px rgba(0,0,0,0.55);
@@ -88,7 +88,7 @@
   color-scheme: dark;
 }
 
-/* ── Light theme — identical token names, light values. Toggled via
+/* ── Light theme · identical token names, light values. Toggled via
    <html data-theme="light">; default (no attribute) stays dark above. ── */
 html[data-theme="light"] {
   --brand:      #1F7FD6;
@@ -273,7 +273,7 @@ button { cursor: pointer; font-family: inherit; }
   }
   .app-sidebar.open { transform: translateX(0); }
 
-  /* Content takes the full width — no margin reserved for the sidebar */
+  /* Content takes the full width · no margin reserved for the sidebar */
   .app-main { margin-inline-start: 0 !important; }
 
   /* Homepage: hide low-priority table columns so it breathes */
@@ -356,7 +356,7 @@ html[lang="ar"] .wp-content pre {
   user-select: none;
 }
 
-/* Clickable hero cards on the homepage — subtle lift + brand border on hover */
+/* Clickable hero cards on the homepage · subtle lift + brand border on hover */
 .home-card-link { transition: transform 0.12s ease; }
 .home-card-link > div { transition: border-color 0.12s ease, box-shadow 0.12s ease; }
 .home-card-link:hover { transform: translateY(-1px); }

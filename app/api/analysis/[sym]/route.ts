@@ -193,21 +193,21 @@ function buildPrompt(
 
   return `You are a senior financial analyst covering the Iraq Stock Exchange (ISX).
 
-COMPANY: ${co.en} (${co.sym}) — ${co.ar}
+COMPANY: ${co.en} (${co.sym}) · ${co.ar}
 SECTOR: ${sec.en}
 CURRENT PRICE: ${price > 0 ? price.toFixed(3) + ' IQD' : 'N/A'}
 MARKET CAP: ${mcapB}B IQD
 RECENT CHANGE: ${pct >= 0 ? '+' : ''}${pct.toFixed(2)}%
 
 ACTUAL FINANCIAL DATA (extracted via OCR from official ISC filings):
-${filingText || 'No filings retrieved — use your training knowledge of this company.'}
+${filingText || 'No filings retrieved · use your training knowledge of this company.'}
 
 TASK: Write an investment analysis grounded in the ACTUAL NUMBERS above.
 
 STRICT RULES:
-1. Use ONLY numbers that appear in the filing data above — never invent figures
+1. Use ONLY numbers that appear in the filing data above · never invent figures
 2. Always state the period (e.g. "Q3 2025", "H1 2025 vs H1 2024")
-3. Express IQD values in millions (M) or billions (B) — convert raw numbers accordingly
+3. Express IQD values in millions (M) or billions (B) · convert raw numbers accordingly
 4. For banks: include capital adequacy, NPL ratio, deposit growth
 5. For telecoms: include ARPU, subscriber count, EBITDA margin if available
 6. For industrials: include gross margin, production volumes if available

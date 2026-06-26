@@ -1,7 +1,7 @@
 // Real-world search spellings per ticker, sourced from Search Console.
 //
 // The company data file holds FORMAL names (e.g. "اسيا سيل للاتصالات"), but
-// people search colloquial forms — most queries for Asiacell are the one-word
+// people search colloquial forms · most queries for Asiacell are the one-word
 // "اسياسيل", not the spaced "اسيا سيل". This map lets the title, description,
 // keywords, H1, and structured data cover the spellings users actually type.
 // Extend it as Search Console surfaces more queries.
@@ -14,13 +14,13 @@ export interface CompanySeo {
 }
 
 export const COMPANY_SEO: Record<string, CompanySeo> = {
-  // Asiacell — searched "اسياسيل" (one word), data has "اسيا سيل".
+  // Asiacell · searched "اسياسيل" (one word), data has "اسيا سيل".
   TASC: { ar: 'اسياسيل', alts: ['اسيا سيل', 'asiacell'] },
-  // Baghdad Soft Drinks — searched as the brand "بيبسي بغداد" / "بيبسيكو".
+  // Baghdad Soft Drinks · searched as the brand "بيبسي بغداد" / "بيبسيكو".
   IBSD: { ar: 'بيبسي بغداد', alts: ['بيبسيكو', 'بيبسي', 'بغداد للمشروبات الغازية', 'baghdad soft drinks'] },
-  // Al-Khatem Telecommunication — the listed entity of Zain Iraq.
+  // Al-Khatem Telecommunication · the listed entity of Zain Iraq.
   TZNI: { alts: ['زين العراق', 'زين', 'الخاتم للاتصالات', 'zain iraq'] },
-  // Bank of Baghdad — formal name already matches "مصرف بغداد".
+  // Bank of Baghdad · formal name already matches "مصرف بغداد".
   BBOB: { alts: ['بنك بغداد', 'bank of baghdad'] },
   // Dar Es Salaam Investment Bank.
   BDSI: { alts: ['مصرف دار السلام', 'بنك دار السلام', 'dar es salaam bank'] },
@@ -32,7 +32,7 @@ export interface SeoFields {
   description: string
   keywords:    string[]
   h1:          string
-  /** For JSON-LD alternateName — helps Google link aliases to this entity. */
+  /** For JSON-LD alternateName · helps Google link aliases to this entity. */
   altNames:    string[]
 }
 
@@ -63,7 +63,7 @@ export function buildCompanySeo(sym: string, arName: string, enName: string): Se
   ].filter(Boolean)))
 
   const h1 =
-    `سعر سهم ${shortAr}${altInline} اليوم — ${sym} في بورصة العراق | ` +
+    `سعر سهم ${shortAr}${altInline} اليوم · ${sym} في بورصة العراق | ` +
     `${enName} (${sym}) Iraq Stock Exchange Share Price`
 
   const altNames = Array.from(new Set([arName, shortAr, ...alts].filter(a => a && a !== enName)))

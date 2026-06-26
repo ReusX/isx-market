@@ -63,11 +63,11 @@ const TF_MS: Record<TFKey, number> = {
 type IndicatorDef = { name: string; label: string; desc: string; group: string; pane: 'candle' | 'new' }
 // Curated for ISX: every indicator here derives cleanly from our daily OHLCV.
 // We deliberately exclude volume-flow oscillators (OBV, MFI) and fast
-// stochastics (KDJ, WR, CCI) — in a thin, low-liquidity market they whipsaw on
+// stochastics (KDJ, WR, CCI) · in a thin, low-liquidity market they whipsaw on
 // single prints and zero-volume days, giving false signals. What remains are the
 // price-based, must-have tools that stay accurate even on light trading.
 const INDICATORS: IndicatorDef[] = [
-  { name: 'MA',   label: 'المتوسط المتحرك',    desc: 'Moving Average — 5/10/30/60', group: 'المتوسطات', pane: 'candle' },
+  { name: 'MA',   label: 'المتوسط المتحرك',    desc: 'Moving Average · 5/10/30/60', group: 'المتوسطات', pane: 'candle' },
   { name: 'EMA',  label: 'المتوسط الأسي',      desc: 'Exponential Moving Average',   group: 'المتوسطات', pane: 'candle' },
   { name: 'BOLL', label: 'بولينجر باند',       desc: 'Bollinger Bands (20, ±2σ)',    group: 'المتوسطات', pane: 'candle' },
   { name: 'VOL',  label: 'حجم التداول',        desc: 'Volume',                       group: 'مؤشرات منفصلة', pane: 'new' },
@@ -95,7 +95,7 @@ const DRAW_TOOLS: DrawTool[] = [
 ]
 const TrashIcon = I(<><path d="M4 7h16M9 7V5a1 1 0 011-1h4a1 1 0 011 1v2M6 7l1 13a1 1 0 001 1h8a1 1 0 001-1l1-13" /></>)
 
-// Hover tooltip — small label that appears beside/below a button on hover
+// Hover tooltip · small label that appears beside/below a button on hover
 function Tip({ label, side = 'right', children }: { label: string; side?: 'right' | 'bottom' | 'top'; children: ReactNode }) {
   const pos =
     side === 'right'  ? { left: '100%', marginLeft: 8, top: '50%', transform: 'translateY(-50%)' }
@@ -216,7 +216,7 @@ export default function KChart({ sym, name, fill = false }: { sym: string; name?
     const chart = chartRef.current, el = containerRef.current
     if (!chart || !el || count <= 0) return
     // Keep only a tight right gap (a few px) so candles fill the canvas instead
-    // of floating in blank space — important when a thin ISX name has few bars.
+    // of floating in blank space · important when a thin ISX name has few bars.
     chart.setOffsetRightDistance(12)
     const availW = Math.max(el.offsetWidth - 76, 200)
     const space = Math.min(Math.max(Math.floor(availW / count), 3), 60)
@@ -226,7 +226,7 @@ export default function KChart({ sym, name, fill = false }: { sym: string; name?
 
   // ── Init / refresh chart ──────────────────────────────────────────────────────
   // Re-runs on fullscreen toggle too: the container node changes (card ⇄ portal),
-  // so we dispose the *captured* element and build fresh — which also refits the
+  // so we dispose the *captured* element and build fresh · which also refits the
   // window, fixing the "opens at the old zoom and looks unresponsive" problem.
   useEffect(() => {
     const el = containerRef.current
@@ -270,7 +270,7 @@ export default function KChart({ sym, name, fill = false }: { sym: string; name?
               high: { show: true, color: C.muted, textSize: 10 },
               low:  { show: true, color: C.muted, textSize: 10 },
             },
-            // Built-in OHLC tooltip off — we draw our own live legend
+            // Built-in OHLC tooltip off · we draw our own live legend
             tooltip: { showRule: 'none' },
           },
           indicator: {
@@ -472,9 +472,9 @@ export default function KChart({ sym, name, fill = false }: { sym: string; name?
   const legendPct  = legendBar && legendPrev && legendPrev.close ? (legendChg / legendPrev.close) * 100 : 0
   const legendUp   = legendBar ? (legendPrev ? legendChg >= 0 : legendBar.close >= legendBar.open) : true
   const legColor   = legendUp ? C.up : C.down
-  const fmtP = (n?: number) => (n == null ? '—' : n.toFixed(3))
+  const fmtP = (n?: number) => (n == null ? '·' : n.toFixed(3))
   const fmtV = (n?: number) => {
-    if (!n) return '—'
+    if (!n) return '·'
     if (n >= 1e9) return (n / 1e9).toFixed(2) + 'B'
     if (n >= 1e6) return (n / 1e6).toFixed(2) + 'M'
     if (n >= 1e3) return (n / 1e3).toFixed(1) + 'K'
@@ -512,7 +512,7 @@ export default function KChart({ sym, name, fill = false }: { sym: string; name?
           {name && !isMobile && <span className="text-[12px] max-w-[180px] truncate" style={{ color: C.muted }}>{name}</span>}
         </div>
 
-        {/* Chart type — hidden on mobile */}
+        {/* Chart type · hidden on mobile */}
         {!isMobile && (
           <div className="flex items-center gap-1 px-1.5" style={{ borderRight: `1px solid ${C.border}` }}>
             {([['candle_solid', '🕯', 'شموع'], ['area', '〜', 'خطي']] as const).map(([t, ic, lbl]) => {
@@ -531,7 +531,7 @@ export default function KChart({ sym, name, fill = false }: { sym: string; name?
           </div>
         )}
 
-        {/* Indicators — icon-only on mobile, with count badge */}
+        {/* Indicators · icon-only on mobile, with count badge */}
         <button onClick={() => setShowIndicators(v => !v)} aria-label="المؤشرات"
           className="flex items-center gap-1.5 rounded-md font-bold transition-colors shrink-0"
           style={{
@@ -551,7 +551,7 @@ export default function KChart({ sym, name, fill = false }: { sym: string; name?
 
         {exportMsg && <span className="text-[11px] font-semibold" style={{ color: C.accent }}>{exportMsg}</span>}
 
-        {/* Export — hidden on mobile */}
+        {/* Export · hidden on mobile */}
         {!isMobile && <>
           <Tip label="تنزيل صورة PNG" side="bottom">
             <button onClick={() => exportImage('download')} aria-label="تنزيل" className={iconBtn} style={{ color: C.icon }}
@@ -569,7 +569,7 @@ export default function KChart({ sym, name, fill = false }: { sym: string; name?
           </Tip>
         </>}
 
-        {/* Fullscreen — icon-only on mobile */}
+        {/* Fullscreen · icon-only on mobile */}
         <button onClick={() => setFullscreen(v => !v)} aria-label={isFullscreen ? 'خروج' : 'ملء الشاشة'}
           className="flex items-center gap-1.5 rounded-md font-bold transition-colors shrink-0"
           style={{ height: 32, padding: isMobile ? '0 8px' : '0 12px', marginLeft: 4, color: '#fff', background: C.hover, fontSize: 13 }}>
@@ -582,7 +582,7 @@ export default function KChart({ sym, name, fill = false }: { sym: string; name?
 
       {/* ── Body: left toolbar + canvas ── */}
       <div className="flex flex-1 min-h-0">
-        {/* Left drawing toolbar — hidden on mobile (touch drawing is impractical) */}
+        {/* Left drawing toolbar · hidden on mobile (touch drawing is impractical) */}
         <div className="flex flex-col items-center gap-1 py-2 shrink-0"
           style={{ width: 48, borderRight: `1px solid ${C.border}`, display: isMobile ? 'none' : 'flex' }}>
           {DRAW_TOOLS.map(tool => {

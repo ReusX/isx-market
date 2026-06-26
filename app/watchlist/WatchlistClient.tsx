@@ -156,7 +156,7 @@ export default function WatchlistClient() {
                   <td className="mobcol-hide" style={{ padding: '0 14px', textAlign: 'end', fontFamily: 'var(--font-mono)', fontSize: 12, color: 'var(--ink3)' }}>{fmtVol(co.vol)}</td>
                   <td className="mobcol-hide" style={{ padding: '0 14px' }}>
                     <span style={{ fontSize: 10, fontWeight: 600, padding: '2px 6px', background: 'var(--surf3)', borderRadius: 4, color: 'var(--ink3)', whiteSpace: 'nowrap' }}>
-                      {SECTORS.find(s => s.id === co.sec)?.ar || co.sec || '—'}
+                      {SECTORS.find(s => s.id === co.sec)?.ar || co.sec || '·'}
                     </span>
                   </td>
                 </tr>

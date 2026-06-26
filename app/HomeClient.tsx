@@ -14,7 +14,7 @@ type Flow = { ticker: string; side: 'buy' | 'sell'; value: number }
 
 // ── format helpers ────────────────────────────────────────────────────────────
 const fmtBig = (v: number | null | undefined) => {
-  if (v == null) return '—'
+  if (v == null) return '·'
   const a = Math.abs(v)
   if (a >= 1e9) return (v / 1e9).toFixed(2) + ' مليار'
   if (a >= 1e6) return (v / 1e6).toFixed(1) + ' مليون'
@@ -22,9 +22,9 @@ const fmtBig = (v: number | null | undefined) => {
   return String(Math.round(v))
 }
 const fmtPct = (v: number) => `${v >= 0 ? '+' : '−'}${Math.abs(v).toFixed(2)}%`
-// Market cap — compact T/B/M suffixes, e.g. "7.7T", "480.0B"
+// Market cap · compact T/B/M suffixes, e.g. "7.7T", "480.0B"
 const fmtMcap = (v: number) => {
-  if (!v) return '—'
+  if (!v) return '·'
   if (v >= 1e12) return (v / 1e12).toFixed(1) + 'T'
   if (v >= 1e9)  return (v / 1e9).toFixed(1) + 'B'
   if (v >= 1e6)  return (v / 1e6).toFixed(1) + 'M'
@@ -221,7 +221,7 @@ export default function HomeClient({ news }: { news: News[] }) {
     return { value: t.value, pl: t.pl, plPct: t.plPct, today, todayPct, n: holdings.length }
   }, [lots, active, coBy])
 
-  const updated = index?.date ? index.date.split('-').reverse().join('/') : '—'
+  const updated = index?.date ? index.date.split('-').reverse().join('/') : '·'
 
   return (
     <div style={{ maxWidth: 1180, margin: '0 auto', padding: '16px 16px 80px' }}>
@@ -235,7 +235,7 @@ export default function HomeClient({ news }: { news: News[] }) {
               <span style={{ fontSize: 11, color: 'var(--ink4)', fontWeight: 600 }}>آخر تحديث {updated}</span>
             </div>
             <div style={{ display: 'flex', alignItems: 'flex-end', gap: 10, marginTop: 6 }}>
-              <span style={{ fontSize: 30, fontWeight: 800, fontFamily: 'var(--font-mono)', color: 'var(--ink)', lineHeight: 1 }}>{index ? index.isx60.toFixed(2) : '—'}</span>
+              <span style={{ fontSize: 30, fontWeight: 800, fontFamily: 'var(--font-mono)', color: 'var(--ink)', lineHeight: 1 }}>{index ? index.isx60.toFixed(2) : '·'}</span>
               <span style={{ fontSize: 14, fontWeight: 700, color: tone(isxChange) }}>{isxUp ? '▲' : '▼'} {fmtPct(isxChange)}</span>
             </div>
             {series.length > 1 && <Sparkline data={series} up={isxUp} />}
@@ -255,7 +255,7 @@ export default function HomeClient({ news }: { news: News[] }) {
                   </div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11.5, marginTop: 6, fontFamily: 'var(--font-mono)', fontWeight: 700 }}>
                     <span style={{ color: 'var(--up)' }}>{breadth.advancers} ▲</span>
-                    <span style={{ color: 'var(--ink4)' }}>{breadth.unchanged} —</span>
+                    <span style={{ color: 'var(--ink4)' }}>{breadth.unchanged} ·</span>
                     <span style={{ color: 'var(--dn)' }}>{breadth.decliners} ▼</span>
                   </div>
                 </>
@@ -266,7 +266,7 @@ export default function HomeClient({ news }: { news: News[] }) {
             {[
               { l: 'قيمة التداول', v: fmtBig(index?.total_value) },
               { l: 'حجم التداول', v: fmtBig(index?.total_volume) },
-              { l: 'الصفقات', v: index?.total_trades ? Math.round(index.total_trades).toLocaleString('en') : '—' },
+              { l: 'الصفقات', v: index?.total_trades ? Math.round(index.total_trades).toLocaleString('en') : '·' },
             ].map(s => (
               <Link key={s.l} href="/pulse" className="home-card-link" style={{ textDecoration: 'none', display: 'block', flex: 1 }}>
                 <Card style={{ padding: '10px 12px' }}>
