@@ -155,6 +155,19 @@ def load_set(s):
     failed = [c for c in checks if c["status"] == "FAIL"]
     status = "failed" if failed else "reviewed"
 
+    # Never let a worse re-extraction clobber an already-published report. If the
+    # report is live and the new set fails its identity checks, keep the existing
+    # good data + published status untouched. (A re-extraction that *passes* may
+    # refresh it, and stays published without needing a manual re-publish.)
+    cur = rest("GET", "financial_reports", f"?id=eq.{s['report_id']}&select=status")
+    cur_status = cur[0]["status"] if cur else None
+    if cur_status == "published" and failed:
+        print(f"  = {s['ticker']} {s['fiscal_year']} {s['period']}: "
+              f"kept PUBLISHED (skipped failing re-extraction: {[c['name'] for c in failed]})")
+        return norm, template, "published"
+    if cur_status == "published":
+        status = "published"
+
     rest("POST", "financial_facts", "?on_conflict=report_id,statement,line_key",
          fact_rows, prefer="resolution=merge-duplicates,return=minimal")
     rest("PATCH", "financial_reports", f"?id=eq.{s['report_id']}",
