@@ -169,9 +169,10 @@ export default function HomeClient({ news }: { news: News[] }) {
   const isxUp = isxChange >= 0
 
   const movers = useMemo(() => {
-    if (moversTab === 'gainers') return [...active].filter(c => c.pct > 0).sort((a, b) => b.pct - a.pct).slice(0, 6)
-    if (moversTab === 'losers')  return [...active].filter(c => c.pct < 0).sort((a, b) => a.pct - b.pct).slice(0, 6)
-    return [...active].sort((a, b) => (b.vol ?? 0) - (a.vol ?? 0)).slice(0, 6)
+    const today = active.filter(c => !c.stale)  // today's session only
+    if (moversTab === 'gainers') return [...today].filter(c => c.pct > 0).sort((a, b) => b.pct - a.pct).slice(0, 6)
+    if (moversTab === 'losers')  return [...today].filter(c => c.pct < 0).sort((a, b) => a.pct - b.pct).slice(0, 6)
+    return [...today].sort((a, b) => (b.vol ?? 0) - (a.vol ?? 0)).slice(0, 6)
   }, [active, moversTab])
 
   // live market cap (IQD): close × shares when known, else static fallback

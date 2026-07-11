@@ -59,19 +59,24 @@ export async function fetchLive(): Promise<LiveData> {
   }
 
   // Carry-forward: listed companies that did NOT trade in the latest session
-  // still belong on the board at their last known price (shown flat, "no trade
-  // today") instead of vanishing. ISX is thin — only ~40-50 of ~124 companies
-  // trade on any given day. Source the last close from company_metrics.
+  // still belong on the board. ISX is thin — only ~40-50 of ~124 companies
+  // trade on any given day. We show each one's LAST ACTUAL trade (real close,
+  // volume and change) sourced from daily_prices via the `latest_trade` view
+  // (one row per ticker), marked `stale` so it reads as "not today's session".
   const traded = new Set(stocks.map(s => s.code))
-  const { data: metrics } = await sb
-    .from('company_metrics').select('ticker,last_close')
-  for (const m of metrics ?? []) {
-    const code = m.ticker as string
-    const lc = m.last_close as number | null
-    if (traded.has(code) || lc == null || lc <= 0) continue
+  const { data: last } = await sb
+    .from('latest_trade').select('ticker,close,value,change,pct,trades')
+  for (const r of last ?? []) {
+    const code = r.ticker as string
+    const close = r.close as number | null
+    if (traded.has(code) || close == null || close <= 0) continue
     stocks.push({
-      code, close: lc, open: lc, high: lc, low: lc,
-      change: 0, pct: 0, vol: 0, deals: 0, stale: true,
+      code, close, open: close, high: close, low: close,
+      change: (r.change as number) ?? 0,
+      pct:    (r.pct    as number) ?? 0,
+      vol:    (r.value  as number) ?? 0,
+      deals:  (r.trades as number) ?? 0,
+      stale:  true,
     })
   }
 
