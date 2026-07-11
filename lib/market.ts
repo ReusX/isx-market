@@ -58,6 +58,23 @@ export async function fetchLive(): Promise<LiveData> {
     })
   }
 
+  // Carry-forward: listed companies that did NOT trade in the latest session
+  // still belong on the board at their last known price (shown flat, "no trade
+  // today") instead of vanishing. ISX is thin — only ~40-50 of ~124 companies
+  // trade on any given day. Source the last close from company_metrics.
+  const traded = new Set(stocks.map(s => s.code))
+  const { data: metrics } = await sb
+    .from('company_metrics').select('ticker,last_close')
+  for (const m of metrics ?? []) {
+    const code = m.ticker as string
+    const lc = m.last_close as number | null
+    if (traded.has(code) || lc == null || lc <= 0) continue
+    stocks.push({
+      code, close: lc, open: lc, high: lc, low: lc,
+      change: 0, pct: 0, vol: 0, deals: 0, stale: true,
+    })
+  }
+
   return { updated: latest, stocks, rsisx: null, breadth: { up, dn, fl }, sectors: {} }
 }
 
@@ -88,6 +105,7 @@ export function mergeCompanies(meta: CompanyMeta[], stocks: LiveStock[]): Compan
       pct:    live?.pct    ?? 0,
       vol:    live?.vol    ?? 0,
       deals:  live?.deals  ?? 0,
+      stale:  live?.stale  ?? false,
     }
   })
 }

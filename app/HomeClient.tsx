@@ -203,7 +203,7 @@ export default function HomeClient({ news }: { news: News[] }) {
 
   const sectorPerf = useMemo(() => {
     const m = new Map<string, { sum: number; n: number }>()
-    for (const c of active) { const e = m.get(c.sec) ?? { sum: 0, n: 0 }; e.sum += c.pct; e.n++; m.set(c.sec, e) }
+    for (const c of active) { if (c.stale) continue; const e = m.get(c.sec) ?? { sum: 0, n: 0 }; e.sum += c.pct; e.n++; m.set(c.sec, e) }
     return Array.from(m.entries()).map(([sec, e]) => ({ sec, avg: e.sum / e.n })).filter(x => x.sec).sort((a, b) => b.avg - a.avg)
   }, [active])
 

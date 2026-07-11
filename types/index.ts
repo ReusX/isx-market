@@ -23,6 +23,7 @@ export interface LiveStock {
   pct:    number
   vol:    number
   deals:  number
+  stale?: boolean  // carried forward: did not trade in the latest session
 }
 
 export interface Company extends CompanyMeta {
@@ -34,6 +35,7 @@ export interface Company extends CompanyMeta {
   pct:    number
   vol:    number
   deals:  number
+  stale?: boolean  // last price carried forward; did not trade in latest session
 }
 
 export interface RsisxData {
