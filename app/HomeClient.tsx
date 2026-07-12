@@ -126,7 +126,7 @@ export default function HomeClient({ news }: { news: News[] }) {
     ;(async () => {
       const { createClient } = await import('@/lib/supabase/client')
       const sb = createClient()
-      const since = new Date(Date.now() - 180 * 86400_000).toISOString().slice(0, 10)
+      const since = new Date(Date.now() - 90 * 86400_000).toISOString().slice(0, 10)
       const [{ data: idx }, { data: br }, { data: ff }] = await Promise.all([
         sb.from('daily_index').select('date,isx60,total_value,total_volume,total_trades,traded_companies,listed_companies').not('isx60', 'is', null).gte('date', since).order('date'),
         sb.from('breadth_daily').select('advancers,decliners,unchanged').order('date', { ascending: false }).limit(1),
@@ -146,10 +146,11 @@ export default function HomeClient({ news }: { news: News[] }) {
     })()
   }, [])
 
-  // TTM P/E
+  // TTM P/E — heavy fundamentals query, below the fold. Defer to browser idle
+  // so it never competes with first paint / the above-the-fold data.
   useEffect(() => {
     if (!companies.length) return
-    ;(async () => {
+    const run = async () => {
       const { createClient } = await import('@/lib/supabase/client')
       const { fetchTtmPe } = await import('@/lib/fundamentals')
       const prices: Record<string, number> = {}
@@ -159,7 +160,14 @@ export default function HomeClient({ news }: { news: News[] }) {
       const m: Record<string, number> = {}
       for (const [s, r] of Object.entries(res)) m[s] = r.pe
       setPeMap(m)
-    })()
+    }
+    const ric = (window as any).requestIdleCallback as
+      | ((cb: () => void, opts?: { timeout: number }) => number) | undefined
+    const id = ric ? ric(run, { timeout: 3000 }) : window.setTimeout(run, 400)
+    return () => {
+      const cancel = (window as any).cancelIdleCallback as ((id: number) => void) | undefined
+      if (ric && cancel) cancel(id); else clearTimeout(id)
+    }
   }, [companies])
 
   const active = useMemo(() => companies.filter(c => c.close > 0), [companies])

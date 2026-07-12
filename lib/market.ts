@@ -3,11 +3,27 @@ import { createClient } from '@/lib/supabase/client'
 
 // ─── Data fetchers ──────────────────────────────────────────────────────────
 
+// Short client-side cache: navigating between market pages (home, /market,
+// /charts, /c/[sym], /watchlist) reuses one snapshot instead of re-querying
+// Supabase on every mount. Prices refresh once per day, so 60s is plenty fresh.
+let _liveCache: { at: number; data: LiveData } | null = null
+let _livePromise: Promise<LiveData> | null = null
+const LIVE_TTL = 60_000
+
+export async function fetchLive(): Promise<LiveData> {
+  if (_liveCache && Date.now() - _liveCache.at < LIVE_TTL) return _liveCache.data
+  if (_livePromise) return _livePromise            // de-dupe concurrent mounts
+  _livePromise = fetchLiveRaw()
+    .then(data => { _liveCache = { at: Date.now(), data }; _livePromise = null; return data })
+    .catch(err => { _livePromise = null; throw err })
+  return _livePromise
+}
+
 // Live prices come from OUR OWN pipeline: the ISX official daily report
 // workbooks parsed into Supabase `daily_prices` (refreshed by the daily cron
 // at /api/cron/daily-prices). We take the latest trading session for current
 // prices and the prior session to compute the day-over-day change.
-export async function fetchLive(): Promise<LiveData> {
+async function fetchLiveRaw(): Promise<LiveData> {
   const sb = createClient()
 
   // most recent session date
