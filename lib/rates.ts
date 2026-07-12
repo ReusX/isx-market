@@ -34,7 +34,7 @@ const GOLD_URL = 'https://iraqgoldprice.com/'
 
 export async function fetchGold(): Promise<GoldData | null> {
   try {
-    const res = await fetch(GOLD_URL, { headers: UA, next: { revalidate: REVALIDATE } })
+    const res = await fetch(GOLD_URL, { headers: UA, next: { revalidate: REVALIDATE }, signal: AbortSignal.timeout(9000) })
     if (!res.ok) return null
     const t = strip(await res.text())
 
@@ -85,7 +85,7 @@ const ALS_LIST = 'https://www.alsumaria.tv/economy-news'
 
 async function discoverDollarArticle(): Promise<string | null> {
   try {
-    const res = await fetch(jina(ALS_LIST), { headers: UA, next: { revalidate: REVALIDATE } })
+    const res = await fetch(jina(ALS_LIST), { headers: UA, next: { revalidate: REVALIDATE }, signal: AbortSignal.timeout(9000) })
     if (!res.ok) return null
     const md = await res.text()
     let best: { id: number; url: string } | null = null
@@ -132,7 +132,7 @@ function parseAlsumaria(raw: string, url: string): FxData | null {
 
 async function tryFetch(url: string, parse: (raw: string, url: string) => FxData | null): Promise<FxData | null> {
   try {
-    const res = await fetch(url, { headers: UA, next: { revalidate: REVALIDATE } })
+    const res = await fetch(url, { headers: UA, next: { revalidate: REVALIDATE }, signal: AbortSignal.timeout(9000) })
     if (res.ok) return parse(await res.text(), url)
   } catch { /* ignore */ }
   return null
@@ -194,7 +194,7 @@ const OIL_URL = 'https://oilprice.com/ar/oil-price-charts'
 
 export async function fetchOil(): Promise<OilData | null> {
   try {
-    const res = await fetch(OIL_URL, { headers: UA, next: { revalidate: REVALIDATE } })
+    const res = await fetch(OIL_URL, { headers: UA, next: { revalidate: REVALIDATE }, signal: AbortSignal.timeout(9000) })
     if (!res.ok) return null
     const html = await res.text()
 
