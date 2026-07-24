@@ -14,7 +14,20 @@ export const maxDuration = 30
 export const dynamic = 'force-dynamic'
 
 const WP = (process.env.WP_API_URL ?? 'https://paleturquoise-deer-610016.hostingersite.com').replace(/\/$/, '')
-const PIPELINE_SECRET = process.env.PIPELINE_SECRET ?? 'isx-pipeline-2026-secret'
+// No hardcoded fallback: this repo is public, so a literal default secret would
+// leave the endpoint open to anyone. Missing env => the route refuses all calls.
+const PIPELINE_SECRET = process.env.PIPELINE_SECRET
+
+const ALLOWED_METHODS = new Set(['GET', 'POST', 'PUT', 'PATCH', 'DELETE'])
+
+// `endpoint` is caller-supplied and gets concatenated onto WP, so it must not be
+// able to steer the request off-host. Without this, `.attacker.com/x` resolves to
+// a foreign host and our WP Basic-auth header goes with it (credential exfil).
+function isSafeEndpoint(ep: string): boolean {
+  if (!ep.startsWith('/wp-json/')) return false
+  if (ep.startsWith('//')) return false
+  return !/[@\\]|\.\.|:\/\/|[\r\n]/.test(ep)
+}
 
 function wpAuthHeader(req: NextRequest): string {
   // Prefer credentials stored in Vercel env (most secure)
@@ -30,6 +43,10 @@ function wpAuthHeader(req: NextRequest): string {
 }
 
 export async function POST(req: NextRequest) {
+  if (!PIPELINE_SECRET) {
+    console.error('wp-publish: PIPELINE_SECRET is not configured — refusing request')
+    return NextResponse.json({ error: 'Endpoint not configured' }, { status: 503 })
+  }
   const secret = req.headers.get('x-pipeline-secret')
   if (!secret || secret !== PIPELINE_SECRET) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
@@ -45,7 +62,15 @@ export async function POST(req: NextRequest) {
   const endpoint = body.endpoint ?? '/wp-json/wp/v2/posts'
   const method   = (body.method ?? 'POST').toUpperCase()
   const payload  = body.payload
-  const auth     = wpAuthHeader(req)
+
+  if (!isSafeEndpoint(endpoint)) {
+    return NextResponse.json({ error: 'Invalid endpoint' }, { status: 400 })
+  }
+  if (!ALLOWED_METHODS.has(method)) {
+    return NextResponse.json({ error: 'Invalid method' }, { status: 400 })
+  }
+
+  const auth = wpAuthHeader(req)
 
   if (!auth) {
     return NextResponse.json({ error: 'No WP credentials' }, { status: 400 })

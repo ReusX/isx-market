@@ -50,7 +50,9 @@ ANTH_KEY        = os.environ.get("ANTHROPIC_API_KEY", "")
 # Set PROXY_URL=https://iraqsm.com (or the Vercel deploy URL) in GH secrets.
 # When unset, falls back to direct WP calls (works fine from local IPs).
 PROXY_URL       = os.environ.get("PROXY_URL", "").rstrip("/")
-PIPELINE_SECRET = os.environ.get("PIPELINE_SECRET", "isx-pipeline-2026-secret")
+# No hardcoded fallback: this repo is public, so a literal default would be a
+# published shared secret. Must be supplied via env / GH secret.
+PIPELINE_SECRET = os.environ.get("PIPELINE_SECRET", "")
 SB_URL      = (os.environ.get("NEXT_PUBLIC_SUPABASE_URL") or os.environ.get("SUPABASE_URL", ""))
 SB_KEY      = os.environ.get("SUPABASE_SERVICE_ROLE_KEY", "")
 if not SB_URL.startswith("http") and SB_URL:

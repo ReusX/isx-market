@@ -323,12 +323,54 @@ export async function GET(
   return NextResponse.json({ error: 'not_found' }, { status: 404 })
 }
 
+// Return the cached row when it is still fresh, else null.
+async function readFreshCache(sym: string) {
+  try {
+    const { data } = await supabase
+      .from('company_analysis')
+      .select('en, ar, generated_at')
+      .eq('sym', sym)
+      .single()
+    if (data && Date.now() - new Date(data.generated_at).getTime() < CACHE_TTL_MS) {
+      return { en: data.en, ar: data.ar, generated_at: data.generated_at }
+    }
+  } catch { /* no cache · fall through and generate */ }
+  return null
+}
+
+// Best-effort per-IP limiter (per warm serverless instance) — a backstop only;
+// the cache guard below is what actually bounds spend.
+const RATE_MAX = 5
+const RATE_WINDOW_MS = 60_000
+const rateHits = new Map<string, number[]>()
+function allowRequest(req: NextRequest): boolean {
+  const ip = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 'unknown'
+  const now = Date.now()
+  const recent = (rateHits.get(ip) ?? []).filter(t => now - t < RATE_WINDOW_MS)
+  rateHits.set(ip, recent)
+  if (recent.length >= RATE_MAX) return false
+  recent.push(now)
+  return true
+}
+
 // ── POST: generate + cache ────────────────────────────────────────────────────
 export async function POST(
-  _req: NextRequest,
+  req: NextRequest,
   { params }: { params: { sym: string } },
 ) {
   const sym = params.sym.toUpperCase()
+
+  // Cost guard: this endpoint is browser-triggered and unauthenticated, and each
+  // run downloads filings and bills paid vision + LLM inference. Serving a fresh
+  // cached row first means repeat calls cannot drive spend — real generation can
+  // only happen once per symbol per CACHE_TTL_MS.
+  const fresh = await readFreshCache(sym)
+  if (fresh) return NextResponse.json({ ...fresh, cached: true })
+
+  if (!allowRequest(req)) {
+    return NextResponse.json({ error: 'Rate limited' }, { status: 429 })
+  }
+
   try {
     const companiesPath = path.join(process.cwd(), 'public', 'data', 'companies.json')
     const companies: any[] = JSON.parse(fs.readFileSync(companiesPath, 'utf-8'))
