@@ -42,6 +42,7 @@ const IC = {
   bars:      'M18 20V10M12 20V4M6 20v-6',
   chart:     'M3 3v18h18 M7 16l4-4 4 4 4-8',
   news:      'M4 6h16M4 12h16M4 18h10',
+  building:  'M3 21h18 M5 21V7l7-4 7 4v14 M9 21v-5h6v5 M9 10h.01 M15 10h.01', // listed companies
   star:      'M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z',
   fx:        'M7 16V4m0 0L4 7m3-3l3 3 M17 8v12m0 0l3-3m-3 3l-3-3',
   search:    'M21 21l-4.35-4.35M17 11A6 6 0 115 11a6 6 0 0112 0z',
@@ -78,7 +79,7 @@ const NAV: {
       { href: '/statistics', icon: 'stats',  ar: 'الإحصائيات'  },
       { href: '/heatmap',    icon: 'grid',   ar: 'خريطة السوق' },
       { href: '/pulse',      icon: 'pulse',  ar: 'نبض السوق'   },
-      { href: '/news',       icon: 'news',   ar: 'أخبار السوق' },
+      { href: '/companies',  icon: 'building', ar: 'الشركات'    },
     ],
   },
   {

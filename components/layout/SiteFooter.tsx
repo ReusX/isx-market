@@ -19,7 +19,6 @@ const COLS: { title: [string, string]; links: { href: string; ar: string; en: st
     links: [
       { href: '/gold', ar: 'سعر الذهب',  en: 'Gold' },
       { href: '/fx',   ar: 'الدينار/الدولار', en: 'IQD ⇄ USD' },
-      { href: '/news', ar: 'الأخبار',    en: 'News' },
       { href: '/companies', ar: 'الشركات', en: 'Companies' },
     ],
   },

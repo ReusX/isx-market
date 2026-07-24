@@ -5374,3 +5374,17 @@ html[lang="ar"] .wp-content pre {
   flex: 0 0 auto; inline-size: 52px; font-size: 11.5px; color: var(--muted);
   font-family: var(--font-numeric), monospace;
 }
+
+/* ══ Companies directory ══════════════════════════════════════════════════ */
+.directory-filters {
+  display: flex; flex-direction: column; gap: 10px;
+  margin-block-end: 14px;
+}
+.directory-search {
+  inline-size: min(320px, 100%);
+  padding: 8px 12px; border-radius: 10px;
+  border: 1px solid var(--border); background: var(--surface-2);
+  color: var(--ink); font-size: 13px; outline: none;
+}
+.directory-search::placeholder { color: var(--muted); }
+.directory-search:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }

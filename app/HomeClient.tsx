@@ -9,7 +9,6 @@ import { SectorPerformanceChipRow } from '@/components/design/SectorPerformanceC
 import type { SectorDatum } from '@/components/design/magnitude'
 import type { Company } from '@/types'
 
-type News = { slug: string; title: string; date: string }
 type SortKey = 'mcap' | 'price' | 'change' | 'volume' | 'value'
 type ChartPoint = { x: number; y: number; value: string; time: string }
 
@@ -57,7 +56,7 @@ function StatIcon({ type }: { type: string }) {
   return <span className={`stat-icon ${type}`} aria-hidden="true" />
 }
 
-export default function HomeClient({ news }: { news: News[] }) {
+export default function HomeClient() {
   const [companies, setCompanies] = useState<Company[]>([])
   const [series, setSeries] = useState<IndexRow[]>([])
   const [flow, setFlow] = useState<{ buy: number; sell: number; date: string } | null>(null)
@@ -445,28 +444,6 @@ export default function HomeClient({ news }: { news: News[] }) {
         </div>
       </section>
 
-      {/* ── Market news · existing editorial content, preserved ──────────── */}
-      {news.length > 0 && (
-        <section className="companies-section" aria-labelledby="home-news-title">
-          <div className="section-heading">
-            <div>
-              <div className="section-kicker">تغطية</div>
-              <h2 id="home-news-title">أخبار السوق</h2>
-            </div>
-            <Link className="text-link" href="/news">كل الأخبار ←</Link>
-          </div>
-          <div className="home-news-list">
-            {news.map(n => (
-              <Link key={n.slug} href={`/news/${n.slug}`} className="home-news-row">
-                <bdi className="home-news-date">
-                  {n.date.slice(0, 10).split('-').reverse().slice(0, 2).join('/')}
-                </bdi>
-                <span>{n.title}</span>
-              </Link>
-            ))}
-          </div>
-        </section>
-      )}
     </main>
   )
 }

@@ -6,7 +6,7 @@ import { usePathname } from 'next/navigation'
 const tabs = [
   { href: '/',           icon: '🏠', ar: 'الرئيسية' },
   { href: '/market',     icon: '📊', ar: 'السوق'    },
-  { href: '/news',       icon: '📰', ar: 'الأخبار'  },
+  { href: '/companies',  icon: '🏢', ar: 'الشركات'  },
   { href: '/statistics', icon: '📈', ar: 'إحصائيات' },
   { href: '/profile',    icon: '👤', ar: 'الملف'    },
 ]
