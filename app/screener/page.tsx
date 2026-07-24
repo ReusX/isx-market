@@ -1,8 +1,13 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
-import { useRouter } from 'next/navigation'
-import { fetchCompanyMeta, fmtMcap } from '@/lib/market'
+import { type CSSProperties, useEffect, useMemo, useState } from 'react'
+import { fetchCompanyMeta } from '@/lib/market'
+import { DataTable, type TableColumn } from '@/components/design/DataTable'
+import { CompanyIdentity } from '@/components/design/CompanyIdentity'
+import { Range52Indicator, range52Position } from '@/components/design/Range52Indicator'
+import { SectorChip } from '@/components/design/SectorChip'
+import { ChangeValue } from '@/components/design/ui'
+import { changeToneStyle } from '@/components/design/magnitude'
 import type { CompanyMeta } from '@/types'
 
 // ── types ────────────────────────────────────────────────────────────────────
@@ -23,12 +28,12 @@ const STALE_DAYS = 60
 
 // ── period config: which "as-of" close drives the % column ──────────────────
 const PERIODS = [
-  { id: '1d',  label: 'يوم',    key: 'prev_close'  },
-  { id: '1w',  label: 'أسبوع',  key: 'close_1w'    },
-  { id: '1m',  label: 'شهر',    key: 'close_1m'    },
-  { id: '3m',  label: '٣ أشهر', key: 'close_3m'    },
-  { id: 'ytd', label: 'العام',  key: 'close_yend'  },
-  { id: '52w', label: 'سنة',    key: 'close_52w'   },
+  { id: '1d',  label: 'يوم',    },
+  { id: '1w',  label: 'أسبوع',  },
+  { id: '1m',  label: 'شهر',    },
+  { id: '3m',  label: '٣ أشهر', },
+  { id: 'ytd', label: 'العام',  },
+  { id: '52w', label: 'سنة',    },
 ] as const
 type PeriodId = typeof PERIODS[number]['id']
 
@@ -50,35 +55,55 @@ const PRESETS = [
 ] as const
 type PresetId = typeof PRESETS[number]['id']
 
+const numberFormat = new Intl.NumberFormat('en-US', { maximumFractionDigits: 0 })
+const priceFormat = new Intl.NumberFormat('en-US', { maximumFractionDigits: 3 })
+
 // ── helpers ──────────────────────────────────────────────────────────────────
 function pctFor(r: Row, p: PeriodId): number | null {
   const ref = ({ '1d': r.prev_close, '1w': r.close_1w, '1m': r.close_1m, '3m': r.close_3m, ytd: r.close_yend, '52w': r.close_52w } as const)[p]
   if (!ref) return null
   return ((r.last_close - ref) / ref) * 100
 }
-const fmtPct = (v: number | null) => v == null ? '·' : `${v >= 0 ? '+' : ''}${v.toFixed(2)}%`
-const toneColor = (v: number | null) => v == null ? 'var(--ink4)' : v > 0 ? 'var(--up)' : v < 0 ? 'var(--dn)' : 'var(--ink3)'
 
-// ── logo ──────────────────────────────────────────────────────────────────────
-function Logo({ sym, logo, color }: { sym: string; logo?: string; color?: string }) {
-  const [err, setErr] = useState(false)
-  if (logo && !err) return <img src={logo} alt={sym} width={24} height={24} onError={() => setErr(true)}
-    style={{ borderRadius: 6, objectFit: 'contain', background: '#fff', padding: 2, flexShrink: 0 }} />
-  return <div style={{ width: 24, height: 24, borderRadius: 6, flexShrink: 0, background: color || 'var(--brand)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 8.5, fontWeight: 800, color: '#fff' }}>{sym.slice(0, 3)}</div>
+// compact IQD for the value columns (millions/billions)
+function fmtIQDc(v: number): string {
+  if (v >= 1e9) return (v / 1e9).toFixed(2) + ' مليار'
+  if (v >= 1e6) return (v / 1e6).toFixed(1) + ' مليون'
+  if (v >= 1e3) return (v / 1e3).toFixed(0) + ' ألف'
+  return Math.round(v).toString()
 }
 
-type SortKey = 'mcap' | 'pct' | 'price' | 'liq' | 'foreign' | 'pos52' | 'pe'
+function fmtMcapIQD(m?: number): string {
+  if (!m) return '·'
+  // `mcap` is carried in millions of IQD.
+  if (m >= 1e6) return (m / 1e6).toFixed(2) + 'T IQD'
+  if (m >= 1e3) return (m / 1e3).toFixed(1) + 'B IQD'
+  return m.toFixed(0) + 'M IQD'
+}
+
+// YYYY-MM-DD → DD/MM/YYYY (last-trade hint)
+function fmtDate(d: string): string {
+  const [y, m, day] = d.split('-')
+  return day && m && y ? `${day}/${m}/${y}` : d
+}
+
+function ForeignFlowValue({ value }: { value: number | null }) {
+  if (!value) return <span className="muted-cell">·</span>
+  const tone = value > 0 ? 'positive' : 'negative'
+  return (
+    <bdi className={`change-value ${tone}`} style={changeToneStyle(value / 1e9) as CSSProperties}>
+      {value > 0 ? '+' : '−'}{fmtIQDc(Math.abs(value))}
+    </bdi>
+  )
+}
 
 export default function ScreenerPage() {
-  const router = useRouter()
-  const [rows, setRows]       = useState<Row[]>([])
+  const [rows, setRows] = useState<Row[]>([])
   const [loading, setLoading] = useState(true)
-  const [q, setQ]             = useState('')
-  const [sector, setSector]   = useState('all')
-  const [period, setPeriod]   = useState<PeriodId>('1m')
-  const [preset, setPreset]   = useState<PresetId>('all')
-  const [sortKey, setSortKey] = useState<SortKey>('mcap')
-  const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc')
+  const [q, setQ] = useState('')
+  const [sector, setSector] = useState('all')
+  const [period, setPeriod] = useState<PeriodId>('1m')
+  const [preset, setPreset] = useState<PresetId>('all')
   const [showStale, setShowStale] = useState(false)
 
   useEffect(() => {
@@ -98,11 +123,7 @@ export default function ScreenerPage() {
           const mcap = (m.last_close > 0 && meta?.shares)
             ? (m.last_close * meta.shares) / 1_000_000
             : meta?.mcap
-          return {
-            ...m,
-            name: meta?.ar || m.name_ar || m.name_en || m.ticker,
-            logo: meta?.logo, color: meta?.color, mcap,
-          }
+          return { ...m, name: meta?.ar || m.name_ar || m.name_en || m.ticker, logo: meta?.logo, color: meta?.color, mcap }
         })
         setRows(merged)
 
@@ -118,10 +139,7 @@ export default function ScreenerPage() {
     })()
   }, [])
 
-  const sectors = useMemo(() => {
-    const s = Array.from(new Set(rows.map(r => r.sector))).sort()
-    return ['all', ...s]
-  }, [rows])
+  const sectors = useMemo(() => ['all', ...Array.from(new Set(rows.map(r => r.sector))).sort()], [rows])
 
   // count of suspended rows (hidden by default) for the toggle label
   const staleCount = useMemo(
@@ -132,16 +150,15 @@ export default function ScreenerPage() {
 
   const view = useMemo(() => {
     let list = rows.slice()
-    // hide suspended / long-untraded quotes unless explicitly shown
     if (!showStale) list = list.filter(r => (r.days_since_trade ?? 0) <= STALE_DAYS)
-    // search
     if (q.trim()) {
       const k = q.trim().toLowerCase()
-      list = list.filter(r => r.ticker.toLowerCase().includes(k) || r.name.toLowerCase().includes(k) || (r.name_en ?? '').toLowerCase().includes(k))
+      list = list.filter(r =>
+        r.ticker.toLowerCase().includes(k) ||
+        r.name.toLowerCase().includes(k) ||
+        (r.name_en ?? '').toLowerCase().includes(k))
     }
-    // sector
     if (sector !== 'all') list = list.filter(r => r.sector === sector)
-    // presets
     if (preset === 'gainers') list = list.filter(r => (pctFor(r, period) ?? 0) > 0)
     else if (preset === 'losers') list = list.filter(r => (pctFor(r, period) ?? 0) < 0)
     else if (preset === 'liquid') list = list.filter(r => (r.avg_value_20d ?? 0) > 0)
@@ -149,222 +166,170 @@ export default function ScreenerPage() {
     else if (preset === 'fbuy')   list = list.filter(r => (r.ff_net_30d ?? 0) > 0)
     else if (preset === 'fsell')  list = list.filter(r => (r.ff_net_30d ?? 0) < 0)
     else if (preset === 'nearhi') list = list.filter(r => r.high_52w && (r.high_52w - r.last_close) / r.high_52w <= 0.05)
-
-    // implicit sort for some presets
-    let sk = sortKey, sd = sortDir
-    if (preset === 'liquid') { sk = 'liq'; sd = 'desc' }
-    else if (preset === 'cheap') { sk = 'pe'; sd = 'asc' }
-
-    const val = (r: Row): number => {
-      switch (sk) {
-        case 'pct':     return pctFor(r, period) ?? -Infinity
-        case 'price':   return r.last_close
-        case 'liq':     return r.avg_value_20d ?? -Infinity
-        case 'foreign': return r.ff_net_30d ?? 0
-        case 'pos52':   return r.high_52w && r.low_52w && r.high_52w !== r.low_52w ? (r.last_close - r.low_52w) / (r.high_52w - r.low_52w) : -Infinity
-        case 'pe':      return r.pe != null && r.pe > 0 ? r.pe : (sd === 'asc' ? Infinity : -Infinity)
-        default:        return r.mcap ?? -Infinity
-      }
-    }
-    list.sort((a, b) => sd === 'asc' ? val(a) - val(b) : val(b) - val(a))
     return list
-  }, [rows, q, sector, preset, period, sortKey, sortDir, showStale])
+  }, [rows, q, sector, preset, period, showStale])
 
-  const toggleSort = (k: SortKey) => {
-    if (sortKey === k) setSortDir(d => d === 'asc' ? 'desc' : 'asc')
-    else { setSortKey(k); setSortDir(k === 'price' || k === 'pos52' ? 'asc' : 'desc') }
-  }
+  const columns = useMemo<TableColumn<Row>[]>(() => [
+    {
+      key: 'company',
+      label: 'الشركة',
+      className: 'screener-company',
+      linked: true,
+      sortValue: r => r.name,
+      render: r => <CompanyIdentity name={r.name} symbol={r.ticker} logo={r.logo} color={r.color} />,
+    },
+    {
+      key: 'price',
+      label: 'السعر',
+      className: 'numeric-column',
+      sortValue: r => r.last_close,
+      render: r => (
+        <span className="stacked-cell">
+          <bdi>{priceFormat.format(r.last_close)}</bdi>
+          {(r.days_since_trade ?? 0) > 5 && r.last_date ? <small>آخر تداول {fmtDate(r.last_date)}</small> : null}
+        </span>
+      ),
+    },
+    {
+      key: 'change',
+      label: `التغيّر · ${PERIODS.find(p => p.id === period)!.label}`,
+      className: 'numeric-column',
+      sortValue: r => pctFor(r, period) ?? Number.NEGATIVE_INFINITY,
+      render: r => {
+        const p = pctFor(r, period)
+        return p == null ? <span className="muted-cell">·</span> : <ChangeValue value={p} />
+      },
+    },
+    {
+      key: 'pe',
+      label: 'مكرر',
+      className: 'numeric-column',
+      sortValue: r => (r.pe != null && r.pe > 0 ? r.pe : Number.POSITIVE_INFINITY),
+      render: r => (r.pe != null && r.pe > 0
+        ? <bdi>{r.pe >= 100 ? Math.round(r.pe) : r.pe.toFixed(1)}</bdi>
+        : <span className="muted-cell">·</span>),
+    },
+    {
+      key: 'range',
+      label: '٥٢ أسبوع',
+      sortValue: r => (r.high_52w && r.low_52w ? range52Position(r.last_close, r.low_52w, r.high_52w) : -1),
+      render: r => (r.high_52w && r.low_52w && r.high_52w !== r.low_52w
+        ? <Range52Indicator price={r.last_close} low={r.low_52w} high={r.high_52w} />
+        : <span className="muted-cell">·</span>),
+    },
+    {
+      key: 'liquidity',
+      label: 'السيولة',
+      className: 'numeric-column',
+      sortValue: r => r.avg_value_20d ?? -1,
+      render: r => (r.avg_value_20d ? <bdi>{fmtIQDc(r.avg_value_20d)}</bdi> : <span className="muted-cell">·</span>),
+    },
+    {
+      key: 'foreign',
+      label: 'أجانب (٣٠ي)',
+      className: 'numeric-column',
+      sortValue: r => r.ff_net_30d ?? 0,
+      render: r => <ForeignFlowValue value={r.ff_net_30d} />,
+    },
+    {
+      key: 'marketCap',
+      label: 'القيمة السوقية',
+      className: 'numeric-column',
+      sortValue: r => r.mcap ?? -1,
+      render: r => <bdi>{fmtMcapIQD(r.mcap)}</bdi>,
+    },
+    {
+      key: 'sector',
+      label: 'القطاع',
+      sortValue: r => SECTOR_AR[r.sector] ?? r.sector,
+      render: r => SECTOR_AR[r.sector] ?? r.sector,
+    },
+  ], [period])
 
-  const periodLabel = PERIODS.find(p => p.id === period)!.label
+  // Two presets imply their own ordering; everything else opens on market cap.
+  const initialSort = preset === 'liquid'
+    ? { key: 'liquidity', direction: 'desc' as const }
+    : preset === 'cheap'
+      ? { key: 'pe', direction: 'asc' as const }
+      : { key: 'marketCap', direction: 'desc' as const }
 
   return (
-    <div style={{ padding: '20px 24px 80px', maxWidth: 1180, margin: '0 auto' }}>
-      {/* header */}
-      <div style={{ marginBottom: 16 }}>
-        <h2 style={{ fontSize: 22, fontWeight: 800, margin: 0, color: 'var(--ink)', letterSpacing: '-0.01em' }}>فارز الأسهم</h2>
-        <p style={{ fontSize: 12.5, color: 'var(--ink4)', margin: '6px 0 0' }}>
+    <main className="terminal-shell app-page screener-page">
+      <header className="screener-heading">
+        <h1>فارز الأسهم</h1>
+        <p>
           فلترة وترتيب أسهم السوق حسب الأداء والسيولة والمكرر وتدفق الأجانب
-          {activeCount ? <> · {activeCount} شركة نشطة</> : null}
+          {activeCount ? <> · <bdi>{activeCount}</bdi> شركة نشطة</> : null}
         </p>
-      </div>
+      </header>
 
-      {/* ── filter bar ── */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 14 }}>
-        {/* presets + search */}
-        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
-          <div className="chip-scroll" style={{ display: 'flex', gap: 6, overflowX: 'auto', flex: 1, minWidth: 0 }}>
-            {PRESETS.map(p => (
-              <button key={p.id} onClick={() => setPreset(p.id)} style={chip(preset === p.id)}>{p.label}</button>
+      <section className="screener-controls" aria-label="خيارات فارز الأسهم">
+        <div className="screener-search-row">
+          <label className="app-field screener-search" aria-label="بحث باسم الشركة أو الرمز">
+            <input value={q} onChange={e => setQ(e.target.value)} placeholder="بحث باسم أو رمز…" dir="auto" />
+          </label>
+          <div className="screener-chip-row" aria-label="الفلاتر السريعة">
+            {PRESETS.map(item => (
+              <SectorChip key={item.id} label={item.label} selected={preset === item.id} onClick={() => setPreset(item.id)} />
             ))}
-          </div>
-          <div style={{ position: 'relative', flexShrink: 0 }}>
-            <span style={{ position: 'absolute', insetInlineStart: 11, top: '50%', transform: 'translateY(-50%)', color: 'var(--ink4)', pointerEvents: 'none', display: 'flex' }}>
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="7" /><path d="M21 21l-4-4" /></svg>
-            </span>
-            <input value={q} onChange={e => setQ(e.target.value)} placeholder="بحث باسم أو رمز…"
-              style={{ width: 190, height: 34, borderRadius: 9, background: 'var(--surf2)', border: '1px solid var(--line)', color: 'var(--ink)', fontSize: 13, padding: '0 12px 0 32px', outline: 'none', fontFamily: 'inherit', direction: 'rtl' }} />
           </div>
         </div>
-        {/* sector + period */}
-        <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between' }}>
-          <div className="chip-scroll" style={{ display: 'flex', gap: 6, overflowX: 'auto', flex: 1, minWidth: 0 }}>
-            {sectors.map(s => (
-              <button key={s} onClick={() => setSector(s)} style={chip(sector === s, true)}>
-                {s === 'all' ? 'كل القطاعات' : (SECTOR_AR[s] ?? s)}
-              </button>
-            ))}
+
+        <div className="screener-inline-filters">
+          <div className="screener-filter-group">
+            <span>الفترة</span>
+            <div className="screener-chip-row">
+              {PERIODS.map(item => (
+                <SectorChip key={item.id} label={item.label} selected={period === item.id} onClick={() => setPeriod(item.id)} />
+              ))}
+            </div>
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 7, flexShrink: 0 }}>
-            <span style={{ fontSize: 11, color: 'var(--ink4)', fontWeight: 600 }}>التغيّر</span>
-            <div style={{ display: 'inline-flex', background: 'var(--surf2)', borderRadius: 8, padding: 2, gap: 2, border: '1px solid var(--line)' }}>
-              {PERIODS.map(p => (
-                <button key={p.id} onClick={() => setPeriod(p.id)} style={{
-                  border: 'none', borderRadius: 6, padding: '5px 10px', fontSize: 11.5, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit',
-                  background: period === p.id ? 'var(--surf3)' : 'transparent', color: period === p.id ? 'var(--ink)' : 'var(--ink4)',
-                }}>{p.label}</button>
+          <div className="screener-filter-group">
+            <span>القطاع</span>
+            <div className="screener-chip-row">
+              {sectors.map(item => (
+                <SectorChip
+                  key={item}
+                  label={item === 'all' ? 'كل القطاعات' : (SECTOR_AR[item] ?? item)}
+                  selected={sector === item}
+                  selectionTone="neutral"
+                  onClick={() => setSector(item)}
+                />
               ))}
             </div>
           </div>
         </div>
-        {/* suspended toggle */}
-        {staleCount > 0 && (
-          <label style={{ display: 'flex', alignItems: 'center', gap: 7, fontSize: 11.5, color: 'var(--ink4)', cursor: 'pointer', userSelect: 'none' }}>
-            <input type="checkbox" checked={showStale} onChange={e => setShowStale(e.target.checked)}
-              style={{ accentColor: 'var(--brand)', width: 14, height: 14, cursor: 'pointer' }} />
-            عرض الأسهم المتوقفة عن التداول ({staleCount}) · آخر تداول لها قبل أكثر من {STALE_DAYS} يوماً
+
+        {staleCount > 0 ? (
+          <label className="delisted-checkbox">
+            <input type="checkbox" checked={showStale} onChange={e => setShowStale(e.target.checked)} />
+            <span>عرض الأسهم المتوقفة عن التداول (<bdi>{staleCount}</bdi>) · آخر تداول لها قبل أكثر من <bdi>{STALE_DAYS}</bdi> يوماً</span>
           </label>
-        )}
-      </div>
+        ) : null}
+      </section>
 
-      {/* table */}
-      {loading ? (
-        <div className="skeleton" style={{ height: 480, borderRadius: 12 }} />
-      ) : (
-        <div style={{ border: '1px solid var(--line)', borderRadius: 12, overflow: 'hidden', background: 'var(--surf)' }}>
-          <div style={{ overflowX: 'auto' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 880 }}>
-              <thead>
-                <tr style={{ borderBottom: '1px solid var(--line)' }}>
-                  <Th label={`الشركة · ${view.length}`} align="start" />
-                  <Th label="السعر" onClick={() => toggleSort('price')} active={sortKey === 'price'} dir={sortDir} />
-                  <Th label={`التغيّر · ${periodLabel}`} onClick={() => toggleSort('pct')} active={sortKey === 'pct'} dir={sortDir} />
-                  <Th label="مكرر" onClick={() => toggleSort('pe')} active={sortKey === 'pe'} dir={sortDir} />
-                  <Th label="٥٢ أسبوع" onClick={() => toggleSort('pos52')} active={sortKey === 'pos52'} dir={sortDir} />
-                  <Th label="السيولة" onClick={() => toggleSort('liq')} active={sortKey === 'liq'} dir={sortDir} />
-                  <Th label="أجانب (٣٠ي)" onClick={() => toggleSort('foreign')} active={sortKey === 'foreign'} dir={sortDir} />
-                  <Th label="القيمة السوقية" onClick={() => toggleSort('mcap')} active={sortKey === 'mcap'} dir={sortDir} />
-                  <Th label="القطاع" align="start" />
-                </tr>
-              </thead>
-              <tbody>
-                {view.map((r, i) => {
-                  const p = pctFor(r, period)
-                  const pos = r.high_52w && r.low_52w && r.high_52w !== r.low_52w
-                    ? Math.max(0, Math.min(100, ((r.last_close - r.low_52w) / (r.high_52w - r.low_52w)) * 100)) : null
-                  return (
-                    <tr key={r.ticker} onClick={() => router.push(`/c/${r.ticker}`)}
-                      style={{ borderBottom: i === view.length - 1 ? 'none' : '1px solid var(--line)', cursor: 'pointer', transition: 'background .1s' }}
-                      onMouseEnter={e => (e.currentTarget.style.background = 'var(--surf2)')}
-                      onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}>
-                      {/* company · logo + symbol badge + name */}
-                      <td style={{ padding: '9px 12px' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
-                          <Logo sym={r.ticker} logo={r.logo} color={r.color} />
-                          <span style={{ fontSize: 10.5, fontWeight: 700, fontFamily: 'var(--font-mono)', color: 'var(--ink3)', background: 'var(--surf3)', borderRadius: 5, padding: '2px 6px', flexShrink: 0 }}>{r.ticker}</span>
-                          <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--ink)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 210 }}>{r.name}</span>
-                        </div>
-                      </td>
-                      {/* price (+ last-trade date when not from the latest session) */}
-                      <td style={tdNum}>
-                        <div style={{ color: 'var(--ink)' }}>{r.last_close.toLocaleString('en-US', { maximumFractionDigits: 3 })}</div>
-                        {(r.days_since_trade ?? 0) > 5 && r.last_date && (
-                          <div style={{ fontSize: 9, color: 'var(--ink5)', fontWeight: 600 }}>
-                            {`آخر تداول ${fmtDate(r.last_date)}`}
-                          </div>
-                        )}
-                      </td>
-                      {/* change · plain colored text, TradingView style */}
-                      <td style={{ ...tdNum, color: toneColor(p), fontWeight: 700 }}>{fmtPct(p)}</td>
-                      {/* P/E (TTM) */}
-                      <td style={tdNum}>
-                        {r.pe != null && r.pe > 0
-                          ? (r.pe >= 100 ? Math.round(r.pe) : r.pe.toFixed(1))
-                          : <span style={{ color: 'var(--ink5)' }}>·</span>}
-                      </td>
-                      {/* 52w position · neutral track + marker */}
-                      <td style={{ padding: '9px 12px', minWidth: 120 }}>
-                        {pos == null ? <span style={{ color: 'var(--ink5)' }}>·</span> : (
-                          <div>
-                            <div style={{ position: 'relative', height: 4, borderRadius: 2, background: 'var(--surf3)' }}>
-                              <div style={{ position: 'absolute', insetInlineStart: 0, top: 0, bottom: 0, width: `${pos}%`, background: 'var(--brand-mute)', borderRadius: 2, opacity: 0.5 }} />
-                              <div style={{ position: 'absolute', insetInlineStart: `calc(${pos}% - 2px)`, top: -2, width: 4, height: 8, borderRadius: 1, background: 'var(--ink2)' }} />
-                            </div>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 9, color: 'var(--ink5)', fontFamily: 'var(--font-mono)', marginTop: 3 }}>
-                              <span>{r.low_52w}</span><span>{r.high_52w}</span>
-                            </div>
-                          </div>
-                        )}
-                      </td>
-                      {/* liquidity */}
-                      <td style={tdNum}>{r.avg_value_20d ? fmtIQDc(r.avg_value_20d) : <span style={{ color: 'var(--ink5)' }}>·</span>}</td>
-                      {/* foreign */}
-                      <td style={{ ...tdNum, color: toneColor(r.ff_net_30d ?? null), fontWeight: 600 }}>
-                        {r.ff_net_30d ? `${r.ff_net_30d > 0 ? '+' : '−'}${fmtIQDc(Math.abs(r.ff_net_30d))}` : <span style={{ color: 'var(--ink5)' }}>·</span>}
-                      </td>
-                      {/* mcap */}
-                      <td style={{ ...tdNum, color: 'var(--ink)' }}>{fmtMcap(r.mcap)}</td>
-                      {/* sector */}
-                      <td style={{ padding: '9px 12px', fontSize: 11.5, color: 'var(--ink4)', whiteSpace: 'nowrap' }}>{SECTOR_AR[r.sector] ?? r.sector}</td>
-                    </tr>
-                  )
-                })}
-                {view.length === 0 && (
-                  <tr><td colSpan={9} style={{ padding: 48, textAlign: 'center', color: 'var(--ink4)', fontSize: 13 }}>لا توجد نتائج مطابقة · جرّب تعديل الفلاتر.</td></tr>
-                )}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      )}
-      <p style={{ fontSize: 11, color: 'var(--ink5)', marginTop: 12, lineHeight: 1.7 }}>
-        الأسعار من آخر نشرة تداول رسمية لكل سهم · القيمة السوقية = السعر × الأسهم المصدرة · المكرر (P/E) محسوب على آخر ١٢ شهراً (TTM) ويظهر فقط للشركات التي توفّرت بياناتها المالية
+      <section className="screener-results" aria-labelledby="screener-results-title">
+        <h2 className="sr-only" id="screener-results-title">نتائج فارز الأسهم</h2>
+        <DataTable
+          // Remount when the preset changes so its implied ordering applies.
+          key={preset}
+          rows={view}
+          columns={columns}
+          loading={loading}
+          rowKey={r => r.ticker}
+          rowHref={r => `/c/${r.ticker}`}
+          gridTemplateColumns="minmax(180px, 1.3fr) 84px 96px 58px 120px 100px 120px 115px 100px"
+          minWidth="1010px"
+          initialSort={initialSort}
+          emptyTitle="لا توجد نتائج مطابقة"
+          emptyDescription="جرّب تعديل الفلاتر أو مسح البحث."
+        />
+      </section>
+
+      <p className="page-footnote">
+        الأسعار من آخر نشرة تداول رسمية لكل سهم · القيمة السوقية = السعر × الأسهم المصدرة ·
+        المكرر (P/E) محسوب على آخر ١٢ شهراً (TTM) ويظهر فقط للشركات التي توفّرت بياناتها المالية
       </p>
-    </div>
+    </main>
   )
-}
-
-// ── atoms ──────────────────────────────────────────────────────────────────
-function Th({ label, onClick, active, dir, align }: { label: string; onClick?: () => void; active?: boolean; dir?: 'asc' | 'desc'; align?: 'start' }) {
-  return (
-    <th onClick={onClick} style={{
-      padding: '10px 12px', textAlign: align ?? 'end', fontSize: 11, fontWeight: 600,
-      color: active ? 'var(--ink)' : 'var(--ink4)', whiteSpace: 'nowrap',
-      cursor: onClick ? 'pointer' : 'default', userSelect: 'none', transition: 'color .1s',
-    }}>
-      {active && (dir === 'asc' ? '↑ ' : '↓ ')}{label}
-    </th>
-  )
-}
-// Neutral filter chip · single brand accent on active, no per-item colours.
-function chip(on: boolean, soft = false): React.CSSProperties {
-  return {
-    padding: '6px 13px', borderRadius: 8, fontSize: 12.5, fontWeight: 600, whiteSpace: 'nowrap', flexShrink: 0, cursor: 'pointer',
-    border: `1px solid ${on ? 'var(--brand)' : 'var(--line)'}`,
-    background: on ? (soft ? 'var(--brand-soft)' : 'var(--brand)') : 'transparent',
-    color: on ? (soft ? 'var(--brand)' : '#fff') : 'var(--ink3)',
-    fontFamily: 'inherit', transition: 'background .1s, border-color .1s, color .1s',
-  }
-}
-const tdNum: React.CSSProperties = { padding: '9px 12px', textAlign: 'end', fontSize: 12.5, fontFamily: 'var(--font-mono)', color: 'var(--ink2)', whiteSpace: 'nowrap' }
-// compact IQD for the value columns (millions/billions)
-function fmtIQDc(v: number): string {
-  if (v >= 1e9) return (v / 1e9).toFixed(2) + ' مليار'
-  if (v >= 1e6) return (v / 1e6).toFixed(1) + ' مليون'
-  if (v >= 1e3) return (v / 1e3).toFixed(0) + ' ألف'
-  return Math.round(v).toString()
-}
-// YYYY-MM-DD → DD/MM/YYYY (last-trade hint)
-function fmtDate(d: string): string {
-  const [y, m, day] = d.split('-')
-  return day && m && y ? `${day}/${m}/${y}` : d
 }

@@ -5773,3 +5773,26 @@ html[lang="ar"] .wp-content pre {
   background: #fff;
   padding: 2px;
 }
+
+/* ── Screener cells ──────────────────────────────────────────────────────── */
+
+.muted-cell {
+  color: var(--text-muted);
+}
+
+.stacked-cell {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-end;
+  line-height: 1.25;
+}
+
+.stacked-cell small {
+  color: var(--text-muted);
+  font-size: 0.6rem;
+  font-weight: 600;
+}
+
+.screener-company .market-company-inline {
+  gap: 8px;
+}
