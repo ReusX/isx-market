@@ -5388,3 +5388,248 @@ html[lang="ar"] .wp-content pre {
 }
 .directory-search::placeholder { color: var(--muted); }
 .directory-search:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+
+/* ── ISX60 index chart · toolbar, axes, watermark, export ────────────────── */
+
+.index-chart-block {
+  margin-block: 12px 8px;
+}
+
+.chart-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+  justify-content: space-between;
+  margin-block-end: 8px;
+}
+
+.chart-ranges {
+  display: flex;
+  gap: 4px;
+  padding: 3px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface-2);
+}
+
+.chart-range-btn {
+  padding: 4px 11px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--secondary);
+  font: inherit;
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.chart-range-btn:hover {
+  color: var(--ink);
+  background: color-mix(in srgb, var(--ink) 7%, transparent);
+}
+
+.chart-range-btn.is-active {
+  color: #fff;
+  background: var(--nav-active);
+}
+
+.chart-tools {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.chart-tool-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  inline-size: 30px;
+  block-size: 30px;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  background: var(--surface-2);
+  color: var(--secondary);
+  cursor: pointer;
+  transition: color 0.15s ease, border-color 0.15s ease;
+}
+
+.chart-tool-btn:hover {
+  color: var(--ink);
+  border-color: var(--nav-active);
+}
+
+.chart-tool-btn svg {
+  inline-size: 15px;
+  block-size: 15px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.chart-tool-link {
+  padding-inline: 8px;
+  color: var(--nav-active);
+  font-size: 0.78rem;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.chart-tool-link:hover {
+  text-decoration: underline;
+}
+
+/* Axis labels and watermark are HTML, positioned over the stretched SVG. */
+.axis-label {
+  position: absolute;
+  z-index: 1;
+  color: var(--muted);
+  font-family: var(--font-numeric, ui-monospace, monospace);
+  font-size: 0.68rem;
+  line-height: 1;
+  white-space: nowrap;
+  pointer-events: none;
+  direction: ltr;
+}
+
+.axis-y {
+  transform: translateY(-50%);
+}
+
+.axis-x {
+  transform: translateX(-50%);
+}
+
+/* Keep the first/last date tick inside the plot instead of half-clipped. */
+.axis-x.at-start {
+  transform: none;
+}
+
+.axis-x.at-end {
+  transform: translateX(-100%);
+}
+
+.chart-watermark {
+  position: absolute;
+  z-index: 0;
+  color: var(--ink);
+  font-size: clamp(1.4rem, 4vw, 2.4rem);
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  opacity: 0.07;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  user-select: none;
+}
+
+.last-pill {
+  position: absolute;
+  z-index: 2;
+  padding: 2px 6px;
+  border-radius: 4px;
+  color: #fff;
+  font-family: var(--font-numeric, ui-monospace, monospace);
+  font-size: 0.68rem;
+  font-weight: 700;
+  line-height: 1.3;
+  white-space: nowrap;
+  transform: translateY(-50%);
+  pointer-events: none;
+  direction: ltr;
+}
+
+.last-pill.up { background: var(--up); }
+.last-pill.down { background: var(--down); }
+
+.last-rule {
+  stroke-width: 1;
+  stroke-dasharray: 3 3;
+  opacity: 0.6;
+}
+
+.last-rule.up { stroke: var(--up); }
+.last-rule.down { stroke: var(--down); }
+
+/* Tone the line/marker with the period direction and drop the draw-in
+   animation: it is keyed to a fixed dash length and breaks on long series. */
+.index-line.up,
+.index-line.down {
+  stroke-width: 2;
+  stroke-dasharray: none;
+  animation: none;
+}
+
+.index-line.up { stroke: var(--up); }
+.index-line.down { stroke: var(--down); }
+
+.current-marker.up { stroke: var(--up); }
+.current-marker.down { stroke: var(--down); }
+
+.chart-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  display: grid;
+  place-items: center;
+  border-radius: inherit;
+  background: color-mix(in srgb, var(--surface) 72%, transparent);
+  color: var(--secondary);
+  font-size: 0.85rem;
+}
+
+.chart-footnote {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 16px;
+  align-items: center;
+  color: var(--secondary);
+  font-size: 0.8rem;
+}
+
+.chart-footnote bdi {
+  font-family: var(--font-numeric, ui-monospace, monospace);
+  color: var(--ink);
+}
+
+.chart-footnote .gain bdi,
+.chart-footnote .loss bdi {
+  color: inherit;
+}
+
+.chart-sessions {
+  color: var(--muted);
+}
+
+.chart-toast {
+  margin-inline-start: auto;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--nav-active-bg);
+  color: var(--nav-active);
+  font-size: 0.74rem;
+  font-weight: 600;
+}
+
+@media (max-width: 720px) {
+  .chart-toolbar {
+    gap: 8px;
+  }
+
+  .chart-range-btn {
+    padding: 4px 8px;
+    font-size: 0.72rem;
+  }
+
+  .chart-watermark {
+    opacity: 0.06;
+  }
+
+  .axis-label {
+    font-size: 0.62rem;
+  }
+}

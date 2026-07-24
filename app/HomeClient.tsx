@@ -1,8 +1,9 @@
 'use client'
 
-import { type PointerEvent, useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import { fetchLive, fetchCompanyMeta, mergeCompanies, SECTORS } from '@/lib/market'
+import IndexChart from '@/components/design/IndexChart'
 import { ForeignFlowGauge } from '@/components/design/ForeignFlowGauge'
 import { Sparkline } from '@/components/design/Sparkline'
 import { SectorPerformanceChipRow } from '@/components/design/SectorPerformanceChipRow'
@@ -10,7 +11,6 @@ import type { SectorDatum } from '@/components/design/magnitude'
 import type { Company } from '@/types'
 
 type SortKey = 'mcap' | 'price' | 'change' | 'volume' | 'value'
-type ChartPoint = { x: number; y: number; value: string; time: string }
 
 type IndexRow = {
   date: string
@@ -31,29 +31,6 @@ const SECTOR_AR = new Map(SECTORS.filter(s => s.id !== 'all').map(s => [s.id, s.
 // static fallback carried on the company meta (which is stored in millions).
 const liveMcap = (c: Company) => (c.shares && c.close > 0 ? c.close * c.shares : (c.mcap || 0) * 1e6)
 
-/**
- * Build the ISX60 path + area fill from the real index series.
- *
- * Deliberately a straight polyline, not a spline: an index chart has to show
- * the actual session-to-session steps. Bezier smoothing invents motion between
- * closes that never happened and reads as a decorative curve rather than a
- * market chart.
- */
-function buildIndexPath(values: number[], w = 760, h = 260, pad = 18) {
-  if (values.length < 2) return { line: '', area: '', points: [] as { x: number; y: number }[] }
-  const min = Math.min(...values)
-  const max = Math.max(...values)
-  const span = max - min || 1
-  const pts = values.map((v, i) => ({
-    x: (i / (values.length - 1)) * w,
-    y: h - pad - ((v - min) / span) * (h - pad * 2),
-  }))
-  const line = pts
-    .map((p, i) => `${i === 0 ? 'M' : 'L'}${p.x.toFixed(1)},${p.y.toFixed(1)}`)
-    .join(' ')
-  return { line, area: `${line} L${w},${h} L0,${h} Z`, points: pts }
-}
-
 function StatIcon({ type }: { type: string }) {
   return <span className={`stat-icon ${type}`} aria-hidden="true" />
 }
@@ -67,7 +44,6 @@ export default function HomeClient() {
   const [failed, setFailed] = useState(false)
   const [sortKey, setSortKey] = useState<SortKey>('mcap') // company listings default to market cap, desc
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc')
-  const [activePoint, setActivePoint] = useState<ChartPoint | null>(null)
 
   // ── prices + company meta ────────────────────────────────────────────────
   useEffect(() => {
@@ -83,7 +59,9 @@ export default function HomeClient() {
       try {
         const { createClient } = await import('@/lib/supabase/client')
         const sb = createClient()
-        const since = new Date(Date.now() - 90 * 86400_000).toISOString().slice(0, 10)
+        // 400 days covers the chart's default 1Y view without a second round
+        // trip; 5Y/ALL pull the archive on demand inside IndexChart.
+        const since = new Date(Date.now() - 400 * 86400_000).toISOString().slice(0, 10)
 
         const [{ data: idx }, { data: ff }] = await Promise.all([
           sb.from('daily_index')
@@ -130,11 +108,6 @@ export default function HomeClient() {
   const isxChange = latest && prev ? latest.isx60 - prev.isx60 : 0
   const isxPct = latest && prev && prev.isx60 ? (isxChange / prev.isx60) * 100 : 0
   const hasTradingData = Boolean(latest)
-
-  // Use every session in the window · a real index line should show each step,
-  // not a decimated, smoothed sample of them.
-  const chart = useMemo(() => buildIndexPath(series.map(r => r.isx60)), [series])
-  const chartRows = series
 
   // Only companies that actually traded in the latest session drive "today" widgets.
   const active = useMemo(() => companies.filter(c => c.close > 0), [companies])
@@ -195,31 +168,6 @@ export default function HomeClient() {
     setSortKey(key); setSortDir('desc')
   }
 
-  function updateChartPoint(event: PointerEvent<HTMLDivElement>) {
-    if (!chart.points.length) return
-    const rect = event.currentTarget.getBoundingClientRect()
-    // SVG content does not mirror under dir="rtl" — the path is drawn oldest at
-    // x=0 (visual left) through newest at x=760, so map the pointer straight.
-    const ratio = (event.clientX - rect.left) / rect.width
-    const chartX = Math.max(0, Math.min(760, ratio * 760))
-    let bestIdx = 0
-    chart.points.forEach((p, i) => {
-      if (Math.abs(p.x - chartX) < Math.abs(chart.points[bestIdx].x - chartX)) bestIdx = i
-    })
-    const row = chartRows[bestIdx]
-    if (!row) return
-    setActivePoint({
-      x: chart.points[bestIdx].x,
-      y: chart.points[bestIdx].y,
-      value: row.isx60.toFixed(2),
-      time: row.date,
-    })
-  }
-
-  const dayLow = chartRows.length ? Math.min(...chartRows.map(r => r.isx60)) : 0
-  const dayHigh = chartRows.length ? Math.max(...chartRows.map(r => r.isx60)) : 0
-  const rangePos = dayHigh > dayLow && latest ? ((latest.isx60 - dayLow) / (dayHigh - dayLow)) * 100 : 50
-
   return (
     <main className="terminal-shell">
       {/* ── Hero: ISX60 + foreign flow ───────────────────────────────────── */}
@@ -258,72 +206,9 @@ export default function HomeClient() {
             )}
           </div>
 
-          {/* Whole chart drills through to the full index/statistics page. */}
-          <Link href="/charts" aria-label="عرض الرسم البياني الكامل للمؤشر" className="index-chart-link">
-            <div
-              className={loading && !hasTradingData ? 'chart-wrap chart-loading' : 'chart-wrap'}
-              aria-label="رسم مؤشر ISX60"
-              onPointerDown={updateChartPoint}
-              onPointerMove={updateChartPoint}
-              onPointerLeave={() => setActivePoint(null)}
-            >
-              <svg className="index-chart" viewBox="0 0 760 260" preserveAspectRatio="none">
-                <defs>
-                  <linearGradient id="indexFill" x1="0" x2="0" y1="0" y2="1">
-                    <stop offset="0%" stopColor="var(--accent)" stopOpacity="0.24" />
-                    <stop offset="60%" stopColor="var(--accent)" stopOpacity="0.1" />
-                    <stop offset="100%" stopColor="var(--surface)" stopOpacity="0" />
-                  </linearGradient>
-                </defs>
-                {[42, 70, 98, 126, 154, 182, 210].map(y => (
-                  <line className="grid-line" key={y} x1="0" x2="760" y1={y} y2={y} />
-                ))}
-                {[95, 190, 285, 380, 475, 570, 665].map(x => (
-                  <line className="grid-line vertical" key={x} x1={x} x2={x} y1="0" y2="260" />
-                ))}
-                {chart.line ? <path className="index-area" d={chart.area} /> : null}
-                {chart.line ? <path className="index-shadowline" d={chart.line} /> : null}
-                {chart.line && hasTradingData ? <path className="index-line" d={chart.line} /> : null}
-                {chart.points.length ? (
-                  <circle
-                    className="current-marker"
-                    cx={chart.points[chart.points.length - 1].x}
-                    cy={chart.points[chart.points.length - 1].y}
-                    r="7"
-                  />
-                ) : null}
-                {activePoint ? (
-                  <g className="crosshair-layer">
-                    <line className="crosshair-line" x1={activePoint.x} x2={activePoint.x} y1="0" y2="260" />
-                    <circle className="crosshair-dot" cx={activePoint.x} cy={activePoint.y} r="4" />
-                  </g>
-                ) : null}
-              </svg>
-              {activePoint ? (
-                <div
-                  className="chart-tooltip"
-                  style={{
-                    // Physical left/right rather than logical insets: the SVG
-                    // is not mirrored by RTL, so the tooltip must not be either.
-                    left: `${Math.min(86, Math.max(4, (activePoint.x / 760) * 100))}%`,
-                    right: 'auto',
-                    top: `${Math.min(76, Math.max(6, (activePoint.y / 260) * 100))}%`,
-                  }}
-                >
-                  <bdi>{activePoint.value}</bdi>
-                  <span>{activePoint.time}</span>
-                </div>
-              ) : null}
-            </div>
-          </Link>
+          {/* Full-featured index chart: timeframes, crosshair, copy/download. */}
+          <IndexChart rows={series} loading={loading} failed={failed} />
 
-          {hasTradingData ? (
-            <div className="range">
-              <span>أدنى الفترة <bdi>{dayLow.toFixed(2)}</bdi></span>
-              <div className="range-track"><span style={{ insetInlineStart: `${rangePos}%` }} /></div>
-              <span>أعلى الفترة <bdi>{dayHigh.toFixed(2)}</bdi></span>
-            </div>
-          ) : null}
         </div>
 
         {/* Gauge drills through to the foreign-flow detail page. */}
