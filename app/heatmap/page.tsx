@@ -174,34 +174,37 @@ export default function HeatmapPage() {
   }, [rows, width, H])
 
   return (
-    <div style={{ padding: '20px 24px 80px', maxWidth: 1180, margin: '0 auto' }}>
-      {/* header */}
-      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap', marginBottom: 14 }}>
+    <main className="terminal-shell app-page heatmap-page">
+      <header className="full-heatmap-heading">
         <div>
-          <h2 style={{ fontSize: 22, fontWeight: 800, margin: 0, color: 'var(--ink)' }}>خريطة السوق الحرارية</h2>
-          <p style={{ fontSize: 12.5, color: 'var(--ink4)', margin: '6px 0 0' }}>
-            حجم المربع = القيمة السوقية · اللون = التغيّر · مرتبة حسب القطاع · {rows.length || '…'} شركة
+          <h1>خريطة السوق الحرارية</h1>
+          <p>
+            حجم المربع = القيمة السوقية · اللون = التغيّر · مرتبة حسب القطاع · <bdi>{rows.length || '…'}</bdi> شركة
           </p>
         </div>
-        {/* period toggle */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-          <span style={{ fontSize: 11, color: 'var(--ink4)', fontWeight: 600 }}>التغيّر:</span>
-          <div style={{ display: 'inline-flex', background: 'var(--surf2)', borderRadius: 8, padding: 2, gap: 2 }}>
+        <div className="heatmap-period">
+          <span>التغيّر:</span>
+          <div className="seg-control" role="group" aria-label="فترة التغيّر">
             {PERIODS.map(p => (
-              <button key={p.id} onClick={() => setPeriod(p.id)} style={{
-                border: 'none', borderRadius: 6, padding: '5px 10px', fontSize: 11.5, fontWeight: 700, cursor: 'pointer',
-                background: period === p.id ? 'var(--brand)' : 'transparent', color: period === p.id ? '#fff' : 'var(--ink3)',
-              }}>{p.label}</button>
+              <button
+                key={p.id}
+                type="button"
+                className={period === p.id ? 'seg-btn is-active' : 'seg-btn'}
+                aria-pressed={period === p.id}
+                onClick={() => setPeriod(p.id)}
+              >
+                {p.label}
+              </button>
             ))}
           </div>
         </div>
-      </div>
+      </header>
 
       {loading ? (
         <div className="skeleton" style={{ height: 520, borderRadius: 14 }} />
       ) : (
-        <>
-          <div ref={wrapRef} style={{ position: 'relative', width: '100%', height: H, borderRadius: 12, overflow: 'hidden', background: 'var(--surf2)' }}>
+        <section className="app-card full-heatmap-card" aria-label="الخريطة الحرارية الكاملة">
+          <div ref={wrapRef} className="heatmap-canvas" style={{ height: H }}>
             {/* sector frames + labels */}
             {secHeaders.map(s => (
               <div key={`f-${s.sec}`} style={{ position: 'absolute', left: s.x, top: s.y, width: s.w, height: s.h, pointerEvents: 'none', boxShadow: 'inset 0 0 0 1px var(--surf2)' }}>
@@ -238,21 +241,21 @@ export default function HeatmapPage() {
           </div>
 
           {/* legend */}
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, marginTop: 14, flexWrap: 'wrap' }}>
-            <span style={{ fontSize: 11, color: 'var(--ink4)', fontWeight: 600 }}>{`−${cap}%`}</span>
-            <div style={{ display: 'flex', borderRadius: 4, overflow: 'hidden' }}>
+          <div className="heatmap-legend">
+            <span>{`−${cap}%`}</span>
+            <div className="heatmap-legend-scale">
               {[-1, -0.66, -0.33, 0, 0.33, 0.66, 1].map(t => (
-                <div key={t} style={{ width: 26, height: 11, background: tileColor(t * cap, cap) }} />
+                <div key={t} style={{ background: tileColor(t * cap, cap) }} />
               ))}
             </div>
-            <span style={{ fontSize: 11, color: 'var(--ink4)', fontWeight: 600 }}>{`+${cap}%`}</span>
+            <span>{`+${cap}%`}</span>
           </div>
-        </>
+        </section>
       )}
 
-      <p style={{ fontSize: 11, color: 'var(--ink5)', marginTop: 14, textAlign: 'center' }}>
+      <p className="page-footnote">
         البيانات من نشرات التداول الرسمية، تُحدَّث يومياً · القيمة السوقية تقريبية · انقر أي مربع لفتح صفحة الشركة
       </p>
-    </div>
+    </main>
   )
 }

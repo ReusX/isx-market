@@ -5947,3 +5947,60 @@ html[lang="ar"] .wp-content pre {
   font-size: 0.7rem;
   line-height: 1.6;
 }
+
+/* ── Heatmap page ────────────────────────────────────────────────────────── */
+
+.full-heatmap-heading {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: flex-start;
+  justify-content: space-between;
+}
+
+.heatmap-period {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.heatmap-period > span {
+  color: var(--text-muted);
+  font-size: 0.7rem;
+  font-weight: 600;
+}
+
+.heatmap-canvas {
+  position: relative;
+  inline-size: 100%;
+  overflow: hidden;
+  border-radius: 10px;
+  background: var(--surface-2);
+}
+
+.heatmap-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+  justify-content: center;
+  margin-block-start: 12px;
+}
+
+.heatmap-legend > span {
+  color: var(--text-muted);
+  font-family: var(--font-numeric), ui-monospace, monospace;
+  font-size: 0.68rem;
+  font-weight: 600;
+}
+
+.heatmap-legend-scale {
+  display: flex;
+  overflow: hidden;
+  border-radius: 4px;
+}
+
+.heatmap-legend-scale > div {
+  inline-size: 26px;
+  block-size: 11px;
+}
