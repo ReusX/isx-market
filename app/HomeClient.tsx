@@ -31,8 +31,15 @@ const SECTOR_AR = new Map(SECTORS.filter(s => s.id !== 'all').map(s => [s.id, s.
 // static fallback carried on the company meta (which is stored in millions).
 const liveMcap = (c: Company) => (c.shares && c.close > 0 ? c.close * c.shares : (c.mcap || 0) * 1e6)
 
-/** Build the smooth ISX60 path + matching area fill from the real index series. */
-function buildIndexPath(values: number[], w = 760, h = 260, pad = 24) {
+/**
+ * Build the ISX60 path + area fill from the real index series.
+ *
+ * Deliberately a straight polyline, not a spline: an index chart has to show
+ * the actual session-to-session steps. Bezier smoothing invents motion between
+ * closes that never happened and reads as a decorative curve rather than a
+ * market chart.
+ */
+function buildIndexPath(values: number[], w = 760, h = 260, pad = 18) {
   if (values.length < 2) return { line: '', area: '', points: [] as { x: number; y: number }[] }
   const min = Math.min(...values)
   const max = Math.max(...values)
@@ -41,14 +48,9 @@ function buildIndexPath(values: number[], w = 760, h = 260, pad = 24) {
     x: (i / (values.length - 1)) * w,
     y: h - pad - ((v - min) / span) * (h - pad * 2),
   }))
-  // Catmull-Rom style smoothing, same visual language as the design's hand-drawn curve.
-  let line = `M${pts[0].x.toFixed(1)},${pts[0].y.toFixed(1)}`
-  for (let i = 0; i < pts.length - 1; i++) {
-    const p0 = pts[i === 0 ? 0 : i - 1], p1 = pts[i], p2 = pts[i + 1], p3 = pts[i + 2] ?? p2
-    const c1x = p1.x + (p2.x - p0.x) / 6, c1y = p1.y + (p2.y - p0.y) / 6
-    const c2x = p2.x - (p3.x - p1.x) / 6, c2y = p2.y - (p3.y - p1.y) / 6
-    line += ` C${c1x.toFixed(1)},${c1y.toFixed(1)} ${c2x.toFixed(1)},${c2y.toFixed(1)} ${p2.x.toFixed(1)},${p2.y.toFixed(1)}`
-  }
+  const line = pts
+    .map((p, i) => `${i === 0 ? 'M' : 'L'}${p.x.toFixed(1)},${p.y.toFixed(1)}`)
+    .join(' ')
   return { line, area: `${line} L${w},${h} L0,${h} Z`, points: pts }
 }
 
@@ -129,8 +131,10 @@ export default function HomeClient() {
   const isxPct = latest && prev && prev.isx60 ? (isxChange / prev.isx60) * 100 : 0
   const hasTradingData = Boolean(latest)
 
-  const chart = useMemo(() => buildIndexPath(series.slice(-45).map(r => r.isx60)), [series])
-  const chartRows = useMemo(() => series.slice(-45), [series])
+  // Use every session in the window · a real index line should show each step,
+  // not a decimated, smoothed sample of them.
+  const chart = useMemo(() => buildIndexPath(series.map(r => r.isx60)), [series])
+  const chartRows = series
 
   // Only companies that actually traded in the latest session drive "today" widgets.
   const active = useMemo(() => companies.filter(c => c.close > 0), [companies])
@@ -194,8 +198,9 @@ export default function HomeClient() {
   function updateChartPoint(event: PointerEvent<HTMLDivElement>) {
     if (!chart.points.length) return
     const rect = event.currentTarget.getBoundingClientRect()
-    // RTL: the visual right edge is the start of the timeline.
-    const ratio = (rect.right - event.clientX) / rect.width
+    // SVG content does not mirror under dir="rtl" — the path is drawn oldest at
+    // x=0 (visual left) through newest at x=760, so map the pointer straight.
+    const ratio = (event.clientX - rect.left) / rect.width
     const chartX = Math.max(0, Math.min(760, ratio * 760))
     let bestIdx = 0
     chart.points.forEach((p, i) => {
@@ -254,7 +259,7 @@ export default function HomeClient() {
           </div>
 
           {/* Whole chart drills through to the full index/statistics page. */}
-          <Link href="/statistics" aria-label="عرض إحصائيات السوق الكاملة" className="index-chart-link">
+          <Link href="/charts" aria-label="عرض الرسم البياني الكامل للمؤشر" className="index-chart-link">
             <div
               className={loading && !hasTradingData ? 'chart-wrap chart-loading' : 'chart-wrap'}
               aria-label="رسم مؤشر ISX60"
@@ -298,8 +303,11 @@ export default function HomeClient() {
                 <div
                   className="chart-tooltip"
                   style={{
-                    insetInlineStart: `${Math.min(86, Math.max(10, 100 - (activePoint.x / 760) * 100))}%`,
-                    insetBlockStart: `${Math.min(76, Math.max(10, (activePoint.y / 260) * 100))}%`,
+                    // Physical left/right rather than logical insets: the SVG
+                    // is not mirrored by RTL, so the tooltip must not be either.
+                    left: `${Math.min(86, Math.max(4, (activePoint.x / 760) * 100))}%`,
+                    right: 'auto',
+                    top: `${Math.min(76, Math.max(6, (activePoint.y / 260) * 100))}%`,
                   }}
                 >
                   <bdi>{activePoint.value}</bdi>
