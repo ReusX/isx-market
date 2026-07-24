@@ -133,6 +133,14 @@ export function mergeCompanies(meta: CompanyMeta[], stocks: LiveStock[]): Compan
 
 // ─── Formatters ─────────────────────────────────────────────────────────────
 
+/**
+ * Live market cap in IQD: close x share count where we know it, else the static
+ * fallback on the company meta (stored in millions, and often stale).
+ */
+export function liveMcap(c: { close: number; shares?: number; mcap?: number }): number {
+  return c.shares && c.close > 0 ? c.close * c.shares : (c.mcap || 0) * 1e6
+}
+
 export function fmtVol(v: number | null | undefined): string {
   if (!v) return '·'
   if (v >= 1e9) return (v / 1e9).toFixed(1) + 'B'

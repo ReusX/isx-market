@@ -5633,3 +5633,143 @@ html[lang="ar"] .wp-content pre {
     font-size: 0.62rem;
   }
 }
+
+/* ── Shared page furniture used across the reskinned pages ───────────────── */
+
+.page-heading {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: flex-end;
+  justify-content: space-between;
+  padding: 4px 2px 2px;
+}
+
+.page-heading h1 {
+  margin: 0;
+  color: var(--text-primary);
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+.page-heading p {
+  max-inline-size: 70ch;
+  margin: 5px 0 0;
+  color: var(--text-secondary);
+  font-size: 0.78rem;
+  line-height: 1.7;
+}
+
+.metric-card {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-inline-size: 0;
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface-1);
+}
+
+.metric-card > span {
+  color: var(--text-muted);
+  font-size: 0.7rem;
+  font-weight: 600;
+}
+
+.metric-card > strong {
+  color: var(--text-primary);
+  font-family: var(--font-numeric), ui-monospace, monospace;
+  font-size: 1.06rem;
+  font-weight: 700;
+}
+
+.metric-card > strong.positive { color: var(--up); }
+.metric-card > strong.negative { color: var(--down); }
+
+.metric-card > small {
+  color: var(--text-muted);
+  font-size: 0.68rem;
+}
+
+.metric-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 9px;
+}
+
+/* The row itself handles navigation; this anchor exists so the destination is
+   crawlable and middle-clickable. */
+.grid-cell-link {
+  display: block;
+  min-inline-size: 0;
+  color: inherit;
+  text-decoration: none;
+}
+
+.shared-data-grid.is-loading .skeleton-block {
+  display: block;
+  block-size: 10px;
+  border-radius: 4px;
+}
+
+.filter-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.filter-bar .app-field {
+  flex: 1 1 200px;
+  max-inline-size: 280px;
+}
+
+/* ── Market table extras ─────────────────────────────────────────────────── */
+
+.market-company-column {
+  min-inline-size: 0;
+}
+
+.watch-column {
+  text-align: center;
+}
+
+.watch-star {
+  padding: 2px;
+  border: 0;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  line-height: 1;
+  cursor: pointer;
+  transition: color 140ms ease, transform 140ms ease;
+}
+
+.watch-star:hover {
+  color: var(--text-secondary);
+  transform: scale(1.15);
+}
+
+.watch-star.is-on {
+  color: #e0a800;
+}
+
+/* Carried-forward row: the last close is real, today's change is not. */
+.stale-flag {
+  color: var(--text-muted);
+  cursor: help;
+}
+
+.page-footnote {
+  margin: 4px 2px 0;
+  color: var(--text-muted);
+  font-size: 0.7rem;
+  text-align: center;
+}
+
+.market-company-logo.has-image {
+  object-fit: contain;
+  background: #fff;
+  padding: 2px;
+}

@@ -1,188 +1,205 @@
 'use client'
 
-import { useEffect, useState, useMemo } from 'react'
-import { useRouter } from 'next/navigation'
-import Link from 'next/link'
+import { useEffect, useMemo, useState } from 'react'
 import { useApp } from '@/context/AppContext'
-import { fetchLive, fetchCompanyMeta, mergeCompanies, filterSort, fmtVol, fmtMcap, SECTORS, SORT_OPTIONS } from '@/lib/market'
+import { fetchLive, fetchCompanyMeta, mergeCompanies, liveMcap, SECTORS } from '@/lib/market'
+import { DataTable, type TableColumn } from '@/components/design/DataTable'
+import { CompanyIdentity } from '@/components/design/CompanyIdentity'
+import { SectorChip } from '@/components/design/SectorChip'
+import { Card, ChangeValue } from '@/components/design/ui'
 import type { Company } from '@/types'
 
-function CoLogo({ sym, logo, color }: { sym: string; logo?: string; color?: string }) {
-  const [err, setErr] = useState(false)
-  if (logo && !err) return (
-    <img src={logo} alt={sym}
-      width={28} height={28}
-      style={{ borderRadius: 6, objectFit: 'contain', background: '#fff', padding: 2 }}
-      onError={() => setErr(true)} />
-  )
-  return (
-    <div style={{
-      width: 28, height: 28, borderRadius: 6, flexShrink: 0,
-      background: color || 'var(--brand)',
-      display: 'flex', alignItems: 'center', justifyContent: 'center',
-      fontSize: 9, fontWeight: 800, color: '#fff',
-    }}>{sym.slice(0, 3)}</div>
-  )
-}
+const compactFormat = new Intl.NumberFormat('en-US', { notation: 'compact', maximumFractionDigits: 1 })
+const numberFormat = new Intl.NumberFormat('en-US', { maximumFractionDigits: 0 })
+const priceFormat = new Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 3 })
 
 export default function MarketPage() {
   const { lang, watchlist, toggleWatchlist } = useApp()
   const ar = lang === 'ar'
-  const router = useRouter()
 
   const [companies, setCompanies] = useState<Company[]>([])
-  const [loading, setLoading]     = useState(true)
-  const [sector, setSector]       = useState('all')
-  const [sort, setSort]           = useState('default')
-  const [query, setQuery]         = useState('')
+  const [loading, setLoading] = useState(true)
+  const [failed, setFailed] = useState(false)
+  const [sector, setSector] = useState('all')
+  const [query, setQuery] = useState('')
+  const [onlyWatchlist, setOnlyWatchlist] = useState(false)
 
   useEffect(() => {
     Promise.all([fetchLive(), fetchCompanyMeta()])
       .then(([live, meta]) => setCompanies(mergeCompanies(meta, live.stocks)))
+      .catch(() => setFailed(true))
       .finally(() => setLoading(false))
   }, [])
 
-  const filtered = useMemo(() => {
-    let list = filterSort(companies, sector, sort, watchlist)
-    if (query.trim()) {
-      const q = query.toLowerCase()
-      list = list.filter(c =>
+  const listed = useMemo(() => companies.filter(c => c.close > 0), [companies])
+
+  const rows = useMemo(() => {
+    let data = listed
+    if (sector !== 'all') data = data.filter(c => c.sec === sector)
+    if (onlyWatchlist) data = data.filter(c => watchlist.includes(c.sym))
+    const q = query.trim().toLowerCase()
+    if (q) {
+      data = data.filter(c =>
         c.sym.toLowerCase().includes(q) ||
-        c.en.toLowerCase().includes(q) ||
-        c.ar.includes(q)
+        (c.en ?? '').toLowerCase().includes(q) ||
+        (c.ar ?? '').includes(query.trim()),
       )
     }
-    return list
-  }, [companies, sector, sort, watchlist, query])
+    return data
+  }, [listed, sector, onlyWatchlist, watchlist, query])
 
-  const colHdr: React.CSSProperties = {
-    fontSize: 10, fontWeight: 700, color: 'var(--ink4)',
-    textTransform: 'uppercase', letterSpacing: '0.05em', padding: '0 6px',
-  }
-  const grid = '28px 1fr 90px 80px 70px 80px 80px 80px'
+  // Advancers/decliners only count names that actually traded this session —
+  // carried-forward rows would otherwise all land in "unchanged".
+  const counts = useMemo(() => {
+    const traded = listed.filter(c => !c.stale)
+    return {
+      advancers: traded.filter(c => c.pct > 0).length,
+      unchanged: traded.filter(c => c.pct === 0).length,
+      decliners: traded.filter(c => c.pct < 0).length,
+    }
+  }, [listed])
+
+  const sectorLabel = (id: string) => SECTORS.find(s => s.id === id)
+
+  const columns: TableColumn<Company>[] = [
+    {
+      key: 'company',
+      label: ar ? 'الشركة' : 'Company',
+      className: 'market-company-column',
+      linked: true,
+      sortValue: c => (ar ? c.ar : c.en) || c.sym,
+      render: c => <CompanyIdentity name={(ar ? c.ar : c.en) || c.sym} symbol={c.sym} logo={c.logo} color={c.color} />,
+    },
+    {
+      key: 'sector',
+      label: ar ? 'القطاع' : 'Sector',
+      sortValue: c => c.sec,
+      render: c => {
+        const s = sectorLabel(c.sec)
+        return <span>{s ? (ar ? s.ar : s.en) : c.sec}</span>
+      },
+    },
+    {
+      key: 'marketCap',
+      label: ar ? 'القيمة السوقية' : 'Mkt Cap',
+      className: 'numeric-column',
+      sortValue: c => liveMcap(c),
+      render: c => <bdi>{compactFormat.format(liveMcap(c))} IQD</bdi>,
+    },
+    {
+      key: 'volume',
+      label: ar ? 'الحجم' : 'Volume',
+      className: 'numeric-column',
+      sortValue: c => c.vol ?? 0,
+      render: c => <bdi>{numberFormat.format(c.vol ?? 0)}</bdi>,
+    },
+    {
+      key: 'price',
+      label: ar ? 'السعر' : 'Price',
+      className: 'numeric-column',
+      sortValue: c => c.close,
+      render: c => <bdi>{priceFormat.format(c.close)}</bdi>,
+    },
+    {
+      key: 'change',
+      label: ar ? 'التغير' : 'Change',
+      className: 'numeric-column',
+      sortValue: c => c.pct,
+      render: c => (c.stale
+        ? <span className="stale-flag" title={ar ? 'لم يتداول في الجلسة الأخيرة' : 'Did not trade in the latest session'}>—</span>
+        : <ChangeValue value={c.pct} />),
+    },
+    {
+      key: 'watch',
+      label: '',
+      className: 'watch-column',
+      render: c => (
+        <button
+          type="button"
+          className={watchlist.includes(c.sym) ? 'watch-star is-on' : 'watch-star'}
+          aria-pressed={watchlist.includes(c.sym)}
+          aria-label={ar ? `متابعة ${c.sym}` : `Watch ${c.sym}`}
+          onClick={event => { event.stopPropagation(); toggleWatchlist(c.sym) }}
+        >
+          ★
+        </button>
+      ),
+    },
+  ]
 
   return (
-    <div style={{ maxWidth: 1440, margin: '0 auto', padding: '24px' }}>
-      {/* Header */}
-      <div style={{ marginBottom: 20 }}>
-        <h1 style={{ fontSize: 22, fontWeight: 800, margin: '0 0 4px' }}>
-          {ar ? 'السوق' : 'Market'}
-        </h1>
-        <p style={{ fontSize: 13, color: 'var(--ink3)', margin: 0 }}>
-          {ar ? 'بورصة العراق للأوراق المالية · جميع الأسهم المدرجة' : 'Iraq Stock Exchange · all listed companies'}
-        </p>
-      </div>
+    <main className="terminal-shell app-page market-movement-page">
+      <Card className="market-movement-header">
+        <div>
+          <span className="app-eyebrow">{ar ? 'حركة السوق' : 'Market movement'}</span>
+          <h1>{ar ? 'جميع الشركات المدرجة' : 'All listed companies'}</h1>
+        </div>
+        <div className="market-counts" aria-label={ar ? 'ملخص حركة الشركات' : 'Breadth summary'}>
+          <span className="positive"><bdi>{counts.advancers}</bdi><small>{ar ? 'رابح' : 'up'}</small></span>
+          <span><bdi>{counts.unchanged}</bdi><small>{ar ? 'ثابت' : 'flat'}</small></span>
+          <span className="negative"><bdi>{counts.decliners}</bdi><small>{ar ? 'خاسر' : 'down'}</small></span>
+        </div>
+      </Card>
 
-      {/* Filters */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 16 }}>
-        <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
+      <div className="filter-bar">
+        <label className="app-field">
           <input
-            type="text" value={query} onChange={e => setQuery(e.target.value)}
-            placeholder={ar ? 'بحث...' : 'Search...'}
-            style={{
-              padding: '7px 12px', borderRadius: 8, border: '1px solid var(--line)',
-              background: 'var(--surf)', color: 'var(--ink)', fontSize: 13,
-              fontFamily: 'inherit', outline: 'none', width: 200,
-            }}
+            type="search"
+            dir="auto"
+            value={query}
+            onChange={e => setQuery(e.target.value)}
+            placeholder={ar ? 'ابحث عن شركة أو رمز…' : 'Search company or symbol…'}
+            aria-label={ar ? 'بحث' : 'Search'}
           />
-          <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap' }}>
-            {SECTORS.map(s => (
-              <button key={s.id} onClick={() => setSector(s.id)} style={{
-                padding: '5px 11px', borderRadius: 999, border: 'none',
-                background: sector === s.id ? 'var(--brand)' : 'var(--surf)',
-                color: sector === s.id ? '#fff' : 'var(--ink3)',
-                fontSize: 11, fontWeight: 700, fontFamily: 'inherit',
-              }}>
-                {ar ? s.ar : s.en}
-              </button>
-            ))}
-          </div>
-        </div>
-        <div style={{ display: 'flex', gap: 5 }}>
-          {SORT_OPTIONS.map(s => (
-            <button key={s.id} onClick={() => setSort(s.id)} style={{
-              padding: '4px 10px', borderRadius: 999,
-              border: `1px solid ${sort === s.id ? 'var(--brand)' : 'var(--line)'}`,
-              background: 'none',
-              color: sort === s.id ? 'var(--brand)' : 'var(--ink4)',
-              fontSize: 11, fontWeight: 600, fontFamily: 'inherit',
-            }}>
-              {ar ? s.ar : s.en}
-            </button>
-          ))}
-        </div>
+        </label>
+        <SectorChip
+          label={ar ? '★ متابعتي' : '★ Watchlist'}
+          selected={onlyWatchlist}
+          selectionTone="accent"
+          onClick={() => setOnlyWatchlist(v => !v)}
+        />
       </div>
 
-      {/* Table */}
-      <div style={{ background: 'var(--surf)', border: '1px solid var(--line)', borderRadius: 16, overflow: 'hidden' }}>
-        <div style={{ display: 'grid', gridTemplateColumns: grid, padding: '10px 16px', borderBottom: '1px solid var(--line)', alignItems: 'center' }}>
-          <span style={colHdr}>#</span>
-          <span style={colHdr}>{ar ? 'الشركة' : 'Company'}</span>
-          <span style={{ ...colHdr, textAlign: 'end' }}>{ar ? 'السعر' : 'Price'}</span>
-          <span style={{ ...colHdr, textAlign: 'end' }}>{ar ? 'التغيير' : 'Chg%'}</span>
-          <span style={{ ...colHdr, textAlign: 'end' }}>{ar ? 'فتح' : 'Open'}</span>
-          <span style={{ ...colHdr, textAlign: 'end' }}>{ar ? 'الحجم' : 'Volume'}</span>
-          <span style={{ ...colHdr, textAlign: 'end' }}>{ar ? 'القيمة السوقية' : 'Mkt Cap'}</span>
-          <span style={{ ...colHdr, textAlign: 'end' }}>{ar ? 'القطاع' : 'Sector'}</span>
-        </div>
-
-        {loading && Array.from({ length: 12 }).map((_, i) => (
-          <div key={i} style={{ display: 'grid', gridTemplateColumns: grid, padding: '12px 16px', borderBottom: '1px solid var(--line)', alignItems: 'center', gap: 8 }}>
-            <div className="skeleton" style={{ height: 10, width: 14, borderRadius: 4 }} />
-            <div style={{ display: 'flex', gap: 9, alignItems: 'center' }}>
-              <div className="skeleton" style={{ width: 28, height: 28, borderRadius: 6 }} />
-              <div className="skeleton" style={{ height: 10, width: 100 }} />
-            </div>
-            {[80, 70, 60, 60, 70, 60].map((w, j) => (
-              <div key={j} className="skeleton" style={{ height: 10, width: w, borderRadius: 4, justifySelf: 'end' }} />
-            ))}
-          </div>
+      <div className="market-sector-filters" aria-label={ar ? 'تصفية حسب القطاع' : 'Filter by sector'}>
+        {SECTORS.map(s => (
+          <SectorChip
+            key={s.id}
+            label={ar ? s.ar : s.en}
+            selected={s.id === sector}
+            selectionTone="neutral"
+            onClick={() => setSector(s.id)}
+          />
         ))}
-
-        {!loading && filtered.map((co, i) => {
-          const up = co.pct >= 0
-          const inWL = watchlist.includes(co.sym)
-          return (
-            <div key={co.sym}
-              style={{ display: 'grid', gridTemplateColumns: grid, padding: '10px 16px', borderBottom: '1px solid var(--line)', alignItems: 'center', cursor: 'pointer', transition: 'background 0.12s' }}
-              onMouseEnter={e => (e.currentTarget.style.background = 'var(--surf2)')}
-              onMouseLeave={e => (e.currentTarget.style.background = '')}
-              onClick={() => router.push(`/c/${co.sym}`)}
-            >
-              <span style={{ fontSize: 10, color: 'var(--ink4)', fontFamily: 'var(--font-mono)' }}>{i + 1}</span>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
-                <CoLogo sym={co.sym} logo={co.logo} color={co.color} />
-                <div>
-                  <div style={{ fontSize: 12, fontWeight: 700 }}>{ar ? co.ar : co.en}</div>
-                  <div style={{ display: 'flex', gap: 5, alignItems: 'center' }}>
-                    <span style={{ fontSize: 10, color: 'var(--ink4)', fontFamily: 'var(--font-mono)' }}>{co.sym}</span>
-                    <button onClick={e => { e.stopPropagation(); toggleWatchlist(co.sym) }}
-                      style={{ background: 'none', border: 'none', padding: 0, fontSize: 9, color: inWL ? 'var(--gold)' : 'var(--ink4)', cursor: 'pointer' }}>★</button>
-                  </div>
-                </div>
-              </div>
-              <span style={{ fontFamily: 'var(--font-mono)', fontSize: 12, fontWeight: 600, textAlign: 'end' }}>{co.close.toFixed(3)}</span>
-              <span style={{ fontSize: 12, fontWeight: 700, color: up ? 'var(--up)' : 'var(--dn)', textAlign: 'end' }}>
-                {up ? '+' : ''}{co.pct.toFixed(2)}%
-              </span>
-              <span style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--ink3)', textAlign: 'end' }}>{co.open.toFixed(3)}</span>
-              <span style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--ink3)', textAlign: 'end' }}>{fmtVol(co.vol)}</span>
-              <span style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--ink3)', textAlign: 'end' }}>{fmtMcap(co.mcap)}</span>
-              <span style={{ fontSize: 10, color: 'var(--ink4)', textAlign: 'end' }}>{co.sec}</span>
-            </div>
-          )
-        })}
-
-        {!loading && filtered.length === 0 && (
-          <div style={{ padding: '40px 24px', textAlign: 'center', color: 'var(--ink4)', fontSize: 13 }}>
-            {ar ? 'لا توجد نتائج' : 'No results'}
-          </div>
-        )}
       </div>
 
-      <p style={{ fontSize: 11, color: 'var(--ink4)', marginTop: 12, textAlign: 'center' }}>
-        {ar ? 'البيانات مُحدَّثة كل 30 دقيقة خلال ساعات التداول' : 'Data updated every 30 min during trading hours'}
+      <Card className="market-table-card">
+        {failed ? (
+          <div className="empty-state">
+            <strong>{ar ? 'تعذّر تحميل بيانات السوق' : 'Could not load market data'}</strong>
+            <span>{ar ? 'يرجى تحديث الصفحة.' : 'Please refresh the page.'}</span>
+          </div>
+        ) : (
+          <DataTable
+            rows={rows}
+            columns={columns}
+            loading={loading}
+            rowKey={c => c.sym}
+            rowHref={c => `/c/${c.sym}`}
+            gridTemplateColumns="minmax(0, 1fr) 90px 130px 110px 90px 90px 40px"
+            minWidth="820px"
+            // Company lists open on market capitalisation, largest first.
+            initialSort={{ key: 'marketCap', direction: 'desc' }}
+            emptyTitle={ar ? 'لا توجد نتائج' : 'No results'}
+            emptyDescription={ar ? 'غيّر القطاع أو امسح البحث.' : 'Change the sector or clear the search.'}
+          />
+        )}
+      </Card>
+
+      <p className="page-footnote">
+        {ar
+          ? 'البيانات مُحدَّثة كل 30 دقيقة خلال ساعات التداول · المصدر: نشرات بورصة العراق الرسمية.'
+          : 'Data refreshes every 30 minutes during trading hours · source: official ISX bulletins.'}
       </p>
-    </div>
+    </main>
   )
 }
