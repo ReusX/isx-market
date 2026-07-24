@@ -3,6 +3,7 @@
 export const dynamic = 'force-dynamic'
 
 import { useState, useEffect, useCallback } from 'react'
+import Link from 'next/link'
 import { useApp } from '@/context/AppContext'
 import { createClient } from '@/lib/supabase/client'
 
@@ -38,34 +39,29 @@ export default function ProfilePage() {
   }, [profile?.referral_code])
 
   if (authLoading) return (
-    <div style={{ maxWidth: 600, margin: '80px auto', textAlign: 'center', padding: '0 24px' }}>
-      <div className="skeleton" style={{ width: 64, height: 64, borderRadius: '50%', margin: '0 auto 16px' }} />
-      <div className="skeleton" style={{ width: 160, height: 18, borderRadius: 8, margin: '0 auto 8px' }} />
-      <div className="skeleton" style={{ width: 120, height: 14, borderRadius: 8, margin: '0 auto' }} />
-    </div>
+    <main className="terminal-shell app-page profile-page">
+      <div className="skeleton" style={{ height: 140, borderRadius: 16 }} />
+    </main>
   )
 
   if (!user) return (
-    <div style={{ maxWidth: 600, margin: '80px auto', textAlign: 'center', padding: '0 24px' }}>
-      <div style={{ fontSize: 40, marginBottom: 12 }}>👤</div>
-      <div style={{ fontWeight: 700, fontSize: 16, marginBottom: 12 }}>
-        {ar ? 'يجب تسجيل الدخول' : 'Sign in required'}
+    <main className="terminal-shell app-page profile-page">
+      <div className="empty-state">
+        <strong>{ar ? 'يجب تسجيل الدخول' : 'Sign in required'}</strong>
+        <span>{ar ? 'سجّل الدخول لحفظ قوائمك ومحفظتك وتنبيهاتك.' : 'Sign in to keep your lists, portfolio and alerts.'}</span>
+        <button type="button" className="auth-submit" onClick={() => openAuth('signin')}>
+          {ar ? 'تسجيل الدخول' : 'Sign in'}
+        </button>
       </div>
-      <button onClick={() => openAuth('signin')} style={{
-        padding: '9px 20px', background: 'var(--brand)', borderRadius: 10,
-        fontSize: 13, fontWeight: 700, color: '#fff', border: 'none', fontFamily: 'inherit',
-      }}>
-        {ar ? 'تسجيل الدخول' : 'Sign In'}
-      </button>
-    </div>
+    </main>
   )
 
   if (!profile) return (
-    <div style={{ maxWidth: 600, margin: '40px auto', padding: '0 24px' }}>
+    <main className="terminal-shell app-page profile-page">
       {[80, 120, 80].map((h, i) => (
         <div key={i} className="skeleton" style={{ height: h, borderRadius: 16, marginBottom: 12 }} />
       ))}
-    </div>
+    </main>
   )
 
   async function saveUsername() {
@@ -79,95 +75,71 @@ export default function ProfilePage() {
     setTimeout(() => setSaved(false), 2000)
   }
 
+  const SHORTCUTS = [
+    { href: '/watchlist', ar: 'قوائم المتابعة', en: 'Watchlists' },
+    { href: '/portfolio', ar: 'محفظتي', en: 'Portfolio' },
+    { href: '/alerts',    ar: 'تنبيهات الأسعار', en: 'Price alerts' },
+  ]
+
   return (
-    <div style={{ maxWidth: 600, margin: '0 auto', padding: '24px' }}>
-      {/* Avatar & name */}
-      <div style={{
-        background: 'var(--surf)', border: '1px solid var(--line)',
-        borderRadius: 20, padding: '24px', marginBottom: 16,
-        display: 'flex', alignItems: 'center', gap: 20, flexWrap: 'wrap',
-      }}>
-        <div style={{
-          width: 64, height: 64, borderRadius: '50%',
-          background: 'var(--brand)', display: 'flex', alignItems: 'center',
-          justifyContent: 'center', fontSize: 24, fontWeight: 800, color: '#fff', flexShrink: 0,
-        }}>
+    <main className="terminal-shell app-page profile-page">
+      <section className="app-card profile-identity">
+        <span className="profile-avatar" aria-hidden="true">
           {(profile.username ?? user.email ?? '?')[0].toUpperCase()}
-        </div>
-        <div style={{ flex: 1 }}>
+        </span>
+        <div>
           {editing ? (
-            <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-              <input value={username} onChange={e => setUsername(e.target.value)} autoFocus
-                style={{
-                  padding: '7px 10px', borderRadius: 8, background: 'var(--surf3)',
-                  border: '1px solid var(--brand)', color: 'var(--ink)', fontFamily: 'inherit',
-                  fontSize: 15, fontWeight: 700, outline: 'none', width: 160,
-                }} />
-              <button onClick={saveUsername} disabled={saving} style={{
-                padding: '7px 14px', background: 'var(--brand)', borderRadius: 8,
-                border: 'none', color: '#fff', fontWeight: 700, fontSize: 12, fontFamily: 'inherit',
-              }}>
-                {saving ? '...' : (ar ? 'حفظ' : 'Save')}
+            <div className="profile-name-edit">
+              <input value={username} onChange={e => setUsername(e.target.value)} autoFocus aria-label={ar ? 'اسم المستخدم' : 'Username'} />
+              <button type="button" className="auth-submit" onClick={saveUsername} disabled={saving}>
+                {saving ? '…' : (ar ? 'حفظ' : 'Save')}
               </button>
-              <button onClick={() => { setEditing(false); setUsername(profile.username ?? '') }} style={{
-                padding: '7px 12px', background: 'var(--surf3)', borderRadius: 8,
-                border: 'none', color: 'var(--ink3)', fontSize: 12, fontFamily: 'inherit',
-              }}>✕</button>
+              <button
+                type="button"
+                className="profile-edit-btn"
+                onClick={() => { setEditing(false); setUsername(profile.username ?? '') }}
+                aria-label={ar ? 'إلغاء' : 'Cancel'}
+              >
+                ✕
+              </button>
             </div>
           ) : (
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-              <span style={{ fontWeight: 800, fontSize: 18 }}>{profile.username}</span>
-              {saved && <span style={{ fontSize: 11, color: 'var(--up)' }}>✓</span>}
-              <button onClick={() => setEditing(true)} style={{
-                background: 'none', border: '1px solid var(--line)', borderRadius: 6,
-                padding: '3px 9px', fontSize: 11, color: 'var(--ink4)', fontFamily: 'inherit', cursor: 'pointer',
-              }}>
+            <div className="profile-name">
+              <strong>{profile.username}</strong>
+              {saved ? <span className="gain" aria-live="polite">✓</span> : null}
+              <button type="button" className="profile-edit-btn" onClick={() => setEditing(true)}>
                 {ar ? 'تعديل' : 'Edit'}
               </button>
             </div>
           )}
-          <div style={{ fontSize: 12, color: 'var(--ink4)', marginTop: 4 }}>{user.email}</div>
+          <span className="profile-email" dir="ltr">{user.email}</span>
         </div>
-      </div>
+      </section>
 
-      {/* Referral */}
-      <div style={{ background: 'var(--surf)', border: '1px solid var(--line)', borderRadius: 14, padding: '16px', marginBottom: 16 }}>
-        <div style={{ fontWeight: 700, fontSize: 13, marginBottom: 10 }}>
-          {ar ? '👥 رمز الإحالة' : '👥 Referral Code'}
-        </div>
-        <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 8 }}>
-          <div style={{
-            flex: 1, padding: '10px 14px', background: 'var(--surf3)',
-            borderRadius: 10, fontFamily: 'var(--font-mono)', fontWeight: 700, fontSize: 16,
-            letterSpacing: '0.15em', color: profile.referral_code ? 'var(--gold)' : 'var(--ink4)',
-          }}>
-            {profile.referral_code ?? (ar ? 'جاري الإنشاء...' : 'Generating...')}
-          </div>
-          <button onClick={copyCode} disabled={!profile.referral_code} style={{
-            padding: '10px 16px', borderRadius: 10, border: '1px solid var(--line)',
-            background: copied ? 'var(--up)' : 'var(--surf3)',
-            color: copied ? '#fff' : 'var(--ink3)',
-            fontSize: 12, fontFamily: 'inherit', fontWeight: 700,
-            transition: 'all 0.2s', cursor: profile.referral_code ? 'pointer' : 'not-allowed',
-          }}>
+      <nav className="profile-shortcuts" aria-label={ar ? 'اختصارات' : 'Shortcuts'}>
+        {SHORTCUTS.map(s => (
+          <Link key={s.href} href={s.href}>{ar ? s.ar : s.en}</Link>
+        ))}
+      </nav>
+
+      <section className="app-card profile-referral">
+        <h2>{ar ? 'رمز الإحالة' : 'Referral code'}</h2>
+        <div className="profile-referral-row">
+          <code>{profile.referral_code ?? (ar ? 'جاري الإنشاء…' : 'Generating…')}</code>
+          <button type="button" className="profile-copy" onClick={copyCode} disabled={!profile.referral_code}>
             {copied ? '✓' : (ar ? 'نسخ' : 'Copy')}
           </button>
         </div>
-        <div style={{ fontSize: 11, color: 'var(--ink4)', lineHeight: 1.6 }}>
+        <p>
           {ar
             ? 'شارك رمزك مع أصدقائك وادعهم للانضمام إلى منصة بورصة العراق'
-            : 'Share your code and invite friends to join Iraq Stock Market'}
-        </div>
-      </div>
+            : 'Share your code and invite friends to join the platform'}
+        </p>
+      </section>
 
-      {/* Sign out */}
-      <button onClick={signOut} style={{
-        width: '100%', padding: '11px', borderRadius: 12,
-        background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.25)',
-        color: 'var(--dn)', fontWeight: 700, fontSize: 14, fontFamily: 'inherit', cursor: 'pointer',
-      }}>
-        {ar ? 'تسجيل الخروج' : 'Sign Out'}
+      <button type="button" className="profile-signout" onClick={signOut}>
+        {ar ? 'تسجيل الخروج' : 'Sign out'}
       </button>
-    </div>
+    </main>
   )
 }
