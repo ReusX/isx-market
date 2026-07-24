@@ -16,7 +16,7 @@ export default function LegalPage() {
   const ar = lang === 'ar'
 
   return (
-    <div style={{ maxWidth: 760, margin: '0 auto', padding: '48px 24px 80px' }}>
+    <div className="terminal-shell app-page prose-page">
 
       {/* Header */}
       <div style={{ marginBottom: 40 }}>

@@ -334,7 +334,7 @@ export default function ChartsPage() {
   }
 
   return (
-    <div style={{ maxWidth: 1440, margin: '0 auto', padding: '20px 24px 80px' }}>
+    <div className="terminal-shell app-page charts-page">
 
       {/* ── RSISX Hero Chart ── */}
       <div style={{

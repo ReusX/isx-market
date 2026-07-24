@@ -7,7 +7,7 @@ export default function ContactPage() {
   const ar = lang === 'ar'
 
   return (
-    <div style={{ maxWidth: 680, margin: '0 auto', padding: '48px 24px 80px' }}>
+    <div className="terminal-shell app-page prose-page">
 
       {/* Header */}
       <div style={{ marginBottom: 48 }}>

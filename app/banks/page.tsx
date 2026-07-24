@@ -34,7 +34,7 @@ export default function BanksPage() {
   const conventional = listed.filter(c => !islamic.includes(c))
 
   return (
-    <div style={{ maxWidth: 1000, margin: '0 auto', padding: '24px 16px 80px' }}>
+    <div className="terminal-shell app-page">
 
       <h1 style={{ fontSize: 24, fontWeight: 800, marginBottom: 6 }}>
         المصارف العراقية

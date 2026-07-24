@@ -16,7 +16,7 @@ export default function PrivacyPage() {
   const ar = lang === 'ar'
 
   return (
-    <div style={{ maxWidth: 760, margin: '0 auto', padding: '48px 24px 80px' }}>
+    <div className="terminal-shell app-page prose-page">
 
       <div style={{ marginBottom: 40 }}>
         <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--brand)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 12 }}>

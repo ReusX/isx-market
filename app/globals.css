@@ -6434,3 +6434,13 @@ button.pulse-tile.is-active .pulse-tile-label svg {
   font-weight: 700;
   cursor: pointer;
 }
+
+/* Long-form editorial pages (about, contact, privacy, legal). */
+.prose-page {
+  max-inline-size: 760px;
+  gap: 0;
+}
+
+.charts-page {
+  max-inline-size: 1440px;
+}

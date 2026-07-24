@@ -51,7 +51,7 @@ export default function PortfolioPage() {
   const SECTOR_COLORS = ['var(--brand)', 'var(--up)', 'var(--gold)', '#a855f7', '#06b6d4', '#f97316', '#ec4899', '#84cc16']
 
   return (
-    <div style={{ padding: '20px 24px 80px', maxWidth: 1100, margin: '0 auto' }}>
+    <div className="terminal-shell app-page">
       {/* header */}
       <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap', marginBottom: 16 }}>
         <div>

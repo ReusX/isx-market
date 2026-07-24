@@ -41,7 +41,7 @@ export default function AlertsPage() {
   }
 
   return (
-    <div style={{ padding: '20px 24px 80px', maxWidth: 820, margin: '0 auto' }}>
+    <div className="terminal-shell app-page">
       <div style={{ marginBottom: 16 }}>
         <h2 style={{ fontSize: 22, fontWeight: 800, margin: 0, color: 'var(--ink)' }}>تنبيهات الأسعار</h2>
         <p style={{ fontSize: 12.5, color: 'var(--ink4)', margin: '6px 0 0' }}>

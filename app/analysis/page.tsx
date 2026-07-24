@@ -48,7 +48,7 @@ export default function AnalysisListPage() {
   }, [companies, sector, search])
 
   return (
-    <div style={{ maxWidth: 860, margin: '0 auto', padding: '32px 24px 80px' }}>
+    <div className="terminal-shell app-page">
 
       {/* Header */}
       <div style={{ marginBottom: 36 }}>
