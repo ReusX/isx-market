@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { BackHeader, pageWrap } from '../_ui'
+import { BackHeader } from '../_ui'
 import { DailyForeignFlowFull } from '../DailyForeignFlow'
 
 export const metadata: Metadata = {
@@ -9,12 +9,12 @@ export const metadata: Metadata = {
 
 export default function ForeignFlowPage() {
   return (
-    <div style={pageWrap}>
+    <main className="terminal-shell app-page statistics-detail-page">
       <BackHeader
         title="تدفق المستثمر الأجنبي اليوم" live
         subtitle="صافي شراء/بيع غير العراقيين لكل شركة · يُحدَّث يومياً مع نشرة التداول"
       />
       <DailyForeignFlowFull />
-    </div>
+    </main>
   )
 }

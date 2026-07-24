@@ -46,99 +46,76 @@ export function Seg<T extends string>({ value, onChange, options }: {
   value: T; onChange: (v: T) => void; options: [T, string][]
 }) {
   return (
-    <div style={{ display: 'inline-flex', background: 'var(--surf2)', borderRadius: 8, padding: 2, gap: 2 }}>
-      {options.map(([v, label]) => {
-        const on = v === value
-        return (
-          <button key={v} onClick={() => onChange(v)} style={{
-            border: 'none', borderRadius: 6, padding: '5px 11px', fontSize: 11.5, fontWeight: 700,
-            cursor: 'pointer', whiteSpace: 'nowrap',
-            background: on ? 'var(--brand)' : 'transparent', color: on ? '#fff' : 'var(--ink3)',
-          }}>{label}</button>
-        )
-      })}
+    <div className="seg-control" role="group">
+      {options.map(([v, label]) => (
+        <button
+          key={v}
+          type="button"
+          className={v === value ? 'seg-btn is-active' : 'seg-btn'}
+          aria-pressed={v === value}
+          onClick={() => onChange(v)}
+        >
+          {label}
+        </button>
+      ))}
     </div>
   )
 }
 
 // ── Compact card shell for the statistics grid ─────────────────────────────────
-// Matches the look of the existing <Panel>; adds an "عرض الكل" expand link to the
+// Same shell as <Panel> on /statistics, plus an "عرض الكل" link through to the
 // feature's dedicated full page.
 export function PreviewCard({ title, subtitle, badge, badgeLive, href, loading, children }: {
   title: string; subtitle?: string; badge?: string; badgeLive?: boolean
   href: string; loading?: boolean; children: React.ReactNode
 }) {
   return (
-    <div style={{
-      background: 'var(--surf)', border: '1px solid var(--line)', borderRadius: 12,
-      padding: '16px 18px', display: 'flex', flexDirection: 'column', minHeight: 0,
-    }}>
-      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 12, gap: 8 }}>
-        <div style={{ minWidth: 0 }}>
-          <div style={{ fontSize: 14, fontWeight: 800, color: 'var(--ink)' }}>{title}</div>
-          {subtitle && <div style={{ fontSize: 11, color: 'var(--ink4)', marginTop: 2 }}>{subtitle}</div>}
+    <section className="app-card statistics-card stat-panel">
+      <div className="statistics-card-heading">
+        <div>
+          <h2>{title}</h2>
+          {subtitle && <p>{subtitle}</p>}
         </div>
         {badge && (
-          <span style={{
-            display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 9.5, fontWeight: 700,
-            padding: '2px 8px', borderRadius: 20, whiteSpace: 'nowrap',
-            color: badgeLive ? 'var(--up)' : '#fff',
-            background: badgeLive ? 'var(--up-s)' : 'var(--badge, #266EC3)',
-            border: badgeLive ? '1px solid rgba(22,163,74,0.25)' : 'none',
-          }}>
-            {badgeLive && <span style={{ width: 5, height: 5, borderRadius: '50%', background: 'var(--up)' }} />}
+          <span className={badgeLive ? 'app-badge success' : 'app-badge accent'}>
+            {badgeLive && <span className="app-badge-dot" aria-hidden="true" />}
             {badge}
           </span>
         )}
       </div>
 
-      <div style={{ flex: 1, minHeight: 0 }}>
+      <div className="stat-panel-body">
         {loading ? <div className="skeleton" style={{ height: 120, borderRadius: 10 }} /> : children}
       </div>
 
-      <Link href={href} style={{
-        display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
-        marginTop: 14, padding: '9px 0', borderRadius: 9, textDecoration: 'none',
-        background: 'var(--surf2)', border: '1px solid var(--line)', color: 'var(--ink2)',
-        fontSize: 12, fontWeight: 700,
-      }}>
+      <Link className="panel-cta" href={href}>
         عرض الكل
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" style={{ transform: 'scaleX(-1)' }}>
-          <path d="M9 6l6 6-6 6" strokeLinecap="round" strokeLinejoin="round" />
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" aria-hidden="true">
+          <path d="M15 6l-6 6 6 6" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
       </Link>
-    </div>
+    </section>
   )
 }
 
 // ── Page header with back link for the dedicated full pages ────────────────────
 export function BackHeader({ title, subtitle, live }: { title: string; subtitle?: string; live?: boolean }) {
   return (
-    <div style={{ marginBottom: 18 }}>
-      <Link href="/statistics" style={{
-        display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 12.5, fontWeight: 700,
-        color: 'var(--ink3)', textDecoration: 'none', marginBottom: 12,
-      }}>
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4">
-          <path d="M15 6l-6 6 6 6" strokeLinecap="round" strokeLinejoin="round" />
-        </svg>
+    <>
+      <Link className="statistics-breadcrumb" href="/statistics">
+        <span aria-hidden="true">›</span>
         الإحصائيات
       </Link>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
-        <h1 style={{ fontSize: 21, fontWeight: 800, color: 'var(--ink)', margin: 0 }}>{title}</h1>
+      <header className="statistics-detail-heading">
         {live && (
-          <span style={{
-            display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 10.5, fontWeight: 700,
-            color: 'var(--up)', background: 'var(--up-s)', border: '1px solid rgba(22,163,74,0.25)',
-            padding: '3px 9px', borderRadius: 20,
-          }}>
-            <span style={{ width: 5, height: 5, borderRadius: '50%', background: 'var(--up)' }} />مباشر
+          <span className="app-badge success">
+            <span className="app-badge-dot" aria-hidden="true" />مباشر
           </span>
         )}
-      </div>
-      {subtitle && <p style={{ fontSize: 12.5, color: 'var(--ink4)', margin: '6px 0 0' }}>{subtitle}</p>}
-    </div>
+        <h1>{title}</h1>
+        {subtitle && <p>{subtitle}</p>}
+      </header>
+    </>
   )
 }
 
-export const pageWrap: React.CSSProperties = { padding: '20px 24px 60px', maxWidth: 1000, margin: '0 auto' }

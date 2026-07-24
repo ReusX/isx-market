@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { BackHeader, pageWrap } from '../_ui'
+import { BackHeader } from '../_ui'
 import { OwnershipFull } from '../OwnershipPanel'
 
 export const metadata: Metadata = {
@@ -9,12 +9,12 @@ export const metadata: Metadata = {
 
 export default function OwnershipPage() {
   return (
-    <div style={pageWrap}>
+    <main className="terminal-shell app-page statistics-detail-page">
       <BackHeader
         title="هيكل الملكية · عراقي مقابل أجنبي"
         subtitle="توزيع رأس المال المودع بين المستثمرين العراقيين والأجانب"
       />
       <OwnershipFull />
-    </div>
+    </main>
   )
 }

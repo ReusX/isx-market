@@ -44,44 +44,43 @@ const TF = [
 ] as const
 
 // ── small UI atoms ───────────────────────────────────────────────────────────
-function Card({ children, style }: { children: React.ReactNode; style?: React.CSSProperties }) {
-  return (
-    <div style={{ background: 'var(--surf)', border: '1px solid var(--line)', borderRadius: 14, padding: 18, ...style }}>
-      {children}
-    </div>
-  )
+function Card({ children, style, className = '' }: { children: React.ReactNode; style?: React.CSSProperties; className?: string }) {
+  return <section className={`app-card pulse-card ${className}`} style={style}>{children}</section>
 }
-// KPI tile. When `onClick` is given it becomes an interactive button that reveals
-// the underlying companies.
+// KPI tile. With `onClick` it becomes an interactive button that reveals the
+// underlying companies.
 function Tile({ label, value, sub, tone, dir, onClick, active }: {
   label: string; value: string; sub?: string; tone?: 'up' | 'dn'; dir?: boolean
   onClick?: () => void; active?: boolean
 }) {
-  const clickable = !!onClick
-  return (
-    <Card style={{
-      padding: 14, ...(clickable ? { cursor: 'pointer' } : {}),
-      borderColor: active ? 'var(--brand)' : 'var(--line)',
-      transition: 'border-color .12s, background .12s',
-    }}>
-      <div
-        onClick={onClick}
-        onMouseEnter={clickable ? (e => { if (!active) (e.currentTarget.parentElement as HTMLElement).style.borderColor = 'var(--line2)' }) : undefined}
-        onMouseLeave={clickable ? (e => { if (!active) (e.currentTarget.parentElement as HTMLElement).style.borderColor = 'var(--line)' }) : undefined}
-      >
-        <div style={{ fontSize: 11, color: 'var(--ink4)', fontWeight: 600, marginBottom: 6, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          {label}
-          {clickable && (
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke={active ? 'var(--brand)' : 'currentColor'} strokeWidth="2.4" style={{ transform: 'scaleX(-1)', opacity: active ? 1 : 0.6 }}>
-              <path d="M9 6l6 6-6 6" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-          )}
-        </div>
-        <div dir={dir ? 'ltr' : undefined} style={{ fontFamily: 'var(--font-mono)', fontSize: 21, fontWeight: 800, color: tone === 'up' ? 'var(--up)' : tone === 'dn' ? 'var(--dn)' : 'var(--ink)', lineHeight: 1, textAlign: dir ? 'start' : undefined }}>{value}</div>
-        {sub && <div style={{ fontSize: 11, color: 'var(--ink4)', marginTop: 5 }}>{sub}</div>}
-      </div>
-    </Card>
+  const body = (
+    <>
+      <span className="pulse-tile-label">
+        {label}
+        {onClick ? (
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" aria-hidden="true">
+            <path d="M15 6l-6 6 6 6" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        ) : null}
+      </span>
+      <strong className={tone === 'up' ? 'positive' : tone === 'dn' ? 'negative' : ''} dir={dir ? 'ltr' : undefined}>{value}</strong>
+      {sub ? <small>{sub}</small> : null}
+    </>
   )
+
+  if (onClick) {
+    return (
+      <button
+        type="button"
+        className={active ? 'metric-card pulse-tile is-active' : 'metric-card pulse-tile'}
+        aria-pressed={active}
+        onClick={onClick}
+      >
+        {body}
+      </button>
+    )
+  }
+  return <article className="metric-card pulse-tile">{body}</article>
 }
 
 // Advance/Decline cumulative line (pure SVG)
@@ -242,10 +241,14 @@ export default function PulsePage() {
   }
 
   if (loading) {
-    return <div style={wrap}><div className="skeleton" style={{ height: 200, borderRadius: 14, marginBottom: 16 }} /><div className="skeleton" style={{ height: 320, borderRadius: 14 }} /></div>
+    return <main className="terminal-shell app-page pulse-page"><div className="skeleton" style={{ height: 200, borderRadius: 14, marginBottom: 16 }} /><div className="skeleton" style={{ height: 320, borderRadius: 14 }} /></main>
   }
   if (!latest) {
-    return <div style={wrap}><Card><div style={{ color: 'var(--ink4)', textAlign: 'center', padding: 40 }}>لا تتوفر بيانات بعد.</div></Card></div>
+    return (
+      <main className="terminal-shell app-page pulse-page">
+        <div className="empty-state"><strong>لا تتوفر بيانات بعد.</strong></div>
+      </main>
+    )
   }
 
   const total = latest.advancers + latest.decliners + latest.unchanged
@@ -258,22 +261,18 @@ export default function PulsePage() {
   const moverItems = lists[moverTab]
 
   return (
-    <div style={wrap}>
-      {/* header */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12, marginBottom: 18, flexWrap: 'wrap' }}>
+    <main className="terminal-shell app-page pulse-page">
+      <header className="page-heading">
         <div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <h2 style={{ fontSize: 22, fontWeight: 800, margin: 0, color: 'var(--ink)' }}>نبض السوق</h2>
-            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 10, fontWeight: 700, color: 'var(--up)', background: 'var(--up-s)', border: '1px solid rgba(22,163,74,0.25)', borderRadius: 999, padding: '2px 8px' }}>
-              <span style={{ width: 5, height: 5, borderRadius: '50%', background: 'var(--up)' }} />مباشر
-            </span>
-          </div>
-          <p style={{ fontSize: 12.5, color: 'var(--ink4)', margin: '6px 0 0' }}>
-            اتساع السوق · الأسهم الصاعدة مقابل الهابطة · جلسة {arDate(latest.date)}
-          </p>
+          <span className="app-eyebrow">نبض السوق</span>
+          <h1>
+            اتساع السوق
+            <span className="app-badge success"><span className="app-badge-dot" aria-hidden="true" />مباشر</span>
+          </h1>
+          <p>الأسهم الصاعدة مقابل الهابطة · جلسة {arDate(latest.date)}</p>
         </div>
-        <Link href="/market" style={{ fontSize: 12, color: 'var(--brand)', textDecoration: 'none', fontWeight: 600 }}>كل الأسهم ←</Link>
-      </div>
+        <Link className="statistics-text-link" href="/market">كل الأسهم ←</Link>
+      </header>
 
       {/* hero: advancers vs decliners tug bar · sides are clickable */}
       <Card style={{ marginBottom: 14 }}>
@@ -298,7 +297,7 @@ export default function PulsePage() {
       </Card>
 
       {/* stat tiles */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))', gap: 12, marginBottom: 14 }}>
+      <div className="metric-grid pulse-tiles">
         <Tile label="القيمة المتداولة" value={fmtIQD(latestIdx?.total_value ?? 0)} />
         <Tile label="حجم التداول" value={fmtNum(latestIdx?.total_volume)} sub="سهم" />
         <Tile label="عدد الصفقات" value={latestIdx?.total_trades != null ? latestIdx.total_trades.toLocaleString('en-US') : '·'} />
@@ -368,11 +367,9 @@ export default function PulsePage() {
         <div style={{ fontSize: 11, color: 'var(--ink4)', marginBottom: 12 }}>الأخضر للأعلى = الأسهم الصاعدة · الأحمر للأسفل = الهابطة</div>
         <BreadthBars rows={breadth} />
       </Card>
-    </div>
+    </main>
   )
 }
-
-const wrap: React.CSSProperties = { padding: '20px 24px 60px', maxWidth: 1000, margin: '0 auto' }
 function heroBtn(color: string): React.CSSProperties {
   return {
     fontSize: 13, fontWeight: 700, color, background: 'transparent', border: 'none',

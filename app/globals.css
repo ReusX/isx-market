@@ -6004,3 +6004,82 @@ html[lang="ar"] .wp-content pre {
   inline-size: 26px;
   block-size: 11px;
 }
+
+/* Panel → full-page call to action, shared by the statistics preview cards. */
+.panel-cta {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  justify-content: center;
+  margin-block-start: 14px;
+  padding: 9px 0;
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  background: var(--surface-2);
+  color: var(--text-secondary);
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-decoration: none;
+  transition: border-color 140ms ease, color 140ms ease;
+}
+
+.panel-cta:hover {
+  border-color: var(--nav-active);
+  color: var(--nav-active);
+}
+
+/* ── Pulse page ──────────────────────────────────────────────────────────── */
+
+.pulse-card {
+  padding: 18px;
+}
+
+.pulse-page .page-heading h1 {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.pulse-tiles {
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+}
+
+.pulse-tile {
+  text-align: start;
+}
+
+button.pulse-tile {
+  font: inherit;
+  cursor: pointer;
+  transition: border-color 140ms ease;
+}
+
+button.pulse-tile:hover,
+button.pulse-tile.is-active {
+  border-color: var(--nav-active);
+}
+
+.pulse-tile-label {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  justify-content: space-between;
+  color: var(--text-muted);
+  font-size: 0.7rem;
+  font-weight: 600;
+}
+
+.pulse-tile-label svg {
+  opacity: 0.6;
+}
+
+button.pulse-tile.is-active .pulse-tile-label svg {
+  color: var(--nav-active);
+  opacity: 1;
+}
+
+.pulse-tile > strong {
+  font-size: 1.3rem;
+  line-height: 1.1;
+}
