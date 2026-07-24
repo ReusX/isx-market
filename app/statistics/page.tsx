@@ -34,38 +34,24 @@ function Panel({ title, subtitle, badge, children }: {
   title: string; subtitle?: string; badge?: string; children: React.ReactNode
 }) {
   return (
-    <div style={{
-      background: 'var(--surf)', border: '1px solid var(--line)',
-      borderRadius: 12, padding: '16px 18px', display: 'flex', flexDirection: 'column',
-      minHeight: 0,
-    }}>
-      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 14, gap: 8 }}>
+    <section className="app-card statistics-card stat-panel">
+      <div className="statistics-card-heading">
         <div>
-          <div style={{ fontSize: 14, fontWeight: 800, color: 'var(--ink)' }}>{title}</div>
-          {subtitle && <div style={{ fontSize: 11, color: 'var(--ink4)', marginTop: 2 }}>{subtitle}</div>}
+          <h2>{title}</h2>
+          {subtitle && <p>{subtitle}</p>}
         </div>
-        {badge && (
-          <span style={{
-            fontSize: 9, fontWeight: 700, padding: '2px 7px', borderRadius: 5,
-            background: 'var(--badge, #266EC3)', color: '#fff', whiteSpace: 'nowrap',
-          }}>{badge}</span>
-        )}
+        {badge && <span className="app-badge accent">{badge}</span>}
       </div>
-      <div style={{ flex: 1, minHeight: 0 }}>{children}</div>
-    </div>
+      <div className="stat-panel-body">{children}</div>
+    </section>
   )
 }
 
 function Soon({ note }: { note: string }) {
   return (
-    <div style={{
-      display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-      height: '100%', minHeight: 160, gap: 8, textAlign: 'center',
-      border: '1px dashed var(--line2)', borderRadius: 10, padding: 20,
-    }}>
-      <div style={{ fontSize: 22, opacity: 0.4 }}>⏳</div>
-      <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--ink3)' }}>قيد المعالجة</div>
-      <div style={{ fontSize: 11, color: 'var(--ink4)', maxWidth: 260, lineHeight: 1.6 }}>{note}</div>
+    <div className="stat-soon">
+      <strong>قيد المعالجة</strong>
+      <span>{note}</span>
     </div>
   )
 }
@@ -74,22 +60,19 @@ function Soon({ note }: { note: string }) {
 // in their own row so they read as "upcoming" rather than broken/empty panels.
 function ComingCard({ title, subtitle, note }: { title: string; subtitle: string; note: string }) {
   return (
-    <div style={{
-      background: 'var(--surf)', border: '1px solid var(--line)', borderRadius: 12,
-      padding: '14px 16px', display: 'flex', flexDirection: 'column', gap: 6, minHeight: 124,
-    }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
-        <span style={{ width: 26, height: 26, borderRadius: 7, background: 'var(--surf3)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, color: 'var(--ink4)' }}>
+    <article className="coming-card">
+      <div className="coming-card-head">
+        <span className="coming-card-icon" aria-hidden="true">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 2" /></svg>
         </span>
-        <div style={{ minWidth: 0 }}>
-          <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--ink2)' }}>{title}</div>
-          <div style={{ fontSize: 10.5, color: 'var(--ink4)' }}>{subtitle}</div>
+        <div>
+          <strong>{title}</strong>
+          <span>{subtitle}</span>
         </div>
-        <span style={{ marginInlineStart: 'auto', fontSize: 9, fontWeight: 700, padding: '2px 7px', borderRadius: 5, background: 'var(--surf3)', color: 'var(--ink4)', whiteSpace: 'nowrap' }}>قريباً</span>
+        <span className="app-badge">قريباً</span>
       </div>
-      <div style={{ fontSize: 11, color: 'var(--ink4)', lineHeight: 1.6 }}>{note}</div>
-    </div>
+      <p>{note}</p>
+    </article>
   )
 }
 
@@ -99,18 +82,18 @@ function Seg<T extends string | number>({ value, onChange, options }: {
   value: T; onChange: (v: T) => void; options: [T, string][]
 }) {
   return (
-    <div style={{ display: 'inline-flex', background: 'var(--surf2)', borderRadius: 7, padding: 2, gap: 2 }}>
-      {options.map(([v, label]) => {
-        const on = v === value
-        return (
-          <button key={String(v)} onClick={() => onChange(v)} style={{
-            border: 'none', borderRadius: 5, padding: '4px 10px', fontSize: 11, fontWeight: 700,
-            cursor: 'pointer', whiteSpace: 'nowrap',
-            background: on ? 'var(--brand)' : 'transparent',
-            color: on ? '#fff' : 'var(--ink3)',
-          }}>{label}</button>
-        )
-      })}
+    <div className="seg-control" role="group">
+      {options.map(([v, label]) => (
+        <button
+          key={String(v)}
+          type="button"
+          className={v === value ? 'seg-btn is-active' : 'seg-btn'}
+          aria-pressed={v === value}
+          onClick={() => onChange(v)}
+        >
+          {label}
+        </button>
+      ))}
     </div>
   )
 }
@@ -358,56 +341,53 @@ export default function StatisticsPage() {
   }, [flow])
 
   return (
-    <div style={{ padding: '20px 24px 60px', maxWidth: 1400, margin: '0 auto' }}>
-      <div style={{ marginBottom: 20 }}>
-        <h1 style={{ fontSize: 22, fontWeight: 800, color: 'var(--ink)', margin: 0 }}>الإحصائيات</h1>
-        <p style={{ fontSize: 12, color: 'var(--ink4)', marginTop: 4 }}>
+    <main className="terminal-shell app-page statistics-page">
+      <header className="statistics-heading">
+        <h1>الإحصائيات</h1>
+        <p>
           بيانات حصرية مستخرجة من تقارير سوق العراق للأوراق المالية · تدفق الأجانب اليومي حيّ، والبيانات الشهرية تُحدَّث مع كل تقرير
         </p>
-      </div>
+      </header>
 
       {/* Real data panels · masonry (CSS columns) so cards of differing height
           pack tightly instead of leaving ragged row gaps. */}
-      <div style={{ columnWidth: 360, columnGap: 16 }}>
+      <div className="statistics-masonry">
         {/* live daily foreign flow */}
-        <div style={brk}><DailyForeignFlowPreview /></div>
+        <div className="masonry-item"><DailyForeignFlowPreview /></div>
 
         {/* monthly foreign flow */}
-        <div style={brk}>
+        <div className="masonry-item">
           <Panel title="تدفق المستثمر الأجنبي" subtitle={flowMonth ? `صافي الشراء/البيع شهرياً · حتى ${flowMonth}` : 'صافي الشراء/البيع شهرياً'} badge="شهري">
             {loading ? <Skel /> : <ForeignFlowChart rows={flow} />}
           </Panel>
         </div>
 
         {/* ownership */}
-        <div style={brk}><OwnershipPreview /></div>
+        <div className="masonry-item"><OwnershipPreview /></div>
 
         {/* sector rotation */}
-        <div style={brk}>
+        <div className="masonry-item">
           <Panel title="دوران القطاعات" subtitle="أين يتدفق المال الأجنبي شهرياً" badge="شهري">
             {loading ? <Skel /> : <SectorRotation rows={sector} />}
           </Panel>
         </div>
 
         {/* major shareholders */}
-        <div style={brk}><ShareholdersPreview /></div>
+        <div className="masonry-item"><ShareholdersPreview /></div>
       </div>
 
       {/* Upcoming data sources · grouped, compact, uniform */}
-      <div style={{ marginTop: 26 }}>
-        <div style={{ fontSize: 12.5, fontWeight: 800, color: 'var(--ink3)', marginBottom: 12 }}>مصادر بيانات قادمة</div>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 14 }}>
+      <section className="coming-section" aria-label="مصادر بيانات قادمة">
+        <h2>مصادر بيانات قادمة</h2>
+        <div className="coming-grid">
           <ComingCard title="عدد المودعين لكل شركة" subtitle="كم شخص يملك هذا السهم" note="عدّاد المودعين غير مستخرج بعد من التقارير · يحتاج تحديث المُحلِّل (Table 26)." />
           <ComingCard title="سوق السندات" subtitle="السندات الحكومية والشركات" note="لا يوجد مصدر بيانات للسندات بعد · يحتاج إضافة مصدر." />
           <ComingCard title="أحداث رأس المال" subtitle="زيادات رأس المال، الرهون، الإرث" note="جدول الأحداث فارغ · يحتاج استخراج الجداول 28/34 من التقارير." />
         </div>
-      </div>
-    </div>
+      </section>
+    </main>
   )
 }
-
-// each masonry item must avoid breaking across columns + carry the gap
-const brk: React.CSSProperties = { breakInside: 'avoid', marginBottom: 16 }
 
 function Skel() {
   return <div className="skeleton" style={{ height: 220, borderRadius: 10 }} />
