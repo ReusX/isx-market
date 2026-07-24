@@ -1,445 +1,472 @@
 'use client'
 
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { type PointerEvent, useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
-import { useApp } from '@/context/AppContext'
 import { fetchLive, fetchCompanyMeta, mergeCompanies, SECTORS } from '@/lib/market'
-import { usePortfolio, aggregate, totals, fmtIQD } from '@/lib/portfolio'
+import { ForeignFlowGauge } from '@/components/design/ForeignFlowGauge'
+import { Sparkline } from '@/components/design/Sparkline'
+import { SectorPerformanceChipRow } from '@/components/design/SectorPerformanceChipRow'
+import type { SectorDatum } from '@/components/design/magnitude'
 import type { Company } from '@/types'
 
 type News = { slug: string; title: string; date: string }
-type IndexRow = { date: string; isx60: number; total_value: number | null; total_volume: number | null; total_trades: number | null; traded_companies: number | null; listed_companies: number | null }
-type Breadth = { advancers: number; decliners: number; unchanged: number }
-type Flow = { ticker: string; side: 'buy' | 'sell'; value: number }
+type SortKey = 'mcap' | 'price' | 'change' | 'volume' | 'value'
+type ChartPoint = { x: number; y: number; value: string; time: string }
 
-// ── format helpers ────────────────────────────────────────────────────────────
-const fmtBig = (v: number | null | undefined) => {
-  if (v == null) return '·'
-  const a = Math.abs(v)
-  if (a >= 1e9) return (v / 1e9).toFixed(2) + ' مليار'
-  if (a >= 1e6) return (v / 1e6).toFixed(1) + ' مليون'
-  if (a >= 1e3) return Math.round(v).toLocaleString('en')
-  return String(Math.round(v))
-}
-const fmtPct = (v: number) => `${v >= 0 ? '+' : '−'}${Math.abs(v).toFixed(2)}%`
-// Market cap · compact T/B/M suffixes, e.g. "7.7T", "480.0B"
-const fmtMcap = (v: number) => {
-  if (!v) return '·'
-  if (v >= 1e12) return (v / 1e12).toFixed(1) + 'T'
-  if (v >= 1e9)  return (v / 1e9).toFixed(1) + 'B'
-  if (v >= 1e6)  return (v / 1e6).toFixed(1) + 'M'
-  return Math.round(v).toLocaleString('en')
-}
-const tone = (v: number) => (v > 0 ? 'var(--up)' : v < 0 ? 'var(--dn)' : 'var(--ink3)')
-const sectorAr = (id: string) => SECTORS.find(s => s.id === id)?.ar ?? id
-
-// ── ISX60 sparkline (lightweight-charts area) ─────────────────────────────────
-function Sparkline({ data, up }: { data: { time: string; value: number }[]; up: boolean }) {
-  const ref = useRef<HTMLDivElement>(null)
-  useEffect(() => {
-    if (!ref.current || data.length < 2) return
-    let chart: any = null, ro: ResizeObserver | null = null, cancelled = false
-    // Clear any orphan canvas left by a prior aborted async run
-    ref.current.innerHTML = ''
-    ;(async () => {
-      const LC = await import('lightweight-charts')
-      if (cancelled || !ref.current) return
-      const color = up ? '#22C55E' : '#EF5350'
-      chart = LC.createChart(ref.current, {
-        width: ref.current.clientWidth, height: ref.current.clientHeight,
-        layout: { background: { color: 'transparent' }, textColor: 'transparent' },
-        grid: { vertLines: { visible: false }, horzLines: { visible: false } },
-        crosshair: { mode: LC.CrosshairMode?.Hidden ?? 0 },
-        rightPriceScale: { visible: false }, leftPriceScale: { visible: false },
-        timeScale: { visible: false }, handleScroll: false, handleScale: false,
-      })
-      const area = chart.addAreaSeries({
-        lineColor: color, topColor: color + '33', bottomColor: color + '00',
-        lineWidth: 2, priceLineVisible: false, lastValueVisible: false, crosshairMarkerVisible: false,
-      })
-      area.setData(data)
-      chart.timeScale().fitContent()
-      ro = new ResizeObserver(() => chart && ref.current && chart.applyOptions({ width: ref.current.clientWidth, height: ref.current.clientHeight }))
-      ro.observe(ref.current)
-    })()
-    return () => { cancelled = true; ro?.disconnect(); chart?.remove() }
-  }, [data, up])
-  return <div ref={ref} style={{ width: '100%', height: 60 }} />
+type IndexRow = {
+  date: string
+  isx60: number
+  total_value: number | null
+  total_volume: number | null
+  total_trades: number | null
 }
 
-// ── small atoms ───────────────────────────────────────────────────────────────
-function Card({ children, style }: { children: React.ReactNode; style?: React.CSSProperties }) {
-  return <div style={{ background: 'var(--surf)', border: '1px solid var(--line)', borderRadius: 'var(--r-lg)', padding: 16, ...style }}>{children}</div>
-}
-function SectionTitle({ title, href, action }: { title: string; href?: string; action?: string }) {
-  return (
-    <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 10 }}>
-      <h2 style={{ fontSize: 14, fontWeight: 800, margin: 0, color: 'var(--ink)' }}>{title}</h2>
-      {href && <Link href={href} style={{ fontSize: 11.5, color: 'var(--brand)', fontWeight: 700 }}>{action ?? 'عرض الكل'} ←</Link>}
-    </div>
-  )
-}
-function MiniLogo({ sym, logo, size = 24 }: { sym: string; logo?: string; size?: number }) {
-  const [err, setErr] = useState(false)
-  const src = !err ? (logo || `https://isc.gov.iq/Uploads/Companies/${sym}.png`) : null
-  if (src) return <img src={src} alt="" width={size} height={size} loading="lazy" onError={() => setErr(true)} style={{ borderRadius: 5, objectFit: 'contain', background: '#fff', padding: 1, flexShrink: 0 }} />
-  return <div style={{ width: size, height: size, borderRadius: 5, flexShrink: 0, background: 'var(--surf3)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 8, fontWeight: 800, color: 'var(--ink3)' }}>{sym.slice(0, 3)}</div>
-}
-function CoRow({ co, right }: { co: Company; right: React.ReactNode }) {
-  return (
-    <Link href={`/c/${co.sym}`} style={{ display: 'flex', alignItems: 'center', gap: 9, padding: '8px 0', borderBottom: '1px solid var(--line)', textDecoration: 'none' }}>
-      <MiniLogo sym={co.sym} logo={co.logo} />
-      <div style={{ minWidth: 0, flex: 1 }}>
-        <div style={{ fontSize: 12.5, fontWeight: 700, color: 'var(--ink)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{co.ar || co.en || co.sym}</div>
-        <div style={{ fontSize: 10.5, color: 'var(--ink4)', fontWeight: 600, fontFamily: 'var(--font-mono)' }}>{co.sym}</div>
-      </div>
-      {right}
-    </Link>
-  )
+const nf = new Intl.NumberFormat('en-US')
+const money = new Intl.NumberFormat('en-US', { maximumFractionDigits: 0 })
+const compact = new Intl.NumberFormat('en-US', { notation: 'compact', maximumFractionDigits: 1 })
+const priceFormat = new Intl.NumberFormat('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 2 })
+
+const SECTOR_AR = new Map(SECTORS.filter(s => s.id !== 'all').map(s => [s.id, s.ar]))
+
+// Live market cap in IQD: close x shares when we know the share count, else the
+// static fallback carried on the company meta (which is stored in millions).
+const liveMcap = (c: Company) => (c.shares && c.close > 0 ? c.close * c.shares : (c.mcap || 0) * 1e6)
+
+/** Build the smooth ISX60 path + matching area fill from the real index series. */
+function buildIndexPath(values: number[], w = 760, h = 260, pad = 24) {
+  if (values.length < 2) return { line: '', area: '', points: [] as { x: number; y: number }[] }
+  const min = Math.min(...values)
+  const max = Math.max(...values)
+  const span = max - min || 1
+  const pts = values.map((v, i) => ({
+    x: (i / (values.length - 1)) * w,
+    y: h - pad - ((v - min) / span) * (h - pad * 2),
+  }))
+  // Catmull-Rom style smoothing, same visual language as the design's hand-drawn curve.
+  let line = `M${pts[0].x.toFixed(1)},${pts[0].y.toFixed(1)}`
+  for (let i = 0; i < pts.length - 1; i++) {
+    const p0 = pts[i === 0 ? 0 : i - 1], p1 = pts[i], p2 = pts[i + 1], p3 = pts[i + 2] ?? p2
+    const c1x = p1.x + (p2.x - p0.x) / 6, c1y = p1.y + (p2.y - p0.y) / 6
+    const c2x = p2.x - (p3.x - p1.x) / 6, c2y = p2.y - (p3.y - p1.y) / 6
+    line += ` C${c1x.toFixed(1)},${c1y.toFixed(1)} ${c2x.toFixed(1)},${c2y.toFixed(1)} ${p2.x.toFixed(1)},${p2.y.toFixed(1)}`
+  }
+  return { line, area: `${line} L${w},${h} L0,${h} Z`, points: pts }
 }
 
-// ── main ──────────────────────────────────────────────────────────────────────
+function StatIcon({ type }: { type: string }) {
+  return <span className={`stat-icon ${type}`} aria-hidden="true" />
+}
+
 export default function HomeClient({ news }: { news: News[] }) {
-  const { user, openAuth } = useApp()
-  const { lots } = usePortfolio()
-
   const [companies, setCompanies] = useState<Company[]>([])
-  const [series, setSeries]   = useState<{ time: string; value: number }[]>([])
-  const [index, setIndex]     = useState<IndexRow | null>(null)
-  const [prevIsx, setPrevIsx] = useState<number | null>(null)
-  const [breadth, setBreadth] = useState<Breadth | null>(null)
-  const [peMap, setPeMap]     = useState<Record<string, number>>({})
-  const [flow, setFlow]       = useState<Flow[]>([])
-  const [moversTab, setMoversTab] = useState<'gainers' | 'losers' | 'active'>('gainers')
-  const [sortKey, setSortKey] = useState<'price' | 'change' | 'volume' | 'mcap'>('mcap')
+  const [series, setSeries] = useState<IndexRow[]>([])
+  const [flow, setFlow] = useState<{ buy: number; sell: number; date: string } | null>(null)
+  const [sparks, setSparks] = useState<Record<string, number[]>>({})
+  const [loading, setLoading] = useState(true)
+  const [failed, setFailed] = useState(false)
+  const [sortKey, setSortKey] = useState<SortKey>('mcap') // company listings default to market cap, desc
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc')
+  const [activePoint, setActivePoint] = useState<ChartPoint | null>(null)
 
-  // prices + companies
+  // ── prices + company meta ────────────────────────────────────────────────
   useEffect(() => {
     Promise.all([fetchLive(), fetchCompanyMeta()])
       .then(([live, meta]) => setCompanies(mergeCompanies(meta, live.stocks)))
-      .catch(() => {})
+      .catch(() => setFailed(true))
+      .finally(() => setLoading(false))
   }, [])
 
-  // index series + breadth + foreign flow
+  // ── index series, foreign flow, 7-session sparklines ─────────────────────
   useEffect(() => {
     ;(async () => {
-      const { createClient } = await import('@/lib/supabase/client')
-      const sb = createClient()
-      const since = new Date(Date.now() - 90 * 86400_000).toISOString().slice(0, 10)
-      const [{ data: idx }, { data: br }, { data: ff }] = await Promise.all([
-        sb.from('daily_index').select('date,isx60,total_value,total_volume,total_trades,traded_companies,listed_companies').not('isx60', 'is', null).gte('date', since).order('date'),
-        sb.from('breadth_daily').select('advancers,decliners,unchanged').order('date', { ascending: false }).limit(1),
-        sb.from('foreign_flow_company_daily').select('date,ticker,side,value').order('date', { ascending: false }).limit(40),
-      ])
-      const rows = (idx ?? []) as IndexRow[]
-      if (rows.length) {
-        setSeries(rows.map(r => ({ time: r.date, value: r.isx60 })))
-        setIndex(rows[rows.length - 1])
-        setPrevIsx(rows.length > 1 ? rows[rows.length - 2].isx60 : rows[rows.length - 1].isx60)
-      }
-      if (br?.[0]) setBreadth(br[0] as Breadth)
-      if (ff?.length) {
-        const latest = (ff as any[])[0].date
-        setFlow((ff as any[]).filter(r => r.date === latest).map(r => ({ ticker: r.ticker, side: r.side, value: r.value })))
+      try {
+        const { createClient } = await import('@/lib/supabase/client')
+        const sb = createClient()
+        const since = new Date(Date.now() - 90 * 86400_000).toISOString().slice(0, 10)
+
+        const [{ data: idx }, { data: ff }] = await Promise.all([
+          sb.from('daily_index')
+            .select('date,isx60,total_value,total_volume,total_trades')
+            .not('isx60', 'is', null).gte('date', since).order('date'),
+          sb.from('foreign_flow_company_daily')
+            .select('date,side,value').order('date', { ascending: false }).limit(400),
+        ])
+
+        const rows = (idx ?? []) as IndexRow[]
+        if (rows.length) setSeries(rows)
+
+        if (ff?.length) {
+          const latest = (ff as { date: string }[])[0].date
+          const today = (ff as { date: string; side: string; value: number }[]).filter(r => r.date === latest)
+          setFlow({
+            buy: today.filter(r => r.side === 'buy').reduce((s, r) => s + (r.value ?? 0), 0),
+            sell: today.filter(r => r.side === 'sell').reduce((s, r) => s + (r.value ?? 0), 0),
+            date: latest,
+          })
+        }
+
+        // 7-session close history per ticker for the table's 7D column.
+        const sparkSince = new Date(Date.now() - 21 * 86400_000).toISOString().slice(0, 10)
+        const { data: hist } = await sb.from('daily_prices')
+          .select('ticker,date,close').gte('date', sparkSince).order('date')
+        if (hist?.length) {
+          const by: Record<string, number[]> = {}
+          for (const r of hist as { ticker: string; close: number }[]) {
+            if (r.close == null) continue
+            ;(by[r.ticker] ??= []).push(r.close)
+          }
+          for (const k of Object.keys(by)) by[k] = by[k].slice(-7)
+          setSparks(by)
+        }
+      } catch {
+        /* index/flow are enhancements — the page still works without them */
       }
     })()
   }, [])
 
-  // TTM P/E — heavy fundamentals query, below the fold. Defer to browser idle
-  // so it never competes with first paint / the above-the-fold data.
-  useEffect(() => {
-    if (!companies.length) return
-    const run = async () => {
-      const { createClient } = await import('@/lib/supabase/client')
-      const { fetchTtmPe } = await import('@/lib/fundamentals')
-      const prices: Record<string, number> = {}
-      for (const c of companies) if (c.close > 0) prices[c.sym] = c.close
-      if (!Object.keys(prices).length) return
-      const res = await fetchTtmPe(createClient(), prices)
-      const m: Record<string, number> = {}
-      for (const [s, r] of Object.entries(res)) m[s] = r.pe
-      setPeMap(m)
-    }
-    const ric = (window as any).requestIdleCallback as
-      | ((cb: () => void, opts?: { timeout: number }) => number) | undefined
-    const id = ric ? ric(run, { timeout: 3000 }) : window.setTimeout(run, 400)
-    return () => {
-      const cancel = (window as any).cancelIdleCallback as ((id: number) => void) | undefined
-      if (ric && cancel) cancel(id); else clearTimeout(id)
-    }
-  }, [companies])
+  const latest = series.length ? series[series.length - 1] : null
+  const prev = series.length > 1 ? series[series.length - 2] : null
+  const isxChange = latest && prev ? latest.isx60 - prev.isx60 : 0
+  const isxPct = latest && prev && prev.isx60 ? (isxChange / prev.isx60) * 100 : 0
+  const hasTradingData = Boolean(latest)
 
+  const chart = useMemo(() => buildIndexPath(series.slice(-45).map(r => r.isx60)), [series])
+  const chartRows = useMemo(() => series.slice(-45), [series])
+
+  // Only companies that actually traded in the latest session drive "today" widgets.
   const active = useMemo(() => companies.filter(c => c.close > 0), [companies])
-  const coBy   = useMemo(() => new Map(active.map(c => [c.sym, c])), [active])
+  const traded = useMemo(() => active.filter(c => !c.stale), [active])
 
-  const isxChange = index && prevIsx ? ((index.isx60 - prevIsx) / prevIsx) * 100 : 0
-  const isxUp = isxChange >= 0
+  const stats = useMemo(() => {
+    if (!latest) return []
+    const trend = (key: keyof IndexRow) =>
+      series.slice(-7).map(r => Number(r[key] ?? 0)).filter(n => Number.isFinite(n))
+    const pct = (key: keyof IndexRow) => {
+      const now = Number(latest[key] ?? 0), before = Number(prev?.[key] ?? 0)
+      return before ? ((now - before) / before) * 100 : 0
+    }
+    const fmtPct = (v: number) => `${v > 0 ? '+' : ''}${v.toFixed(1)}%`
+    return [
+      { label: 'قيمة التداول', value: money.format(latest.total_value ?? 0), unit: 'IQD', change: fmtPct(pct('total_value')), icon: 'coin', trend: trend('total_value') },
+      { label: 'حجم التداول', value: money.format(latest.total_volume ?? 0), unit: 'سهم', change: fmtPct(pct('total_volume')), icon: 'bars', trend: trend('total_volume') },
+      { label: 'الصفقات', value: nf.format(latest.total_trades ?? 0), unit: 'صفقة', change: fmtPct(pct('total_trades')), icon: 'swap', trend: trend('total_trades') },
+    ]
+  }, [latest, prev, series])
 
-  const movers = useMemo(() => {
-    const today = active.filter(c => !c.stale)  // today's session only
-    if (moversTab === 'gainers') return [...today].filter(c => c.pct > 0).sort((a, b) => b.pct - a.pct).slice(0, 6)
-    if (moversTab === 'losers')  return [...today].filter(c => c.pct < 0).sort((a, b) => a.pct - b.pct).slice(0, 6)
-    return [...today].sort((a, b) => (b.vol ?? 0) - (a.vol ?? 0)).slice(0, 6)
-  }, [active, moversTab])
+  // Sector performance: value-weighted average change across today's traded names.
+  const sectorData = useMemo<SectorDatum[]>(() => {
+    const acc = new Map<string, { wsum: number; w: number; value: number }>()
+    for (const c of traded) {
+      const ar = SECTOR_AR.get(c.sec)
+      if (!ar) continue
+      const weight = liveMcap(c) || 1
+      const e = acc.get(ar) ?? { wsum: 0, w: 0, value: 0 }
+      e.wsum += c.pct * weight
+      e.w += weight
+      e.value += (c.vol ?? 0)
+      acc.set(ar, e)
+    }
+    return Array.from(acc.entries())
+      .map(([name, e]) => ({ name, change: e.w ? e.wsum / e.w : 0, value: e.value }))
+      .filter(s => Number.isFinite(s.change))
+  }, [traded])
 
-  // live market cap (IQD): close × shares when known, else static fallback
-  const liveMcap = (c: Company) => (c.shares && c.close > 0 ? c.close * c.shares : (c.mcap || 0) * 1e6)
-  const sortVal = (c: Company, k: typeof sortKey) =>
-    k === 'price' ? c.close : k === 'change' ? c.pct : k === 'volume' ? (c.vol ?? 0) : liveMcap(c)
-  const topCompanies = useMemo(
-    () => [...active].sort((a, b) => {
-      const d = sortVal(a, sortKey) - sortVal(b, sortKey)
-      return sortDir === 'desc' ? -d : d
-    }).slice(0, 25),
-    [active, sortKey, sortDir],
-  )
-  const toggleSort = (k: typeof sortKey) => {
-    if (sortKey === k) setSortDir(d => (d === 'desc' ? 'asc' : 'desc'))
-    else { setSortKey(k); setSortDir('desc') }
+  const topMovers = useMemo(() => ([
+    { title: 'أعلى الرابحين', items: [...traded].filter(c => c.pct > 0).sort((a, b) => b.pct - a.pct).slice(0, 3), metric: 'change' as const },
+    { title: 'أعلى الخاسرين', items: [...traded].filter(c => c.pct < 0).sort((a, b) => a.pct - b.pct).slice(0, 3), metric: 'change' as const },
+    { title: 'الأنشط', items: [...traded].sort((a, b) => (b.vol ?? 0) - (a.vol ?? 0)).slice(0, 3), metric: 'volume' as const },
+  ]), [traded])
+
+  const sortedCompanies = useMemo(() => {
+    const val = (c: Company) =>
+      sortKey === 'price' ? c.close
+      : sortKey === 'change' ? c.pct
+      : sortKey === 'volume' ? (c.vol ?? 0)
+      : sortKey === 'value' ? (c.vol ?? 0)
+      : liveMcap(c)
+    return [...active].sort((a, b) => (sortDir === 'asc' ? val(a) - val(b) : val(b) - val(a))).slice(0, 25)
+  }, [active, sortKey, sortDir])
+
+  function sortBy(key: SortKey) {
+    if (key === sortKey) { setSortDir(d => (d === 'asc' ? 'desc' : 'asc')); return }
+    setSortKey(key); setSortDir('desc')
   }
 
-  const cheap = useMemo(() => {
-    return Object.entries(peMap).filter(([, pe]) => pe > 0).sort((a, b) => a[1] - b[1]).slice(0, 5)
-      .map(([sym, pe]) => ({ co: coBy.get(sym), pe })).filter(x => x.co) as { co: Company; pe: number }[]
-  }, [peMap, coBy])
+  function updateChartPoint(event: PointerEvent<HTMLDivElement>) {
+    if (!chart.points.length) return
+    const rect = event.currentTarget.getBoundingClientRect()
+    // RTL: the visual right edge is the start of the timeline.
+    const ratio = (rect.right - event.clientX) / rect.width
+    const chartX = Math.max(0, Math.min(760, ratio * 760))
+    let bestIdx = 0
+    chart.points.forEach((p, i) => {
+      if (Math.abs(p.x - chartX) < Math.abs(chart.points[bestIdx].x - chartX)) bestIdx = i
+    })
+    const row = chartRows[bestIdx]
+    if (!row) return
+    setActivePoint({
+      x: chart.points[bestIdx].x,
+      y: chart.points[bestIdx].y,
+      value: row.isx60.toFixed(2),
+      time: row.date,
+    })
+  }
 
-  const foreign = useMemo(() => {
-    const net = new Map<string, number>()
-    for (const f of flow) net.set(f.ticker, (net.get(f.ticker) ?? 0) + (f.side === 'buy' ? f.value : -f.value))
-    return Array.from(net.entries()).map(([ticker, v]) => ({ ticker, v })).sort((a, b) => Math.abs(b.v) - Math.abs(a.v)).slice(0, 5)
-  }, [flow])
-
-  const sectorPerf = useMemo(() => {
-    const m = new Map<string, { sum: number; n: number }>()
-    for (const c of active) { if (c.stale) continue; const e = m.get(c.sec) ?? { sum: 0, n: 0 }; e.sum += c.pct; e.n++; m.set(c.sec, e) }
-    return Array.from(m.entries()).map(([sec, e]) => ({ sec, avg: e.sum / e.n })).filter(x => x.sec).sort((a, b) => b.avg - a.avg)
-  }, [active])
-
-  // portfolio snapshot (today's move)
-  const port = useMemo(() => {
-    if (!lots.length) return null
-    const prices: Record<string, number> = {}
-    for (const c of active) prices[c.sym] = c.close
-    const holdings = aggregate(lots, prices)
-    if (!holdings.length) return null
-    const t = totals(holdings)
-    let today = 0
-    for (const h of holdings) { const c = coBy.get(h.sym); if (c) today += h.qty * (c.change ?? 0) }
-    const todayPct = t.value - today > 0 ? (today / (t.value - today)) * 100 : 0
-    return { value: t.value, pl: t.pl, plPct: t.plPct, today, todayPct, n: holdings.length }
-  }, [lots, active, coBy])
-
-  const updated = index?.date ? index.date.split('-').reverse().join('/') : '·'
+  const dayLow = chartRows.length ? Math.min(...chartRows.map(r => r.isx60)) : 0
+  const dayHigh = chartRows.length ? Math.max(...chartRows.map(r => r.isx60)) : 0
+  const rangePos = dayHigh > dayLow && latest ? ((latest.isx60 - dayLow) / (dayHigh - dayLow)) * 100 : 50
 
   return (
-    <div style={{ maxWidth: 1180, margin: '0 auto', padding: '16px 16px 80px' }}>
-
-      {/* ── Hero: index + breadth + totals ── */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1.5fr) minmax(0,1fr)', gap: 14, marginBottom: 14 }} className="home-hero">
-        <Link href="/charts" className="home-card-link" style={{ textDecoration: 'none', display: 'block' }}>
-          <Card style={{ padding: 18 }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
-              <span style={{ fontSize: 12, color: 'var(--ink3)', fontWeight: 700 }}>مؤشر السوق العام ISX60</span>
-              <span style={{ fontSize: 11, color: 'var(--ink4)', fontWeight: 600 }}>آخر تحديث {updated}</span>
+    <main className="terminal-shell">
+      {/* ── Hero: ISX60 + foreign flow ───────────────────────────────────── */}
+      <section className="hero-grid" aria-labelledby="isx60-title">
+        <div className="index-panel">
+          <div className="section-kicker">مؤشر السوق العراقي</div>
+          <div className="index-head">
+            <div>
+              <h1 id="isx60-title">
+                <bdi>ISX60</bdi>
+                <span>مؤشر السوق العراقي</span>
+              </h1>
+              <p>مؤشر بورصة العراق للأوراق المالية بحسب نشرات التداول اليومية الرسمية.</p>
             </div>
-            <div style={{ display: 'flex', alignItems: 'flex-end', gap: 10, marginTop: 6 }}>
-              <span style={{ fontSize: 30, fontWeight: 800, fontFamily: 'var(--font-mono)', color: 'var(--ink)', lineHeight: 1 }}>{index ? index.isx60.toFixed(2) : '·'}</span>
-              <span style={{ fontSize: 14, fontWeight: 700, color: tone(isxChange) }}>{isxUp ? '▲' : '▼'} {fmtPct(isxChange)}</span>
-            </div>
-            {series.length > 1 && <Sparkline data={series} up={isxUp} />}
-          </Card>
-        </Link>
+            {loading && !hasTradingData ? (
+              <div className="index-value skeleton-block" aria-label="جاري تحميل المؤشر" />
+            ) : failed ? (
+              <div className="empty-state">
+                <strong>تعذّر تحميل البيانات</strong>
+                <span>يرجى تحديث الصفحة.</span>
+              </div>
+            ) : hasTradingData ? (
+              <div className="index-value">
+                <bdi className="num-roll">{latest!.isx60.toFixed(2)}</bdi>
+                <span className={isxChange >= 0 ? 'gain' : 'loss'} dir="ltr">
+                  <bdi className="num-roll">{isxChange >= 0 ? '+' : ''}{isxChange.toFixed(2)}</bdi>
+                  {' / '}
+                  <bdi className="num-roll">{isxPct >= 0 ? '+' : ''}{isxPct.toFixed(2)}%</bdi>
+                </span>
+              </div>
+            ) : (
+              <div className="empty-state">
+                <strong>لم يبدأ التداول اليوم</strong>
+                <span>سيظهر مؤشر <bdi>ISX60</bdi> عند افتتاح الجلسة.</span>
+              </div>
+            )}
+          </div>
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-          <Link href="/pulse" className="home-card-link" style={{ textDecoration: 'none', display: 'block' }}>
-            <Card style={{ padding: 14 }}>
-              <div style={{ fontSize: 11.5, color: 'var(--ink3)', fontWeight: 700, marginBottom: 8 }}>نشاط السوق اليوم</div>
-              {breadth ? (
-                <>
-                  <div style={{ display: 'flex', height: 8, borderRadius: 4, overflow: 'hidden' }}>
-                    <div style={{ flex: Math.max(breadth.advancers, 1), background: 'var(--up)' }} />
-                    <div style={{ flex: Math.max(breadth.unchanged, 1), background: 'var(--surf3)' }} />
-                    <div style={{ flex: Math.max(breadth.decliners, 1), background: 'var(--dn)' }} />
-                  </div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11.5, marginTop: 6, fontFamily: 'var(--font-mono)', fontWeight: 700 }}>
-                    <span style={{ color: 'var(--up)' }}>{breadth.advancers} ▲</span>
-                    <span style={{ color: 'var(--ink4)' }}>{breadth.unchanged} ·</span>
-                    <span style={{ color: 'var(--dn)' }}>{breadth.decliners} ▼</span>
-                  </div>
-                </>
-              ) : <div className="skeleton" style={{ height: 28 }} />}
-            </Card>
+          {/* Whole chart drills through to the full index/statistics page. */}
+          <Link href="/statistics" aria-label="عرض إحصائيات السوق الكاملة" className="index-chart-link">
+            <div
+              className={loading && !hasTradingData ? 'chart-wrap chart-loading' : 'chart-wrap'}
+              aria-label="رسم مؤشر ISX60"
+              onPointerDown={updateChartPoint}
+              onPointerMove={updateChartPoint}
+              onPointerLeave={() => setActivePoint(null)}
+            >
+              <svg className="index-chart" viewBox="0 0 760 260" preserveAspectRatio="none">
+                <defs>
+                  <linearGradient id="indexFill" x1="0" x2="0" y1="0" y2="1">
+                    <stop offset="0%" stopColor="var(--accent)" stopOpacity="0.24" />
+                    <stop offset="60%" stopColor="var(--accent)" stopOpacity="0.1" />
+                    <stop offset="100%" stopColor="var(--surface)" stopOpacity="0" />
+                  </linearGradient>
+                </defs>
+                {[42, 70, 98, 126, 154, 182, 210].map(y => (
+                  <line className="grid-line" key={y} x1="0" x2="760" y1={y} y2={y} />
+                ))}
+                {[95, 190, 285, 380, 475, 570, 665].map(x => (
+                  <line className="grid-line vertical" key={x} x1={x} x2={x} y1="0" y2="260" />
+                ))}
+                {chart.line ? <path className="index-area" d={chart.area} /> : null}
+                {chart.line ? <path className="index-shadowline" d={chart.line} /> : null}
+                {chart.line && hasTradingData ? <path className="index-line" d={chart.line} /> : null}
+                {chart.points.length ? (
+                  <circle
+                    className="current-marker"
+                    cx={chart.points[chart.points.length - 1].x}
+                    cy={chart.points[chart.points.length - 1].y}
+                    r="7"
+                  />
+                ) : null}
+                {activePoint ? (
+                  <g className="crosshair-layer">
+                    <line className="crosshair-line" x1={activePoint.x} x2={activePoint.x} y1="0" y2="260" />
+                    <circle className="crosshair-dot" cx={activePoint.x} cy={activePoint.y} r="4" />
+                  </g>
+                ) : null}
+              </svg>
+              {activePoint ? (
+                <div
+                  className="chart-tooltip"
+                  style={{
+                    insetInlineStart: `${Math.min(86, Math.max(10, 100 - (activePoint.x / 760) * 100))}%`,
+                    insetBlockStart: `${Math.min(76, Math.max(10, (activePoint.y / 260) * 100))}%`,
+                  }}
+                >
+                  <bdi>{activePoint.value}</bdi>
+                  <span>{activePoint.time}</span>
+                </div>
+              ) : null}
+            </div>
           </Link>
-          <div style={{ display: 'flex', gap: 10 }}>
-            {[
-              { l: 'قيمة التداول', v: fmtBig(index?.total_value) },
-              { l: 'حجم التداول', v: fmtBig(index?.total_volume) },
-              { l: 'الصفقات', v: index?.total_trades ? Math.round(index.total_trades).toLocaleString('en') : '·' },
-            ].map(s => (
-              <Link key={s.l} href="/pulse" className="home-card-link" style={{ textDecoration: 'none', display: 'block', flex: 1 }}>
-                <Card style={{ padding: '10px 12px' }}>
-                  <div style={{ fontSize: 10, color: 'var(--ink3)', fontWeight: 700 }}>{s.l}</div>
-                  <div style={{ fontSize: 14, fontWeight: 800, fontFamily: 'var(--font-mono)', color: 'var(--ink)', marginTop: 3 }}>{s.v}</div>
-                </Card>
-              </Link>
+
+          {hasTradingData ? (
+            <div className="range">
+              <span>أدنى الفترة <bdi>{dayLow.toFixed(2)}</bdi></span>
+              <div className="range-track"><span style={{ insetInlineStart: `${rangePos}%` }} /></div>
+              <span>أعلى الفترة <bdi>{dayHigh.toFixed(2)}</bdi></span>
+            </div>
+          ) : null}
+        </div>
+
+        {/* Gauge drills through to the foreign-flow detail page. */}
+        <Link href="/statistics/foreign-flow" aria-label="تفاصيل حركة المستثمرين الأجانب" className="flow-gauge-link">
+          <ForeignFlowGauge
+            foreignBuy={flow?.buy ?? 0}
+            foreignSell={flow?.sell ?? 0}
+            netFlow={(flow?.buy ?? 0) - (flow?.sell ?? 0)}
+            insightText={
+              flow
+                ? `صافي ${((flow.buy - flow.sell) >= 0 ? 'شراء' : 'بيع')} أجنبي في جلسة ${flow.date}.`
+                : 'لا تتوفر بيانات تدفق أجنبي للجلسة الأخيرة.'
+            }
+            sessionDate={flow?.date ?? ''}
+            isLoading={loading && !flow}
+          />
+        </Link>
+      </section>
+
+      {/* ── Session activity ─────────────────────────────────────────────── */}
+      <section className="stats-strip" aria-labelledby="market-activity">
+        <div className="stats-title">
+          <div className="section-kicker">جلسة اليوم</div>
+          <h2 id="market-activity">نشاط السوق اليوم</h2>
+        </div>
+        {stats.length ? stats.map(({ label, value, unit, change, icon, trend }) => (
+          <article key={label} className="stat-card">
+            <span className="stat-label"><StatIcon type={icon} />{label}</span>
+            <strong><bdi className="num-roll">{value}</bdi> <span>{unit}</span></strong>
+            <em className={change.startsWith('-') ? 'loss' : 'gain'}><bdi className="num-roll">{change}</bdi></em>
+            {trend.length > 1 ? <Sparkline values={trend} positive={!change.startsWith('-')} compact /> : null}
+          </article>
+        )) : (
+          <div className="empty-state">
+            <strong>لا توجد بيانات جلسة</strong>
+            <span>تظهر أرقام النشاط بعد نشر نشرة التداول.</span>
+          </div>
+        )}
+      </section>
+
+      <SectorPerformanceChipRow sectors={sectorData} />
+
+      {/* ── Companies ────────────────────────────────────────────────────── */}
+      <section className="companies-section" aria-labelledby="companies-title">
+        <div className="section-heading">
+          <div>
+            <div className="section-kicker">لوحة الشركات</div>
+            <h2 id="companies-title">الشركات المدرجة</h2>
+          </div>
+          <Link className="text-link" href="/market">عرض كل الشركات ←</Link>
+        </div>
+
+        <div className="movers-widget" aria-label="الأكثر حركة">
+          <div className="section-kicker">الأكثر حركة</div>
+          <div className="movers-grid">
+            {topMovers.map(group => (
+              <article key={group.title}>
+                <h3>{group.title}</h3>
+                {group.items.length ? group.items.map(company => (
+                  <Link className="mover-row" href={`/c/${company.sym}`} key={`${group.title}-${company.sym}`}>
+                    <span>
+                      {company.ar || company.en || company.sym}
+                      <small><bdi>{company.sym}</bdi></small>
+                    </span>
+                    <bdi className={`${company.pct >= 0 ? 'gain' : 'loss'} num-roll`}>
+                      {group.metric === 'volume'
+                        ? compact.format(company.vol ?? 0)
+                        : `${company.pct > 0 ? '+' : ''}${company.pct.toFixed(2)}%`}
+                    </bdi>
+                  </Link>
+                )) : <p className="mover-empty">لا توجد حركة في الجلسة.</p>}
+              </article>
             ))}
           </div>
         </div>
-      </div>
 
-      {/* ── Portfolio band ── */}
-      {port ? (
-        <Link href="/portfolio" style={{ textDecoration: 'none' }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 10, background: 'var(--brand-soft)', border: '1px solid var(--line)', borderRadius: 'var(--r-lg)', padding: '12px 16px', marginBottom: 14 }}>
-            <div style={{ display: 'flex', gap: 22, flexWrap: 'wrap' }}>
-              <div><div style={{ fontSize: 10.5, color: 'var(--ink3)', fontWeight: 700 }}>قيمة محفظتي</div><div style={{ fontSize: 16, fontWeight: 800, fontFamily: 'var(--font-mono)', color: 'var(--ink)' }}>{fmtIQD(port.value)} د.ع</div></div>
-              <div><div style={{ fontSize: 10.5, color: 'var(--ink3)', fontWeight: 700 }}>تغيّر اليوم</div><div style={{ fontSize: 16, fontWeight: 800, fontFamily: 'var(--font-mono)', color: tone(port.today) }}>{port.today >= 0 ? '+' : '−'}{fmtIQD(Math.abs(port.today))}</div></div>
-              <div><div style={{ fontSize: 10.5, color: 'var(--ink3)', fontWeight: 700 }}>إجمالي العائد</div><div style={{ fontSize: 16, fontWeight: 800, fontFamily: 'var(--font-mono)', color: tone(port.pl) }}>{fmtPct(port.plPct)}</div></div>
-            </div>
-            <span style={{ fontSize: 12, color: 'var(--brand)', fontWeight: 700 }}>إدارة المحفظة ←</span>
-          </div>
-        </Link>
-      ) : (
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 10, background: 'var(--brand-soft)', border: '1px solid var(--line)', borderRadius: 'var(--r-lg)', padding: '12px 16px', marginBottom: 14 }}>
-          <div>
-            <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--ink)' }}>سوي حساب وتابع استثماراتك بدقة</div>
-            <div style={{ fontSize: 11.5, color: 'var(--ink3)', fontWeight: 600 }}>كل شي تحتاجه كمستثمر بالسوق العراقي بمكان واحد</div>
-          </div>
-          <div style={{ display: 'flex', gap: 8 }}>
-            <Link href="/portfolio" style={{ fontSize: 12.5, fontWeight: 700, background: 'var(--brand)', color: '#fff', padding: '8px 14px', borderRadius: 'var(--r-md)', textDecoration: 'none' }}>أنشئ محفظتك</Link>
-            {!user && <button onClick={() => openAuth('signin')} style={{ fontSize: 12.5, fontWeight: 700, background: 'transparent', color: 'var(--brand)', border: '1px solid var(--brand)', padding: '8px 14px', borderRadius: 'var(--r-md)', cursor: 'pointer', fontFamily: 'inherit' }}>دخول</button>}
-          </div>
-        </div>
-      )}
-
-      {/* ── Movers + Foreign flow ── */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1.3fr) minmax(0,1fr)', gap: 14, marginBottom: 14 }} className="home-2col">
-        <Card>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
-            <h2 style={{ fontSize: 14, fontWeight: 800, margin: 0, color: 'var(--ink)' }}>الأكثر حركة</h2>
-            <div style={{ display: 'flex', gap: 4 }}>
-              {([['gainers', 'أعلى الرابحين', '▲'], ['losers', 'أعلى الخاسرين', '▼'], ['active', 'الأنشط', '']] as const).map(([id, lbl, arrow]) => (
-                <button key={id} onClick={() => setMoversTab(id)} style={{ fontSize: 11.5, fontWeight: 700, padding: '4px 10px', borderRadius: 'var(--r-sm)', border: 'none', cursor: 'pointer', fontFamily: 'inherit', display: 'inline-flex', alignItems: 'center', gap: 4, background: moversTab === id ? 'var(--brand)' : 'transparent', color: moversTab === id ? '#fff' : 'var(--ink3)' }}>
-                  {arrow && <span style={{ fontSize: 8 }}>{arrow}</span>}{lbl}
-                </button>
-              ))}
-            </div>
-          </div>
-          {active.length ? movers.map(co => (
-            <CoRow key={co.sym} co={co} right={
-              <div style={{ textAlign: 'end' }}>
-                <div style={{ fontSize: 12.5, fontWeight: 700, fontFamily: 'var(--font-mono)', color: 'var(--ink)' }}>{co.close.toFixed(2)}</div>
-                <div style={{ fontSize: 11, fontWeight: 700, color: tone(co.pct) }}>{moversTab === 'active' ? fmtBig(co.vol) : fmtPct(co.pct)}</div>
-              </div>
-            } />
-          )) : <div className="skeleton" style={{ height: 200, marginTop: 8 }} />}
-        </Card>
-
-        <Card>
-          <SectionTitle title="حركة المستثمرين الأجانب" href="/statistics/foreign-flow" action="التفاصيل" />
-          {foreign.length ? foreign.map(f => {
-            const co = coBy.get(f.ticker)
-            return (
-              <Link key={f.ticker} href={`/c/${f.ticker}`} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid var(--line)', textDecoration: 'none' }}>
-                <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <MiniLogo sym={f.ticker} logo={co?.logo} size={22} />
-                  <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--ink)' }}>{co?.ar || f.ticker}</span>
-                </span>
-                <span style={{ fontFamily: 'var(--font-mono)', fontSize: 12, fontWeight: 700, color: tone(f.v) }}>{f.v >= 0 ? '+' : '−'}{fmtBig(Math.abs(f.v))}</span>
-              </Link>
-            )
-          }) : <div style={{ fontSize: 12, color: 'var(--ink4)', fontWeight: 600, padding: '20px 0', textAlign: 'center' }}>لا توجد بيانات لليوم</div>}
-        </Card>
-      </div>
-
-      {/* ── Sectors + Value (P/E) ── */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) minmax(0,1fr)', gap: 14, marginBottom: 14 }} className="home-2col">
-        <Card>
-          <SectionTitle title="أداء القطاعات" href="/heatmap" action="الخريطة الحرارية" />
-          {sectorPerf.length ? sectorPerf.slice(0, 6).map(s => (
-            <div key={s.sec} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '6px 0' }}>
-              <span style={{ fontSize: 12, color: 'var(--ink2)', fontWeight: 600, width: 90, flexShrink: 0 }}>{sectorAr(s.sec)}</span>
-              <div style={{ flex: 1, height: 6, background: 'var(--surf3)', borderRadius: 3, position: 'relative', overflow: 'hidden' }}>
-                <div style={{ position: 'absolute', insetInlineStart: '50%', top: 0, bottom: 0, width: `${Math.min(Math.abs(s.avg) * 8, 50)}%`, transform: s.avg >= 0 ? 'none' : 'translateX(-100%)', background: tone(s.avg) }} />
-              </div>
-              <span style={{ fontSize: 11.5, fontWeight: 700, fontFamily: 'var(--font-mono)', color: tone(s.avg), width: 52, textAlign: 'end' }}>{fmtPct(s.avg)}</span>
-            </div>
-          )) : <div className="skeleton" style={{ height: 180 }} />}
-        </Card>
-
-        <Card>
-          <SectionTitle title="الشركات الأرخص سعراً مقابل الربح" href="/screener" action="الفارز" />
-          <div style={{ fontSize: 10.5, color: 'var(--ink4)', fontWeight: 600, marginTop: -6, marginBottom: 4 }}>مكرر الربحية (TTM)</div>
-          {cheap.length ? cheap.map(({ co, pe }) => (
-            <CoRow key={co.sym} co={co} right={<span style={{ fontSize: 13, fontWeight: 800, fontFamily: 'var(--font-mono)', color: 'var(--ink)' }}>{pe >= 100 ? Math.round(pe) : pe.toFixed(1)}×</span>} />
-          )) : <div className="skeleton" style={{ height: 180 }} />}
-        </Card>
-      </div>
-
-      {/* ── News ── */}
-      {news.length > 0 && (
-        <Card>
-          <SectionTitle title="أخبار السوق" href="/news" />
-          {news.map(n => (
-            <Link key={n.slug} href={`/news/${n.slug}`} style={{ display: 'flex', gap: 10, padding: '9px 0', borderBottom: '1px solid var(--line)', textDecoration: 'none' }}>
-              <span style={{ fontSize: 11, color: 'var(--ink4)', fontFamily: 'var(--font-mono)', flexShrink: 0, width: 64 }}>{n.date.slice(0, 10).split('-').reverse().slice(0, 2).join('/')}</span>
-              <span style={{ fontSize: 12.5, color: 'var(--ink2)', fontWeight: 600, lineHeight: 1.5 }}>{n.title}</span>
-            </Link>
-          ))}
-        </Card>
-      )}
-
-      {/* ── Company list (top 25 by market cap) ── */}
-      <Card style={{ marginTop: 14, padding: 0, overflow: 'hidden' }}>
-        <div style={{ padding: '14px 16px 6px' }}>
-          <SectionTitle title="الشركات المدرجة" href="/market" action="عرض كل الشركات" />
-        </div>
-        {topCompanies.length ? (
-          <table className="home-table" style={{ width: '100%', borderCollapse: 'collapse' }}>
+        <div className="table-wrap">
+          <table>
             <thead>
-              <tr style={{ fontSize: 11, color: 'var(--ink3)', textAlign: 'start' }}>
-                <th style={{ textAlign: 'start', fontWeight: 700, padding: '6px 16px' }}>الشركة</th>
-                {([['price', 'السعر', '8px', false], ['change', 'نسبة التغير', '8px', false], ['volume', 'حجم التداول', '8px', true], ['mcap', 'القيمة السوقية', '16px', true]] as const).map(([key, lbl, padX, mob]) => {
-                  const on = sortKey === key
-                  return (
-                    <th key={key} className={mob ? 'mobcol-hide' : undefined} onClick={() => toggleSort(key)}
-                      style={{ textAlign: 'end', fontWeight: 700, padding: `6px ${padX}`, cursor: 'pointer', userSelect: 'none', color: on ? 'var(--brand)' : undefined, whiteSpace: 'nowrap' }}>
-                      {lbl}<span style={{ fontSize: 8, marginInlineStart: 3, opacity: on ? 1 : 0.4 }}>{on ? (sortDir === 'desc' ? '▼' : '▲') : '▼'}</span>
-                    </th>
-                  )
-                })}
+              <tr>
+                <th><button type="button" onClick={() => sortBy('mcap')}>#</button></th>
+                <th>الشركة</th>
+                <th><button type="button" onClick={() => sortBy('price')}>آخر سعر</button></th>
+                <th><button type="button" onClick={() => sortBy('change')}>التغير</button></th>
+                <th><button type="button" onClick={() => sortBy('volume')}>الحجم</button></th>
+                <th><button type="button" onClick={() => sortBy('mcap')}>القيمة السوقية</button></th>
+                <th><bdi>7D</bdi></th>
               </tr>
             </thead>
             <tbody>
-              {topCompanies.map(co => (
-                <tr key={co.sym} style={{ borderTop: '1px solid var(--line)' }}>
-                  <td style={{ padding: '8px 16px' }}>
-                    <Link href={`/c/${co.sym}`} style={{ display: 'flex', alignItems: 'center', gap: 9, textDecoration: 'none', minWidth: 0 }}>
-                      <MiniLogo sym={co.sym} logo={co.logo} size={22} />
-                      <span style={{ minWidth: 0 }} className="home-col-co">
-                        <span style={{ display: 'block', fontSize: 12.5, fontWeight: 700, color: 'var(--ink)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{co.ar || co.en || co.sym}</span>
-                        <span style={{ display: 'block', fontSize: 10, color: 'var(--ink4)', fontWeight: 600, fontFamily: 'var(--font-mono)' }}>{co.sym}</span>
+              {sortedCompanies.map((company, i) => (
+                <tr key={company.sym} className="row-link">
+                  <td data-label="#"><bdi className="num-roll">{i + 1}</bdi></td>
+                  <td data-label="الشركة">
+                    <Link className="company-cell" href={`/c/${company.sym}`}>
+                      <span className="logo-chip">{company.sym.slice(0, 1)}</span>
+                      <span>
+                        <strong>{company.ar || company.en || company.sym}</strong>
+                        <small>{SECTOR_AR.get(company.sec) ?? company.sec} · <bdi>{company.sym}</bdi></small>
                       </span>
                     </Link>
                   </td>
-                  <td style={{ textAlign: 'end', padding: '8px', fontSize: 12.5, fontWeight: 700, fontFamily: 'var(--font-mono)', color: 'var(--ink)' }}>{co.close.toFixed(2)}</td>
-                  <td style={{ textAlign: 'end', padding: '8px', fontSize: 12, fontWeight: 700, fontFamily: 'var(--font-mono)', color: tone(co.pct) }}>{fmtPct(co.pct)}</td>
-                  <td className="mobcol-hide" style={{ textAlign: 'end', padding: '8px', fontSize: 12, fontWeight: 600, fontFamily: 'var(--font-mono)', color: 'var(--ink2)' }}>{fmtBig(co.vol)}</td>
-                  <td className="mobcol-hide" style={{ textAlign: 'end', padding: '8px 16px', fontSize: 12, fontWeight: 600, fontFamily: 'var(--font-mono)', color: 'var(--ink2)' }}>{fmtMcap(liveMcap(co))}</td>
+                  <td data-label="آخر سعر"><bdi className="num-roll">{priceFormat.format(company.close)} IQD</bdi></td>
+                  <td data-label="التغير" className={company.pct >= 0 ? 'gain' : 'loss'}>
+                    <bdi className="num-roll">{company.pct > 0 ? '+' : ''}{company.pct.toFixed(2)}%</bdi>
+                  </td>
+                  <td data-label="الحجم"><bdi className="num-roll">{compact.format(company.vol ?? 0)}</bdi></td>
+                  <td data-label="القيمة السوقية"><bdi className="num-roll">{compact.format(liveMcap(company))} IQD</bdi></td>
+                  <td data-label="7D">
+                    {sparks[company.sym]?.length > 1
+                      ? <Sparkline values={sparks[company.sym]} positive={company.pct >= 0} />
+                      : <span className="spark-empty" aria-label="لا يوجد سجل كافٍ">·</span>}
+                  </td>
                 </tr>
               ))}
+              {!sortedCompanies.length && !loading ? (
+                <tr><td colSpan={7}>
+                  <div className="empty-state">
+                    <strong>لا توجد شركات لعرضها</strong>
+                    <span>تظهر الشركات بعد توفر أسعار الجلسة.</span>
+                  </div>
+                </td></tr>
+              ) : null}
             </tbody>
           </table>
-        ) : <div className="skeleton" style={{ height: 300, margin: 16 }} />}
-        <Link href="/market" style={{ display: 'block', textAlign: 'center', padding: '12px', borderTop: '1px solid var(--line)', fontSize: 12.5, fontWeight: 700, color: 'var(--brand)', textDecoration: 'none' }}>
-          عرض جميع الشركات ←
-        </Link>
-      </Card>
+        </div>
+      </section>
 
-      <p style={{ fontSize: 11, color: 'var(--ink5)', fontWeight: 600, marginTop: 16, textAlign: 'center' }}>
-        البيانات من نشرات التداول الرسمية لبورصة العراق، تُحدَّث يومياً · القيمة السوقية والمكرر تقريبية
-      </p>
-    </div>
+      {/* ── Market news · existing editorial content, preserved ──────────── */}
+      {news.length > 0 && (
+        <section className="companies-section" aria-labelledby="home-news-title">
+          <div className="section-heading">
+            <div>
+              <div className="section-kicker">تغطية</div>
+              <h2 id="home-news-title">أخبار السوق</h2>
+            </div>
+            <Link className="text-link" href="/news">كل الأخبار ←</Link>
+          </div>
+          <div className="home-news-list">
+            {news.map(n => (
+              <Link key={n.slug} href={`/news/${n.slug}`} className="home-news-row">
+                <bdi className="home-news-date">
+                  {n.date.slice(0, 10).split('-').reverse().slice(0, 2).join('/')}
+                </bdi>
+                <span>{n.title}</span>
+              </Link>
+            ))}
+          </div>
+        </section>
+      )}
+    </main>
   )
 }
