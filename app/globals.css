@@ -6083,3 +6083,51 @@ button.pulse-tile.is-active .pulse-tile-label svg {
   font-size: 1.3rem;
   line-height: 1.1;
 }
+
+/* ── Company detail extras ───────────────────────────────────────────────── */
+
+.company-logo-placeholder.has-image {
+  object-fit: contain;
+  background: #fff;
+  padding: 3px;
+}
+
+.company-heading-identity h1 {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.company-tabs {
+  display: flex;
+  gap: 6px;
+}
+
+.company-tabs > span,
+.company-tabs > a {
+  padding: 8px 16px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  color: var(--text-secondary);
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.company-tabs > .is-active {
+  border-color: var(--nav-active);
+  background: var(--nav-active);
+  color: #fff;
+}
+
+.company-tabs > a:hover {
+  border-color: var(--nav-active);
+  color: var(--nav-active);
+}
+
+/* Keep the stat tiles readable when the grid gets narrow. */
+@media (max-width: 720px) {
+  .company-stat-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
