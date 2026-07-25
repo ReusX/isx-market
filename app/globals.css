@@ -1757,7 +1757,11 @@ h3 {
 .monthly-flow-chart {
   position: relative;
   display: grid;
-  grid-template-columns: repeat(9, minmax(0, 1fr));
+  /* One column per month, however many we have. The design hardcoded nine
+     because its mock data had nine; with real data any fixed count wraps the
+     extras onto a second row and halves every bar's height. */
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(0, 1fr);
   align-items: stretch;
   gap: 7px;
   block-size: 74px;
@@ -6569,4 +6573,18 @@ button.pulse-tile.is-active .pulse-tile-label svg {
   inset-inline: -2px;
   block-size: 2px;
   background: currentColor;
+}
+
+/* Ownership card · left column (donut + counts + link) inside .ownership-grid */
+.ownership-structure {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-inline-size: 0;
+}
+
+.statistics-empty {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 0.75rem;
 }
