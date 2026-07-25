@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useApp } from '@/context/AppContext'
 import { MarketToolTabs } from '@/components/design/MarketToolTabs'
 import { Badge, Card, DirectionalChange } from '@/components/design/ui'
+import { arDate } from '@/lib/date'
 import type { FxData } from '@/lib/rates'
 
 const fmt = (n: number, d = 2) => n.toLocaleString('en-US', { minimumFractionDigits: d, maximumFractionDigits: d })
@@ -64,7 +65,7 @@ export default function FxClient({ fx }: { fx: FxData | null }) {
           ) : null}
         </div>
         {fx.date ? (
-          <span className="market-tool-updated">{ar ? 'آخر تحديث' : 'Updated'}: {fx.date}</span>
+          <span className="market-tool-updated">{ar ? 'آخر تحديث' : 'Updated'}: {ar ? arDate(fx.date) : fx.date}</span>
         ) : null}
       </Card>
 

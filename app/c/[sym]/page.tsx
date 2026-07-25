@@ -8,6 +8,7 @@ import { useApp } from '@/context/AppContext'
 import { fetchLive, fetchCompanyMeta, mergeCompanies, fmtVol, fmtMcap } from '@/lib/market'
 import type { Company } from '@/types'
 import { DirectionalChange } from '@/components/design/ui'
+import { Range52Indicator } from '@/components/design/Range52Indicator'
 import PerformanceOverview from '@/components/company/PerformanceOverview'
 import EarningsTrends from '@/components/company/EarningsTrends'
 import CompanyStatistics from '@/components/company/CompanyStatistics'
@@ -57,6 +58,20 @@ export default function CompanyPage() {
   const [co, setCo]           = useState<Company | null>(null)
   const [loading, setLoading] = useState(true)
   const [pe, setPe]           = useState<number | null>(null)
+  const [range52, setRange52] = useState<{ low: number; high: number } | null>(null)
+
+  // 52-week range lives on company_metrics, not on the daily quote.
+  useEffect(() => {
+    ;(async () => {
+      try {
+        const { createClient } = await import('@/lib/supabase/client')
+        const { data } = await createClient()
+          .from('company_metrics').select('low_52w,high_52w').eq('ticker', sym).maybeSingle()
+        const low = data?.low_52w as number | null, high = data?.high_52w as number | null
+        if (low != null && high != null && high > low) setRange52({ low, high })
+      } catch { /* the range block simply does not render */ }
+    })()
+  }, [sym])
 
   useEffect(() => {
     Promise.all([fetchLive(), fetchCompanyMeta()])
@@ -143,6 +158,16 @@ export default function CompanyPage() {
           pe >= 100 ? Math.round(pe) + '×' : pe.toFixed(1) + '×',
         ) : null}
       </div>
+
+      {range52 ? (
+        <section className="app-card company-card company-range-card">
+          <div className="company-range-heading">
+            <span>{ar ? <>نطاق <bdi>52</bdi> أسبوعاً</> : <>Range · <bdi>52</bdi>w</>}</span>
+            <bdi>{co.close.toFixed(2)} IQD</bdi>
+          </div>
+          <Range52Indicator price={co.close} low={range52.low} high={range52.high} showValues />
+        </section>
+      ) : null}
 
       <nav className="company-tabs" aria-label={ar ? 'أقسام الشركة' : 'Company sections'}>
         <span className="is-active">{ar ? 'نظرة عامة' : 'Overview'}</span>

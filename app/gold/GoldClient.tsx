@@ -4,10 +4,13 @@ import { useMemo, useState } from 'react'
 import { useApp } from '@/context/AppContext'
 import { MarketToolTabs } from '@/components/design/MarketToolTabs'
 import { Badge, Card } from '@/components/design/ui'
+import { arDate } from '@/lib/date'
 import type { GoldData, FxData } from '@/lib/rates'
 
 const fmt = (n: number) => n.toLocaleString('en-US')
-const KARAT_AR: Record<number, string> = { 24: 'عيار ٢٤', 22: 'عيار ٢٢', 21: 'عيار ٢١', 18: 'عيار ١٨', 14: 'عيار ١٤' }
+
+// Latin digits, as the design uses and as every price on the page does.
+const KARAT_AR: Record<number, string> = { 24: 'عيار 24', 22: 'عيار 22', 21: 'عيار 21', 18: 'عيار 18', 14: 'عيار 14' }
 const KARAT_LABEL: Record<number, string> = { 24: 'الأنقى', 22: 'مجوهرات', 21: 'الأكثر تداولاً', 18: 'مرصّع', 14: 'اقتصادي' }
 
 export default function GoldClient({ gold }: { gold: GoldData | null; fx: FxData | null }) {
@@ -24,7 +27,8 @@ export default function GoldClient({ gold }: { gold: GoldData | null; fx: FxData
   const others = [22, 21, 18, 14].filter(k => byKarat.has(k))
 
   // ── Calculator ──
-  const [grams, setGrams] = useState('')
+  // Opens on one gram so the calculator shows a real figure, not a zero.
+  const [grams, setGrams] = useState('1')
   const [karat, setKarat] = useState(21)
   const perGram = byKarat.get(karat)?.iqd ?? 0
   const total = (parseFloat(grams) || 0) * perGram
@@ -48,7 +52,7 @@ export default function GoldClient({ gold }: { gold: GoldData | null; fx: FxData
       <Card className="market-tool-card market-tool-hero">
         <div className="market-tool-hero-head">
           <div>
-            <h1>{ar ? 'الذهب عيار ٢٤' : 'Gold 24K'}</h1>
+            <h1>{ar ? 'الذهب عيار 24' : 'Gold 24K'}</h1>
             <p>{ar ? 'سعر الغرام في العراق' : 'Per gram · Iraq'}</p>
           </div>
           <Badge tone="success" dot>{ar ? 'مباشر' : 'LIVE'}</Badge>
@@ -58,7 +62,7 @@ export default function GoldClient({ gold }: { gold: GoldData | null; fx: FxData
           <span><bdi>≈ ${fmt(k24.usd)}</bdi></span>
         </div>
         {gold.date ? (
-          <span className="market-tool-updated">{ar ? 'آخر تحديث' : 'Updated'}: {gold.date}</span>
+          <span className="market-tool-updated">{ar ? 'آخر تحديث' : 'Updated'}: {ar ? arDate(gold.date) : gold.date}</span>
         ) : null}
       </Card>
 

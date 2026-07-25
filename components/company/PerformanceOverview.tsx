@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useApp } from '@/context/AppContext'
+import { arDate } from '@/lib/date'
 
 type Pt = { t: number; v: number }
 const DAY = 86400_000
@@ -75,7 +76,11 @@ export default function PerformanceOverview({ sym }: { sym: string }) {
 
   if (!ready || !co) return null
 
-  const asOf = new Date(co.asOf).toLocaleDateString(ar ? 'ar-IQ' : 'en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })
+  // ar-IQ renders Arabic-Indic digits and Iraqi month names; the design
+  // writes 23 يوليو 2026 in Latin digits like the rest of the site.
+  const asOf = ar
+    ? arDate(new Date(co.asOf).toISOString().slice(0, 10))
+    : new Date(co.asOf).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })
   const cards: { label: string; co: number | null; bm: number | null }[] = [
     { label: ar ? 'عائد هذا العام' : 'YTD Return',    co: co.ytd, bm: bm?.ytd ?? null },
     { label: ar ? 'عائد سنة'       : '1-Year Return', co: co.y1,  bm: bm?.y1 ?? null },

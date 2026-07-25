@@ -144,6 +144,21 @@ export function liveMcap(c: { close: number; shares?: number; mcap?: number }): 
   return c.shares && c.close > 0 ? c.close * c.shares : (c.mcap || 0) * 1e6
 }
 
+/**
+ * Display name for a company assembled from the curated meta (companies.json)
+ * and the derived company_metrics row. Meta wins: a handful of metrics rows
+ * carry junk Arabic names straight from the bulletin parse ("8", "15"), so a
+ * candidate also has to actually read as a name rather than a number.
+ */
+export function companyName(
+  c: { ar?: string | null; en?: string | null; name_ar?: string | null; name_en?: string | null },
+  ticker: string,
+): string {
+  const named = [c.ar, c.en, c.name_ar, c.name_en]
+    .find(v => v && /[A-Za-z؀-ۿ]/.test(v))
+  return named?.trim() || ticker
+}
+
 export function fmtVol(v: number | null | undefined): string {
   if (!v) return '·'
   if (v >= 1e9) return (v / 1e9).toFixed(1) + 'B'

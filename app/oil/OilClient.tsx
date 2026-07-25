@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from 'react'
 import { useApp } from '@/context/AppContext'
+import { arDate } from '@/lib/date'
 import { MarketToolTabs } from '@/components/design/MarketToolTabs'
 import { Badge, Card, DirectionalChange } from '@/components/design/ui'
 import type { OilData, OilBlend, FxData } from '@/lib/rates'
@@ -120,7 +121,11 @@ export default function OilClient({ oil, fx }: { oil: OilData | null; fx: FxData
           {newest ? (
             <span className="market-tool-updated">
               {ar ? 'آخر تحديث' : 'Updated'}:{' '}
-              {new Date(newest * 1000).toLocaleString(ar ? 'ar-IQ' : 'en-GB', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}
+              {/* ar-IQ gives Iraqi month names in Arabic-Indic digits; the rest
+                  of the site (and the design) writes 25 يوليو with Latin ones. */}
+              {ar
+                ? `${arDate(new Date(newest * 1000).toISOString().slice(0, 10))} · ${new Date(newest * 1000).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}`
+                : new Date(newest * 1000).toLocaleString('en-GB', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}
               {' '}· {ar ? 'أسعار بتأخير بسيط' : 'slightly delayed'}
             </span>
           ) : null}

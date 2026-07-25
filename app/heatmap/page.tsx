@@ -1,8 +1,8 @@
 'use client'
 
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { type CSSProperties, useEffect, useMemo, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { fetchCompanyMeta } from '@/lib/market'
+import { companyName, fetchCompanyMeta } from '@/lib/market'
 import type { CompanyMeta } from '@/types'
 
 // ── types ────────────────────────────────────────────────────────────────────
@@ -21,19 +21,19 @@ const STALE_DAYS = 60
 
 // ── period config ─────────────────────────────────────────────────────────────
 const PERIODS = [
-  { id: '1d',  label: 'يوم',    key: 'prev_close', cap: 3  },
-  { id: '1w',  label: 'أسبوع',  key: 'close_1w',   cap: 6  },
-  { id: '1m',  label: 'شهر',    key: 'close_1m',   cap: 12 },
-  { id: '3m',  label: '٣ أشهر', key: 'close_3m',   cap: 20 },
-  { id: 'ytd', label: 'العام',  key: 'close_yend', cap: 40 },
-  { id: '52w', label: 'سنة',    key: 'close_52w',  cap: 60 },
+  { id: '1d',  label: 'يوم',    cap: 3  },
+  { id: '1w',  label: 'أسبوع',  cap: 6  },
+  { id: '1m',  label: 'شهر',    cap: 12 },
+  { id: '3m',  label: '3 أشهر', cap: 20 },
+  { id: 'ytd', label: 'العام',  cap: 40 },
+  { id: '52w', label: 'سنة',    cap: 60 },
 ] as const
 type PeriodId = typeof PERIODS[number]['id']
 
 const SECTOR_AR: Record<string, string> = {
-  Banks: 'بنوك', Industry: 'صناعة', Services: 'خدمات', Tourism: 'سياحة وفنادق',
-  Investment: 'استثمار', Insurance: 'تأمين', Telecom: 'اتصالات', Agriculture: 'زراعة',
-  'Money Transfer': 'تحويل مالي', Other: 'أخرى',
+  Banks: 'المصارف', Industry: 'الصناعة', Services: 'الخدمات', Tourism: 'الفنادق والسياحة',
+  Investment: 'الاستثمار المالي', Insurance: 'التأمين', Telecom: 'الاتصالات', Agriculture: 'الزراعة',
+  'Money Transfer': 'التحويل المالي', Other: 'أخرى',
 }
 
 function pctFor(r: Row, p: PeriodId): number | null {
@@ -42,18 +42,16 @@ function pctFor(r: Row, p: PeriodId): number | null {
   return ((r.last_close - ref) / ref) * 100
 }
 
-// ── diverging color scale: red → neutral → green, clamped at the period cap ──
-function tileColor(pct: number | null, cap: number): string {
-  if (pct == null) return 'rgb(72,77,88)'
-  const t = Math.max(-1, Math.min(1, pct / cap))
-  const NEU = [72, 77, 88], NEG = [201, 49, 49], POS = [34, 163, 89]
-  const [a, b] = t < 0 ? [NEU, NEG] : [NEU, POS]
-  const k = Math.abs(t)
-  const c = a.map((v, i) => Math.round(v + (b[i] - v) * k))
-  return `rgb(${c[0]},${c[1]},${c[2]})`
+function fmtIQD(v: number): string {
+  if (v >= 1e12) return (v / 1e12).toFixed(2) + 'T IQD'
+  if (v >= 1e9) return (v / 1e9).toFixed(1) + 'B IQD'
+  if (v >= 1e6) return (v / 1e6).toFixed(0) + 'M IQD'
+  return Math.round(v).toLocaleString('en-US') + ' IQD'
 }
 
-// ── squarified treemap (Bruls et al.) ────────────────────────────────────────
+// ── squarified treemap (Bruls et al.), laid out in a 0-100 unit box ──────────
+// Percentages rather than pixels: the tiles then reflow with the card on their
+// own, the way the design's own inline sizes do.
 type Wt<T> = { item: T; value: number }
 type Box<T> = { item: T; x: number; y: number; w: number; h: number }
 function squarify<T>(input: Wt<T>[], X: number, Y: number, W: number, H: number): Box<T>[] {
@@ -96,13 +94,33 @@ function squarify<T>(input: Wt<T>[], X: number, Y: number, W: number, H: number)
   return out
 }
 
+// A tile carries its intensity the way the design does: one tone per direction,
+// mixed toward the base by how big the move is.
+function tileStyle(box: { x: number; y: number; w: number; h: number }, pct: number | null, cap: number): CSSProperties {
+  const mix = pct == null ? 0 : Math.max(12, Math.min(100, (Math.abs(pct) / cap) * 100))
+  return {
+    left: `${box.x}%`,
+    insetBlockStart: `${box.y}%`,
+    inlineSize: `${box.w}%`,
+    blockSize: `${box.h}%`,
+    ['--tile-mix' as string]: `${mix}%`,
+    ['--tile-text' as string]: pct == null ? 'var(--text-primary)' : '#f2f5ee',
+  } as CSSProperties
+}
+
+const tone = (pct: number | null) => (pct == null ? 'neutral' : pct > 0 ? 'positive' : pct < 0 ? 'negative' : 'neutral')
+const pctText = (pct: number | null) => (pct == null ? '·' : `${pct > 0 ? '+' : ''}${pct.toFixed(pct === 0 ? 1 : 2)}%`)
+const arrow = (pct: number | null) => (pct == null || pct === 0 ? '' : pct > 0 ? '↗' : '↘')
+
 export default function HeatmapPage() {
   const router = useRouter()
   const [rows, setRows]       = useState<Row[]>([])
   const [loading, setLoading] = useState(true)
   const [period, setPeriod]   = useState<PeriodId>('1d')
-  const wrapRef = useRef<HTMLDivElement>(null)
-  const [width, setWidth]     = useState(0)
+  // null = every sector; otherwise the sector we drilled into.
+  const [zoom, setZoom]       = useState<string | null>(null)
+  const mapRef = useRef<HTMLDivElement>(null)
+  const [size, setSize]       = useState({ w: 0, h: 0 })
 
   useEffect(() => {
     ;(async () => {
@@ -121,65 +139,77 @@ export default function HeatmapPage() {
           const mcap = (m.last_close > 0 && mt?.shares)
             ? m.last_close * mt.shares
             : (mt?.mcap ?? 0)
-          return { ...m, name: mt?.ar || m.name_ar || m.name_en || m.ticker, mcap }
+          return { ...m, name: companyName({ ...m, ar: mt?.ar, en: mt?.en }, m.ticker), mcap }
         }).filter(r => r.mcap > 0 && (r.days_since_trade ?? 0) <= STALE_DAYS)
         setRows(merged)
       } finally { setLoading(false) }
     })()
   }, [])
 
-  // responsive width
+  // Pixel size drives nothing but the compact/full tile choice — the tiles
+  // themselves are laid out in percentages.
   useEffect(() => {
-    if (!wrapRef.current) return
-    const ro = new ResizeObserver(es => setWidth(es[0].contentRect.width))
-    ro.observe(wrapRef.current)
+    const el = mapRef.current
+    if (!el) return
+    const ro = new ResizeObserver(es => setSize({ w: es[0].contentRect.width, h: es[0].contentRect.height }))
+    ro.observe(el)
     return () => ro.disconnect()
-  }, [loading])
+  }, [loading, zoom])
 
   const cap = PERIODS.find(p => p.id === period)!.cap
-  const H = Math.max(440, Math.min(width * 0.58, 760))
-  const HEADER = 17 // sector-label strip height
 
-  // nested layout: sectors → companies
-  const tiles = useMemo(() => {
-    if (!width || !rows.length) return [] as { r: Row; pct: number | null; x: number; y: number; w: number; h: number }[]
+  const sectors = useMemo(() => {
     const bySector = new Map<string, Row[]>()
     for (const r of rows) (bySector.get(r.sector) ?? bySector.set(r.sector, []).get(r.sector)!).push(r)
-    const sectors = Array.from(bySector.entries()).map(([sec, list]) => ({
-      item: { sec, list }, value: list.reduce((s, r) => s + r.mcap, 0),
-    }))
-    const secBoxes = squarify(sectors, 1, 1, width - 2, H - 2)
-    const result: { r: Row; pct: number | null; x: number; y: number; w: number; h: number }[] = []
-    for (const sb of secBoxes) {
-      const innerY = sb.y + (sb.h > 46 ? HEADER : 0)
-      const innerH = sb.h - (sb.h > 46 ? HEADER : 0)
-      const comp = sb.item.list.map(r => ({ item: r, value: r.mcap }))
-      const cBoxes = squarify(comp, sb.x + 1, innerY + 1, sb.w - 2, innerH - 1)
-      for (const cb of cBoxes) result.push({ r: cb.item, pct: pctFor(cb.item, period), ...cb })
-    }
-    return result
-  }, [rows, width, period, H])
+    return Array.from(bySector.entries()).map(([key, list]) => {
+      // Cap-weighted sector move, over the names that actually have a reading.
+      let wsum = 0, w = 0
+      for (const r of list) {
+        const p = pctFor(r, period)
+        if (p == null) continue
+        wsum += p * r.mcap; w += r.mcap
+      }
+      return {
+        key,
+        label: SECTOR_AR[key] ?? key,
+        list,
+        mcap: list.reduce((s, r) => s + r.mcap, 0),
+        pct: w ? wsum / w : null,
+      }
+    })
+  }, [rows, period])
 
-  // sector header boxes (for labels)
-  const secHeaders = useMemo(() => {
-    if (!width || !rows.length) return [] as { sec: string; x: number; y: number; w: number; h: number }[]
-    const bySector = new Map<string, Row[]>()
-    for (const r of rows) (bySector.get(r.sector) ?? bySector.set(r.sector, []).get(r.sector)!).push(r)
-    const sectors = Array.from(bySector.entries()).map(([sec, list]) => ({
-      item: { sec, list }, value: list.reduce((s, r) => s + r.mcap, 0),
-    }))
-    return squarify(sectors, 1, 1, width - 2, H - 2).map(b => ({
-      sec: b.item.sec, x: b.x, y: b.y, w: b.w, h: b.h,
-    }))
-  }, [rows, width, H])
+  const zoomed = zoom ? sectors.find(s => s.key === zoom) ?? null : null
+
+  const sectorBoxes = useMemo(
+    () => squarify(sectors.map(s => ({ item: s, value: s.mcap })), 0, 0, 100, 100),
+    [sectors],
+  )
+  const companyBoxes = useMemo(
+    () => (zoomed ? squarify(zoomed.list.map(r => ({ item: r, value: r.mcap })), 0, 0, 100, 100) : []),
+    [zoomed],
+  )
+
+  // A tile is "compact" when it has no room for the full title/change/value
+  // set — the display face alone runs to 2rem, so the bar is high.
+  const isCompact = (box: { w: number; h: number }) =>
+    (box.w / 100) * size.w < 168 || (box.h / 100) * size.h < 124
+
+  // Below this even the compact face is taller than its tile, and the text
+  // renders half-cut. Those tiles carry their colour and their tooltip only.
+  const isMicro = (box: { w: number; h: number }) =>
+    (box.w / 100) * size.w < 62 || (box.h / 100) * size.h < 46
 
   return (
     <main className="terminal-shell app-page heatmap-page">
       <header className="full-heatmap-heading">
         <div>
-          <h1>خريطة السوق الحرارية</h1>
+          <h1>خريطة السوق</h1>
           <p>
-            حجم المربع = القيمة السوقية · اللون = التغيّر · مرتبة حسب القطاع · <bdi>{rows.length || '…'}</bdi> شركة
+            حجم المربع = القيمة السوقية · اللون = التغيّر
+            {zoomed
+              ? <> · شركات {zoomed.label} (<bdi>{zoomed.list.length}</bdi>)</>
+              : <> · اختر قطاعاً لعرض الشركات المكوّنة له · <bdi>{rows.length || '…'}</bdi> شركة</>}
           </p>
         </div>
         <div className="heatmap-period">
@@ -204,57 +234,91 @@ export default function HeatmapPage() {
         <div className="skeleton" style={{ height: 520, borderRadius: 14 }} />
       ) : (
         <section className="app-card full-heatmap-card" aria-label="الخريطة الحرارية الكاملة">
-          <div ref={wrapRef} className="heatmap-canvas" style={{ height: H }}>
-            {/* sector frames + labels */}
-            {secHeaders.map(s => (
-              <div key={`f-${s.sec}`} style={{ position: 'absolute', left: s.x, top: s.y, width: s.w, height: s.h, pointerEvents: 'none', boxShadow: 'inset 0 0 0 1px var(--surf2)' }}>
-                {s.h > 46 && (
-                  <div style={{ height: 17, display: 'flex', alignItems: 'center', padding: '0 7px', fontSize: 10.5, fontWeight: 800, color: 'var(--ink)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                    {SECTOR_AR[s.sec] ?? s.sec}
-                  </div>
-                )}
-              </div>
-            ))}
-            {/* company tiles */}
-            {tiles.map(t => {
-              const big = t.w > 54 && t.h > 30
-              const med = t.w > 34 && t.h > 18
-              const pctTxt = t.pct == null ? '' : `${t.pct >= 0 ? '+' : ''}${t.pct.toFixed(1)}%`
-              return (
-                <div key={t.r.ticker} title={`${t.r.name} (${t.r.ticker}) · ${pctTxt || '·'}`}
-                  onClick={() => router.push(`/c/${t.r.ticker}`)}
-                  style={{
-                    position: 'absolute', left: t.x, top: t.y, width: t.w, height: t.h,
-                    background: tileColor(t.pct, cap), cursor: 'pointer', overflow: 'hidden',
-                    boxShadow: 'inset 0 0 0 0.5px rgba(0,0,0,.35)', display: 'flex',
-                    flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-                    color: '#fff', textShadow: '0 1px 2px rgba(0,0,0,.45)', lineHeight: 1.1,
-                    transition: 'filter .12s',
-                  }}
-                  onMouseEnter={e => (e.currentTarget.style.filter = 'brightness(1.18)')}
-                  onMouseLeave={e => (e.currentTarget.style.filter = 'none')}>
-                  {med && <span dir="ltr" style={{ fontSize: big ? 13 : 10.5, fontWeight: 800, fontFamily: 'var(--font-mono)' }}>{t.r.ticker}</span>}
-                  {big && <span dir="ltr" style={{ fontSize: 11, fontWeight: 700, opacity: .95, fontFamily: 'var(--font-mono)' }}>{pctTxt}</span>}
-                </div>
-              )
-            })}
+          <div className="heatmap-context-row">
+            <nav className="heatmap-breadcrumb" aria-label="مسار الخريطة">
+              {zoomed ? (
+                <>
+                  <button type="button" onClick={() => setZoom(null)}>كل القطاعات</button>
+                  <span aria-hidden="true">›</span>
+                  <strong>{zoomed.label}</strong>
+                </>
+              ) : (
+                <strong>كل القطاعات</strong>
+              )}
+            </nav>
+            <div className="heatmap-legend" aria-label="دليل شدة الحركة">
+              <span><bdi>{`−${cap}%`}</bdi></span>
+              <i aria-hidden="true" />
+              <span><bdi>{`+${cap}%`}</bdi></span>
+            </div>
           </div>
 
-          {/* legend */}
-          <div className="heatmap-legend">
-            <span>{`−${cap}%`}</span>
-            <div className="heatmap-legend-scale">
-              {[-1, -0.66, -0.33, 0, 0.33, 0.66, 1].map(t => (
-                <div key={t} style={{ background: tileColor(t * cap, cap) }} />
-              ))}
-            </div>
-            <span>{`+${cap}%`}</span>
+          <div className="full-market-heatmap" ref={mapRef} aria-label={zoomed ? `شركات ${zoomed.label}` : 'كل قطاعات السوق'}>
+            {zoomed
+              ? companyBoxes.map(box => {
+                  const r = box.item
+                  const pct = pctFor(r, period)
+                  return (
+                    <button
+                      key={r.ticker}
+                      type="button"
+                      className={`heatmap-tile ${tone(pct)}${isCompact(box) ? ' compact' : ''}`}
+                      style={tileStyle(box, pct, cap)}
+                      title={`${r.name} (${r.ticker}) · ${pctText(pct)} · ${fmtIQD(r.mcap)}`}
+                      onClick={() => router.push(`/c/${r.ticker}`)}
+                    >
+                      {isMicro(box) ? null : (
+                        <>
+                          <span className="heatmap-tile-title">
+                            <strong>{r.ticker}</strong>
+                            <bdi>{r.name}</bdi>
+                          </span>
+                          <span className="heatmap-tile-change">
+                            {arrow(pct) ? <i aria-hidden="true">{arrow(pct)}</i> : null}
+                            <bdi>{pctText(pct)}</bdi>
+                          </span>
+                          <small><bdi>{fmtIQD(r.mcap)}</bdi></small>
+                        </>
+                      )}
+                    </button>
+                  )
+                })
+              : sectorBoxes.map(box => {
+                  const s = box.item
+                  return (
+                    <button
+                      key={s.key}
+                      type="button"
+                      className={`heatmap-tile ${tone(s.pct)}${isCompact(box) ? ' compact' : ''}`}
+                      style={tileStyle(box, s.pct, cap)}
+                      title={`${s.label} · ${pctText(s.pct)} · ${fmtIQD(s.mcap)}`}
+                      onClick={() => setZoom(s.key)}
+                    >
+                      {isMicro(box) ? null : (
+                        <>
+                          <span className="heatmap-tile-title">
+                            <strong>{s.label}</strong>
+                            <bdi>{s.list.length} شركة</bdi>
+                          </span>
+                          <span className="heatmap-tile-change">
+                            {arrow(s.pct) ? <i aria-hidden="true">{arrow(s.pct)}</i> : null}
+                            <bdi>{pctText(s.pct)}</bdi>
+                          </span>
+                          <small><bdi>{fmtIQD(s.mcap)}</bdi></small>
+                        </>
+                      )}
+                    </button>
+                  )
+                })}
           </div>
         </section>
       )}
 
       <p className="page-footnote">
-        البيانات من نشرات التداول الرسمية، تُحدَّث يومياً · القيمة السوقية تقريبية · انقر أي مربع لفتح صفحة الشركة
+        {zoomed
+          ? 'انقر أي مربع لفتح صفحة الشركة · تغيّر القطاع محسوب بوزن القيمة السوقية'
+          : 'انقر أي قطاع لعرض شركاته · تغيّر القطاع محسوب بوزن القيمة السوقية'}
+        {' · '}البيانات من نشرات التداول الرسمية، تُحدَّث يومياً
       </p>
     </main>
   )

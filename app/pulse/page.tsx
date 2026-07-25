@@ -3,7 +3,9 @@
 import { useEffect, useState, useMemo, useRef } from 'react'
 import Link from 'next/link'
 import { fmtIQD, arDate, Seg, CoLogo } from '../statistics/_ui'
-import { fetchCompanyMeta } from '@/lib/market'
+import { CompanyIdentity } from '@/components/design/CompanyIdentity'
+import { ChangeValue, EmptyState } from '@/components/design/ui'
+import { companyName, fetchCompanyMeta } from '@/lib/market'
 import type { CompanyMeta } from '@/types'
 
 // ── types ──────────────────────────────────────────────────────────────────
@@ -38,8 +40,8 @@ const fmtPct = (v: number | null) => v == null ? '·' : `${v >= 0 ? '+' : ''}${v
 
 const TF = [
   { id: '1M', label: 'شهر',   n: 22 },
-  { id: '3M', label: '٣ أشهر', n: 66 },
-  { id: '6M', label: '٦ أشهر', n: 132 },
+  { id: '3M', label: '3 أشهر', n: 66 },
+  { id: '6M', label: '6 أشهر', n: 132 },
   { id: '1Y', label: 'سنة',   n: 260 },
 ] as const
 
@@ -145,31 +147,37 @@ type MoverTab = 'gainers' | 'losers' | 'highs' | 'lows'
 const MOVER_TABS: { id: MoverTab; label: string }[] = [
   { id: 'gainers', label: 'الأكثر صعوداً' },
   { id: 'losers',  label: 'الأكثر هبوطاً' },
-  { id: 'highs',   label: 'قمم ٥٢ أسبوع' },
-  { id: 'lows',    label: 'قيعان ٥٢ أسبوع' },
+  { id: 'highs',   label: 'قمم 52 أسبوع' },
+  { id: 'lows',    label: 'قيعان 52 أسبوع' },
 ]
 
+// The design's movers markup: ranked list, shared company identity, and the
+// same change-value chip the tables use — the hand-rolled row this replaced
+// printed its sign on the wrong side of the number under bidi ("5.41%+").
 function MoverList({ items }: { items: Co[] }) {
-  if (!items.length) return <div style={{ padding: '28px 0', textAlign: 'center', color: 'var(--ink4)', fontSize: 12.5 }}>لا توجد أسهم في هذه القائمة اليوم.</div>
+  if (!items.length) return <EmptyState title="لا توجد أسهم في هذه القائمة اليوم." />
   return (
-    <div>
-      {items.map((c, i) => {
-        const up = (c.pct ?? 0) >= 0
-        return (
-          <Link key={c.ticker} href={`/c/${c.ticker}`} style={{
-            display: 'flex', alignItems: 'center', gap: 10, padding: '8px 6px', textDecoration: 'none',
-            borderRadius: 8, borderBottom: i === items.length - 1 ? 'none' : '1px solid var(--line)',
-          }}>
-            <span style={{ width: 18, fontSize: 11, color: 'var(--ink5)', fontFamily: 'var(--font-mono)', textAlign: 'center', flexShrink: 0 }}>{i + 1}</span>
-            <CoLogo sym={c.ticker} logo={c.logo} size={26} />
-            <span style={{ fontSize: 10.5, fontWeight: 700, fontFamily: 'var(--font-mono)', color: 'var(--ink3)', background: 'var(--surf3)', borderRadius: 5, padding: '2px 6px', flexShrink: 0 }}>{c.ticker}</span>
-            <span style={{ flex: 1, minWidth: 0, fontSize: 13, fontWeight: 600, color: 'var(--ink)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{c.name}</span>
-            <span style={{ fontSize: 12.5, fontFamily: 'var(--font-mono)', color: 'var(--ink2)', flexShrink: 0 }}>{c.price.toLocaleString('en-US', { maximumFractionDigits: 3 })}</span>
-            <span style={{ width: 66, textAlign: 'end', fontSize: 12.5, fontWeight: 700, fontFamily: 'var(--font-mono)', color: c.pct == null ? 'var(--ink4)' : up ? 'var(--up)' : 'var(--dn)', flexShrink: 0 }}>{fmtPct(c.pct)}</span>
-          </Link>
-        )
-      })}
-    </div>
+    <>
+      <div className="pulse-movers-head" aria-hidden="true">
+        <span>الشركة</span>
+        <span>السعر</span>
+        <span>التغير</span>
+      </div>
+      <ol className="pulse-movers-list">
+        {items.map((c, i) => (
+          <li key={c.ticker}>
+            <span className="pulse-rank"><bdi>{i + 1}</bdi></span>
+            <Link className="pulse-mover-link" href={`/c/${c.ticker}`}>
+              <CompanyIdentity name={c.name} symbol={c.ticker} logo={c.logo} />
+            </Link>
+            <bdi className="pulse-price">{c.price.toLocaleString('en-US', { maximumFractionDigits: 3 })}</bdi>
+            {c.pct == null
+              ? <span className="muted-cell">·</span>
+              : <ChangeValue value={c.pct} />}
+          </li>
+        ))}
+      </ol>
+    </>
   )
 }
 
@@ -225,7 +233,7 @@ export default function PulsePage() {
     const recent = (m: Metric) => (m.days_since_trade ?? 99) <= 1 && m.last_close > 0
     const toCo = (m: Metric): Co => {
       const mt = metaMap.get(m.ticker)
-      return { ticker: m.ticker, name: mt?.ar || m.name_ar || m.name_en || m.ticker, logo: mt?.logo, price: m.last_close, pct: pct1d(m) }
+      return { ticker: m.ticker, name: companyName({ ...m, ar: mt?.ar, en: mt?.en }, m.ticker), logo: mt?.logo, price: m.last_close, pct: pct1d(m) }
     }
     const live = metrics.filter(recent)
     const gainers = live.filter(m => (pct1d(m) ?? 0) > 0).sort((a, b) => (pct1d(b) ?? 0) - (pct1d(a) ?? 0)).map(toCo)

@@ -2451,6 +2451,15 @@ h3 {
   list-style: none;
 }
 
+/* The design's mover row is inert; ours opens the company. The link is the
+   grid cell itself so the row keeps its columns. */
+.pulse-mover-link {
+  display: block;
+  min-inline-size: 0;
+  color: inherit;
+  text-decoration: none;
+}
+
 .pulse-movers-list li {
   display: grid;
   grid-template-columns: 22px minmax(0, 1fr) 100px 110px;
@@ -6048,39 +6057,22 @@ html[lang="ar"] .wp-content pre {
   font-weight: 600;
 }
 
-.heatmap-canvas {
-  position: relative;
-  inline-size: 100%;
+/* The design's tile subtitle is a short mock string, so it never shrinks. Real
+   company names are long enough to squeeze the ticker down to one letter — the
+   name gives way instead. */
+.heatmap-tile-title bdi {
+  flex: 0 1 auto;
+  min-inline-size: 0;
   overflow: hidden;
-  border-radius: 10px;
-  background: var(--surface-2);
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-.heatmap-legend {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  align-items: center;
-  justify-content: center;
-  margin-block-start: 12px;
-}
-
+/* The legend itself is the design's rule (grid + gradient <i>); it only needs
+   the numeric ends set in the mono face the rest of the figures use. */
 .heatmap-legend > span {
-  color: var(--text-muted);
   font-family: var(--font-numeric), ui-monospace, monospace;
-  font-size: 0.68rem;
   font-weight: 600;
-}
-
-.heatmap-legend-scale {
-  display: flex;
-  overflow: hidden;
-  border-radius: 4px;
-}
-
-.heatmap-legend-scale > div {
-  inline-size: 26px;
-  block-size: 11px;
 }
 
 /* Panel → full-page call to action, shared by the statistics preview cards. */

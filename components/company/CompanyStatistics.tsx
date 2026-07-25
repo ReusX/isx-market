@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import { useApp } from '@/context/AppContext'
+import { arDate } from '@/lib/date'
 
 type Ratio = { fiscal_year: number; ratio_key: string; value: number | null }
 type Fact  = { fiscal_year: number; period: string; line_key: string; value_iqd: number | null }
@@ -143,7 +144,9 @@ export default function CompanyStatistics({ sym, price, shares, mcapFallback }: 
     ar ? 'مقارنة النظراء' : 'Peer Comparison',
   ]
 
-  const today = new Date().toLocaleDateString(ar ? 'ar-IQ' : 'en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })
+  const today = ar
+    ? arDate(new Date().toISOString().slice(0, 10))
+    : new Date().toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })
 
   const RowList = ({ rows }: { rows: Row[] }) => (
     <div>

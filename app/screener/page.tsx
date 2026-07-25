@@ -1,7 +1,7 @@
 'use client'
 
 import { type CSSProperties, useEffect, useMemo, useState } from 'react'
-import { fetchCompanyMeta } from '@/lib/market'
+import { companyName, fetchCompanyMeta } from '@/lib/market'
 import { DataTable, type TableColumn } from '@/components/design/DataTable'
 import { CompanyIdentity } from '@/components/design/CompanyIdentity'
 import { Range52Indicator, range52Position } from '@/components/design/Range52Indicator'
@@ -31,7 +31,7 @@ const PERIODS = [
   { id: '1d',  label: 'يوم',    },
   { id: '1w',  label: 'أسبوع',  },
   { id: '1m',  label: 'شهر',    },
-  { id: '3m',  label: '٣ أشهر', },
+  { id: '3m',  label: '3 أشهر', },
   { id: 'ytd', label: 'العام',  },
   { id: '52w', label: 'سنة',    },
 ] as const
@@ -65,11 +65,14 @@ function pctFor(r: Row, p: PeriodId): number | null {
   return ((r.last_close - ref) / ref) * 100
 }
 
-// compact IQD for the value columns (millions/billions)
+// Compact IQD for the value columns. Latin magnitudes, not ألف/مليون/مليار:
+// the Arabic word lands on the wrong side of a signed number under bidi
+// ("مليون 11.4-"), and every other figure on the page is already Latin.
 function fmtIQDc(v: number): string {
-  if (v >= 1e9) return (v / 1e9).toFixed(2) + ' مليار'
-  if (v >= 1e6) return (v / 1e6).toFixed(1) + ' مليون'
-  if (v >= 1e3) return (v / 1e3).toFixed(0) + ' ألف'
+  if (v >= 1e12) return (v / 1e12).toFixed(2) + 'T'
+  if (v >= 1e9) return (v / 1e9).toFixed(2) + 'B'
+  if (v >= 1e6) return (v / 1e6).toFixed(1) + 'M'
+  if (v >= 1e3) return (v / 1e3).toFixed(0) + 'K'
   return Math.round(v).toString()
 }
 
@@ -123,7 +126,7 @@ export default function ScreenerPage() {
           const mcap = (m.last_close > 0 && meta?.shares)
             ? (m.last_close * meta.shares) / 1_000_000
             : meta?.mcap
-          return { ...m, name: meta?.ar || m.name_ar || m.name_en || m.ticker, logo: meta?.logo, color: meta?.color, mcap }
+          return { ...m, name: companyName({ ...m, ar: meta?.ar, en: meta?.en }, m.ticker), logo: meta?.logo, color: meta?.color, mcap }
         })
         setRows(merged)
 
@@ -186,7 +189,11 @@ export default function ScreenerPage() {
       render: r => (
         <span className="stacked-cell">
           <bdi>{priceFormat.format(r.last_close)}</bdi>
-          {(r.days_since_trade ?? 0) > 5 && r.last_date ? <small>آخر تداول {fmtDate(r.last_date)}</small> : null}
+          {/* Date alone: "آخر تداول" spelled out overflowed the column and got
+              clipped mid-word. The muted line under a price reads as one. */}
+          {(r.days_since_trade ?? 0) > 5 && r.last_date
+            ? <small title={`آخر تداول ${fmtDate(r.last_date)}`}><bdi>{fmtDate(r.last_date)}</bdi></small>
+            : null}
         </span>
       ),
     },
@@ -205,13 +212,14 @@ export default function ScreenerPage() {
       label: 'مكرر',
       className: 'numeric-column',
       sortValue: r => (r.pe != null && r.pe > 0 ? r.pe : Number.POSITIVE_INFINITY),
+      // Sub-1 multiples round to a bare "0.0", which reads as no data.
       render: r => (r.pe != null && r.pe > 0
-        ? <bdi>{r.pe >= 100 ? Math.round(r.pe) : r.pe.toFixed(1)}</bdi>
+        ? <bdi>{r.pe >= 100 ? Math.round(r.pe) : r.pe < 1 ? r.pe.toFixed(2) : r.pe.toFixed(1)}</bdi>
         : <span className="muted-cell">·</span>),
     },
     {
       key: 'range',
-      label: '٥٢ أسبوع',
+      label: '52 أسبوع',
       sortValue: r => (r.high_52w && r.low_52w ? range52Position(r.last_close, r.low_52w, r.high_52w) : -1),
       render: r => (r.high_52w && r.low_52w && r.high_52w !== r.low_52w
         ? <Range52Indicator price={r.last_close} low={r.low_52w} high={r.high_52w} />
@@ -226,7 +234,7 @@ export default function ScreenerPage() {
     },
     {
       key: 'foreign',
-      label: 'أجانب (٣٠ي)',
+      label: 'أجانب (30ي)',
       className: 'numeric-column',
       sortValue: r => r.ff_net_30d ?? 0,
       render: r => <ForeignFlowValue value={r.ff_net_30d} />,
@@ -318,8 +326,8 @@ export default function ScreenerPage() {
           loading={loading}
           rowKey={r => r.ticker}
           rowHref={r => `/c/${r.ticker}`}
-          gridTemplateColumns="minmax(180px, 1.3fr) 84px 96px 58px 120px 100px 120px 115px 100px"
-          minWidth="1010px"
+          gridTemplateColumns="minmax(180px, 1.3fr) 92px 96px 58px 120px 100px 120px 115px 100px"
+          minWidth="1018px"
           initialSort={initialSort}
           emptyTitle="لا توجد نتائج مطابقة"
           emptyDescription="جرّب تعديل الفلاتر أو مسح البحث."
