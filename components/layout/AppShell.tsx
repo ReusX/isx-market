@@ -60,42 +60,36 @@ const IC = {
   oil:       'M12 2s6 7 6 11a6 6 0 11-12 0c0-4 6-11 6-11z',              // oil drop
 }
 
-// ── Nav tree (mirrors Koyfin section structure) ───────────────────────────────
+// ── Nav tree · icon names map to the design's pure-CSS .shortcut-icon shapes ──
 const NAV: {
-  id: string; label?: string; collapsible?: boolean;
-  items: { href: string; icon: keyof typeof IC; ar: string; badge?: string }[]
+  id: string; label?: string;
+  items: { href: string; icon: string; ar: string; badge?: string }[]
 }[] = [
   {
-    id: 'main',
+    id: 'market', label: 'السوق',
     items: [
-      { href: '/', icon: 'home', ar: 'الرئيسية' },
-    ],
-  },
-  {
-    id: 'market', label: 'السوق', collapsible: true,
-    items: [
-      { href: '/market',     icon: 'bars',   ar: 'حركة السوق'  },
+      { href: '/market',     icon: 'chart',  ar: 'حركة السوق'  },
       { href: '/screener',   icon: 'filter', ar: 'فارز الأسهم' },
       { href: '/statistics', icon: 'stats',  ar: 'الإحصائيات'  },
       { href: '/heatmap',    icon: 'grid',   ar: 'خريطة السوق' },
       { href: '/pulse',      icon: 'pulse',  ar: 'نبض السوق'   },
-      { href: '/companies',  icon: 'building', ar: 'الشركات'    },
+      { href: '/companies',  icon: 'building', ar: 'الشركات'   },
     ],
   },
   {
-    id: 'platform', label: 'منصتي', collapsible: true,
+    id: 'platform', label: 'منصتي',
     items: [
-      { href: '/portfolio',  icon: 'briefcase', ar: 'محفظتي',          badge: 'جديد' },
-      { href: '/watchlist',  icon: 'star',      ar: 'قوائم المتابعة' },
-      { href: '/alerts',     icon: 'bell',      ar: 'تنبيهات الأسعار', badge: 'جديد' },
+      { href: '/portfolio', icon: 'briefcase', ar: 'محفظتي',          badge: 'جديد' },
+      { href: '/watchlist', icon: 'watchlist', ar: 'قوائم المتابعة' },
+      { href: '/alerts',    icon: 'bell',      ar: 'تنبيهات الأسعار', badge: 'جديد' },
     ],
   },
   {
-    id: 'tools', label: 'أدوات', collapsible: true,
+    id: 'tools', label: 'أدوات',
     items: [
-      { href: '/fx',   icon: 'fx',   ar: 'سعر الصرف' },
-      { href: '/gold', icon: 'coin', ar: 'سعر الذهب' },
-      { href: '/oil',  icon: 'oil',  ar: 'سعر النفط' },
+      { href: '/fx',   icon: 'exchange', ar: 'سعر الصرف' },
+      { href: '/gold', icon: 'gold',     ar: 'سعر الذهب' },
+      { href: '/oil',  icon: 'oil',      ar: 'سعر النفط' },
     ],
   },
 ]
@@ -175,208 +169,87 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
     }
   }, [drawerOpen])
 
-  const SW = collapsed ? 52 : 212
 
   return (
-    <div style={{ display: 'flex', minHeight: '100dvh', background: K.bg, color: K.ink }}>
+    <div className={`app-layout${collapsed ? ' sidebar-collapsed' : ''}`}>
 
-      {/* ── Sidebar ── */}
-      <aside className={`app-sidebar${drawerOpen ? ' open' : ''}`} style={{
-        position: 'fixed', top: 0, right: 0, bottom: 0,
-        width: SW, zIndex: 200,
-        background: K.sidebar,
-        borderInlineStart: `1px solid ${K.border}`,
-        display: 'flex', flexDirection: 'column',
-        transition: 'width 0.18s cubic-bezier(0.4,0,0.2,1)',
-        overflow: 'hidden',
-      }}>
-
-        {/* Header row: logo + menu toggle */}
-        <div style={{
-          height: 48, display: 'flex', alignItems: 'center',
-          padding: collapsed ? '0 10px' : '0 10px 0 14px',
-          justifyContent: collapsed ? 'center' : 'space-between',
-          borderBottom: `1px solid ${K.border}`,
-          flexShrink: 0, gap: 8,
-        }}>
-          {!collapsed && (
-            <div style={{ display: 'flex', alignItems: 'center', gap: 7, minWidth: 0 }}>
-              <StarMark size={22} />
-              <span style={{
-                fontWeight: 800, fontSize: 15, color: K.ink,
-                whiteSpace: 'nowrap',
-              }}>
-                IQWealth
-              </span>
-            </div>
-          )}
-          <button onClick={() => { isMobile ? setDrawerOpen(false) : toggleSidebar() }} style={{
-            width: 28, height: 28, borderRadius: 5,
-            background: 'transparent', border: 'none',
-            color: K.ink4, display: 'flex', alignItems: 'center',
-            justifyContent: 'center', cursor: 'pointer', flexShrink: 0,
-            transition: 'color 0.12s',
-          }}
-          onMouseEnter={e => (e.currentTarget.style.color = K.ink)}
-          onMouseLeave={e => (e.currentTarget.style.color = K.ink4)}
+      {/* ── Sidebar · design markup (side-navigation) ── */}
+      <aside
+        className={`side-navigation${drawerOpen ? ' open' : ''}`}
+        aria-label="التنقل الرئيسي"
+      >
+        <div className="side-navigation-head">
+          <Link className="side-brand" href="/" aria-label="IQWealth الرئيسية">
+            <span className="side-brand-mark">IQ</span>
+            <span className="side-brand-name">IQWealth</span>
+          </Link>
+          <button
+            className="sidebar-toggle"
+            type="button"
+            onClick={() => { isMobile ? setDrawerOpen(false) : toggleSidebar() }}
+            aria-label={collapsed ? 'توسيع القائمة الجانبية' : 'طي القائمة الجانبية'}
+            aria-expanded={!collapsed}
+            title={collapsed ? 'توسيع القائمة' : 'طي القائمة'}
           >
-            <Icon d={IC.menu} size={15} />
+            {/* RTL: the chevron points toward the edge the panel folds into. */}
+            <span aria-hidden="true">{collapsed ? '\u00AB' : '\u00BB'}</span>
           </button>
         </div>
 
-        {/* Nav scroll area */}
-        <nav style={{
-          flex: 1, overflowY: 'auto', overflowX: 'hidden',
-          padding: '6px 0',
-          scrollbarWidth: 'none',
-        }}>
+        <nav className="side-navigation-scroll">
+          <Link
+            className={`side-navigation-link home-link${pathname === '/' ? ' active' : ''}`}
+            href="/"
+            aria-current={pathname === '/' ? 'page' : undefined}
+            onClick={() => setDrawerOpen(false)}
+          >
+            <span className="shortcut-icon home" aria-hidden="true" />
+            <span className="side-navigation-label">الرئيسية</span>
+          </Link>
+
           {NAV.map(section => (
-            <div key={section.id}>
-
-              {/* Section header · only when expanded */}
-              {section.label && !collapsed && (
-                <div
-                  onClick={() => section.collapsible && toggleSection(section.id)}
-                  style={{
-                    display: 'flex', alignItems: 'center',
-                    justifyContent: 'space-between',
-                    padding: '16px 16px 6px',
-                    fontSize: 11.5, fontWeight: 800,
-                    color: K.ink3, letterSpacing: '0.04em',
-                    cursor: section.collapsible ? 'pointer' : 'default',
-                    userSelect: 'none',
-                  }}
-                >
-                  <span>{section.label}</span>
-                  {section.collapsible && (
-                    <span style={{ color: K.ink4, opacity: 0.7 }}>
-                      <Icon d={openSections[section.id] ? IC.chevU : IC.chevD} size={12} />
-                    </span>
-                  )}
-                </div>
-              )}
-
-              {/* Collapsed section divider */}
-              {section.label && collapsed && (
-                <div style={{ height: 1, background: K.border, margin: '6px 8px' }} />
-              )}
-
-              {/* Items */}
-              {(!section.collapsible || openSections[section.id] || !section.label) &&
-                section.items.map(item => {
-                  const active = item.href === '/'
-                    ? pathname === '/'
-                    : pathname === item.href || pathname.startsWith(item.href + '/')
+            <section className="side-navigation-group" aria-label={section.label} key={section.id}>
+              <h2>{section.label}</h2>
+              <div className="side-navigation-list">
+                {section.items.map(item => {
+                  const active = pathname === item.href || pathname.startsWith(item.href + '/')
                   return (
                     <Link
-                      key={item.href + item.ar}
+                      key={item.href}
+                      className={`side-navigation-link${active ? ' active' : ''}`}
                       href={item.href}
+                      aria-current={active ? 'page' : undefined}
                       title={collapsed ? item.ar : undefined}
                       onClick={() => setDrawerOpen(false)}
-                      style={{
-                        display: 'flex', alignItems: 'center',
-                        height: 40, gap: 11,
-                        padding: collapsed ? '0' : '0 16px',
-                        justifyContent: collapsed ? 'center' : 'flex-start',
-                        color: active ? K.brand : K.ink2,
-                        background: active ? K.activeBg : 'transparent',
-                        borderInlineStart: active
-                          ? `3px solid ${K.brand}`
-                          : '3px solid transparent',
-                        textDecoration: 'none',
-                        fontSize: 14.5, fontWeight: active ? 700 : 500,
-                        transition: 'background 0.1s, color 0.1s',
-                        whiteSpace: 'nowrap',
-                      }}
-                      onMouseEnter={e => {
-                        if (!active) e.currentTarget.style.background = K.hover
-                        if (!active) e.currentTarget.style.color = K.ink2
-                      }}
-                      onMouseLeave={e => {
-                        if (!active) e.currentTarget.style.background = 'transparent'
-                        if (!active) e.currentTarget.style.color = K.ink3
-                      }}
                     >
-                      <span style={{ flexShrink: 0, color: active ? K.brand : K.ink3 }}>
-                        <Icon d={IC[item.icon]} size={17} />
-                      </span>
-                      {!collapsed && (
-                        <>
-                          <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                            {item.ar}
-                          </span>
-                          {item.badge && (
-                            <span style={{
-                              fontSize: 10, fontWeight: 700,
-                              padding: '2px 7px', borderRadius: 4,
-                              background: K.badge, color: K.badgeTxt,
-                              flexShrink: 0,
-                            }}>
-                              {item.badge}
-                            </span>
-                          )}
-                        </>
-                      )}
+                      <span className={`shortcut-icon ${item.icon}`} aria-hidden="true" />
+                      <span className="side-navigation-label">{item.ar}</span>
+                      {item.badge ? <span className="nav-badge">{item.badge}</span> : null}
                     </Link>
                   )
-                })
-              }
-            </div>
+                })}
+              </div>
+            </section>
           ))}
         </nav>
 
-        {/* Bottom user strip */}
         {user ? (
-          <Link href="/profile" style={{
-            borderTop: `1px solid ${K.border}`,
-            padding: collapsed ? '10px 0' : '8px 12px',
-            display: 'flex', alignItems: 'center',
-            justifyContent: collapsed ? 'center' : 'flex-start',
-            gap: 8, flexShrink: 0, textDecoration: 'none',
-          }}>
-            <div style={{
-              width: 26, height: 26, borderRadius: '50%',
-              background: K.brand, color: '#fff', fontWeight: 700, fontSize: 12,
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              flexShrink: 0,
-            }}>
-              {initial}
-            </div>
-            {!collapsed && (
-              <div style={{ minWidth: 0 }}>
-                <div style={{ fontSize: 13, fontWeight: 700, color: K.ink, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                  {profile?.username ?? user?.email?.split('@')[0]}
-                </div>
-                <div style={{ fontSize: 11, color: K.ink4 }}>الحساب المجاني</div>
-              </div>
-            )}
+          <Link className="side-navigation-account" href="/profile">
+            <span className="side-account-avatar">{initial}</span>
+            <span className="side-account-copy">
+              <strong>{profile?.username ?? user?.email?.split('@')[0]}</strong>
+              <small>الحساب المجاني</small>
+            </span>
           </Link>
         ) : (
-          <button onClick={() => openAuth('signup')} style={{
-            borderTop: `1px solid ${K.border}`,
-            padding: collapsed ? '10px 0' : '8px 12px',
-            display: 'flex', alignItems: 'center',
-            justifyContent: collapsed ? 'center' : 'flex-start',
-            gap: 8, flexShrink: 0, width: '100%',
-            background: 'none', border: 'none', borderTopWidth: 1,
-            cursor: 'pointer', fontFamily: 'inherit', textAlign: 'start',
-          }}>
-            <div style={{
-              width: 26, height: 26, borderRadius: '50%',
-              background: K.brandSoft, color: K.brand,
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              flexShrink: 0,
-            }}>
+          <button className="side-navigation-account" type="button" onClick={() => openAuth('signup')}>
+            <span className="side-account-avatar is-guest">
               <Icon d={IC.user} size={13} />
-            </div>
-            {!collapsed && (
-              <div style={{ minWidth: 0 }}>
-                <div style={{ fontSize: 13, fontWeight: 700, color: K.brand, whiteSpace: 'nowrap' }}>
-                  تسجيل الدخول
-                </div>
-                <div style={{ fontSize: 11, color: K.ink4 }}>أنشئ حسابك المجاني</div>
-              </div>
-            )}
+            </span>
+            <span className="side-account-copy">
+              <strong className="is-link">تسجيل الدخول</strong>
+              <small>أنشئ حسابك المجاني</small>
+            </span>
           </button>
         )}
       </aside>
@@ -387,13 +260,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
       )}
 
       {/* ── Main content ── */}
-      <div className="app-main" style={{
-        flex: 1,
-        marginInlineStart: SW,
-        transition: 'margin-inline-start 0.18s cubic-bezier(0.4,0,0.2,1)',
-        display: 'flex', flexDirection: 'column',
-        minHeight: '100dvh', minWidth: 0,
-      }}>
+      <div className="app-main">
 
         {/* Topbar */}
         <header style={{

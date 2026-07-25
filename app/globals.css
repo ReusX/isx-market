@@ -5244,17 +5244,35 @@ tbody tr:hover .sparkline polyline {
   .app-hamburger,
   .app-mobile-logo { display: flex !important; }
 
-  /* Sidebar becomes an off-canvas drawer that slides in from the right (RTL) */
-  .app-sidebar {
-    width: 272px !important;
-    transform: translateX(100%);
-    transition: transform 0.26s cubic-bezier(0.32,0.72,0,1) !important;
-    box-shadow: -16px 0 48px rgba(0,0,0,0.55);
+  /* Sidebar becomes an off-canvas drawer that slides in from the inline edge.
+     translate uses a logical sign so it slides off the right edge under RTL
+     and the left edge under LTR. */
+  .app-layout {
+    padding-inline-start: 0;
   }
-  .app-sidebar.open { transform: translateX(0); }
 
-  /* Content takes the full width · no margin reserved for the sidebar */
-  .app-main { margin-inline-start: 0 !important; }
+  .side-navigation {
+    inline-size: 272px;
+    transform: translateX(100%);
+    transition: transform 0.26s cubic-bezier(0.32, 0.72, 0, 1);
+    box-shadow: -16px 0 48px rgb(0 0 0 / 55%);
+  }
+
+  html[dir="ltr"] .side-navigation {
+    transform: translateX(-100%);
+  }
+
+  .side-navigation.open {
+    transform: translateX(0);
+  }
+
+  /* Labels always show inside the drawer, even with the desktop collapse set. */
+  .side-navigation .side-navigation-label,
+  .side-navigation .side-brand-name,
+  .side-navigation .side-navigation-group h2,
+  .side-navigation .nav-badge {
+    display: revert;
+  }
 
   /* Homepage: hide low-priority table columns so it breathes */
   .mobcol-hide { display: none !important; }
@@ -6451,4 +6469,104 @@ button.pulse-tile.is-active .pulse-tile-label svg {
 
 .charts-page {
   max-inline-size: 1440px;
+}
+
+/* ── Sidebar account strip (live-only; the design has no auth) ───────────── */
+
+.side-navigation-account {
+  display: flex;
+  gap: 9px;
+  align-items: center;
+  inline-size: 100%;
+  padding: 10px 12px;
+  border: 0;
+  border-block-start: 1px solid var(--border);
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: start;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.side-navigation-account:hover {
+  background: var(--surface-2);
+}
+
+.side-account-avatar {
+  display: grid;
+  flex: 0 0 28px;
+  place-items: center;
+  inline-size: 28px;
+  block-size: 28px;
+  border-radius: 50%;
+  background: var(--nav-active);
+  color: #fff;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.side-account-avatar.is-guest {
+  background: var(--nav-active-bg);
+  color: var(--nav-active);
+}
+
+.side-account-copy {
+  min-inline-size: 0;
+}
+
+.side-account-copy strong {
+  display: block;
+  overflow: hidden;
+  color: var(--text-primary);
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.side-account-copy strong.is-link {
+  color: var(--nav-active);
+}
+
+.side-account-copy small {
+  color: var(--text-muted);
+  font-size: 0.66rem;
+}
+
+.sidebar-collapsed .side-account-copy {
+  display: none;
+}
+
+.sidebar-collapsed .side-navigation-account {
+  justify-content: center;
+  padding-inline: 0;
+}
+
+/* Companies icon · same pure-CSS idiom as the design's other shortcut icons. */
+.shortcut-icon.building {
+  border: 2px solid;
+  border-block-end-width: 0;
+  border-radius: 2px 2px 0 0;
+  inset-block-start: 1px;
+}
+
+.shortcut-icon.building::before {
+  content: "";
+  position: absolute;
+  inset-block-start: 3px;
+  inset-inline-start: 2px;
+  inline-size: 2px;
+  block-size: 2px;
+  background: currentColor;
+  box-shadow: 5px 0, 0 5px, 5px 5px;
+}
+
+.shortcut-icon.building::after {
+  content: "";
+  position: absolute;
+  inset-block-end: -2px;
+  inset-inline: -2px;
+  block-size: 2px;
+  background: currentColor;
 }
