@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from 'next'
-import { Inter, JetBrains_Mono } from 'next/font/google'
+import { IBM_Plex_Sans_Arabic, Noto_Kufi_Arabic, Roboto_Mono } from 'next/font/google'
 import './globals.css'
 import { AppProvider } from '@/context/AppContext'
 import AppShell from '@/components/layout/AppShell'
@@ -7,25 +7,31 @@ import { Analytics } from '@vercel/analytics/react'
 import { SpeedInsights } from '@vercel/speed-insights/next'
 import NativeBridge from '@/components/NativeBridge'
 
-const inter = Inter({
-  subsets: ['latin'],
-  variable: '--font-en',
-  display: 'optional',
-})
-
-// JetBrains Mono · for prices, codes, numbers (replaces Google Fonts stylesheet)
-const jetbrainsMono = JetBrains_Mono({
-  subsets: ['latin'],
+// The three IQWealth design typefaces, self-hosted by next/font. These drive
+// the whole UI: IBM Plex Sans Arabic for body copy (--font-body), Noto Kufi
+// Arabic for display headings (--font-display), Roboto Mono for every number
+// (--font-numeric). globals.css maps the legacy --font-mono onto --font-numeric
+// so pre-redesign inline styles pick up the same digits.
+const plexArabic = IBM_Plex_Sans_Arabic({
+  subsets: ['arabic', 'latin'],
   weight: ['400', '500', '600', '700'],
-  variable: '--font-mono',
-  display: 'optional',
+  variable: '--font-body',
+  display: 'swap',
 })
 
-// Thmanyah families (Sans / Serif Text / Serif Display) are declared via
-// @font-face in globals.css and referenced as the primary font in --font-ar*.
-// They use font-display:optional and load on demand, so we don't declare them
-// through next/font here · doing so emitted duplicate (and preloaded) copies of
-// the same .woff2 files, wasting bandwidth on the critical path.
+const kufiArabic = Noto_Kufi_Arabic({
+  subsets: ['arabic', 'latin'],
+  weight: ['500', '600', '700'],
+  variable: '--font-display',
+  display: 'swap',
+})
+
+const robotoMono = Roboto_Mono({
+  subsets: ['latin'],
+  weight: ['500', '600', '700'],
+  variable: '--font-numeric',
+  display: 'swap',
+})
 
 export const metadata: Metadata = {
   title: {
@@ -74,7 +80,7 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="ar" dir="rtl" data-theme="dark" className={`${inter.variable} ${jetbrainsMono.variable}`} suppressHydrationWarning>
+    <html lang="ar" dir="rtl" data-theme="dark" className={`${plexArabic.variable} ${kufiArabic.variable} ${robotoMono.variable}`} suppressHydrationWarning>
       <head>
         <script
           dangerouslySetInnerHTML={{ __html: `(function(){try{var t=localStorage.getItem('theme')||'dark';document.documentElement.setAttribute('data-theme',t);}catch(e){}})();` }}

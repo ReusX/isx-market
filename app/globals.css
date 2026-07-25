@@ -163,10 +163,10 @@
    tokens are already theme-aware). Delete a line here once the last consumer
    of that token has been converted to the design components. */
 :root {
-  /* font roles · design names -> live self-hosted brand faces */
-  --font-body:    var(--font-ar);
-  --font-display: var(--font-ar-display);
-  --font-numeric: var(--font-mono);
+  /* Font roles come from next/font (IBM Plex Sans Arabic / Noto Kufi Arabic /
+     Roboto Mono), set on <html>. Map the legacy --font-mono onto the design's
+     numeric face so pre-redesign inline styles render the same digits. */
+  --font-mono: var(--font-numeric);
 
   /* surfaces */
   --bg:      var(--page);
@@ -5273,35 +5273,43 @@ tbody tr:hover .sparkline polyline {
 a[href*="tradingview"] { display: none !important; }
 .tv-lightweight-charts a { display: none !important; }
 
-/* ── Arabic: ThmanyahSans for ALL UI elements ── */
-html[lang="ar"],
-html[lang="ar"] * {
-  font-family: 'ThmanyahSans', sans-serif !important;
+/* ── IQWealth design typography ───────────────────────────────────────────
+   Body copy is IBM Plex Sans Arabic (--font-body), display headings Noto Kufi
+   Arabic (--font-display), numbers Roboto Mono (--font-numeric) — all set on
+   <html> by next/font and applied per component by the design CSS. The only
+   gap is form controls, which never inherit font-family, so pull those back
+   onto the body face. (No blanket `* !important` here — that would stomp the
+   design's numeric and heading faces, which is exactly what went wrong.) */
+html[lang="ar"] button,
+html[lang="ar"] input,
+html[lang="ar"] select,
+html[lang="ar"] textarea {
+  font-family: inherit;
 }
 
-/* Long-form Arabic body text (news articles, about page) → Thmanyah Serif Text */
+/* Long-form Arabic body text (news articles, about page). */
 html[lang="ar"] .wp-content,
 html[lang="ar"] .wp-content p,
 html[lang="ar"] .wp-content li,
 html[lang="ar"] .prose-ar {
-  font-family: 'ThmanyahSerifText', serif !important;
+  font-family: var(--font-body), sans-serif;
 }
 
-/* Large Arabic display headings → Thmanyah Serif Display */
+/* Large Arabic display headings. */
 html[lang="ar"] .wp-content h1,
 html[lang="ar"] .wp-content h2,
 html[lang="ar"] .wp-content h3,
 html[lang="ar"] .display-ar {
-  font-family: 'ThmanyahSerifDisplay', serif !important;
+  font-family: var(--font-display), var(--font-body), sans-serif;
 }
 
-/* Preserve monospace for prices, codes, numbers */
+/* Prices, codes, numbers. */
 html[lang="ar"] .mono,
 html[lang="ar"] [style*="font-mono"],
 html[lang="ar"] code,
 html[lang="ar"] pre,
 html[lang="ar"] .wp-content pre {
-  font-family: 'JetBrains Mono', ui-monospace, monospace !important;
+  font-family: var(--font-numeric), ui-monospace, monospace;
 }
 
 /* ── Native app (Capacitor) safe-area & chrome ── */
