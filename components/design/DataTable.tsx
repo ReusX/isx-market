@@ -10,6 +10,12 @@ export type TableColumn<Row> = {
   label: ReactNode
   render: (row: Row) => ReactNode
   sortValue?: (row: Row) => number | string
+  /**
+   * Rows this returns true for always sort after every other row, whichever
+   * direction the column is sorted in — for cells that have no value to rank
+   * (a company that did not trade has no change for today).
+   */
+  sortLast?: (row: Row) => boolean
   className?: string
   /** Wrap this cell in the row link so crawlers and middle-click both work. */
   linked?: boolean
@@ -47,6 +53,9 @@ export function DataTable<Row>({
     const column = columns.find(item => item.key === sortKey)
     if (!column?.sortValue) return rows
     return [...rows].sort((a, b) => {
+      const aLast = column.sortLast?.(a) ?? false
+      const bLast = column.sortLast?.(b) ?? false
+      if (aLast !== bLast) return aLast ? 1 : -1
       const aValue = column.sortValue?.(a) ?? 0
       const bValue = column.sortValue?.(b) ?? 0
       const result = typeof aValue === 'number' && typeof bValue === 'number'

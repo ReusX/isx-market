@@ -9,6 +9,10 @@ import { SectorChip } from '@/components/design/SectorChip'
 import { Card, ChangeValue } from '@/components/design/ui'
 import type { Company } from '@/types'
 
+type Movement = 'all' | 'up' | 'flat' | 'down'
+
+const companyName = (c: Company, ar: boolean) => (ar ? c.ar || c.en : c.en || c.ar) || c.sym
+
 const compactFormat = new Intl.NumberFormat('en-US', { notation: 'compact', maximumFractionDigits: 1 })
 const numberFormat = new Intl.NumberFormat('en-US', { maximumFractionDigits: 0 })
 const priceFormat = new Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 3 })
@@ -23,6 +27,7 @@ export default function MarketPage() {
   const [sector, setSector] = useState('all')
   const [query, setQuery] = useState('')
   const [onlyWatchlist, setOnlyWatchlist] = useState(false)
+  const [movement, setMovement] = useState<Movement>('all')
 
   useEffect(() => {
     Promise.all([fetchLive(), fetchCompanyMeta()])
@@ -37,6 +42,13 @@ export default function MarketPage() {
     let data = listed
     if (sector !== 'all') data = data.filter(c => c.sec === sector)
     if (onlyWatchlist) data = data.filter(c => watchlist.includes(c.sym))
+    // The breadth counts are read off this session's trades, so filtering by
+    // them drops carried-forward names — they have no move to belong to.
+    if (movement !== 'all') {
+      data = data.filter(c => !c.stale && (
+        movement === 'up' ? c.pct > 0 : movement === 'down' ? c.pct < 0 : c.pct === 0
+      ))
+    }
     const q = query.trim().toLowerCase()
     if (q) {
       data = data.filter(c =>
@@ -46,7 +58,7 @@ export default function MarketPage() {
       )
     }
     return data
-  }, [listed, sector, onlyWatchlist, watchlist, query])
+  }, [listed, sector, onlyWatchlist, watchlist, query, movement])
 
   // Advancers/decliners only count names that actually traded this session —
   // carried-forward rows would otherwise all land in "unchanged".
@@ -67,8 +79,10 @@ export default function MarketPage() {
       label: ar ? 'الشركة' : 'Company',
       className: 'market-company-column',
       linked: true,
-      sortValue: c => (ar ? c.ar : c.en) || c.sym,
-      render: c => <CompanyIdentity name={(ar ? c.ar : c.en) || c.sym} symbol={c.sym} logo={c.logo} color={c.color} />,
+      // A handful of listings have no Arabic name yet — the other language
+      // reads better than falling all the way back to the ticker.
+      sortValue: c => companyName(c, ar),
+      render: c => <CompanyIdentity name={companyName(c, ar)} symbol={c.sym} logo={c.logo} color={c.color} />,
     },
     {
       key: 'sector',
@@ -76,7 +90,7 @@ export default function MarketPage() {
       sortValue: c => c.sec,
       render: c => {
         const s = sectorLabel(c.sec)
-        return <span>{s ? (ar ? s.ar : s.en) : c.sec}</span>
+        return <span>{s ? (ar ? s.arFull : s.enFull) : c.sec}</span>
       },
     },
     {
@@ -84,14 +98,18 @@ export default function MarketPage() {
       label: ar ? 'القيمة السوقية' : 'Mkt Cap',
       className: 'numeric-column',
       sortValue: c => liveMcap(c),
-      render: c => <bdi>{compactFormat.format(liveMcap(c))} IQD</bdi>,
+      // Newer listings carry no share count and no static fallback; printing
+      // "0 IQD" would read as a real valuation.
+      render: c => (liveMcap(c) > 0 ? <bdi>{compactFormat.format(liveMcap(c))} IQD</bdi> : <bdi>·</bdi>),
     },
     {
       key: 'volume',
       label: ar ? 'الحجم' : 'Volume',
       className: 'numeric-column',
-      sortValue: c => c.vol ?? 0,
-      render: c => <bdi>{numberFormat.format(c.vol ?? 0)}</bdi>,
+      // Shares that changed hands. `vol` is the traded VALUE in IQD despite the
+      // name, so it belongs under a money label, not this one.
+      sortValue: c => c.shares_traded ?? 0,
+      render: c => <bdi>{numberFormat.format(c.shares_traded ?? 0)}</bdi>,
     },
     {
       key: 'price',
@@ -105,6 +123,7 @@ export default function MarketPage() {
       label: ar ? 'التغير' : 'Change',
       className: 'numeric-column',
       sortValue: c => c.pct,
+      sortLast: c => Boolean(c.stale),
       render: c => (c.stale
         ? <span className="stale-flag" title={ar ? 'لم يتداول في الجلسة الأخيرة' : 'Did not trade in the latest session'}>—</span>
         : <ChangeValue value={c.pct} />),
@@ -134,10 +153,23 @@ export default function MarketPage() {
           <span className="app-eyebrow">{ar ? 'حركة السوق' : 'Market movement'}</span>
           <h1>{ar ? 'جميع الشركات المدرجة' : 'All listed companies'}</h1>
         </div>
-        <div className="market-counts" aria-label={ar ? 'ملخص حركة الشركات' : 'Breadth summary'}>
-          <span className="positive"><bdi>{counts.advancers}</bdi><small>{ar ? 'رابح' : 'up'}</small></span>
-          <span><bdi>{counts.unchanged}</bdi><small>{ar ? 'ثابت' : 'flat'}</small></span>
-          <span className="negative"><bdi>{counts.decliners}</bdi><small>{ar ? 'خاسر' : 'down'}</small></span>
+        <div className="market-counts" role="group" aria-label={ar ? 'ملخص حركة الشركات' : 'Breadth summary'}>
+          {([
+            { id: 'up',   tone: 'positive', count: counts.advancers, ar: 'رابح',   en: 'up' },
+            { id: 'flat', tone: '',         count: counts.unchanged, ar: 'الثابت', en: 'flat' },
+            { id: 'down', tone: 'negative', count: counts.decliners, ar: 'خاسر',   en: 'down' },
+          ] as const).map(item => (
+            <button
+              key={item.id}
+              type="button"
+              className={[item.tone, movement === item.id ? 'is-active' : ''].filter(Boolean).join(' ')}
+              aria-pressed={movement === item.id}
+              onClick={() => setMovement(current => (current === item.id ? 'all' : item.id))}
+            >
+              <bdi>{item.count}</bdi>
+              <small>{ar ? item.ar : item.en}</small>
+            </button>
+          ))}
         </div>
       </Card>
 
@@ -185,10 +217,13 @@ export default function MarketPage() {
             loading={loading}
             rowKey={c => c.sym}
             rowHref={c => `/c/${c.sym}`}
-            gridTemplateColumns="minmax(0, 1fr) 90px 130px 110px 90px 90px 40px"
-            minWidth="820px"
-            // Company lists open on market capitalisation, largest first.
-            initialSort={{ key: 'marketCap', direction: 'desc' }}
+            // Share volume runs to ten digits on the thin-priced banks, so it
+            // takes a little of the market-cap column's width.
+            gridTemplateColumns="minmax(0, 1fr) 90px 118px 124px 80px 90px 40px"
+            minWidth="800px"
+            // A movement board opens on movement: today's best first, with the
+            // names that did not trade held back at the end.
+            initialSort={{ key: 'change', direction: 'desc' }}
             emptyTitle={ar ? 'لا توجد نتائج' : 'No results'}
             emptyDescription={ar ? 'غيّر القطاع أو امسح البحث.' : 'Change the sector or clear the search.'}
           />

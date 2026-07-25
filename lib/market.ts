@@ -70,6 +70,7 @@ async function fetchLiveRaw(): Promise<LiveData> {
       change,
       pct,
       vol:   (r.value  as number) ?? 0,
+      shares_traded: (r.volume as number) ?? 0,
       deals: (r.trades as number) ?? 0,
     })
   }
@@ -81,7 +82,7 @@ async function fetchLiveRaw(): Promise<LiveData> {
   // (one row per ticker), marked `stale` so it reads as "not today's session".
   const traded = new Set(stocks.map(s => s.code))
   const { data: last } = await sb
-    .from('latest_trade').select('ticker,close,value,change,pct,trades')
+    .from('latest_trade').select('ticker,close,value,volume,change,pct,trades')
   for (const r of last ?? []) {
     const code = r.ticker as string
     const close = r.close as number | null
@@ -91,6 +92,7 @@ async function fetchLiveRaw(): Promise<LiveData> {
       change: (r.change as number) ?? 0,
       pct:    (r.pct    as number) ?? 0,
       vol:    (r.value  as number) ?? 0,
+      shares_traded: (r.volume as number) ?? 0,
       deals:  (r.trades as number) ?? 0,
       stale:  true,
     })
@@ -125,6 +127,7 @@ export function mergeCompanies(meta: CompanyMeta[], stocks: LiveStock[]): Compan
       change: live?.change ?? 0,
       pct:    live?.pct    ?? 0,
       vol:    live?.vol    ?? 0,
+      shares_traded: live?.shares_traded ?? 0,
       deals:  live?.deals  ?? 0,
       stale:  live?.stale  ?? false,
     }
@@ -163,16 +166,18 @@ export function fmtRsisxVal(v: string | number | null | undefined): string {
 
 // ─── Sector metadata ─────────────────────────────────────────────────────────
 
+// `ar`/`en` are the short chip labels; `arFull`/`enFull` are the full sector
+// names used wherever a sector is read as a value (table cells, profiles).
 export const SECTORS = [
-  { id: 'all',  ar: 'الكل',    en: 'All' },
-  { id: 'BANK', ar: 'بنوك',    en: 'Banking' },
-  { id: 'IND',  ar: 'صناعي',   en: 'Industrial' },
-  { id: 'SVC',  ar: 'خدمات',   en: 'Services' },
-  { id: 'HTL',  ar: 'فنادق',   en: 'Hotels' },
-  { id: 'TEL',  ar: 'اتصالات', en: 'Telecom' },
-  { id: 'AGR',  ar: 'زراعة',   en: 'Agriculture' },
-  { id: 'INS',  ar: 'تأمين',   en: 'Insurance' },
-  { id: 'INV',  ar: 'استثمار', en: 'Investment' },
+  { id: 'all',  ar: 'الكل',    en: 'All',         arFull: 'الكل',              enFull: 'All' },
+  { id: 'BANK', ar: 'مصارف',   en: 'Banking',     arFull: 'المصارف',           enFull: 'Banking' },
+  { id: 'IND',  ar: 'صناعة',   en: 'Industrial',  arFull: 'الصناعة',           enFull: 'Industrial' },
+  { id: 'SVC',  ar: 'خدمات',   en: 'Services',    arFull: 'الخدمات',           enFull: 'Services' },
+  { id: 'HTL',  ar: 'فنادق',   en: 'Hotels',      arFull: 'الفنادق والسياحة',  enFull: 'Hotels & tourism' },
+  { id: 'TEL',  ar: 'اتصالات', en: 'Telecom',     arFull: 'الاتصالات',         enFull: 'Telecom' },
+  { id: 'AGR',  ar: 'زراعة',   en: 'Agriculture', arFull: 'الزراعة',           enFull: 'Agriculture' },
+  { id: 'INS',  ar: 'تأمين',   en: 'Insurance',   arFull: 'التأمين',           enFull: 'Insurance' },
+  { id: 'INV',  ar: 'استثمار', en: 'Investment',  arFull: 'الاستثمار المالي',  enFull: 'Financial investment' },
 ]
 
 export const SORT_OPTIONS = [

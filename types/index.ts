@@ -21,7 +21,8 @@ export interface LiveStock {
   low:    number
   change: number
   pct:    number
-  vol:    number
+  vol:    number    // traded VALUE in IQD (legacy name), not a share count
+  shares_traded: number  // shares that changed hands in the session
   deals:  number
   stale?: boolean  // carried forward: did not trade in the latest session
 }
@@ -33,7 +34,8 @@ export interface Company extends CompanyMeta {
   low:    number
   change: number
   pct:    number
-  vol:    number
+  vol:    number    // traded VALUE in IQD (legacy name), not a share count
+  shares_traded: number  // shares that changed hands in the session
   deals:  number
   stale?: boolean  // last price carried forward; did not trade in latest session
 }
