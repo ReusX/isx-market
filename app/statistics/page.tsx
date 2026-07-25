@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import { fetchCompanyMeta } from '@/lib/market'
 import { ForeignFlowGaugeVisual } from '@/components/design/ForeignFlowGauge'
-import { BarTrack } from '@/components/design/BarTrack'
+import { MonthlyFlowCard, SectorRotationCard } from './StatCards'
 import { OwnershipDonut } from '@/components/design/OwnershipDonut'
 import type { CompanyMeta } from '@/types'
 
@@ -31,13 +31,6 @@ function arDate(iso: string): string {
   const [y, m, d] = iso.split('-').map(Number)
   return `${d} ${arMonth[m]} ${y}`
 }
-
-const SECTOR_AR: Record<string, string> = {
-  Banks: 'المصارف', Banking: 'المصارف', Industry: 'الصناعة', Services: 'الخدمات',
-  Hotels: 'الفنادق', 'Hotels and Tourism': 'السياحة والفنادق', Telecommunication: 'الاتصالات',
-  Agriculture: 'الزراعة', Insurance: 'التأمين', Investment: 'الاستثمار',
-}
-const KNOWN_SECTORS = new Set(Object.keys(SECTOR_AR))
 
 export default function StatisticsPage() {
   const [daily, setDaily] = useState<DailyRow[]>([])
@@ -123,52 +116,6 @@ export default function StatisticsPage() {
     return { date: latest, buy, sell, net: buy - sell, topBuys }
   }, [daily, meta])
 
-  // ── Monthly net flow ──────────────────────────────────────────────────────
-  const monthly = useMemo(() => {
-    const byMonth = new Map<string, { buy: number; sell: number; y: number; m: number }>()
-    for (const r of flow) {
-      const k = `${r.year}-${String(r.month).padStart(2, '0')}`
-      const e = byMonth.get(k) ?? { buy: 0, sell: 0, y: r.year, m: r.month }
-      e[r.side] += r.value ?? 0
-      byMonth.set(k, e)
-    }
-    const all = Array.from(byMonth.entries())
-      .sort((a, b) => a[0].localeCompare(b[0]))
-      .map(([k, v]) => ({ k, net: v.buy - v.sell, y: v.y, m: v.m }))
-    // The design's card shows a compact 12-month strip.
-    return all.slice(-12)
-  }, [flow])
-
-  const monthlyTotal = useMemo(() => monthly.reduce((s, r) => s + r.net, 0), [monthly])
-  const monthlyMax = useMemo(() => Math.max(...monthly.map(r => Math.abs(r.net)), 1), [monthly])
-  const latestFlowMonth = monthly.length
-    ? `${arMonth[monthly[monthly.length - 1].m]} ${monthly[monthly.length - 1].y}`
-    : ''
-
-  // ── Sector rotation · latest month, buy side ──────────────────────────────
-  const rotation = useMemo(() => {
-    const byMonth = new Map<string, Map<string, number>>()
-    for (const r of sectorRows) {
-      if (r.side !== 'buy' || !KNOWN_SECTORS.has(r.sector)) continue
-      const k = `${r.year}-${String(r.month).padStart(2, '0')}`
-      const sm = byMonth.get(k) ?? new Map<string, number>()
-      sm.set(r.sector, (sm.get(r.sector) ?? 0) + (r.value ?? 0))
-      byMonth.set(k, sm)
-    }
-    const months = Array.from(byMonth.keys()).sort()
-    if (!months.length) return { month: '', rows: [] as { name: string; amount: number }[], total: 0 }
-    const cur = months[months.length - 1]
-    const [y, m] = cur.split('-').map(Number)
-    const rows = Array.from(byMonth.get(cur)!.entries())
-      .map(([sec, amount]) => ({ name: SECTOR_AR[sec] ?? sec, amount }))
-      .sort((a, b) => b.amount - a.amount)
-    return {
-      month: `${arMonth[m]} ${y}`,
-      rows: rows.slice(0, 3),
-      total: rows.reduce((s, r) => s + r.amount, 0),
-    }
-  }, [sectorRows])
-
   // ── Ownership ─────────────────────────────────────────────────────────────
   const ownership = useMemo(() => {
     const iraqi = own.reduce((s, r) => s + (r.iraqi_shares ?? 0), 0)
@@ -252,60 +199,8 @@ export default function StatisticsPage() {
 
       {/* ── Monthly flow + sector rotation ──────────────────────────────── */}
       <div className="statistics-secondary">
-        <section className="app-card statistics-card statistics-secondary-card">
-          <span className="app-badge">شهري</span>
-          <h2>تدفق المستثمر الأجنبي</h2>
-          <p>صافي شهرياً{latestFlowMonth ? ` · حتى ${latestFlowMonth}` : ''}</p>
-          <strong className={`statistics-headline ${monthlyTotal >= 0 ? 'positive' : 'negative'}`}>
-            <bdi>{fmtIQD(monthlyTotal)} IQD</bdi>
-          </strong>
-          <div className="monthly-flow-chart" aria-label="صافي تدفق المستثمر الأجنبي شهرياً">
-            <span className="monthly-baseline" />
-            {monthly.map(row => (
-              <span
-                className="monthly-bar-column"
-                key={row.k}
-                title={`${arMonth[row.m]} ${row.y} · ${fmtIQD(row.net)}`}
-              >
-                <i
-                  className={row.net >= 0 ? 'positive' : 'negative'}
-                  style={{
-                    blockSize: `${Math.max(5, (Math.abs(row.net) / monthlyMax) * 34)}px`,
-                    insetBlockEnd: row.net >= 0 ? '50%' : 'auto',
-                    insetBlockStart: row.net < 0 ? '50%' : 'auto',
-                  }}
-                />
-              </span>
-            ))}
-          </div>
-          {monthly.length ? (
-            <div className="monthly-chart-labels">
-              <bdi>{monthly[monthly.length - 1].m}/{String(monthly[monthly.length - 1].y).slice(2)}</bdi>
-              <bdi>{monthly[Math.floor(monthly.length / 2)].m}/{String(monthly[Math.floor(monthly.length / 2)].y).slice(2)}</bdi>
-              <bdi>{monthly[0].m}/{String(monthly[0].y).slice(2)}</bdi>
-            </div>
-          ) : null}
-        </section>
-
-        <section className="app-card statistics-card statistics-secondary-card">
-          <span className="app-badge">شهري</span>
-          <h2>دوران القطاعات</h2>
-          <p>أين يتدفق المال الأجنبي{rotation.month ? ` · ${rotation.month}` : ''}</p>
-          <strong className="statistics-headline positive">
-            <bdi>{fmtIQD(rotation.total)} IQD</bdi> شراء
-          </strong>
-          <div className="rotation-list">
-            {rotation.rows.map(sector => (
-              <div className="rotation-row" key={sector.name}>
-                <span>
-                  <strong>{sector.name}</strong>
-                  <bdi>{fmtIQD(sector.amount)}</bdi>
-                </span>
-                <BarTrack value={sector.amount} max={rotation.rows[0]?.amount ?? 1} />
-              </div>
-            ))}
-          </div>
-        </section>
+        <MonthlyFlowCard rows={flow} />
+        <SectorRotationCard rows={sectorRows} />
       </div>
 
       {/* ── Market ownership ────────────────────────────────────────────── */}
