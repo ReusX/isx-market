@@ -214,6 +214,59 @@ function parseForeignFlow(wb: XLSX.WorkBook, isoDate: string): ForeignRow[] {
   return rows
 }
 
+// ── Session summary (published hours before the workbook) ───────────────────
+// ISX puts the closing summary on its own homepage as soon as the session is
+// settled, while the daily workbook this cron parses can take hours longer —
+// on 26/07/2026 the site showed 1,048.75 at 14:00 Baghdad with no workbook in
+// the list at all. The summary carries no per-company rows, so it updates the
+// index series only; the workbook overwrites the same date when it lands.
+const SUMMARY_URL = 'http://www.isx-iq.net/isxportal/portal/homePage.html'
+
+interface Summary {
+  isoDate: string
+  isx60: number | null
+  total_value: number | null
+  total_volume: number | null
+  total_trades: number | null
+  traded_companies: number | null
+}
+
+async function fetchSummary(): Promise<Summary | null> {
+  try {
+    const res = await fetch(`${SUMMARY_URL}?_=${Date.now()}`, {
+      cache: 'no-store',
+      headers: { ...UA, 'Cache-Control': 'no-cache', Pragma: 'no-cache' },
+    })
+    if (!res.ok) return null
+    const full = decodeEntities(await res.text()).replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ')
+    // Read only the summary block. The page also carries a hardcoded fallback
+    // string in its own JavaScript ("آخر تحديث29/04/2026") that appears BEFORE
+    // the real one — matching the whole page filed a live session under a date
+    // three months old.
+    const from = full.indexOf('المؤشر العام')
+    const anchor = full.indexOf('الأسهم الثابتة', from)
+    if (from < 0 || anchor < 0) return null
+    const text = full.slice(from, anchor + 200)
+    const d = text.match(/آخر\s*تحديث\s*(\d{2})\/(\d{2})\/(\d{4})/)
+    if (!d) return null
+    // Labels on the page carry stray tatweels ("عدد الصفـقات"), so match around them.
+    const field = (label: string) => {
+      const m = text.match(new RegExp(label.split('').join('ـ?') + String.raw`\s*([\d,]+(?:\.\d+)?)`))
+      return m ? Number(m[1].replace(/,/g, '')) : null
+    }
+    return {
+      isoDate: `${d[3]}-${d[2]}-${d[1]}`,
+      isx60: field('المؤشر العام'),
+      total_value: field('القيمة المتداولة'),
+      total_volume: field('الأسهم المتداولة'),
+      total_trades: field('عدد الصفقات'),
+      traded_companies: field('الشركات المتداولة'),
+    }
+  } catch {
+    return null
+  }
+}
+
 export async function GET(req: NextRequest) {
   const secret = process.env.CRON_SECRET
   if (!secret || req.headers.get('authorization') !== `Bearer ${secret}`) {
@@ -272,6 +325,28 @@ export async function GET(req: NextRequest) {
       }
     }
 
+    // Interim index row for a session whose workbook has not been published
+    // yet. Only when we hold no per-company rows for that date — once the
+    // workbook lands, parseIndexSheet overwrites this same row.
+    const summary = await fetchSummary()
+    let summaryApplied: string | null = null
+    // A summary can only ever be for a session at or after the newest workbook;
+    // anything older is a misread, not a new session.
+    const newestListed = listed.reduce((a, f) => (f.isoDate > a ? f.isoDate : a), '')
+    if (summary?.isx60 && summary.isoDate >= newestListed
+        && !have.has(summary.isoDate) && !loaded.some(l => l.date === summary.isoDate)) {
+      const { error: eS } = await supabase.from('daily_index').upsert([{
+        date:             summary.isoDate,
+        isx60:            summary.isx60,
+        total_value:      summary.total_value,
+        total_volume:     summary.total_volume,
+        total_trades:     summary.total_trades,
+        traded_companies: summary.traded_companies,
+      }], { onConflict: 'date' })
+      if (eS) failed.push({ date: summary.isoDate, error: `summary: ${eS.message}` })
+      else summaryApplied = summary.isoDate
+    }
+
     // Refresh the derived materialized views (breadth_daily, company_metrics)
     // that /screener, /heatmap and /pulse read. Done on EVERY run, not just when
     // this cron loaded a session: base rows can land via a manual/Python load or
@@ -289,7 +364,7 @@ export async function GET(req: NextRequest) {
       ok: failed.length === 0,
       listed: listed.length,
       skipped: listed.length - todo.length,
-      loaded, failed, metricsRefreshed,
+      loaded, failed, metricsRefreshed, summaryApplied,
     })
   } catch (e) {
     return NextResponse.json({ ok: false, error: String(e) }, { status: 500 })
