@@ -182,9 +182,13 @@ async function readFxCache(): Promise<FxData | null> {
 
 async function writeFxCache(fx: FxData): Promise<void> {
   try {
-    const { createClient } = await import('@/lib/supabase/server')
-    const sb = await createClient()
-    await sb.from('rates_cache').upsert({ key: CACHE_KEY, data: fx, updated_at: new Date().toISOString() })
+    // Admin client: rates_cache is not writable by the anon role, so the
+    // ordinary server client failed silently and left the fallback frozen at
+    // whatever rate was current when the row was last written by hand.
+    const { createAdminClient } = await import('@/lib/supabase/server')
+    await createAdminClient()
+      .from('rates_cache')
+      .upsert({ key: CACHE_KEY, data: fx, updated_at: new Date().toISOString() })
   } catch { /* best-effort */ }
 }
 
