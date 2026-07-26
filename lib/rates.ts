@@ -72,6 +72,7 @@ export interface FxData {
   source: string
   sourceUrl: string
   fetchedAt: string
+  stale?: boolean         // served from cache · the source could not be read
 }
 
 const jina = (url: string) => 'https://r.jina.ai/' + url
@@ -83,25 +84,41 @@ const jina = (url: string) => 'https://r.jina.ai/' + url
 // per 100 USD) from the article body.
 const ALS_LIST = 'https://www.alsumaria.tv/economy-news'
 
-async function discoverDollarArticle(): Promise<string | null> {
+async function fetchText(url: string, timeout = 12000): Promise<string | null> {
   try {
-    const res = await fetch(jina(ALS_LIST), { headers: UA, next: { revalidate: REVALIDATE }, signal: AbortSignal.timeout(9000) })
-    if (!res.ok) return null
-    const md = await res.text()
-    let best: { id: number; url: string } | null = null
-    const matches = Array.from(md.matchAll(/\((https:\/\/www\.alsumaria\.tv\/news\/economy\/(\d+)\/[^)]+)\)/g))
-    for (const m of matches) {
-      const url = m[1], id = +m[2]
-      const dec = decodeURIComponent(url)
-      // dollar price articles: title mentions الدولار + a market verb, but NOT gold/oil/other-commodity articles
-      if (/دولار/.test(dec) && /(إغلاق|التداولات|السوق|الأسواق|ارتفاع|تراجع|يستقر|قفزة|أسعار|الصرف)/.test(dec) && !/ذهب|نفط|بترول/.test(dec)) {
-        if (!best || id > best.id) best = { id, url }
-      }
+    const res = await fetch(url, { headers: UA, next: { revalidate: REVALIDATE }, signal: AbortSignal.timeout(timeout) })
+    return res.ok ? await res.text() : null
+  } catch { return null }
+}
+
+// Newest dollar-price article in a listing page. Handles both shapes we read:
+// absolute percent-encoded links (r.jina.ai markdown) and the relative, often
+// literally-Arabic hrefs in the site's own HTML.
+function pickDollarArticle(text: string): string | null {
+  let best: { id: number; url: string } | null = null
+  for (const m of Array.from(text.matchAll(/(?:https:\/\/www\.alsumaria\.tv)?\/news\/economy\/(\d+)\/([^\s"'<>)]+)/g))) {
+    const id = +m[1]
+    const url = `https://www.alsumaria.tv/news/economy/${m[1]}/${m[2]}`
+    let slug = m[2]
+    try { slug = decodeURIComponent(slug) } catch { /* already literal */ }
+    // dollar price articles: title mentions الدولار + a market verb, but NOT gold/oil/other-commodity articles
+    if (/دولار/.test(slug) && /(إغلاق|التداولات|السوق|الأسواق|ارتفاع|تراجع|انخفاض|يستقر|قفزة|أسعار|الصرف)/.test(slug) && !/ذهب|نفط|بترول|غاز/.test(slug)) {
+      if (!best || id > best.id) best = { id, url }
     }
-    return best?.url ?? null
-  } catch {
-    return null
   }
+  return best?.url ?? null
+}
+
+// The economy listing serves its article links in static HTML, so read it
+// directly; r.jina.ai is only the fallback for when that stops being true.
+// (The reader is also rate-limited — it answers 403 often enough that it
+// cannot be the primary path.)
+async function discoverDollarArticle(): Promise<string | null> {
+  const direct = await fetchText(ALS_LIST)
+  const fromDirect = direct && pickDollarArticle(direct)
+  if (fromDirect) return fromDirect
+  const proxied = await fetchText(jina(ALS_LIST))
+  return (proxied && pickDollarArticle(proxied)) || null
 }
 
 function parseAlsumaria(raw: string, url: string): FxData | null {
@@ -115,27 +132,41 @@ function parseAlsumaria(raw: string, url: string): FxData | null {
     .replace(/https?:\/\/\S+/g, ' ')
     .replace(/\s+/g, ' ')
   const n = (s: string) => parseInt(s.replace(/[,،]/g, ''), 10)
+  // A parallel-market dollar outside this band is a misparse, not a rate.
+  const sane = (v: number | null) => (v != null && v >= 1000 && v <= 2500 ? v : null)
+
   // Prices are quoted "<label> … NNNNNN ديناراً مقابل/لكل 100 دولار". The label
   // and its figure may be separated by a clause (e.g. البيع "في محال الصيرفة
   // بالأسواق المحلية في بغداد" 156750 …), so allow a bounded gap and anchor on
   // the "… 100 دولار" tail. Non-greedy → takes the figure nearest each label.
-  const per100 = (label: string) => {
-    const m = t.match(new RegExp(label + String.raw`[\s\S]{0,90}?([\d,،]{5,7})\s*دينار\S*\s*(?:مقابل|لكل)\s*100\s*دولار`))
-    return m ? n(m[1]) / 100 : null
+  //
+  // Alsumaria's wording drifts, though, and the second price often drops the
+  // tail entirely: "…البيع 151,000 دينار مقابل 100 دولار. بينما سجل سعر الشراء
+  // 150,000 ديناراً." That silently left `buy` null. So fall back to the label
+  // and its nearest figure, and read the unit off the magnitude — six figures
+  // is per 100 dollars, four is per one.
+  const price = (label: string) => {
+    const tailed = t.match(new RegExp(label + String.raw`[\s\S]{0,90}?([\d,،]{5,7})\s*دينار\S*\s*(?:مقابل|لكل)\s*100\s*دولار`))
+    if (tailed) return sane(n(tailed[1]) / 100)
+    const bare = t.match(new RegExp(label + String.raw`[\s\S]{0,90}?([\d,،]{4,7})\s*دينار`))
+    if (!bare) return null
+    const v = n(bare[1])
+    return sane(v >= 10_000 ? v / 100 : v)
   }
-  const sell = per100('(?:ال)?بيع')
-  const buy  = per100('(?:ال)?شراء')
+  const sell = price('(?:ال)?بيع')
+  const buy  = price('(?:ال)?شراء')
   if (sell == null && buy == null) return null
-  const date = raw.match(/"datePublished":\s*"([^"]+)"/)?.[1]?.slice(0, 10) ?? null
+  // JSON-LD only exists on the raw HTML; through the r.jina.ai reader the page
+  // arrives as markdown, where the dateline is plain text ("2026-07-25 | 04:00").
+  const date = raw.match(/"datePublished":\s*"([^"]+)"/)?.[1]?.slice(0, 10)
+    ?? raw.match(/\b(20\d{2}-\d{2}-\d{2})\b/)?.[1]
+    ?? null
   return { buy, sell, change: null, date, source: 'alsumaria.tv', sourceUrl: url, fetchedAt: new Date().toISOString() }
 }
 
 async function tryFetch(url: string, parse: (raw: string, url: string) => FxData | null): Promise<FxData | null> {
-  try {
-    const res = await fetch(url, { headers: UA, next: { revalidate: REVALIDATE }, signal: AbortSignal.timeout(9000) })
-    if (res.ok) return parse(await res.text(), url)
-  } catch { /* ignore */ }
-  return null
+  const raw = await fetchText(url)
+  return raw ? parse(raw, url) : null
 }
 
 const CACHE_KEY = 'fx'
@@ -160,13 +191,18 @@ async function writeFxCache(fx: FxData): Promise<void> {
 export async function fetchFx(): Promise<FxData | null> {
   const article = await discoverDollarArticle()
   if (article) {
-    const direct = await tryFetch(encodeURI(article), parseAlsumaria)
+    // NOT encodeURI(article): the listing already hands us a percent-encoded
+    // URL, so re-encoding turned every %D8 into %25D8 and the article 404'd —
+    // which is how this page came to serve a month-old rate from cache.
+    const direct = await tryFetch(article, parseAlsumaria)
     if (direct) { await writeFxCache(direct); return direct }
     const viaProxy = await tryFetch(jina(article), (raw) => parseAlsumaria(raw, article))
     if (viaProxy) { await writeFxCache(viaProxy); return viaProxy }
   }
-  // Alsumaria unavailable · serve last known rate from cache
-  return readFxCache()
+  // Alsumaria unavailable · serve the last known rate, but say so. Serving a
+  // month-old dollar rate as if it were today's is worse than showing nothing.
+  const cached = await readFxCache()
+  return cached ? { ...cached, stale: true } : null
 }
 
 // ── Oil prices ───────────────────────────────────────────────────────────────

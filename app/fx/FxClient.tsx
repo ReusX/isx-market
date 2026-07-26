@@ -53,7 +53,11 @@ export default function FxClient({ fx }: { fx: FxData | null }) {
             <h1>{ar ? 'دولار أمريكي / دينار عراقي' : 'USD / IQD'}</h1>
             <p>{ar ? 'السوق الموازي · السعر العام' : 'Parallel market'}</p>
           </div>
-          <Badge tone="success" dot>{ar ? 'مباشر' : 'LIVE'}</Badge>
+          {/* A cached rate is not a live one — the page said "مباشر" over a
+              month-old dollar for as long as the source stayed unreadable. */}
+          {fx.stale
+            ? <Badge tone="accent">{ar ? 'آخر سعر معروف' : 'Last known'}</Badge>
+            : <Badge tone="success" dot>{ar ? 'مباشر' : 'LIVE'}</Badge>}
         </div>
         <div className="market-tool-headline">
           <strong><bdi>{fmt(rate, 0)}</bdi> <small>{ar ? 'د.ع لكل دولار' : 'IQD / $1'}</small></strong>
@@ -65,7 +69,10 @@ export default function FxClient({ fx }: { fx: FxData | null }) {
           ) : null}
         </div>
         {fx.date ? (
-          <span className="market-tool-updated">{ar ? 'آخر تحديث' : 'Updated'}: {ar ? arDate(fx.date) : fx.date}</span>
+          <span className="market-tool-updated">
+            {ar ? 'آخر تحديث' : 'Updated'}: {ar ? arDate(fx.date) : fx.date}
+            {fx.stale ? <> · {ar ? 'تعذّر تحديث السعر من المصدر' : 'could not refresh from source'}</> : null}
+          </span>
         ) : null}
       </Card>
 
