@@ -1,9 +1,8 @@
 'use client'
 
 // Shared bits for the /statistics cards and their dedicated full pages.
-import { useState } from 'react'
 import Link from 'next/link'
-import Image from 'next/image'
+import { CompanyLogo } from '@/components/CompanyLogo'
 
 export const arMonth = ['', 'يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو', 'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر']
 
@@ -23,21 +22,17 @@ export function arDate(iso: string): string {
 
 // ── Company logo with fallback (mirrors the site CoLogo) ───────────────────────
 export function CoLogo({ sym, logo, size = 28 }: { sym: string; logo?: string; size?: number }) {
-  const [err, setErr] = useState(false)
-  const src = !err ? (logo || `https://isc.gov.iq/Uploads/Companies/${sym}.png`) : null
-  if (src) {
-    return (
-      <Image src={src} alt={sym} width={size} height={size} loading="lazy" sizes={`${size * 2}px`}
-        style={{ borderRadius: 6, objectFit: 'contain', background: '#fff', padding: 1, flexShrink: 0 }}
-        onError={() => setErr(true)} />
-    )
-  }
   return (
-    <div style={{
-      width: size, height: size, borderRadius: 6, flexShrink: 0, background: 'var(--surf3)',
-      display: 'flex', alignItems: 'center', justifyContent: 'center',
-      fontSize: 9, fontWeight: 800, color: 'var(--ink3)',
-    }}>{sym.slice(0, 3)}</div>
+    <CompanyLogo
+      sym={sym}
+      logo={logo}
+      letters={3}
+      style={{
+        width: size, height: size, borderRadius: 6, flexShrink: 0, background: 'var(--surf3)',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        fontSize: 9, fontWeight: 800, color: 'var(--ink3)',
+      }}
+    />
   )
 }
 

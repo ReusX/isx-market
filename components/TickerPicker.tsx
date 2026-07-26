@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from 'react'
 import type { CompanyMeta } from '@/types'
+import { CompanyLogo } from '@/components/CompanyLogo'
 
 /** Searchable company picker (ticker or Arabic/English name). */
 export default function TickerPicker({
@@ -52,13 +53,11 @@ export default function TickerPicker({
               }}
               onMouseEnter={e => (e.currentTarget.style.background = 'var(--surf2)')}
               onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}>
-              <span style={{
-                width: 24, height: 24, borderRadius: 6, flexShrink: 0, background: m.color || 'var(--brand)',
+              <CompanyLogo sym={m.sym} logo={m.logo} color={m.color} letters={3} style={{
+                background: 'var(--brand)',
+                width: 24, height: 24, borderRadius: 6, flexShrink: 0,
                 display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 8, fontWeight: 800, color: '#fff',
-                overflow: 'hidden',
-              }}>
-                {m.logo ? <img src={m.logo} alt="" width={24} height={24} style={{ objectFit: 'contain', background: '#fff' }} /> : m.sym.slice(0, 3)}
-              </span>
+              }} />
               <span style={{ fontSize: 12.5, fontWeight: 700, color: 'var(--ink)', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{m.ar}</span>
               <span style={{ fontSize: 10.5, color: 'var(--ink4)', fontFamily: 'var(--font-mono)' }}>{m.sym}</span>
             </button>

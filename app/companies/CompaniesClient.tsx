@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import { fetchLive, fetchCompanyMeta, mergeCompanies, SECTORS } from '@/lib/market'
 import { SectorChip } from '@/components/design/SectorChip'
+import { CompanyLogo } from '@/components/CompanyLogo'
 import type { Company } from '@/types'
 
 type SortKey = 'mcap' | 'price' | 'change' | 'volume'
@@ -117,7 +118,7 @@ export default function CompaniesClient() {
                   <td data-label="#"><bdi className="num-roll">{i + 1}</bdi></td>
                   <td data-label="الشركة">
                     <Link className="company-cell" href={`/c/${company.sym}`}>
-                      <span className="logo-chip">{company.sym.slice(0, 1)}</span>
+                      <CompanyLogo className="logo-chip" sym={company.sym} logo={company.logo} />
                       <span>
                         <strong>{company.ar || company.en || company.sym}</strong>
                         <small>{SECTOR_AR.get(company.sec) ?? company.sec} · <bdi>{company.sym}</bdi></small>

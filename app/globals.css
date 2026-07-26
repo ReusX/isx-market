@@ -5855,9 +5855,21 @@ html[lang="ar"] .wp-content pre {
   text-align: center;
 }
 
-.market-company-logo.has-image {
-  object-fit: contain;
+/* ── Company logo chip (components/CompanyLogo) ──────────────────────────── */
+
+/* The chip's box comes from whatever class the surface passes in; this only
+   governs what happens once a real logo lands inside it. */
+.co-logo {
+  overflow: hidden;
+}
+.co-logo.has-image {
   background: #fff;
+  padding: 0;
+}
+.co-logo-img {
+  inline-size: 100%;
+  block-size: 100%;
+  object-fit: contain;
   padding: 2px;
 }
 

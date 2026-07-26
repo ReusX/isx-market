@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from 'react'
 import Link from 'next/link'
 import { useApp } from '@/context/AppContext'
 import { SECTORS } from '@/lib/market'
+import { CompanyLogo } from '@/components/CompanyLogo'
 
 interface KPI { label: string; value: string; change: string }
 interface AnalysisPoint { title: string; body: string }
@@ -53,19 +54,19 @@ function getVerdict(v: string) {
 }
 
 function CoLogo({ sym, logo, color }: { sym: string; logo: string; color: string }) {
-  const [err, setErr] = useState(false)
-  if (logo && !err) return (
-    <img src={logo} alt={sym} width={52} height={52}
-      style={{ borderRadius: 14, objectFit: 'contain', background: '#fff', padding: 4, flexShrink: 0 }}
-      onError={() => setErr(true)} />
-  )
   return (
-    <div style={{
-      width: 52, height: 52, borderRadius: 14, flexShrink: 0,
-      background: color + '22', border: `1.5px solid ${color}44`,
-      display: 'flex', alignItems: 'center', justifyContent: 'center',
-      fontFamily: 'var(--font-mono)', fontSize: 10, fontWeight: 800, color,
-    }}>{sym.slice(0, 4)}</div>
+    <CompanyLogo
+      sym={sym}
+      logo={logo}
+      letters={4}
+      style={{
+        background: color + '22',
+        width: 52, height: 52, borderRadius: 14, flexShrink: 0,
+        border: `1.5px solid ${color}44`,
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        fontFamily: 'var(--font-mono)', fontSize: 10, fontWeight: 800, color,
+      }}
+    />
   )
 }
 

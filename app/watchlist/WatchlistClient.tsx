@@ -2,8 +2,8 @@
 
 import { useEffect, useState, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
-import Image from 'next/image'
 import { useApp } from '@/context/AppContext'
+import { CompanyLogo } from '@/components/CompanyLogo'
 import {
   fetchLive, fetchCompanyMeta, mergeCompanies,
   fmtVol, fmtMcap, SECTORS,
@@ -14,21 +14,17 @@ function fmtPrice(v: number) { return v.toFixed(3) }
 
 // ── Company logo with fallback ─────────────────────────────────────────────────
 function CoLogo({ sym, logo, size = 30 }: { sym: string; logo?: string; size?: number }) {
-  const [err, setErr] = useState(false)
-  const src = !err ? (logo || `https://isc.gov.iq/Uploads/Companies/${sym}.png`) : null
-  if (src) {
-    return (
-      <Image src={src} alt={sym} width={size} height={size} loading="lazy" sizes={`${size * 2}px`}
-        style={{ borderRadius: 5, objectFit: 'contain', background: '#fff', padding: 1, flexShrink: 0 }}
-        onError={() => setErr(true)} />
-    )
-  }
   return (
-    <div style={{
-      width: size, height: size, borderRadius: 5, flexShrink: 0, background: 'var(--surf3)',
-      display: 'flex', alignItems: 'center', justifyContent: 'center',
-      fontSize: 9, fontWeight: 800, color: 'var(--ink3)',
-    }}>{sym.slice(0, 3)}</div>
+    <CompanyLogo
+      sym={sym}
+      logo={logo}
+      letters={3}
+      style={{
+        width: size, height: size, borderRadius: 5, flexShrink: 0, background: 'var(--surf3)',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        fontSize: 9, fontWeight: 800, color: 'var(--ink3)',
+      }}
+    />
   )
 }
 

@@ -7,6 +7,7 @@ import Link from 'next/link'
 import { useApp } from '@/context/AppContext'
 import { fetchLive, fetchCompanyMeta, mergeCompanies, fmtVol, fmtMcap } from '@/lib/market'
 import type { Company } from '@/types'
+import { CompanyLogo } from '@/components/CompanyLogo'
 import { DirectionalChange } from '@/components/design/ui'
 import { Range52Indicator } from '@/components/design/Range52Indicator'
 import PerformanceOverview from '@/components/company/PerformanceOverview'
@@ -37,16 +38,7 @@ function LazyKChart(props: { sym: string; name?: string }) {
 
 // ─── Logo ────────────────────────────────────────────────────────────────────
 function CoLogo({ sym, logo, color }: { sym: string; logo?: string; color?: string }) {
-  const [err, setErr] = useState(false)
-  if (logo && !err) {
-    // eslint-disable-next-line @next/next/no-img-element
-    return <img className="company-logo-placeholder has-image" src={logo} alt="" width={48} height={48} onError={() => setErr(true)} />
-  }
-  return (
-    <span className="company-logo-placeholder" style={color ? { background: color } : undefined} aria-hidden="true">
-      {sym.slice(0, 1)}
-    </span>
-  )
+  return <CompanyLogo className="company-logo-placeholder" sym={sym} logo={logo} color={color} />
 }
 
 // ─── Main Page ────────────────────────────────────────────────────────────────

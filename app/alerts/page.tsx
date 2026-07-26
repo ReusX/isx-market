@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import { useApp } from '@/context/AppContext'
 import TickerPicker from '@/components/TickerPicker'
+import { CompanyLogo } from '@/components/CompanyLogo'
 import { useAlerts, useMarketData, alertHit, type Alert } from '@/lib/portfolio'
 
 export default function AlertsPage() {
@@ -130,9 +131,7 @@ function AlertRow({ a, name, logo, color, price, onRemove, hit }: {
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 14px', borderRadius: 12, border: `1px solid ${hit ? 'var(--up)' : 'var(--line)'}`, background: hit ? 'color-mix(in srgb, var(--up) 8%, var(--surf))' : 'var(--surf)' }}>
       <Link href={`/c/${a.sym}`} style={{ display: 'flex', alignItems: 'center', gap: 9, textDecoration: 'none', minWidth: 0, flex: 1 }}>
-        <span style={{ width: 30, height: 30, borderRadius: 7, flexShrink: 0, background: color || 'var(--brand)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 9, fontWeight: 800, color: '#fff', overflow: 'hidden' }}>
-          {logo ? <img src={logo} alt="" width={30} height={30} style={{ objectFit: 'contain', background: '#fff' }} /> : a.sym.slice(0, 3)}
-        </span>
+        <CompanyLogo sym={a.sym} logo={logo} color={color} letters={3} style={{ background: 'var(--brand)', width: 30, height: 30, borderRadius: 7, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 9, fontWeight: 800, color: '#fff' }} />
         <div style={{ minWidth: 0 }}>
           <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--ink)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 160 }}>{name}</div>
           <div style={{ fontSize: 11, color: 'var(--ink4)' }}>

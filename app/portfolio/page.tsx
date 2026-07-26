@@ -4,6 +4,7 @@ import { useMemo, useState } from 'react'
 import Link from 'next/link'
 import { useApp } from '@/context/AppContext'
 import TickerPicker from '@/components/TickerPicker'
+import { CompanyLogo } from '@/components/CompanyLogo'
 import {
   usePortfolio, useMarketData, aggregate, totals,
   fmtIQD, fmtPct, type Holding,
@@ -174,9 +175,7 @@ function HoldingRow({ h, name, logo, color, weight, onRemove }: {
     <tr style={{ borderBottom: '1px solid var(--line)' }}>
       <td style={{ padding: '10px 12px' }}>
         <Link href={`/c/${h.sym}`} style={{ display: 'flex', alignItems: 'center', gap: 9, textDecoration: 'none' }}>
-          <span style={{ width: 26, height: 26, borderRadius: 6, flexShrink: 0, background: color || 'var(--brand)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 9, fontWeight: 800, color: '#fff', overflow: 'hidden' }}>
-            {logo ? <img src={logo} alt="" width={26} height={26} style={{ objectFit: 'contain', background: '#fff' }} /> : h.sym.slice(0, 3)}
-          </span>
+          <CompanyLogo sym={h.sym} logo={logo} color={color} letters={3} style={{ background: 'var(--brand)', width: 26, height: 26, borderRadius: 6, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 9, fontWeight: 800, color: '#fff' }} />
           <div style={{ minWidth: 0 }}>
             <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--ink)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 150 }}>{name}</div>
             <div style={{ fontSize: 10.5, color: 'var(--ink4)', fontFamily: 'var(--font-mono)' }}>{h.sym}</div>

@@ -6,6 +6,7 @@ import { fetchLive, fetchCompanyMeta, mergeCompanies, SECTORS } from '@/lib/mark
 import IndexChart from '@/components/design/IndexChart'
 import { ForeignFlowGauge } from '@/components/design/ForeignFlowGauge'
 import { Sparkline } from '@/components/design/Sparkline'
+import { CompanyLogo } from '@/components/CompanyLogo'
 import { SectorPerformanceChipRow } from '@/components/design/SectorPerformanceChipRow'
 import type { SectorDatum } from '@/components/design/magnitude'
 import type { Company } from '@/types'
@@ -308,7 +309,7 @@ export default function HomeClient() {
                   <td data-label="#"><bdi className="num-roll">{i + 1}</bdi></td>
                   <td data-label="الشركة">
                     <Link className="company-cell" href={`/c/${company.sym}`}>
-                      <span className="logo-chip">{company.sym.slice(0, 1)}</span>
+                      <CompanyLogo className="logo-chip" sym={company.sym} logo={company.logo} />
                       <span>
                         <strong>{company.ar || company.en || company.sym}</strong>
                         <small>{SECTOR_AR.get(company.sec) ?? company.sec} · <bdi>{company.sym}</bdi></small>
