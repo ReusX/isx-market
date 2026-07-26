@@ -150,14 +150,18 @@ export default function HomeClient() {
   const topMovers = useMemo(() => ([
     { title: 'أعلى الرابحين', items: [...traded].filter(c => c.pct > 0).sort((a, b) => b.pct - a.pct).slice(0, 3), metric: 'change' as const },
     { title: 'أعلى الخاسرين', items: [...traded].filter(c => c.pct < 0).sort((a, b) => a.pct - b.pct).slice(0, 3), metric: 'change' as const },
-    { title: 'الأنشط', items: [...traded].sort((a, b) => (b.vol ?? 0) - (a.vol ?? 0)).slice(0, 3), metric: 'volume' as const },
+    // Activity on ISX is read in dinars traded, so this one stays on `vol` —
+    // it just has to say so rather than pass as a share count.
+    { title: 'الأنشط', items: [...traded].sort((a, b) => (b.vol ?? 0) - (a.vol ?? 0)).slice(0, 3), metric: 'value' as const },
   ]), [traded])
 
   const sortedCompanies = useMemo(() => {
     const val = (c: Company) =>
       sortKey === 'price' ? c.close
       : sortKey === 'change' ? c.pct
-      : sortKey === 'volume' ? (c.vol ?? 0)
+      // `vol` is the traded VALUE in dinars despite the name; `shares_traded`
+      // is the share count the الحجم column actually claims to show.
+      : sortKey === 'volume' ? (c.shares_traded ?? 0)
       : sortKey === 'value' ? (c.vol ?? 0)
       : liveMcap(c)
     return [...active].sort((a, b) => (sortDir === 'asc' ? val(a) - val(b) : val(b) - val(a))).slice(0, 25)
@@ -274,8 +278,8 @@ export default function HomeClient() {
                       <small><bdi>{company.sym}</bdi></small>
                     </span>
                     <bdi className={`${company.pct >= 0 ? 'gain' : 'loss'} num-roll`}>
-                      {group.metric === 'volume'
-                        ? compact.format(company.vol ?? 0)
+                      {group.metric === 'value'
+                        ? `${compact.format(company.vol ?? 0)} IQD`
                         : `${company.pct > 0 ? '+' : ''}${company.pct.toFixed(2)}%`}
                     </bdi>
                   </Link>
@@ -315,7 +319,7 @@ export default function HomeClient() {
                   <td data-label="التغير" className={company.pct >= 0 ? 'gain' : 'loss'}>
                     <bdi className="num-roll">{company.pct > 0 ? '+' : ''}{company.pct.toFixed(2)}%</bdi>
                   </td>
-                  <td data-label="الحجم"><bdi className="num-roll">{compact.format(company.vol ?? 0)}</bdi></td>
+                  <td data-label="الحجم"><bdi className="num-roll">{compact.format(company.shares_traded ?? 0)}</bdi></td>
                   <td data-label="القيمة السوقية"><bdi className="num-roll">{compact.format(liveMcap(company))} IQD</bdi></td>
                   <td data-label="7D">
                     {sparks[company.sym]?.length > 1

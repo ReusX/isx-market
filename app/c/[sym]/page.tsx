@@ -150,7 +150,8 @@ export default function CompanyPage() {
         {stat(ar ? 'فتح' : 'Open', co.open.toFixed(3))}
         {stat(ar ? 'أعلى' : 'High', co.high.toFixed(3))}
         {stat(ar ? 'أدنى' : 'Low', co.low.toFixed(3))}
-        {stat(ar ? 'الحجم' : 'Volume', fmtVol(co.vol))}
+        {stat(ar ? 'الحجم' : 'Volume', fmtVol(co.shares_traded))}
+        {stat(ar ? 'قيمة التداول' : 'Turnover', fmtVol(co.vol) + ' IQD')}
         {stat(ar ? 'القيمة السوقية' : 'Mkt cap', fmtMcap(co.mcap))}
         {stat(ar ? 'الصفقات' : 'Deals', (co.deals ?? 0).toLocaleString('en'))}
         {pe != null ? stat(

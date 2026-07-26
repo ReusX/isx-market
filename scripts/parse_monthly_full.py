@@ -329,6 +329,25 @@ def parse_company_caps(pdf) -> list[dict]:
 AR_CELL = re.compile(r"[ء-ي]")
 
 
+def _is_company_row(name_ar: str, capital) -> bool:
+    """Reject page furniture that reads like a company row.
+
+    The report's own title — "ملكية الأسهم المودعة للمساهمين العراقيين وغير
+    العراقيين لغاية …" — reaches the text reader as a long run of single
+    letters, and picks up page numbers as its figures. One such row per report
+    was landing in ownership_monthly and, with capital=8 and foreign=6, sorting
+    to the top of the ownership page at 100% foreign-owned.
+    """
+    tokens = name_ar.split()
+    if len(tokens) >= 8 and sum(1 for t in tokens if len(t) == 1) / len(tokens) > 0.6:
+        return False
+    # A listed company's capital is in the billions of dinars; single digits are
+    # page furniture. (None is left alone — some reports omit the column.)
+    if capital is not None and capital < 1_000_000:
+        return False
+    return True
+
+
 def _name_col(table) -> int | None:
     """Find the company-name column: the column with the most *distinct* Arabic,
     non-numeric values. Distinct-count (not raw frequency) is the key — company
@@ -404,10 +423,13 @@ def parse_ownership(pdf) -> list[dict]:
                     continue
                 if not any(num(c) for c in row if c):
                     continue
-                seen.add(name_ar)
 
                 def g(ci):
                     return num(row[ci]) if 0 <= ci < len(row) else None
+
+                if not _is_company_row(name_ar, g(CAPITAL)):
+                    continue
+                seen.add(name_ar)
 
                 fc, ic = g(FOREIGN_COUNT), g(IRAQI_COUNT)
                 out.append({
@@ -471,7 +493,8 @@ def _parse_ownership_text(pdf) -> list[dict]:
                         cap = f[7]
                         ishr, fshr = f[4], f[3]
                         # guard against mis-grouped rows: shares can't exceed capital
-                        if name_ar not in seen and not (cap and ishr + fshr > cap * 1.05):
+                        if (name_ar not in seen and _is_company_row(name_ar, cap)
+                                and not (cap and ishr + fshr > cap * 1.05)):
                             seen.add(name_ar)
                             out.append({
                                 "name_ar":           name_ar,

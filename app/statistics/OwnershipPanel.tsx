@@ -2,6 +2,8 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import { arMonth, PreviewCard } from './_ui'
+import { fetchCompanyMeta, matchCompanyName } from '@/lib/market'
+import type { CompanyMeta } from '@/types'
 
 export interface OwnRow {
   name_ar: string; sector: string | null
@@ -39,10 +41,17 @@ function useOwnership() {
         const oy = latest?.[0]?.year, om = latest?.[0]?.month
         if (oy && om) {
           setMonth(`${arMonth[om]} ${oy}`)
-          const { data } = await db.from('ownership_monthly')
-            .select('name_ar,sector,capital,deposited_capital,deposit_ratio,iraqi_shares,foreign_shares,iraqi_count,foreign_count')
-            .eq('year', oy).eq('month', om)
-          setRows((data as OwnRow[]) ?? [])
+          const [{ data }, meta] = await Promise.all([
+            db.from('ownership_monthly')
+              .select('name_ar,sector,capital,deposited_capital,deposit_ratio,iraqi_shares,foreign_shares,iraqi_count,foreign_count')
+              .eq('year', oy).eq('month', om),
+            fetchCompanyMeta().catch(() => [] as CompanyMeta[]),
+          ])
+          // These names come out of a scanned-PDF parse; recover the curated
+          // spelling where one clearly matches.
+          setRows(((data as OwnRow[]) ?? []).map(r => ({
+            ...r, name_ar: meta.length ? matchCompanyName(r.name_ar, meta) : r.name_ar,
+          })))
         }
       } catch { /* keep empty */ }
       setLoading(false)

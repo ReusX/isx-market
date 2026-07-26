@@ -159,6 +159,67 @@ export function companyName(
   return named?.trim() || ticker
 }
 
+/**
+ * Arabic normalisation for fuzzy name matching: drop harakat and tatweel, fold
+ * the alef/ya/ta-marbuta variants together, and strip spaces.
+ */
+function normalizeAr(s: string): string {
+  return s
+    .replace(/[ً-ْـ]/g, '')
+    .replace(/[أإآٱ]/g, 'ا')
+    .replace(/[ىئ]/g, 'ي')
+    .replace(/ؤ/g, 'و')
+    .replace(/ة/g, 'ه')
+    .replace(/\s+/g, '')
+}
+
+/** Longest common subsequence length — small strings, so the O(n·m) table is fine. */
+function lcsLen(a: string, b: string): number {
+  const prev = new Array<number>(b.length + 1).fill(0)
+  const cur = new Array<number>(b.length + 1).fill(0)
+  for (let i = 1; i <= a.length; i++) {
+    for (let j = 1; j <= b.length; j++) {
+      cur[j] = a[i - 1] === b[j - 1] ? prev[j - 1] + 1 : Math.max(prev[j], cur[j - 1])
+    }
+    for (let j = 0; j <= b.length; j++) prev[j] = cur[j]
+  }
+  return prev[b.length]
+}
+
+/**
+ * Best curated match for a company name that came out of the PDF pipeline.
+ *
+ * The monthly reports are scanned Arabic, and the parse mangles them in small,
+ * consistent ways — "الخاتم لأتصالات" for للاتصالات, "مصرف الاتمان" for
+ * الائتمان, "دار السالم للتامين" for السلام للتأمين. Similarity against the
+ * curated list recovers the real name; below the threshold we keep what the
+ * report said rather than guess.
+ */
+export function matchCompanyName(
+  raw: string,
+  meta: { ar?: string | null }[],
+  cover = 0.9,
+): string {
+  const a = normalizeAr(raw)
+  if (a.length < 4) return raw
+  let best = { score: 0, name: raw }
+  let runnerUp = 0
+  for (const m of meta) {
+    if (!m.ar) continue
+    const b = normalizeAr(m.ar)
+    // The report often gives a shorter form of the curated name, so score by
+    // how much of the shorter string the longer one covers — but keep the two
+    // within half a length of each other, or a short name would "match" any
+    // longer one that happens to start the same way.
+    if (!b || Math.min(a.length, b.length) / Math.max(a.length, b.length) < 0.6) continue
+    const score = lcsLen(a, b) / Math.min(a.length, b.length)
+    if (score > best.score) { runnerUp = best.score; best = { score, name: m.ar } }
+    else if (score > runnerUp) runnerUp = score
+  }
+  // Two candidates that fit equally well mean we cannot tell them apart.
+  return best.score >= cover && best.score > runnerUp ? best.name : raw
+}
+
 export function fmtVol(v: number | null | undefined): string {
   if (!v) return '·'
   if (v >= 1e9) return (v / 1e9).toFixed(1) + 'B'

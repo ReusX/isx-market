@@ -48,7 +48,8 @@ export default function CompaniesClient() {
     const val = (c: Company) =>
       sortKey === 'price' ? c.close
       : sortKey === 'change' ? c.pct
-      : sortKey === 'volume' ? (c.vol ?? 0)
+      // `vol` holds the traded VALUE in dinars; الحجم means the share count.
+      : sortKey === 'volume' ? (c.shares_traded ?? 0)
       : liveMcap(c)
     return [...data].sort((a, b) => (sortDir === 'asc' ? val(a) - val(b) : val(b) - val(a)))
   }, [listed, sector, query, sortKey, sortDir])
@@ -127,7 +128,7 @@ export default function CompaniesClient() {
                   <td data-label="التغير" className={company.pct >= 0 ? 'gain' : 'loss'}>
                     <bdi className="num-roll">{company.pct > 0 ? '+' : ''}{company.pct.toFixed(2)}%</bdi>
                   </td>
-                  <td data-label="الحجم"><bdi className="num-roll">{compact.format(company.vol ?? 0)}</bdi></td>
+                  <td data-label="الحجم"><bdi className="num-roll">{compact.format(company.shares_traded ?? 0)}</bdi></td>
                   <td data-label="القيمة السوقية"><bdi className="num-roll">{compact.format(liveMcap(company))} IQD</bdi></td>
                 </tr>
               ))}
