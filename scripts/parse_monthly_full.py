@@ -634,6 +634,114 @@ def parse_major_shareholders(pdf) -> list[dict]:
                     "change_pct":      g(chg_col),
                 })
 
+    # Some reports (2026-01, 2026-06) draw Table 39 with no ruling lines, so
+    # pdfplumber finds no grid and the loop above yields nothing — the same
+    # failure `parse_ownership` already handles with a text reader.
+    if not out:
+        out = _parse_shareholders_text(pdf)
+    return out
+
+
+_SH_NUM   = re.compile(r"^\(?-?[\d,]+(?:\.\d+)?\)?%?$")
+# "مجموع الشركة" and the sector/grand-total markers, reversed as pdfplumber
+# emits them.
+_SH_TOTAL = ("ةكرشلا", "عومجم")
+_SH_STOP  = ("عاطقلا", "يلكلا")
+
+
+def _parse_shareholders_text(pdf) -> list[dict]:
+    """Line-based reader for Table 39 when it has no grid.
+
+    pdfplumber emits the page bottom-up, one token per line, so a company's
+    block reads as its subtotal row first and then its holders:
+
+        subtotal:  rank, <company name…>, "-", 6 figures, "الشركة", "مجموع"
+        holder:    rank, change, curr_pct, curr_shares, curr_capital,
+                   prev_pct, prev_shares, prev_capital, nationality, name…
+
+    Each block is only emitted when its holders add back up to the subtotal the
+    report printed for that company. A block split across a page, or one whose
+    subtotal line did not match, would otherwise quietly absorb the next
+    company's holders — dropping it is better than filing it under the wrong
+    company.
+    """
+    out: list[dict] = []
+    # Blocks run across page breaks, so this state is carried between pages.
+    company: str | None = None
+    company_total: float | None = None
+    pending: list[dict] = []
+
+    def flush() -> None:
+        nonlocal pending
+        if company_total is not None and pending:
+            got = sum(r["curr_pct"] or 0 for r in pending)
+            if abs(got - company_total) <= 0.06:
+                out.extend(pending)
+        pending = []
+
+    for page in pdf.pages:
+        raw = page.extract_text() or ""
+        if "ةيسنجلا" not in raw and "Table No.(39)" not in raw and "nationality" not in raw.lower():
+            continue
+
+        toks = [t for t in (clean(l) for l in raw.split("\n")) if t]
+        i = 0
+        while i < len(toks):
+            # ── company subtotal: … name … "-" ×6 figures "الشركة" "مجموع" ──
+            if (toks[i] == "-" and i + 8 < len(toks)
+                    and all(_SH_NUM.match(t) for t in toks[i + 1:i + 7])
+                    and toks[i + 7:i + 9] == list(_SH_TOTAL)):
+                name: list[str] = []
+                j = i - 1
+                while j >= 0 and not _SH_NUM.match(toks[j]) and toks[j] not in _SH_STOP:
+                    name.insert(0, toks[j])
+                    j -= 1
+                # A page break can leave the header fragment ("جدول رقم (39)")
+                # where the company name belongs; the spaced-letter test in
+                # _is_company_row rejects it.
+                candidate = fix_arabic(" ".join(name)) if name else ""
+                # Close the block on ANY subtotal, even one whose name is
+                # unusable: otherwise an unrecognised company keeps the
+                # previous block open and it absorbs every holder that follows.
+                flush()
+                if candidate and _is_company_row(candidate, None):
+                    company = candidate
+                    company_total = num(toks[i + 1])
+                else:
+                    company, company_total = None, None
+                i += 9
+                continue
+
+            # ── holder row ──
+            if (_SH_NUM.match(toks[i]) and i + 8 < len(toks)
+                    and all(_SH_NUM.match(t) for t in toks[i + 1:i + 8])
+                    and not _SH_NUM.match(toks[i + 8])):
+                vals = [num(t) for t in toks[i + 2:i + 8]]
+                nat_val = toks[i + 8]
+                j = i + 9
+                name = []
+                while j < len(toks) and not _SH_NUM.match(toks[j]) and toks[j] != "-":
+                    name.append(toks[j])
+                    j += 1
+                if company and any(k in nat_val for k in ("يقار", "يبنج", "Ira", "For")):
+                    pending.append({
+                        "company_name_ar": company,
+                        "sector":          None,
+                        "rank":            len(pending) + 1,
+                        "name_ar":         fix_arabic(" ".join(name)),
+                        "nationality":     "Foreign" if ("ريغ" in nat_val or "For" in nat_val) else "Iraqi",
+                        "curr_pct":        vals[0],
+                        "curr_shares":     vals[1],
+                        "prev_pct":        vals[3],
+                        "prev_shares":     vals[4],
+                        "change_pct":      num(toks[i + 1]),
+                    })
+                i = j
+                continue
+
+            i += 1
+
+    flush()
     return out
 
 
