@@ -7,6 +7,7 @@ import IndexChart from '@/components/design/IndexChart'
 import { ForeignFlowGauge } from '@/components/design/ForeignFlowGauge'
 import { Sparkline } from '@/components/design/Sparkline'
 import { CompanyLogo } from '@/components/CompanyLogo'
+import { fetchSparklines } from '@/lib/sparks'
 import { SectorPerformanceChipRow } from '@/components/design/SectorPerformanceChipRow'
 import type { SectorDatum } from '@/components/design/magnitude'
 import type { Company } from '@/types'
@@ -86,18 +87,7 @@ export default function HomeClient() {
         }
 
         // 7-session close history per ticker for the table's 7D column.
-        const sparkSince = new Date(Date.now() - 21 * 86400_000).toISOString().slice(0, 10)
-        const { data: hist } = await sb.from('daily_prices')
-          .select('ticker,date,close').gte('date', sparkSince).order('date')
-        if (hist?.length) {
-          const by: Record<string, number[]> = {}
-          for (const r of hist as { ticker: string; close: number }[]) {
-            if (r.close == null) continue
-            ;(by[r.ticker] ??= []).push(r.close)
-          }
-          for (const k of Object.keys(by)) by[k] = by[k].slice(-7)
-          setSparks(by)
-        }
+        setSparks(await fetchSparklines())
       } catch {
         /* index/flow are enhancements — the page still works without them */
       }

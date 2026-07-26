@@ -5189,7 +5189,11 @@ tbody tr:hover .sparkline polyline {
     font-size: 0.82rem;
   }
 
+  /* The company cell and the sparkline carry their own meaning; a stacked
+     label beside them is noise. (Both languages — /market localises its
+     labels, the homepage list is Arabic-only.) */
   td[data-label="الشركة"]::before,
+  td[data-label="Company"]::before,
   td[data-label="7D"]::before {
     content: "";
   }
@@ -5812,7 +5816,8 @@ html[lang="ar"] .wp-content pre {
   min-inline-size: 0;
 }
 
-.watch-column {
+.watch-column,
+.watch-cell {
   text-align: center;
 }
 
