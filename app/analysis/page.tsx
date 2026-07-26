@@ -3,12 +3,8 @@
 import { useEffect, useState, useMemo } from 'react'
 import Link from 'next/link'
 import { useApp } from '@/context/AppContext'
-import { SECTORS } from '@/lib/market'
-
-interface CoMeta {
-  sym: string; en: string; ar: string
-  sec: string; logo: string; color: string; mcap: number
-}
+import { SECTORS, fetchLive, fetchCompanyMeta, mergeCompanies, liveMcap, fmtMcap } from '@/lib/market'
+import type { Company } from '@/types'
 
 const SECTOR_COLORS: Record<string, string> = {
   BANK: '#3B82F6', IND: '#EF4444', SVC: '#22C55E',
@@ -20,17 +16,20 @@ export default function AnalysisListPage() {
   const { lang } = useApp()
   const ar = lang === 'ar'
 
-  const [companies, setCompanies] = useState<CoMeta[]>([])
+  const [companies, setCompanies] = useState<Company[]>([])
   const [search,    setSearch]    = useState('')
   const [sector,    setSector]    = useState('all')
 
   useEffect(() => {
-    fetch('/data/companies.json')
-      .then(r => r.json())
-      .then((data: CoMeta[]) => {
+    // Merged with live prices so the market cap here is close x shares, the
+    // same figure every other page shows — the static one on the meta is a
+    // frozen snapshot.
+    Promise.all([fetchLive(), fetchCompanyMeta()])
+      .then(([live, meta]) => {
         // only show companies with actual names
-        setCompanies(data.filter(c => c.en && c.ar && c.mcap > 0))
+        setCompanies(mergeCompanies(meta, live.stocks).filter(c => c.en && c.ar))
       })
+      .catch(() => setCompanies([]))
   }, [])
 
   const display = useMemo(() => {
@@ -141,9 +140,10 @@ export default function AnalysisListPage() {
 
                 {/* Market cap */}
                 <div style={{ fontSize: 12, color: 'var(--ink4)', fontFamily: 'var(--font-mono)', flexShrink: 0 }}>
-                  {co.mcap >= 1000
-                    ? (co.mcap / 1000).toFixed(1) + (ar ? ' م.د' : 'B IQD')
-                    : co.mcap.toLocaleString('en') + (ar ? ' م.د' : 'M IQD')}
+                  {/* fmtMcap takes millions and picks its own M/B/T suffix —
+                      the previous label said "م.د" for both millions and
+                      billions. */}
+                  <bdi>{fmtMcap(liveMcap(co) / 1e6)} IQD</bdi>
                 </div>
 
                 {/* Arrow */}

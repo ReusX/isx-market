@@ -1,43 +1,74 @@
 #!/usr/bin/env python3
-"""Pull company logos from the Iraq Securities Commission and serve them locally.
+"""Refresh companies.json against the Iraq Securities Commission register.
 
-ISC is the only public source that publishes ISX company logos (the exchange's
-own portal has none, and rs.iq's API doesn't expose one). Their CDN is slow and
-individual upload URLs have expired on us before, so we mirror the images into
-public/logos/ and point companies.json at the local copy. Companies ISC has no
-logo for keep logo unset — the UI draws an initial chip for those.
+Two fields come from the same ISC records:
 
-    python3 scripts/sync_logos.py [--dry-run]
+* `logo` — ISC is the only public source that publishes ISX company logos (the
+  exchange's own portal has none, and rs.iq's API doesn't expose one). Their CDN
+  is slow and individual upload URLs have expired on us before, so we mirror the
+  images into public/logos/ and point companies.json at the local copy.
+  Companies ISC has no logo for keep logo unset — the UI draws an initial chip.
+
+* `shares` — ISX shares carry a par value of 1 IQD, so paid-in capital *is* the
+  share count. Every market cap on the site is close x shares, and so are the
+  P/E, P/S and P/B ratios on a company page, so a missing or stale share count
+  silently falls back to a frozen snapshot rather than failing visibly.
+
+It also refreshes `mcap`, the static market cap in millions. Every page that
+can prices a company live (close x shares); `mcap` is the fallback for names
+with no quote at all, plus the server-rendered profile text on /c/[sym], so it
+is re-snapshotted here against the latest session rather than left to drift.
+
+    python3 scripts/sync_companies.py [--dry-run]
 """
 from __future__ import annotations
 
 import json
 import pathlib
+import re
 import sys
 import urllib.request
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 COMPANIES = ROOT / 'public' / 'data' / 'companies.json'
 LOGO_DIR = ROOT / 'public' / 'logos'
-UA = {'User-Agent': 'Mozilla/5.0 (compatible; iraqsm-logo-sync)'}
+ENV = ROOT / '.env.local'
+UA = {'User-Agent': 'Mozilla/5.0 (compatible; iraqsm-company-sync)'}
 ISC_BASE = 'https://isc.gov.iq'
 
 
-def get(url: str) -> bytes:
-    return urllib.request.urlopen(urllib.request.Request(url, headers=UA), timeout=30).read()
+def get(url: str, headers: dict | None = None) -> bytes:
+    return urllib.request.urlopen(
+        urllib.request.Request(url, headers={**UA, **(headers or {})}), timeout=30).read()
+
+
+def latest_closes() -> dict[str, float]:
+    """ticker -> last traded close, from our own daily_prices."""
+    try:
+        env = dict(re.findall(r'^(\w+)=(.*)$', ENV.read_text(encoding='utf-8'), re.M))
+        base = env['NEXT_PUBLIC_SUPABASE_URL'].strip()
+        key = (env.get('SUPABASE_SERVICE_ROLE_KEY') or env['NEXT_PUBLIC_SUPABASE_ANON_KEY']).strip()
+    except (OSError, KeyError):
+        print('no .env.local — skipping the market-cap snapshot')
+        return {}
+    auth = {'apikey': key, 'Authorization': f'Bearer {key}'}
+    rows = json.loads(get(f'{base}/rest/v1/latest_trade?select=ticker,close', auth))
+    return {r['ticker']: r['close'] for r in rows if r.get('close')}
 
 
 def isc_companies() -> dict[str, dict]:
-    """code -> ISC record, across all three markets."""
+    """code -> ISC record. Markets 4 and 5 hold the suspended and non-listed
+    names — skipping them left a fifth of the board without a share count."""
     out: dict[str, dict] = {}
-    for market in (1, 2, 3):
+    for market in (1, 2, 3, 4, 5):
         page = 1
         while True:
             body = json.loads(get(f'https://api.isc.gov.iq/api/companies?market={market}&page={page}'))
             data = body.get('data', body)
             rows = data['data'] if isinstance(data, dict) and 'data' in data else data
             for row in rows:
-                out[row['code']] = row
+                # A few codes are stored with padding ("NGAT ").
+                out[str(row['code']).strip()] = row
             last = (data.get('last_page') if isinstance(data, dict) else None) or body.get('last_page')
             if not last or page >= last:
                 break
@@ -85,15 +116,38 @@ def shrink(blob: bytes, box: int = 128) -> bytes:
     return out.getvalue()
 
 
+def paid_capital(record: dict) -> int | None:
+    """Share count = paid-in capital, since ISX par value is 1 IQD."""
+    try:
+        value = float(record.get('capital'))
+    except (TypeError, ValueError):
+        return None
+    # A capital under a million dinars is a parse artefact, not a listed company.
+    return int(value) if value >= 1_000_000 else None
+
+
 def main() -> int:
     dry = '--dry-run' in sys.argv
     companies = json.loads(COMPANIES.read_text(encoding='utf-8'))
     isc = isc_companies()
     LOGO_DIR.mkdir(parents=True, exist_ok=True)
 
-    added, kept, dropped, failed = [], [], [], []
+    closes = latest_closes()
+
+    added, kept, dropped, failed, capital, caps = [], [], [], [], [], 0
     for company in companies:
         sym = company['sym']
+
+        shares = paid_capital(isc.get(sym, {}))
+        if shares and shares != company.get('shares'):
+            capital.append(f'{sym}: {company.get("shares") or "—"} → {shares:,}')
+            company['shares'] = shares
+
+        close = closes.get(sym)
+        if close and company.get('shares'):
+            company['mcap'] = round(close * company['shares'] / 1e6)
+            caps += 1
+
         url = logo_url(isc.get(sym, {}))
         if not url:
             # ISC occasionally drops the img field on a record whose upload URL
@@ -123,6 +177,17 @@ def main() -> int:
     if not dry:
         # Keep the file's existing single-line shape so the diff stays readable.
         COMPANIES.write_text(json.dumps(companies, ensure_ascii=False, separators=(',', ':')), encoding='utf-8')
+
+    if caps:
+        print(f're-snapshotted the static market cap for {caps} companies')
+    if capital:
+        print(f'share count updated for {len(capital)}:')
+        for line in capital:
+            print(f'  {line}')
+    missing_shares = [c['sym'] for c in companies if not c.get('shares')]
+    if missing_shares:
+        print(f'{len(missing_shares)} companies still have no share count '
+              f'(market cap falls back to the static snapshot): {", ".join(missing_shares)}')
 
     print(f'mirrored {len(added) + len(kept)} logos ({len(added)} new/changed, {len(kept)} unchanged)')
     if dropped:

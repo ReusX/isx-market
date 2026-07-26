@@ -183,20 +183,23 @@ async function fetchISCReports(sym: string): Promise<ReportPeriod[]> {
 
 // ── Prompt ────────────────────────────────────────────────────────────────────
 function buildPrompt(
-  co: { sym: string; en: string; ar: string; sec: string; mcap: number },
+  co: { sym: string; en: string; ar: string; sec: string; mcap: number; shares?: number },
   price: number,
   pct: number,
   filingText: string,
 ): string {
-  const sec   = SECTOR[co.sec] ?? { en: co.sec, ar: co.sec }
-  const mcapB = (co.mcap / 1000).toFixed(2)
+  const sec = SECTOR[co.sec] ?? { en: co.sec, ar: co.sec }
+  // Live cap where we can compute it (par value is 1 IQD, so capital is the
+  // share count); the meta figure is a frozen snapshot and is stored in millions.
+  const mcap = price > 0 && co.shares ? price * co.shares : (co.mcap || 0) * 1e6
+  const mcapB = mcap > 0 ? (mcap / 1e9).toFixed(2) + 'B IQD' : 'N/A'
 
   return `You are a senior financial analyst covering the Iraq Stock Exchange (ISX).
 
 COMPANY: ${co.en} (${co.sym}) · ${co.ar}
 SECTOR: ${sec.en}
 CURRENT PRICE: ${price > 0 ? price.toFixed(3) + ' IQD' : 'N/A'}
-MARKET CAP: ${mcapB}B IQD
+MARKET CAP: ${mcapB}
 RECENT CHANGE: ${pct >= 0 ? '+' : ''}${pct.toFixed(2)}%
 
 ACTUAL FINANCIAL DATA (extracted via OCR from official ISC filings):
@@ -377,12 +380,17 @@ export async function POST(
     const co = companies.find(c => c.sym === sym)
     if (!co) return NextResponse.json({ error: 'Company not found' }, { status: 404 })
 
+    // Prices come from daily_prices, the same table the site reads. This used
+    // to parse a public/data/live.json that does not exist, so every prompt
+    // was written with "CURRENT PRICE: N/A".
     let price = 0, pct = 0
     try {
-      const livePath = path.join(process.cwd(), 'public', 'data', 'live.json')
-      const live: any = JSON.parse(fs.readFileSync(livePath, 'utf-8'))
-      const st = live.stocks?.find((s: any) => s.code === sym)
-      if (st) { price = st.close ?? 0; pct = st.pct ?? 0 }
+      const { data: quotes } = await supabase
+        .from('daily_prices').select('date,close')
+        .eq('ticker', sym).order('date', { ascending: false }).limit(2)
+      const [last, prev] = (quotes ?? []) as { date: string; close: number | null }[]
+      price = last?.close ?? 0
+      if (price > 0 && prev?.close) pct = ((price - prev.close) / prev.close) * 100
     } catch (_) {}
 
     // Step 1: Get 2 most recent PDF URLs from ISC

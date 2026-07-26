@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
-import { fetchLive, fetchCompanyMeta, mergeCompanies, SECTORS } from '@/lib/market'
+import { fetchLive, fetchCompanyMeta, mergeCompanies, liveMcap, SECTORS } from '@/lib/market'
 import { SectorChip } from '@/components/design/SectorChip'
 import { CompanyLogo } from '@/components/CompanyLogo'
 import type { Company } from '@/types'
@@ -13,8 +13,6 @@ const compact = new Intl.NumberFormat('en-US', { notation: 'compact', maximumFra
 const priceFormat = new Intl.NumberFormat('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 2 })
 
 const SECTOR_AR = new Map(SECTORS.filter(s => s.id !== 'all').map(s => [s.id, s.ar]))
-
-const liveMcap = (c: Company) => (c.shares && c.close > 0 ? c.close * c.shares : (c.mcap || 0) * 1e6)
 
 export default function CompaniesClient() {
   const [companies, setCompanies] = useState<Company[]>([])
@@ -130,7 +128,9 @@ export default function CompaniesClient() {
                     <bdi className="num-roll">{company.pct > 0 ? '+' : ''}{company.pct.toFixed(2)}%</bdi>
                   </td>
                   <td data-label="الحجم"><bdi className="num-roll">{compact.format(company.shares_traded ?? 0)}</bdi></td>
-                  <td data-label="القيمة السوقية"><bdi className="num-roll">{compact.format(liveMcap(company))} IQD</bdi></td>
+                  <td data-label="القيمة السوقية">{liveMcap(company) > 0
+                      ? <bdi className="num-roll">{compact.format(liveMcap(company))} IQD</bdi>
+                      : <bdi className="num-roll">·</bdi>}</td>
                 </tr>
               ))}
               {!rows.length && !loading ? (

@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
-import { fetchLive, fetchCompanyMeta, mergeCompanies, SECTORS } from '@/lib/market'
+import { fetchLive, fetchCompanyMeta, mergeCompanies, liveMcap, SECTORS } from '@/lib/market'
 import IndexChart from '@/components/design/IndexChart'
 import { ForeignFlowGauge } from '@/components/design/ForeignFlowGauge'
 import { Sparkline } from '@/components/design/Sparkline'
@@ -28,10 +28,6 @@ const compact = new Intl.NumberFormat('en-US', { notation: 'compact', maximumFra
 const priceFormat = new Intl.NumberFormat('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 2 })
 
 const SECTOR_AR = new Map(SECTORS.filter(s => s.id !== 'all').map(s => [s.id, s.ar]))
-
-// Live market cap in IQD: close x shares when we know the share count, else the
-// static fallback carried on the company meta (which is stored in millions).
-const liveMcap = (c: Company) => (c.shares && c.close > 0 ? c.close * c.shares : (c.mcap || 0) * 1e6)
 
 function StatIcon({ type }: { type: string }) {
   return <span className={`stat-icon ${type}`} aria-hidden="true" />
@@ -311,7 +307,9 @@ export default function HomeClient() {
                     <bdi className="num-roll">{company.pct > 0 ? '+' : ''}{company.pct.toFixed(2)}%</bdi>
                   </td>
                   <td data-label="الحجم"><bdi className="num-roll">{compact.format(company.shares_traded ?? 0)}</bdi></td>
-                  <td data-label="القيمة السوقية"><bdi className="num-roll">{compact.format(liveMcap(company))} IQD</bdi></td>
+                  <td data-label="القيمة السوقية">{liveMcap(company) > 0
+                      ? <bdi className="num-roll">{compact.format(liveMcap(company))} IQD</bdi>
+                      : <bdi className="num-roll">·</bdi>}</td>
                   <td data-label="7D">
                     {sparks[company.sym]?.length > 1
                       ? <Sparkline values={sparks[company.sym]} positive={company.pct >= 0} />
