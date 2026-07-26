@@ -2,6 +2,17 @@
   "extends": ["next/core-web-vitals"],
   "rules": {
     "@typescript-eslint/no-explicit-any": "off",
-    "react/no-unescaped-entities": "off"
+    "react/no-unescaped-entities": "off",
+    "no-restricted-syntax": [
+      "error",
+      {
+        "selector": "Literal[value=/[٠-٩]/]",
+        "message": "Arabic-Indic digits: the design and every figure beside them use Latin ones. Write \"52 أسبوع\", not \"٥٢ أسبوع\"."
+      },
+      {
+        "selector": "CallExpression[callee.property.name=/^toLocale(Date|Time)?String$/] > Literal[value=/^ar/]",
+        "message": "ar-* date formatting renders Arabic-Indic digits and Iraqi month names. Use arDate() from lib/date instead."
+      }
+    ]
   }
 }

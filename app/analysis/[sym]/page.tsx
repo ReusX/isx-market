@@ -114,7 +114,7 @@ function Loading({ ar }: { ar: boolean }) {
         {ar ? `جارٍ تحليل التقارير المالية${'.'.repeat(dot)}` : `Analysing financial filings${'.'.repeat(dot)}`}
       </div>
       <div style={{ fontSize: 12, color: 'var(--ink5)' }}>
-        {ar ? '~٢٠ ثانية' : '~20 seconds'}
+        {ar ? '~20 ثانية' : '~20 seconds'}
       </div>
     </div>
   )
