@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import { useApp } from '@/context/AppContext'
-import { fetchLive, fetchCompanyMeta, mergeCompanies, liveMcap, SECTORS } from '@/lib/market'
+import { fetchLive, fetchCompanyMeta, mergeCompanies, liveMcap, lastTradeNote, SECTORS } from '@/lib/market'
 import { fetchSparklines } from '@/lib/sparks'
 import { CompanyLogo } from '@/components/CompanyLogo'
 import { Sparkline } from '@/components/design/Sparkline'
@@ -206,15 +206,21 @@ export default function MarketPage() {
                       </span>
                     </Link>
                   </td>
-                  <td data-label={ar ? 'آخر سعر' : 'Last'}><bdi className="num-roll">{priceFormat.format(company.close)} IQD</bdi></td>
+                  <td data-label={ar ? 'آخر سعر' : 'Last'} title={lastTradeNote(company, ar)}>
+                    <bdi className="num-roll">{priceFormat.format(company.close)} IQD</bdi>
+                  </td>
                   {/* A name that did not trade has no move to report — printing
                       0.00% would read as "flat today". */}
                   <td data-label={ar ? 'التغير' : 'Change'} className={company.stale ? '' : company.pct >= 0 ? 'gain' : 'loss'}>
                     {company.stale
-                      ? <span className="stale-flag" title={ar ? 'لم يتداول في الجلسة الأخيرة' : 'Did not trade in the latest session'}>—</span>
+                      ? <span className="stale-flag" title={lastTradeNote(company, ar)}>—</span>
                       : <bdi className="num-roll">{company.pct > 0 ? '+' : ''}{company.pct.toFixed(2)}%</bdi>}
                   </td>
-                  <td data-label={ar ? 'الحجم' : 'Volume'}><bdi className="num-roll">{compact.format(company.shares_traded ?? 0)}</bdi></td>
+                  <td data-label={ar ? 'الحجم' : 'Volume'}>
+                    {company.stale
+                      ? <span className="stale-flag" title={lastTradeNote(company, ar)}>·</span>
+                      : <bdi className="num-roll">{compact.format(company.shares_traded ?? 0)}</bdi>}
+                  </td>
                   <td data-label={ar ? 'القيمة السوقية' : 'Mkt cap'}>
                     {liveMcap(company) > 0
                       ? <bdi className="num-roll">{compact.format(liveMcap(company))} IQD</bdi>

@@ -1,5 +1,6 @@
 import type { Company, CompanyMeta, LiveData, LiveStock } from '@/types'
 import { createClient } from '@/lib/supabase/client'
+import { arDate } from '@/lib/date'
 
 // ─── Data fetchers ──────────────────────────────────────────────────────────
 
@@ -82,7 +83,7 @@ async function fetchLiveRaw(): Promise<LiveData> {
   // (one row per ticker), marked `stale` so it reads as "not today's session".
   const traded = new Set(stocks.map(s => s.code))
   const { data: last } = await sb
-    .from('latest_trade').select('ticker,close,value,volume,change,pct,trades')
+    .from('latest_trade').select('ticker,date,close,value,volume,change,pct,trades')
   for (const r of last ?? []) {
     const code = r.ticker as string
     const close = r.close as number | null
@@ -95,6 +96,7 @@ async function fetchLiveRaw(): Promise<LiveData> {
       shares_traded: (r.volume as number) ?? 0,
       deals:  (r.trades as number) ?? 0,
       stale:  true,
+      lastTrade: r.date as string,
     })
   }
 
@@ -130,6 +132,7 @@ export function mergeCompanies(meta: CompanyMeta[], stocks: LiveStock[]): Compan
       shares_traded: live?.shares_traded ?? 0,
       deals:  live?.deals  ?? 0,
       stale:  live?.stale  ?? false,
+      lastTrade: live?.lastTrade,
     }
   })
 }
@@ -226,6 +229,18 @@ export function fmtVol(v: number | null | undefined): string {
   if (v >= 1e6) return (v / 1e6).toFixed(1) + 'M'
   if (v >= 1e3) return (v / 1e3).toFixed(0) + 'K'
   return v.toString()
+}
+
+/**
+ * Tooltip for a carried-forward row. Half the banks on ISX last traded years
+ * ago — often a single placement at the 1 IQD par value — so "0.00%" and a
+ * session volume would both be lies. Rows say when the price is actually from.
+ */
+export function lastTradeNote(c: { stale?: boolean; lastTrade?: string }, ar: boolean): string | undefined {
+  if (!c.stale) return undefined
+  return c.lastTrade
+    ? (ar ? `آخر تداول: ${arDate(c.lastTrade)}` : `Last traded ${c.lastTrade}`)
+    : (ar ? 'لم يتداول في الجلسة الأخيرة' : 'Did not trade in the latest session')
 }
 
 export function fmtMcap(v: number | null | undefined): string {

@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
-import { fetchLive, fetchCompanyMeta, mergeCompanies, liveMcap, SECTORS } from '@/lib/market'
+import { fetchLive, fetchCompanyMeta, mergeCompanies, liveMcap, lastTradeNote, SECTORS } from '@/lib/market'
 import { SectorChip } from '@/components/design/SectorChip'
 import { CompanyLogo } from '@/components/CompanyLogo'
 import type { Company } from '@/types'
@@ -123,11 +123,21 @@ export default function CompaniesClient() {
                       </span>
                     </Link>
                   </td>
-                  <td data-label="آخر سعر"><bdi className="num-roll">{priceFormat.format(company.close)} IQD</bdi></td>
-                  <td data-label="التغير" className={company.pct >= 0 ? 'gain' : 'loss'}>
-                    <bdi className="num-roll">{company.pct > 0 ? '+' : ''}{company.pct.toFixed(2)}%</bdi>
+                  <td data-label="آخر سعر" title={lastTradeNote(company, true)}>
+                    <bdi className="num-roll">{priceFormat.format(company.close)} IQD</bdi>
                   </td>
-                  <td data-label="الحجم"><bdi className="num-roll">{compact.format(company.shares_traded ?? 0)}</bdi></td>
+                  {/* A name that has not traded — sometimes for years — has no
+                      change and no volume to report for this session. */}
+                  <td data-label="التغير" className={company.stale ? '' : company.pct >= 0 ? 'gain' : 'loss'}>
+                    {company.stale
+                      ? <span className="stale-flag" title={lastTradeNote(company, true)}>—</span>
+                      : <bdi className="num-roll">{company.pct > 0 ? '+' : ''}{company.pct.toFixed(2)}%</bdi>}
+                  </td>
+                  <td data-label="الحجم">
+                    {company.stale
+                      ? <span className="stale-flag" title={lastTradeNote(company, true)}>·</span>
+                      : <bdi className="num-roll">{compact.format(company.shares_traded ?? 0)}</bdi>}
+                  </td>
                   <td data-label="القيمة السوقية">{liveMcap(company) > 0
                       ? <bdi className="num-roll">{compact.format(liveMcap(company))} IQD</bdi>
                       : <bdi className="num-roll">·</bdi>}</td>

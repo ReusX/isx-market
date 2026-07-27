@@ -25,6 +25,7 @@ export interface LiveStock {
   shares_traded: number  // shares that changed hands in the session
   deals:  number
   stale?: boolean  // carried forward: did not trade in the latest session
+  lastTrade?: string  // ISO date of that last actual trade (stale rows only)
 }
 
 export interface Company extends CompanyMeta {
@@ -38,6 +39,7 @@ export interface Company extends CompanyMeta {
   shares_traded: number  // shares that changed hands in the session
   deals:  number
   stale?: boolean  // last price carried forward; did not trade in latest session
+  lastTrade?: string  // ISO date of that last actual trade (stale rows only)
 }
 
 export interface RsisxData {
