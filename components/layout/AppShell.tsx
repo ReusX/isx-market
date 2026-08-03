@@ -173,6 +173,14 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   return (
     <div className={`app-layout${collapsed ? ' sidebar-collapsed' : ''}`}>
 
+      {/* Backdrop is declared BEFORE the drawer on purpose. iOS WebKit
+          composites a backdrop-filter layer above later-painted siblings
+          regardless of z-index, which left the open drawer blurred and
+          swallowing taps. Painting it first makes the order unambiguous. */}
+      {drawerOpen && (
+        <div className="app-backdrop" onClick={() => setDrawerOpen(false)} aria-hidden="true" />
+      )}
+
       {/* ── Sidebar · design markup (side-navigation) ── */}
       <aside
         className={`side-navigation${drawerOpen ? ' open' : ''}`}
@@ -253,11 +261,6 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
           </button>
         )}
       </aside>
-
-      {/* ── Mobile drawer backdrop ── */}
-      {drawerOpen && (
-        <div className="app-backdrop" onClick={() => setDrawerOpen(false)} />
-      )}
 
       {/* ── Main content ── */}
       <div className="app-main">

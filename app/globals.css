@@ -5285,10 +5285,14 @@ tbody tr:hover .sparkline polyline {
 /* ── Off-canvas drawer (mobile) ── */
 .app-hamburger,
 .app-mobile-logo { display: none; }
+/* Plain dim, no backdrop-filter: on iOS a backdrop-filter layer gets its own
+   compositing treatment and can paint over the drawer that sits above it,
+   blurring the menu and eating taps. A flat scrim behaves the same everywhere. */
 .app-backdrop {
-  position: fixed; inset: 0; z-index: 150;
-  background: rgba(0,0,0,0.55);
-  -webkit-backdrop-filter: blur(2px); backdrop-filter: blur(2px);
+  position: fixed;
+  inset: 0;
+  z-index: 150;
+  background: rgb(0 0 0 / 55%);
   animation: app-fade 0.18s ease;
 }
 @keyframes app-fade { from { opacity: 0; } to { opacity: 1; } }
