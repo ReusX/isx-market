@@ -344,9 +344,11 @@ export default function ChartsPage() {
         {/* Header */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 20, flexWrap: 'wrap', gap: 12 }}>
           <div>
-            <div style={{ fontSize: 12, color: 'var(--ink4)', fontWeight: 600, marginBottom: 6 }}>
-              {ar ? 'مؤشر السوق العراقي ISX60' : 'ISX60 · Iraq Stock Exchange Index'}
-            </div>
+            {/* The page's h1. It was a plain <div>, which left /charts with no
+                heading at all once the layout's hidden duplicate was removed. */}
+            <h1 style={{ fontSize: 12, color: 'var(--ink4)', fontWeight: 600, margin: '0 0 6px' }}>
+              {ar ? 'مخططات الاسهم العراقية · مؤشر ISX60' : 'Iraq stock charts · ISX60 index'}
+            </h1>
             <div style={{ display: 'flex', alignItems: 'baseline', gap: 12 }}>
               <span style={{ fontFamily: 'var(--font-mono)', fontSize: 36, fontWeight: 800, letterSpacing: '-1px' }}>
                 {rsisxVal}

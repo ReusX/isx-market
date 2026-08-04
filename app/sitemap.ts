@@ -1,6 +1,7 @@
 import { MetadataRoute } from 'next'
 import companiesData from '@/public/data/companies.json'
 import { getPosts, type Section } from '@/lib/cms'
+import { getLastSessionDate } from '@/lib/freshness'
 
 const BASE = 'https://iraqsm.com'
 
@@ -27,36 +28,50 @@ async function allPosts(section: Section): Promise<{ slug: string; modified: str
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const now = new Date()
 
+  /*
+   * Market pages are stamped with the real date of the latest ISX bulletin, not
+   * `now`. A sitemap that claims every URL changed this minute, on every fetch,
+   * is a signal Google discounts — and it did: the SERP was showing crawl dates
+   * three weeks stale on pages headlined اليوم. Pages whose content genuinely
+   * does not change (legal, about) keep their own honest dates below.
+   */
+  const session = await getLastSessionDate()
+  const dataDate = session ? new Date(session) : now
+
+  // Static copy. Claiming these changed today, every day, is the same false
+  // signal in miniature — bump this by hand when the text actually changes.
+  const staticDate = new Date('2026-06-24')
+
   // ── Public, indexable static pages ──
   const statics: MetadataRoute.Sitemap = [
-    { url: `${BASE}`,            lastModified: now, changeFrequency: 'hourly',  priority: 1.0 },
-    { url: `${BASE}/market`,     lastModified: now, changeFrequency: 'hourly',  priority: 1.0 },
-    { url: `${BASE}/charts`,     lastModified: now, changeFrequency: 'daily',   priority: 0.9 },
-    { url: `${BASE}/screener`,   lastModified: now, changeFrequency: 'daily',   priority: 0.9 },
-    { url: `${BASE}/heatmap`,    lastModified: now, changeFrequency: 'daily',   priority: 0.9 },
-    { url: `${BASE}/pulse`,      lastModified: now, changeFrequency: 'daily',   priority: 0.9 },
-    { url: `${BASE}/companies`,  lastModified: now, changeFrequency: 'daily',   priority: 0.9 },
+    { url: `${BASE}`,            lastModified: dataDate, changeFrequency: 'hourly',  priority: 1.0 },
+    { url: `${BASE}/market`,     lastModified: dataDate, changeFrequency: 'hourly',  priority: 1.0 },
+    { url: `${BASE}/charts`,     lastModified: dataDate, changeFrequency: 'daily',   priority: 0.9 },
+    { url: `${BASE}/screener`,   lastModified: dataDate, changeFrequency: 'daily',   priority: 0.9 },
+    { url: `${BASE}/heatmap`,    lastModified: dataDate, changeFrequency: 'daily',   priority: 0.9 },
+    { url: `${BASE}/pulse`,      lastModified: dataDate, changeFrequency: 'daily',   priority: 0.9 },
+    { url: `${BASE}/companies`,  lastModified: dataDate, changeFrequency: 'daily',   priority: 0.9 },
     { url: `${BASE}/news`,       lastModified: now, changeFrequency: 'hourly',  priority: 0.9 },
     // Rates tools — high-traffic SEO landing pages
     { url: `${BASE}/gold`,       lastModified: now, changeFrequency: 'hourly',  priority: 0.9 },
     { url: `${BASE}/oil`,        lastModified: now, changeFrequency: 'hourly',  priority: 0.9 },
     { url: `${BASE}/fx`,         lastModified: now, changeFrequency: 'daily',   priority: 0.8 },
     // Statistics hub + dedicated panels
-    { url: `${BASE}/statistics`,              lastModified: now, changeFrequency: 'weekly', priority: 0.8 },
-    { url: `${BASE}/statistics/foreign-flow`, lastModified: now, changeFrequency: 'weekly', priority: 0.7 },
-    { url: `${BASE}/statistics/ownership`,    lastModified: now, changeFrequency: 'weekly', priority: 0.7 },
-    { url: `${BASE}/statistics/shareholders`, lastModified: now, changeFrequency: 'weekly', priority: 0.7 },
+    { url: `${BASE}/statistics`,              lastModified: dataDate, changeFrequency: 'weekly', priority: 0.8 },
+    { url: `${BASE}/statistics/foreign-flow`, lastModified: dataDate, changeFrequency: 'weekly', priority: 0.7 },
+    { url: `${BASE}/statistics/ownership`,    lastModified: dataDate, changeFrequency: 'weekly', priority: 0.7 },
+    { url: `${BASE}/statistics/shareholders`, lastModified: dataDate, changeFrequency: 'weekly', priority: 0.7 },
     // Content hubs
     { url: `${BASE}/research`,   lastModified: now, changeFrequency: 'daily',   priority: 0.8 },
     { url: `${BASE}/analysis`,   lastModified: now, changeFrequency: 'daily',   priority: 0.8 },
     { url: `${BASE}/learn`,      lastModified: now, changeFrequency: 'weekly',  priority: 0.8 },
-    { url: `${BASE}/learn/trading-from-zero`, lastModified: now, changeFrequency: 'monthly', priority: 0.7 },
-    { url: `${BASE}/banks`,      lastModified: now, changeFrequency: 'monthly', priority: 0.7 },
+    { url: `${BASE}/learn/trading-from-zero`, lastModified: staticDate, changeFrequency: 'monthly', priority: 0.7 },
+    { url: `${BASE}/banks`,      lastModified: staticDate, changeFrequency: 'monthly', priority: 0.7 },
     // Info / legal
-    { url: `${BASE}/about`,      lastModified: now, changeFrequency: 'monthly', priority: 0.5 },
-    { url: `${BASE}/contact`,    lastModified: now, changeFrequency: 'monthly', priority: 0.4 },
-    { url: `${BASE}/privacy`,    lastModified: now, changeFrequency: 'yearly',  priority: 0.3 },
-    { url: `${BASE}/legal`,      lastModified: now, changeFrequency: 'yearly',  priority: 0.3 },
+    { url: `${BASE}/about`,      lastModified: staticDate, changeFrequency: 'monthly', priority: 0.5 },
+    { url: `${BASE}/contact`,    lastModified: staticDate, changeFrequency: 'monthly', priority: 0.4 },
+    { url: `${BASE}/privacy`,    lastModified: staticDate, changeFrequency: 'yearly',  priority: 0.3 },
+    { url: `${BASE}/legal`,      lastModified: staticDate, changeFrequency: 'yearly',  priority: 0.3 },
   ]
 
   // ── Per-company pages (server-rendered SEO content + live price) ──
@@ -64,7 +79,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // links from here, so we don't list it separately (avoids thin-page signals).
   const companies: MetadataRoute.Sitemap = (companiesData as { sym: string }[]).map(c => ({
     url:             `${BASE}/c/${c.sym}`,
-    lastModified:    now,
+    lastModified:    dataDate,
     changeFrequency: 'hourly' as const,
     priority:        0.8,
   }))

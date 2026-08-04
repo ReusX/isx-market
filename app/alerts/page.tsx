@@ -44,7 +44,7 @@ export default function AlertsPage() {
   return (
     <div className="terminal-shell app-page">
       <div style={{ marginBottom: 16 }}>
-        <h2 style={{ fontSize: 22, fontWeight: 800, margin: 0, color: 'var(--ink)' }}>تنبيهات الأسعار</h2>
+        <h1 style={{ fontSize: 22, fontWeight: 800, margin: 0, color: 'var(--ink)' }}>تنبيهات الأسعار</h1>
         <p style={{ fontSize: 12.5, color: 'var(--ink4)', margin: '6px 0 0' }}>
           اضبط سعراً مستهدفاً لأي سهم، وسنُعلِمك عند بلوغه. تُقيَّم التنبيهات على أحدث سعر إغلاق.
         </p>

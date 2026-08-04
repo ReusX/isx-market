@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import companiesData from '@/public/data/companies.json'
+import Freshness from '@/components/seo/Freshness'
 
 // Counted rather than hardcoded · the number is the reason to click, and a
 // stale one is worse than none.
@@ -23,5 +24,14 @@ export const metadata: Metadata = {
 }
 
 export default function CompaniesLayout({ children }: { children: React.ReactNode }) {
-  return <>{children}</>
+  return (
+    <>
+      {children}
+      <Freshness
+        url="https://iraqsm.com/companies"
+        name="الشركات المدرجة في بورصة العراق"
+        description="دليل الشركات المدرجة في بورصة العراق للأوراق المالية حسب القطاع."
+      />
+    </>
+  )
 }

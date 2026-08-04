@@ -248,12 +248,40 @@ export default function PulsePage() {
     setTimeout(() => moversRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 30)
   }
 
+  /*
+   * The heading renders in every branch, including the loading one. It used to
+   * live below the guards, so the server-rendered HTML — which is always the
+   * loading state, since the data is fetched in the browser — carried no <h1>
+   * at all. A visually-hidden duplicate in the layout was covering for that;
+   * removing the duplicate exposed it.
+   */
+  const heading = (
+    <header className="page-heading">
+      <div>
+        <span className="app-eyebrow">نبض السوق</span>
+        <h1>
+          اتساع السوق
+          {latest ? <span className="app-badge success"><span className="app-badge-dot" aria-hidden="true" />مباشر</span> : null}
+        </h1>
+        <p>الأسهم الصاعدة مقابل الهابطة{latest ? ` · جلسة ${arDate(latest.date)}` : ''}</p>
+      </div>
+      <Link className="statistics-text-link" href="/market">كل الأسهم ←</Link>
+    </header>
+  )
+
   if (loading) {
-    return <main className="terminal-shell app-page pulse-page"><div className="skeleton" style={{ height: 200, borderRadius: 14, marginBottom: 16 }} /><div className="skeleton" style={{ height: 320, borderRadius: 14 }} /></main>
+    return (
+      <main className="terminal-shell app-page pulse-page">
+        {heading}
+        <div className="skeleton" style={{ height: 200, borderRadius: 14, marginBottom: 16 }} />
+        <div className="skeleton" style={{ height: 320, borderRadius: 14 }} />
+      </main>
+    )
   }
   if (!latest) {
     return (
       <main className="terminal-shell app-page pulse-page">
+        {heading}
         <div className="empty-state"><strong>لا تتوفر بيانات بعد.</strong></div>
       </main>
     )
@@ -270,17 +298,7 @@ export default function PulsePage() {
 
   return (
     <main className="terminal-shell app-page pulse-page">
-      <header className="page-heading">
-        <div>
-          <span className="app-eyebrow">نبض السوق</span>
-          <h1>
-            اتساع السوق
-            <span className="app-badge success"><span className="app-badge-dot" aria-hidden="true" />مباشر</span>
-          </h1>
-          <p>الأسهم الصاعدة مقابل الهابطة · جلسة {arDate(latest.date)}</p>
-        </div>
-        <Link className="statistics-text-link" href="/market">كل الأسهم ←</Link>
-      </header>
+      {heading}
 
       {/* hero: advancers vs decliners tug bar · sides are clickable */}
       <Card style={{ marginBottom: 14 }}>

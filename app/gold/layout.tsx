@@ -99,12 +99,6 @@ export default function GoldLayout({ children }: { children: React.ReactNode }) 
         dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
       />
 
-      {/* Server-rendered SEO H1 · the gold widget below is client-rendered, so
-          this guarantees crawlers get the Arabic heading + topic text. */}
-      <h1 style={{ position: 'absolute', width: 1, height: 1, overflow: 'hidden', clip: 'rect(0,0,0,0)', whiteSpace: 'nowrap' }}>
-        سعر الذهب اليوم في العراق · سعر مثقال الذهب عيار 21 وسعر غرام الذهب بالدينار العراقي
-      </h1>
-
       {children}
 
       {/* Server-rendered SEO content (Arabic · matches the top gold queries).

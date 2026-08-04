@@ -83,9 +83,6 @@ export default function FxLayout({ children }: { children: React.ReactNode }) {
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(fxSchema) }} />
 
-      <h1 style={{ position: 'absolute', width: 1, height: 1, overflow: 'hidden', clip: 'rect(0,0,0,0)', whiteSpace: 'nowrap' }}>
-        سعر الدولار اليوم في العراق · سعر صرف الدينار العراقي مقابل الدولار الأمريكي USD/IQD
-      </h1>
 
       {children}
 

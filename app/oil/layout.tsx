@@ -88,10 +88,6 @@ export default function OilLayout({ children }: { children: React.ReactNode }) {
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }} />
 
-      {/* Server-rendered SEO H1 · the price widget below is client-rendered */}
-      <h1 style={{ position: 'absolute', width: 1, height: 1, overflow: 'hidden', clip: 'rect(0,0,0,0)', whiteSpace: 'nowrap' }}>
-        سعر النفط اليوم في العراق · سعر برميل برنت وخام البصرة وسلة أوبك بالدولار والدينار العراقي
-      </h1>
 
       {children}
 

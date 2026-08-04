@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import Freshness from '@/components/seo/Freshness'
 export const metadata: Metadata = {
   title: { absolute: 'اسعار الاسهم العراقية اليوم · جميع شركات بورصة العراق' },
   description: 'أسعار جميع الأسهم المدرجة في بورصة العراق: آخر سعر، نسبة التغيّر، حجم التداول والقيمة السوقية — مرتّبة ومفلترة حسب القطاع ومحدّثة بعد كل جلسة.',
@@ -18,10 +19,14 @@ export const metadata: Metadata = {
 export default function MarketLayout({ children }: { children: React.ReactNode }) {
   return (
     <>
-      <h1 style={{ position: 'absolute', width: 1, height: 1, overflow: 'hidden', clip: 'rect(0,0,0,0)', whiteSpace: 'nowrap' }}>
-        Iraq Stock Market Live Prices · Iraq Stock Exchange (ISX) | اسعار الاسهم العراقية | سوق الاسهم العراقي | اسهم العراق
-      </h1>
       {children}
+
+      <Freshness
+        url="https://iraqsm.com/market"
+        name="اسعار الاسهم العراقية اليوم"
+        description="أسعار جميع الأسهم المدرجة في بورصة العراق مع التغيّر وحجم التداول والقيمة السوقية."
+      />
+
     </>
   )
 }

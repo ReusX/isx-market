@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import Freshness from '@/components/seo/Freshness'
 export const metadata: Metadata = {
   title: { absolute: 'مخططات الاسهم العراقية · رسوم بيانية تفاعلية' },
   description: 'مخططات تفاعلية لأسهم بورصة العراق ومؤشر ISX60: شموع يابانية، بيانات تاريخية، مؤشرات فنية، ومقارنة أداء الأسهم على أي فترة زمنية.',
@@ -17,10 +18,14 @@ export const metadata: Metadata = {
 export default function ChartsLayout({ children }: { children: React.ReactNode }) {
   return (
     <>
-      <h1 style={{ position: 'absolute', width: 1, height: 1, overflow: 'hidden', clip: 'rect(0,0,0,0)', whiteSpace: 'nowrap' }}>
-        Iraq Stock Exchange Charts · ISX Historical Price Charts | مخططات اسعار الاسهم العراقية | بورصة العراق
-      </h1>
       {children}
+
+      <Freshness
+        url="https://iraqsm.com/charts"
+        name="مخططات الاسهم العراقية"
+        description="مخططات تفاعلية لأسهم بورصة العراق ومؤشر ISX60."
+      />
+
     </>
   )
 }

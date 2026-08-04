@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import Freshness from '@/components/seo/Freshness'
 export const metadata: Metadata = {
   title: { absolute: 'نبض السوق العراقي · الأسهم الصاعدة والهابطة اليوم' },
   description: 'اتساع سوق العراق للأوراق المالية: عدد الأسهم الصاعدة مقابل الهابطة، حجم التداول الصاعد والهابط، القمم والقيعان الجديدة وخط الصعود/الهبوط.',
@@ -16,10 +17,14 @@ export const metadata: Metadata = {
 export default function PulseLayout({ children }: { children: React.ReactNode }) {
   return (
     <>
-      <h1 style={{ position: 'absolute', width: 1, height: 1, overflow: 'hidden', clip: 'rect(0,0,0,0)', whiteSpace: 'nowrap' }}>
-        نبض السوق · اتساع سوق العراق للأوراق المالية | Iraq Stock Exchange Market Breadth & Pulse
-      </h1>
       {children}
+
+      <Freshness
+        url="https://iraqsm.com/pulse"
+        name="نبض السوق العراقي"
+        description="اتساع سوق العراق للأوراق المالية: الصاعدة مقابل الهابطة وخط الصعود/الهبوط."
+      />
+
     </>
   )
 }

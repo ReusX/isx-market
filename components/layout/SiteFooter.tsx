@@ -61,20 +61,25 @@ export default function SiteFooter() {
             </p>
           </div>
 
-          {/* Link columns */}
+          {/* Link columns · real <ul>s. As a stack of bare links these flatten
+              to text with no separator between labels, and Google published the
+              result as the /companies description: "حركة السوقنبض السوقفارز
+              الأسهم". List items break; a plain flex column does not. */}
           {COLS.map(col => (
-            <div key={col.title[1]}>
+            <nav key={col.title[1]} aria-label={ar ? col.title[0] : col.title[1]}>
               <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--ink3)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 14 }}>
                 {ar ? col.title[0] : col.title[1]}
               </div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              <ul style={{ display: 'flex', flexDirection: 'column', gap: 10, margin: 0, padding: 0, listStyle: 'none' }}>
                 {col.links.map(l => (
-                  <Link key={l.href} href={l.href} style={{ fontSize: 13, color: 'var(--ink2)', textDecoration: 'none' }}>
-                    {ar ? l.ar : l.en}
-                  </Link>
+                  <li key={l.href}>
+                    <Link href={l.href} style={{ fontSize: 13, color: 'var(--ink2)', textDecoration: 'none' }}>
+                      {ar ? l.ar : l.en}
+                    </Link>
+                  </li>
                 ))}
-              </div>
-            </div>
+              </ul>
+            </nav>
           ))}
         </div>
 

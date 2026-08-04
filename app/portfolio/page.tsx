@@ -56,7 +56,7 @@ export default function PortfolioPage() {
       {/* header */}
       <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap', marginBottom: 16 }}>
         <div>
-          <h2 style={{ fontSize: 22, fontWeight: 800, margin: 0, color: 'var(--ink)' }}>محفظتي</h2>
+          <h1 style={{ fontSize: 22, fontWeight: 800, margin: 0, color: 'var(--ink)' }}>محفظتي</h1>
           <p style={{ fontSize: 12.5, color: 'var(--ink4)', margin: '6px 0 0' }}>
             تتبّع استثماراتك في سوق العراق · القيمة الحالية والأرباح والتوزيع حسب القطاع
           </p>

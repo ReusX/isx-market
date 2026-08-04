@@ -210,25 +210,30 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
           {NAV.map(section => (
             <section className="side-navigation-group" aria-label={section.label} key={section.id}>
               <h2>{section.label}</h2>
-              <div className="side-navigation-list">
+              {/* A real <ul>, not a stack of bare links. Flattened to text, the
+                  old markup ran adjacent labels together with no separator —
+                  Google scraped "خريطة السوقنبض السوق" straight out of here and
+                  published it as the /companies snippet. List items break. */}
+              <ul className="side-navigation-list">
                 {section.items.map(item => {
                   const active = pathname === item.href || pathname.startsWith(item.href + '/')
                   return (
-                    <Link
-                      key={item.href}
-                      className={`side-navigation-link${active ? ' active' : ''}`}
-                      href={item.href}
-                      aria-current={active ? 'page' : undefined}
-                      title={collapsed ? item.ar : undefined}
-                      onClick={() => setDrawerOpen(false)}
-                    >
-                      <span className={`shortcut-icon ${item.icon}`} aria-hidden="true" />
-                      <span className="side-navigation-label">{item.ar}</span>
-                      {item.badge ? <span className="nav-badge">{item.badge}</span> : null}
-                    </Link>
+                    <li key={item.href}>
+                      <Link
+                        className={`side-navigation-link${active ? ' active' : ''}`}
+                        href={item.href}
+                        aria-current={active ? 'page' : undefined}
+                        title={collapsed ? item.ar : undefined}
+                        onClick={() => setDrawerOpen(false)}
+                      >
+                        <span className={`shortcut-icon ${item.icon}`} aria-hidden="true" />
+                        <span className="side-navigation-label">{item.ar}</span>
+                        {item.badge ? <span className="nav-badge">{item.badge}</span> : null}
+                      </Link>
+                    </li>
                   )
                 })}
-              </div>
+              </ul>
             </section>
           ))}
         </nav>

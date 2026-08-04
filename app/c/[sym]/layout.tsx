@@ -73,13 +73,6 @@ export default function CompanyLayout({ children, params }: Props) {
 
       {/* Server-rendered H1 · visible to crawlers, visually hidden. Arabic-first
           and built around the real-world "سعر سهم … اليوم" search queries. */}
-      <h1 style={{
-        position: 'absolute', width: 1, height: 1,
-        overflow: 'hidden', clip: 'rect(0,0,0,0)',
-        whiteSpace: 'nowrap',
-      }}>
-        {seo.h1}
-      </h1>
       {children}
 
       {/* Unique company profile · language-aware (Arabic on the Arabic

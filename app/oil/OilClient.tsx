@@ -107,8 +107,8 @@ export default function OilClient({ oil, fx }: { oil: OilData | null; fx: FxData
               <div className="oil-hero-title">
                 <span className="flag-badge large" aria-hidden="true">🇮🇶</span>
                 <div>
-                  <h1>{ar ? 'نفط البصرة الثقيل' : 'Basrah Heavy Crude'}</h1>
-                  <p>{ar ? 'خام التصدير العراقي · للبرميل' : 'Iraqi export crude · per barrel'}</p>
+                  <h1>{ar ? 'سعر النفط اليوم' : 'Oil price today'}</h1>
+                  <p>{ar ? 'نفط البصرة الثقيل · خام التصدير العراقي للبرميل' : 'Basrah Heavy · Iraqi export crude, per barrel'}</p>
                 </div>
               </div>
               <strong className="oil-hero-price"><bdi>${fmt2(hero.b.usd)}</bdi></strong>

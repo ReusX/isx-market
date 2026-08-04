@@ -50,8 +50,8 @@ export default function FxClient({ fx }: { fx: FxData | null }) {
       <Card className="market-tool-card market-tool-hero fx-hero">
         <div className="market-tool-hero-head">
           <div>
-            <h1>{ar ? 'دولار أمريكي / دينار عراقي' : 'USD / IQD'}</h1>
-            <p>{ar ? 'السوق الموازي · السعر العام' : 'Parallel market'}</p>
+            <h1>{ar ? 'سعر الدولار اليوم في العراق' : 'USD to IQD rate today'}</h1>
+            <p>{ar ? 'دولار أمريكي / دينار عراقي · السوق الموازي' : 'USD / IQD · parallel market'}</p>
           </div>
           {/* A cached rate is not a live one — the page said "مباشر" over a
               month-old dollar for as long as the source stayed unreadable. */}

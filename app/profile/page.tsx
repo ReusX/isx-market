@@ -40,12 +40,17 @@ export default function ProfilePage() {
 
   if (authLoading) return (
     <main className="terminal-shell app-page profile-page">
+      {/* Every branch, skeletons included: the server always renders the
+          loading/signed-out state, so a heading placed only in the loaded view
+          leaves the delivered HTML with no h1 at all. */}
+      <h1 className="sr-only">حسابي</h1>
       <div className="skeleton" style={{ height: 140, borderRadius: 16 }} />
     </main>
   )
 
   if (!user) return (
     <main className="terminal-shell app-page profile-page">
+      <h1 className="sr-only">حسابي</h1>
       <div className="empty-state">
         <strong>{ar ? 'يجب تسجيل الدخول' : 'Sign in required'}</strong>
         <span>{ar ? 'سجّل الدخول لحفظ قوائمك ومحفظتك وتنبيهاتك.' : 'Sign in to keep your lists, portfolio and alerts.'}</span>
@@ -58,6 +63,7 @@ export default function ProfilePage() {
 
   if (!profile) return (
     <main className="terminal-shell app-page profile-page">
+      <h1 className="sr-only">حسابي</h1>
       {[80, 120, 80].map((h, i) => (
         <div key={i} className="skeleton" style={{ height: h, borderRadius: 16, marginBottom: 12 }} />
       ))}
@@ -83,6 +89,7 @@ export default function ProfilePage() {
 
   return (
     <main className="terminal-shell app-page profile-page">
+      <h1 className="sr-only">حسابي</h1>
       <section className="app-card profile-identity">
         <span className="profile-avatar" aria-hidden="true">
           {(profile.username ?? user.email ?? '?')[0].toUpperCase()}

@@ -365,6 +365,9 @@ bdi,
 .side-navigation-list {
   display: grid;
   gap: 2px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
 }
 
 .side-navigation-link {
@@ -6857,3 +6860,15 @@ button.pulse-tile.is-active .pulse-tile-label svg {
   font-size: 0.72rem;
   line-height: 1.7;
 }
+
+/* Visible data-freshness line · rendered server-side by components/seo/Freshness.
+   Google prefers a date it can see in the page over one only in JSON-LD, and a
+   reader on a price page wants the same thing. */
+.page-freshness {
+  margin: 18px 0 0;
+  color: var(--text-tertiary, var(--text-secondary));
+  font-size: 0.72rem;
+  text-align: center;
+}
+
+.page-freshness time { font-family: var(--font-numeric), monospace; }

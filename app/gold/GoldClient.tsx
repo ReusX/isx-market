@@ -52,8 +52,11 @@ export default function GoldClient({ gold }: { gold: GoldData | null; fx: FxData
       <Card className="market-tool-card market-tool-hero">
         <div className="market-tool-hero-head">
           <div>
-            <h1>{ar ? 'الذهب عيار 24' : 'Gold 24K'}</h1>
-            <p>{ar ? 'سعر الغرام في العراق' : 'Per gram · Iraq'}</p>
+            {/* The page's only h1 now that the duplicate hidden one is gone, so
+                it names the page rather than the card. The specific karat moves
+                to the subline, where it reads as the qualifier it always was. */}
+            <h1>{ar ? 'سعر الذهب اليوم في العراق' : 'Gold price in Iraq today'}</h1>
+            <p>{ar ? 'الذهب عيار 24 · سعر الغرام' : 'Gold 24K · per gram'}</p>
           </div>
           <Badge tone="success" dot>{ar ? 'مباشر' : 'LIVE'}</Badge>
         </div>

@@ -9,9 +9,6 @@ export const metadata: Metadata = {
 export default function AlertsLayout({ children }: { children: React.ReactNode }) {
   return (
     <>
-      <h1 style={{ position: 'absolute', width: 1, height: 1, overflow: 'hidden', clip: 'rect(0,0,0,0)', whiteSpace: 'nowrap' }}>
-        تنبيهات الأسعار · سوق العراق للأوراق المالية | Iraq Stock Exchange Price Alerts
-      </h1>
       {children}
     </>
   )
