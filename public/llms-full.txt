@@ -1,4 +1,4 @@
-# Iraq Stock Market — iraqsm.com — Full Company Index
+# IQWealth — iraqsm.com — Full Company Index
 
 > Every company listed on the Iraq Stock Exchange (ISX) tracked on iraqsm.com, grouped by sector. Each has a live price page at https://iraqsm.com/c/{TICKER} with charts, volume, market cap, and a bilingual (Arabic/English) profile. Prices in Iraqi Dinar (IQD).
 

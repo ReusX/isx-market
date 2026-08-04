@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import Breadcrumbs from '@/components/seo/Breadcrumbs'
 export const metadata: Metadata = {
   title: { absolute: 'المصارف العراقية المدرجة · أسعار أسهم البنوك' },
   description: 'أسعار أسهم المصارف العراقية المدرجة في بورصة العراق — التجارية والاستثمارية والإسلامية — مع التغيّر اليومي، حجم التداول والقيمة السوقية لكل مصرف.',
@@ -12,5 +13,8 @@ export const metadata: Metadata = {
   keywords: ['مصرف الرافدين', 'مصرف الرشيد', 'مصرف بغداد', 'المصارف العراقية', 'بنوك العراق', 'مصرف التنمية الدولي'],
 }
 export default function BanksLayout({ children }: { children: React.ReactNode }) {
-  return <>{children}</>
+  return <>{children}
+
+      <Breadcrumbs trail={[{ name: 'الشركات', path: '/companies' }, { name: 'المصارف', path: '/banks' }]} />
+</>
 }

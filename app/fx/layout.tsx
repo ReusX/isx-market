@@ -33,7 +33,7 @@ const fxSchema = {
       breadcrumb: {
         '@type': 'BreadcrumbList',
         itemListElement: [
-          { '@type': 'ListItem', position: 1, name: 'Iraq Stock Market', item: 'https://iraqsm.com' },
+          { '@type': 'ListItem', position: 1, name: 'IQWealth', item: 'https://iraqsm.com' },
           { '@type': 'ListItem', position: 2, name: 'سعر الدولار في العراق', item: 'https://iraqsm.com/fx' },
         ],
       },

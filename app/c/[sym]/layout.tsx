@@ -4,6 +4,7 @@ import companiesData from '@/public/data/companies.json'
 import CompanyProfile from '@/components/company/CompanyProfile'
 import { buildCompanySeo } from '@/lib/companySeo'
 import { getQuote, describeQuote } from '@/lib/quote'
+import Breadcrumbs from '@/components/seo/Breadcrumbs'
 
 const BASE = 'https://iraqsm.com'
 
@@ -94,6 +95,13 @@ export default async function CompanyLayout({ children, params }: Props) {
       {/* Unique company profile · language-aware (Arabic on the Arabic
           site, English on the English site). SSRs in Arabic since `lang`
           defaults to 'ar', so crawlers still get unique content per page. */}
+      <Breadcrumbs
+        trail={[
+          { name: 'الشركات', path: '/companies' },
+          { name: seo.shortAr, path: `/c/${sym}` },
+        ]}
+      />
+
       <CompanyProfile
         sym={sym}
         en={company.en}

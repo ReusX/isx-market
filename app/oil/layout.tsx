@@ -38,7 +38,7 @@ const faqSchema = {
       breadcrumb: {
         '@type': 'BreadcrumbList',
         itemListElement: [
-          { '@type': 'ListItem', position: 1, name: 'Iraq Stock Market', item: 'https://iraqsm.com' },
+          { '@type': 'ListItem', position: 1, name: 'IQWealth', item: 'https://iraqsm.com' },
           { '@type': 'ListItem', position: 2, name: 'Oil Price in Iraq', item: 'https://iraqsm.com/oil' },
         ],
       },

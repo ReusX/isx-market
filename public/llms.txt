@@ -1,4 +1,4 @@
-# Iraq Stock Market — iraqsm.com
+# IQWealth — iraqsm.com
 
 > Live prices, interactive charts, indices, and bilingual (Arabic/English) company profiles for every stock on the Iraq Stock Exchange (ISX). Tracks the RSISX index, market movers, trading volumes, and per-company history. اسعار الاسهم العراقية مباشرة، سوق الاسهم العراقي، بورصة العراق.
 

@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import companiesData from '@/public/data/companies.json'
 import Freshness from '@/components/seo/Freshness'
+import Breadcrumbs from '@/components/seo/Breadcrumbs'
 
 // Counted rather than hardcoded · the number is the reason to click, and a
 // stale one is worse than none.
@@ -17,7 +18,7 @@ export const metadata: Metadata = {
   ],
   openGraph: {
     url: 'https://iraqsm.com/companies',
-    title: 'Iraq Stock Exchange Listed Companies · ISX | الشركات المدرجة في بورصة العراق',
+    title: 'الشركات المدرجة في بورصة العراق',
     description: 'All companies listed on the Iraq Stock Exchange (ISX). الشركات المدرجة في بورصة العراق للأوراق المالية.',
     images: [{ url: '/opengraph-image', width: 1200, height: 630 }],
   },
@@ -27,6 +28,9 @@ export default function CompaniesLayout({ children }: { children: React.ReactNod
   return (
     <>
       {children}
+
+      <Breadcrumbs trail={[{ name: 'الشركات', path: '/companies' }]} />
+
       <Freshness
         url="https://iraqsm.com/companies"
         name="الشركات المدرجة في بورصة العراق"

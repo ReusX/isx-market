@@ -48,6 +48,23 @@ export default function MarketPage() {
   const [sortKey, setSortKey] = useState<SortKey>('mcap') // same default as the homepage list
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc')
 
+  /*
+   * Seed the filter from ?q= · the endpoint the header search submits to, and
+   * the one the WebSite SearchAction in app/layout.tsx declares to Google as
+   * this site's search. That declaration was false until now: /market ignored
+   * the parameter entirely, so the sitelinks searchbox it is meant to enable
+   * could never have worked.
+   *
+   * Read from `window.location` rather than `useSearchParams()` on purpose —
+   * that hook opts a page out of static rendering unless it sits behind a
+   * Suspense boundary, and /market is prerendered. The filter is client-side
+   * anyway, so there is nothing to gain from resolving it on the server.
+   */
+  useEffect(() => {
+    const q = new URLSearchParams(window.location.search).get('q')
+    if (q) setQuery(q)
+  }, [])
+
   useEffect(() => {
     Promise.all([fetchLive(), fetchCompanyMeta()])
       .then(([live, meta]) => setCompanies(mergeCompanies(meta, live.stocks)))

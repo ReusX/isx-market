@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import Breadcrumbs from '@/components/seo/Breadcrumbs'
 
 // The page itself is a client component, so it cannot export metadata — without
 // this layout /statistics inherited the site default and competed with the
@@ -15,5 +16,8 @@ export const metadata: Metadata = {
 }
 
 export default function StatisticsLayout({ children }: { children: React.ReactNode }) {
-  return <>{children}</>
+  return <>{children}
+
+      <Breadcrumbs trail={[{ name: 'الإحصائيات', path: '/statistics' }]} />
+</>
 }

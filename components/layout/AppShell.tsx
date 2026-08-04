@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react'
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import { useApp } from '@/context/AppContext'
 import SiteFooter from '@/components/layout/SiteFooter'
 import StarMark from '@/components/brand/StarMark'
@@ -98,8 +98,11 @@ const NAV: {
 // ── AppShell ──────────────────────────────────────────────────────────────────
 export default function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
+  const router = useRouter()
   const { user, profile, openAuth, signOut, theme, toggleTheme } = useApp()
   const [collapsedPref, setCollapsed] = useState(false)
+  const [search, setSearch] = useState('')
+  const searchRef = useRef<HTMLInputElement>(null)
   const [menuOpen, setMenuOpen] = useState(false)
   const menuRef = useRef<HTMLDivElement>(null)
   const [openSections, setOpenSections] = useState<Record<string, boolean>>({
@@ -107,6 +110,23 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   })
   const [drawerOpen, setDrawerOpen] = useState(false)
   const [isMobile, setIsMobile]     = useState(false)
+
+  /*
+   * The "/" shortcut the input advertises with a <kbd> badge. It had no handler
+   * at all — the badge was decoration on a box that did nothing.
+   */
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== '/' || e.metaKey || e.ctrlKey || e.altKey) return
+      const el = e.target as HTMLElement | null
+      // Don't steal the keystroke from someone typing in a field.
+      if (el && (/^(INPUT|TEXTAREA|SELECT)$/.test(el.tagName) || el.isContentEditable)) return
+      e.preventDefault()
+      searchRef.current?.focus()
+    }
+    document.addEventListener('keydown', onKey)
+    return () => document.removeEventListener('keydown', onKey)
+  }, [])
 
   // close the account menu on outside click
   useEffect(() => {
@@ -296,7 +316,27 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
           </Link>
 
           {/* Global search */}
-          <div className="desktop-only" style={{ flex: 1, maxWidth: 480, position: 'relative', display: 'flex', alignItems: 'center' }}>
+          {/*
+            A real <form>, not a decorative box. This input had no handler of
+            any kind: typing in it did nothing, Enter did nothing, and the "/"
+            badge pointed at a shortcut that did not exist — on every page.
+
+            It submits to /market?q=…, which is also the endpoint the WebSite
+            SearchAction in app/layout.tsx has been advertising to Google. That
+            declaration was false until now; /market ignored the parameter.
+          */}
+          <form
+            className="desktop-only"
+            role="search"
+            action="/market"
+            onSubmit={e => {
+              e.preventDefault()
+              const q = search.trim()
+              router.push(q ? `/market?q=${encodeURIComponent(q)}` : '/market')
+              searchRef.current?.blur()
+            }}
+            style={{ flex: 1, maxWidth: 480, position: 'relative', display: 'flex', alignItems: 'center' }}
+          >
             <span style={{
               position: 'absolute', insetInlineStart: 10,
               color: K.ink4, pointerEvents: 'none', display: 'flex',
@@ -304,6 +344,12 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
               <Icon d={IC.search} size={13} />
             </span>
             <input
+              ref={searchRef}
+              name="q"
+              type="search"
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+              aria-label="ابحث عن شركة أو رمز"
               placeholder="ابحث عن شركة أو رمز..."
               style={{
                 width: '100%', height: 33, borderRadius: 6,
@@ -322,7 +368,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
               borderRadius: 3, padding: '1px 4px', pointerEvents: 'none',
               fontFamily: 'var(--font-mono)',
             }}>/</kbd>
-          </div>
+          </form>
 
           <div style={{ flex: 1 }} />
 

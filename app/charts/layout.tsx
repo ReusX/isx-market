@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import Freshness from '@/components/seo/Freshness'
+import Breadcrumbs from '@/components/seo/Breadcrumbs'
 export const metadata: Metadata = {
   title: { absolute: 'مخططات الاسهم العراقية · رسوم بيانية تفاعلية' },
   description: 'مخططات تفاعلية لأسهم بورصة العراق ومؤشر ISX60: شموع يابانية، بيانات تاريخية، مؤشرات فنية، ومقارنة أداء الأسهم على أي فترة زمنية.',
@@ -11,7 +12,7 @@ export const metadata: Metadata = {
   ],
   openGraph: {
     url: 'https://iraqsm.com/charts',
-    title: 'Iraq Stock Exchange Charts · ISX Price Charts | مخططات اسعار الاسهم العراقية',
+    title: 'مخططات الاسهم العراقية · مؤشر ISX60',
     images: [{ url: '/opengraph-image', width: 1200, height: 630 }],
   },
 }
@@ -19,6 +20,9 @@ export default function ChartsLayout({ children }: { children: React.ReactNode }
   return (
     <>
       {children}
+
+      <Breadcrumbs trail={[{ name: 'المخططات', path: '/charts' }]} />
+
 
       <Freshness
         url="https://iraqsm.com/charts"
