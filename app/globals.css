@@ -6812,3 +6812,48 @@ button.pulse-tile.is-active .pulse-tile-label svg {
   font-family: var(--font-numeric), ui-monospace, monospace;
   font-size: 0.68rem;
 }
+
+/* ── Listing status tabs (المتداولة / المتوقفة) ─────────────────────────────
+   Splits a company list into names that still trade and names that do not.
+   Styled off .market-tool-tabs so the two tab strips on the site match. */
+.listing-status-tabs {
+  display: flex;
+  gap: 6px;
+  margin-block-end: 12px;
+}
+
+.listing-status-tabs button {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 8px 16px;
+  border: 0;
+  border-radius: 6px;
+  background: var(--surface-1);
+  color: var(--text-secondary);
+  font-family: inherit;
+  font-size: 0.75rem;
+  cursor: pointer;
+}
+
+.listing-status-tabs button:hover { color: var(--text-primary); }
+
+.listing-status-tabs button.active {
+  background: var(--nav-active-bg);
+  color: var(--nav-active);
+}
+
+.listing-status-count {
+  padding: 1px 6px;
+  border-radius: 999px;
+  background: var(--surface-3, rgb(255 255 255 / 8%));
+  font-family: var(--font-numeric), monospace;
+  font-size: 0.68rem;
+}
+
+.listing-status-note {
+  margin: 0 0 12px;
+  color: var(--text-tertiary, var(--text-secondary));
+  font-size: 0.72rem;
+  line-height: 1.7;
+}

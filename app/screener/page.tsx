@@ -3,6 +3,7 @@
 import { type CSSProperties, useEffect, useMemo, useState } from 'react'
 import { companyName, fetchCompanyMeta } from '@/lib/market'
 import { DataTable, type TableColumn } from '@/components/design/DataTable'
+import { ListingStatusTabs, type ListingStatus } from '@/components/design/ListingStatusTabs'
 import { CompanyIdentity } from '@/components/design/CompanyIdentity'
 import { Range52Indicator, range52Position } from '@/components/design/Range52Indicator'
 import { SectorChip } from '@/components/design/SectorChip'
@@ -107,7 +108,7 @@ export default function ScreenerPage() {
   const [sector, setSector] = useState('all')
   const [period, setPeriod] = useState<PeriodId>('1m')
   const [preset, setPreset] = useState<PresetId>('all')
-  const [showStale, setShowStale] = useState(false)
+  const [status, setStatus] = useState<ListingStatus>('active')
 
   useEffect(() => {
     ;(async () => {
@@ -153,7 +154,7 @@ export default function ScreenerPage() {
 
   const view = useMemo(() => {
     let list = rows.slice()
-    if (!showStale) list = list.filter(r => (r.days_since_trade ?? 0) <= STALE_DAYS)
+    list = list.filter(r => ((r.days_since_trade ?? 0) > STALE_DAYS) === (status === 'suspended'))
     if (q.trim()) {
       const k = q.trim().toLowerCase()
       list = list.filter(r =>
@@ -170,7 +171,7 @@ export default function ScreenerPage() {
     else if (preset === 'fsell')  list = list.filter(r => (r.ff_net_30d ?? 0) < 0)
     else if (preset === 'nearhi') list = list.filter(r => r.high_52w && (r.high_52w - r.last_close) / r.high_52w <= 0.05)
     return list
-  }, [rows, q, sector, preset, period, showStale])
+  }, [rows, q, sector, preset, period, status])
 
   const columns = useMemo<TableColumn<Row>[]>(() => [
     {
@@ -243,8 +244,15 @@ export default function ScreenerPage() {
       key: 'marketCap',
       label: 'القيمة السوقية',
       className: 'numeric-column',
-      sortValue: r => r.mcap ?? -1,
-      render: r => <bdi>{fmtMcapIQD(r.mcap)}</bdi>,
+      // Market cap is last_close x issued shares. For a suspended name that
+      // close can be years old, so the product is not a market cap — BJAB was
+      // showing 479.4B off a price last printed in October 2024.
+      sortValue: r => ((r.days_since_trade ?? 0) > STALE_DAYS ? -1 : r.mcap ?? -1),
+      render: r => (
+        (r.days_since_trade ?? 0) > STALE_DAYS
+          ? <bdi>·</bdi>
+          : <bdi>{fmtMcapIQD(r.mcap)}</bdi>
+      ),
     },
     {
       key: 'sector',
@@ -308,11 +316,18 @@ export default function ScreenerPage() {
           </div>
         </div>
 
-        {staleCount > 0 ? (
-          <label className="delisted-checkbox">
-            <input type="checkbox" checked={showStale} onChange={e => setShowStale(e.target.checked)} />
-            <span>عرض الأسهم المتوقفة عن التداول (<bdi>{staleCount}</bdi>) · آخر تداول لها قبل أكثر من <bdi>{STALE_DAYS}</bdi> يوماً</span>
-          </label>
+        <ListingStatusTabs
+          value={status}
+          onChange={setStatus}
+          activeCount={activeCount}
+          suspendedCount={staleCount}
+        />
+
+        {status === 'suspended' ? (
+          <p className="listing-status-note">
+            أسهم لم تُتداول منذ أكثر من <bdi>{STALE_DAYS}</bdi> يوماً. السعر المعروض هو آخر صفقة فعلية
+            بتاريخها، وليس سعراً حالياً.
+          </p>
         ) : null}
       </section>
 

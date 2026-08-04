@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
-import { fetchLive, fetchCompanyMeta, mergeCompanies, liveMcap, lastTradeNote, SECTORS } from '@/lib/market'
+import { fetchLive, fetchCompanyMeta, mergeCompanies, liveMcap, lastTradeNote, isSuspended, SECTORS } from '@/lib/market'
 import IndexChart from '@/components/design/IndexChart'
 import { ForeignFlowGauge } from '@/components/design/ForeignFlowGauge'
 import { Sparkline } from '@/components/design/Sparkline'
@@ -151,7 +151,12 @@ export default function HomeClient() {
       : sortKey === 'volume' ? (c.shares_traded ?? 0)
       : sortKey === 'value' ? (c.vol ?? 0)
       : liveMcap(c)
-    return [...active].sort((a, b) => (sortDir === 'asc' ? val(a) - val(b) : val(b) - val(a))).slice(0, 25)
+    // Suspended listings are excluded outright rather than offered behind a
+    // toggle like /market: this is a 25-row summary of the market, and a bank
+    // whose last print was in 2024 was taking a slot in it on the strength of a
+    // market cap computed from that dead price.
+    return [...active].filter(c => !isSuspended(c))
+      .sort((a, b) => (sortDir === 'asc' ? val(a) - val(b) : val(b) - val(a))).slice(0, 25)
   }, [active, sortKey, sortDir])
 
   function sortBy(key: SortKey) {

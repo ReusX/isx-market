@@ -2,7 +2,9 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
-import { fetchLive, fetchCompanyMeta, mergeCompanies, liveMcap, lastTradeNote, SECTORS } from '@/lib/market'
+import { fetchLive, fetchCompanyMeta, mergeCompanies, liveMcap, lastTradeNote, daysSinceTrade, isSuspended, STALE_DAYS, SECTORS } from '@/lib/market'
+import { arDate } from '@/lib/date'
+import { ListingStatusTabs, type ListingStatus } from '@/components/design/ListingStatusTabs'
 import { SectorChip } from '@/components/design/SectorChip'
 import { CompanyLogo } from '@/components/CompanyLogo'
 import type { Company } from '@/types'
@@ -23,6 +25,7 @@ export default function CompaniesClient() {
   // Companies directory defaults to market capitalisation, descending.
   const [sortKey, setSortKey] = useState<SortKey>('mcap')
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc')
+  const [status, setStatus] = useState<ListingStatus>('active')
 
   useEffect(() => {
     Promise.all([fetchLive(), fetchCompanyMeta()])
@@ -33,8 +36,11 @@ export default function CompaniesClient() {
 
   const listed = useMemo(() => companies.filter(c => c.close > 0), [companies])
 
+  const suspendedCount = useMemo(() => listed.filter(c => isSuspended(c)).length, [listed])
+
   const rows = useMemo(() => {
     let data = listed
+    data = data.filter(c => (status === 'suspended' ? isSuspended(c) : !isSuspended(c)))
     if (sector !== 'all') data = data.filter(c => c.sec === sector)
     const q = query.trim().toLowerCase()
     if (q) {
@@ -49,9 +55,12 @@ export default function CompaniesClient() {
       : sortKey === 'change' ? c.pct
       // `vol` holds the traded VALUE in dinars; الحجم means the share count.
       : sortKey === 'volume' ? (c.shares_traded ?? 0)
+      // Market cap is hidden in the suspended tab (see the cell below), so
+      // order those by how recently they last traded instead.
+      : status === 'suspended' ? -daysSinceTrade(c)
       : liveMcap(c)
     return [...data].sort((a, b) => (sortDir === 'asc' ? val(a) - val(b) : val(b) - val(a)))
-  }, [listed, sector, query, sortKey, sortDir])
+  }, [listed, sector, query, sortKey, sortDir, status])
 
   function sortBy(key: SortKey) {
     if (key === sortKey) { setSortDir(d => (d === 'asc' ? 'desc' : 'asc')); return }
@@ -92,6 +101,20 @@ export default function CompaniesClient() {
         </div>
       </div>
 
+      <ListingStatusTabs
+        value={status}
+        onChange={setStatus}
+        activeCount={listed.length - suspendedCount}
+        suspendedCount={suspendedCount}
+      />
+
+      {status === 'suspended' ? (
+        <p className="listing-status-note">
+          أسهم لم تُتداول منذ أكثر من <bdi>{STALE_DAYS}</bdi> يوماً. السعر المعروض هو آخر صفقة فعلية
+          بتاريخها، وليس سعراً حالياً — ولهذا لا تُحتسب لها قيمة سوقية.
+        </p>
+      ) : null}
+
       {failed ? (
         <div className="empty-state">
           <strong>تعذّر تحميل بيانات الشركات</strong>
@@ -124,7 +147,12 @@ export default function CompaniesClient() {
                     </Link>
                   </td>
                   <td data-label="آخر سعر" title={lastTradeNote(company, true)}>
-                    <bdi className="num-roll">{priceFormat.format(company.close)} IQD</bdi>
+                    <span className="stacked-cell">
+                      <bdi className="num-roll">{priceFormat.format(company.close)} IQD</bdi>
+                      {company.stale && company.lastTrade && daysSinceTrade(company) > 5
+                        ? <small><bdi>{arDate(company.lastTrade)}</bdi></small>
+                        : null}
+                    </span>
                   </td>
                   {/* A name that has not traded — sometimes for years — has no
                       change and no volume to report for this session. */}
@@ -138,9 +166,11 @@ export default function CompaniesClient() {
                       ? <span className="stale-flag" title={lastTradeNote(company, true)}>·</span>
                       : <bdi className="num-roll">{compact.format(company.shares_traded ?? 0)}</bdi>}
                   </td>
-                  <td data-label="القيمة السوقية">{liveMcap(company) > 0
+                  {/* No market cap for a suspended name: it is close x share
+                      count, and that close can be a decade old. */}
+                  <td data-label="القيمة السوقية">{!isSuspended(company) && liveMcap(company) > 0
                       ? <bdi className="num-roll">{compact.format(liveMcap(company))} IQD</bdi>
-                      : <bdi className="num-roll">·</bdi>}</td>
+                      : <span className="stale-flag" title={lastTradeNote(company, true)}>·</span>}</td>
                 </tr>
               ))}
               {!rows.length && !loading ? (

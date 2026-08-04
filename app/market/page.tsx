@@ -3,18 +3,31 @@
 import { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import { useApp } from '@/context/AppContext'
-import { fetchLive, fetchCompanyMeta, mergeCompanies, liveMcap, lastTradeNote, SECTORS } from '@/lib/market'
+import {
+  fetchLive, fetchCompanyMeta, mergeCompanies, liveMcap, lastTradeNote,
+  daysSinceTrade, isSuspended, STALE_DAYS, SECTORS,
+} from '@/lib/market'
+import { arDate } from '@/lib/date'
 import { fetchSparklines } from '@/lib/sparks'
 import { CompanyLogo } from '@/components/CompanyLogo'
 import { Sparkline } from '@/components/design/Sparkline'
 import { SectorChip } from '@/components/design/SectorChip'
 import { Card } from '@/components/design/ui'
+import { ListingStatusTabs, type ListingStatus } from '@/components/design/ListingStatusTabs'
 import type { Company } from '@/types'
 
 type Movement = 'all' | 'up' | 'flat' | 'down'
 type SortKey = 'mcap' | 'price' | 'change' | 'volume'
 
 const companyName = (c: Company, ar: boolean) => (ar ? c.ar || c.en : c.en || c.ar) || c.sym
+
+/*
+ * Suspended listings are hidden behind a counted toggle, the same treatment
+ * /screener already ships (see the rule in lib/market.ts). When a row IS shown,
+ * its last-trade date is printed under the price rather than left in a `title`
+ * tooltip — no phone can display a tooltip, so on mobile a 2010 quote was
+ * indistinguishable from today's.
+ */
 
 const compact = new Intl.NumberFormat('en-US', { notation: 'compact', maximumFractionDigits: 1 })
 const priceFormat = new Intl.NumberFormat('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 2 })
@@ -30,6 +43,7 @@ export default function MarketPage() {
   const [sector, setSector] = useState('all')
   const [query, setQuery] = useState('')
   const [onlyWatchlist, setOnlyWatchlist] = useState(false)
+  const [status, setStatus] = useState<ListingStatus>('active')
   const [movement, setMovement] = useState<Movement>('all')
   const [sortKey, setSortKey] = useState<SortKey>('mcap') // same default as the homepage list
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc')
@@ -49,8 +63,14 @@ export default function MarketPage() {
 
   const listed = useMemo(() => companies.filter(c => c.close > 0), [companies])
 
+  const suspendedCount = useMemo(
+    () => listed.filter(c => isSuspended(c)).length,
+    [listed],
+  )
+
   const rows = useMemo(() => {
     let data = listed
+    data = data.filter(c => (status === 'suspended' ? isSuspended(c) : !isSuspended(c)))
     if (sector !== 'all') data = data.filter(c => c.sec === sector)
     if (onlyWatchlist) data = data.filter(c => watchlist.includes(c.sym))
     // The breadth counts are read off this session's trades, so filtering by
@@ -74,9 +94,13 @@ export default function MarketPage() {
       // is the share count the الحجم column actually claims to show.
       : sortKey === 'volume' ? (c.shares_traded ?? 0)
       : sortKey === 'change' ? c.pct
+      // The suspended tab hides market cap, so the default mcap sort has no
+      // visible column to explain itself. Order those by how recently they last
+      // traded instead — the only dimension that still separates them.
+      : status === 'suspended' ? -daysSinceTrade(c)
       : liveMcap(c)
     return [...data].sort((a, b) => (sortDir === 'asc' ? val(a) - val(b) : val(b) - val(a)))
-  }, [listed, sector, onlyWatchlist, watchlist, query, movement, sortKey, sortDir])
+  }, [listed, sector, onlyWatchlist, watchlist, query, movement, sortKey, sortDir, status])
 
   // Advancers/decliners only count names that actually traded this session —
   // carried-forward rows would otherwise all land in "unchanged".
@@ -157,6 +181,22 @@ export default function MarketPage() {
         ))}
       </div>
 
+      <ListingStatusTabs
+        value={status}
+        onChange={setStatus}
+        activeCount={listed.length - suspendedCount}
+        suspendedCount={suspendedCount}
+        ar={ar}
+      />
+
+      {status === 'suspended' ? (
+        <p className="listing-status-note">
+          {ar
+            ? <>أسهم لم تُتداول منذ أكثر من <bdi>{STALE_DAYS}</bdi> يوماً. السعر المعروض هو آخر صفقة فعلية بتاريخها، وليس سعراً حالياً — ولهذا لا تُحتسب لها قيمة سوقية.</>
+            : <>Stocks with no trade in over <bdi>{STALE_DAYS}</bdi> days. The price shown is the last actual trade on its date, not a current quote — which is why no market cap is given.</>}
+        </p>
+      ) : null}
+
       {failed ? (
         <div className="empty-state">
           <strong>{ar ? 'تعذّر تحميل بيانات السوق' : 'Could not load market data'}</strong>
@@ -207,7 +247,16 @@ export default function MarketPage() {
                     </Link>
                   </td>
                   <td data-label={ar ? 'آخر سعر' : 'Last'} title={lastTradeNote(company, ar)}>
-                    <bdi className="num-roll">{priceFormat.format(company.close)} IQD</bdi>
+                    <span className="stacked-cell">
+                      <bdi className="num-roll">{priceFormat.format(company.close)} IQD</bdi>
+                      {/* Anything older than a session gets its date printed.
+                          Five days is the screener's threshold too — below that
+                          the date is noise, above it the price needs a caveat
+                          the reader can actually see. */}
+                      {company.stale && company.lastTrade && daysSinceTrade(company) > 5
+                        ? <small><bdi>{arDate(company.lastTrade)}</bdi></small>
+                        : null}
+                    </span>
                   </td>
                   {/* A name that did not trade has no move to report — printing
                       0.00% would read as "flat today". */}
@@ -221,10 +270,15 @@ export default function MarketPage() {
                       ? <span className="stale-flag" title={lastTradeNote(company, ar)}>·</span>
                       : <bdi className="num-roll">{compact.format(company.shares_traded ?? 0)}</bdi>}
                   </td>
+                  {/* Market cap is close x share count. For a suspended name
+                      that close is years old, so the product is not a current
+                      market cap and printing one put dead banks among the
+                      largest companies on the exchange. Suppressed rather than
+                      guessed — the share count alone is not a valuation. */}
                   <td data-label={ar ? 'القيمة السوقية' : 'Mkt cap'}>
-                    {liveMcap(company) > 0
+                    {!isSuspended(company) && liveMcap(company) > 0
                       ? <bdi className="num-roll">{compact.format(liveMcap(company))} IQD</bdi>
-                      : <bdi className="num-roll">·</bdi>}
+                      : <span className="stale-flag" title={lastTradeNote(company, ar)}>·</span>}
                   </td>
                   <td data-label="7D">
                     {sparks[company.sym]?.length > 1
