@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 export const metadata: Metadata = {
-  title: { absolute: 'اسعار الاسهم العراقية | Iraq Stock Market Live Prices' },
-  description: 'Iraq stock market live prices · all stocks on the Iraq Stock Exchange (ISX) with real-time data, volume, market cap, and RSISX index. اسعار الاسهم العراقية مباشرة، سوق الاسهم العراقي، اسهم العراق، بورصة العراق.',
+  title: { absolute: 'اسعار الاسهم العراقية اليوم · جميع شركات بورصة العراق' },
+  description: 'أسعار جميع الأسهم المدرجة في بورصة العراق: آخر سعر، نسبة التغيّر، حجم التداول والقيمة السوقية — مرتّبة ومفلترة حسب القطاع ومحدّثة بعد كل جلسة.',
   alternates: { canonical: 'https://iraqsm.com/market' },
   keywords: [
     'iraq stock market', 'iraq stock exchange', 'isx stock exchange', 'isx market',

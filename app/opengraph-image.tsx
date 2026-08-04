@@ -1,7 +1,8 @@
 import { ImageResponse } from 'next/og'
+import { STAR_PATH } from '@/components/brand/StarMark'
 
 export const runtime = 'edge'
-export const alt = 'ISX Market · Iraq Stock Exchange Live Prices & Analysis'
+export const alt = 'IQWealth · Iraq Stock Exchange Live Prices & Analysis'
 export const size = { width: 1200, height: 630 }
 export const contentType = 'image/png'
 
@@ -59,22 +60,13 @@ export default function OGImage() {
             alignItems: 'center',
             gap: 14,
           }}>
-            <div style={{
-              width: 48,
-              height: 48,
-              borderRadius: 12,
-              background: '#4F6BFF',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontSize: 22,
-              fontWeight: 900,
-              color: '#fff',
-            }}>
-              ISX
-            </div>
+            {/* Star of Ishtar · drawn straight from the shared path so the
+                social card can never drift from the favicon and the app. */}
+            <svg width="48" height="48" viewBox="0 0 96 96">
+              <path fillRule="evenodd" fill="#ffffff" d={STAR_PATH} />
+            </svg>
             <span style={{ fontSize: 22, fontWeight: 700, color: 'rgba(255,255,255,0.9)' }}>
-              ISX Market
+              IQWealth
             </span>
           </div>
 

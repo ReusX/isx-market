@@ -1,13 +1,16 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-  <!-- Blue rounded background -->
-  <rect width="512" height="512" rx="108" fill="#5B6CF9"/>
-  <!-- White price line: horizontal then 90deg bend downward -->
-  <path d="M 79 187 H 305" stroke="white" stroke-width="54" stroke-linecap="round" fill="none"/>
-  <path d="M 305 187 Q 359 187 359 241 V 335" stroke="white" stroke-width="54" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
-  <!-- Candlestick top wick (white) -->
-  <line x1="305" y1="300" x2="305" y2="333" stroke="white" stroke-width="17" stroke-linecap="round"/>
-  <!-- Green candle body -->
-  <rect x="263" y="333" width="84" height="85" rx="10" fill="#22C55E"/>
-  <!-- Bottom wick (white) -->
-  <line x1="305" y1="418" x2="305" y2="453" stroke="white" stroke-width="17" stroke-linecap="round"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96">
+  <!--
+    IQWealth · Star of Ishtar. Geometry matches components/brand/StarMark.tsx.
+
+    Two deliberate departures from the master logo artwork:
+
+    1. Light plate, dark star. Google renders result favicons at 16px against a
+       light page in its default theme; a dark mark on white keeps its eight
+       points readable there, where a dark plate collapses into a blob.
+    2. Tighter crop. The master artwork gives the star generous white margin,
+       which is right on a card and wrong at 16px — the star is scaled to ~77%
+       of the plate here so the points survive.
+  -->
+  <rect width="96" height="96" rx="21" fill="#FFFFFF"/>
+  <path fill-rule="evenodd" fill="#1B1F2A" d="M 48.00 11.00 L 53.47 34.79 L 74.16 21.84 L 61.21 42.53 L 85.00 48.00 L 61.21 53.47 L 74.16 74.16 L 53.47 61.21 L 48.00 85.00 L 42.53 61.21 L 21.84 74.16 L 34.79 53.47 L 11.00 48.00 L 34.79 42.53 L 21.84 21.84 L 42.53 34.79 Z M 39.00 48.00 a 9 9 0 1 0 18 0 a 9 9 0 1 0 -18 0 Z"/>
 </svg>

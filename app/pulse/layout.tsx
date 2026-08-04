@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 export const metadata: Metadata = {
-  title: { absolute: 'نبض السوق · اتساع السوق العراقي | ISX Market Breadth' },
-  description: 'اتساع سوق العراق للأوراق المالية: الأسهم الصاعدة مقابل الهابطة، حجم التداول الصاعد/الهابط، القمم والقيعان الجديدة وخط الصعود/الهبوط · محدّث يومياً. Iraq Stock Exchange market breadth: advancers vs decliners, up/down volume, new highs/lows and the advance-decline line.',
+  title: { absolute: 'نبض السوق العراقي · الأسهم الصاعدة والهابطة اليوم' },
+  description: 'اتساع سوق العراق للأوراق المالية: عدد الأسهم الصاعدة مقابل الهابطة، حجم التداول الصاعد والهابط، القمم والقيعان الجديدة وخط الصعود/الهبوط.',
   alternates: { canonical: 'https://iraqsm.com/pulse' },
   keywords: [
     'iraq stock exchange market breadth', 'isx advancers decliners', 'isx market pulse',

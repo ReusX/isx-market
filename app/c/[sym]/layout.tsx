@@ -30,7 +30,7 @@ export async function generateMetadata({ params }: { params: { sym: string } }):
       title:       seo.title,
       description: seo.description,
       url,
-      siteName: 'Iraq Stock Market · iraqsm.com',
+      siteName: 'IQWealth',
       images:   [{ url: '/opengraph-image', width: 1200, height: 630, alt: `${seo.shortAr} ${sym} – بورصة العراق` }],
       locale:   'ar_IQ',
       type:     'website',

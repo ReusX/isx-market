@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useApp } from '@/context/AppContext'
 import SiteFooter from '@/components/layout/SiteFooter'
+import StarMark from '@/components/brand/StarMark'
 
 // ── IraqSM terminal dark palette ──────────────────────────────────────────────
 // Maps to the CSS theme tokens in globals.css so the shell flips with the
@@ -94,15 +95,6 @@ const NAV: {
   },
 ]
 
-// ── Brand mark (Star of Ishtar) · currentColor so it follows the theme ────────
-function StarMark({ size = 22 }: { size?: number }) {
-  return (
-    <svg viewBox="0 0 96 96" width={size} height={size} aria-hidden="true" style={{ flexShrink: 0, color: 'var(--ink)' }}>
-      <path fillRule="evenodd" fill="currentColor" d="M48 11 L53.7 34.6 L73.9 21.8 L61.1 42 L85 48 L61.1 54 L73.9 74.2 L53.7 61.4 L48 85 L42.3 61.4 L22.1 74.2 L34.9 54 L11 48 L34.9 42 L22.1 21.8 L42.3 34.6 Z M40 48 a8 8 0 1 0 16 0 a8 8 0 1 0 -16 0 Z" />
-    </svg>
-  )
-}
-
 // ── AppShell ──────────────────────────────────────────────────────────────────
 export default function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
@@ -188,7 +180,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
       >
         <div className="side-navigation-head">
           <Link className="side-brand" href="/" aria-label="IQWealth الرئيسية">
-            <span className="side-brand-mark">IQ</span>
+            <span className="side-brand-mark"><StarMark size={20} color="var(--nav-active)" /></span>
             <span className="side-brand-name">IQWealth</span>
           </Link>
           <button
@@ -292,7 +284,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
           <Link href="/" className="app-mobile-logo" style={{
             alignItems: 'center', gap: 7, flexShrink: 0, textDecoration: 'none',
           }}>
-            <StarMark size={22} />
+            <StarMark size={22} color="var(--ink)" />
             <span style={{ fontWeight: 800, fontSize: 14, color: K.ink, whiteSpace: 'nowrap' }}>
               IQWealth
             </span>

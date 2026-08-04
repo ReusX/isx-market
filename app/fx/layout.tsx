@@ -1,8 +1,8 @@
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
-  title: { absolute: 'سعر الدولار اليوم في العراق | الدولار مقابل الدينار العراقي USD/IQD' },
-  description: 'كم سعر الدولار اليوم في العراق؟ سعر صرف الدولار الأمريكي مقابل الدينار العراقي اليوم 2026 · السعر الرسمي للبنك المركزي والسوق الموازية، سعر 100 دولار بالدينار، ومحول العملات IQD/USD المباشر. Live USD to Iraqi Dinar (IQD) exchange rate and currency converter.',
+  title: { absolute: 'سعر الدولار اليوم في العراق · الدولار مقابل الدينار' },
+  description: 'كم سعر الدولار اليوم في العراق؟ سعر صرف الدولار مقابل الدينار العراقي بسعر البنك المركزي وسعر السوق الموازية، مع محوّل فوري لأي مبلغ.',
   alternates: { canonical: 'https://iraqsm.com/fx' },
   keywords: [
     'سعر الدولار اليوم في العراق', 'سعر الدولار مقابل الدينار العراقي',

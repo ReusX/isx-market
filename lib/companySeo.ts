@@ -40,14 +40,22 @@ export function buildCompanySeo(sym: string, arName: string, enName: string): Se
   const seo       = COMPANY_SEO[sym] ?? {}
   const shortAr   = seo.ar ?? arName
   const alts      = (seo.alts ?? []).filter(a => a && a !== shortAr)
-  const altInline = alts.length ? ` (${alts.join('، ')})` : ''
 
-  const title = `سعر سهم ${shortAr} اليوم (${sym}) | بورصة العراق`
+  const title = `سعر سهم ${shortAr} اليوم · ${sym} في بورصة العراق`
 
+  /*
+   * One natural Arabic answer to the query, ~150 characters, and nothing else.
+   *
+   * The previous version repeated the company name three times, carried an
+   * English translation of itself, and hardcoded "٢٠٢٦" — Google rejected it on
+   * every company page and substituted a scraped ratios table instead
+   * ("العائد على حقوق الملكية · 36.8% ; العائد على الأصول · 26.8%"). Aliases
+   * moved to `keywords`/`altNames`, where they belong, so the sentence stays
+   * readable enough to actually get used.
+   */
   const description =
-    `كم سعر سهم ${shortAr} اليوم؟ سعر سهم ${shortAr}${altInline} ورمزه ${sym} ` +
-    `مباشر في بورصة العراق ٢٠٢٦ مع الرسم البياني، الأعلى والأدنى، وحجم التداول. ` +
-    `${enName} (${sym}) live share price on the Iraq Stock Exchange (ISX).`
+    `كم سعر سهم ${shortAr} اليوم؟ تابع سعر السهم (${sym}) في بورصة العراق ` +
+    `مع نسبة التغيّر، حجم التداول، وأعلى وأدنى سعر خلال 52 أسبوعاً.`
 
   const keywords = Array.from(new Set([
     shortAr, arName, enName, sym, ...alts,
@@ -62,9 +70,11 @@ export function buildCompanySeo(sym: string, arName: string, enName: string): Se
     'iraq stock exchange', 'isx',
   ].filter(Boolean)))
 
-  const h1 =
-    `سعر سهم ${shortAr}${altInline} اليوم · ${sym} في بورصة العراق | ` +
-    `${enName} (${sym}) Iraq Stock Exchange Share Price`
+  // Kept bilingual — this one is a heading, not a snippet, so it carries the
+  // English name for English queries without competing for title characters.
+  // Aliases stay out of it; a heading stuffed with spellings invites Google to
+  // rewrite the title it derives from the page.
+  const h1 = `سعر سهم ${shortAr} اليوم · ${sym} في بورصة العراق — ${enName} Share Price`
 
   const altNames = Array.from(new Set([arName, shortAr, ...alts].filter(a => a && a !== enName)))
 

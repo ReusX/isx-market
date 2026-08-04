@@ -3,10 +3,9 @@ import SectionPage from '@/components/cms/SectionPage'
 
 export const revalidate = 300
 
-export const metadata = {
-  title: 'أخبار بورصة العراق | ISX Market',
-  description: 'آخر أخبار وتحديثات بورصة العراق للأوراق المالية',
-}
+// Title/description live in ./layout.tsx · a page-level `metadata` export wins
+// over the layout's, so duplicating them here quietly discarded the canonical
+// URL and OG tags the layout sets.
 
 export default async function NewsPage() {
   // Covers the full archive rather than the first page. This index is the only

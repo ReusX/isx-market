@@ -1,8 +1,8 @@
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
-  title: { absolute: 'سعر النفط اليوم في العراق مباشر | سعر برميل برنت وخام البصرة بالدولار والدينار' },
-  description: 'سعر النفط اليوم مباشر · سعر برميل النفط برنت وغرب تكساس WTI وخام البصرة الثقيل والمتوسط وسلة أوبك بالدولار والدينار العراقي لحظة بلحظة. Live oil price today: Brent, WTI, Iraq Basrah crude and the OPEC basket in USD and Iraqi Dinar per barrel.',
+  title: { absolute: 'سعر النفط اليوم · برميل برنت وخام البصرة بالدينار' },
+  description: 'سعر برميل النفط اليوم: برنت، غرب تكساس WTI، خام البصرة الثقيل والمتوسط وسلة أوبك — بالدولار وبالدينار العراقي، محدّثاً على مدار اليوم.',
   alternates: { canonical: 'https://iraqsm.com/oil' },
   keywords: [
     // Arabic — top Iraq oil searches

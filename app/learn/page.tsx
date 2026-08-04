@@ -3,10 +3,7 @@ import SectionPage from '@/components/cms/SectionPage'
 
 export const revalidate = 300
 
-export const metadata = {
-  title: 'تعلّم الاستثمار | ISX Market',
-  description: 'دليلك الشامل للاستثمار في بورصة العراق · من المبتدئ إلى المحترف',
-}
+// Title/description live in ./layout.tsx · see the note in app/news/page.tsx.
 
 export default async function LearnPage() {
   const { posts } = await getPosts('learn', { perPage: 18 })

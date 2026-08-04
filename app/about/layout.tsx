@@ -1,8 +1,8 @@
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
-  title: { absolute: 'عن بورصة العراق | Iraq Stock Market & Exchange ISX' },
-  description: 'iraqsm.com is the leading Iraq stock market tracker · live prices, charts, and analysis for the Iraq Stock Exchange (ISX). Built for Iraqi investors. منصة متابعة سوق الاسهم العراقي وبورصة العراق للأوراق المالية.',
+  title: { absolute: 'عن بورصة العراق للأوراق المالية · كيف تعمل ومن يشرف عليها' },
+  description: 'ما هي بورصة العراق للأوراق المالية، كيف تجري جلسات التداول، من يشرف عليها، وكيف تشتري وتبيع الأسهم — دليل تعريفي للمستثمر العراقي المبتدئ.',
   alternates: { canonical: 'https://iraqsm.com/about' },
   keywords: [
     'iraq stock market', 'iraq stock exchange', 'isx market', 'about',

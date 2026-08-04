@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 export const metadata: Metadata = {
-  title: 'أبحاث وتحليلات | ISX Research',
-  description: 'تقارير وتحليلات مالية متعمقة لسوق الأسهم العراقي · دراسات قطاعية، تقييم الشركات المدرجة في بورصة العراق، وتوقعات الأداء. In-depth Iraq Stock Exchange research, sector analysis and company valuations.',
+  title: { absolute: 'أبحاث وتحليلات سوق الأسهم العراقي' },
+  description: 'تقارير وتحليلات متعمقة لبورصة العراق: دراسات قطاعية، تقييم الشركات المدرجة، قراءة النتائج المالية، وتوقعات الأداء بلغة يفهمها المستثمر.',
   alternates: { canonical: 'https://iraqsm.com/research' },
   openGraph: { url: 'https://iraqsm.com/research', images: [{ url: '/opengraph-image', width: 1200, height: 630 }] },
 }

@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 export const metadata: Metadata = {
-  title: { absolute: 'مخططات اسعار الاسهم العراقية | ISX Stock Price Charts' },
-  description: 'Interactive price charts for all Iraq Stock Exchange (ISX) stocks · historical data, candlestick charts, and RSISX index. مخططات اسعار الاسهم العراقية التاريخية، بورصة العراق، سوق الاسهم العراقي.',
+  title: { absolute: 'مخططات الاسهم العراقية · رسوم بيانية تفاعلية' },
+  description: 'مخططات تفاعلية لأسهم بورصة العراق ومؤشر ISX60: شموع يابانية، بيانات تاريخية، مؤشرات فنية، ومقارنة أداء الأسهم على أي فترة زمنية.',
   alternates: { canonical: 'https://iraqsm.com/charts' },
   keywords: [
     'iraq stock exchange charts', 'iraq stock market charts', 'isx charts',

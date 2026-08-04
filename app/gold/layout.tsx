@@ -1,8 +1,8 @@
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
-  title: { absolute: 'سعر الذهب مباشر اليوم في العراق | اسعار الذهب عالمياً بالدينار' },
-  description: 'سعر الذهب مباشر اليوم في العراق بالدينار العراقي · اسعار الذهب عالمياً وسعر مثقال الذهب عيار 21 وسعر غرام الذهب عيار 24 و18 لحظة بلحظة. Live gold price in Iraq today in IQD and USD, per gram and mithqal for 24K, 21K, 18K, with the global spot rate.',
+  title: { absolute: 'سعر الذهب اليوم في العراق · مثقال وغرام عيار 21 و24' },
+  description: 'سعر الذهب اليوم في العراق بالدينار العراقي: سعر المثقال والغرام لعيار 24 و21 و18، مع السعر العالمي للأونصة وحاسبة تحوّل أي وزن إلى قيمته الحالية.',
   alternates: { canonical: 'https://iraqsm.com/gold' },
   keywords: [
     'gold price in iraq', 'iraq gold price today', 'gold price iraq 2026',

@@ -1,8 +1,13 @@
 import type { Metadata } from 'next'
+import companiesData from '@/public/data/companies.json'
+
+// Counted rather than hardcoded · the number is the reason to click, and a
+// stale one is worse than none.
+const TOTAL = (companiesData as unknown[]).length
 
 export const metadata: Metadata = {
-  title: { absolute: 'الشركات المدرجة في بورصة العراق | ISX Listed Companies' },
-  description: 'All companies listed on the Iraq Stock Exchange (ISX) · browse by sector including banking, telecom, industry, insurance, and more. الشركات المدرجة في بورصة العراق للأوراق المالية، اسهم العراق، سوق الاسهم العراقي.',
+  title: { absolute: `الشركات المدرجة في بورصة العراق · ${TOTAL} شركة حسب القطاع` },
+  description: `دليل كامل لجميع الشركات المدرجة في بورصة العراق للأوراق المالية (${TOTAL} شركة) مرتّبة حسب القطاع — المصارف، الاتصالات، الصناعة، التأمين والزراعة.`,
   alternates: { canonical: 'https://iraqsm.com/companies' },
   keywords: [
     'iraq stock exchange companies', 'isx listed companies', 'iraq stock market companies',

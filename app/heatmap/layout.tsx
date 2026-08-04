@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 export const metadata: Metadata = {
-  title: { absolute: 'خريطة السوق الحرارية · بورصة العراق | ISX Market Heatmap' },
-  description: 'خريطة حرارية لسوق العراق للأوراق المالية: كل الأسهم مرتبة حسب القطاع، حجم المربع يمثل القيمة السوقية ولونه يمثل التغيّر (يوم/أسبوع/شهر/سنة). ISX market heatmap · every Iraq Stock Exchange stock as a treemap tile sized by market cap and colored by performance.',
+  title: { absolute: 'خريطة السوق الحرارية · أداء أسهم بورصة العراق' },
+  description: 'السوق العراقي كله في صورة واحدة: كل سهم مربّع بحجم قيمته السوقية ولون يعبّر عن تغيّره، مجمّعاً حسب القطاع — لليوم أو الأسبوع أو الشهر أو السنة.',
   alternates: { canonical: 'https://iraqsm.com/heatmap' },
   keywords: [
     'iraq stock exchange heatmap', 'isx heatmap', 'isx market map', 'isx treemap',

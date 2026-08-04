@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 export const metadata: Metadata = {
-  title: { absolute: 'فارز الأسهم · بورصة العراق | ISX Stock Screener' },
-  description: 'فارز أسهم سوق العراق للأوراق المالية: فلترة وترتيب حسب التغيّر (يوم/أسبوع/شهر/سنة)، السيولة، تدفق الأجانب، القرب من قمة 52 أسبوعاً والقطاع. Screen all Iraq Stock Exchange (ISX) stocks by performance, liquidity, foreign flow, 52-week range and sector.',
+  title: { absolute: 'فارز الأسهم العراقية · فلترة أسهم بورصة العراق' },
+  description: 'افرز أسهم بورصة العراق حسب الأداء اليومي والأسبوعي والسنوي، السيولة، المكرر الربحي، تدفق الأجانب، والقرب من قمة 52 أسبوعاً — مع جاهزات فرز سريعة.',
   alternates: { canonical: 'https://iraqsm.com/screener' },
   keywords: [
     'iraq stock exchange screener', 'isx stock screener', 'isx stock filter',
