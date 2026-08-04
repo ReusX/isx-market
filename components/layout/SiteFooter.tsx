@@ -12,6 +12,10 @@ const COLS: { title: [string, string]; links: { href: string; ar: string; en: st
       { href: '/screener',   ar: 'فارز الأسهم',  en: 'Screener' },
       { href: '/charts',     ar: 'المخططات',     en: 'Charts' },
       { href: '/statistics', ar: 'الإحصائيات',   en: 'Statistics' },
+      // Deliberately footer-only: news is out of the main nav for now but the
+      // articles stay indexed, and this is their one internal link. Restore it
+      // to the sidebar when news is switched back on.
+      { href: '/news',       ar: 'أخبار السوق',  en: 'Market news' },
     ],
   },
   {

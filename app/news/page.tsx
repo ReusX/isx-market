@@ -9,6 +9,9 @@ export const metadata = {
 }
 
 export default async function NewsPage() {
-  const { posts } = await getPosts('news', { perPage: 18 })
+  // Covers the full archive rather than the first page. This index is the only
+  // crawlable path to /news/[slug]; capping it at 18 left the rest orphaned.
+  // Past ~100 posts this needs pagination or a separate archive list.
+  const { posts } = await getPosts('news', { perPage: 100 })
   return <SectionPage section="news" posts={posts} />
 }
