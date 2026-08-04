@@ -2,6 +2,7 @@
 
 import { useApp } from '@/context/AppContext'
 import { COMPANY_PROFILES, type Profile } from '@/lib/companyProfiles'
+import { arDate } from '@/lib/date'
 
 const SECTORS: Record<string, { en: string; ar: string }> = {
   AGR:  { en: 'Agriculture',        ar: 'الزراعة' },
@@ -28,13 +29,31 @@ interface Props {
   ar:    string
   sec?:  string
   mcap?: number
+  /**
+   * Server-fetched last trade. Plain data, not the Quote type, so it stays
+   * serializable across the server/client boundary.
+   *
+   * The whole point is to get a real number into the server-rendered HTML: the
+   * price header above this section is client-fetched, so a crawler (and any
+   * reader before JS runs) previously saw a page that asked "كم سعر سهم … اليوم؟"
+   * and answered with a promise that the price exists somewhere.
+   */
+  quote?: { close: number; pct: number | null; date: string; suspended: boolean } | null
 }
 
 // Generated fallback for companies without curated copy yet.
-function generated(isAr: boolean, p: Props): Profile {
-  const sector  = SECTORS[p.sec ?? ''] ?? { en: 'the Iraqi market', ar: 'السوق العراقي' }
-  const mcap    = fmtMcap(p.mcap)
-  const hasMcap = !!p.mcap
+function generated(isAr: boolean, props: Props): Profile {
+  const sector  = SECTORS[props.sec ?? ''] ?? { en: 'the Iraqi market', ar: 'السوق العراقي' }
+  const mcap    = fmtMcap(props.mcap)
+  const hasMcap = !!props.mcap
+
+  // 20 companies have no Arabic name on file · without this the generated copy
+  // reads "سعر سهم  (BQUR)" with a hole where the name belongs.
+  const p = {
+    ...props,
+    ar: props.ar?.trim() || props.en || props.sym,
+    en: props.en?.trim() || props.ar || props.sym,
+  }
 
   if (isAr) {
     return {
@@ -81,13 +100,59 @@ function generated(isAr: boolean, p: Props): Profile {
   }
 }
 
+/** "16.06 IQD, up 1.89%" · direction as a word, never a sign — see lib/quote. */
+function priceText(q: NonNullable<Props['quote']>, isAr: boolean): string {
+  const n = q.close.toLocaleString('en-US', { maximumFractionDigits: 2 })
+  const price = isAr ? `${n} دينار عراقي` : `${n} IQD`
+  if (q.pct == null || Math.abs(q.pct) < 0.005) return price
+  const dir = isAr ? (q.pct > 0 ? 'بارتفاع' : 'بانخفاض') : (q.pct > 0 ? 'up' : 'down')
+  return `${price}${isAr ? '، ' : ', '}${dir} ${Math.abs(q.pct).toFixed(2)}%`
+}
+
 export default function CompanyProfile(props: Props) {
   const { lang } = useApp()
   const isAr = lang === 'ar'
 
   const curated = COMPANY_PROFILES[props.sym]?.[isAr ? 'ar' : 'en']
-  const p       = curated ?? generated(isAr, props)
-  const name    = isAr ? props.ar : props.en
+  const base    = curated ?? generated(isAr, props)
+  // 20 companies have no Arabic name on file · fall back rather than render a
+  // gap where the company name should be. See lib/companySeo.ts.
+  const name    = (isAr ? props.ar?.trim() || props.en : props.en?.trim() || props.ar) || props.sym
+
+  /*
+   * Fold the live price into the facts and into the price FAQ answer.
+   *
+   * Applied here rather than inside `generated()` so curated profiles get the
+   * number too, and the vague existing answer is dropped rather than left to
+   * sit next to the real one saying something weaker.
+   *
+   * Suspended listings are skipped: their last close is years old, and this
+   * copy is framed as "today".
+   */
+  const q = props.quote && !props.quote.suspended ? props.quote : null
+  const p = q
+    ? {
+        ...base,
+        facts: [
+          { label: isAr ? 'آخر سعر' : 'Last price', value: priceText(q, isAr) },
+          ...base.facts,
+        ],
+        faq: [
+          {
+            q: isAr ? `كم سعر سهم ${name} اليوم؟` : `What is ${name}'s share price today?`,
+            a: isAr
+              ? `سعر سهم ${name} (${props.sym}) في آخر جلسة تداول هو ${priceText(q, isAr)}، ` +
+                `بحسب نشرة بورصة العراق ليوم ${arDate(q.date)}.`
+              : `${name} (${props.sym}) last traded at ${priceText(q, isAr)} on the Iraq Stock ` +
+                `Exchange, per the official ISX bulletin of ${q.date}.`,
+          },
+          // Drop whatever vague price question the profile already had.
+          ...base.faq.filter(qa =>
+            isAr ? !(qa.q.includes('سعر') && qa.q.includes('اليوم'))
+                 : !/share price today/i.test(qa.q)),
+        ],
+      }
+    : base
   const heading = isAr ? `نبذة عن ${name} (${props.sym})` : `About ${name} (${props.sym})`
   const factsHd = isAr ? 'معلومات أساسية' : 'Key facts'
   const faqHd   = isAr ? 'أسئلة شائعة' : 'Frequently asked questions'
