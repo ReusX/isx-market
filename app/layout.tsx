@@ -139,17 +139,16 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                 },
                 image: 'https://iraqsm.com/icon.png',
                 /*
-                 * `sameAs` is for OTHER profiles of this same entity — X,
-                 * LinkedIn, Facebook, Wikidata, Crunchbase. It previously
-                 * listed iraqsm.com itself, which asserts nothing and does
-                 * nothing.
-                 *
-                 * Left empty rather than filled with guesses: claiming a
-                 * profile that is not ours, or does not exist, is worse than
-                 * claiming none. Adding the real accounts here is the single
-                 * biggest thing that helps Google treat IQWealth as a known
-                 * entity, which is what sitelinks are downstream of.
+                 * OTHER profiles of this same entity — never iraqsm.com itself,
+                 * which is what this used to list and which asserts nothing.
+                 * This is the main signal that ties the site to a real, known
+                 * organisation, and brand sitelinks are downstream of that.
+                 * Add new accounts here as they are created.
                  */
+                sameAs: [
+                  'https://www.facebook.com/Iraqstockmarket/',
+                  'https://www.instagram.com/iqwealthh/',
+                ],
               },
               {
                 '@type': 'FinancialService',

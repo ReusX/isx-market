@@ -4,14 +4,22 @@
 
 Iraqsm.com is a free Iraq Stock Exchange (ISX) market tracker. Prices and OHLC data originate from the ISX portal and Rabee Securities (RSISX); long-range historical closes are corporate-action adjusted (dividends, capital increases). Currency is the Iraqi Dinar (IQD). Content is available in Arabic (default) and English.
 
+Prices update once per trading session, from the official ISX daily bulletin — there is no intraday feed. Roughly a fifth of listed companies have not traded in over 60 days; the site marks those as suspended, shows the date of their last actual trade, and does not report a market cap for them, since market cap is last price x shares and that price can be years old.
+
 ## Main pages
 
 - [Home — market overview](https://iraqsm.com): RSISX index, gainers/losers, and the full list of ISX-listed companies with live prices.
-- [Market](https://iraqsm.com/market): Full searchable/sortable table of all ISX stocks by sector, price, change, and volume.
-- [Charts](https://iraqsm.com/charts): Interactive index and stock charts (1D to 5Y and since-2015), with RSI and moving averages.
+- [Market](https://iraqsm.com/market): Full searchable/sortable table of all ISX stocks by sector, price, change, and volume. Accepts a query via `?q=` (e.g. /market?q=TASC). Splits trading companies from suspended ones (no trade in 60+ days).
+- [Screener](https://iraqsm.com/screener): Filter and rank ISX stocks by performance (day/week/month/year), liquidity, P/E, foreign flow, and distance from the 52-week high.
+- [Companies](https://iraqsm.com/companies): Directory of all 104 listed companies grouped by sector, each linking to its price page.
+- [Statistics](https://iraqsm.com/statistics): Foreign investor buy/sell flow by company and sector, ownership split between Iraqi and foreign holders, and major shareholders.
+- [Heatmap](https://iraqsm.com/heatmap): Treemap of the whole market — tile size is market cap, colour is performance, grouped by sector.
+- [Pulse](https://iraqsm.com/pulse): Market breadth — advancers vs decliners, up/down volume, new highs/lows, advance-decline line.
+- [Charts](https://iraqsm.com/charts): Interactive index and stock charts (1W to 5Y and since-2015), with RSI and moving averages. There is no intraday view: ISX publishes one bulletin per trading session.
 - [Banks](https://iraqsm.com/banks): The ISX banking sector — the largest group of listed companies.
 - [Currency (IQD/USD)](https://iraqsm.com/fx): Iraqi Dinar to US Dollar rates and converter.
-- [Gold](https://iraqsm.com/gold): Gold prices in Iraq.
+- [Gold](https://iraqsm.com/gold): Gold prices in Iraq — per gram and mithqal, 24K/21K/18K.
+- [Oil](https://iraqsm.com/oil): Oil prices — Brent, WTI, Basrah Heavy/Medium, OPEC basket — in USD and IQD per barrel.
 - [News](https://iraqsm.com/news): Iraqi economy and market news.
 - [Research](https://iraqsm.com/research): Market research and analysis.
 - [Learn](https://iraqsm.com/learn): Educational guides on investing in the Iraq Stock Exchange.
@@ -22,7 +30,7 @@ Iraqsm.com is a free Iraq Stock Exchange (ISX) market tracker. Prices and OHLC d
 Each listed company has its own page at `https://iraqsm.com/c/{TICKER}` with a live price, OHLC candlestick chart (multiple timeframes), trading volume, market cap, and a bilingual company profile. Examples:
 
 - [TASC — Asiacell Communications (Telecom)](https://iraqsm.com/c/TASC)
-- [TZNI — Al-Khatem Telecommunication / Korek (Telecom)](https://iraqsm.com/c/TZNI)
+- [TZNI — Al-Khatem Telecommunication / Zain Iraq · زين العراق (Telecom)](https://iraqsm.com/c/TZNI)
 - [BBOB — Bank of Baghdad](https://iraqsm.com/c/BBOB)
 - [BMNS — Al-Mansour Bank](https://iraqsm.com/c/BMNS)
 - [IBSD — Baghdad Soft Drinks (Industry)](https://iraqsm.com/c/IBSD)

@@ -1,6 +1,11 @@
 import type { Metadata } from 'next'
 import Breadcrumbs from '@/components/seo/Breadcrumbs'
 export const metadata: Metadata = {
+  // Personal tools · nothing here renders for a signed-out visitor, so the only
+  // thing a crawler can see is "sign in required". Linked from the sidebar on
+  // every page, so without this they get crawled and indexed as thin pages.
+  // `follow` stays on so the links out of them still count.
+  robots: { index: false, follow: true },
   title: { absolute: 'تنبيهات أسعار الأسهم العراقية · اضبط هدفك السعري' },
   description: 'اضبط تنبيهاً على أي سهم في بورصة العراق وتابع لحظة بلوغه السعر الذي تنتظره — صعوداً أو هبوطاً، بدون متابعة يدوية للأسعار.',
   alternates: { canonical: 'https://iraqsm.com/alerts' },

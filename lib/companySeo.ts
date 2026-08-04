@@ -18,9 +18,15 @@ export const COMPANY_SEO: Record<string, CompanySeo> = {
   TASC: { ar: 'اسياسيل', alts: ['اسيا سيل', 'asiacell'] },
   // Baghdad Soft Drinks · searched as the brand "بيبسي بغداد" / "بيبسيكو".
   IBSD: { ar: 'بيبسي بغداد', alts: ['بيبسيكو', 'بيبسي', 'بغداد للمشروبات الغازية', 'baghdad soft drinks'] },
-  // Al-Khatem Telecommunication · the listed entity of Zain Iraq. Nobody
-  // searches "الخاتم" (which is what the shortener would otherwise produce);
-  // they search the brand. The legal name stays in the aliases.
+  /*
+   * Al-Khatem Telecommunication is the listed entity of ZAIN IRAQ · confirmed
+   * by the site owner 2026-08-04. public/llms.txt used to call it Korek, which
+   * is a different operator entirely; that has been corrected and Korek is
+   * deliberately NOT an alias here — it would tie this page to the wrong company.
+   *
+   * Titled by the brand rather than the legal name because that is what people
+   * search; "الخاتم" stays in the aliases.
+   */
   TZNI: { ar: 'زين العراق', alts: ['زين', 'الخاتم للاتصالات', 'الخاتم', 'zain iraq'] },
   // Bank of Baghdad · formal name already matches "مصرف بغداد".
   BBOB: { alts: ['بنك بغداد', 'bank of baghdad'] },
