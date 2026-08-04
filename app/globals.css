@@ -6752,3 +6752,63 @@ button.pulse-tile.is-active .pulse-tile-label svg {
 .rotation-row.is-active {
   background: color-mix(in srgb, var(--ink) 7%, transparent);
 }
+
+/* ── Companies directory · server-rendered sector index ──────────────────── */
+
+.company-index {
+  margin-block-start: 28px;
+  padding-block-start: 18px;
+  border-block-start: 1px solid var(--border);
+}
+
+.company-index > h2 {
+  margin: 0 0 14px;
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.company-index-group {
+  margin-block-end: 18px;
+}
+
+.company-index-group h3 {
+  margin: 0 0 8px;
+  color: var(--text-muted);
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+.company-index-group ul {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.company-index-group a {
+  display: flex;
+  gap: 8px;
+  align-items: baseline;
+  justify-content: space-between;
+  padding: 6px 9px;
+  border-radius: 6px;
+  color: var(--text-secondary);
+  font-size: 0.76rem;
+  text-decoration: none;
+  transition: background 140ms ease, color 140ms ease;
+}
+
+.company-index-group a:hover {
+  background: var(--surface-2);
+  color: var(--nav-active);
+}
+
+.company-index-group a bdi {
+  flex-shrink: 0;
+  color: var(--text-muted);
+  font-family: var(--font-numeric), ui-monospace, monospace;
+  font-size: 0.68rem;
+}
