@@ -13,6 +13,7 @@ import { CompanyLogo } from '@/components/CompanyLogo'
 import { Sparkline } from '@/components/design/Sparkline'
 import { SectorChip } from '@/components/design/SectorChip'
 import { Card } from '@/components/design/ui'
+import { SkeletonTableRows } from '@/components/design/Placeholders'
 import { ListingStatusTabs, type ListingStatus } from '@/components/design/ListingStatusTabs'
 import type { Company } from '@/types'
 
@@ -219,8 +220,6 @@ export default function MarketPage() {
           <strong>{ar ? 'تعذّر تحميل بيانات السوق' : 'Could not load market data'}</strong>
           <span>{ar ? 'يرجى تحديث الصفحة.' : 'Please refresh the page.'}</span>
         </div>
-      ) : loading ? (
-        <div className="skeleton" style={{ height: 420, borderRadius: 7 }} />
       ) : (
         <div className="table-wrap">
           <table>
@@ -240,6 +239,17 @@ export default function MarketPage() {
               </tr>
             </thead>
             <tbody>
+              {/* Placeholder rows rather than a fixed-height grey box: the box
+                  was 420px and the table that replaced it is several times
+                  that, so everything below it still jumped. */}
+              {loading && !rows.length ? (
+                <SkeletonTableRows
+                  rows={20}
+                  columns={8}
+                  withLogo={false}
+                  labels={['#', ar ? 'متابعة' : 'Watch', ar ? 'الشركة' : 'Company', ar ? 'آخر سعر' : 'Last', ar ? 'التغير' : 'Change', ar ? 'الحجم' : 'Volume', ar ? 'القيمة السوقية' : 'Mkt cap', '7D']}
+                />
+              ) : null}
               {rows.map((company, i) => (
                 <tr key={company.sym} className="row-link">
                   <td data-label="#"><bdi className="num-roll">{i + 1}</bdi></td>

@@ -6872,3 +6872,69 @@ button.pulse-tile.is-active .pulse-tile-label svg {
 }
 
 .page-freshness time { font-family: var(--font-numeric), monospace; }
+
+/* ── Loading placeholders ────────────────────────────────────────────────────
+   These exist to hold the exact space the real content will take. The origin
+   was at CLS 0.59 because client-fetched lists rendered SHORTER while loading
+   than after: an empty <tbody> becoming 25 rows, and three one-line "no
+   movement" notes becoming three rows each. Structure mirrors the real markup
+   so the reserved height follows it, including where mobile restacks. */
+.skeleton-fill,
+.skeleton-line {
+  display: block;
+  border-radius: 5px;
+  background: linear-gradient(90deg, var(--border), var(--surface), var(--border));
+  background-size: 220% 100%;
+  animation: skeleton-sheen 1.2s ease-in-out infinite;
+}
+
+/* Fills whatever box it is given — used for the logo chip. */
+.skeleton-fill {
+  inline-size: 100%;
+  block-size: 100%;
+  border: 0;
+}
+
+/* Matches a line of body text, so a two-line stack is as tall as a real one. */
+.skeleton-line {
+  block-size: 0.72em;
+  margin-block: 0.18em;
+  max-inline-size: 100%;
+}
+
+.skeleton-line.short { block-size: 0.6em; opacity: 0.7; }
+
+.skeleton-stack {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-inline-size: 0;
+}
+
+/* Non-interactive: it must not look clickable or take focus. */
+.skeleton-row { pointer-events: none; }
+
+/* The reserve is pinned to the real row height rather than left to whatever
+   the placeholder content happens to measure — a bar of shimmer is not the
+   same height as a line of Arabic text, and being 15% short still shifts.
+   Measured on the live table: 53px here, 295px once mobile restacks each row
+   into a card. Re-measure if the row's contents change. */
+.skeleton-row { block-size: 53px; }
+.skeleton-row .company-cell { display: flex; align-items: center; gap: 9px; }
+
+@media (prefers-reduced-motion: reduce) {
+  .skeleton-fill,
+  .skeleton-line { animation: none; }
+}
+
+@media (max-width: 720px) {
+  /* Restacked rows are cards, not lines · see the table rules above. */
+  .skeleton-row { block-size: 295px; }
+
+  /* Reserving all 25 at card height would be ~7,000px of shimmer — the whole
+     phone screen as grey blocks for the length of the fetch. Only the rows
+     that can appear IN the viewport need reserving: CLS scores shifts of
+     what is on screen, and content appended below the fold moves nothing the
+     reader can see. Five cards clear an 812px viewport with room over. */
+  .skeleton-row:nth-of-type(n + 6) { display: none; }
+}

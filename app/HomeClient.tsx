@@ -6,6 +6,7 @@ import { fetchLive, fetchCompanyMeta, mergeCompanies, liveMcap, lastTradeNote, i
 import IndexChart from '@/components/design/IndexChart'
 import { ForeignFlowGauge } from '@/components/design/ForeignFlowGauge'
 import { Sparkline } from '@/components/design/Sparkline'
+import { SkeletonTableRows, SkeletonMoverRows } from '@/components/design/Placeholders'
 import { CompanyLogo } from '@/components/CompanyLogo'
 import { fetchSparklines } from '@/lib/sparks'
 import { SectorPerformanceChipRow } from '@/components/design/SectorPerformanceChipRow'
@@ -275,7 +276,9 @@ export default function HomeClient() {
                         : `${company.pct > 0 ? '+' : ''}${company.pct.toFixed(2)}%`}
                     </bdi>
                   </Link>
-                )) : <p className="mover-empty">لا توجد حركة في الجلسة.</p>}
+                )) : loading
+                  ? <SkeletonMoverRows rows={3} />
+                  : <p className="mover-empty">لا توجد حركة في الجلسة.</p>}
               </article>
             ))}
           </div>
@@ -332,6 +335,13 @@ export default function HomeClient() {
                   </td>
                 </tr>
               ))}
+              {loading && !sortedCompanies.length ? (
+                <SkeletonTableRows
+                  rows={25}
+                  columns={7}
+                  labels={['#', 'الشركة', 'آخر سعر', 'التغير', 'الحجم', 'القيمة السوقية', '7D']}
+                />
+              ) : null}
               {!sortedCompanies.length && !loading ? (
                 <tr><td colSpan={7}>
                   <div className="empty-state">
