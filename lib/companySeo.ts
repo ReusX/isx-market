@@ -32,6 +32,24 @@ export const COMPANY_SEO: Record<string, CompanySeo> = {
   BBOB: { alts: ['بنك بغداد', 'bank of baghdad'] },
   // Dar Es Salaam Investment Bank.
   BDSI: { alts: ['مصرف دار السلام', 'بنك دار السلام', 'dar es salaam bank'] },
+
+  /*
+   * The seven names `shortenArabicName` deliberately refuses to cut, because
+   * the automatic core would be a generic descriptor ("الشركة العراقية") or one
+   * that several listed companies share ("الوطنية"). Left alone they produce
+   * titles of 71-104 characters, which Google truncates.
+   *
+   * Each of these keeps the distinguishing part of the company's own legal
+   * name and drops trailing activity clauses — an abbreviation, not a
+   * different company. The full legal name stays in `keywords`/`altNames`.
+   */
+  HNTI: { ar: 'الوطنية للأستثمارات السياحية' },
+  AIPM: { ar: 'العراقية لانتاج وتسويق اللحوم' },
+  IICM: { ar: 'العراقية لصناعة الكارتون' },
+  IMIB: { ar: 'الوطنية للصناعات المعدنية' },
+  IRMC: { ar: 'الالبسة الجاهزة' },
+  AIRP: { ar: 'العراقية للمنتجات الزراعية' },
+  AMEF: { ar: 'الشرق الاوسط للأسماك' },
 }
 
 /*

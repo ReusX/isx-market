@@ -7,6 +7,7 @@ import Link from 'next/link'
 import { useApp } from '@/context/AppContext'
 import { fetchLive, fetchCompanyMeta, mergeCompanies, fmtVol, fmtMcap } from '@/lib/market'
 import type { Company } from '@/types'
+import companiesData from '@/public/data/companies.json'
 import { CompanyLogo } from '@/components/CompanyLogo'
 import { DirectionalChange } from '@/components/design/ui'
 import { Range52Indicator } from '@/components/design/Range52Indicator'
@@ -83,13 +84,37 @@ export default function CompanyPage() {
       .finally(() => setLoading(false))
   }, [sym])
 
+  /*
+   * Name and sector come from the static company file, so the heading renders
+   * immediately — on the server, before the price fetch resolves and regardless
+   * of whether it does.
+   *
+   * This is the page's only <h1>. It used to sit below the loading guard, which
+   * meant the server-rendered HTML for all 104 company pages carried no heading
+   * at all; a visually-hidden duplicate in the layout was covering for that
+   * until it was removed as part of the multiple-h1 fix.
+   */
+  const meta = (companiesData as { sym: string; ar: string; en: string; sec?: string; logo?: string; color?: string }[])
+    .find(c => c.sym === sym)
+  const staticName = (ar ? meta?.ar?.trim() || meta?.en : meta?.en?.trim() || meta?.ar) || sym
+
   if (loading) return (
     <main className="terminal-shell app-page company-page">
+      <section className="app-card company-card company-header">
+        <div className="company-heading-identity">
+          <CoLogo sym={sym} logo={meta?.logo} color={meta?.color} />
+          <div>
+            <span><bdi>{sym}</bdi>{meta?.sec ? ` · ${meta.sec}` : ''}</span>
+            <h1>{staticName}</h1>
+          </div>
+        </div>
+      </section>
       <div className="skeleton" style={{ height: 220, borderRadius: 16 }} />
     </main>
   )
   if (!co) return (
     <main className="terminal-shell app-page company-page">
+      <h1 className="sr-only">{staticName}</h1>
       <div className="empty-state">
         <strong>{ar ? 'الشركة غير موجودة' : 'Company not found'}</strong>
         <span><Link href="/market">{ar ? 'العودة إلى السوق ←' : 'Back to the market →'}</Link></span>
