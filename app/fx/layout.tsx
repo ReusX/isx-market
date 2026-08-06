@@ -1,88 +1,60 @@
-import type { Metadata } from 'next'
+import { buildFxFaq, CBI_OFFICIAL_RATE, marketRate, getFx } from '@/lib/fxCopy'
 
-export const metadata: Metadata = {
-  title: { absolute: 'سعر الدولار اليوم في العراق · الدولار مقابل الدينار' },
-  description: 'كم سعر الدولار اليوم في العراق؟ سعر صرف الدولار مقابل الدينار العراقي بسعر البنك المركزي وسعر السوق الموازية، مع محوّل فوري لأي مبلغ.',
-  alternates: { canonical: 'https://iraqsm.com/fx' },
-  keywords: [
-    'سعر الدولار اليوم في العراق', 'سعر الدولار مقابل الدينار العراقي',
-    'الدولار مقابل الدينار العراقي', 'دولار مقابل دينار عراقي',
-    'سعر صرف الدولار في العراق اليوم', 'العملة العراقية مقابل الدولار',
-    'سعر 100 دولار بالدينار العراقي', 'سعر صرف الدينار العراقي',
-    'الدينار العراقي مقابل الدولار', 'سعر الدولار في بغداد اليوم',
-    'usd to iqd', 'iqd to usd', 'iraqi dinar to dollar', 'dollar to iraqi dinar rate',
-  ],
-  openGraph: {
-    url: 'https://iraqsm.com/fx',
-    title: 'سعر الدولار اليوم في العراق | سعر صرف الدينار العراقي مقابل الدولار',
-    description: 'سعر صرف الدولار مقابل الدينار العراقي اليوم · السعر الرسمي والسوق الموازية ومحول فوري IQD/USD.',
-    images: [{ url: '/opengraph-image', width: 1200, height: 630 }],
-  },
-}
+/*
+ * Title and description live in ./page.tsx, not here, because they carry the
+ * live rate and so have to be built from the fetch. A page-level `metadata`
+ * export overrides the layout's entirely, so keeping a second copy here would
+ * silently win nothing and lose the canonical.
+ *
+ * `getFx` below is the memoized accessor, not `fetchFx` — see lib/fxCopy.ts.
+ * Calling the raw scrape here as well as in the page and its metadata is what
+ * made a 90-second build run past ten minutes.
+ */
 
-const fxSchema = {
-  '@context': 'https://schema.org',
-  '@graph': [
-    {
-      '@type': 'WebPage',
-      '@id': 'https://iraqsm.com/fx',
-      url: 'https://iraqsm.com/fx',
-      name: 'سعر الدولار اليوم في العراق · الدولار مقابل الدينار العراقي',
-      description: 'سعر صرف الدولار الأمريكي مقابل الدينار العراقي اليوم، السعر الرسمي والسوق الموازية، ومحول العملات IQD/USD.',
-      inLanguage: ['ar-IQ', 'en'],
-      breadcrumb: {
-        '@type': 'BreadcrumbList',
-        itemListElement: [
-          { '@type': 'ListItem', position: 1, name: 'IQWealth', item: 'https://iraqsm.com' },
-          { '@type': 'ListItem', position: 2, name: 'سعر الدولار في العراق', item: 'https://iraqsm.com/fx' },
-        ],
+const ar = (n: number) => n.toLocaleString('en-US', { maximumFractionDigits: 0 })
+
+export default async function FxLayout({ children }: { children: React.ReactNode }) {
+  const fx = await getFx()
+  const faq = buildFxFaq(fx)
+  const market = marketRate(fx)
+
+  const fxSchema = {
+    '@context': 'https://schema.org',
+    '@graph': [
+      {
+        '@type': 'WebPage',
+        '@id': 'https://iraqsm.com/fx',
+        url: 'https://iraqsm.com/fx',
+        name: 'سعر الدولار اليوم في العراق · الدولار مقابل الدينار العراقي',
+        description: 'سعر صرف الدولار الأمريكي مقابل الدينار العراقي اليوم، السعر الرسمي وسعر السوق الموازية، ومحول العملات IQD/USD.',
+        inLanguage: ['ar-IQ', 'en'],
+        // The rate's own date, so the SERP can show when this was last true.
+        ...(fx?.date ? { dateModified: fx.date } : {}),
+        breadcrumb: {
+          '@type': 'BreadcrumbList',
+          itemListElement: [
+            { '@type': 'ListItem', position: 1, name: 'IQWealth', item: 'https://iraqsm.com' },
+            { '@type': 'ListItem', position: 2, name: 'سعر الدولار في العراق', item: 'https://iraqsm.com/fx' },
+          ],
+        },
       },
-    },
-    {
-      '@type': 'FAQPage',
-      mainEntity: [
-        {
+      {
+        // Same `faq` array the page renders below · structured data that
+        // disagrees with the visible copy is worse than none, and these two
+        // had already drifted apart when they were maintained separately.
+        '@type': 'FAQPage',
+        mainEntity: faq.map(item => ({
           '@type': 'Question',
-          name: 'كم سعر الدولار اليوم في العراق؟',
-          acceptedAnswer: {
-            '@type': 'Answer',
-            text: 'سعر صرف الدولار الأمريكي مقابل الدينار العراقي يُحدّد بسعرين: السعر الرسمي للبنك المركزي العراقي (نحو 1320 ديناراً لكل دولار)، وسعر السوق الموازية (الحرة) الذي يتداول عادة أعلى قليلاً. تابع السعر المحدّث ومحول العملات على iraqsm.com/fx.',
-          },
-        },
-        {
-          '@type': 'Question',
-          name: 'ما الفرق بين سعر الدولار الرسمي والموازي في العراق؟',
-          acceptedAnswer: {
-            '@type': 'Answer',
-            text: 'السعر الرسمي هو السعر الذي يحدده البنك المركزي العراقي ويُستخدم في المعاملات الحكومية والمصرفية الرسمية ومزاد العملة. أما سعر السوق الموازية (الحرة) فهو سعر التداول الفعلي في محال الصرافة والأسواق، وغالباً ما يكون أعلى من السعر الرسمي.',
-          },
-        },
-        {
-          '@type': 'Question',
-          name: 'كم سعر 100 دولار بالدينار العراقي اليوم؟',
-          acceptedAnswer: {
-            '@type': 'Answer',
-            text: '100 دولار أمريكي تساوي نحو 132,000 دينار عراقي بالسعر الرسمي الحالي. استخدم محول العملات في iraqsm.com/fx لحساب أي مبلغ بدقة على السعر الرسمي أو سعر السوق.',
-          },
-        },
-        {
-          '@type': 'Question',
-          name: 'How much is the US Dollar to Iraqi Dinar today?',
-          acceptedAnswer: {
-            '@type': 'Answer',
-            text: 'The US Dollar trades against the Iraqi Dinar at two rates: the official Central Bank of Iraq rate (around 1,320 IQD per USD) and the parallel (market) rate, which is usually slightly higher. Use the live converter at iraqsm.com/fx.',
-          },
-        },
-      ],
-    },
-  ],
-}
+          name: item.q,
+          acceptedAnswer: { '@type': 'Answer', text: item.a },
+        })),
+      },
+    ],
+  }
 
-export default function FxLayout({ children }: { children: React.ReactNode }) {
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(fxSchema) }} />
-
 
       {children}
 
@@ -103,33 +75,21 @@ export default function FxLayout({ children }: { children: React.ReactNode }) {
         </h2>
         <p style={{ marginBottom: 16 }}>
           يتابع العراقيون يومياً سعر صرف الدولار الأمريكي مقابل الدينار العراقي (USD/IQD)، إذ يؤثر هذا السعر مباشرة على
-          الأسعار والتجارة والاستيراد. يوجد سعران رئيسيان: السعر الرسمي الذي يحدده البنك المركزي العراقي ويُعتمد في مزاد
-          العملة والمعاملات الحكومية والمصرفية، وسعر السوق الموازية (الحرة) المتداوَل فعلياً في محال الصرافة والأسواق
-          المحلية في بغداد وبقية المحافظات، والذي يكون عادة أعلى قليلاً من السعر الرسمي.
+          الأسعار والتجارة والاستيراد. يوجد سعران رئيسيان: السعر الرسمي الذي يحدده البنك المركزي العراقي
+          {' '}(<bdi>{ar(CBI_OFFICIAL_RATE)}</bdi> ديناراً لكل دولار) ويُعتمد في مزاد العملة والمعاملات الحكومية
+          والمصرفية، وسعر السوق الموازية (الحرة)
+          {market ? <> البالغ اليوم نحو <bdi>{ar(market)}</bdi> ديناراً</> : null} المتداوَل فعلياً في محال الصرافة
+          والأسواق المحلية في بغداد وبقية المحافظات، والذي يكون عادة أعلى من السعر الرسمي.
         </p>
         <p style={{ marginBottom: 24 }}>
-          توفّر هذه الصفحة محوّل عملات فوري بين الدينار العراقي والدولار الأمريكي، إضافة إلى مقارنة بين السعر الرسمي،
-          ومزاد العملة، وسعر السوق، وأسعار الحوالات. لحساب سعر أي مبلغ · مثل سعر 100 دولار بالدينار العراقي · أدخل القيمة
-          في الحاسبة أعلاه واختر السعر المطلوب.
+          توفّر هذه الصفحة محوّل عملات فوري بين الدينار العراقي والدولار الأمريكي، إضافة إلى مقارنة بين السعر الرسمي
+          وسعر السوق. لحساب سعر أي مبلغ · مثل سعر 100 دولار بالدينار العراقي · أدخل القيمة في الحاسبة أعلاه.
         </p>
 
         <h2 style={{ fontSize: 17, fontWeight: 800, color: 'var(--ink, #e5e7eb)', marginBottom: 12 }}>
           أسئلة شائعة عن سعر الدولار في العراق
         </h2>
-        {[
-          {
-            q: 'كم سعر الدولار اليوم في العراق؟',
-            a: 'يُحدّد سعر الدولار بسعرين: السعر الرسمي للبنك المركزي العراقي (نحو 1320 ديناراً لكل دولار)، وسعر السوق الموازية الذي يكون عادة أعلى قليلاً. تابع السعر المحدّث في الحاسبة وجدول المقارنة أعلى الصفحة.',
-          },
-          {
-            q: 'ما الفرق بين سعر الدولار الرسمي والموازي؟',
-            a: 'السعر الرسمي يحدده البنك المركزي ويُستخدم في المعاملات الرسمية ومزاد العملة، بينما سعر السوق الموازية (الحرة) هو سعر التداول الفعلي في محال الصرافة وغالباً ما يكون أعلى.',
-          },
-          {
-            q: 'كم سعر 100 دولار بالدينار العراقي اليوم؟',
-            a: '100 دولار تساوي نحو 132,000 دينار عراقي بالسعر الرسمي الحالي. استخدم المحوّل أعلاه لحساب أي مبلغ على السعر الرسمي أو سعر السوق.',
-          },
-        ].map(item => (
+        {faq.map(item => (
           <div key={item.q} style={{ marginBottom: 14 }}>
             <h3 style={{ fontSize: 15, fontWeight: 700, color: 'var(--ink, #e5e7eb)', margin: '0 0 4px' }}>{item.q}</h3>
             <p style={{ margin: 0 }}>{item.a}</p>
