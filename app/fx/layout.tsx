@@ -81,10 +81,46 @@ export default async function FxLayout({ children }: { children: React.ReactNode
           {market ? <> البالغ اليوم نحو <bdi>{ar(market)}</bdi> ديناراً</> : null} المتداوَل فعلياً في محال الصرافة
           والأسواق المحلية في بغداد وبقية المحافظات، والذي يكون عادة أعلى من السعر الرسمي.
         </p>
-        <p style={{ marginBottom: 24 }}>
+        <p style={{ marginBottom: 16 }}>
           توفّر هذه الصفحة محوّل عملات فوري بين الدينار العراقي والدولار الأمريكي، إضافة إلى مقارنة بين السعر الرسمي
-          وسعر السوق. لحساب سعر أي مبلغ · مثل سعر 100 دولار بالدينار العراقي · أدخل القيمة في الحاسبة أعلاه.
+          وسعر السوق وأسعار الحوالات. لحساب سعر أي مبلغ · مثل سعر 100 دولار بالدينار العراقي · أدخل القيمة في الحاسبة
+          أعلاه.
         </p>
+        {/*
+          The reverse-direction phrasing (dinar → dollar) used to live in a
+          hidden second <h1> here. That h1 was removed because two h1s on one
+          page is a real defect, but its phrases were not relocated, so
+          "سعر صرف الدينار العراقي" and "الدينار العراقي مقابل الدولار" fell off
+          the page entirely. They belong in prose, not in a hidden heading.
+        */}
+        <p style={{ marginBottom: 24 }}>
+          يُعرض سعر صرف الدينار العراقي مقابل الدولار الأمريكي بالاتجاهين: كم ديناراً يساوي الدولار الواحد، وكم دولاراً
+          يساوي مبلغ معيّن بالدينار. الدينار العراقي مقابل الدولار{market ? <> عند نحو <bdi>{ar(market)}</bdi> ديناراً
+          للدولار في السوق الموازية</> : null}، ويمكن عكس الاتجاه في المحوّل أعلاه لحساب قيمة أي مبلغ بالدينار
+          بالدولار الأمريكي.
+        </p>
+
+        {/*
+          One English paragraph, LTR. The old description carried a sentence of
+          English ("Live USD to Iraqi Dinar exchange rate and currency
+          converter") and the rewrite dropped it to stay inside the ~160
+          characters a snippet gets. English queries — usd to iqd, iraqi dinar
+          to dollar — then had almost nothing on the page to match. A snippet is
+          the wrong place to buy that coverage; body copy is the right one.
+        */}
+        <div dir="ltr" style={{ textAlign: 'left', marginBottom: 24 }}>
+          <h2 style={{ fontSize: 17, fontWeight: 800, color: 'var(--ink, #e5e7eb)', marginBottom: 10 }}>
+            USD to IQD · Iraqi Dinar exchange rate today
+          </h2>
+          <p style={{ margin: 0 }}>
+            The Iraqi dinar to dollar exchange rate is quoted two ways. The official Central Bank of Iraq rate is
+            fixed at <bdi>{ar(CBI_OFFICIAL_RATE)}</bdi> IQD per US dollar and applies to the currency auction and
+            official banking and import transactions. The parallel (market) rate
+            {market ? <> — currently around <bdi>{ar(market)}</bdi> IQD per dollar</> : null} is the rate actually
+            dealt at exchange shops in Baghdad and the provinces, and it normally trades above the official one.
+            Use the live USD/IQD currency converter above to price any amount in either direction.
+          </p>
+        </div>
 
         <h2 style={{ fontSize: 17, fontWeight: 800, color: 'var(--ink, #e5e7eb)', marginBottom: 12 }}>
           أسئلة شائعة عن سعر الدولار في العراق
