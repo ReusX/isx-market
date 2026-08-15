@@ -40,3 +40,6 @@ scripts/.env
 
 # route-marker gate build capture (scripts/route-markers.mjs)
 .next-build.log
+
+# isolated build dir for the verification loop (see next.config.mjs distDir)
+.next-check

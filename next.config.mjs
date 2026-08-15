@@ -1,5 +1,19 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  /*
+   * `next dev` and `next build` both write to .next by default, so running a
+   * build while the dev server is up wipes the chunks that server is still
+   * handing out — the page keeps returning 200 but every stylesheet 404s, and
+   * you get a completely unstyled site with no error to explain it.
+   *
+   * The verification loop for this project runs a production build constantly
+   * (npm run check:routes), so that collision is guaranteed rather than
+   * unlucky. Those builds set NEXT_DIST_DIR and stay out of the dev server's
+   * way. Unset — on Vercel, and for a plain `npm run build` — it is .next as
+   * usual.
+   */
+  distDir: process.env.NEXT_DIST_DIR || '.next',
+
   // Canonical URLs never have a trailing slash.
   // Next.js will 308-redirect /foo/ → /foo automatically.
   trailingSlash: false,
