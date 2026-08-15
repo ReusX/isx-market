@@ -53,7 +53,7 @@ export default function ProfilePage() {
       <h1 className="sr-only">حسابي</h1>
       <div className="empty-state">
         <strong>{ar ? 'يجب تسجيل الدخول' : 'Sign in required'}</strong>
-        <span>{ar ? 'سجّل الدخول لحفظ قوائمك ومحفظتك وتنبيهاتك.' : 'Sign in to keep your lists, portfolio and alerts.'}</span>
+        <span>{ar ? 'سجّل الدخول لحفظ قوائمك ومحفظتك.' : 'Sign in to keep your lists and portfolio.'}</span>
         <button type="button" className="auth-submit" onClick={() => openAuth('signin')}>
           {ar ? 'تسجيل الدخول' : 'Sign in'}
         </button>
@@ -84,7 +84,11 @@ export default function ProfilePage() {
   const SHORTCUTS = [
     { href: '/watchlist', ar: 'قوائم المتابعة', en: 'Watchlists' },
     { href: '/portfolio', ar: 'محفظتي', en: 'Portfolio' },
-    { href: '/alerts',    ar: 'تنبيهات الأسعار', en: 'Price alerts' },
+    /* تنبيهات الأسعار removed from the redesigned product (Phase 0.9). The
+       production /alerts route is deliberately NOT deleted — it stays live as
+       an unlinked compatibility surface pending a usage and internal-link
+       review, and its stored data is untouched. Nothing in the redesigned UI
+       may link to it. */
   ]
 
   return (
