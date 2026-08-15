@@ -7,6 +7,9 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
+    "build:log": "next build > .next-build.log 2>&1 || (cat .next-build.log; exit 1)",
+    "check:routes": "npm run build:log && node scripts/route-markers.mjs .next-build.log",
+    "check:routes:update": "npm run build:log && node scripts/route-markers.mjs .next-build.log --update",
     "cap:sync": "npx cap sync",
     "cap:android": "npx cap open android",
     "cap:ios": "npx cap open ios"
