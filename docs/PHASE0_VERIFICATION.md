@@ -218,3 +218,207 @@ next to the routing that makes those URLs real.
 
 `/profile` and `/auth/reset` still inherit the root canonical. Both are
 `noindex, nofollow` and neither is in the sitemap, so nothing acts on it.
+
+---
+
+## 6 · Phase 0.8 — tokens, fonts and design-system gates
+
+### 6a · Font approach — `next/font/google` KEPT, conversion tested and rejected
+
+Phase 0.7 flagged the archive's `@fontsource` + `next/font/local` technique as
+worth recovering. It was built, wired, measured, and reverted.
+
+**What is already true.** `next/font/google` self-hosts. The build emits 27
+`.woff2` files into its own `static/media`; there is no runtime request to
+Google from a visitor's browser. The only cost the archive technique removes is
+a *build-time* download.
+
+**What it costs.** `@fontsource` ships each family split by subset —
+`…-arabic-700-normal.woff2` and `…-latin-700-normal.woff2` as separate files
+with separate `unicode-range`s. `next/font/local` accepts multiple `src`
+entries but cannot express a per-entry `unicode-range`, and two entries cannot
+share a weight. So a faithful conversion of a font used for BOTH Arabic and
+Latin is not expressible with this technique at all.
+
+Measured on the same string (`أسعار الأسهم العراقية اليوم 1,234.56`), after
+`document.fonts.ready`:
+
+| probe | `next/font/google` | `@fontsource` local | drift |
+|---|---|---|---|
+| body, 16px / 500 | 232.789 px | 228.188 px | **−4.60 px (−2.0%)** |
+| display, 24px / 700 | 439.211 px | 436.578 px | −2.63 px (−0.6%) |
+| numeric, 14px / 600 | 245.602 px | 242.258 px | −3.34 px (−1.4%) |
+
+The Latin run falls to the fallback face because the Arabic-subset file has no
+Latin glyphs. On a site where nearly every line mixes Arabic with a ticker or a
+price, −2% on body text is material.
+
+`next/font/google` also generates metric-matched `_Fallback_` faces
+automatically, which is what prevents layout shift during load. The local path
+keeps them only incidentally.
+
+**Verdict: keep `next/font/google`.** Per §3 of the brief — visual fidelity
+beats technical cleverness. `lib/fonts.ts` was deleted and the three
+`@fontsource` packages uninstalled; the working tree is identical to before the
+experiment.
+
+Typography is otherwise unchanged and needed no work: the reference app and
+this repo already load the **same three families, same weights, same subsets,
+same CSS variables**. Noto Kufi Arabic is intact at `app/layout.tsx:23`. No IBM
+Plex display dependency was introduced — Plex remains body copy only, as it is
+in the approved reference app.
+
+### 6b · Token files
+
+| file | what |
+|---|---|
+| `styles/design-tokens.css` | the whole layer — colour (both themes), scale, focus, motion, Arabic tracking guard, legacy containment |
+| `app/globals.css` | one line: `@import '../styles/design-tokens.css'` |
+| `scripts/token-parity.mjs` | theme parity · base-layer collisions · dangling refs · pinned brand constants |
+| `scripts/contrast.mjs` | WCAG pairs, both themes, alpha composited |
+| `scripts/arabic-tracking.mjs` | repo-wide positive-tracking guard |
+| `app/dev/foundation/*` | the proof sheet — **delete at end of migration** |
+
+**The base layer was not touched.** `--page`, `--surface`, `--ink`, `--border`,
+`--up`, `--down` and 16 more were diffed against the reference app and are
+**byte-identical on all 22 tokens in both themes**. The reference app inherited
+them from this repo unchanged. The new work is the `--mv-*` layer only.
+
+Approved colour values, copied literally:
+
+| token | light | dark |
+|---|---|---|
+| `--mv-hero` | `#3171c6` | `#3171c6` |
+| `--mv-hero-bright` | `#4a8ae0` | `#74a9ef` |
+| `--mv-ink` | `#1e2220` | `#f0efec` |
+| `--mv-ink-2` | `#565c58` | `#b4b6b2` |
+| `--mv-ink-3` | `#868c88` | `#8b8e8a` |
+| `--mv-line` | `rgba(30,34,32,.09)` | `rgba(240,239,236,.085)` |
+| `--mv-line-strong` | `rgba(30,34,32,.16)` | `rgba(240,239,236,.16)` |
+| `--mv-panel` | `rgba(255,255,255,.72)` | `rgba(35,35,35,.82)` |
+| `--mv-panel-solid` | `#fbfbfa` | `#1f1f1f` |
+| `--mv-well` | `rgba(255,255,255,.5)` | `rgba(255,255,255,.04)` |
+| `--mv-up` | **`#117f59`** ⚠ corrected | `#35c98a` |
+| `--mv-down` | `#b5432f` | `#ee6a6f` |
+| `--mv-env` | Cotton gradient | Moonless Night `#161616` |
+
+### 6c · The one corrected reference value
+
+| | |
+|---|---|
+| token | `--mv-up`, light theme only |
+| old | `#12805a` |
+| new | `#117f59` |
+| reason | measured **4.444:1** on Cotton — six thousandths under AA for body text |
+
+The reference app's own comment beside this colour states it was darkened "to
+carry 4.5:1 as body text". It reaches 4.76:1 on a panel and fails only against
+the page environment, which is why it was never caught by eye — and that
+asymmetry is also the evidence that it is an accident rather than a decision.
+One step down per channel clears it at **4.505:1**; the shift is far below the
+threshold of perception. Nothing else was altered.
+
+### 6d · CSS quarantine — decided, and larger than expected
+
+**What is legacy:** all 6,940 lines of `app/globals.css`.
+**What is new:** `styles/design-tokens.css` plus each migrated route's own CSS.
+**How precedence is controlled:** by scope, in both directions.
+
+The archive's `styles/legacy/` split is **not adopted**. It is a 15-file
+byte-identical move that makes the old sheet easier to read but does nothing
+about precedence, which is the actual problem. Closed rather than deferred.
+
+Scoping to `.iq-page` handles one direction: no declaration in the new layer
+can reach an un-migrated route. The proof sheet showed that is only half the
+job — **26 legacy rules are bare element selectors** (`table`, `th`, `td`,
+`tbody tr`, `td::before`, `h1..h3`, `a:focus-visible`, `bdi`, `p`) and those
+match inside `.iq-page` as happily as outside. `table { min-inline-size: 900px }`
+put a 900px table inside a 498px panel, silently, because the component set a
+different property.
+
+The containment block neutralises exactly those rules inside the new layer,
+using `.iq-page :where(…)` at specificity (0,1,0): enough to beat a bare
+element selector (0,0,1), deliberately **not** enough to beat a component's own
+`.fd-table td` (0,1,1). Two earlier drafts got this wrong in the other
+direction and repainted the components they were meant to protect.
+
+**How legacy removal will work.** Each migrated route deletes its own section
+of `globals.css` in the same commit that migrates it. The containment block is
+the ledger of what is still owed: when the last bare element rule is gone from
+`globals.css`, the containment block is deleted too. They are the same debt
+seen from two sides.
+
+### 6e · Hard-coded style audit — classified, not rewritten
+
+895 inline `style={{}}` blocks across 47 files and 165 hard-coded hex colours
+across 35 files. **Nothing was rewritten** — a search-and-replace here would be
+page redesign by stealth.
+
+| class | count | disposition |
+|---|---|---|
+| **dangerous global** | 2 files | `components/KChart.tsx` (24 hexes) and `app/charts/page.tsx` (5) hard-code chart palettes with **no theme awareness at all** — no `data-theme` read, no observer. Both are already broken in light theme today, before any redesign. They need a `lib/chartTheme.ts` reading computed custom properties. **Gates the charts work; not a Phase 0.8 task.** |
+| **route-local legacy** | 45 files | inline styles inside a single un-migrated route. Each dies with its own route's migration. |
+| **shared, migrate now** | 0 | none found — no shared component hard-codes a value the new layer needs to own. |
+| **dead** | — | deferred to the per-route passes, where "dead" can actually be proven. |
+
+The one genuinely theme-aware chart component today is
+`components/design/IndexChart.tsx`, which is the model the other two should
+follow.
+
+### 6f · Theme mechanism — verified, unchanged, not duplicated
+
+`data-theme` on `<html>`, set pre-paint by the inline script at
+`app/layout.tsx:102` from `localStorage`, toggled through `AppContext`. Light,
+dark, persistence, and no flash.
+
+The reference app carries theme **per page** as `.iq-dark` / `.iq-light`
+classes, because every page there has its own toggle. That is a design-app
+convenience, not a product mechanism. The token layer therefore takes the
+reference app's **values** and this app's **selector** — a second theme system
+would be two sources of truth for one fact.
+
+### 6g · Verification
+
+**Build**
+
+| check | result |
+|---|---|
+| `npx tsc --noEmit` | ✅ 0 errors |
+| `npx eslint app lib components scripts` | ✅ 0 errors, 3 pre-existing warnings |
+| `npm run check:routes` | ✅ no rendering-mode regressions |
+| build directory | ✅ isolated `.next-check` |
+| external font dependency | unchanged — build-time only, self-hosted at runtime |
+
+**Gates**
+
+| gate | result |
+|---|---|
+| `token-parity.mjs` | ✅ 16 tokens per theme in parity, 61 total, no base-layer collisions, no dangling refs |
+| `contrast.mjs` | ✅ 22 pairs pass in both themes (after the 6c correction) |
+| `arabic-tracking.mjs` | ✅ 2 positive-tracking rules found, both exempt with reasons, 0 reaching Arabic |
+
+Each gate was proven to **fail** as well as pass: `contrast.mjs` caught the real
+`--mv-up` shortfall on first run, and an injected
+`.mv-eyebrow { letter-spacing: .08em }` makes `arabic-tracking.mjs` exit 1 and
+name the file, line and selector.
+
+**Rendered — `/dev/foundation`, both themes, desktop and 375px**
+
+| check | result |
+|---|---|
+| Noto Kufi rendered on the Arabic heading | ✅ |
+| IBM Plex body, Roboto Mono numerals, tabular figures aligned | ✅ |
+| `--mv-up` computes to the corrected `#117f59` | ✅ |
+| semantic down / muted / header colours resolve to their tokens | ✅ |
+| table fits its panel; component padding survives containment | ✅ |
+| focus ring `2px solid rgb(74,138,224)` at 3px offset | ✅ `--mv-hero-bright`, beating the legacy 3px `--accent` — inside `.iq-page` only |
+| 375px: the table stays a table | ✅ legacy card-restack contained |
+| Cotton and Moonless Night both present | ✅ |
+| **leak check** — `--mv-ink` on `<body>` | ✅ **undefined**: the layer cannot escape `.iq-page` |
+
+**Safety**
+
+`main` untouched at `d2f60cc` · no locale routing · no `/en` alternates or
+hreflang · no removed route reintroduced · no Alerts navigation added · **no
+visible page migrated** — the only new route is the noindex proof sheet, which
+nothing links to and which is deleted at the end of the migration.
