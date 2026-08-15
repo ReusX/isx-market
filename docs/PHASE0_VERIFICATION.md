@@ -422,3 +422,182 @@ name the file, line and selector.
 hreflang · no removed route reintroduced · no Alerts navigation added · **no
 visible page migrated** — the only new route is the noindex proof sheet, which
 nothing links to and which is deleted at the end of the migration.
+
+---
+
+## 7 · Phase 0.9 — shared primitives and the approved shell
+
+### 7a · Primitives created
+
+| file | what |
+|---|---|
+| `components/system/Primitives.tsx` | Button (default/primary/ghost/danger), IconButton, Input, Field, Select, Segmented, Chip, Panel, Divider, Toolbar, Metric |
+| `components/system/DataStates.tsx` | Unavailable, Zero, NoActivity, Freshness, PartialNotice, ModuleError, EmptyState, DisabledControl, Skeleton, SignedValue |
+| `components/system/Toast.tsx` | ToastProvider / useToast — 4 tones, dedupe, pause, cap, two live regions |
+| `components/system/Overlay.tsx` | useOverlay, Dialog, Sheet |
+| `styles/system.css` | all of the above, plus the typography primitives |
+
+Four decisions worth carrying forward:
+
+- **`type` defaults to `button`.** An untyped button inside a form submits it.
+- **IconButton requires `label`.** Optional would mean omitted.
+- **Loading never resizes a control.** The spinner is an `::after` overlay, so
+  the layout cannot jump at the moment the user is waiting to see if their
+  click landed.
+- **Disabled stays legible** — dashed border, muted ink. A control faded toward
+  invisible reads as a rendering bug and gets retried.
+
+### 7b · Shell files
+
+| file | what |
+|---|---|
+| `components/shell/AppFrame.tsx` | the frame; replaces `components/layout/AppShell.tsx` |
+| `components/shell/SideNav.tsx` | the floating detached rail |
+| `components/shell/GlobalHeader.tsx` | detached header, `/` shortcut, theme, account |
+| `components/shell/GlobalSearch.tsx` | the company palette |
+| `components/shell/MobileNav.tsx` | the phone sheet |
+| `components/shell/SiteFooter.tsx` | the footer |
+| `lib/navigation.ts` | the IA, defined once |
+| `lib/companySearch.ts` | the search index and Arabic folding |
+| `lib/chartTheme.ts` | the shared chart palette + theme observer |
+| `styles/shell.css` | all shell CSS |
+
+**Deleted:** `components/layout/AppShell.tsx`, `SiteFooter.tsx`, `BottomNav.tsx`.
+The old shell is replaced, not left beside the new one — two shells is how you
+get two sidebars. `BottomNav` was 59 lines of dead code imported nowhere.
+
+### 7c · Navigation
+
+السوق · منصتي · أدوات · تعلّم, from one definition used by rail, sheet and
+footer. Previously the shell and footer each declared their own copy, which is
+how a route ends up in one and missing from the other.
+
+Absent by decision, each with its reason in the file: `دليل الشركات`,
+`/banks`, `تنبيهات الأسعار`, `/research`, standalone `/charts`, and `/analysis`
+(still open, so not exposed either way). Privacy and Legal are footer
+destinations. **Verified on mobile: 17 rows, no removed route among them.**
+
+### 7d · Alert entry points — all removed
+
+| # | site | disposition |
+|---|---|---|
+| 1 | `layout/AppShell.tsx:85` sidebar item + «جديد» badge | gone with the old shell |
+| 2 | `layout/AppShell.tsx:407` topbar bell | gone with the old shell |
+| 3 | `app/profile/page.tsx:87` «تنبيهات الأسعار» shortcut | removed |
+| 4 | `app/profile/page.tsx:56` signed-out copy promising «وتنبيهاتك» | reworded |
+
+The other five audited sites (company masthead, watchlist row menu, watchlist
+badge, watchlist «بتنبيه» filter, portfolio row menu) exist only in the
+reference design app and were never ported — the correct outcome, since the
+sweep ran against this tree before porting rather than after.
+
+Site 4 mattered more than it looked: a signed-out user was being promised the
+product would keep their alerts, on the screen whose job is to persuade them to
+sign up.
+
+**Not done, deliberately:** `/alerts` is not deleted (unlinked compatibility
+route, already absent from `sitemap.ts`); `price_alerts` data is untouched; the
+Privacy/Terms references stay until the route is actually retired.
+
+Repo-wide grep for `/alerts` outside `app/alerts/` and the navigation comment:
+**nothing**.
+
+### 7e · The bell
+
+Removed. It was a `<button>` with no `onClick`, no `aria-label` and no
+behaviour — a control that looked like a feature, did nothing, and announced
+itself to a screen reader as an unnamed button. Not replaced.
+
+### 7f · Global search
+
+Indexes `public/data/companies.json` (104 companies) — the production register.
+Everything the reference audit found missing is now implemented and verified in
+the browser:
+
+| behaviour | result |
+|---|---|
+| `/` shortcut | ✅ opens; guarded against firing inside inputs |
+| `↑` `↓` | ✅ moves and wraps; `aria-activedescendant` tracks |
+| `Escape` | ✅ closes, restores scroll, returns focus |
+| match highlighting | ✅ `<mark>` around the matched span |
+| Arabic folding | ✅ «الاهلي» and «الأهلي» return identical results; «آسيا» matches the stored «اسيا سيل» |
+| combobox semantics | ✅ role, `aria-expanded`, `aria-controls`, `aria-autocomplete` |
+
+Ranked so a ticker prefix outranks a name match. Scope stays company search —
+the product has no global index behind news or Learn.
+
+⚠ Known limitation: token boundaries are not collapsed, so «اسياسيل» written
+without its space finds nothing. Not the alef bug; recorded rather than hidden.
+
+### 7g · Mobile navigation
+
+Rail `display: none` at ≤720px — replaced by the sheet, not shrunk into it.
+Sheet opens on the inline-start edge (right edge at 359 of a 375 viewport, i.e.
+the RIGHT in RTL, under the thumb that pressed the button). 52px rows, scroll
+locked, focus trapped inside.
+
+### 7h · Chart theme
+
+`lib/chartTheme.ts` + `useChartTheme()`, reading `data-theme` through a
+MutationObserver. A hook rather than CSS because a canvas cannot resolve
+`var(--ink)` and must be told when the value changes.
+
+Dark values are byte-identical to what KChart already shipped. The light
+palette uses the approved semantic up/down pair, not TradingView's teal and
+salmon — a rising price must be the same colour on the chart as in the table
+beside it.
+
+⚠ **Not verified at runtime.** KChart is lazily mounted and needs price history
+this sandbox cannot reach, so it never mounted and the live repaint was never
+observed. tsc is clean and the wiring is straightforward, but "it compiles" is
+not "it repaints". **One manual theme toggle on a company page with real data
+should close this.**
+
+`app/charts/page.tsx` keeps its 5 hard-coded hexes: the route is removed from
+the redesigned product and nothing forces the fix. Recorded, not hidden.
+
+### 7i · Legacy coexistence
+
+  the FRAME    redesigned, consuming `--mv-*`
+  the CONTENT  untouched, still styled by the legacy `app/globals.css`
+
+Neither reaches the other: the token layer is scoped to `.iq-page`, which no
+un-migrated route carries. A route migrates by adding that class to its own
+`<main>` and deleting its section of the legacy stylesheet.
+
+The frame renders a `<div>`, not a `<main>` — the accessibility pass caught two
+`main` landmarks, since every route body already has one. That is also the
+cause of the `querySelector('main')` trap already on record here.
+
+### 7j · Checks
+
+| check | result |
+|---|---|
+| `npx tsc --noEmit` | ✅ 0 errors |
+| `npx eslint app lib components scripts` | ✅ 0 errors, 4 warnings (2 `<img>`, 2 exhaustive-deps, all pre-existing patterns) |
+| `npm run check:routes` | ✅ 44 routes, no rendering-mode regressions |
+| `token-parity` / `contrast` / `arabic-tracking` | ✅ all pass |
+| representative routes | ✅ `/`, `/market`, `/statistics`, `/c/BBOB`, `/portfolio`, `/learn`, `/legal` — all 200 |
+| double navigation | ✅ exactly one header, one aside, one main, one footer |
+| landmarks | ✅ rail labelled «التنقل الرئيسي» |
+| unlabelled buttons | ✅ 0 |
+| touch targets under 36px | ✅ 0 |
+| live regions | ✅ polite + assertive, both always mounted |
+| light / dark | ✅ both verified |
+| desktop / 375px | ✅ both verified |
+| shared first-load JS | 87.5 kB |
+
+### 7k · Performance
+
+Shared first-load JS is **87.5 kB**. The frame adds no chart, drawing or modal
+library — Dialog and Sheet are ~190 lines of local code, icons are inline SVG
+paths, and the search index is the companies JSON the app already ships. The
+one runtime observer is the chart theme's, and it lives with the chart rather
+than in the shell.
+
+### 7l · Remaining P0
+
+**None in the shared foundation.** The two open items are both recorded above
+and neither blocks route migration: the KChart runtime repaint wants one manual
+check against real data, and `/charts` keeps its hard-coded palette until the
+route's removal is decided.
