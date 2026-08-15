@@ -94,8 +94,13 @@ export default function AppFrame({ children }: { children: ReactNode }) {
         <SideNav collapsed={collapsed} onToggle={toggleSidebar} />
         <div className="iq-stage">
           <GlobalHeader onMenu={onMenu} onSearchOpen={openSearch} />
-          {/* Un-migrated route bodies render here untouched. */}
-          <main id="main" className="iq-main">{children}</main>
+          {/* A <div>, NOT a <main>. Every route body in this repo renders its
+              own <main> — wrapping them in another produced TWO `main`
+              landmarks, which is a genuine accessibility defect and also the
+              cause of the documented `querySelector('main')` trap, where a
+              selector meant for the page silently matched the shell instead.
+              The route owns its landmark; the frame owns the layout. */}
+          <div className="iq-main">{children}</div>
           <SiteFooter />
         </div>
       </div>
