@@ -2,7 +2,7 @@ import type { Metadata, Viewport } from 'next'
 import { IBM_Plex_Sans_Arabic, Noto_Kufi_Arabic, Roboto_Mono } from 'next/font/google'
 import './globals.css'
 import { AppProvider } from '@/context/AppContext'
-import AppShell from '@/components/layout/AppShell'
+import AppFrame from '@/components/shell/AppFrame'
 import { Analytics } from '@vercel/analytics/react'
 import { SpeedInsights } from '@vercel/speed-insights/next'
 import NativeBridge from '@/components/NativeBridge'
@@ -162,9 +162,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           })}}
         />
         <AppProvider>
-          <AppShell>
+          <AppFrame>
             {children}
-          </AppShell>
+          </AppFrame>
           <NativeBridge />
           <Analytics />
           <SpeedInsights />
