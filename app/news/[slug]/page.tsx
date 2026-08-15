@@ -2,6 +2,7 @@ import { getPost, SECTIONS, stripHtml } from '@/lib/cms'
 import ArticlePage from '@/components/cms/ArticlePage'
 import { notFound } from 'next/navigation'
 import type { Metadata } from 'next'
+import { absUrl, seoAlternates } from '@/lib/seo'
 
 function buildDesc(raw: string, section: string): string {
   const clean = raw.trim().slice(0, 140)
@@ -22,8 +23,8 @@ export async function generateMetadata({ params }: { params: { slug: string } })
   return {
     title: `${stripHtml(post.title.rendered)}`,
     description: buildDesc(stripHtml(post.excerpt?.rendered ?? ''), 'news'),
-    alternates: { canonical: `https://iraqsm.com/news/${params.slug}` },
-    openGraph: { url: `https://iraqsm.com/news/${params.slug}`, images: [{ url: '/opengraph-image', width: 1200, height: 630 }] },
+    alternates: seoAlternates(`/news/${params.slug}`),
+    openGraph: { url: absUrl(`/news/${params.slug}`), images: [{ url: '/opengraph-image', width: 1200, height: 630 }] },
   }
 }
 

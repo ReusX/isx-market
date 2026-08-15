@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import { describeFxRate, getFx } from '@/lib/fxCopy'
 import FxClient from './FxClient'
+import { absUrl, seoAlternates } from '@/lib/seo'
 
 // Re-scrape at most every 3h (lib sets the data-cache TTL); the page itself
 // is statically regenerated on this interval.
@@ -41,7 +42,7 @@ export async function generateMetadata(): Promise<Metadata> {
     description: line
       ? `سعر الدولار اليوم في العراق ${line}. تابع سعر الصرف المحدّث، الفرق بين السعرين، ومحوّل فوري لأي مبلغ.`
       : 'كم سعر الدولار اليوم في العراق؟ سعر صرف الدولار مقابل الدينار العراقي بسعر البنك المركزي وسعر السوق الموازية، مع محوّل فوري لأي مبلغ.',
-    alternates: { canonical: 'https://iraqsm.com/fx' },
+    alternates: seoAlternates('/fx'),
     keywords: [
       'سعر الدولار اليوم في العراق', 'سعر الدولار في السوق الموازي',
       'سعر الدولار مقابل الدينار العراقي', 'الدولار مقابل الدينار العراقي',
@@ -56,7 +57,7 @@ export async function generateMetadata(): Promise<Metadata> {
       'usd to iqd', 'iqd to usd', 'iraqi dinar to dollar', 'dollar to iraqi dinar rate',
     ],
     openGraph: {
-      url: 'https://iraqsm.com/fx',
+      url: absUrl('/fx'),
       title: rate
         ? `سعر الدولار اليوم في العراق · ${rate.toLocaleString('en-US', { maximumFractionDigits: 0 })} ديناراً`
         : 'سعر الدولار اليوم في العراق · سعر صرف الدينار العراقي',

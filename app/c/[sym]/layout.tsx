@@ -5,8 +5,9 @@ import CompanyProfile from '@/components/company/CompanyProfile'
 import { buildCompanySeo } from '@/lib/companySeo'
 import { getQuote, describeQuote } from '@/lib/quote'
 import Breadcrumbs from '@/components/seo/Breadcrumbs'
+import { SITE } from '@/lib/seo'
 
-const BASE = 'https://iraqsm.com'
+const BASE = SITE
 
 // Passed to the name shortener so it can reject a core two companies share.
 const ARABIC_NAMES = (companiesData as { ar: string }[]).map(c => c.ar).filter(Boolean)

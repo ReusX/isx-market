@@ -1,9 +1,10 @@
 import type { Metadata } from 'next'
+import { absUrl, seoAlternates } from '@/lib/seo'
 
 export const metadata: Metadata = {
   title: { absolute: 'سعر النفط اليوم · برميل برنت وخام البصرة بالدينار' },
   description: 'سعر برميل النفط اليوم: برنت، غرب تكساس WTI، خام البصرة الثقيل والمتوسط وسلة أوبك — بالدولار وبالدينار العراقي، محدّثاً على مدار اليوم.',
-  alternates: { canonical: 'https://iraqsm.com/oil' },
+  alternates: seoAlternates('/oil'),
   keywords: [
     // Arabic — top Iraq oil searches
     'سعر النفط', 'سعر النفط اليوم', 'سعر برميل النفط اليوم', 'سعر النفط العراقي',
@@ -17,7 +18,7 @@ export const metadata: Metadata = {
     'opec basket price', 'oil price per barrel', 'crude oil price iraq',
   ],
   openGraph: {
-    url: 'https://iraqsm.com/oil',
+    url: absUrl('/oil'),
     title: 'سعر النفط اليوم في العراق · برنت وخام البصرة وسلة أوبك · Iraq Oil Price',
     description: 'سعر برميل النفط اليوم مباشر: برنت، غرب تكساس WTI، خام البصرة، وسلة أوبك بالدولار والدينار العراقي. Live Brent, WTI, Basrah & OPEC basket prices.',
     images: [{ url: '/opengraph-image', width: 1200, height: 630 }],
@@ -29,8 +30,8 @@ const faqSchema = {
   '@graph': [
     {
       '@type': 'WebPage',
-      '@id': 'https://iraqsm.com/oil',
-      url: 'https://iraqsm.com/oil',
+      '@id': absUrl('/oil'),
+      url: absUrl('/oil'),
       name: 'Oil Price Today in Iraq · Brent, WTI, Basrah Crude & OPEC Basket',
       description: 'Live oil price today in USD and Iraqi Dinar per barrel · Brent, WTI, Iraq Basrah Heavy/Medium crude, Dubai and the OPEC basket.',
       inLanguage: ['ar-IQ', 'en'],
@@ -38,8 +39,8 @@ const faqSchema = {
       breadcrumb: {
         '@type': 'BreadcrumbList',
         itemListElement: [
-          { '@type': 'ListItem', position: 1, name: 'IQWealth', item: 'https://iraqsm.com' },
-          { '@type': 'ListItem', position: 2, name: 'Oil Price in Iraq', item: 'https://iraqsm.com/oil' },
+          { '@type': 'ListItem', position: 1, name: 'IQWealth', item: absUrl('/') },
+          { '@type': 'ListItem', position: 2, name: 'Oil Price in Iraq', item: absUrl('/oil') },
         ],
       },
     },

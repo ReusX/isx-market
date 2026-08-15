@@ -1,11 +1,12 @@
 import type { Metadata } from 'next'
 import Breadcrumbs from '@/components/seo/Breadcrumbs'
+import { absUrl, seoAlternates } from '@/lib/seo'
 export const metadata: Metadata = {
   title: { absolute: 'المصارف العراقية المدرجة · أسعار أسهم البنوك' },
   description: 'أسعار أسهم المصارف العراقية المدرجة في بورصة العراق — التجارية والاستثمارية والإسلامية — مع التغيّر اليومي، حجم التداول والقيمة السوقية لكل مصرف.',
-  alternates: { canonical: 'https://iraqsm.com/banks' },
+  alternates: seoAlternates('/banks'),
   openGraph: {
-    url: 'https://iraqsm.com/banks',
+    url: absUrl('/banks'),
     title: 'المصارف العراقية | بورصة العراق ISX',
     description: 'أسعار أسهم المصارف العراقية المدرجة في بورصة العراق للأوراق المالية.',
     images: [{ url: '/opengraph-image', width: 1200, height: 630 }],

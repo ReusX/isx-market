@@ -1,9 +1,10 @@
 import type { Metadata } from 'next'
+import { absUrl, seoAlternates } from '@/lib/seo'
 
 export const metadata: Metadata = {
   title: { absolute: 'سعر الذهب اليوم في العراق · مثقال وغرام عيار 21 و24' },
   description: 'سعر الذهب اليوم في العراق بالدينار العراقي: سعر المثقال والغرام لعيار 24 و21 و18، مع السعر العالمي للأونصة وحاسبة تحوّل أي وزن إلى قيمته الحالية.',
-  alternates: { canonical: 'https://iraqsm.com/gold' },
+  alternates: seoAlternates('/gold'),
   keywords: [
     'gold price in iraq', 'iraq gold price today', 'gold price iraq 2026',
     'gold price in iraqi dinar', 'iraq gold rate today',
@@ -13,7 +14,7 @@ export const metadata: Metadata = {
     'سعر الذهب بالدينار العراقي',
   ],
   openGraph: {
-    url: 'https://iraqsm.com/gold',
+    url: absUrl('/gold'),
     title: 'سعر الذهب مباشر اليوم في العراق | اسعار الذهب عالمياً · Iraq Gold Rate',
     description: 'سعر الذهب مباشر اليوم في العراق لكل غرام ومثقال بالدينار العراقي والدولار، مع السعر العالمي للأونصة. Live Iraq gold price per gram & mithqal.',
     images: [{ url: '/opengraph-image', width: 1200, height: 630 }],
@@ -25,8 +26,8 @@ const faqSchema = {
   '@graph': [
     {
       '@type': 'WebPage',
-      '@id': 'https://iraqsm.com/gold',
-      url: 'https://iraqsm.com/gold',
+      '@id': absUrl('/gold'),
+      url: absUrl('/gold'),
       name: 'Gold Price in Iraq Today · Iraq Gold Rate in Iraqi Dinar',
       description: 'Live gold price in Iraq today in IQD and USD · per gram and mithqal for 24K, 21K, and 18K gold.',
       inLanguage: ['ar-IQ', 'en'],
@@ -38,8 +39,8 @@ const faqSchema = {
       breadcrumb: {
         '@type': 'BreadcrumbList',
         itemListElement: [
-          { '@type': 'ListItem', position: 1, name: 'IQWealth', item: 'https://iraqsm.com' },
-          { '@type': 'ListItem', position: 2, name: 'Gold Price in Iraq', item: 'https://iraqsm.com/gold' },
+          { '@type': 'ListItem', position: 1, name: 'IQWealth', item: absUrl('/') },
+          { '@type': 'ListItem', position: 2, name: 'Gold Price in Iraq', item: absUrl('/gold') },
         ],
       },
     },

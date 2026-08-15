@@ -2,8 +2,10 @@ import { MetadataRoute } from 'next'
 import companiesData from '@/public/data/companies.json'
 import { getPosts, type Section } from '@/lib/cms'
 import { getLastSessionDate } from '@/lib/freshness'
+import { SITE } from '@/lib/seo'
 
-const BASE = 'https://iraqsm.com'
+// Single source of truth for the origin — see lib/seo.ts.
+const BASE = SITE
 
 // Regenerate the sitemap hourly so new articles/companies get picked up without
 // a redeploy (the WP fetches inside getPosts cache for 5 min on their own).

@@ -2,6 +2,7 @@ import { getPost, stripHtml } from '@/lib/cms'
 import ArticlePage from '@/components/cms/ArticlePage'
 import { notFound } from 'next/navigation'
 import type { Metadata } from 'next'
+import { absUrl, seoAlternates } from '@/lib/seo'
 
 function buildDesc(raw: string): string {
   const clean = raw.trim().slice(0, 140)
@@ -17,8 +18,8 @@ export async function generateMetadata({ params }: { params: { slug: string } })
   return {
     title: `${stripHtml(post.title.rendered)}`,
     description: buildDesc(stripHtml(post.excerpt?.rendered ?? '')),
-    alternates: { canonical: `https://iraqsm.com/learn/${params.slug}` },
-    openGraph: { url: `https://iraqsm.com/learn/${params.slug}`, images: [{ url: '/opengraph-image', width: 1200, height: 630 }] },
+    alternates: seoAlternates(`/learn/${params.slug}`),
+    openGraph: { url: absUrl(`/learn/${params.slug}`), images: [{ url: '/opengraph-image', width: 1200, height: 630 }] },
   }
 }
 

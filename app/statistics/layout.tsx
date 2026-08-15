@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import Breadcrumbs from '@/components/seo/Breadcrumbs'
+import { absUrl, seoAlternates } from '@/lib/seo'
 
 // The page itself is a client component, so it cannot export metadata — without
 // this layout /statistics inherited the site default and competed with the
@@ -7,9 +8,9 @@ import Breadcrumbs from '@/components/seo/Breadcrumbs'
 export const metadata: Metadata = {
   title: { absolute: 'إحصائيات بورصة العراق · تدفق الأجانب وهيكل الملكية' },
   description: 'أرقام السوق العراقي شهرياً: صافي شراء وبيع المستثمرين الأجانب، دوران القطاعات، توزيع الملكية بين العراقيين والأجانب، وكبار المساهمين.',
-  alternates: { canonical: 'https://iraqsm.com/statistics' },
+  alternates: seoAlternates('/statistics'),
   openGraph: {
-    url: 'https://iraqsm.com/statistics',
+    url: absUrl('/statistics'),
     title: 'إحصائيات بورصة العراق · تدفق الأجانب وهيكل الملكية',
     images: [{ url: '/opengraph-image', width: 1200, height: 630 }],
   },

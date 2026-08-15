@@ -1,4 +1,5 @@
 import { buildFxFaq, CBI_OFFICIAL_RATE, marketRate, getFx } from '@/lib/fxCopy'
+import { absUrl } from '@/lib/seo'
 
 /*
  * Title and description live in ./page.tsx, not here, because they carry the
@@ -23,8 +24,8 @@ export default async function FxLayout({ children }: { children: React.ReactNode
     '@graph': [
       {
         '@type': 'WebPage',
-        '@id': 'https://iraqsm.com/fx',
-        url: 'https://iraqsm.com/fx',
+        '@id': absUrl('/fx'),
+        url: absUrl('/fx'),
         name: 'سعر الدولار اليوم في العراق · الدولار مقابل الدينار العراقي',
         description: 'سعر صرف الدولار الأمريكي مقابل الدينار العراقي اليوم، السعر الرسمي وسعر السوق الموازية، ومحول العملات IQD/USD.',
         inLanguage: ['ar-IQ', 'en'],
@@ -33,8 +34,8 @@ export default async function FxLayout({ children }: { children: React.ReactNode
         breadcrumb: {
           '@type': 'BreadcrumbList',
           itemListElement: [
-            { '@type': 'ListItem', position: 1, name: 'IQWealth', item: 'https://iraqsm.com' },
-            { '@type': 'ListItem', position: 2, name: 'سعر الدولار في العراق', item: 'https://iraqsm.com/fx' },
+            { '@type': 'ListItem', position: 1, name: 'IQWealth', item: absUrl('/') },
+            { '@type': 'ListItem', position: 2, name: 'سعر الدولار في العراق', item: absUrl('/fx') },
           ],
         },
       },

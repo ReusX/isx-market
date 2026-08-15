@@ -6,6 +6,7 @@ import AppShell from '@/components/layout/AppShell'
 import { Analytics } from '@vercel/analytics/react'
 import { SpeedInsights } from '@vercel/speed-insights/next'
 import NativeBridge from '@/components/NativeBridge'
+import { SITE, absUrl, seoAlternates } from '@/lib/seo'
 
 // The three IQWealth design typefaces, self-hosted by next/font. These drive
 // the whole UI: IBM Plex Sans Arabic for body copy (--font-body), Noto Kufi
@@ -56,10 +57,8 @@ export const metadata: Metadata = {
     template: '%s',
   },
   description: 'متابعة مباشرة لأسعار الأسهم المدرجة في بورصة العراق للأوراق المالية مع مؤشر ISX60، المخططات، تدفق الأجانب وأدوات الفرز — محدّثة بعد كل جلسة تداول.',
-  metadataBase: new URL('https://iraqsm.com'),
-  alternates: {
-    canonical: 'https://iraqsm.com',
-  },
+  metadataBase: new URL(SITE),
+  alternates: seoAlternates('/'),
   keywords: [
     'iraq stock market', 'iraq stock exchange', 'isx stock exchange', 'isx market',
     'اسعار الاسهم العراقية', 'اسهم العراق', 'سوق الاسهم العراقي', 'بورصة العراق',
@@ -68,7 +67,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: 'Iraq Stock Market · Iraq Stock Exchange (ISX) | اسعار الاسهم العراقية',
     description: 'Live prices, charts, and market data for all stocks on the Iraq Stock Exchange (ISX). اسعار الاسهم العراقية مباشرة، سوق الاسهم العراقي، بورصة العراق.',
-    url: 'https://iraqsm.com',
+    url: absUrl('/'),
     siteName: 'IQWealth',
     images: [{ url: '/opengraph-image', width: 1200, height: 630 }],
     locale: 'ar_IQ',
@@ -111,8 +110,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             '@graph': [
               {
                 '@type': 'WebSite',
-                '@id': 'https://iraqsm.com/#website',
-                url: 'https://iraqsm.com',
+                '@id': absUrl('/#website'),
+                url: absUrl('/'),
                 // Google reads the SERP site-name suffix from here. Keep it to
                 // the bare brand — anything longer gets appended to every title.
                 name: 'IQWealth',
@@ -121,23 +120,23 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                 inLanguage: ['ar-IQ', 'en'],
                 potentialAction: {
                   '@type': 'SearchAction',
-                  target: { '@type': 'EntryPoint', urlTemplate: 'https://iraqsm.com/market?q={search_term_string}' },
+                  target: { '@type': 'EntryPoint', urlTemplate: `${SITE}/market?q={search_term_string}` },
                   'query-input': 'required name=search_term_string',
                 },
               },
               {
                 '@type': 'Organization',
-                '@id': 'https://iraqsm.com/#organization',
+                '@id': absUrl('/#organization'),
                 name: 'IQWealth',
                 alternateName: ['Iraq Stock Market', 'iraqsm.com'],
-                url: 'https://iraqsm.com',
+                url: absUrl('/'),
                 logo: {
                   '@type': 'ImageObject',
-                  url: 'https://iraqsm.com/icon.png',
+                  url: absUrl('/icon.png'),
                   width: 1024,
                   height: 1024,
                 },
-                image: 'https://iraqsm.com/icon.png',
+                image: absUrl('/icon.png'),
                 /*
                  * OTHER profiles of this same entity — never iraqsm.com itself,
                  * which is what this used to list and which asserts nothing.
@@ -152,10 +151,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               },
               {
                 '@type': 'FinancialService',
-                '@id': 'https://iraqsm.com/#service',
+                '@id': absUrl('/#service'),
                 name: 'Iraq Stock Exchange Market Tracker',
                 description: 'Real-time stock market data for the Iraq Stock Exchange (ISX) · prices, charts, indices, and company analysis.',
-                url: 'https://iraqsm.com',
+                url: absUrl('/'),
                 areaServed: { '@type': 'Country', name: 'Iraq' },
                 serviceType: 'Stock Market Data',
               },

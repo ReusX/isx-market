@@ -1,4 +1,5 @@
-const BASE = 'https://iraqsm.com'
+import { SITE } from '@/lib/seo'
+const BASE = SITE
 
 /**
  * BreadcrumbList structured data.
