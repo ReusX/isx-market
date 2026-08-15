@@ -7,12 +7,17 @@
    below is the DOMINANT observed value in the reference app, with its
    observed frequency recorded beside it.
 
-   ── How this layer stays out of the way ───────────────────────────────────
+   ── How this layer stays out of the way, and how it defends itself ────────
    Everything is scoped to `.iq-page`. A route opts in by putting that class on
    its root element; until it does, not one declaration here can reach it.
-   That is the whole quarantine strategy — see §7 of PHASE0_VERIFICATION.md.
-   There is no legacy/new precedence fight to manage, because the two layers
-   never address the same element.
+
+   That handles one direction only, and it took a rendering bug to notice: it
+   stops this layer leaking OUT, and does nothing to stop the legacy stylesheet
+   leaking IN. Twenty-six legacy rules are bare element selectors — `table`,
+   `th`, `td`, `tbody tr`, `td::before` — and a bare element selector matches
+   inside `.iq-page` exactly as well as outside it. The containment block at
+   the foot of this file is the other half of the quarantine. See §7 of
+   PHASE0_VERIFICATION.md.
 
    ── Theme ────────────────────────────────────────────────────────────────
    The reference app carries the theme as a class on each page (`.iq-dark` /
@@ -225,4 +230,75 @@
 .iq-page .numeric,
 .iq-page [dir='ltr'] {
   letter-spacing: revert-layer;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   Containment — the half of the quarantine that scoping alone does not buy.
+
+   `.iq-page` stops this layer's declarations from reaching un-migrated routes.
+   It does NOT stop the legacy stylesheet reaching IN, because 26 of its rules
+   are bare element selectors — `table`, `th`, `td`, `tbody tr`, `td::before` —
+   and a bare element selector matches inside `.iq-page` just as happily as
+   outside it.
+
+   This was not theory. The Phase 0.8 proof sheet rendered a 900px-wide table
+   inside a 498px panel, because `table { min-inline-size: 900px }` at
+   globals.css:4614 applies to every table in the application. Component CSS
+   written against the new tokens did not override it, because the component
+   set `inline-size`, and the legacy rule sets `min-inline-size` — a different
+   property, so nothing collided and nothing warned.
+
+   The rules below neutralise exactly those inherited impositions inside the
+   new layer, and nothing else. No `!important`: `.iq-page table` (0,1,1) beats
+   `table` (0,0,1) on specificity alone, which is the correct mechanism.
+
+   Every reset here is a legacy rule this layer takes responsibility for
+   instead. When the legacy stylesheet is finally deleted, this block goes with
+   it — they are the same debt viewed from two sides.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* Every rule below uses `.iq-page :where(…)`, which scores (0,1,0): enough to
+   beat a bare element selector like `table` (0,0,1), and NOT enough to beat a
+   component's own `.fd-table td` (0,1,1). That asymmetry is the whole point.
+
+   An earlier draft used `.iq-page :is(th, td)` instead. At (0,1,1) it tied or
+   beat the components it was supposed to be clearing the way for, and silently
+   repainted every semantic cell in the proof sheet back to --mv-ink. The table
+   still looked plausible, which is how that class of bug survives review.
+   Containment must sit BELOW component CSS, never above it. */
+
+/* globals.css:4614 — forces every table to 900px regardless of its container. */
+.iq-page :where(table) {
+  min-inline-size: 0;
+}
+
+/* globals.css:4620 — legacy cell padding, border, and the BASE-layer --ink,
+   which is not --mv-ink. A component that styles its cells overrides all of
+   this normally; a component that does not gets sane inherited defaults. */
+.iq-page :where(th, td) {
+  padding: 0;
+  border-block-end: 0;
+  color: inherit;
+  line-height: inherit;
+}
+
+/* globals.css:4643,4647 — a hover fill in the base layer's --page. */
+.iq-page :where(tbody tr) {
+  transition: none;
+}
+.iq-page :where(tbody tr:hover) {
+  background: none;
+}
+
+/* globals.css:5141 — the <=720px rule that restacks EVERY table into cards,
+   including ones designed to stay tables. Migrated pages own their own
+   responsive behaviour. */
+@media (max-width: 720px) {
+  .iq-page :where(table) { display: table; }
+  .iq-page :where(thead) { display: table-header-group; }
+  .iq-page :where(tbody) { display: table-row-group; }
+  .iq-page :where(tr) { display: table-row; }
+  .iq-page :where(th, td) { display: table-cell; }
+  /* globals.css:5173 — injects data-label text before every cell. */
+  .iq-page :where(td)::before { content: none; }
 }
