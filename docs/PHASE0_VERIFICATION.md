@@ -36,10 +36,81 @@ for the evidence. Two facts govern the resolution:
   exception and returned, so the scheduled job exited 0 while `sector_monthly`
   silently stopped at 2026-05 and every other table it writes reached 2026-07.
 
-**Left open deliberately:** the two missing months of `sector_monthly`
-(2026-06, 2026-07) are not backfilled. That is a production data write and
-wants explicit approval; the fixed loader is idempotent, so it is a one-command
-repair whenever that is given.
+### 3a · `sector_monthly` backfill — DONE, 15 August 2026
+
+**Why it was needed.** The broken loader lost two months. `sector_monthly`
+stopped at 2026-05 while every other table the monthly job writes reached
+2026-07. Fixing the loader stops it recurring; it does not recover what was
+already missed. Carrying a two-month hole into the redesign would mean building
+the statistics surfaces against data known to be incomplete.
+
+Authorised by the owner as a tightly scoped production-data repair. Run under
+the safeguards they set, all of which are recorded below rather than asserted.
+
+**⚠ One correction to the earlier report.** It said the job had been running
+green "while /statistics quietly went stale". The first half is right; the
+second is not. `sector_monthly` is written by the pipeline and **read by nothing
+in the application** — a repository-wide grep finds no reader outside the loader
+and the schema file. `/statistics` draws its sector panel from
+`foreign_flow_sector`, which was current all along. The table was stale; the
+page was not. The repair still matters, because `sector_monthly` is one of the
+stored-but-unread tables the redesigned statistics surface is meant to expose —
+but it was never a visible outage, and saying so was wrong.
+
+**Source.** The two months were not present locally; the monthly PDFs stopped at
+2026-05. Fetched from ISX and parsed on the day:
+
+```
+scripts/scrape_isx_reports.py            → 825 report files listed
+scripts/download_pdfs.py                 → data/pdfs/2026-06.pdf, 2026-07.pdf
+scripts/parse_monthly_full.py <each>     → data/parsed_full/2026-06.json, 2026-07.json
+                                           both parsed with missing=[]
+```
+
+**Command** (scoped — see below):
+
+```
+python3 load_to_supabase_v2.py data/parsed_full/2026-06.json --only sector_monthly
+python3 load_to_supabase_v2.py data/parsed_full/2026-07.json --only sector_monthly
+```
+
+`--only` was added for this: without it the loader runs all ten tables, and
+rewriting nine of them with identical values makes "nothing else changed"
+unprovable afterwards. Same corrected idempotent upsert path, just filtered.
+
+**Recorded before the write**
+
+| | rows |
+|---|---|
+| `sector_monthly` 2026-06 | **0** |
+| `sector_monthly` 2026-07 | **0** |
+| `sector_monthly` total | 1311 |
+| expected sectors per month, from source | 10 (and 10 market-cap entries) |
+
+**Dry run first**, scoped, both months: 10 rows each, conflict key
+`year,month,sector`, no other loader invoked. Payload keys diffed against the
+live table — an exact match on all nine columns, nothing extra.
+
+**Verified after the write**
+
+| check | result |
+|---|---|
+| both months present | ✅ 10 rows each |
+| sector count matches source | ✅ 10 / 10, names identical |
+| duplicate `(year, month, sector)` | ✅ none |
+| every value equals the source | ✅ volume, value, trades, traded_companies, market_cap |
+| `traded_companies` populated | ✅ 10/10 both months |
+| `market_cap` populated | ✅ 10/10 both months |
+| `listed_companies` populated | 0/10 — **the source carries none**, identical to the existing 2026-05 rows. Not fabricated. |
+| `sector_monthly` total | 1311 → **1331**, exactly +20 |
+| every other table's row count | ✅ unchanged — `daily_index` 3780, `ownership_monthly` 1822, `major_shareholders` 1657, `depository_monthly` 903, `capital_events` 38, `company_caps_monthly` 513, `foreign_flow_daily` 1867, `foreign_flow_sector` 424, `companies` 119 |
+| latest month in `sector_monthly` | **2026-07** |
+
+**Plausibility.** Σ market cap holds steady across the three months — 32.57 T,
+32.43 T, 33.46 T IQD — and traded value declines 184.5 B → 118.6 B → 104.9 B,
+which is a quiet summer, not a broken parse.
+
+Nothing was fabricated and no other month was touched.
 
 ## 4 · RLS on personal data — VERIFIED
 

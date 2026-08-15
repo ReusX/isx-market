@@ -301,7 +301,8 @@ LOADERS = [
 ]
 
 
-def process_json(path: Path, client: Client, dry: bool, failures: list[str]) -> None:
+def process_json(path: Path, client: Client, dry: bool, failures: list[str],
+                 only: set[str] | None = None) -> None:
     """Run every loader over one report.
 
     A failing loader does not abort the other ten — one unparseable table should
@@ -314,6 +315,11 @@ def process_json(path: Path, client: Client, dry: bool, failures: list[str]) -> 
     mo_str = f"{month:02d}" if month else "??"
     print(f"\n── {path.name} ({year}-{mo_str}) ──")
     for loader in LOADERS:
+        # `--only` exists for scoped repairs: when one table has to be fixed,
+        # rewriting ten others with identical values makes it impossible to say
+        # afterwards that nothing else changed.
+        if only and loader.__name__.removeprefix("load_") not in only:
+            continue
         try:
             loader(client, data, dry)
         except Exception as e:
@@ -327,11 +333,24 @@ def main() -> None:
     ap.add_argument("--dry-run",     action="store_true")
     ap.add_argument("--parse-first", action="store_true",
                     help="Re-parse PDFs in path/ before loading")
+    ap.add_argument("--only", default=None,
+                    help="Comma-separated table names to load, e.g. --only sector_monthly. "
+                         "Every other loader is skipped, so a scoped repair leaves the rest "
+                         "of the database provably untouched.")
     args = ap.parse_args()
 
     client = sb()
     dry = args.dry_run
     failures: list[str] = []
+    only = {s.strip() for s in args.only.split(",")} if args.only else None
+
+    if only:
+        known = {f.__name__.removeprefix("load_") for f in LOADERS}
+        unknown = only - known
+        if unknown:
+            sys.exit(f"--only: no such loader(s): {', '.join(sorted(unknown))}\n"
+                     f"known: {', '.join(sorted(known))}")
+        print(f"Scoped run — loading only: {', '.join(sorted(only))}")
 
     if args.parse_first:
         # Parse PDFs first
@@ -362,7 +381,7 @@ def main() -> None:
     elif args.path.is_dir():
         json_dir = args.path
     else:
-        process_json(args.path, client, dry, failures)
+        process_json(args.path, client, dry, failures, only)
         _finish(failures)
         return
 
@@ -371,7 +390,7 @@ def main() -> None:
     jsons = sorted(j for j in json_dir.glob("*.json") if MAIN_PAT.match(j.name))
     print(f"\nLoading {len(jsons)} main JSON files from {json_dir} (skipping sub-reports)")
     for j in jsons:
-        process_json(j, client, dry, failures)
+        process_json(j, client, dry, failures, only)
 
     _finish(failures)
 
