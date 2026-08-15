@@ -3,24 +3,17 @@
 import { useEffect, useRef, useState, useCallback, type ReactNode } from 'react'
 import { createPortal } from 'react-dom'
 import { compositeWatermark, downloadImage, copyImage } from '@/lib/watermark'
+import { useChartTheme } from '@/lib/chartTheme'
 
-// ── Palette (matches TradingView "dark" theme) ─────────────────────────────────
-const C = {
-  bg:      '#131722',
-  panel:   '#1c2030',
-  border:  '#2a2e39',
-  hover:   '#2a2e39',
-  text:    '#d1d4dc',
-  icon:    '#b2b5be', // brighter idle colour for toolbar buttons (more contrast)
-  muted:   '#787b86',
-  faint:   '#5d606b',
-  accent:  '#2962ff',
-  up:      '#26a69a',
-  down:    '#ef5350',
-  grid:    '#1e222d',
-  cross:   '#9598a1',
-  crossBg: '#363a45',
-}
+/*
+ * The palette now comes from lib/chartTheme.ts via `useChartTheme()`, which
+ * reads `data-theme` and re-reads it on change. It used to be a module-level
+ * const of 15 hard-coded TradingView dark values used in 89 places, with no
+ * theme awareness at all — so this chart rendered dark on a light page, which
+ * was already broken in production before the redesign.
+ *
+ * The DARK values are unchanged, so dark mode renders exactly as before.
+ */
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 type RawRow = {
@@ -97,6 +90,7 @@ const TrashIcon = I(<><path d="M4 7h16M9 7V5a1 1 0 011-1h4a1 1 0 011 1v2M6 7l1 1
 
 // Hover tooltip · small label that appears beside/below a button on hover
 function Tip({ label, side = 'right', children }: { label: string; side?: 'right' | 'bottom' | 'top'; children: ReactNode }) {
+  const C = useChartTheme()
   const pos =
     side === 'right'  ? { left: '100%', marginLeft: 8, top: '50%', transform: 'translateY(-50%)' }
     : side === 'top'  ? { bottom: '100%', marginBottom: 8, left: '50%', transform: 'translateX(-50%)' }
@@ -171,6 +165,7 @@ function getCandles(rows: RawRow[], period: PeriodType): KlineBar[] {
 
 // ── KChart Component ──────────────────────────────────────────────────────────
 export default function KChart({ sym, name, fill = false }: { sym: string; name?: string; fill?: boolean }) {
+  const C = useChartTheme()
   const containerRef  = useRef<HTMLDivElement>(null)
   const chartRef      = useRef<any>(null)
   const rawCache      = useRef<Map<string, RawRow[]>>(new Map())
@@ -372,7 +367,13 @@ export default function KChart({ sym, name, fill = false }: { sym: string; name?
       paneIds.current.clear()
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [sym, tf, chartType, isFullscreen])
+  /* `C` is in the deps deliberately. klinecharts takes its palette at init(),
+     so a theme toggle must rebuild the instance — this effect already disposes
+     and rebuilds for chartType and isFullscreen, so it is a path that is
+     exercised rather than a new one. The cost is that an in-session drawing is
+     lost when the user switches theme; drawings are session-only by decision
+     anyway, and a chart that stays dark on a white page is the worse defect. */
+  }, [sym, tf, chartType, isFullscreen, C])
 
   // Fullscreen: lock body scroll, Escape to exit
   useEffect(() => {
@@ -462,7 +463,10 @@ export default function KChart({ sym, name, fill = false }: { sym: string; name?
       }
     } catch { setExportMsg('تعذّر التصدير') }
     setTimeout(() => setExportMsg(''), 2000)
-  }, [sym])
+    /* `C.bg` is a real dependency: without it a theme toggle leaves this
+       callback exporting a PNG with the previous theme's background, which
+       looks like a corrupted image rather than a stale one. */
+  }, [sym, C.bg])
 
   // ── Live OHLC legend ────────────────────────────────────────────────────────────
   const legendIdx = cursorIdx != null && cursorIdx >= 0 && cursorIdx < bars.length ? cursorIdx : bars.length - 1
