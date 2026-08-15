@@ -18,6 +18,11 @@ export default function AuthModal({ onClose, defaultTab = 'signin', lang = 'ar' 
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [done, setDone] = useState<'signup' | 'reset' | null>(null)
+  // Seconds left before the mail can be sent again. Supabase rate-limits resends
+  // server-side; without a cooldown the button just collects 429s and the user
+  // reads them as "it is broken" rather than "wait a moment".
+  const [cooldown, setCooldown] = useState(0)
+  const [resent, setResent] = useState(false)
   const ar = lang === 'ar'
   const sb = createClient()
   const firstFieldRef = useRef<HTMLInputElement>(null)
@@ -62,6 +67,46 @@ export default function AuthModal({ onClose, defaultTab = 'signin', lang = 'ar' 
     }
   }
 
+  // Tick the resend cooldown down to zero.
+  useEffect(() => {
+    if (cooldown <= 0) return
+    const t = setTimeout(() => setCooldown(c => c - 1), 1000)
+    return () => clearTimeout(t)
+  }, [cooldown])
+
+  /*
+   * «تحقق من بريدك» was a terminal state: `auth.resend` was called nowhere in
+   * the repository, so a confirmation mail that never arrived left the user with
+   * no path forward at all — not even a second attempt.
+   */
+  async function resend() {
+    if (cooldown > 0 || !email) return
+    setError(null)
+    setResent(false)
+    setLoading(true)
+    try {
+      if (done === 'signup') {
+        const { error } = await sb.auth.resend({
+          type: 'signup',
+          email,
+          options: { emailRedirectTo: `${window.location.origin}/profile` },
+        })
+        if (error) throw error
+      } else {
+        const { error } = await sb.auth.resetPasswordForEmail(email, {
+          redirectTo: `${window.location.origin}/auth/reset`,
+        })
+        if (error) throw error
+      }
+      setResent(true)
+      setCooldown(60)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Something went wrong')
+    } finally {
+      setLoading(false)
+    }
+  }
+
   async function resetPassword() {
     if (!email) {
       setError(ar ? 'أدخل بريدك الإلكتروني أولاً' : 'Enter your email first')
@@ -70,8 +115,10 @@ export default function AuthModal({ onClose, defaultTab = 'signin', lang = 'ar' 
     setError(null)
     setLoading(true)
     try {
+      // /profile has no password field. The link has to land somewhere that can
+      // actually call updateUser, which is what /auth/reset exists to do.
       const { error } = await sb.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/profile`,
+        redirectTo: `${window.location.origin}/auth/reset`,
       })
       if (error) throw error
       setDone('reset')
@@ -111,6 +158,21 @@ export default function AuthModal({ onClose, defaultTab = 'signin', lang = 'ar' 
                 ? (ar ? 'أرسلنا لك رابط التأكيد.' : 'We sent you a confirmation link.')
                 : (ar ? 'افتح الرابط لاختيار كلمة مرور جديدة.' : 'Open it to choose a new password.')}
             </span>
+            {/* The address is Latin text; it reads backwards without an island. */}
+            <span dir="ltr" className="auth-sent-to">{email}</span>
+
+            {error ? <div className="auth-error" role="alert">{error}</div> : null}
+            {resent ? (
+              <span role="status" className="gain">
+                {ar ? 'أُرسل مرة أخرى ✓' : 'Sent again ✓'}
+              </span>
+            ) : null}
+
+            <button type="button" className="auth-link" onClick={resend} disabled={loading || cooldown > 0}>
+              {cooldown > 0
+                ? (ar ? `إعادة الإرسال بعد ${cooldown} ثانية` : `Resend in ${cooldown}s`)
+                : (ar ? 'لم يصلك البريد؟ أعد الإرسال' : "Didn't get the email? Resend")}
+            </button>
           </div>
         ) : (
           <>

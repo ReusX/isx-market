@@ -6938,3 +6938,32 @@ button.pulse-tile.is-active .pulse-tile-label svg {
      reader can see. Five cards clear an 812px viewport with room over. */
   .skeleton-row:nth-of-type(n + 6) { display: none; }
 }
+
+/* ── /auth/reset ────────────────────────────────────────────────────────────
+   Three classes, because the page is otherwise built from what already exists
+   (.app-card, .auth-form, .tool-field, .empty-state). It gets its real design
+   in the auth phase; this is the minimum that keeps it from looking unfinished.
+   ────────────────────────────────────────────────────────────────────────── */
+.reset-card {
+  max-inline-size: 460px;
+  margin-inline: auto;
+  display: grid;
+  gap: 14px;
+}
+
+.reset-skeleton { block-size: 120px; border-radius: 16px; }
+
+/* The failure reason comes back from Supabase in English whatever the
+   interface language, so it is set as a quiet LTR island. */
+.reset-reason {
+  font-size: 13px;
+  opacity: 0.7;
+}
+
+/* The address the mail went to, inside the "check your email" state. Latin
+   text in an Arabic column, so it is an LTR island and centred with the rest
+   of .auth-done rather than pushed to one edge. */
+.auth-sent-to {
+  font-family: var(--font-mono);
+  align-self: center;
+}
