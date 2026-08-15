@@ -476,3 +476,242 @@
   .ds-skel span { animation: none; }
   .mv-btn.is-loading::after { animation-duration: 2s; }
 }
+
+/* ═══ Feedback · toasts ═══════════════════════════════════════════════════
+   Toasts render in a portal at the document root, OUTSIDE `.iq-page`, so they
+   are theme-scoped on `[data-theme]` directly. They are listed in the
+   containment audit for that reason. */
+
+.ty-live {
+  position: absolute;
+  inline-size: 1px;
+  block-size: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.ty-stack {
+  position: fixed;
+  z-index: 500;
+  /* The INLINE-END corner — the left in RTL. Inline-start is where the rail
+     lives, and a toast stacking over the navigation covers the one thing a
+     reader reaches for when something has just failed. */
+  inset-block-end: var(--mv-sp-5, 20px);
+  inset-inline-end: var(--mv-sp-5, 20px);
+  display: flex;
+  flex-direction: column-reverse;
+  gap: 8px;
+  max-inline-size: min(400px, calc(100vw - 32px));
+  pointer-events: none;
+}
+.ty-stack > * { pointer-events: auto; }
+
+.ty-toast {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  padding: 11px 13px;
+  border: 1px solid var(--mv-line-strong, rgb(20 22 26 / 0.22));
+  border-inline-start-width: 3px;
+  border-radius: 12px;
+  /* Opaque, never translucent. A toast sits over a table of numbers, and a
+     blurred one makes both itself and the figures behind it unreadable. */
+  background: #fff;
+  color: #1e2220;
+  font-size: 0.85rem;
+  line-height: 1.5;
+  box-shadow: 0 6px 22px rgb(20 24 20 / 0.13);
+  animation: ty-in 0.16s cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+[data-theme='dark'] .ty-toast {
+  border-color: rgb(255 255 255 / 0.16);
+  background: #1b1d1c;
+  color: #f0efec;
+  box-shadow: 0 8px 26px rgb(0 0 0 / 0.5);
+}
+
+/* Tone is carried by a mark AND a rule — never by colour alone. */
+.ty-mark {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  inline-size: 20px;
+  block-size: 20px;
+  border-radius: 50%;
+  color: #fff;
+  font-family: var(--font-numeric), ui-monospace, monospace;
+  font-size: 0.68rem;
+  font-weight: 700;
+  font-style: normal;
+}
+.ty-toast.is-success .ty-mark { background: #0e7350; }
+.ty-toast.is-error   .ty-mark { background: #b4392f; }
+.ty-toast.is-warning .ty-mark { background: #a8642a; }
+.ty-toast.is-info    .ty-mark { background: #3171c6; }
+
+.ty-toast.is-success { border-inline-start-color: #0e7350; }
+.ty-toast.is-error   { border-inline-start-color: #b4392f; }
+.ty-toast.is-warning { border-inline-start-color: #a8642a; }
+.ty-toast.is-info    { border-inline-start-color: #3171c6; }
+
+.ty-text { flex: 1; min-inline-size: 0; }
+.ty-count { color: #868c88; font-family: var(--font-numeric), ui-monospace, monospace; font-size: 0.7rem; font-weight: 700; }
+
+.ty-action,
+.ty-close {
+  flex-shrink: 0;
+  min-block-size: 32px;
+  padding-inline: 8px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: #3171c6;
+  font-family: var(--font-body), Arial, sans-serif;
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+[data-theme='dark'] .ty-action { color: #74a9ef; }
+.ty-close { color: #868c88; font-size: 0.72rem; }
+.ty-action:focus-visible,
+.ty-close:focus-visible { outline: 2px solid #3171c6; outline-offset: 1px; }
+
+@keyframes ty-in { from { opacity: 0; transform: translateY(6px); } }
+
+/* ═══ Feedback · overlays ═════════════════════════════════════════════════
+   ⚠ NO backdrop-filter anywhere in this block. iOS WebKit composites a
+   backdrop-filter layer ABOVE later-painted siblings regardless of z-index —
+   it blurred the drawer and swallowed taps. Scrims stay flat, always. */
+
+.ov-scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 600;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: rgb(16 18 16 / 0.52);
+  animation: ov-fade 0.14s ease-out;
+}
+
+.ov-dialog {
+  inline-size: min(440px, 100%);
+  padding: 22px;
+  border: 1px solid rgb(20 22 26 / 0.14);
+  border-radius: 16px;
+  background: #fff;
+  color: #1e2220;
+  box-shadow: 0 18px 50px rgb(16 18 16 / 0.26);
+  animation: ov-pop 0.18s cubic-bezier(0.32, 0.72, 0, 1);
+}
+[data-theme='dark'] .ov-dialog { border-color: rgb(255 255 255 / 0.14); background: #1b1d1c; color: #f0efec; }
+
+.ov-dialog h2 { margin: 0; font-family: var(--font-display), sans-serif; font-size: 1.05rem; font-weight: 700; line-height: 1.4; }
+.ov-dialog p { margin: 10px 0 0; font-size: 0.88rem; line-height: 1.8; color: #565c58; }
+[data-theme='dark'] .ov-dialog p { color: #b4b6b2; }
+
+.ov-actions { display: flex; gap: 10px; margin-block-start: 22px; }
+.ov-cancel,
+.ov-confirm {
+  flex: 1;
+  min-block-size: 44px;
+  padding-inline: 16px;
+  border: 1px solid rgb(20 22 26 / 0.14);
+  border-radius: 11px;
+  font-family: var(--font-body), Arial, sans-serif;
+  font-size: 0.86rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+/* Cancel stays visually easy — the safe path should be the one your hand
+   finds without aiming. */
+.ov-cancel { background: transparent; color: inherit; }
+.ov-confirm { border-color: transparent; background: #3171c6; color: #fff; }
+/* Red is spent on the destructive ACTION only, never the whole dialog. */
+.ov-confirm.is-danger { background: #b4392f; }
+.ov-cancel:focus-visible,
+.ov-confirm:focus-visible { outline: 2px solid #3171c6; outline-offset: 2px; }
+[data-theme='dark'] .ov-confirm:focus-visible { outline-color: #74a9ef; }
+
+.ov-scrim.is-sheet { place-items: end center; padding: 0; }
+
+.ov-sheet {
+  display: flex;
+  flex-direction: column;
+  inline-size: 100%;
+  max-block-size: 88vh;
+  border: 1px solid rgb(20 22 26 / 0.14);
+  background: #fff;
+  color: #1e2220;
+}
+[data-theme='dark'] .ov-sheet { border-color: rgb(255 255 255 / 0.14); background: #1b1d1c; color: #f0efec; }
+
+.ov-sheet.is-bottom {
+  border-start-start-radius: 18px;
+  border-start-end-radius: 18px;
+  /* The home indicator sits under the last row without this. */
+  padding-block-end: env(safe-area-inset-bottom, 0);
+  animation: ov-up 0.22s cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+/* Navigation comes from the inline-start edge — the RIGHT in RTL, under the
+   thumb that pressed the menu button. Positioned absolutely rather than placed
+   by the grid: the scrim's `place-items` is set twice, and whichever won last
+   was centring the navigation panel in the middle of the screen. */
+.ov-sheet.is-side {
+  position: absolute;
+  inset-block: 0;
+  inset-inline-start: 0;
+  inline-size: min(340px, 88vw);
+  max-block-size: none;
+  animation: ov-slide 0.22s cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+.ov-sheet-head {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+  padding: 14px 16px;
+  border-block-end: 1px solid rgb(20 22 26 / 0.09);
+}
+[data-theme='dark'] .ov-sheet-head { border-block-end-color: rgb(255 255 255 / 0.085); }
+.ov-grab { flex-basis: 100%; inline-size: 34px; block-size: 4px; margin: -4px auto 6px; border-radius: 3px; background: rgb(20 22 26 / 0.22); }
+.ov-sheet-head strong { flex: 1; font-family: var(--font-display), sans-serif; font-size: 0.92rem; font-weight: 700; }
+.ov-sheet-close {
+  min-inline-size: 40px;
+  min-block-size: 40px;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  color: #868c88;
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+.ov-sheet-close:focus-visible { outline: 2px solid #3171c6; outline-offset: -2px; }
+.ov-sheet-body { flex: 1; overflow-y: auto; padding: 14px 16px; -webkit-overflow-scrolling: touch; }
+.ov-sheet-foot { padding: 12px 16px; border-block-start: 1px solid rgb(20 22 26 / 0.09); }
+[data-theme='dark'] .ov-sheet-foot { border-block-start-color: rgb(255 255 255 / 0.085); }
+
+@keyframes ov-fade  { from { opacity: 0; } }
+@keyframes ov-pop   { from { opacity: 0; transform: scale(0.985); } }
+@keyframes ov-up    { from { opacity: 0; transform: translateY(14px); } }
+@keyframes ov-slide { from { opacity: 0; transform: translateX(-16px); } }
+
+/* Full-width on a phone, and above the home indicator. */
+@media (max-width: 640px) {
+  .ty-stack {
+    inset-inline: 10px;
+    inset-block-end: calc(10px + env(safe-area-inset-bottom, 0px));
+    max-inline-size: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ty-toast,
+  .ov-scrim,
+  .ov-dialog,
+  .ov-sheet { animation: none; }
+}
