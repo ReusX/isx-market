@@ -156,3 +156,65 @@ not something to assume.
   exposing `user_id` and `username`. It holds one test message and nothing in
   the app reads the table. Not a leak; a dead feature with a public surface.
   Retire it or leave it, but decide rather than inherit it.
+
+---
+
+## 5 · Phase 0.7 — archive recovery, commit by commit
+
+All 14 commits on `archive/pre-design-mode-work` reviewed individually. The
+branch was never merged and never will be; four commits landed, each as its own
+revertable commit.
+
+**4 accepted · 1 hand-ported · 4 deferred to 0.8/0.9 · 5 rejected**
+
+| # | archive commit | verdict | action | modifications | verification |
+|---|---|---|---|---|---|
+| 1 | `681a3dc` Step 0: root artefacts, Tailwind, route gate | ✅ **accepted** | cherry-picked → `3c80500` | none | re-verified all 117 root files still present and still dead; `public/` holds the real favicons and og-image, `app/robots.ts`/`app/sitemap.ts` the real robots and sitemap. Confirmed `--font-body`/`--font-numeric` already exist here, so the Tailwind hunk carries no dependency on the archived tokens. |
+| 2 | `6afd865` Step 1: quarantine `globals.css` | ⏸ **deferred to 0.8** | not landed | — | a byte-identical 15-file split of the 6,940-line sheet. Genuinely useful — it is what makes the legacy bridge deletable line by line — but it is CSS restructuring, and landing it in an infrastructure phase means every later token commit rebases onto it for no gain. It belongs with the token work. |
+| 3 | `0ffd2b8` Step 2: token layer + checkers | ⚖ **split — checkers deferred to 0.8** | not landed | — | `token-parity.mjs` (theme key parity) and `contrast.mjs` (WCAG AA both themes) are exactly the CI gates this project wants. Both hard-read `styles/tokens.css` and `styles/legacy/02-tokens.css`, **neither of which exists in this tree** — they arrive with #2 and with the token layer itself. Landing them now adds two gates that crash on a missing file. The token *values* are rejected outright: superseded by the approved reference app. |
+| 4 | `e1db683` Arabic letter-spacing guard | ⏸ **deferred to 0.8** | not landed | — | the rule is right and stays right. But it lives in `styles/materials.css` (arrives with #3), and its opt-back-in clause references `--track-wide`, which does not exist here. Checked for a live bug first: this tree sets `body { letter-spacing: 0 }` and has only two positive-tracking rules, a chart watermark and a mono numeric — **no Arabic text is being tracked today**, so this is preventive, not a fix. It lands with the token that makes it coherent. |
+| 5 | `c93a3c6` Step 3: primitives, drop Noto Kufi | ⛔ **rejected** | not landed | — | two independent reasons. The font change is **reversed by decision** — Noto Kufi Arabic is the approved typography, verified still intact at `app/layout.tsx:23`. And the primitives are not separable from the archived tokens: `styles/primitives.css` references `--r-control`, `--ink-2`, `--blue-400`, `--dur-2`, `--ease-out`, `--sp-3` and others, **none of which exist in this tree**. Primitives come from the reference app in 0.9. |
+| 6 | `abfd31a` build isolation | ✅ **accepted** | cherry-picked → `c1cb568` | dropped the `check:tokens` script (points at #3's files); kept `tsconfig.json` compact rather than the archive's whole-file reformat | builds now write to `.next-check`, so the verification loop stops deleting the chunks the dev server is handing out. |
+| 7 | `86389e0` Step 4: `lib/seo.ts` + 8 canonicals | ⚖ **accepted, rewritten** | cherry-picked, helper rewritten → `ead945e` | **all locale machinery removed** — see below | all 8 canonical bugs re-verified as still live before taking. Production build: every canonical and og:url correct and in agreement, 0 hreflang, 0 hardcoded origins outside the helper. |
+| 8 | `25053f6` retire `/analysis` | ⛔ **rejected for this phase** | not landed | — | a **product decision, not infrastructure**. `/analysis` is one of six route families whose removal and redirect target are open (P1-5), pending a traffic, backlink and internal-link audit. Landing the retirement here would settle that decision by accident. Note the two are independent: #7 gave `/analysis` a correct canonical, which is right whether it is later kept or retired. |
+| 9 | `f111f7e` Step 5: i18n scaffold | ⛔ **rejected — deferred project** | not landed | — | the locale project is deferred until the redesign is stable. The catalogue and `translate.ts` are locale-*independent* enough to reuse in principle, but nothing consumes them without the routing, so landing them adds dead code to the tree the redesign is about to rebuild. |
+| 10 | `b736eb9` OG image fix | ✅ **accepted, hand-ported** | ported → `3bee75a` | only the one real hunk taken | the commit is 69 renames into `app/[locale]/` plus one fix; cherry-picking it would have dragged in the deferred locale move. **Reproduced the bug first**: `curl` → exit 52, empty reply, 0 bytes. After: 200, `image/png`, 1200×630, 94,978 bytes, rendered and visually inspected. |
+| 11 | `b4254bf` Step 6: `app/[locale]` + middleware | ⛔ **rejected — explicit** | not landed | — | changes URL structure and adds locale middleware. Both named in the decision as do-not-reuse. ⚠ It also contains `lib/fonts.ts`, which serves fonts from `@fontsource` via `next/font/local` instead of `next/font/google` — a real fix for the build re-downloading fonts whenever the layout moved. **The technique is worth recovering in 0.8**; the file itself configures IBM Plex and cannot be taken as-is. |
+| 12 | `c670926` Step 7: English tree | ⛔ **rejected — explicit** | not landed | — | makes `/en` reachable and flips `ENGLISH_LIVE`. The entire deferred project. |
+| 13 | `24d600d` Step 8a: rebuild the shell | ⛔ **rejected — superseded** | not landed | — | the shell is rebuilt from the approved reference app in 0.9. |
+| 14 | `57d34aa` Step 8b: rebuild market/companies/screener | ⛔ **rejected — superseded** | not landed | — | superseded market-page UI, and page migration does not begin in Phase 0 at all. |
+
+### 5a · Exactly what changed in `lib/seo.ts`
+
+Kept: `SITE`, `absUrl(path)`, `seoAlternates(path)`, and the `normalise` helper.
+Those are what all 37 call sites use — every one with a single argument.
+
+Removed **entirely**, not disabled: the `Locale` type, `DEFAULT_LOCALE`,
+`LOCALES`, `ENGLISH_LIVE`, `localePath`, `localesFor`, `ogLocale`, the `/en`
+prefix branch inside `absUrl`, and the `languages` / `x-default` hreflang block
+inside `seoAlternates`.
+
+The archive shipped `ENGLISH_LIVE = false`, which is correct today and one
+boolean away from emitting `/en` canonicals and hreflang for routes that would
+not exist. That is the exact deploy the deferral is meant to prevent, and a
+flag that consequential should not sit dormant in the tree while the project it
+serves is on hold. When the locale project starts, this is where it comes back —
+next to the routing that makes those URLs real.
+
+### 5b · Checks run
+
+| check | result |
+|---|---|
+| `npx tsc --noEmit` | ✅ 0 errors, after every commit |
+| `npx eslint app lib components` | ✅ 0 errors, 3 pre-existing warnings (2 `<img>`, 1 exhaustive-deps) |
+| `npm run check:routes` | ✅ 43 routes, 32 prerendered, 11 dynamic. Baseline regenerated: +1 prerendered vs the archive's 42/31, which is `/auth/reset` from earlier on this branch. No route regressed. |
+| canonicals / og:url | ✅ every prerendered route correct and in agreement |
+| `/en` leakage | ✅ none — 0 hreflang emitted, no `/en` path emitted anywhere |
+| removed-route navigation | ✅ none returned; no navigation was touched in this phase |
+| Noto Kufi | ✅ intact, `app/layout.tsx:23` |
+| visual page migration | ✅ none started — this phase is infrastructure only |
+| `main` | ✅ untouched at `d2f60cc` |
+| working tree | ✅ clean |
+
+`/profile` and `/auth/reset` still inherit the root canonical. Both are
+`noindex, nofollow` and neither is in the sitemap, so nothing acts on it.
