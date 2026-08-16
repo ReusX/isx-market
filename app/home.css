@@ -231,6 +231,31 @@
 .hm-spark { inline-size: 84px; }
 
 .hm-co { display: flex; gap: var(--mv-sp-3); align-items: center; color: inherit; text-decoration: none; min-inline-size: 20ch; }
+
+/* CompanyLogo takes its geometry from the CALLER — the component's own comment
+   says so — and this table gave it none, so every logo rendered at its
+   intrinsic size and blew rows out to 200px+. The reference uses a small
+   letter/mark square; this pins that scale and role. */
+.hm-co .co-logo {
+  flex-shrink: 0;
+  inline-size: 22px;
+  block-size: 22px;
+  overflow: hidden;
+  border-radius: 6px;
+  display: grid;
+  place-items: center;
+  font-family: var(--font-numeric), ui-monospace, monospace;
+  font-size: 0.6rem;
+  font-weight: var(--mv-fw-bold);
+  color: #fff;
+  line-height: 1;
+}
+.hm-co .co-logo img {
+  inline-size: 100%;
+  block-size: 100%;
+  object-fit: contain;
+  background: #fff;
+}
 .hm-co strong { display: block; font-size: var(--mv-fs-body); font-weight: var(--mv-fw-semibold); }
 .hm-co small { display: block; color: var(--mv-ink-3); font-family: var(--font-numeric), ui-monospace, monospace; font-size: var(--mv-fs-micro); }
 .hm-co:hover strong { color: var(--mv-hero); }
