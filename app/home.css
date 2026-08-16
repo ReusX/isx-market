@@ -1,0 +1,275 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   Homepage. Every selector is under `.hm`, which sits inside `.iq-page`, so
+   the token layer reaches it and the legacy stylesheet's bare-element rules
+   are contained. No value here is a literal that a token could carry.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.hm {
+  padding: var(--mv-sp-6) var(--mv-sp-6) var(--mv-sp-10);
+  color: var(--mv-ink);
+  font-family: var(--font-body), Arial, sans-serif;
+  font-size: var(--mv-fs-body);
+}
+
+.hm-intro {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--mv-sp-3);
+  align-items: baseline;
+  margin-block-end: var(--mv-sp-6);
+}
+.hm-intro .ty-page-title { flex-basis: 100%; order: 2; }
+.hm-intro .ty-label { order: 1; }
+.hm-intro .ds-fresh { order: 3; }
+
+/* ── the composition ──────────────────────────────────────────────────────
+   The hero spans the full width; flow, breadth, activity and sectors share
+   the row beneath it. Named areas rather than spans, so the mobile order is
+   a re-declaration and not an arithmetic puzzle. */
+.hm-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--mv-sp-4);
+  margin-block-end: var(--mv-sp-4);
+}
+.hm-hero { grid-column: 1 / -1; }
+.hm-flow-wrap { grid-column: span 2; display: flex; flex-direction: column; gap: var(--mv-sp-2); }
+.hm-breadth { grid-column: span 2; }
+.hm-activity { grid-column: span 2; }
+.hm-sectors { grid-column: span 2; }
+
+.hm-card {
+  position: relative;
+  padding: var(--mv-sp-5);
+  border: 1px solid var(--mv-line);
+  border-radius: var(--mv-r-panel);
+  background: var(--mv-panel-solid);
+  box-shadow: var(--mv-shadow);
+}
+.hm-flow-wrap .hm-card { flex: 1; }
+
+.hm-card-head {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--mv-sp-3);
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-block-end: var(--mv-sp-4);
+}
+.hm-card-head .ty-label { display: block; margin-block-end: 2px; }
+
+.hm-more,
+.hm-flow-cta,
+.hm-expand {
+  display: inline-flex;
+  gap: var(--mv-sp-1);
+  align-items: center;
+  min-block-size: var(--mv-control-h-sm);
+  padding-inline: var(--mv-sp-3);
+  border: 1px solid var(--mv-line);
+  border-radius: var(--mv-r-control);
+  background: transparent;
+  color: var(--mv-hero);
+  text-decoration: none;
+  font-family: inherit;
+  font-size: var(--mv-fs-label);
+  font-weight: var(--mv-fw-semibold);
+  cursor: pointer;
+}
+[data-theme='dark'] .hm-more,
+[data-theme='dark'] .hm-flow-cta,
+[data-theme='dark'] .hm-expand { color: var(--mv-hero-bright); }
+.hm-more:hover, .hm-flow-cta:hover, .hm-expand:hover { border-color: var(--mv-hero); background: var(--mv-well); }
+
+.hm-note { margin: 0; }
+
+/* ── ISX60 hero ─────────────────────────────────────────────────────────── */
+.hm-hero-value {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--mv-sp-3);
+  align-items: baseline;
+  margin-block-end: var(--mv-sp-4);
+}
+.hm-hero-value .ty-metric { font-size: 2.4rem; }
+.hm-hero-value small { flex-basis: 100%; }
+.hm-hero-chart { min-block-size: 220px; }
+
+/* ── breadth ────────────────────────────────────────────────────────────── */
+.hm-breadth-bar {
+  display: flex;
+  overflow: hidden;
+  block-size: 10px;
+  border-radius: var(--mv-r-pill);
+  background: var(--mv-well);
+}
+.hm-breadth-bar i { display: block; }
+.hm-breadth-bar .is-up { background: var(--mv-up); }
+.hm-breadth-bar .is-down { background: var(--mv-down); }
+.hm-breadth-bar .is-flat { background: var(--mv-ink-3); }
+/* Unknown is hatched, not a flat tone — it must not read as a fifth category
+   of movement. */
+.hm-breadth-bar .is-na {
+  background: repeating-linear-gradient(
+    135deg, var(--mv-line-strong) 0 3px, transparent 3px 6px
+  ), var(--mv-well);
+}
+
+.hm-breadth-legend {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--mv-sp-2) var(--mv-sp-4);
+  margin: var(--mv-sp-4) 0 0;
+}
+.hm-breadth-legend > div { display: flex; align-items: center; justify-content: space-between; gap: var(--mv-sp-2); }
+.hm-breadth-legend dt { display: flex; gap: var(--mv-sp-2); align-items: center; color: var(--mv-ink-2); font-size: var(--mv-fs-label); }
+.hm-breadth-legend dd { margin: 0; }
+.hm-breadth-legend i { inline-size: 8px; block-size: 8px; border-radius: 2px; flex-shrink: 0; }
+.hm-breadth-legend .is-up i { background: var(--mv-up); }
+.hm-breadth-legend .is-down i { background: var(--mv-down); }
+.hm-breadth-legend .is-flat i { background: var(--mv-ink-3); }
+.hm-breadth-legend .is-na i { border: 1px dashed var(--mv-line-strong); background: transparent; }
+.hm-breadth-legend .is-up dd { color: var(--mv-up); }
+.hm-breadth-legend .is-down dd { color: var(--mv-down); }
+.hm-breadth-legend .is-na dd { color: var(--mv-ink-3); }
+
+.hm-breadth-denom { margin: var(--mv-sp-4) 0 0; }
+
+/* ── activity ───────────────────────────────────────────────────────────── */
+.hm-act-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--mv-sp-4);
+  margin: 0;
+}
+.hm-act-grid dt { margin-block-end: var(--mv-sp-1); }
+.hm-act-grid dd { margin: 0; font-size: 1.05rem; font-weight: var(--mv-fw-bold); }
+
+/* ── foreign flow ───────────────────────────────────────────────────────── */
+.hm-flow { overflow: hidden; }
+.hm-flow-mark {
+  position: absolute;
+  inset-block-start: var(--mv-sp-5);
+  inset-inline-start: var(--mv-sp-5);
+  color: var(--mv-ink-3);
+  font-family: var(--font-numeric), ui-monospace, monospace;
+  font-size: var(--mv-fs-micro);
+  opacity: 0.35;
+  pointer-events: none;
+}
+
+.hm-flow-net { margin-block-end: var(--mv-sp-4); }
+.hm-flow-net .ty-meta { display: block; margin-block-end: 2px; }
+
+.hm-flow-bar {
+  display: flex;
+  overflow: hidden;
+  block-size: 10px;
+  border-radius: var(--mv-r-pill);
+  background: var(--mv-well);
+}
+.hm-flow-bar .is-buy { background: var(--mv-up); }
+.hm-flow-bar .is-sell { background: var(--mv-down); }
+
+.hm-flow-legend { display: flex; flex-wrap: wrap; gap: var(--mv-sp-5); margin: var(--mv-sp-4) 0 0; }
+.hm-flow-legend dt { display: flex; gap: var(--mv-sp-2); align-items: center; color: var(--mv-ink-2); font-size: var(--mv-fs-label); }
+.hm-flow-legend dd { margin: 2px 0 0; }
+.hm-flow-legend i { inline-size: 8px; block-size: 8px; border-radius: 2px; }
+.hm-flow-legend .is-buy i { background: var(--mv-up); }
+.hm-flow-legend .is-sell i { background: var(--mv-down); }
+
+/* ── sectors ────────────────────────────────────────────────────────────── */
+.hm-sec-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: var(--mv-sp-3); }
+.hm-sec-list li { display: grid; grid-template-columns: 8ch minmax(0, 1fr) 7ch; gap: var(--mv-sp-3); align-items: center; }
+.hm-sec-name { color: var(--mv-ink-2); font-size: var(--mv-fs-label); }
+.hm-sec-track { block-size: 6px; border-radius: var(--mv-r-pill); background: var(--mv-well); }
+.hm-sec-track i { display: block; block-size: 100%; border-radius: var(--mv-r-pill); }
+.hm-sec-track .is-up { background: var(--mv-up); }
+.hm-sec-track .is-down { background: var(--mv-down); }
+.hm-sec-list bdi { text-align: end; }
+
+/* ── top active table ───────────────────────────────────────────────────── */
+.hm-table-scroll { overflow-x: auto; }
+.hm-table { inline-size: 100%; border-collapse: collapse; }
+
+.hm-table th {
+  padding: 0 var(--mv-sp-3) var(--mv-sp-2);
+  border-block-end: 1px solid var(--mv-line-strong);
+  color: var(--mv-ink-3);
+  font-size: var(--mv-fs-caption);
+  font-weight: var(--mv-fw-semibold);
+  text-align: start;
+  white-space: nowrap;
+}
+.hm-table th:not(:first-child) { text-align: end; }
+
+.hm-table td {
+  block-size: var(--mv-row-h);
+  padding: 0 var(--mv-sp-3);
+  border-block-end: 1px solid var(--mv-line);
+  font-size: var(--mv-fs-body);
+}
+.hm-table tbody tr:last-child td { border-block-end: 0; }
+.hm-table tbody tr:hover { background: var(--mv-well); }
+
+.hm-num { text-align: end; white-space: nowrap; }
+.hm-spark { inline-size: 84px; }
+
+.hm-co { display: flex; gap: var(--mv-sp-3); align-items: center; color: inherit; text-decoration: none; min-inline-size: 20ch; }
+.hm-co strong { display: block; font-size: var(--mv-fs-body); font-weight: var(--mv-fw-semibold); }
+.hm-co small { display: block; color: var(--mv-ink-3); font-family: var(--font-numeric), ui-monospace, monospace; font-size: var(--mv-fs-micro); }
+.hm-co:hover strong { color: var(--mv-hero); }
+[data-theme='dark'] .hm-co:hover strong { color: var(--mv-hero-bright); }
+
+.hm-table-actions { display: flex; flex-wrap: wrap; gap: var(--mv-sp-3); align-items: center; }
+
+/* ── expanded ISX60 ─────────────────────────────────────────────────────── */
+.hm-expand-scrim { place-items: center; padding: var(--mv-sp-5); }
+.hm-expand-host {
+  display: flex;
+  flex-direction: column;
+  inline-size: min(1100px, 100%);
+  max-block-size: 88vh;
+  padding: var(--mv-sp-5);
+  border: 1px solid var(--mv-line);
+  border-radius: var(--mv-r-panel);
+  background: var(--mv-panel-solid);
+  color: var(--mv-ink);
+  box-shadow: var(--mv-shadow);
+}
+.hm-expand-host > header {
+  display: flex;
+  gap: var(--mv-sp-3);
+  align-items: center;
+  justify-content: space-between;
+  margin-block-end: var(--mv-sp-4);
+}
+.hm-expand-body { flex: 1; min-block-size: 0; overflow: auto; }
+
+/* ── tablet ─────────────────────────────────────────────────────────────── */
+@media (max-width: 1100px) {
+  .hm-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .hm-flow-wrap, .hm-breadth, .hm-activity, .hm-sectors { grid-column: span 1; }
+}
+
+/* ── phone ──────────────────────────────────────────────────────────────
+   Order is declared, not inherited: market context, hero, foreign flow,
+   internals, sectors, then the table (which follows in source order). */
+@media (max-width: 720px) {
+  .hm { padding: var(--mv-sp-4) var(--mv-sp-4) var(--mv-sp-8); }
+  .hm-grid { grid-template-columns: minmax(0, 1fr); }
+  .hm-flow-wrap, .hm-breadth, .hm-activity, .hm-sectors, .hm-hero { grid-column: 1 / -1; }
+  .hm-hero { order: 1; }
+  .hm-flow-wrap { order: 2; }
+  .hm-breadth { order: 3; }
+  .hm-activity { order: 4; }
+  .hm-sectors { order: 5; }
+
+  .hm-hero-value .ty-metric { font-size: 1.9rem; }
+  .hm-card { padding: var(--mv-sp-4); }
+  .hm-breadth-legend { grid-template-columns: minmax(0, 1fr); }
+  /* The table keeps its columns and scrolls, rather than restacking into
+     cards — a price board read as a stack of cards loses the column
+     comparison that is the entire reason to look at it. */
+  .hm-table { min-inline-size: 560px; }
+}

@@ -1,4 +1,5 @@
 import HomeClient from './HomeClient'
+import './home.css'
 
 export const revalidate = 60
 
