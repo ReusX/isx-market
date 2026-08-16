@@ -601,3 +601,149 @@ than in the shell.
 and neither blocks route migration: the KChart runtime repaint wants one manual
 check against real data, and `/charts` keeps its hard-coded palette until the
 route's removal is decided.
+
+---
+
+## 8 · Phase 1 — homepage
+
+### 8a · Data sources and canonical window
+
+Full element → source table in `docs/HOMEPAGE_DATA_MAP.md`. Summary:
+
+| module | source | window |
+|---|---|---|
+| ISX60 level / change / chart | `daily_index` | latest session, change vs **prior session** |
+| نشاط السوق | `daily_index` | latest session |
+| اتساع السوق | `daily_prices`, latest vs prior session | latest session |
+| حركة السوق حسب القطاع | `daily_prices` + `companies.json` | latest session |
+| الشركات الأكثر حركة | `daily_prices` + `companies.json` | latest session |
+| تدفق المستثمر الأجنبي | `foreign_flow_company_daily` | its own latest session |
+
+The page resolves ONE session and labels every module with it. Foreign flow
+keeps its own resolution and, when it is behind the index session, the page
+says so instead of implying the windows match.
+
+**No relative labels.** Sessions are not consecutive calendar days, so the hero
+names the prior session it compares against, the flow card names its own, and
+the freshness chip carries the exact date. Nothing says «مباشر» — ISX publishes
+one bulletin per trading day, so "live" is not a thing this product has.
+
+### 8b · §5 foreign-flow reconciliation — PASSES
+
+Verified twice: at audit on session 2026-08-13, and again on the live session
+2026-08-16 after the pipeline advanced.
+
+| | 2026-08-16 |
+|---|---|
+| FB buy | 110,130,215 |
+| FS sell | 38,152,740 |
+| net | **+71,977,475** |
+| `FB ≤ M` · `FS ≤ M` · `FB+FS ≤ 2M` | ✅ all hold |
+
+UI shows net **+72M**, buy 110.1M (74.3%), sell 38.2M (25.7%) — matching source.
+
+### 8c · Four-category breadth — the one number that changed
+
+Approved by the owner before implementation.
+
+| | count |
+|---|---|
+| رابح | 11 |
+| خاسر | 10 |
+| ثابت | 21 |
+| **دون إغلاق سابق** | **4** |
+| | 46 traded of 103 listed |
+
+The fourth bar is **hatched, not tinted**, so it cannot read as a fifth
+direction of movement, and the denominator is stated because "11 advancing"
+means 11 of the 46 that traded.
+
+⚠ The root cause was in the SHARED layer, not the homepage. `lib/market.ts`
+set `change = 0` and `pct = 0` when a company had no prior close and counted it
+as flat. Fixed at source under §29's allowance, narrowly: `change`/`pct` still
+hold 0 (both are typed `number` and read across routes this phase must not
+touch) and a new `noPrior` flag carries the truth, with a fourth `na` counter
+on `LiveData.breadth`.
+
+### 8d · Expanded ISX60 chart
+
+A full-screen host in component state. **Not a route** — the URL does not
+change, verified. Focus trap, Escape and focus return come from the shared
+`useOverlay`. The removed standalone `/charts` destination is not recreated.
+
+§9: the homepage hero uses `components/design/IndexChart`, which was already
+theme-aware and repaints correctly in both themes (verified). It does **not**
+use KChart, so **the KChart runtime check stays open for the Company Detail
+phase**, exactly as §9 permits.
+
+### 8e · Responsive
+
+| width | result |
+|---|---|
+| 1440 | hero full width, four-column grid, full table density |
+| ≤1100 | two columns, no crushed chart |
+| 375 | single column; reading order hero → flow → breadth → activity → sectors → table |
+
+**No horizontal page overflow at 375** (scrollWidth 375 = innerWidth 375). The
+table scrolls inside its own container rather than restacking into cards — a
+price board read as a stack of cards loses the column comparison that is the
+whole reason to look at it.
+
+### 8f · Light / dark
+
+Both verified. Dark: ink `#f0efec`, panel `#1f1f1f`, up `#35c98a`. The hero
+chart, gridlines, semantic pair, flow bar, dividers, panels and watermark all
+follow the theme. No hard-coded dark-only palette on this page.
+
+### 8g · Legacy CSS removed
+
+133 lines, 30 rules, each verified unreferenced across every `.ts`/`.tsx`
+before deletion:
+
+`.hero-grid` `.home-2col` `.home-card-link` `.home-hero` `.home-news-date`
+`.home-news-list` `.home-news-row` `.index-chart-link` `.index-head`
+`.index-panel` `.index-shadowline` `.index-value` `.mover-empty`
+`.movers-grid` `.movers-widget` `.stats-strip` `.stats-title`, plus one
+`@media` block left empty.
+
+**Kept** (other routes still use them): `.companies-section` `.home-col-co`
+`.home-table` `.index-area` `.index-chart` `.index-chart-block` `.index-line`
+`.mover-row`. Several read like homepage classes and are not — which is why
+each was checked individually rather than removed by prefix.
+
+### 8h · Performance
+
+| | before | after |
+|---|---|---|
+| route chunk | 9.53 kB | 12.3 kB |
+| **first-load JS** | **171 kB** | **170 kB** |
+
+Total first load went **down**. No company-chart drawing library is imported —
+the hero uses the lightweight SVG `IndexChart`, and the expanded view reuses
+the same component rather than pulling in a second charting stack.
+
+### 8i · Checks
+
+| check | result |
+|---|---|
+| `tsc --noEmit` | ✅ 0 errors |
+| `eslint` | ✅ clean on all new files |
+| `check:routes` | ✅ 44 routes, no regressions; `/` still prerendered `○` |
+| token parity / contrast / Arabic tracking | ✅ all pass |
+| `/` and 6 other routes | ✅ 200 |
+| canonical | ✅ `https://iraqsm.com`, og:url agrees |
+| title | ✅ unchanged |
+| hreflang | ✅ 0 |
+| headings | ✅ one `<h1>`, module `<h2>`s beneath |
+| one `<main>` | ✅ |
+| foreign-flow CTA | ✅ `/statistics/foreign-flow`, «التفاصيل ↗», card is NOT a link so there is no nested-click conflict |
+| touch targets | ✅ CTA/more/expand boxes are 36px with a **44px hit area** |
+| company links | ✅ all route to `/c/[sym]` |
+| removed nav / Alerts / `/charts` | ✅ none present |
+
+### 8j · Unresolved
+
+- **KChart runtime repaint** — still unverified, deferred to Company Detail per
+  §9. The homepage does not use KChart.
+- **`app/charts/page.tsx`** — keeps 5 hard-coded hexes; the route is removed
+  from the redesigned product.

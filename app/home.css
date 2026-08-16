@@ -79,6 +79,21 @@
 [data-theme='dark'] .hm-more,
 [data-theme='dark'] .hm-flow-cta,
 [data-theme='dark'] .hm-expand { color: var(--mv-hero-bright); }
+
+/* The BOX is 36px so it sits quietly beside a heading; the TAP TARGET is 44px.
+   Without this the flow card's primary CTA — the one §15 singles out — is an
+   8px-short target on a phone, which is the difference between "tap it" and
+   "tap near it twice". */
+.hm-more, .hm-flow-cta, .hm-expand { position: relative; }
+.hm-more::before,
+.hm-flow-cta::before,
+.hm-expand::before {
+  content: '';
+  position: absolute;
+  inset: 50% 0 auto;
+  block-size: var(--mv-control-h);
+  transform: translateY(-50%);
+}
 .hm-more:hover, .hm-flow-cta:hover, .hm-expand:hover { border-color: var(--mv-hero); background: var(--mv-well); }
 
 .hm-note { margin: 0; }
