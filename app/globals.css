@@ -6837,3 +6837,9 @@ button.pulse-tile.is-active .pulse-tile-label svg {
   font-family: var(--font-mono);
   align-self: center;
 }
+
+/* The fourth breadth state on /market — traded with no comparable prior close.
+   Muted and dashed so it reads as "unknown", never as a direction of movement.
+   Removed with the rest of the /market legacy CSS when that route migrates. */
+.market-counts button.muted { color: var(--muted); }
+.market-counts button.muted bdi { border-block-end: 1px dashed var(--border); }

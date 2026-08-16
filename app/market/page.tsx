@@ -17,7 +17,9 @@ import { SkeletonTableRows } from '@/components/design/Placeholders'
 import { ListingStatusTabs, type ListingStatus } from '@/components/design/ListingStatusTabs'
 import type { Company } from '@/types'
 
-type Movement = 'all' | 'up' | 'flat' | 'down'
+/* `na` — traded, but with no comparable prior close. A fourth state, not a
+   variety of flat. See docs/MARKET_DATA_MAP.md §5. */
+type Movement = 'all' | 'up' | 'flat' | 'down' | 'na'
 type SortKey = 'mcap' | 'price' | 'change' | 'volume'
 
 const companyName = (c: Company, ar: boolean) => (ar ? c.ar || c.en : c.en || c.ar) || c.sym
@@ -95,7 +97,15 @@ export default function MarketPage() {
     // them drops carried-forward names — they have no move to belong to.
     if (movement !== 'all') {
       data = data.filter(c => !c.stale && (
-        movement === 'up' ? c.pct > 0 : movement === 'down' ? c.pct < 0 : c.pct === 0
+        movement === 'up' ? c.pct > 0
+        : movement === 'down' ? c.pct < 0
+        /* «ثابت» means MEASURED flat. A company with no valid prior close has
+           an unknown change, so `pct === 0` alone would quietly include it in
+           a filter that claims to show unchanged companies — the worst version
+           of the `—` versus `0` bug, because the user asked a precise question
+           and got a wrong answer. `noPrior` is the distinguishing signal. */
+        : movement === 'flat' ? (!c.noPrior && c.pct === 0)
+        : c.noPrior
       ))
     }
     const q = query.trim().toLowerCase()
@@ -125,9 +135,14 @@ export default function MarketPage() {
   const counts = useMemo(() => {
     const traded = listed.filter(c => !c.stale)
     return {
-      advancers: traded.filter(c => c.pct > 0).length,
-      unchanged: traded.filter(c => c.pct === 0).length,
-      decliners: traded.filter(c => c.pct < 0).length,
+      advancers: traded.filter(c => !c.noPrior && c.pct > 0).length,
+      unchanged: traded.filter(c => !c.noPrior && c.pct === 0).length,
+      decliners: traded.filter(c => !c.noPrior && c.pct < 0).length,
+      /* The fourth state, carried forward from the homepage correction: traded
+         this session, but with no comparable prior close. Counting these as
+         «ثابت» asserts something about the market that is not in the data. */
+      noPrior:   traded.filter(c =>  c.noPrior).length,
+      traded:    traded.length,
     }
   }, [listed])
 
@@ -153,6 +168,13 @@ export default function MarketPage() {
             { id: 'up',   tone: 'positive', count: counts.advancers, ar: 'رابح',   en: 'up' },
             { id: 'flat', tone: '',         count: counts.unchanged, ar: 'الثابت', en: 'flat' },
             { id: 'down', tone: 'negative', count: counts.decliners, ar: 'خاسر',   en: 'down' },
+            /* The fourth chip. It appears only when the session actually has
+               such companies — a permanent «0 دون إغلاق سابق» would be noise
+               on the majority of sessions that have none. */
+            ...(counts.noPrior > 0
+              ? [{ id: 'na' as const, tone: 'muted', count: counts.noPrior,
+                   ar: 'دون إغلاق سابق', en: 'no prior close' }]
+              : []),
           ] as const).map(item => (
             <button
               key={item.id}
