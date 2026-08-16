@@ -1,0 +1,188 @@
+import { liveMcap, SECTORS } from '@/lib/market'
+import type { Company } from '@/types'
+
+/**
+ * The homepage's data shapes, and the one rule that governs them.
+ *
+ * ══ ONE CANONICAL SESSION ═════════════════════════════════════════════════
+ * The homepage draws on three independent tables — `daily_prices`,
+ * `daily_index` and `foreign_flow_company_daily` — and each defines "latest"
+ * for itself. They agree today (all on 2026-08-13, verified against
+ * production), but the pipelines are separate and can diverge.
+ *
+ * So the page resolves ONE session and labels every module with it, rather
+ * than each module saying «اليوم» and quietly meaning its own window. Where a
+ * module's own source is behind, that is stated instead of hidden.
+ *
+ * ⚠ Sessions are NOT consecutive calendar days — the last three are 08-13,
+ * 08-11, 08-10. Nothing here may say "yesterday"; the comparison is against
+ * the PRIOR SESSION and the date is always available.
+ *
+ * See docs/HOMEPAGE_DATA_MAP.md for the full element → source table.
+ */
+
+export type IndexRow = {
+  date: string
+  isx60: number
+  total_value: number | null
+  total_volume: number | null
+  total_trades: number | null
+  traded_companies: number | null
+  listed_companies: number | null
+}
+
+/**
+ * Market breadth · FOUR categories, not three.
+ *
+ * A company with no valid prior close has an UNKNOWN change. The old homepage
+ * counted those 8 companies as «ثابت», which asserts something about the
+ * market that is not in the data — the `—` versus `0` rule, broken in the one
+ * place it most visibly matters.
+ *
+ * `traded` and `listed` come from `daily_index` and give the honest
+ * denominator: 49 of 103 listed companies traded, so "14 advancing" is 14 out
+ * of 49, not out of 103.
+ */
+export type Breadth = {
+  advancing: number
+  declining: number
+  unchanged: number
+  /** No valid prior close. Change is unknown, NOT zero. */
+  unavailable: number
+  traded: number
+  listed: number | null
+}
+
+export type Flow = {
+  buy: number
+  sell: number
+  net: number
+  date: string
+  /** Share of the buy+sell total. Zero-safe. */
+  buyShare: number
+  sellShare: number
+}
+
+export type SectorMove = {
+  id: string
+  label: string
+  /** Market-cap-weighted mean change across the sector's traded names. */
+  pct: number
+  value: number
+  count: number
+}
+
+const SECTOR_AR = new Map(SECTORS.filter((s) => s.id !== 'all').map((s) => [s.id, s.ar]))
+
+/**
+ * Breadth from the merged company list.
+ *
+ * `pct` is NEVER null on this type — it is held at 0 when the prior close is
+ * missing, so `pct === 0` cannot distinguish "measured flat" from "unknown".
+ * `noPrior` is the only honest signal, and it is what this reads.
+ */
+export function computeBreadth(traded: Company[], index: IndexRow | null): Breadth {
+  let advancing = 0, declining = 0, unchanged = 0, unavailable = 0
+  for (const c of traded) {
+    /* `noPrior` is the signal, NOT `pct === 0`. pct is held at 0 for these
+       companies so every surface typing it as `number` keeps working; only
+       the flag distinguishes "measured flat" from "nobody knows". */
+    if (c.noPrior) { unavailable++; continue }
+    if (c.pct > 0) advancing++
+    else if (c.pct < 0) declining++
+    else unchanged++
+  }
+  return {
+    advancing,
+    declining,
+    unchanged,
+    unavailable,
+    traded: traded.length,
+    listed: index?.listed_companies ?? null,
+  }
+}
+
+/** Foreign flow for one session. `net` is always `buy − sell`. */
+export function computeFlow(
+  rows: { date: string; side: string; value: number | null }[],
+  session: string,
+): Flow | null {
+  const day = rows.filter((r) => r.date === session)
+  if (!day.length) return null
+  const buy = day.filter((r) => r.side === 'buy').reduce((s, r) => s + (r.value ?? 0), 0)
+  const sell = day.filter((r) => r.side === 'sell').reduce((s, r) => s + (r.value ?? 0), 0)
+  const total = buy + sell
+  return {
+    buy,
+    sell,
+    net: buy - sell,
+    date: session,
+    buyShare: total ? (buy / total) * 100 : 0,
+    sellShare: total ? (sell / total) * 100 : 0,
+  }
+}
+
+/**
+ * Sector movement · market-cap-weighted mean change.
+ *
+ * Weighted rather than a plain mean because an unweighted average lets a
+ * thinly-traded micro-cap move a sector as much as a bank. Companies with an
+ * unknown change are excluded from the mean rather than treated as zero —
+ * the same rule as breadth.
+ */
+export function computeSectors(traded: Company[]): SectorMove[] {
+  const acc = new Map<string, { wsum: number; w: number; value: number; count: number }>()
+  for (const c of traded) {
+    const label = SECTOR_AR.get(c.sec)
+    if (!label) continue
+    const e = acc.get(c.sec) ?? { wsum: 0, w: 0, value: 0, count: 0 }
+    e.value += c.vol ?? 0   // `vol` is traded VALUE in IQD, despite the name
+    e.count += 1
+    if (!c.noPrior && Number.isFinite(c.pct)) {
+      const weight = liveMcap(c) || 1
+      e.wsum += c.pct * weight
+      e.w += weight
+    }
+    acc.set(c.sec, e)
+  }
+  return Array.from(acc.entries())
+    .map(([id, e]) => ({
+      id,
+      label: SECTOR_AR.get(id) ?? id,
+      pct: e.w ? e.wsum / e.w : 0,
+      value: e.value,
+      count: e.count,
+    }))
+    .sort((a, b) => b.value - a.value)
+}
+
+/**
+ * Freshness for a session date.
+ *
+ * ISX publishes one bulletin per trading day, so "live" is not a thing this
+ * product has. The verdict is stated against that cadence rather than against
+ * the clock, and nothing here ever returns «مباشر».
+ */
+export function sessionFreshness(date: string | null): {
+  tone: 'live' | 'recent' | 'stale' | 'unknown'
+  label: string
+} {
+  if (!date) return { tone: 'unknown', label: 'لا توجد بيانات' }
+  const days = Math.floor((Date.now() - new Date(`${date}T00:00:00Z`).getTime()) / 86400_000)
+  /* ISX trades Sunday–Thursday, so a Friday/Saturday gap is normal and a
+     4-day-old bulletin on a Sunday is not late. Beyond that it is. */
+  if (days <= 4) return { tone: 'recent', label: 'آخر جلسة' }
+  return { tone: 'stale', label: `متأخرة ${days} يوماً` }
+}
+
+/** «13 أغسطس 2026» — an exact date, never «اليوم». */
+const AR_MONTHS = [
+  'يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو',
+  'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر',
+]
+
+export function arSession(date: string | null): string {
+  if (!date) return '—'
+  const [y, m, d] = date.split('-').map(Number)
+  return `${d} ${AR_MONTHS[m - 1]} ${y}`
+}

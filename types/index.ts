@@ -26,6 +26,11 @@ export interface LiveStock {
   deals:  number
   stale?: boolean  // carried forward: did not trade in the latest session
   lastTrade?: string  // ISO date of that last actual trade (stale rows only)
+  /* No valid PRIOR close, so `change` and `pct` are not measurements.
+     They are held at 0 for backwards compatibility with every surface that
+     types them as `number`, and this flag is the truth. A company with no
+     prior close has an UNKNOWN change — it is not flat. */
+  noPrior?: boolean
 }
 
 export interface Company extends CompanyMeta {
@@ -40,6 +45,8 @@ export interface Company extends CompanyMeta {
   deals:  number
   stale?: boolean  // last price carried forward; did not trade in latest session
   lastTrade?: string  // ISO date of that last actual trade (stale rows only)
+  /** No valid prior close — `change`/`pct` are 0 but UNKNOWN. See LiveStock. */
+  noPrior?: boolean
 }
 
 export interface RsisxData {
@@ -53,7 +60,10 @@ export interface LiveData {
   updated: string
   stocks:  LiveStock[]
   rsisx:   RsisxData | null
-  breadth: { up: number; dn: number; fl: number }
+  /* `na` = traded, but with no valid prior close, so the direction is
+     unknown. It used to be counted in `fl`, which asserted that those
+     companies were flat. They are not; nobody knows. */
+  breadth: { up: number; dn: number; fl: number; na: number }
   sectors: Record<string, number>
 }
 

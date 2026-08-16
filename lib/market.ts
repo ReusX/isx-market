@@ -32,7 +32,7 @@ async function fetchLiveRaw(): Promise<LiveData> {
     .from('daily_prices').select('date').order('date', { ascending: false }).limit(1)
   const latest = latestRow?.[0]?.date as string | undefined
   if (!latest) {
-    return { updated: '', stocks: [], rsisx: null, breadth: { up: 0, dn: 0, fl: 0 }, sectors: {} }
+    return { updated: '', stocks: [], rsisx: null, breadth: { up: 0, dn: 0, fl: 0, na: 0 }, sectors: {} }
   }
 
   // the session immediately before it (for change %)
@@ -54,14 +54,23 @@ async function fetchLiveRaw(): Promise<LiveData> {
   }
 
   const stocks: LiveStock[] = []
-  let up = 0, dn = 0, fl = 0
+  let up = 0, dn = 0, fl = 0, na = 0
   for (const r of rows ?? []) {
     if (r.date !== latest) continue
     const close = (r.close as number) ?? 0
     const pc = prevClose.get(r.ticker as string)
-    const change = pc != null ? close - pc : 0
+    /* No prior close means the change is UNKNOWN, not zero. `change` and `pct`
+       stay 0 so every surface that types them as `number` keeps working, but
+       `noPrior` carries the truth and the company is counted separately.
+       Folding these into `fl` said 8 companies were unchanged on 2026-08-13
+       when nobody knew whether they were. */
+    const noPrior = pc == null
+    const change = noPrior ? 0 : close - pc!
     const pct = pc ? (change / pc) * 100 : 0
-    if (change > 0) up++; else if (change < 0) dn++; else fl++
+    if (noPrior) na++
+    else if (change > 0) up++
+    else if (change < 0) dn++
+    else fl++
     stocks.push({
       code: r.ticker as string,
       close,
@@ -70,6 +79,7 @@ async function fetchLiveRaw(): Promise<LiveData> {
       low:   (r.low   as number) ?? close,
       change,
       pct,
+      noPrior,
       vol:   (r.value  as number) ?? 0,
       shares_traded: (r.volume as number) ?? 0,
       deals: (r.trades as number) ?? 0,
@@ -100,7 +110,7 @@ async function fetchLiveRaw(): Promise<LiveData> {
     })
   }
 
-  return { updated: latest, stocks, rsisx: null, breadth: { up, dn, fl }, sectors: {} }
+  return { updated: latest, stocks, rsisx: null, breadth: { up, dn, fl, na }, sectors: {} }
 }
 
 export async function fetchCompanyMeta(): Promise<CompanyMeta[]> {
@@ -128,6 +138,7 @@ export function mergeCompanies(meta: CompanyMeta[], stocks: LiveStock[]): Compan
       low:    live?.low    ?? 0,
       change: live?.change ?? 0,
       pct:    live?.pct    ?? 0,
+      noPrior: live?.noPrior ?? false,
       vol:    live?.vol    ?? 0,
       shares_traded: live?.shares_traded ?? 0,
       deals:  live?.deals  ?? 0,
