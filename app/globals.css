@@ -919,92 +919,22 @@ h3 {
   color: var(--text-muted);
 }
 
-.market-movement-page {
-  padding-block-start: 10px;
-}
 
-.market-movement-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 22px;
-  border: 0;
-}
 
-.market-movement-header h1 {
-  margin: 0;
-  color: var(--text-primary);
-  font-size: 1rem;
-  font-weight: 600;
-}
 
-.market-counts {
-  display: flex;
-  align-items: stretch;
-}
 
-.market-counts > :is(span, button) {
-  display: grid;
-  min-inline-size: 72px;
-  padding-inline: 10px;
-  text-align: center;
-}
 
-.market-counts > :is(span, button) + :is(span, button) {
-  border-inline-start: 0.5px solid var(--border);
-}
 
 /* The design's breadth readout is static; here each count filters the table,
    so it needs a button's affordances without changing how it reads. */
-.market-counts > button {
-  padding-block: 4px;
-  border-block: 0;
-  border-inline-end: 0;
-  border-radius: 6px;
-  background: none;
-  cursor: pointer;
-  transition: background 0.15s ease;
-}
 
-.market-counts > button:hover {
-  background: var(--surface-2);
-}
 
-.market-counts > button.is-active {
-  background: var(--surface-2);
-  box-shadow: inset 0 0 0 1px var(--border);
-}
 
-.market-counts > button.is-active small {
-  color: var(--text-secondary);
-}
 
-.market-counts bdi {
-  color: var(--text-secondary);
-  font-size: 1rem;
-  font-weight: 500;
-}
 
-.market-counts .positive bdi {
-  color: var(--up);
-}
 
-.market-counts .negative bdi {
-  color: var(--down);
-}
 
-.market-counts small {
-  margin-block-start: 2px;
-  color: var(--text-muted);
-  font-size: 0.69rem;
-}
 
-.market-sector-filters {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  padding: 2px;
-}
 
 .market-table-card {
   padding: 0 16px;
@@ -4716,46 +4646,6 @@ tbody tr:hover .sparkline polyline {
     padding-block-start: 9px;
   }
 
-  .market-movement-header {
-    align-items: flex-start;
-    flex-direction: column;
-    gap: 14px;
-  }
-
-  .market-counts {
-    inline-size: 100%;
-  }
-
-  .market-counts > :is(span, button) {
-    min-inline-size: 0;
-    flex: 1;
-    padding-inline: 8px;
-  }
-
-  /* The design snapshot is a desktop board, so its six columns simply scroll
-     out of reach on a phone — you would see a company and its sector and have
-     to drag sideways for the price. Sector, market cap and volume drop out
-     instead, leaving the three figures the page exists to show. */
-  /* !important because DataTable carries the desktop template as an inline
-     custom property, which would otherwise win. */
-  .market-movement-page .shared-data-grid {
-    --table-columns: minmax(0, 1fr) 62px 74px 34px !important;
-    --table-min-width: 0 !important;
-  }
-
-  .market-movement-page .shared-data-grid-row > :nth-child(2),
-  .market-movement-page .shared-data-grid-row > :nth-child(3),
-  .market-movement-page .shared-data-grid-row > :nth-child(4) {
-    display: none;
-  }
-
-  .market-sector-filters {
-    flex-wrap: nowrap;
-    overflow-x: auto;
-    padding-block-end: 4px;
-    scrollbar-width: thin;
-  }
-
   .market-table-card {
     padding-inline: 8px;
   }
@@ -5338,7 +5228,6 @@ html[lang="ar"] .wp-content pre {
 .mover-row { text-decoration: none; color: inherit; border-radius: 8px; transition: background-color 120ms ease; }
 .mover-row:hover { background: var(--surface-2); }
 
-.spark-empty { color: var(--muted); font-family: var(--font-numeric), monospace; }
 
 /* ══ Companies directory ══════════════════════════════════════════════════ */
 .directory-filters {
@@ -5678,17 +5567,7 @@ html[lang="ar"] .wp-content pre {
   border-radius: 4px;
 }
 
-.filter-bar {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  align-items: center;
-}
 
-.filter-bar .app-field {
-  flex: 1 1 200px;
-  max-inline-size: 280px;
-}
 
 /* ── Market table extras ─────────────────────────────────────────────────── */
 
@@ -5697,9 +5576,6 @@ html[lang="ar"] .wp-content pre {
 }
 
 .watch-column,
-.watch-cell {
-  text-align: center;
-}
 
 /* One glyph in a narrow track: an ellipsis here is wider than what it replaces,
    and it showed up beside the star on phone widths. */
@@ -6841,5 +6717,3 @@ button.pulse-tile.is-active .pulse-tile-label svg {
 /* The fourth breadth state on /market — traded with no comparable prior close.
    Muted and dashed so it reads as "unknown", never as a direction of movement.
    Removed with the rest of the /market legacy CSS when that route migrates. */
-.market-counts button.muted { color: var(--muted); }
-.market-counts button.muted bdi { border-block-end: 1px dashed var(--border); }

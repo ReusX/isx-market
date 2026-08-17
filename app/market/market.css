@@ -1,0 +1,882 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   حركة السوق — a VISUAL RE-PORT of the approved reference market board.
+   ═══════════════════════════════════════════════════════════════════════════
+
+   Source of truth: `/Users/amed/iqwealth-design/app/globals.css`, the block
+   headed «حركة السوق — the market board», plus its dark counterpart and its
+   three responsive blocks. Values measured off the running reference at
+   1440×900 rather than read out of the cascade by hand.
+
+   The targets it reproduces:
+
+     page 1316 wide · head 61 · summary 99 · controls 54 sticky · board 572
+     table min 1080, company column 300 pinned · header row 36 · body row 46
+     td .68rem/500 Roboto Mono · h1 27.36px/400 · mark 30×27 · pct plate 62px
+
+   ── Why the class names are `.mk-*` and not the reference's `.mv-*` ────────
+   Because `.mv-*` is already taken HERE, and taken by different things. This
+   repo's Phase 0 primitives (styles/system.css) ship `.mv-tabs` as an
+   underline tab strip, `.mv-search` as a full-width trigger and `.mv-select`
+   as a bare control — while the reference uses those same three names for a
+   filled segmented control, a 34px inline field and an appearance:none select.
+   Porting the reference's selectors verbatim would double-style every one of
+   them on any page that used both layers, silently.
+
+   So the VALUES are the reference's and the SELECTORS are this repo's, scoped
+   under `.mk` exactly as the homepage's are scoped under `.hm`. The mapping is
+   recorded in docs/MARKET_REPORT.md §1 so the port stays auditable.
+
+   ── What is shared rather than re-declared ────────────────────────────────
+   The environment and the floating shell already come from `.iq-page` and
+   `.iq-shell`. `--mv-hero`, `--mv-up`, `--mv-down`, `--mv-line`, `--mv-panel`
+   and friends are the reference's own values, extracted in Phase 0. This file
+   declares only what the board's composition needs on top.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.mk {
+  /* Wider than the homepage (1480 → 1620) and with less top padding. This page
+     is measured in columns that fit, not in composition. */
+  inline-size: min(1620px, calc(100% - 48px));
+  margin: 0 auto;
+  padding: 22px 0 64px;
+  color: var(--mv-ink);
+  font-family: var(--font-body), Arial, sans-serif;
+}
+
+/* ── Page head ──────────────────────────────────────────────────────────────
+   One row, ~61px. The homepage spends 120px here because it is greeting you;
+   this page is not greeting you, it is getting out of the way. */
+.mk-head {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  flex-wrap: wrap;
+  padding: 4px 4px 16px;
+}
+.mk-head-title { display: flex; align-items: center; gap: 12px; }
+.mk-head-title h1 {
+  margin: 0;
+  color: var(--mv-ink);
+  font-family: var(--font-display), var(--font-body), Arial, sans-serif;
+  font-size: clamp(1.35rem, 1.9vw, 1.85rem);
+  font-weight: 400;
+  line-height: 1.25;
+}
+
+.mk-session {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 5px 11px;
+  border: 1px solid var(--mv-line);
+  border-radius: 999px;
+  background: var(--mv-well);
+  color: var(--mv-ink-2);
+  font-size: 0.68rem;
+  white-space: nowrap;
+}
+.mk-session i { inline-size: 6px; block-size: 6px; border-radius: 50%; background: #8b918d; }
+.mk-session[data-state='open'] i { background: var(--mv-up); box-shadow: 0 0 0 3px var(--mv-up-soft); }
+[data-theme='dark'] .mk-session i { background: var(--mv-ink-3); }
+
+/* A definition list, because that is what it is: three labelled facts. */
+.mk-meta { display: flex; align-items: center; gap: 0; margin: 0; margin-inline-start: auto; }
+.mk-meta > div { padding-inline: 16px; border-inline-start: 1px solid var(--mv-line); }
+.mk-meta > div:first-child { border-inline-start: 0; }
+.mk-meta dt { margin: 0 0 2px; color: var(--mv-ink-3); font-size: 0.62rem; }
+.mk-meta dd {
+  margin: 0;
+  color: var(--mv-ink);
+  font: 600 0.78rem/1 var(--font-numeric), ui-monospace, monospace;
+}
+.mk-meta dd small { color: var(--mv-ink-3); font-size: 0.68em; font-weight: 500; }
+/* The session date is Arabic text carrying numerals, not a figure — it is not
+   `bdi`-isolated, so it does not reorder to «أغسطس 16 2026». Same rule the
+   homepage re-port established. */
+.mk-meta dd.mk-meta-date { font-family: var(--font-body), Arial, sans-serif; font-size: 0.74rem; }
+
+/* ── Summary strip ──────────────────────────────────────────────────────────
+   ONE surface, four cells, hairline dividers, ~99px tall. The alternative —
+   four KPI cards — costs 180px to say the same thing, and this page's whole
+   argument is that vertical space above the first row is expensive. */
+.mk-summary {
+  display: grid;
+  grid-template-columns: minmax(280px, 1.5fr) minmax(150px, 0.8fr) minmax(180px, 1fr) minmax(200px, 1.1fr);
+  border: 1px solid var(--mv-line);
+  border-radius: 18px;
+  background: var(--mv-panel);
+  box-shadow: var(--mv-shadow);
+  backdrop-filter: blur(18px) saturate(115%);
+  overflow: hidden;
+}
+[data-theme='dark'] .mk-summary,
+[data-theme='dark'] .mk-controls {
+  background: linear-gradient(145deg, rgba(44, 44, 44, 0.9), rgba(28, 30, 30, 0.84));
+}
+.mk-summary > * { padding: 14px 18px; border-inline-start: 1px solid var(--mv-line); }
+.mk-summary > *:first-child { border-inline-start: 0; }
+.mk-cell-label { display: block; margin-block-end: 8px; color: var(--mv-ink-3); font-size: 0.63rem; }
+
+.mk-breadth-bar {
+  display: flex;
+  block-size: 7px;
+  border-radius: 999px;
+  overflow: hidden;
+  direction: ltr;
+  background: rgba(30, 34, 32, 0.07);
+}
+[data-theme='dark'] .mk-breadth-bar { background: rgba(255, 255, 255, 0.08); }
+.mk-breadth-bar i { display: block; block-size: 100%; }
+.mk-breadth-bar i.up { background: var(--mv-up); }
+.mk-breadth-bar i.flat { background: #b3b8b4; }
+.mk-breadth-bar i.down { background: var(--mv-down); }
+/* The fourth state is hatched, never a flat tone — it must not read as a
+   fourth DIRECTION. Same treatment as the homepage's breadth ring. */
+.mk-breadth-bar i.na {
+  background: repeating-linear-gradient(135deg, var(--mv-ink-3) 0 2px, transparent 2px 5px), rgba(30, 34, 32, 0.05);
+}
+[data-theme='dark'] .mk-breadth-bar i.flat { background: #6e716d; }
+[data-theme='dark'] .mk-breadth-bar i.na {
+  background: repeating-linear-gradient(135deg, var(--mv-ink-3) 0 2px, transparent 2px 5px), rgba(255, 255, 255, 0.05);
+}
+
+/* The counts ARE the filter. Two controls for one idea is one too many, and
+   these are the most-glanced numbers on the page. */
+.mk-breadth-keys { display: flex; flex-wrap: wrap; gap: 6px; margin-block-start: 10px; }
+.mk-breadth-keys button {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  padding: 4px 9px;
+  border: 1px solid transparent;
+  border-radius: 9px;
+  background: none;
+  color: var(--mv-ink-2);
+  font-family: inherit;
+  font-size: 0.66rem;
+  cursor: pointer;
+  transition: background-color 0.16s, border-color 0.16s, color 0.16s;
+}
+.mk-breadth-keys button bdi { font: 700 0.92rem var(--font-numeric), ui-monospace, monospace; }
+.mk-breadth-keys button.up bdi { color: var(--mv-up); }
+.mk-breadth-keys button.down bdi { color: var(--mv-down); }
+.mk-breadth-keys button.na bdi { color: var(--mv-ink-3); }
+.mk-breadth-keys button:hover { background: rgba(30, 34, 32, 0.045); }
+[data-theme='dark'] .mk-breadth-keys button:hover { background: rgba(255, 255, 255, 0.06); }
+/* Electric Blue marks the SELECTED filter — the semantic green and red stay on
+   the values, which is what they describe. */
+.mk-breadth-keys button[aria-pressed='true'] {
+  border-color: rgba(49, 113, 198, 0.4);
+  background: rgba(49, 113, 198, 0.09);
+  color: var(--mv-ink);
+}
+[data-theme='dark'] .mk-breadth-keys button[aria-pressed='true'] {
+  border-color: rgba(99, 154, 226, 0.45);
+  background: rgba(49, 113, 198, 0.22);
+}
+
+.mk-metric strong {
+  display: flex;
+  align-items: baseline;
+  gap: 5px;
+  color: var(--mv-ink);
+  font: 700 1.4rem/1 var(--font-numeric), ui-monospace, monospace;
+  letter-spacing: -0.03em;
+}
+.mk-metric strong small {
+  color: var(--mv-ink-3);
+  font-family: var(--font-numeric), ui-monospace, monospace;
+  font-size: 0.62rem;
+  font-weight: 600;
+}
+.mk-metric-pair { display: flex; align-items: center; gap: 22px; }
+.mk-metric-pair strong { font-size: 1.05rem; }
+
+.mk-most-active a { display: block; color: inherit; text-decoration: none; }
+.mk-most-active strong {
+  display: block;
+  font: 600 0.84rem/1.3 var(--font-body), Arial, sans-serif;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.mk-most-active span {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-block-start: 4px;
+  color: var(--mv-ink-3);
+  font: 600 0.68rem var(--font-numeric), ui-monospace, monospace;
+}
+.mk-most-active a:hover strong { color: var(--mv-hero); }
+.mk-ticker { color: var(--mv-hero); }
+[data-theme='dark'] .mk-ticker { color: var(--mv-hero-bright); }
+
+/* ── Controls ───────────────────────────────────────────────────────────────
+   Sticky. On a 104-row board the filters scroll away at exactly the moment you
+   decide you want a different slice of the market.
+
+   The offset is 70px, not the reference's 92px: the reference floats its
+   header with a 16px top margin, and this application's header sits flush at
+   `top: 0` and is 62px tall. Same visual gap, different chrome above it. */
+.mk-controls {
+  position: sticky;
+  inset-block-start: 70px;
+  z-index: 12;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-block-start: 14px;
+  padding: 9px 12px;
+  border: 1px solid var(--mv-line);
+  border-radius: 15px;
+  background: var(--mv-panel);
+  box-shadow: var(--mv-shadow);
+  backdrop-filter: blur(20px) saturate(120%);
+}
+
+/* Segmented control. Not pills — a terminal segment: 30px tall, tight, with
+   the active state carried by an Electric Blue fill. */
+.mk-filter-tabs {
+  display: flex;
+  gap: 2px;
+  padding: 3px;
+  border-radius: 11px;
+  background: rgba(30, 34, 32, 0.055);
+}
+[data-theme='dark'] .mk-filter-tabs,
+[data-theme='dark'] .mk-listing { background: rgba(255, 255, 255, 0.05); }
+.mk-filter-tabs button {
+  padding: 6px 13px;
+  border: 0;
+  border-radius: 9px;
+  background: none;
+  color: var(--mv-ink-2);
+  font: 600 0.72rem var(--font-body), Arial, sans-serif;
+  cursor: pointer;
+  transition: background-color 0.16s, color 0.16s;
+}
+.mk-filter-tabs button:hover { color: var(--mv-ink); }
+.mk-filter-tabs button.active {
+  color: #fff;
+  background: var(--mv-hero);
+  box-shadow: 0 4px 12px rgba(49, 113, 198, 0.3);
+}
+[data-theme='dark'] .mk-filter-tabs button.active { box-shadow: 0 4px 14px rgba(49, 113, 198, 0.4); }
+
+.mk-search {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  flex: 1 1 210px;
+  max-inline-size: 300px;
+  block-size: 34px;
+  padding-inline: 11px;
+  border: 1px solid var(--mv-line);
+  border-radius: 11px;
+  background: var(--mv-well);
+  transition: border-color 0.16s, box-shadow 0.16s, background-color 0.16s;
+}
+.mk-search:focus-within {
+  border-color: rgba(49, 113, 198, 0.5);
+  background: rgba(255, 255, 255, 0.9);
+  box-shadow: 0 0 0 3px rgba(49, 113, 198, 0.13);
+}
+[data-theme='dark'] .mk-search,
+[data-theme='dark'] .mk-sector select { border-color: rgba(255, 255, 255, 0.09); background: rgba(255, 255, 255, 0.04); }
+[data-theme='dark'] .mk-search:focus-within {
+  border-color: rgba(99, 154, 226, 0.5);
+  background: rgba(49, 113, 198, 0.12);
+  box-shadow: 0 0 0 3px rgba(49, 113, 198, 0.18);
+}
+.mk-search-icon { color: var(--mv-ink-3); font-size: 0.95rem; }
+.mk-search input {
+  flex: 1;
+  min-inline-size: 0;
+  border: 0;
+  background: none;
+  color: var(--mv-ink);
+  font: 500 0.74rem var(--font-body), Arial, sans-serif;
+  outline: none;
+}
+.mk-search input::placeholder { color: var(--mv-ink-3); }
+.mk-search-clear {
+  display: grid;
+  place-items: center;
+  inline-size: 18px;
+  block-size: 18px;
+  border: 0;
+  border-radius: 50%;
+  background: rgba(30, 34, 32, 0.1);
+  color: var(--mv-ink-2);
+  font-size: 0.6rem;
+  cursor: pointer;
+}
+[data-theme='dark'] .mk-search-clear { background: rgba(255, 255, 255, 0.1); }
+.mk-search-clear:hover { background: var(--mv-hero); color: #fff; }
+
+/* A select, not another row of chips. Eight sectors as pills is eight more
+   things to read before reaching the table — and the previous implementation
+   spent a whole row on exactly that. */
+.mk-sector { position: relative; display: flex; align-items: center; }
+.mk-sector select {
+  appearance: none;
+  block-size: 34px;
+  padding-inline: 30px 12px;
+  border: 1px solid var(--mv-line);
+  border-radius: 11px;
+  background: var(--mv-well);
+  color: var(--mv-ink-2);
+  font: 600 0.72rem var(--font-body), Arial, sans-serif;
+  cursor: pointer;
+}
+.mk-sector select:focus-visible {
+  outline: none;
+  border-color: rgba(49, 113, 198, 0.5);
+  box-shadow: 0 0 0 3px rgba(49, 113, 198, 0.13);
+}
+[data-theme='dark'] .mk-sector select option { background: #232323; }
+.mk-sector i {
+  position: absolute;
+  inset-inline-start: 11px;
+  color: var(--mv-ink-3);
+  font-style: normal;
+  font-size: 0.6rem;
+  pointer-events: none;
+}
+
+.mk-listing { display: flex; gap: 2px; padding: 3px; border-radius: 11px; background: rgba(30, 34, 32, 0.055); }
+.mk-listing button {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  padding: 5px 11px;
+  border: 0;
+  border-radius: 9px;
+  background: none;
+  color: var(--mv-ink-2);
+  font: 600 0.7rem var(--font-body), Arial, sans-serif;
+  cursor: pointer;
+}
+.mk-listing button bdi { color: var(--mv-ink-3); font: 600 0.64rem var(--font-numeric), ui-monospace, monospace; }
+.mk-listing button[aria-pressed='true'] {
+  color: var(--mv-ink);
+  background: var(--mv-panel-solid);
+  box-shadow: 0 2px 6px rgba(30, 34, 32, 0.08);
+}
+.mk-listing button[aria-pressed='true'] bdi { color: var(--mv-hero); }
+[data-theme='dark'] .mk-listing button[aria-pressed='true'] { background: rgba(255, 255, 255, 0.09); box-shadow: none; }
+[data-theme='dark'] .mk-listing button[aria-pressed='true'] bdi { color: var(--mv-hero-bright); }
+
+/* The watchlist filter. Not in the reference — this application has a
+   watchlist and the reference does not — so it takes the shape of the control
+   beside it rather than inventing a third idiom. */
+.mk-watch-filter {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  block-size: 34px;
+  padding-inline: 11px;
+  border: 1px solid var(--mv-line);
+  border-radius: 11px;
+  background: var(--mv-well);
+  color: var(--mv-ink-2);
+  font: 600 0.7rem var(--font-body), Arial, sans-serif;
+  cursor: pointer;
+  white-space: nowrap;
+}
+[data-theme='dark'] .mk-watch-filter { border-color: rgba(255, 255, 255, 0.09); background: rgba(255, 255, 255, 0.04); }
+.mk-watch-filter[aria-pressed='true'] {
+  border-color: rgba(49, 113, 198, 0.4);
+  background: rgba(49, 113, 198, 0.09);
+  color: var(--mv-ink);
+}
+
+.mk-controls-end { display: flex; align-items: center; gap: 12px; margin-inline-start: auto; }
+.mk-reset {
+  padding: 6px 11px;
+  border: 1px solid rgba(49, 113, 198, 0.28);
+  border-radius: 9px;
+  background: rgba(49, 113, 198, 0.07);
+  color: var(--mv-hero);
+  font: 600 0.68rem var(--font-body), Arial, sans-serif;
+  cursor: pointer;
+}
+.mk-reset:hover { background: rgba(49, 113, 198, 0.14); }
+[data-theme='dark'] .mk-reset {
+  border-color: rgba(99, 154, 226, 0.34);
+  background: rgba(49, 113, 198, 0.16);
+  color: var(--mv-hero-bright);
+}
+.mk-count { color: var(--mv-ink-3); font: 600 0.7rem var(--font-numeric), ui-monospace, monospace; white-space: nowrap; }
+
+/* ── Notes ──────────────────────────────────────────────────────────────── */
+.mk-note {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin: 10px 0 0;
+  padding: 9px 14px;
+  border: 1px solid var(--mv-line);
+  border-radius: 12px;
+  background: var(--mv-well);
+  color: var(--mv-ink-2);
+  font-size: 0.71rem;
+  line-height: 1.6;
+}
+
+/* ═══ THE BOARD ════════════════════════════════════════════════════════════
+   The hero of the page.
+
+   It scrolls INSIDE its own container rather than with the page. That is the
+   approved homepage table's behaviour and it is also the only arrangement in
+   which a sticky header actually works: `position: sticky` resolves against
+   the nearest scrollport, so a table that scrolls horizontally inside a
+   container can only have a sticky header if that same container is what
+   scrolls vertically. Page-level scrolling and a sticky header are mutually
+   exclusive here — which is why the previous implementation's 4,674px page
+   had a `position: sticky` thead that never once stuck. */
+.mk-board {
+  position: relative;
+  margin-block-start: 12px;
+  border: 1px solid var(--mv-line);
+  border-radius: 18px;
+  background: var(--mv-panel-solid);
+  box-shadow: var(--mv-shadow);
+  overflow: hidden;
+}
+[data-theme='dark'] .mk-board { background: #202020; }
+/* With no rows there is nothing to reserve for, and the minimum becomes 340px
+   of void between the header and the message explaining the void. */
+.mk-board[data-empty] .mk-board-scroll { min-block-size: 0; }
+.mk-board-scroll {
+  max-block-size: calc(100vh - 330px);
+  min-block-size: 340px;
+  overflow: auto;
+  overscroll-behavior: contain;
+  scrollbar-color: rgba(49, 113, 198, 0.34) transparent;
+  scrollbar-width: thin;
+}
+
+.mk-table { inline-size: 100%; min-inline-size: 1080px; border-collapse: separate; border-spacing: 0; }
+
+/* ── Header row ─────────────────────────────────────────────────────────────
+   Sticky and lightly glassed — the one place on this page where glass is
+   correct, because it is the only surface that genuinely floats over content.
+   36px, not 52px: a header is a label, not a section. */
+.mk-table thead th {
+  position: sticky;
+  inset-block-start: 0;
+  z-index: 3;
+  block-size: 36px;
+  padding: 0 12px;
+  border-block-end: 1px solid var(--mv-line-strong);
+  background: rgba(250, 250, 249, 0.93);
+  backdrop-filter: blur(14px);
+  color: var(--mv-ink-3);
+  font: 600 0.655rem var(--font-body), Arial, sans-serif;
+  text-align: start;
+  white-space: nowrap;
+}
+[data-theme='dark'] .mk-table thead th {
+  background: rgba(26, 28, 28, 0.95);
+  border-block-end-color: rgba(255, 255, 255, 0.13);
+}
+.mk-table thead th.mk-col-num { text-align: end; }
+
+.mk-table thead button {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 7px;
+  margin-inline: -7px;
+  border: 0;
+  border-radius: 7px;
+  background: none;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+  transition: color 0.15s, background-color 0.15s;
+}
+.mk-table thead .mk-col-num button { flex-direction: row-reverse; }
+.mk-table thead button:hover { color: var(--mv-ink); background: rgba(30, 34, 32, 0.05); }
+[data-theme='dark'] .mk-table thead button:hover { color: var(--mv-ink); background: rgba(255, 255, 255, 0.06); }
+/* Three signals, not one: caret direction, caret opacity, and the ink weight
+   of the label. Colour alone excludes about one man in twelve. */
+.mk-table thead button.active { color: var(--mv-hero); font-weight: 700; }
+[data-theme='dark'] .mk-table thead button.active { color: var(--mv-hero-bright); }
+.mk-caret { opacity: 0; transition: opacity 0.15s, transform 0.15s; flex: none; }
+.mk-table thead button:hover .mk-caret { opacity: 0.45; }
+.mk-table thead button.active .mk-caret { opacity: 1; }
+.mk-table thead button[data-dir='asc'] .mk-caret { transform: rotate(180deg); }
+
+/* ── Rows ───────────────────────────────────────────────────────────────────
+   46px, which is what an Arabic name needs to sit comfortably with a ticker
+   beneath it. Zebra at 1.8% blue and hover at 5.5% — the same values the
+   approved homepage board uses, so the two read as one product. */
+.mk-table tbody td {
+  block-size: 46px;
+  padding: 0 12px;
+  border-block-end: 1px solid rgba(30, 34, 32, 0.055);
+  color: var(--mv-ink-2);
+  font: 500 0.765rem var(--font-numeric), ui-monospace, monospace;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  vertical-align: middle;
+}
+[data-theme='dark'] .mk-table tbody td { border-block-end-color: rgba(255, 255, 255, 0.065); }
+.mk-table tbody td.mk-col-num { text-align: end; }
+.mk-table tbody tr { transition: background-color 0.13s; }
+.mk-table tbody tr:nth-child(even) { background: rgba(49, 113, 198, 0.018); }
+.mk-table tbody tr:hover { background: rgba(49, 113, 198, 0.055); }
+[data-theme='dark'] .mk-table tbody tr:nth-child(even) { background: rgba(255, 255, 255, 0.016); }
+[data-theme='dark'] .mk-table tbody tr:hover { background: rgba(49, 113, 198, 0.13); }
+/* A carried-forward row is present but quiet — it is not today's news. */
+.mk-table tbody tr[data-quiet] td { color: var(--mv-ink-3); }
+
+.mk-col-rank { inline-size: 46px; color: var(--mv-ink-3) !important; font-size: 0.68rem !important; text-align: center !important; }
+.mk-col-watch { inline-size: 40px; text-align: center !important; }
+
+/* ── Company column ─────────────────────────────────────────────────────────
+   Pinned, because it is the row's only identity and horizontal scrolling
+   without it turns the board into anonymous numbers. */
+.mk-col-company { inline-size: 300px; }
+.mk-table thead th.mk-col-company,
+.mk-table tbody td.mk-col-company {
+  position: sticky;
+  inset-inline-start: 0;
+  z-index: 2;
+  background: var(--mv-panel-solid);
+}
+.mk-table thead th.mk-col-company { z-index: 4; background: rgba(250, 250, 249, 0.97); }
+/* These are not eyeballed. The pinned column is OPAQUE — it slides over the
+   other cells — so it cannot inherit the row's translucent zebra or hover
+   tint. Each value is the exact composite of that tint over the board's own
+   surface. Get one wrong and the pinned column reads as a vertical band down
+   the table, which is precisely the seam it exists to avoid drawing. */
+.mk-table tbody tr:nth-child(even) td.mk-col-company { background: #f7f9f9; }
+.mk-table tbody tr:hover td.mk-col-company { background: #f0f3f7; }
+[data-theme='dark'] .mk-table tbody td.mk-col-company { background: #202020; }
+[data-theme='dark'] .mk-table thead th.mk-col-company { background: rgba(26, 28, 28, 0.98); }
+[data-theme='dark'] .mk-table tbody tr:nth-child(even) td.mk-col-company { background: #242424; }
+[data-theme='dark'] .mk-table tbody tr:hover td.mk-col-company { background: #222b36; }
+
+.mk-col-company a { display: flex; align-items: center; gap: 10px; min-inline-size: 0; color: inherit; text-decoration: none; }
+/* TWO letters, not one. Half the exchange is banks, so a single-letter mark
+   prints an identical «B» on twenty rows and costs the name's width to say
+   nothing. A real logo fills the same box. */
+.mk-mark {
+  display: grid;
+  place-items: center;
+  flex: none;
+  inline-size: 30px;
+  block-size: 27px;
+  border-radius: 8px;
+  overflow: hidden;
+  background: rgba(49, 113, 198, 0.1);
+  color: var(--mv-hero);
+  font: 700 0.66rem var(--font-numeric), ui-monospace, monospace;
+  line-height: 1;
+}
+[data-theme='dark'] .mk-mark { background: rgba(49, 113, 198, 0.28); color: #9ec6fb; }
+.mk-mark img { inline-size: 100%; block-size: 100%; object-fit: contain; background: #fff; }
+
+.mk-identity { display: grid; gap: 2px; min-inline-size: 0; }
+/* Long names truncate rather than wrap: a two-line name in one row and a
+   one-line name in the next destroys the horizontal rhythm that makes a
+   100-row scan possible. The full name stays in `title`. */
+.mk-identity strong {
+  display: block;
+  color: var(--mv-ink);
+  font: 600 0.78rem/1.25 var(--font-body), Arial, sans-serif;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.mk-col-company a:hover strong { color: var(--mv-hero); }
+.mk-identity small { display: flex; align-items: center; gap: 7px; color: var(--mv-ink-3); font-size: 0.63rem; }
+.mk-identity em { font-style: normal; }
+.mk-identity .mk-ticker { font: 600 0.64rem var(--font-numeric), ui-monospace, monospace; }
+.mk-flag {
+  padding: 1px 6px;
+  border-radius: 5px;
+  background: rgba(30, 34, 32, 0.07);
+  color: var(--mv-ink-3);
+  font-size: 0.58rem;
+}
+[data-theme='dark'] .mk-flag { background: rgba(255, 255, 255, 0.09); }
+
+/* The watchlist star. 44px hit area on a 46px row, so it needs no padding of
+   its own to be tappable. */
+.mk-star {
+  display: grid;
+  place-items: center;
+  inline-size: 30px;
+  block-size: 44px;
+  margin-inline: auto;
+  border: 0;
+  background: none;
+  color: var(--mv-line-strong);
+  font-size: 0.85rem;
+  line-height: 1;
+  cursor: pointer;
+  transition: color 0.13s;
+}
+.mk-star:hover { color: var(--mv-ink-3); }
+.mk-star.is-on { color: #e0a83a; }
+
+/* ── Values ─────────────────────────────────────────────────────────────── */
+.mk-price bdi { color: var(--mv-ink); font-weight: 600; }
+.mk-price small { display: block; margin-block-start: 1px; color: var(--mv-ink-3); font-size: 0.6rem; }
+.mk-table .positive { color: var(--mv-up); }
+.mk-table .negative { color: var(--mv-down); }
+.mk-table .neutral { color: var(--mv-ink-3); }
+/* The percentage gets a tinted plate — it is the column the eye returns to,
+   and a plate reads at a glance where a coloured glyph does not. */
+.mk-pct {
+  display: inline-block;
+  min-inline-size: 62px;
+  padding: 3px 7px;
+  border-radius: 7px;
+  font-weight: 600;
+  text-align: center;
+}
+.mk-pct.positive { background: var(--mv-up-soft); }
+.mk-pct.negative { background: var(--mv-down-soft); }
+.mk-pct.neutral { background: rgba(30, 34, 32, 0.05); }
+[data-theme='dark'] .mk-pct.neutral { background: rgba(255, 255, 255, 0.06); }
+.mk-dash { color: var(--mv-ink-3); opacity: 0.5; }
+.mk-col-spark { inline-size: 92px; }
+.mk-col-spark .sparkline { inline-size: 62px; block-size: 20px; }
+
+/* ── Skeleton ───────────────────────────────────────────────────────────────
+   Real column structure, real row height. The point is that when data lands,
+   the text changes and nothing moves. */
+.mk-skeleton td { block-size: 46px; }
+.mk-skeleton i {
+  display: block;
+  block-size: 10px;
+  border-radius: 5px;
+  background: linear-gradient(90deg, rgba(30, 34, 32, 0.06), rgba(30, 34, 32, 0.11), rgba(30, 34, 32, 0.06));
+  background-size: 200% 100%;
+  animation: mk-shimmer 1.4s linear infinite;
+}
+[data-theme='dark'] .mk-skeleton i {
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05));
+  background-size: 200% 100%;
+}
+.mk-skeleton .mk-col-num i { margin-inline-start: auto; }
+.mk-skeleton-id { display: flex; align-items: center; gap: 10px; }
+.mk-skeleton-id > span { display: grid; gap: 5px; flex: 1; }
+.mk-skeleton-mark { inline-size: 30px !important; block-size: 27px !important; border-radius: 9px !important; flex: none; }
+@keyframes mk-shimmer { from { background-position: 200% 0; } to { background-position: -200% 0; } }
+
+/* ── Empty ──────────────────────────────────────────────────────────────────
+   No illustration. It names what is filtering, because the useful thing here
+   is not sympathy — it is telling someone which of their four filters is the
+   one hiding everything. */
+.mk-empty { padding: 44px 24px 52px; text-align: center; }
+.mk-empty strong { display: block; color: var(--mv-ink); font: 600 1rem var(--font-body), Arial, sans-serif; }
+.mk-empty p { margin: 7px 0 0; color: var(--mv-ink-3); font-size: 0.78rem; }
+.mk-empty-filters { display: flex; justify-content: center; gap: 7px; flex-wrap: wrap; margin-block-start: 16px; }
+.mk-empty-filters span {
+  padding: 4px 11px;
+  border: 1px solid rgba(49, 113, 198, 0.26);
+  border-radius: 999px;
+  background: rgba(49, 113, 198, 0.07);
+  color: var(--mv-hero);
+  font: 600 0.68rem var(--font-body), Arial, sans-serif;
+}
+[data-theme='dark'] .mk-empty-filters span {
+  border-color: rgba(99, 154, 226, 0.34);
+  background: rgba(49, 113, 198, 0.16);
+  color: var(--mv-hero-bright);
+}
+.mk-empty button {
+  margin-block-start: 18px;
+  padding: 9px 18px;
+  border: 0;
+  border-radius: 11px;
+  background: var(--mv-hero);
+  color: #fff;
+  font: 600 0.74rem var(--font-body), Arial, sans-serif;
+  box-shadow: 0 8px 20px rgba(49, 113, 198, 0.26);
+  cursor: pointer;
+}
+
+/* ── Error ──────────────────────────────────────────────────────────────────
+   Scoped to the board. The head and the summary strip come from the same
+   fetch, so when the fetch fails they are empty rather than wrong — but the
+   page frame, the controls and the footnote stay, because a full-route error
+   throws away everything that did load. */
+.mk-error {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  margin-block-start: 12px;
+  padding: 26px 24px;
+  border: 1px solid rgba(181, 67, 47, 0.24);
+  border-radius: 18px;
+  background: var(--mv-panel-solid);
+  box-shadow: var(--mv-shadow);
+}
+[data-theme='dark'] .mk-error {
+  border-color: rgba(238, 106, 111, 0.26);
+  background: linear-gradient(145deg, rgba(40, 40, 40, 0.94), rgba(28, 30, 30, 0.9));
+}
+.mk-error-mark {
+  display: grid;
+  place-items: center;
+  flex: none;
+  inline-size: 34px;
+  block-size: 34px;
+  border-radius: 11px;
+  background: var(--mv-down-soft);
+  color: var(--mv-down);
+  font: 700 1rem var(--font-numeric), ui-monospace, monospace;
+}
+.mk-error > div { flex: 1; }
+.mk-error strong { display: block; color: var(--mv-ink); font: 600 0.9rem var(--font-body), Arial, sans-serif; }
+.mk-error p { margin: 4px 0 0; color: var(--mv-ink-3); font-size: 0.75rem; }
+.mk-error button {
+  padding: 9px 17px;
+  border: 1px solid var(--mv-line-strong);
+  border-radius: 11px;
+  background: var(--mv-well);
+  color: var(--mv-ink);
+  font: 600 0.73rem var(--font-body), Arial, sans-serif;
+  cursor: pointer;
+}
+.mk-error button:hover { border-color: rgba(49, 113, 198, 0.4); color: var(--mv-hero); }
+[data-theme='dark'] .mk-error button { border-color: rgba(255, 255, 255, 0.12); background: rgba(255, 255, 255, 0.04); }
+
+.mk-footnote { margin: 16px 4px 0; color: var(--mv-ink-3); font-size: 0.68rem; line-height: 1.75; }
+
+/* Focus, everywhere. `:focus-visible`, so a mouse click never draws a ring and
+   a Tab key always does. */
+.mk :is(button, a, input, select, [tabindex='0']):focus-visible {
+  outline: 2px solid var(--mv-hero-bright);
+  outline-offset: 2px;
+  border-radius: 7px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mk-skeleton i { animation: none; }
+  .mk-table tbody tr, .mk-filter-tabs button, .mk-breadth-keys button,
+  .mk-search, .mk-caret, .mk-star, .mk-table thead button { transition: none; }
+}
+
+/* ═══ RESPONSIVE ═══════════════════════════════════════════════════════════ */
+
+/* Laptop — the summary strip loses its fourth cell before it loses legibility.
+   «الأكثر نشاطاً» is the first to go: it is a shortcut, and the same company is
+   the first row of the table anyway once the default sort applies. */
+@media (max-width: 1240px) {
+  .mk-summary { grid-template-columns: minmax(260px, 1.4fr) minmax(140px, 0.8fr) minmax(170px, 1fr); }
+  .mk-most-active { display: none; }
+  .mk-meta > div:first-child { display: none; }
+}
+
+/* Tablet — the strip stacks into two rows and the controls wrap. The board
+   keeps every column and scrolls, with the company column pinned. */
+@media (max-width: 1000px) {
+  .mk { inline-size: calc(100% - 28px); }
+  /* Breadth spans the full width and the two remaining totals share the row
+     below it. Left as a plain two-column grid, the three surviving cells fill
+     one and a half rows and leave a visible half-cell of nothing. */
+  .mk-summary { grid-template-columns: 1fr 1fr; }
+  .mk-breadth { grid-column: 1 / -1; }
+  .mk-summary > *:not(.mk-breadth) { border-block-start: 1px solid var(--mv-line); }
+  .mk-summary > *:nth-child(2) { border-inline-start: 0; }
+  .mk-board-scroll { max-block-size: calc(100vh - 380px); }
+}
+
+/* Mobile. Not a shrunken desktop — three decisions:
+
+   1. THREE COLUMNS ARE ESSENTIAL: company, last price, change %. Those answer
+      «what is it and what did it do». Everything else scrolls horizontally
+      behind them, with company pinned so a sideways scroll never leaves you
+      reading anonymous numbers.
+   2. THE SUMMARY KEEPS BREADTH FULL-WIDTH and drops nothing — the totals are
+      reference figures, so they are simply ordered by how often they are read.
+   3. THE CONTROLS STAY STICKY. Filtering is why someone opens this page on a
+      phone. */
+@media (max-width: 720px) {
+  /* ── The opt-out ─────────────────────────────────────────────────────────
+     The legacy stylesheet turns EVERY table under 720px into a stack of cards
+     and hides `thead` outright. That is the reflex answer to a wide table on a
+     phone, and it is wrong here: it turns a 104-row market into a 104-card
+     scroll and destroys the one thing a table is for, which is comparing a
+     column down the page. The answer is horizontal scroll with the identity
+     column pinned. `.iq-page :where(…)` in the token layer already neutralises
+     most of it; these restate the rest at component specificity. */
+  .mk-table, .mk-table thead, .mk-table tbody, .mk-table tr { display: revert; min-inline-size: revert; }
+  .mk-table thead { position: sticky; inline-size: auto; block-size: auto; overflow: visible; clip: auto; }
+  .mk-table th, .mk-table td { display: table-cell; white-space: nowrap; }
+  .mk-table td::before { content: none; }
+  .mk-table tr { margin: 0; border: 0; border-radius: 0; background: transparent; }
+
+  .mk { inline-size: calc(100% - 20px); padding-block-start: 12px; }
+
+  /* Every block above the table is on a budget: the first row of data should
+     be reachable in one short scroll, not two. */
+  .mk-head { gap: 10px; padding: 0 2px 12px; }
+  .mk-head-title { flex: 1; }
+  .mk-head-title h1 { font-size: 1.22rem; }
+  .mk-meta { inline-size: 100%; margin-inline-start: 0; order: 3; }
+  .mk-meta > div { padding-inline: 0 13px; border-inline-start: 0; }
+  .mk-meta > div + div { padding-inline-start: 13px; border-inline-start: 1px solid var(--mv-line); }
+  .mk-meta dt { display: inline; margin: 0; }
+  .mk-meta dd { display: inline; margin-inline-start: 5px; }
+
+  .mk-summary { grid-template-columns: 1fr 1fr; border-radius: 15px; }
+  .mk-summary > * { border-inline-start: 0 !important; padding: 10px 14px; }
+  .mk-breadth { grid-column: 1 / -1; }
+  .mk-summary > *:nth-child(n + 2) { border-block-start: 1px solid var(--mv-line); }
+  .mk-metric strong { font-size: 1.1rem; }
+  .mk-metric-pair { gap: 16px; justify-content: space-between; }
+  .mk-metric-pair strong { font-size: 0.95rem; }
+  .mk-breadth-keys { gap: 4px; }
+  .mk-breadth-keys button { padding-inline: 7px; }
+
+  .mk-controls { inset-block-start: 62px; gap: 7px; padding: 7px; border-radius: 13px; }
+  .mk-filter-tabs { inline-size: 100%; overflow-x: auto; scrollbar-width: none; }
+  .mk-filter-tabs::-webkit-scrollbar { display: none; }
+  .mk-filter-tabs button { flex: 1 0 auto; padding: 5px 11px; }
+  .mk-search, .mk-sector select, .mk-watch-filter { block-size: 32px; }
+  .mk-search { flex: 1 1 140px; max-inline-size: none; }
+  .mk-listing button { padding-block: 4px; }
+  /* The count already appears in the page head; a second copy costs a whole
+     row of a 375px screen. */
+  .mk-count { display: none; }
+  .mk-controls-end { inline-size: auto; margin-inline-start: auto; }
+
+  .mk-board { border-radius: 14px; }
+  .mk-board-scroll { max-block-size: calc(100vh - 300px); min-block-size: 300px; }
+  .mk-table { min-inline-size: 720px; }
+  .mk-col-company { inline-size: 172px; }
+  /* The three columns that survive without scrolling are company, last price
+     and change % — «what is it» and «what did it do». Rank, the watch star and
+     the absolute change are what go: rank is a position in the current sort
+     rather than a property of the company, and the absolute change says the
+     same thing as the percentage in a form that needs the price to interpret.
+     All three are one thumb-drag away, not gone.
+
+     `!important` because the restack opt-out above matches every cell in the
+     table and would otherwise win on specificity. */
+  .mk-col-rank, .mk-col-watch, .mk-col-change-abs { display: none !important; }
+  .mk-table thead th, .mk-table tbody td { padding-inline: 9px; }
+  .mk-identity strong { font-size: 0.74rem; }
+  /* The mark is the first thing to go: at 172px the name needs the room more
+     than the row needs a coloured square. */
+  .mk-mark { display: none; }
+  .mk-pct { min-inline-size: 54px; padding-inline: 5px; }
+  .mk-footnote { font-size: 0.64rem; }
+}
+
+@media (max-width: 420px) {
+  .mk-table { min-inline-size: 660px; }
+  .mk-col-company { inline-size: 158px; }
+  .mk-head-title { inline-size: 100%; }
+}
