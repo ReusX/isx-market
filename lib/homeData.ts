@@ -186,3 +186,34 @@ export function arSession(date: string | null): string {
   const [y, m, d] = date.split('-').map(Number)
   return `${d} ${AR_MONTHS[m - 1]} ${y}`
 }
+
+/**
+ * A signed percentage, and its verdict, decided from the ROUNDED figure.
+ *
+ * Taking the sign from the raw value and the digits from `toFixed` disagree at
+ * the boundary: a sector sitting at −0.0009% is negative to `pct < 0` and
+ * "0.00" to `toFixed(2)`, and the page prints «−0.00%». That is not a small
+ * cosmetic slip — it shows a direction the displayed number explicitly denies.
+ *
+ * So round first, then read the sign off what the reader will actually see.
+ */
+export function signed(pct: number, digits = 2): {
+  text: string
+  tone: 'up' | 'down' | 'flat'
+} {
+  const rounded = Number(pct.toFixed(digits))
+  const tone = rounded > 0 ? 'up' : rounded < 0 ? 'down' : 'flat'
+  const sign = rounded > 0 ? '+' : rounded < 0 ? '−' : ''
+  return { text: `${sign}${Math.abs(rounded).toFixed(digits)}%`, tone }
+}
+
+/* ── One reference decision this application has already overruled ──────────
+   The reference homepage's intro reads «نظرة السوق · ٢٤ تموز ٢٠٢٦» in
+   Arabic-Indic numerals. This repo bans them outright — `no-restricted-syntax`
+   in the ESLint config, with the reason stated in the rule itself: the design
+   and every figure beside them use Latin digits, so a lone Arabic-Indic date
+   sitting above a page of Latin measurements reads as a different product.
+
+   That is a standing, deliberate product standard and it outranks one line of
+   the reference. The intro's structure, size, weight and colour are ported
+   exactly; only its digits stay Latin. Recorded in the completion report. */

@@ -1,315 +1,1085 @@
 /* ═══════════════════════════════════════════════════════════════════════════
-   Homepage. Every selector is under `.hm`, which sits inside `.iq-page`, so
-   the token layer reaches it and the legacy stylesheet's bare-element rules
-   are contained. No value here is a literal that a token could carry.
+   Homepage — a VISUAL RE-PORT of the approved reference homepage.
+   ═══════════════════════════════════════════════════════════════════════════
+
+   Source of truth: `/Users/amed/iqwealth-design/app/globals.css`, the blocks
+
+     · `body:has(.home-v2)`                       — the environment
+     · `.home-v2-*` / `.home-index-*`             — frame and hero
+     · `.home-flow-*` / `.foreign-*`              — the navy flow card
+     · `.breadth-*`                               — the ring
+     · `.home-activity-*` / `.sector-bars`        — the two data cards
+     · `.home-market-*`                           — the board
+     · the Electric-Blue revision, the interactivity pass and the ISX60
+       ambient-warmth override, which land LAST and therefore win
+
+   Every number below was read off the RUNNING reference at 1440×900 with
+   `getComputedStyle` / `getBoundingClientRect`, not derived from the cascade by
+   hand and not remembered. The targets it reproduces:
+
+     hero 871×520 · flow 427×520 · breadth 316×337 · activity 427×337
+     sectors 538×337 · board 1316×854 · index number 97.92px · ring 150px
+     table 25 rows at 54px · gap 18px · 12 columns
+
+   ── Why this file does not go through the shared Panel ────────────────────
+   Because the reference does not. §18 of the correction brief: the token layer
+   stays in use — `--mv-up`, `--mv-down`, `--mv-hero` and `--mv-env` are the
+   reference's own values already extracted — but the hero geometry, the navy
+   treatment, the ring, the light/dark card split and the table density are
+   Homepage-specific compositions and are declared as such. Forcing six
+   deliberately different cards into one Panel default is precisely what
+   produced the drift this file corrects.
    ═══════════════════════════════════════════════════════════════════════════ */
 
+/* ── §14 · The environment ──────────────────────────────────────────────────
+   The reference carries this on `body:has(.home-v2)` and it has two parts: the
+   canvas gradient, and a grain/sheen layer over it masked out down the page.
+
+   The CANVAS is already here and was already correct. `.iq-shell` in
+   styles/shell.css paints exactly the approved gradient — dark is
+   byte-identical to the reference's `#161616` with the two blue blooms — for
+   every migrated route. Re-declaring it on `html:has(.hm)` was an earlier
+   draft of this file and it was removed: it added a second definition of one
+   value, and the shell's is the one every other route already uses.
+
+   The GRAIN was genuinely missing, and it is what makes the reference's page
+   read as a surface rather than a flat fill. It is ported here on the page
+   marker, so it cannot reach an un-migrated route.
+
+   What is deliberately NOT ported: the reference also floats the sidebar and
+   header in glass under the same block. Doing that for the homepage alone
+   would make this one route's chrome disagree with every other route in the
+   product — a shell decision, not a homepage re-port. Recorded in the report. */
+body:has(.hm)::after {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  content: '';
+  opacity: 0.3;
+  pointer-events: none;
+  background-image:
+    linear-gradient(118deg, transparent 30%, rgba(255, 255, 255, 0.66) 48%, transparent 62%),
+    radial-gradient(rgba(28, 34, 30, 0.14) 0.45px, transparent 0.55px);
+  background-size: 100% 100%, 5px 5px;
+  mask-image: linear-gradient(to bottom, #000, transparent 78%);
+}
+[data-theme='dark'] body:has(.hm)::after {
+  opacity: 0.2;
+  background-image: radial-gradient(rgba(255, 255, 255, 0.2) 0.45px, transparent 0.55px);
+}
+
 .hm {
-  padding: var(--mv-sp-6) var(--mv-sp-6) var(--mv-sp-10);
+  position: relative;
+  z-index: 1;
+  inline-size: min(1480px, calc(100% - 48px));
+  margin: 0 auto;
+  padding: 20px 0 80px;
   color: var(--mv-ink);
   font-family: var(--font-body), Arial, sans-serif;
-  font-size: var(--mv-fs-body);
 }
 
+/* ── Intro ────────────────────────────────────────────────────────────────
+   Reference: `.home-v2-intro`. H1 is clamp(1.5rem, 2.1vw, 2.25rem) at weight
+   400 — the previous pass rendered it bold at roughly the same size, which is
+   the one typographic error you cannot un-see once measured. */
 .hm-intro {
   display: flex;
-  flex-wrap: wrap;
-  gap: var(--mv-sp-3);
-  align-items: baseline;
-  margin-block-end: var(--mv-sp-6);
-}
-.hm-intro .ty-page-title { flex-basis: 100%; order: 2; }
-.hm-intro .ty-label { order: 1; }
-.hm-intro .ds-fresh { order: 3; }
-
-/* ── the composition ──────────────────────────────────────────────────────
-   The hero spans the full width; flow, breadth, activity and sectors share
-   the row beneath it. Named areas rather than spans, so the mobile order is
-   a re-declaration and not an arithmetic puzzle. */
-.hm-grid {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: var(--mv-sp-4);
-  margin-block-end: var(--mv-sp-4);
-}
-.hm-hero { grid-column: 1 / -1; }
-.hm-flow-wrap { grid-column: span 2; display: flex; flex-direction: column; gap: var(--mv-sp-2); }
-.hm-breadth { grid-column: span 2; }
-.hm-activity { grid-column: span 2; }
-.hm-sectors { grid-column: span 2; }
-
-.hm-card {
-  position: relative;
-  padding: var(--mv-sp-5);
-  border: 1px solid var(--mv-line);
-  border-radius: var(--mv-r-panel);
-  background: var(--mv-panel-solid);
-  box-shadow: var(--mv-shadow);
-}
-.hm-flow-wrap .hm-card { flex: 1; }
-
-.hm-card-head {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--mv-sp-3);
-  align-items: flex-start;
-  justify-content: space-between;
-  margin-block-end: var(--mv-sp-4);
-}
-.hm-card-head .ty-label { display: block; margin-block-end: 2px; }
-
-.hm-more,
-.hm-flow-cta,
-.hm-expand {
-  display: inline-flex;
-  gap: var(--mv-sp-1);
   align-items: center;
-  min-block-size: var(--mv-control-h-sm);
-  padding-inline: var(--mv-sp-3);
+  justify-content: space-between;
+  gap: 24px;
+  padding: 4px 4px 16px;
+}
+.hm-intro > div:first-child > span {
+  color: #747b76;
+  font-size: 0.75rem;
+}
+[data-theme='dark'] .hm-intro > div:first-child > span { color: #989898; }
+.hm-intro h1 {
+  margin: 3px 0 0;
+  color: var(--mv-ink);
+  font-family: var(--font-display), var(--font-body), Arial, sans-serif;
+  font-size: clamp(1.5rem, 2.1vw, 2.25rem);
+  font-weight: 400;
+  line-height: 1.25;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   §7 · The 12-column composition
+   ═══════════════════════════════════════════════════════════════════════════
+   Not one module is «span 2». The hero takes 8 columns and the flow card 4;
+   beneath them breadth takes 3, activity 4 and sectors 5. Those four different
+   widths ARE the hierarchy — normalising them is what made the previous
+   implementation read as six equal widgets. */
+.hm-comp {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  grid-template-rows: 520px auto;
+  gap: 18px;
+}
+.hm-hero     { grid-column: 1 / 9;  grid-row: 1; }
+.hm-flow     { grid-column: 9 / 13; grid-row: 1; }
+.hm-breadth  { grid-column: 1 / 4;  grid-row: 2; }
+.hm-activity { grid-column: 4 / 8;  grid-row: 2; }
+.hm-sectors  { grid-column: 8 / 13; grid-row: 2; }
+
+/* ── §15 · The light/dark card split ──────────────────────────────────────
+   The approved page is NOT six uniform surfaces. In light it is a light page
+   carrying TWO deliberately dark hero surfaces: the charcoal ISX60 card and
+   the navy flow card. Breadth, activity, sectors and the board stay light.
+   In dark, the reference's own counterpart applies — and note that the flow
+   card stops being navy there and becomes charcoal with a blue bloom, which is
+   a designed decision and not an oversight. */
+.hm-breadth,
+.hm-sectors,
+.hm-market {
+  color: var(--mv-ink);
+  border: 1px solid rgba(255, 255, 255, 0.82);
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.9), rgba(247, 248, 246, 0.77));
+  box-shadow: 0 24px 65px rgba(35, 40, 36, 0.1), inset 0 1px rgba(255, 255, 255, 0.84);
+  backdrop-filter: blur(18px);
+}
+[data-theme='dark'] .hm-breadth,
+[data-theme='dark'] .hm-sectors,
+[data-theme='dark'] .hm-market {
+  border-color: rgba(255, 255, 255, 0.07);
+  background: linear-gradient(145deg, rgba(44, 44, 44, 0.94), rgba(28, 30, 30, 0.86));
+  box-shadow: 0 26px 74px rgba(0, 0, 0, 0.34), inset 0 1px rgba(255, 255, 255, 0.055);
+}
+
+/* A module whose source failed keeps its slot and its surface. */
+.hm-mod-failed,
+.hm-hero-failed,
+.hm-flow-failed {
+  display: grid;
+  place-content: center;
+  padding: 24px;
   border: 1px solid var(--mv-line);
-  border-radius: var(--mv-r-control);
-  background: transparent;
-  color: var(--mv-hero);
-  text-decoration: none;
-  font-family: inherit;
-  font-size: var(--mv-fs-label);
-  font-weight: var(--mv-fw-semibold);
-  cursor: pointer;
+  border-radius: 24px;
+  background: var(--mv-panel-solid);
 }
-[data-theme='dark'] .hm-more,
-[data-theme='dark'] .hm-flow-cta,
-[data-theme='dark'] .hm-expand { color: var(--mv-hero-bright); }
+.hm-hero-failed { border-radius: 28px; min-block-size: 520px; }
+.hm-flow-failed { min-block-size: 520px; }
 
-/* The BOX is 36px so it sits quietly beside a heading; the TAP TARGET is 44px.
-   Without this the flow card's primary CTA — the one §15 singles out — is an
-   8px-short target on a phone, which is the difference between "tap it" and
-   "tap near it twice". */
-.hm-more, .hm-flow-cta, .hm-expand { position: relative; }
-.hm-more::before,
-.hm-flow-cta::before,
-.hm-expand::before {
-  content: '';
-  position: absolute;
-  inset: 50% 0 auto;
-  block-size: var(--mv-control-h);
-  transform: translateY(-50%);
-}
-.hm-more:hover, .hm-flow-cta:hover, .hm-expand:hover { border-color: var(--mv-hero); background: var(--mv-well); }
-
-.hm-note { margin: 0; }
-
-/* ── ISX60 hero ─────────────────────────────────────────────────────────── */
-.hm-hero-value {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--mv-sp-3);
-  align-items: baseline;
-  margin-block-end: var(--mv-sp-4);
-}
-.hm-hero-value .ty-metric { font-size: 2.4rem; }
-.hm-hero-value small { flex-basis: 100%; }
-.hm-hero-chart { min-block-size: 220px; }
-
-/* ── breadth ────────────────────────────────────────────────────────────── */
-.hm-breadth-bar {
-  display: flex;
+/* ═══════════════════════════════════════════════════════════════════════════
+   §8 · ISX60 hero — `.home-v2-index-card`
+   ═══════════════════════════════════════════════════════════════════════════
+   The card's ambient light is the LAST reference override, not the first: the
+   corner highlight is #26313f (blue-grey), not the earlier neutral #2c2f2d,
+   and the bloom sits bottom-left at rgba(49,113,198,.2). Charcoal in both
+   themes — this surface does not invert. */
+.hm-hero {
+  position: relative;
+  min-block-size: 520px;
+  padding: clamp(23px, 2.5vw, 38px);
+  border: 1px solid rgba(255, 255, 255, 0.82);
+  border-radius: 28px;
+  color: #fff;
   overflow: hidden;
-  block-size: 10px;
-  border-radius: var(--mv-r-pill);
-  background: var(--mv-well);
+  background:
+    radial-gradient(circle at 18% 12%, #26313f, transparent 30%),
+    linear-gradient(145deg, #202321, #111312 72%);
+  box-shadow: 0 28px 64px rgba(22, 22, 22, 0.28), inset 0 1px rgba(255, 255, 255, 0.12);
 }
-.hm-breadth-bar i { display: block; }
-.hm-breadth-bar .is-up { background: var(--mv-up); }
-.hm-breadth-bar .is-down { background: var(--mv-down); }
-.hm-breadth-bar .is-flat { background: var(--mv-ink-3); }
-/* Unknown is hatched, not a flat tone — it must not read as a fifth category
-   of movement. */
-.hm-breadth-bar .is-na {
-  background: repeating-linear-gradient(
-    135deg, var(--mv-line-strong) 0 3px, transparent 3px 6px
-  ), var(--mv-well);
-}
-
-.hm-breadth-legend {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: var(--mv-sp-2) var(--mv-sp-4);
-  margin: var(--mv-sp-4) 0 0;
-}
-.hm-breadth-legend > div { display: flex; align-items: center; justify-content: space-between; gap: var(--mv-sp-2); }
-.hm-breadth-legend dt { display: flex; gap: var(--mv-sp-2); align-items: center; color: var(--mv-ink-2); font-size: var(--mv-fs-label); }
-.hm-breadth-legend dd { margin: 0; }
-.hm-breadth-legend i { inline-size: 8px; block-size: 8px; border-radius: 2px; flex-shrink: 0; }
-.hm-breadth-legend .is-up i { background: var(--mv-up); }
-.hm-breadth-legend .is-down i { background: var(--mv-down); }
-.hm-breadth-legend .is-flat i { background: var(--mv-ink-3); }
-.hm-breadth-legend .is-na i { border: 1px dashed var(--mv-line-strong); background: transparent; }
-.hm-breadth-legend .is-up dd { color: var(--mv-up); }
-.hm-breadth-legend .is-down dd { color: var(--mv-down); }
-.hm-breadth-legend .is-na dd { color: var(--mv-ink-3); }
-
-.hm-breadth-denom { margin: var(--mv-sp-4) 0 0; }
-
-/* ── activity ───────────────────────────────────────────────────────────── */
-.hm-act-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: var(--mv-sp-4);
-  margin: 0;
-}
-.hm-act-grid dt { margin-block-end: var(--mv-sp-1); }
-.hm-act-grid dd { margin: 0; font-size: 1.05rem; font-weight: var(--mv-fw-bold); }
-
-/* ── foreign flow ───────────────────────────────────────────────────────── */
-.hm-flow { overflow: hidden; }
-.hm-flow-mark {
+[data-theme='dark'] .hm-hero { border-color: rgba(255, 255, 255, 0.09); }
+.hm-hero::after {
   position: absolute;
-  inset-block-start: var(--mv-sp-5);
-  inset-inline-start: var(--mv-sp-5);
-  color: var(--mv-ink-3);
-  font-family: var(--font-numeric), ui-monospace, monospace;
-  font-size: var(--mv-fs-micro);
-  opacity: 0.35;
+  inset: auto -8% -30% auto;
+  inline-size: 50%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  content: '';
+  background: rgba(49, 113, 198, 0.2);
+  filter: blur(60px);
   pointer-events: none;
 }
 
-.hm-flow-net { margin-block-end: var(--mv-sp-4); }
-.hm-flow-net .ty-meta { display: block; margin-block-end: 2px; }
-
-.hm-flow-bar {
+.hm-hero > header {
+  position: relative;
+  z-index: 1;
   display: flex;
-  overflow: hidden;
-  block-size: 10px;
-  border-radius: var(--mv-r-pill);
-  background: var(--mv-well);
+  align-items: start;
+  justify-content: space-between;
+  gap: 16px;
 }
-.hm-flow-bar .is-buy { background: var(--mv-up); }
-.hm-flow-bar .is-sell { background: var(--mv-down); }
+.hm-hero > header span { color: rgba(255, 255, 255, 0.66); font-size: 0.76rem; }
+.hm-hero > header h2 {
+  margin: 4px 0 0;
+  font: 600 1.15rem var(--font-numeric), ui-monospace, monospace;
+  letter-spacing: -0.04em;
+}
 
-.hm-flow-legend { display: flex; flex-wrap: wrap; gap: var(--mv-sp-5); margin: var(--mv-sp-4) 0 0; }
-.hm-flow-legend dt { display: flex; gap: var(--mv-sp-2); align-items: center; color: var(--mv-ink-2); font-size: var(--mv-fs-label); }
-.hm-flow-legend dd { margin: 2px 0 0; }
-.hm-flow-legend i { inline-size: 8px; block-size: 8px; border-radius: 2px; }
-.hm-flow-legend .is-buy i { background: var(--mv-up); }
-.hm-flow-legend .is-sell i { background: var(--mv-down); }
+.hm-hero-actions { display: flex; align-items: center; gap: 8px; }
 
-/* ── sectors ────────────────────────────────────────────────────────────── */
-.hm-sec-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: var(--mv-sp-3); }
-.hm-sec-list li { display: grid; grid-template-columns: 8ch minmax(0, 1fr) 7ch; gap: var(--mv-sp-3); align-items: center; }
-.hm-sec-name { color: var(--mv-ink-2); font-size: var(--mv-fs-label); }
-.hm-sec-track { block-size: 6px; border-radius: var(--mv-r-pill); background: var(--mv-well); }
-.hm-sec-track i { display: block; block-size: 100%; border-radius: var(--mv-r-pill); }
-.hm-sec-track .is-up { background: var(--mv-up); }
-.hm-sec-track .is-down { background: var(--mv-down); }
-.hm-sec-list bdi { text-align: end; }
-
-/* ── top active table ───────────────────────────────────────────────────── */
-.hm-table-scroll { overflow-x: auto; }
-.hm-table { inline-size: 100%; border-collapse: collapse; }
-
-.hm-table th {
-  padding: 0 var(--mv-sp-3) var(--mv-sp-2);
-  border-block-end: 1px solid var(--mv-line-strong);
-  color: var(--mv-ink-3);
-  font-size: var(--mv-fs-caption);
-  font-weight: var(--mv-fw-semibold);
-  text-align: start;
+/* Deliberately quieter than the range group beside it: the chart is the hero
+   and this is the door next to it, not a CTA. */
+.hm-fullchart {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  block-size: 30px;
+  padding-inline: 11px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.05);
+  color: #cfd3d0;
+  font: 600 0.69rem var(--font-body), Arial, sans-serif;
   white-space: nowrap;
+  cursor: pointer;
+  transition: color 0.14s, border-color 0.14s, background-color 0.14s;
 }
-.hm-table th:not(:first-child) { text-align: end; }
+.hm-fullchart svg { inline-size: 13px; block-size: 13px; }
+.hm-fullchart:hover { color: #fff; border-color: rgba(99, 154, 226, 0.5); background: rgba(49, 113, 198, 0.22); }
 
-.hm-table td {
-  block-size: var(--mv-row-h);
-  padding: 0 var(--mv-sp-3);
-  border-block-end: 1px solid var(--mv-line);
-  font-size: var(--mv-fs-body);
+.hm-periods {
+  display: flex;
+  padding: 3px;
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 11px;
+  background: rgba(255, 255, 255, 0.025);
 }
-.hm-table tbody tr:last-child td { border-block-end: 0; }
-.hm-table tbody tr:hover { background: var(--mv-well); }
+.hm-periods button {
+  min-inline-size: 38px;
+  block-size: 29px;
+  padding-inline: 9px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: #737974;
+  font: 0.61rem var(--font-numeric), ui-monospace, monospace;
+  transition: color 0.13s, background-color 0.13s;
+}
+.hm-periods button.active { color: #3171c6; background: #f4f3f1; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.18); }
 
-.hm-num { text-align: end; white-space: nowrap; }
-.hm-spark { inline-size: 84px; }
+/* The page's primary object. 6.8vw → 97.92px at 1440, which is 2.6× what the
+   previous implementation rendered. Nothing else about the hero can read
+   correctly until this is right. */
+.hm-index-value {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: end;
+  gap: 18px;
+  margin-block: 24px 6px;
+  direction: ltr;
+}
+.hm-index-value strong {
+  font: 600 clamp(4.3rem, 6.8vw, 7.2rem) / 0.9 var(--font-numeric), ui-monospace, monospace;
+  letter-spacing: -0.08em;
+}
+.hm-index-value > span {
+  margin-block-end: 6px;
+  font: 0.72rem var(--font-numeric), ui-monospace, monospace;
+}
+.hm-index-value .positive { color: #48dc88; }
+.hm-index-value .negative { color: #ee6a6f; }
+.hm-index-value .hm-noprior { color: rgba(255, 255, 255, 0.5); }
 
-.hm-co { display: flex; gap: var(--mv-sp-3); align-items: center; color: inherit; text-decoration: none; min-inline-size: 20ch; }
+.hm-index-chart {
+  position: relative;
+  block-size: 250px;
+  margin-block-start: 12px;
+  color: #48dc88;      /* the gradient's `currentColor`, flipped by `.is-down` */
+  cursor: crosshair;
+}
+.hm-hero.is-down .hm-index-chart { color: #ee6a6f; }
+.hm-index-chart:focus-visible { outline: 2px solid var(--mv-hero-bright); outline-offset: -2px; }
+.hm-index-chart svg { inline-size: 100%; block-size: 100%; overflow: visible; }
+.hm-index-chart line { stroke: rgba(255, 255, 255, 0.06); stroke-width: 1; }
+.hm-index-chart .area { fill: url(#hmIndexFill); }
+.hm-index-chart .trace-shadow { fill: none; stroke: currentColor; stroke-width: 10; opacity: 0.48; filter: blur(10px); }
+.hm-index-chart .trace {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 3;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+}
+.hm-index-chart > svg > circle { fill: currentColor; stroke: #1d1d1d; stroke-width: 3; }
+.hm-crosshair line { stroke: rgba(255, 255, 255, 0.28); stroke-dasharray: 3 5; }
+.hm-crosshair circle { fill: #fff; }
 
-/* CompanyLogo takes its geometry from the CALLER — the component's own comment
-   says so — and this table gave it none, so every logo rendered at its
-   intrinsic size and blew rows out to 200px+. The reference uses a small
-   letter/mark square; this pins that scale and role. */
-.hm-co .co-logo {
-  flex-shrink: 0;
-  inline-size: 22px;
-  block-size: 22px;
+.hm-chart-tip {
+  position: absolute;
+  z-index: 2;
+  display: grid;
+  gap: 2px;
+  padding: 7px 10px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 9px;
+  color: #fff;
+  background: rgba(17, 19, 18, 0.86);
+  box-shadow: 0 9px 28px rgba(0, 0, 0, 0.25);
+  transform: translate(-50%, -110%);
+  pointer-events: none;
+}
+.hm-chart-tip bdi { font: 0.68rem var(--font-numeric), ui-monospace, monospace; }
+.hm-chart-tip small { color: #858b86; font-size: 0.56rem; }
+
+.hm-hero > footer {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  justify-content: space-between;
+  gap: 14px;
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 0.62rem;
+}
+.hm-hero > footer bdi { margin-inline-start: 5px; color: rgba(255, 255, 255, 0.82); }
+.hm-hero-session { color: rgba(255, 255, 255, 0.82); }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   §9 · Foreign flow — `.home-flow-card`
+   ═══════════════════════════════════════════════════════════════════════════
+   `linear-gradient(150deg, #173758, #102b47 72%, #0d2540)`. This is the
+   Electric-Blue identity and the single strongest brand moment on the page;
+   the previous implementation painted it `--mv-panel-solid`. */
+.hm-flow {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-block-size: 520px;
+  padding: 30px;
+  border: 1px solid rgba(91, 144, 211, 0.2);
+  border-radius: 24px;
+  color: #fff;
   overflow: hidden;
-  border-radius: 6px;
+  background: linear-gradient(150deg, #173758, #102b47 72%, #0d2540);
+  box-shadow: 0 28px 60px rgba(18, 43, 72, 0.24), inset 0 1px rgba(255, 255, 255, 0.09);
+  transition: border-color 0.18s, box-shadow 0.18s;
+}
+.hm-flow:hover { border-color: rgba(120, 176, 240, 0.42); }
+.hm-flow::before {
+  position: absolute;
+  inset: 0;
+  content: '';
+  pointer-events: none;
+  background: radial-gradient(circle at 88% 6%, rgba(49, 113, 198, 0.2), transparent 35%);
+}
+/* The reference's dark counterpart drops the navy for charcoal + blue bloom.
+   Designed, not an inversion — §21. */
+[data-theme='dark'] .hm-flow {
+  border-color: rgba(255, 255, 255, 0.07);
+  background:
+    radial-gradient(circle at 72% 22%, rgba(49, 113, 198, 0.28), transparent 34%),
+    linear-gradient(155deg, #303030, #202020 78%);
+}
+
+.hm-flow-mark {
+  position: absolute;
+  inset: auto 20px 18px auto;
+  z-index: 0;
+  color: rgba(244, 243, 241, 0.042);
+  font: 700 3rem/1 var(--font-numeric), ui-monospace, monospace;
+  letter-spacing: -0.07em;
+  pointer-events: none;
+}
+
+.hm-flow > header {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: 12px;
+}
+.hm-flow > header > div { display: grid; gap: 5px; }
+.hm-flow > header span { color: #f4f3f1; font-size: 0.95rem; font-weight: 700; }
+.hm-flow > header small { color: rgba(194, 216, 241, 0.56); font-size: 0.66rem; }
+.hm-flow > header time { color: rgba(194, 216, 241, 0.58); font: 0.65rem var(--font-numeric), ui-monospace, monospace; }
+[data-theme='dark'] .hm-flow > header span { color: #d3d3d3; }
+
+.hm-flow-head-end { display: flex; flex-direction: column; align-items: flex-end; gap: 7px; }
+
+/* Visible at rest, never hover-revealed — a hover-only affordance does not
+   exist on a phone. Quiet, so it cannot compete with the net figure below it. */
+.hm-flow-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-block-size: 26px;
+  padding: 4px 10px;
+  border: 1px solid rgba(194, 216, 241, 0.22);
+  border-radius: 999px;
+  color: rgba(214, 231, 250, 0.82);
+  font: 600 0.63rem var(--font-body), Arial, sans-serif;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: color 0.15s, border-color 0.15s, background-color 0.15s;
+}
+.hm-flow-cta span { font-size: 0.7rem; }
+.hm-flow:hover .hm-flow-cta { color: #fff; border-color: rgba(120, 176, 240, 0.6); background: rgba(73, 138, 214, 0.24); }
+.hm-flow-cta:hover,
+.hm-flow-cta:focus-visible { color: #fff; border-color: #5aa0e8; background: rgba(73, 138, 214, 0.34); }
+/* The 26px BOX keeps the reference's proportion; the 44px TAP TARGET is what
+   a thumb actually needs. Without this the card's primary CTA is 18px short. */
+.hm-flow-cta { position: relative; }
+.hm-flow-cta::before {
+  content: '';
+  position: absolute;
+  inset: 50% -4px auto;
+  block-size: 44px;
+  transform: translateY(-50%);
+}
+
+.hm-flow-result { position: relative; z-index: 1; margin-block-start: 32px; }
+.hm-flow-result > strong { display: flex; align-items: baseline; gap: 9px; direction: ltr; }
+.hm-flow-result > strong bdi {
+  font: 700 clamp(2.7rem, 4vw, 4rem) / 0.92 var(--font-numeric), ui-monospace, monospace;
+  letter-spacing: -0.075em;
+}
+/* The only positively-tracked rule on the page. Its content is the literal
+   string «IQD» and nothing else — Latin by construction — so the shorthand is
+   split out to `font-family: var(--font-numeric)`, which is the form
+   scripts/arabic-tracking.mjs already recognises as a Latin/numeric rule. */
+.hm-flow-result > strong small {
+  color: rgba(194, 216, 241, 0.62);
+  font-family: var(--font-numeric), ui-monospace, monospace;
+  font-size: 0.76rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+}
+.hm-flow-result.buying > strong { color: #48dc88; }
+.hm-flow-result.selling > strong { color: #ee6a6f; }
+.hm-flow-result.neutral > strong { color: #f4f3f1; }
+.hm-flow-result > p { margin: 10px 0 0; color: rgba(194, 216, 241, 0.72); font-size: 0.74rem; }
+
+.hm-flow-note {
+  position: relative;
+  z-index: 1;
+  margin: 14px 0 0;
+  padding-inline-start: 10px;
+  border-inline-start: 2px solid rgba(194, 216, 241, 0.28);
+  color: rgba(194, 216, 241, 0.72);
+  font-size: 0.68rem;
+}
+
+/* `margin-block-start: auto` is what anchors the balance bar to the BOTTOM of
+   the card — the previous implementation floated it mid-card. */
+.hm-balance { position: relative; z-index: 1; margin-block-start: auto; padding-block: 30px 24px; }
+.hm-balance-labels {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  margin-block-end: 12px;
+  direction: ltr;
+}
+.hm-balance-labels > span { display: flex; align-items: baseline; gap: 7px; transition: opacity 0.14s; }
+.hm-balance-labels > span.buy { justify-content: flex-end; }
+.hm-balance-labels small { color: rgba(194, 216, 241, 0.62); font-size: 0.7rem; }
+.hm-balance-labels strong { color: #f4f3f1; font: 600 0.92rem var(--font-numeric), ui-monospace, monospace; }
+
+.hm-balance-track {
+  display: flex;
+  block-size: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  border-radius: 999px;
+  direction: ltr;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.04);
+  box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.25);
+}
+/* Restated in full: a <button> brings its own font, border, padding and
+   background and would otherwise show as two grey slabs. */
+.hm-balance-track > button {
+  display: block;
+  block-size: 100%;
+  padding: 0;
+  margin: 0;
+  border: 0;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  transition: opacity 0.14s;
+}
+.hm-balance-track > button.sell { background: #c64f58; }
+.hm-balance-track > button.buy { background: #2fa76d; }
+.hm-balance-track > button:focus-visible { outline: 2px solid #fff; outline-offset: -3px; border-radius: 0; }
+/* Mute the other side rather than brighten this one: brightening moves the
+   bar's whole weight and makes the ratio look like it changed. */
+.hm-balance.is-focus-buy .hm-balance-track > button.sell,
+.hm-balance.is-focus-sell .hm-balance-track > button.buy { opacity: 0.34; }
+.hm-balance.is-focus-buy .hm-balance-labels .sell,
+.hm-balance.is-focus-sell .hm-balance-labels .buy { opacity: 0.45; }
+
+.hm-balance > p { margin: 12px 0 0; color: rgba(194, 216, 241, 0.66); font-size: 0.72rem; }
+.hm-balance > p strong { color: #f4f3f1; font: 600 0.76rem var(--font-numeric), ui-monospace, monospace; }
+
+.hm-flow > footer {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  min-block-size: 41px;
+  padding-block-start: 14px;
+  border-block-start: 1px solid rgba(194, 216, 241, 0.13);
+  color: rgba(194, 216, 241, 0.56);
+  font-size: 0.62rem;
+}
+.hm-flow > footer span { display: flex; align-items: center; gap: 6px; }
+.hm-flow > footer i { inline-size: 7px; block-size: 7px; border-radius: 50%; }
+.hm-flow > footer i.buy { background: #2fa76d; }
+.hm-flow > footer i.sell { background: #c64f58; }
+.hm-flow > footer small { margin-inline-start: auto; color: rgba(194, 216, 241, 0.45); font-size: 0.56rem; }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   §10 · Breadth — the ring
+   ═══════════════════════════════════════════════════════════════════════════
+   The approved donut, restored. Three directional arcs in the reference's own
+   palette — hero blue for advancing, #d6d8d5 for unchanged, #9fa4a0 for
+   declining — plus a FOURTH arc for «دون إغلاق سابق» that is `transparent` in
+   the conic so the hatched neutral underlay shows through. Hatched and not
+   tinted, so it cannot read as a fourth direction. */
+.hm-breadth { padding: 24px; border-radius: 24px; }
+.hm-breadth > header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  color: #5f6561;
+  font-size: 0.72rem;
+}
+.hm-breadth > header a { color: #777d78; font-size: 0.6rem; text-decoration: none; }
+[data-theme='dark'] .hm-breadth > header { color: #d3d3d3; }
+
+.hm-ring {
+  position: relative;
   display: grid;
   place-items: center;
-  font-family: var(--font-numeric), ui-monospace, monospace;
-  font-size: 0.6rem;
-  font-weight: var(--mv-fw-bold);
+  inline-size: min(150px, 82%);
+  aspect-ratio: 1;
+  margin: 20px auto 14px;
+  border-radius: 50%;
+  transition: background 0.16s;
+  background:
+    conic-gradient(
+      var(--mv-hero) 0 var(--s1),
+      #d6d8d5 var(--s1) var(--s2),
+      #9fa4a0 var(--s2) var(--s3),
+      transparent var(--s3) 100%
+    ),
+    repeating-linear-gradient(135deg, rgba(30, 34, 32, 0.22) 0 3px, transparent 3px 6px),
+    #e4e6e3;
+}
+[data-theme='dark'] .hm-ring {
+  background:
+    conic-gradient(
+      var(--mv-hero) 0 var(--s1),
+      #d6d8d5 var(--s1) var(--s2),
+      #9fa4a0 var(--s2) var(--s3),
+      transparent var(--s3) 100%
+    ),
+    repeating-linear-gradient(135deg, rgba(240, 239, 236, 0.24) 0 3px, transparent 3px 6px),
+    #3a3a3a;
+}
+/* Focusing a legend key greys the arcs the reader is NOT pointing at. At rest
+   the ring is the approved ring. */
+.hm-ring[data-hi='up']   { background: conic-gradient(var(--mv-hero) 0 var(--s1), rgba(150, 155, 151, 0.28) var(--s1) 100%); }
+.hm-ring[data-hi='flat'] { background: conic-gradient(rgba(150, 155, 151, 0.28) 0 var(--s1), #d6d8d5 var(--s1) var(--s2), rgba(150, 155, 151, 0.28) var(--s2) 100%); }
+.hm-ring[data-hi='down'] { background: conic-gradient(rgba(150, 155, 151, 0.28) 0 var(--s2), #9fa4a0 var(--s2) var(--s3), rgba(150, 155, 151, 0.28) var(--s3) 100%); }
+.hm-ring[data-hi='na'] {
+  background:
+    conic-gradient(rgba(150, 155, 151, 0.28) 0 var(--s3), transparent var(--s3) 100%),
+    repeating-linear-gradient(135deg, rgba(30, 34, 32, 0.3) 0 3px, transparent 3px 6px),
+    #e4e6e3;
+}
+[data-theme='dark'] .hm-ring[data-hi='na'] {
+  background:
+    conic-gradient(rgba(255, 255, 255, 0.14) 0 var(--s3), transparent var(--s3) 100%),
+    repeating-linear-gradient(135deg, rgba(240, 239, 236, 0.3) 0 3px, transparent 3px 6px),
+    #3a3a3a;
+}
+[data-theme='dark'] .hm-ring[data-hi='up']   { background: conic-gradient(var(--mv-hero) 0 var(--s1), rgba(255, 255, 255, 0.14) var(--s1) 100%); }
+[data-theme='dark'] .hm-ring[data-hi='flat'] { background: conic-gradient(rgba(255, 255, 255, 0.14) 0 var(--s1), #d6d8d5 var(--s1) var(--s2), rgba(255, 255, 255, 0.14) var(--s2) 100%); }
+[data-theme='dark'] .hm-ring[data-hi='down'] { background: conic-gradient(rgba(255, 255, 255, 0.14) 0 var(--s2), #9fa4a0 var(--s2) var(--s3), rgba(255, 255, 255, 0.14) var(--s3) 100%); }
+
+.hm-ring::before {
+  position: absolute;
+  inset: 11px;
+  border: 9px solid rgba(255, 255, 255, 0.8);
+  border-radius: inherit;
+  content: '';
+  background: #f7f8f6;
+  box-shadow: inset 0 2px 10px rgba(28, 31, 29, 0.07);
+}
+[data-theme='dark'] .hm-ring::before { border-color: rgba(44, 44, 44, 0.9); background: #232323; }
+
+.hm-ring > span { position: relative; z-index: 1; display: grid; text-align: center; }
+.hm-ring strong { font: 600 2rem var(--font-numeric), ui-monospace, monospace; color: var(--mv-ink); }
+.hm-ring small { color: #898e8a; font-size: 0.63rem; }
+
+.hm-breadth-legend { display: grid; gap: 7px; margin-block-start: 12px; }
+.hm-breadth-legend button {
+  display: grid;
+  grid-template-columns: 9px 1fr auto;
+  align-items: center;
+  gap: 9px;
+  padding: 3px 7px 7px;
+  margin: 0 -7px;
+  border: 0;
+  border-block-end: 1px solid rgba(31, 35, 32, 0.07);
+  border-radius: 8px;
+  background: none;
+  color: #6d736e;
+  font: inherit;
+  font-size: 0.68rem;
+  text-align: start;
+  cursor: pointer;
+  transition: background-color 0.13s, color 0.13s;
+}
+.hm-breadth-legend button:hover,
+.hm-breadth-legend button.is-on { background: rgba(28, 31, 29, 0.055); color: var(--mv-ink); }
+[data-theme='dark'] .hm-breadth-legend button { color: #aaa; border-block-end-color: rgba(255, 255, 255, 0.08); }
+[data-theme='dark'] .hm-breadth-legend button:hover,
+[data-theme='dark'] .hm-breadth-legend button.is-on { background: rgba(255, 255, 255, 0.07); color: #f0efec; }
+.hm-breadth-legend i { inline-size: 7px; block-size: 7px; border-radius: 50%; background: #aeb2ae; }
+.hm-breadth-legend .is-up i { background: var(--mv-up); }
+.hm-breadth-legend .is-down i { background: var(--mv-down); }
+/* The unknown key is hatched too, so the legend and the ring agree. */
+.hm-breadth-legend .is-na i {
+  border-radius: 2px;
+  background: repeating-linear-gradient(135deg, var(--mv-ink-3) 0 2px, transparent 2px 4px);
+}
+.hm-breadth-legend bdi { color: var(--mv-ink); font-family: var(--font-numeric), ui-monospace, monospace; }
+[data-theme='dark'] .hm-breadth-legend bdi { color: #eee; }
+
+.hm-breadth-denom { margin: 12px 0 0; color: var(--mv-ink-3); font-size: 0.62rem; }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   §11 · Activity — one Electric-Blue feature tile and two light ones
+   ═══════════════════════════════════════════════════════════════════════════ */
+.hm-activity {
+  display: grid;
+  grid-template-columns: 1.2fr 1fr;
+  grid-template-rows: auto 1fr 1fr;
+  gap: 1px;
+  padding: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.82);
+  border-radius: 24px;
+  background: rgba(239, 241, 238, 0.76);
+  box-shadow: 0 24px 65px rgba(35, 40, 36, 0.1), inset 0 1px rgba(255, 255, 255, 0.84);
+  backdrop-filter: blur(18px);
+}
+[data-theme='dark'] .hm-activity {
+  border-color: rgba(255, 255, 255, 0.07);
+  background: rgba(35, 35, 35, 0.86);
+  box-shadow: 0 26px 74px rgba(0, 0, 0, 0.34), inset 0 1px rgba(255, 255, 255, 0.055);
+}
+.hm-activity > header { grid-column: 1 / -1; padding: 3px 5px 12px; }
+.hm-activity > header span { color: #939894; font-size: 0.58rem; }
+.hm-activity > header h2 { margin: 2px 0 0; font-size: 1rem; font-weight: 600; }
+
+.hm-activity > article {
+  position: relative;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-content: center;
+  gap: 2px 8px;
+  min-block-size: 70px;
+  padding: 12px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.72);
+  overflow: hidden;
+  transition: background-color 0.13s;
+}
+.hm-activity > article:hover { background: rgba(28, 31, 29, 0.035); }
+[data-theme='dark'] .hm-activity > article { color: #eee; background: rgba(53, 53, 53, 0.82); }
+[data-theme='dark'] .hm-activity > article:hover { background: rgba(255, 255, 255, 0.04); }
+
+.hm-activity > article.feature {
+  grid-row: 2 / 4;
+  min-block-size: 145px;
+  margin-inline-end: 6px;
+  align-content: start;
+  padding-block-start: 18px;
   color: #fff;
+  background: var(--mv-hero);
+  box-shadow: 0 14px 28px rgba(27, 30, 28, 0.15);
+}
+[data-theme='dark'] .hm-activity > article.feature,
+.hm-activity > article.feature:hover { background: var(--mv-hero); }
+
+.hm-activity article > span { color: #777d78; font-size: 0.61rem; }
+[data-theme='dark'] .hm-activity article > span { color: #aaa; }
+.hm-activity article.feature > span { color: rgba(255, 255, 255, 0.78); }
+.hm-activity article strong {
+  display: flex;
+  align-items: baseline;
+  gap: 5px;
+  font: 600 1.02rem var(--font-numeric), ui-monospace, monospace;
+}
+.hm-activity article.feature strong { display: block; grid-column: 1 / -1; margin-block: 13px; font-size: 1.7rem; }
+.hm-activity article strong small { color: #929793; font-size: 0.5rem; }
+.hm-activity article.feature strong small { color: rgba(255, 255, 255, 0.7); }
+.hm-activity article em { font: normal 0.58rem var(--font-numeric), ui-monospace, monospace; font-style: normal; }
+.hm-activity article em.positive { color: var(--mv-up); }
+.hm-activity article em.negative { color: var(--mv-down); }
+.hm-activity article.feature em { color: rgba(255, 255, 255, 0.88); }
+/* No prior session to compare against. `—`, never a fabricated 0%. */
+.hm-activity article em.hm-na { color: var(--mv-ink-3); }
+.hm-activity article.feature em.hm-na { color: rgba(255, 255, 255, 0.6); }
+/* The sparkline bleeds to the tile's bottom edge — it is the tile's floor, not
+   a chart with a caption. */
+.hm-activity article svg {
+  position: absolute;
+  inset: auto 9px 8px;
+  inline-size: calc(100% - 18px);
+  block-size: 24px;
+  opacity: 0.65;
+}
+/* Sparkline's polyline is `stroke: currentColor`, which on these tiles resolves
+   to the body ink and draws the trend in grey. Tone it from the tile's own
+   verdict instead, so the line agrees with the figure above it. */
+.hm-activity article svg { color: var(--mv-up); }
+.hm-activity article:has(em.negative) svg { color: var(--mv-down); }
+.hm-activity article:has(em.hm-na) svg { color: var(--mv-ink-3); }
+.hm-activity article.feature svg { color: #fff; }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   §12 · Sectors
+   ═══════════════════════════════════════════════════════════════════════════
+   The reference's row: a 130px name, a 4px track, a 62px signed figure — one
+   per line, single column, rows dimming around the hovered one.
+
+   NOTE · the track's `block-size: 4px … background: #e1e3e0` is declared in the
+   reference against `.sector-bars > div > div`, and its interactivity pass
+   changed each row to an `<a>` without restating it — so the bars silently
+   collapsed to zero height and the running reference draws none. The
+   declaration is restored here because it is plainly the approved intent; a
+   sector-performance module with no bars is the regression, not the design. */
+.hm-sectors { display: block; padding: 28px 32px; border-radius: 26px; }
+.hm-sectors > header {
+  display: flex;
+  flex-direction: row;
+  align-items: end;
+  justify-content: space-between;
+  gap: 16px;
+  margin-block-end: 22px;
+}
+.hm-sectors > header span { color: #959a96; font-size: 0.62rem; }
+.hm-sectors h2 { margin: 5px 0 0; font-size: 1.25rem; font-weight: 600; letter-spacing: -0.025em; }
+.hm-sectors > header a { color: #777d78; font-size: 0.6rem; text-decoration: none; white-space: nowrap; }
+
+.hm-sector-bars { display: grid; grid-template-columns: 1fr; gap: 9px; }
+.hm-sector-bars > a {
+  display: grid;
+  grid-template-columns: 130px 1fr 62px;
+  align-items: center;
+  gap: 12px;
+  padding: 3px 6px;
+  margin: -3px -6px;
+  border-radius: 9px;
+  color: #656b67;
+  font-size: 0.68rem;
+  text-decoration: none;
+  transition: background-color 0.13s, opacity 0.13s;
+}
+[data-theme='dark'] .hm-sector-bars > a { color: #b7b7b7; }
+.hm-sector-bars > a:hover,
+.hm-sector-bars > a.is-on { background: rgba(28, 31, 29, 0.05); color: var(--mv-ink); }
+[data-theme='dark'] .hm-sector-bars > a:hover,
+[data-theme='dark'] .hm-sector-bars > a.is-on { background: rgba(255, 255, 255, 0.06); color: #f0efec; }
+/* The rest step back rather than the hovered one lighting up: same reading,
+   no extra contrast spent. */
+.hm-sector-bars.is-focused > a:not(.is-on) { opacity: 0.5; }
+.hm-sector-bars > a > div { block-size: 4px; border-radius: 8px; overflow: hidden; background: #e1e3e0; }
+[data-theme='dark'] .hm-sector-bars > a > div { background: #353535; }
+.hm-sector-bars i { display: block; block-size: 100%; border-radius: inherit; background: var(--mv-up); }
+.hm-sector-bars i.negative { background: var(--mv-down); }
+.hm-sector-bars bdi { text-align: end; font: 0.62rem var(--font-numeric), ui-monospace, monospace; }
+.hm-sector-bars bdi.positive { color: var(--mv-up); }
+.hm-sector-bars bdi.negative { color: var(--mv-down); }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   §13 · The board — dense, 25 rows, 54px each
+   ═══════════════════════════════════════════════════════════════════════════
+   Not a branded company directory. The logo is a 33px mark at the head of the
+   identity cell and nothing more; the previous implementation let it drive the
+   row height and produced a directory. */
+.hm-market { margin-block-start: 18px; padding: 30px 32px 20px; border-radius: 28px; }
+.hm-market > header { display: flex; align-items: end; justify-content: space-between; gap: 24px; }
+.hm-market > header span { color: #959a96; font-size: 0.62rem; }
+.hm-market > header h2 { margin: 5px 0 0; font-size: 1.25rem; font-weight: 600; letter-spacing: -0.025em; }
+
+.hm-market-actions { display: flex; align-items: center; gap: 10px; }
+.hm-market-actions label {
+  display: grid;
+  grid-template-columns: 16px 1fr;
+  align-items: center;
+  gap: 6px;
+  min-inline-size: 240px;
+  block-size: 40px;
+  padding-inline: 12px;
+  border: 1px solid rgba(31, 35, 32, 0.07);
+  border-radius: 13px;
+  color: #9a9f9b;
+  background: rgba(255, 255, 255, 0.72);
+}
+[data-theme='dark'] .hm-market-actions label {
+  color: #999;
+  border-color: rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.035);
+}
+.hm-market-actions input {
+  min-inline-size: 0;
+  border: 0;
+  outline: 0;
+  color: var(--mv-ink);
+  background: transparent;
+  font-family: inherit;
+  font-size: 0.7rem;
+}
+.hm-market-actions > a {
+  display: grid;
+  place-items: center;
+  block-size: 40px;
+  padding-inline: 14px;
+  border-radius: 13px;
+  color: #fff;
+  background: var(--mv-hero);
+  font-size: 0.65rem;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.hm-mover-tabs {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  margin-block: 24px 12px;
+  border-block-end: 1px solid rgba(31, 35, 32, 0.075);
+}
+[data-theme='dark'] .hm-mover-tabs { border-block-end-color: rgba(255, 255, 255, 0.08); }
+.hm-mover-tabs > div:first-child { display: flex; gap: 3px; }
+.hm-mover-tabs button {
+  padding: 10px 14px;
+  border: 0;
+  border-block-end: 2px solid transparent;
+  background: transparent;
+  color: #8b908c;
+  font-family: inherit;
+  font-size: 0.68rem;
+  cursor: pointer;
+}
+.hm-mover-tabs button.active { color: var(--mv-hero); border-block-end-color: var(--mv-hero); }
+[data-theme='dark'] .hm-mover-tabs button.active { color: var(--mv-hero-bright); border-block-end-color: var(--mv-hero-bright); }
+.hm-mover-tabs > div:last-child { display: flex; gap: 5px; margin-inline-start: auto; }
+.hm-mover-tabs > div:last-child a {
+  display: flex;
+  gap: 8px;
+  padding: 7px 10px;
+  border-radius: 9px;
+  color: #5d635f;
+  background: #eceeeb;
+  font-size: 0.59rem;
+  text-decoration: none;
+}
+[data-theme='dark'] .hm-mover-tabs > div:last-child a { color: #ddd; background: #353535; }
+.hm-mover-tabs > div:last-child bdi { font-family: var(--font-numeric), ui-monospace, monospace; font-weight: 700; }
+.hm-mover-tabs > div:last-child span { color: #868b87; }
+
+.hm-market-table { max-block-size: 668px; overflow: auto; scrollbar-color: rgba(49, 113, 198, 0.38) transparent; }
+.hm-market-table table { inline-size: 100%; border-collapse: collapse; }
+.hm-market-table thead {
+  position: sticky;
+  inset-block-start: 0;
+  z-index: 3;
+  background: rgba(249, 250, 248, 0.96);
+  backdrop-filter: blur(14px);
+}
+[data-theme='dark'] .hm-market-table thead { background: rgba(28, 30, 30, 0.96); }
+.hm-market-table th {
+  padding: 10px 14px;
+  border: 0;
+  color: #9a9f9b;
+  text-align: start;
+  font-size: 0.59rem;
+  font-weight: 500;
+  white-space: nowrap;
+}
+[data-theme='dark'] .hm-market-table th { color: #aaa; }
+.hm-market-table th button {
+  border: 0;
+  padding: 0;
+  color: inherit;
+  background: transparent;
+  font: inherit;
+  cursor: pointer;
+}
+.hm-market-table td {
+  padding: 10px 14px;
+  border-block-start: 1px solid rgba(31, 35, 32, 0.06);
+  color: #373b38;
+  font-size: 0.69rem;
+  white-space: nowrap;
+}
+[data-theme='dark'] .hm-market-table td { color: #ddd; border-block-start-color: rgba(255, 255, 255, 0.065); }
+.hm-market-table tbody tr:nth-child(even) { background: rgba(49, 113, 198, 0.018); }
+[data-theme='dark'] .hm-market-table tbody tr:nth-child(even) { background: rgba(255, 255, 255, 0.014); }
+.hm-market-table tbody tr:hover { background: rgba(49, 113, 198, 0.055); }
+[data-theme='dark'] .hm-market-table tbody tr:hover { background: rgba(49, 113, 198, 0.13); }
+
+.hm-market-table td:first-child a {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: inherit;
+  text-decoration: none;
+}
+.hm-market-table td:first-child strong,
+.hm-market-table td:first-child small { display: block; font-weight: 600; }
+.hm-market-table td:first-child small {
+  margin-block-start: 2px;
+  color: #939894;
+  font-size: 0.58rem;
+  font-weight: 400;
+}
+[data-theme='dark'] .hm-market-table td:first-child small { color: #969696; }
+.hm-market-table td .positive { color: var(--mv-up); }
+.hm-market-table td .negative { color: var(--mv-down); }
+.hm-market-table td svg { inline-size: 80px; block-size: 25px; }
+
+/* The mark, at the reference's exact size and role. CompanyLogo takes its
+   geometry from the CALLER; give it none and it renders at intrinsic size and
+   blows the row to 200px, which is what happened before. */
+.hm-market-table .co-logo {
+  display: grid;
+  place-items: center;
+  flex: none;
+  inline-size: 33px;
+  block-size: 33px;
+  border-radius: 10px;
+  overflow: hidden;
+  color: var(--mv-hero);
+  background: rgba(49, 113, 198, 0.1);
+  font: 600 0.66rem var(--font-numeric), ui-monospace, monospace;
   line-height: 1;
 }
-.hm-co .co-logo img {
-  inline-size: 100%;
-  block-size: 100%;
-  object-fit: contain;
-  background: #fff;
+[data-theme='dark'] .hm-market-table .co-logo { color: #9ec6fb; background: rgba(49, 113, 198, 0.28); }
+.hm-market-table .co-logo img { inline-size: 100%; block-size: 100%; object-fit: contain; background: #fff; }
+
+/* ── Focus, everywhere. `:focus-visible`, so a mouse click never draws a ring
+      and a Tab key always does. ─────────────────────────────────────────── */
+.hm :is(button, a, input, [tabindex='0']):focus-visible {
+  outline: 2px solid var(--mv-hero-bright);
+  outline-offset: 2px;
+  border-radius: 7px;
 }
-.hm-co strong { display: block; font-size: var(--mv-fs-body); font-weight: var(--mv-fw-semibold); }
-.hm-co small { display: block; color: var(--mv-ink-3); font-family: var(--font-numeric), ui-monospace, monospace; font-size: var(--mv-fs-micro); }
-.hm-co:hover strong { color: var(--mv-hero); }
-[data-theme='dark'] .hm-co:hover strong { color: var(--mv-hero-bright); }
 
-.hm-table-actions { display: flex; flex-wrap: wrap; gap: var(--mv-sp-3); align-items: center; }
-
-/* ── expanded ISX60 ─────────────────────────────────────────────────────── */
-.hm-expand-scrim { place-items: center; padding: var(--mv-sp-5); }
+/* ── Expanded ISX60 ─────────────────────────────────────────────────────── */
+.hm-expand-scrim { place-items: center; padding: 20px; }
 .hm-expand-host {
   display: flex;
   flex-direction: column;
   inline-size: min(1100px, 100%);
   max-block-size: 88vh;
-  padding: var(--mv-sp-5);
+  padding: 20px;
   border: 1px solid var(--mv-line);
-  border-radius: var(--mv-r-panel);
+  border-radius: 16px;
   background: var(--mv-panel-solid);
   color: var(--mv-ink);
   box-shadow: var(--mv-shadow);
 }
 .hm-expand-host > header {
   display: flex;
-  gap: var(--mv-sp-3);
   align-items: center;
   justify-content: space-between;
-  margin-block-end: var(--mv-sp-4);
+  gap: 12px;
+  margin-block-end: 16px;
 }
 .hm-expand-body { flex: 1; min-block-size: 0; overflow: auto; }
 
-/* ── tablet ─────────────────────────────────────────────────────────────── */
-@media (max-width: 1100px) {
-  .hm-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .hm-flow-wrap, .hm-breadth, .hm-activity, .hm-sectors { grid-column: span 1; }
+@media (prefers-reduced-motion: reduce) {
+  .hm-balance-track > button, .hm-ring, .hm-breadth-legend button,
+  .hm-sector-bars > a, .hm-activity article, .hm-fullchart, .hm-periods button { transition: none; }
 }
 
-/* ── phone ──────────────────────────────────────────────────────────────
-   Order is declared, not inherited: market context, hero, foreign flow,
-   internals, sectors, then the table (which follows in source order). */
-@media (max-width: 720px) {
-  .hm { padding: var(--mv-sp-4) var(--mv-sp-4) var(--mv-sp-8); }
-  .hm-grid { grid-template-columns: minmax(0, 1fr); }
-  .hm-flow-wrap, .hm-breadth, .hm-activity, .hm-sectors, .hm-hero { grid-column: 1 / -1; }
-  .hm-hero { order: 1; }
-  .hm-flow-wrap { order: 2; }
-  .hm-breadth { order: 3; }
-  .hm-activity { order: 4; }
-  .hm-sectors { order: 5; }
+/* ═══════════════════════════════════════════════════════════════════════════
+   §20 · Responsive — ported, not derived
+   ═══════════════════════════════════════════════════════════════════════════ */
 
-  .hm-hero-value .ty-metric { font-size: 1.9rem; }
-  .hm-card { padding: var(--mv-sp-4); }
-  .hm-breadth-legend { grid-template-columns: minmax(0, 1fr); }
-  /* The table keeps its columns and scrolls, rather than restacking into
-     cards — a price board read as a stack of cards loses the column
-     comparison that is the entire reason to look at it. */
-  .hm-table { min-inline-size: 560px; }
+/* Laptop. Two columns: the hero and the flow keep their 520px row, the three
+   data cards fall to a 2-up beneath, sectors takes the full width back. */
+@media (max-width: 1180px) and (min-width: 821px) {
+  .hm-comp {
+    grid-template-columns: minmax(0, 1.55fr) minmax(300px, 0.75fr);
+    grid-template-rows: 520px auto auto;
+  }
+  .hm-hero     { grid-column: 1; grid-row: 1; }
+  .hm-flow     { grid-column: 2; grid-row: 1; }
+  .hm-breadth  { grid-column: 1; grid-row: 2; }
+  .hm-activity { grid-column: 2; grid-row: 2; }
+  .hm-sectors  { grid-column: 1 / -1; grid-row: 3; display: grid; grid-template-columns: 0.42fr 1fr; gap: 35px; }
+  .hm-sectors > header { flex-direction: column; align-items: start; margin-block-end: 0; }
+  .hm-sector-bars { grid-template-columns: repeat(2, 1fr); gap: 11px 22px; }
+  .hm-sector-bars > a { grid-template-columns: 110px 1fr 58px; }
+}
+
+/* Phone. The composition becomes a column and the ORDER is declared, exactly
+   as the reference declares it: hero, activity, flow, breadth, sectors, board. */
+@media (max-width: 820px) {
+  .hm { inline-size: calc(100% - 20px); padding-block: 15px 50px; }
+  .hm-intro { padding-block-end: 13px; }
+  .hm-comp { display: flex; flex-direction: column; gap: 12px; }
+  .hm-hero     { order: 1; min-block-size: 480px; padding: 22px; border-radius: 24px; }
+  .hm-activity { order: 2; min-block-size: 250px; }
+  .hm-flow     { order: 3; min-block-size: 500px; }
+  .hm-breadth  { order: 4; }
+  .hm-sectors  { order: 5; }
+  .hm-flow, .hm-breadth, .hm-activity, .hm-sectors { border-radius: 21px; }
+
+  .hm-index-value { display: grid; gap: 10px; margin-block-start: 34px; }
+  .hm-index-value strong { font-size: clamp(3.7rem, 17vw, 5.8rem); }
+  .hm-index-value > span { margin: 0; }
+  .hm-index-chart { block-size: 215px; }
+  .hm-hero > footer span:nth-child(2) { display: none; }
+  .hm-hero-actions { flex-wrap: wrap; justify-content: flex-end; gap: 6px; }
+  .hm-fullchart { order: -1; }
+
+  .hm-breadth { display: grid; grid-template-columns: 1fr 1fr; align-items: center; }
+  .hm-breadth > header { grid-column: 1 / -1; }
+  .hm-ring { inline-size: 150px; margin-block: 18px; }
+  .hm-breadth-legend { margin: 0; }
+  .hm-breadth-denom { grid-column: 1 / -1; }
+
+  .hm-sectors { display: block; padding: 24px; }
+  .hm-sectors > header { flex-direction: row; align-items: end; margin-block-end: 24px; }
+  .hm-sector-bars { grid-template-columns: 1fr; }
+  .hm-sector-bars > a { grid-template-columns: 100px 1fr 56px; }
+
+  .hm-market { padding: 24px 18px 14px; border-radius: 22px; }
+  .hm-market > header { display: grid; gap: 14px; }
+  .hm-market-actions { display: grid; grid-template-columns: 1fr auto; }
+  .hm-market-actions label { min-inline-size: 0; }
+  .hm-mover-tabs { overflow-x: auto; }
+  .hm-mover-tabs button { flex: 0 0 auto; }
+  .hm-mover-tabs > div:last-child { display: none; }
+  /* Table-local scrolling, as the reference does it: the board keeps its
+     columns and scrolls, because a price board restacked into cards loses the
+     column comparison that is the entire reason to look at it. */
+  .hm-market-table { margin-inline: -18px; padding-inline: 18px; max-block-size: 590px; }
+  .hm-market-table table { min-inline-size: 760px; }
+  .hm-flow-cta { min-block-size: 32px; padding: 7px 12px; font-size: 0.66rem; }
+  .hm-flow-head-end { gap: 9px; }
+}
+
+@media (max-width: 480px) {
+  .hm-intro > div:first-child > span { font-size: 0.64rem; }
+  .hm-hero { min-block-size: 440px; }
+  .hm-hero > header { gap: 10px; }
+  .hm-periods button { min-inline-size: 31px; padding-inline: 6px; }
+  /* NOT 3.35rem. The reference has a `3.35rem` rule in its own ≤480 block, but
+     its Electric-Blue revision restates `clamp(3.7rem, 17vw, 5.8rem)` at ≤820
+     LATER in the file, so at 375px the clamp is what actually wins — 63.75px,
+     which is what the running reference measures. Copying the ≤480 rule
+     without the cascade around it would ship a 53.6px number. */
+  .hm-activity { grid-template-columns: 1fr 1fr; padding: 14px; }
+  .hm-activity > article.feature { min-block-size: 150px; }
+  .hm-activity > article strong { font-size: 0.9rem; }
+  .hm-activity > article.feature strong { font-size: 1.35rem; }
+  .hm-breadth { grid-template-columns: 1fr; }
+  .hm-ring { margin-inline: auto; }
+  .hm-breadth-legend { margin-block-start: 8px; }
+  .hm-sector-bars > a { grid-template-columns: 90px 1fr 54px; gap: 8px; }
+  .hm-market-actions { grid-template-columns: 1fr; }
+  .hm-market-actions > a { display: none; }
 }

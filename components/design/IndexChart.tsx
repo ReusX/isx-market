@@ -37,7 +37,7 @@ const priceFmt = new Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maxi
 let fullCache: IndexRow[] | null = null
 let fullPromise: Promise<IndexRow[]> | null = null
 
-function loadFullHistory(): Promise<IndexRow[]> {
+export function loadFullHistory(): Promise<IndexRow[]> {
   if (fullCache) return Promise.resolve(fullCache)
   fullPromise ??= (async () => {
     const { createClient } = await import('@/lib/supabase/client')

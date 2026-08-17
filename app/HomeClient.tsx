@@ -8,23 +8,36 @@ import IndexChart from '@/components/design/IndexChart'
 import { Sparkline } from '@/components/design/Sparkline'
 import { CompanyLogo } from '@/components/CompanyLogo'
 import { useOverlay } from '@/components/system/Overlay'
+import { useApp } from '@/context/AppContext'
 import { Skeleton, ModuleError, Freshness, Unavailable } from '@/components/system/DataStates'
 import {
-  computeBreadth, computeFlow, computeSectors, sessionFreshness, arSession,
+  computeBreadth, computeFlow, computeSectors, sessionFreshness, arSession, signed,
   type Breadth, type Flow, type IndexRow, type SectorMove,
 } from '@/lib/homeData'
-import { BreadthCard, ActivityCard, FlowCard, SectorsCard } from './HomeModules'
+import { HeroCard, BreadthCard, ActivityCard, FlowCard, SectorsCard } from './HomeModules'
 import type { Company } from '@/types'
 
 const nf = new Intl.NumberFormat('en-US')
 const compact = new Intl.NumberFormat('en-US', { notation: 'compact', maximumFractionDigits: 1 })
 const price = new Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
 
-type SortKey = 'value' | 'volume' | 'change'
+type SortKey = 'price' | 'change' | 'volume' | 'value'
+type MoverTab = 'gainers' | 'losers' | 'active'
 
 /**
  * The homepage.
  *
+ * ══ WHAT THIS IS ══════════════════════════════════════════════════════════
+ * A VISUAL RE-PORT of the approved reference homepage
+ * (`/Users/amed/iqwealth-design/app/page.tsx` + its `.home-v2-*` CSS), wrapped
+ * around the real data layer that commits `8f53ad9` and `b61f96a` established.
+ *
+ * The composition is the reference's 12-column one: an 8-column ISX60 hero and
+ * a 4-column navy foreign-flow card sharing a 520px row, then breadth (3),
+ * activity (4) and sectors (5) sharing the row beneath, then the dense
+ * 25-row board. Nothing here is «span 2» four times.
+ *
+ * ══ DATA ══════════════════════════════════════════════════════════════════
  * Every module is fed from `lib/homeData.ts` against ONE resolved session, and
  * every figure traces to `docs/HOMEPAGE_DATA_MAP.md`. Nothing here invents a
  * metric, and nothing labels a window it cannot name.
@@ -36,6 +49,8 @@ type SortKey = 'value' | 'volume' | 'change'
  * the most common way an error state makes things worse than the error.
  */
 export default function HomeClient() {
+  const { profile } = useApp()
+
   const [companies, setCompanies] = useState<Company[]>([])
   const [series, setSeries] = useState<IndexRow[]>([])
   const [flowRows, setFlowRows] = useState<{ date: string; side: string; value: number | null }[]>([])
@@ -46,7 +61,10 @@ export default function HomeClient() {
   const [indexFailed, setIndexFailed] = useState(false)
   const [flowFailed, setFlowFailed] = useState(false)
 
-  const [sort, setSort] = useState<SortKey>('value')
+  const [sortKey, setSortKey] = useState<SortKey>('value')
+  const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc')
+  const [moverTab, setMoverTab] = useState<MoverTab>('gainers')
+  const [query, setQuery] = useState('')
   const [expanded, setExpanded] = useState(false)
 
   // ── prices + company meta ──────────────────────────────────────────────
@@ -91,9 +109,6 @@ export default function HomeClient() {
 
   // ── derived ────────────────────────────────────────────────────────────
   const latest = series.length ? series[series.length - 1] : null
-  const prev = series.length > 1 ? series[series.length - 2] : null
-  const isxAbs = latest && prev ? latest.isx60 - prev.isx60 : null
-  const isxPct = latest && prev && prev.isx60 ? ((latest.isx60 - prev.isx60) / prev.isx60) * 100 : null
 
   /** The one canonical session every module is labelled with. */
   const session = latest?.date ?? null
@@ -111,169 +126,192 @@ export default function HomeClient() {
     () => (flowSession ? computeFlow(flowRows, flowSession) : null), [flowRows, flowSession])
   const flowBehind = Boolean(session && flowSession && flowSession !== session)
 
-  const top = useMemo(() => {
-    const list = [...traded]
-    if (sort === 'value') list.sort((a, b) => (b.vol ?? 0) - (a.vol ?? 0))
-    else if (sort === 'volume') list.sort((a, b) => (b.shares_traded ?? 0) - (a.shares_traded ?? 0))
-    else list.sort((a, b) => Math.abs(b.pct) - Math.abs(a.pct))
-    return list.slice(0, 25)
-  }, [traded, sort])
+  /* ── the board ───────────────────────────────────────────────────────────
+     The reference's own model: a free-text filter, a sortable header, and a
+     mover tab that re-ranks the 25 rows. `vol` is traded VALUE in IQD despite
+     its name; `shares_traded` is the share count. */
+  const sortable: Record<SortKey, (c: Company) => number> = {
+    price: (c) => c.close,
+    change: (c) => c.pct,
+    volume: (c) => c.shares_traded ?? 0,
+    value: (c) => c.vol ?? 0,
+  }
+
+  /* The tab drives the MOVER CHIPS, not the table — that is the reference's
+     own division and it is also what keeps §13's «at least 25 rows» true. An
+     earlier draft filtered the table by the tab too, and «الرابحون» on a
+     session with 11 advancers rendered an 11-row board. */
+  const rows = useMemo(() => {
+    const q = query.trim().toLowerCase()
+    const pool = traded.filter((c) => !q || c.ar.includes(query.trim()) || c.sym.toLowerCase().includes(q))
+    const get = sortable[sortKey]
+    return [...pool].sort((a, b) => (sortDir === 'asc' ? 1 : -1) * (get(a) - get(b))).slice(0, 25)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [traded, query, sortKey, sortDir])
+
+  const movers = useMemo(() => {
+    const pool = traded.filter((c) => !c.noPrior)
+    if (moverTab === 'gainers') return [...pool].sort((a, b) => b.pct - a.pct).slice(0, 3)
+    if (moverTab === 'losers') return [...pool].sort((a, b) => a.pct - b.pct).slice(0, 3)
+    return [...traded].sort((a, b) => (b.shares_traded ?? 0) - (a.shares_traded ?? 0)).slice(0, 3)
+  }, [traded, moverTab])
+
+  function sortBy(key: SortKey) {
+    if (key === sortKey) setSortDir(sortDir === 'asc' ? 'desc' : 'asc')
+    else { setSortKey(key); setSortDir('desc') }
+  }
 
   const closeExpanded = useCallback(() => setExpanded(false), [])
   const expandedRef = useOverlay(expanded, closeExpanded)
 
+  /* ── the greeting ────────────────────────────────────────────────────────
+     The reference's intro is «مساء الخير، أحمد» over «نظرة السوق · ٢٤ تموز
+     ٢٠٢٦» — a personalised salutation. Production serves mostly signed-out
+     visitors and there is no name to greet them with, so this is the one place
+     a literal port is impossible. Option 1 of the visual diff's §6: the
+     reference's two-line structure and typography are kept verbatim, the real
+     greeting appears once a session exists, and a market-context line stands in
+     its place when it does not. */
+  const [hour, setHour] = useState<number | null>(null)
+  useEffect(() => { setHour(new Date().getHours()) }, [])
+  const salutation = hour == null ? null : hour < 12 ? 'صباح الخير' : 'مساء الخير'
+  const name = profile?.username?.trim() || null
+
   return (
     <main className="iq-page hm">
-      <header className="hm-intro">
-        <p className="ty-label">بورصة العراق</p>
-        <h1 className="ty-page-title">نظرة على السوق</h1>
-        {session ? (
-          <Freshness tone={fresh.tone} label={fresh.label} stamp={arSession(session)} />
-        ) : null}
-      </header>
+      <div className="hm-intro">
+        <div>
+          <span>نظرة السوق{session ? ` · ${arSession(session)}` : ''}</span>
+          <h1>{name && salutation ? `${salutation}، ${name}` : 'نظرة على السوق'}</h1>
+        </div>
+        {/* No `stamp`. It is `<bdi>`-isolated inside the chip, which reorders
+            «16 أغسطس 2026» to «أغسطس 16 2026» — and the intro line above
+            already carries the same date, unisolated and correct. */}
+        {session ? <Freshness tone={fresh.tone} label={fresh.label} /> : null}
+      </div>
 
-      <div className="hm-grid">
-        {/* ── ISX60 hero ───────────────────────────────────────────────── */}
-        <article className="hm-card hm-hero" aria-labelledby="hm-isx-t">
-          <header className="hm-card-head">
-            <div>
-              <span className="ty-label">مؤشر السوق العراقي</span>
-              <h2 id="hm-isx-t" className="ty-section-title"><bdi>ISX60</bdi></h2>
-            </div>
-            <button type="button" className="hm-expand" onClick={() => setExpanded(true)}>
-              تكبير المخطط <span aria-hidden="true">⤢</span>
-            </button>
-          </header>
-
-          {indexFailed ? (
-            <ModuleError what="مؤشر ISX60" />
-          ) : !latest ? (
-            <Skeleton shape="chart" rows={1} />
-          ) : (
-            <>
-              <div className="hm-hero-value">
-                <strong className="ty-metric"><bdi>{latest.isx60.toFixed(2)}</bdi></strong>
-                {isxAbs != null && isxPct != null ? (
-                  <span className={isxAbs > 0 ? 'ds-up' : isxAbs < 0 ? 'ds-down' : 'ds-flat'}>
-                    <bdi className="ty-num">
-                      {isxAbs > 0 ? '+' : isxAbs < 0 ? '−' : ''}{Math.abs(isxAbs).toFixed(2)}
-                    </bdi>
-                    {' · '}
-                    <bdi className="ty-num">
-                      {isxPct > 0 ? '+' : isxPct < 0 ? '−' : ''}{Math.abs(isxPct).toFixed(2)}%
-                    </bdi>
-                  </span>
-                ) : <Unavailable why="لا توجد جلسة سابقة للمقارنة" />}
-                <small className="ty-meta">مقارنةً بالجلسة السابقة{prev ? ` · ${arSession(prev.date)}` : ''}</small>
-              </div>
-              <div className="hm-hero-chart">
-                <IndexChart rows={series} />
-              </div>
-            </>
-          )}
-        </article>
-
-        {/* ── foreign flow ─────────────────────────────────────────────── */}
-        {flowFailed ? (
-          <article className="hm-card"><ModuleError what="تدفق المستثمر الأجنبي" /></article>
+      {/* ── the 12-column composition ───────────────────────────────────────
+          Four of the six modules have DIFFERENT widths, because the reference
+          gives them different widths. 8/4 on the hero row, 3/4/5 beneath. */}
+      <section className="hm-comp" aria-label="ملخص السوق العراقي">
+        {indexFailed ? (
+          <article className="hm-hero hm-hero-failed"><ModuleError what="مؤشر ISX60" /></article>
+        ) : !latest ? (
+          <article className="hm-hero hm-hero-failed"><Skeleton shape="chart" rows={1} /></article>
         ) : (
-          <div className="hm-flow-wrap">
-            <FlowCard flow={flow} sessionLabel={arSession(flowSession)} />
-            {flowBehind ? (
-              <p className="ty-meta hm-note">
-                بيانات التدفق الأجنبي لجلسة <bdi>{arSession(flowSession)}</bdi>، وهي أقدم من جلسة المؤشر.
-              </p>
-            ) : null}
-          </div>
+          <HeroCard rows={series} session={session} onExpand={() => setExpanded(true)} />
         )}
 
-        {/* ── breadth ──────────────────────────────────────────────────── */}
+        {flowFailed ? (
+          <article className="hm-flow hm-flow-failed"><ModuleError what="تدفق المستثمر الأجنبي" /></article>
+        ) : (
+          <FlowCard flow={flow} behind={flowBehind} />
+        )}
+
         {pricesFailed ? (
-          <article className="hm-card"><ModuleError what="اتساع السوق" onRetry={loadPrices} /></article>
+          <article className="hm-breadth hm-mod-failed"><ModuleError what="اتساع السوق" onRetry={loadPrices} /></article>
         ) : pricesLoading ? (
-          <article className="hm-card"><Skeleton shape="rows" rows={4} /></article>
+          <article className="hm-breadth hm-mod-failed"><Skeleton shape="rows" rows={4} /></article>
         ) : (
           <BreadthCard b={breadth} />
         )}
 
-        {/* ── activity ─────────────────────────────────────────────────── */}
-        {indexFailed ? null : (
-          <ActivityCard
-            value={latest?.total_value ?? null}
-            volume={latest?.total_volume ?? null}
-            trades={latest?.total_trades ?? null}
-            tradedCompanies={latest?.traded_companies ?? null}
-          />
+        {indexFailed ? (
+          <section className="hm-activity hm-mod-failed"><ModuleError what="نشاط السوق" /></section>
+        ) : (
+          <ActivityCard rows={series} />
         )}
 
-        {/* ── sectors ──────────────────────────────────────────────────── */}
-        {pricesFailed ? null : pricesLoading ? (
-          <article className="hm-card"><Skeleton shape="rows" rows={5} /></article>
+        {pricesFailed ? (
+          <section className="hm-sectors hm-mod-failed"><ModuleError what="أداء القطاعات" onRetry={loadPrices} /></section>
+        ) : pricesLoading ? (
+          <section className="hm-sectors hm-mod-failed"><Skeleton shape="rows" rows={5} /></section>
         ) : (
           <SectorsCard sectors={sectors} />
         )}
-      </div>
+      </section>
 
-      {/* ── top active companies ───────────────────────────────────────── */}
-      <section className="hm-card hm-table-card" aria-labelledby="hm-top-t">
-        <header className="hm-card-head">
+      {/* ── the board ────────────────────────────────────────────────────── */}
+      <section className="hm-market" aria-labelledby="hm-top-t">
+        <header>
           <div>
-            <span className="ty-label">لوحة السوق</span>
-            <h2 id="hm-top-t" className="ty-section-title">الشركات الأكثر حركة</h2>
+            <span>لوحة السوق</span>
+            <h2 id="hm-top-t">الشركات الأكثر حركة</h2>
           </div>
-          <div className="hm-table-actions">
-            <div className="mv-segmented" role="group" aria-label="ترتيب حسب">
-              {([['value', 'القيمة'], ['volume', 'الحجم'], ['change', 'التغير']] as const).map(([k, l]) => (
-                <button key={k} type="button" aria-pressed={sort === k} onClick={() => setSort(k)}>{l}</button>
-              ))}
-            </div>
-            <Link className="hm-more" href="/market">جميع الشركات <span aria-hidden="true">↗</span></Link>
+          <div className="hm-market-actions">
+            <label>
+              <span aria-hidden="true">⌕</span>
+              <span className="sr-only">ابحث عن شركة</span>
+              <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="ابحث عن شركة..." />
+            </label>
+            <Link href="/market">جميع الشركات ↗</Link>
           </div>
         </header>
+
+        <div className="hm-mover-tabs">
+          <div role="tablist" aria-label="تصنيف الشركات">
+            {([['gainers', 'الرابحون'], ['losers', 'الخاسرون'], ['active', 'الأكثر نشاطاً']] as const).map(([k, l]) => (
+              <button key={k} type="button" role="tab" aria-selected={moverTab === k}
+                className={moverTab === k ? 'active' : ''} onClick={() => setMoverTab(k)}>{l}</button>
+            ))}
+          </div>
+          <div>
+            {movers.map((c) => (
+              <Link href={`/c/${c.sym}`} key={c.sym}>
+                <bdi>{c.sym}</bdi>
+                <span>{moverTab === 'active' ? compact.format(c.shares_traded ?? 0) : signed(c.pct).text}</span>
+              </Link>
+            ))}
+          </div>
+        </div>
 
         {pricesFailed ? (
           <ModuleError what="أسعار الشركات" onRetry={loadPrices} />
         ) : pricesLoading ? (
           <Skeleton shape="table" rows={10} />
         ) : (
-          <div className="hm-table-scroll">
-            <table className="hm-table">
+          <div className="hm-market-table">
+            <table>
               <caption className="sr-only">
-                أكثر {top.length} شركة حركة في جلسة {arSession(session)}
+                أكثر {rows.length} شركة حركة في جلسة {arSession(session)}
               </caption>
               <thead>
                 <tr>
                   <th scope="col">الشركة</th>
-                  <th scope="col">آخر سعر</th>
-                  <th scope="col">التغير</th>
-                  <th scope="col">الحجم</th>
-                  <th scope="col">القيمة</th>
-                  <th scope="col"><span className="sr-only">اتجاه 7 جلسات</span><span aria-hidden="true">7 جلسات</span></th>
+                  <th scope="col"><button type="button" onClick={() => sortBy('price')}>آخر سعر</button></th>
+                  <th scope="col"><button type="button" onClick={() => sortBy('change')}>التغير</button></th>
+                  <th scope="col"><button type="button" onClick={() => sortBy('volume')}>الحجم</button></th>
+                  <th scope="col"><button type="button" onClick={() => sortBy('value')}>القيمة</button></th>
+                  <th scope="col"><span className="sr-only">اتجاه 7 جلسات</span><bdi aria-hidden="true">7D</bdi></th>
                 </tr>
               </thead>
               <tbody>
-                {top.map((c) => (
+                {rows.map((c) => (
                   <tr key={c.sym}>
                     <td>
-                      <Link href={`/c/${c.sym}`} className="hm-co">
-                        <CompanyLogo sym={c.sym} logo={c.logo} color={c.color} />
+                      <Link href={`/c/${c.sym}`}>
+                        {/* No `color`: the reference's mark is one uniform
+                            Electric-Blue chip, and the per-company colour is
+                            an inline background that would override it. Real
+                            logos still render, in the same 33px box. */}
+                        <CompanyLogo sym={c.sym} logo={c.logo} />
                         <span>
                           <strong>{c.ar}</strong>
                           <small><bdi dir="ltr">{c.sym}</bdi></small>
                         </span>
                       </Link>
                     </td>
-                    <td className="hm-num"><bdi className="ty-num">{price.format(c.close)}</bdi></td>
-                    <td className="hm-num">
+                    <td><bdi>{price.format(c.close)} IQD</bdi></td>
+                    <td>
                       {c.noPrior ? <Unavailable why="لا يوجد إغلاق سابق" /> : (
-                        <bdi className={`ty-num ${c.pct > 0 ? 'ds-up' : c.pct < 0 ? 'ds-down' : 'ds-flat'}`}>
-                          {c.pct > 0 ? '+' : c.pct < 0 ? '−' : ''}{Math.abs(c.pct).toFixed(2)}%
+                        <bdi className={signed(c.pct).tone === 'up' ? 'positive' : signed(c.pct).tone === 'down' ? 'negative' : ''}>
+                          {signed(c.pct).text}
                         </bdi>
                       )}
                     </td>
-                    <td className="hm-num"><bdi className="ty-num">{nf.format(c.shares_traded ?? 0)}</bdi></td>
-                    <td className="hm-num"><bdi className="ty-num">{compact.format(c.vol ?? 0)}</bdi></td>
-                    <td className="hm-spark">
+                    <td><bdi>{nf.format(c.shares_traded ?? 0)}</bdi></td>
+                    <td><bdi>{compact.format(c.vol ?? 0)} IQD</bdi></td>
+                    <td>
                       {sparks[c.sym]?.length
                         ? <Sparkline values={sparks[c.sym]} positive={c.pct >= 0} compact />
                         : <Unavailable why="لا يتوفر تاريخ كافٍ" />}

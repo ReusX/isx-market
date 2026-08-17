@@ -22,7 +22,10 @@ const plexArabic = IBM_Plex_Sans_Arabic({
 
 const kufiArabic = Noto_Kufi_Arabic({
   subsets: ['arabic', 'latin'],
-  weight: ['500', '600', '700'],
+  // 400 is here for the homepage H1. The approved reference sets it at weight
+  // 400 in Noto Kufi; without the face loaded the browser rounds up to 500 and
+  // the page's largest Arabic word renders heavier than the design.
+  weight: ['400', '500', '600', '700'],
   variable: '--font-display',
   display: 'swap',
 })
