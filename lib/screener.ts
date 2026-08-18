@@ -253,9 +253,29 @@ export function sectorLabel(key: string, ar: boolean): string {
   return s ? (ar ? s.ar : s.en) : key
 }
 
+/**
+ * Is this a usable company name, or parse debris?
+ *
+ * ⚠ 54 of the 124 rows in `company_metrics.name_ar` hold a bare number — «5»,
+ * «13», «44» — a row index the upstream workbook parse wrote into the name
+ * column. `companies.json` carries the correct Arabic name for almost all of
+ * them, so the curated file wins and the metrics table is only a fallback.
+ *
+ * This is why the name precedence below is not the obvious one. An earlier
+ * draft preferred `name_ar` and rendered «مصرف الاقليم التجاري» as «5».
+ */
+function usableName(v: string | null | undefined): v is string {
+  if (!v) return false
+  const t = v.trim()
+  // A name made only of digits, punctuation or a single character is debris.
+  return t.length > 1 && !/^[\d\s.,\-_/\\]+$/.test(t)
+}
+
 /** Merge a metrics row with its identity, and derive market cap and suspension. */
 export function toRow(m: Metric, meta: CompanyMeta | undefined, ar: boolean): ScreenerRow {
-  const name = (ar ? m.name_ar || meta?.ar || m.name_en || meta?.en : m.name_en || meta?.en || m.name_ar || meta?.ar) || m.ticker
+  const arName = [meta?.ar, m.name_ar].find(usableName)
+  const enName = [meta?.en, m.name_en].find(usableName)
+  const name = (ar ? arName ?? enName : enName ?? arName) ?? m.ticker
   /* Market cap must agree with the price shown beside it, so it is
      `last_close × shares` rather than the static figure in companies.json.
      The 20 tickers with no identity row have no share count and therefore no

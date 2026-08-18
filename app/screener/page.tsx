@@ -155,10 +155,15 @@ export default function ScreenerPage() {
 
     const q = query.trim().toLowerCase()
     if (q) {
+      /* `r.name` is the resolved, de-debris'd name (see `usableName` in
+         lib/screener.ts). The raw `name_en` is still searched because the
+         curated English name and the exchange's differ often enough to matter;
+         the raw `name_ar` is NOT, because for 54 rows it is a bare number and
+         a query of «5» would match a bank. */
       list = list.filter((r) =>
         r.ticker.toLowerCase().includes(q) ||
         r.name.toLowerCase().includes(q) ||
-        (r.name_ar ?? '').includes(query.trim()) ||
+        r.name.includes(query.trim()) ||
         (r.name_en ?? '').toLowerCase().includes(q))
     }
 
