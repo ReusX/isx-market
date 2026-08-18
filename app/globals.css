@@ -1070,52 +1070,13 @@ h3 {
   font-variant-numeric: tabular-nums lining-nums;
 }
 
-.screener-page {
-  padding-block-start: 14px;
-}
 
-.screener-heading {
-  padding: 4px 2px 7px;
-}
 
-.screener-heading h1 {
-  margin: 0;
-  color: var(--text-primary);
-  font-size: 1.25rem;
-  font-weight: 600;
-}
 
-.screener-heading p {
-  margin: 5px 0 0;
-  color: var(--text-secondary);
-  font-size: 0.75rem;
-}
 
-.screener-controls,
-.screener-results {
-  min-inline-size: 0;
-  border-radius: 12px;
-}
 
-.screener-controls {
-  display: grid;
-  gap: 12px;
-  padding: 0;
-  border: 0;
-  background: transparent;
-}
 
-.screener-search-row {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 8px;
-}
 
-.screener-search {
-  min-inline-size: 220px;
-  flex: 1 1 260px;
-}
 
 .app-field {
   display: flex;
@@ -1139,31 +1100,9 @@ h3 {
   color: var(--text-primary);
 }
 
-.screener-chip-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  min-inline-size: 0;
-}
 
-.screener-inline-filters {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 8px 20px;
-}
 
-.screener-filter-group {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
 
-.screener-filter-group > span {
-  color: var(--text-muted);
-  font-size: 0.69rem;
-  white-space: nowrap;
-}
 
 .delisted-checkbox {
   display: inline-flex;
@@ -1181,28 +1120,8 @@ h3 {
   accent-color: var(--text-accent);
 }
 
-.screener-results {
-  padding: 14px 16px;
-  overflow: hidden;
-  border: 0;
-  background: var(--surface-1);
-}
 
-.screener-results .shared-data-grid-row > [role="columnheader"],
-.screener-results .shared-data-grid-row > [role="cell"] {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
 
-.screener-company {
-  display: block;
-  overflow: hidden;
-  color: var(--text-primary);
-  font-size: 0.75rem;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
 
 .range-52 {
   position: relative;
@@ -4650,30 +4569,10 @@ tbody tr:hover .sparkline polyline {
     padding-inline: 8px;
   }
 
-  .screener-search-row {
-    grid-template-columns: 1fr;
-  }
 
-  .screener-control-line {
-    grid-template-columns: 1fr;
-    gap: 5px;
-  }
 
-  .screener-control-line > span {
-    padding-block-start: 0;
-  }
 
-  .screener-chip-row {
-    flex-wrap: nowrap;
-    overflow-x: auto;
-    padding-block-end: 4px;
-    scrollbar-width: thin;
-  }
 
-  .screener-controls,
-  .screener-results {
-    padding-inline: 9px;
-  }
 
   .statistics-secondary,
   .ownership-grid {
@@ -5653,9 +5552,6 @@ html[lang="ar"] .wp-content pre {
   font-weight: 600;
 }
 
-.screener-company .market-company-inline {
-  gap: 8px;
-}
 
 /* ── Statistics page chrome ──────────────────────────────────────────────── */
 
