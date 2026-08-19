@@ -1,4 +1,3 @@
-import type { CompanyMeta } from '@/types'
 
 /**
  * الإحصائيات — the statistics hub's data model.
@@ -371,7 +370,41 @@ export function normalizeSectors(rows: SectorMonthRow[]): {
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
-   3 · Market-cap snapshot — the canonical company-level definition
+   3 · Market-cap snapshot — the LISTED universe
+   ═══════════════════════════════════════════════════════════════════════════
+
+   ── The universe question, and how it was settled ─────────────────────────
+   There is NO listing-status field anywhere in this product: not in
+   `company_metrics`, not in `companies.json`. So "currently listed" cannot be
+   read off a column, and §2 of the decision forbids inferring it from recent
+   trading alone.
+
+   It does not have to be. `public/data/companies.json` is a CURATED roster of
+   104 companies, and it is an independent signal from trading recency:
+
+     · the official `daily_index.listed_companies` for the latest sessions is
+       **103** — the roster reconciles to it within one company (0.96%);
+     · the 20 tickers `company_metrics` carries and the roster does NOT all
+       last traded between 2010 and 2019 — every one is 7.5+ years dead, so
+       the curation is meaningful rather than arbitrary;
+     · every one of the 104 has a real published close.
+
+   That is a reliable listed universe at the aggregate level, so this is
+   Option A of the decision: compute over the listed roster, include
+   suspended-but-listed names at their last real published close, and disclose
+   the stale-price coverage rather than quietly dropping them.
+
+   ⚠ THE LIMITATION, STATED: the roster reconciles to 103 in COUNT, but with no
+   status field it is impossible to say WHICH company accounts for the delta of
+   one, or to prove any individual name's status. The universe is trustworthy
+   as a total and is not a per-company listing assertion.
+
+   ── Why not the previous 80/82 figure ─────────────────────────────────────
+   An earlier draft computed over "active" companies only — those that traded
+   inside 60 days — and reached 25.58T. That silently answered a different
+   question from the one the label asks: a listed company has a market
+   capitalisation whether or not it traded this month. The listed universe
+   gives 28.20T, of which 90.35% rests on a close from the last 60 days.
    ═══════════════════════════════════════════════════════════════════════════ */
 
 export type CapRow = {
@@ -382,19 +415,33 @@ export type CapRow = {
   shares: number
   /** `close × shares`, IQD. */
   marketCap: number
+  /** Sessions since this company last actually traded. */
+  daysSinceTrade: number
+  /** The close is older than 60 days — a real published price, not a current one. */
+  stalePrice: boolean
+  /** The date that close was published. */
+  closeDate: string | null
 }
 
 export type CapSnapshot = {
-  /** The exact resolved trading session, never hard-coded. */
+  /** The exact resolved trading session, read from the data, never hard-coded. */
   session: string | null
   rows: CapRow[]
   total: number
+  /** Companies on the curated listed roster. */
+  universe: number
+  /** The official count from `daily_index.listed_companies`, for reconciliation. */
+  officialListed: number | null
   included: number
-  /** Companies dropped because a required input was unavailable. */
+  /** Dropped because a required input was unavailable — never treated as zero. */
   excluded: number
   excludedSyms: string[]
+  /** Included, but priced off a close older than 60 days. */
+  stalePriced: number
+  /** Their share of the total, 0–1. Disclosed, never hidden. */
+  staleShare: number
   bySector: { key: string; label: string; total: number; count: number }[]
-  /** Sector sums add back to the company total. */
+  /** Sector sums add back to the company total, to the dinar. */
   reconciles: boolean
 }
 
@@ -406,34 +453,59 @@ export function usableName(v: string | null | undefined): v is string {
   return t.length > 1 && !/^[\d\s.,\-_/\\]+$/.test(t)
 }
 
+export type CapInput = {
+  sym: string
+  sector: string
+  close: number
+  daysSinceTrade: number
+  closeDate: string | null
+  nameAr?: string | null
+  nameEn?: string | null
+}
+
+/** A close older than this is a real published price, but not a current one. */
+export const STALE_PRICE_DAYS = 60
+
 /**
- * Aggregate company market caps into the sector snapshot.
+ * Aggregate the listed roster into the sector snapshot.
  *
- * Neither `sector_monthly.market_cap` nor `company_caps_monthly` is consulted.
- * A company missing a close or a share count is EXCLUDED and counted, never
- * treated as zero, and `reconciles` proves the sector sums equal the company
- * total before anything renders.
+ * Neither `sector_monthly.market_cap` nor `company_caps_monthly` is consulted —
+ * neither is even imported by this module. A company missing a close or a share
+ * count is EXCLUDED and counted, never zeroed, and `reconciles` proves the
+ * sector sums equal the company total before anything renders.
  */
 export function capSnapshot(
-  companies: { sym: string; close: number; sec: string; ar?: string; en?: string }[],
-  meta: Map<string, CapemMeta>,
+  roster: CapInput[],
+  shares: Map<string, number>,
+  names: Map<string, { ar?: string; en?: string }>,
   session: string | null,
+  officialListed: number | null,
   ar: boolean,
   sectorLabelOf: (key: string, ar: boolean) => string,
 ): CapSnapshot {
   const rows: CapRow[] = []
   const excludedSyms: string[] = []
 
-  for (const c of companies) {
-    const m = meta.get(c.sym)
-    const shares = m?.shares ?? 0
-    if (!(c.close > 0) || !(shares > 0)) { excludedSyms.push(c.sym); continue }
-    const name = [ar ? m?.ar : m?.en, ar ? c.ar : c.en, ar ? m?.en : m?.ar].find(usableName) ?? c.sym
-    rows.push({ sym: c.sym, name, sector: c.sec, close: c.close, shares, marketCap: c.close * shares })
+  for (const c of roster) {
+    const sh = shares.get(c.sym) ?? 0
+    if (!(c.close > 0) || !(sh > 0)) { excludedSyms.push(c.sym); continue }
+    const meta = names.get(c.sym)
+    const name = [
+      ar ? meta?.ar : meta?.en, ar ? c.nameAr : c.nameEn,
+      ar ? meta?.en : meta?.ar, ar ? c.nameEn : c.nameAr,
+    ].find(usableName) ?? c.sym
+    rows.push({
+      sym: c.sym, name, sector: c.sector, close: c.close, shares: sh,
+      marketCap: c.close * sh,
+      daysSinceTrade: c.daysSinceTrade,
+      stalePrice: c.daysSinceTrade > STALE_PRICE_DAYS,
+      closeDate: c.closeDate,
+    })
   }
 
   rows.sort((a, b) => b.marketCap - a.marketCap)
   const total = rows.reduce((a, r) => a + r.marketCap, 0)
+  const staleTotal = rows.filter((r) => r.stalePrice).reduce((a, r) => a + r.marketCap, 0)
 
   const acc = new Map<string, { total: number; count: number }>()
   for (const r of rows) {
@@ -450,22 +522,25 @@ export function capSnapshot(
     session,
     rows,
     total,
+    universe: roster.length,
+    officialListed,
     included: rows.length,
     excluded: excludedSyms.length,
     excludedSyms,
+    stalePriced: rows.filter((r) => r.stalePrice).length,
+    staleShare: total ? staleTotal / total : 0,
     bySector,
-    // Floating-point aggregation over ~80 trillions; a 1 IQD tolerance.
+    // Floating-point aggregation over ~28 trillions; a 1 IQD tolerance.
     reconciles: Math.abs(sectorSum - total) < 1,
   }
 }
-
-type CapemMeta = Pick<CompanyMeta, 'ar' | 'en' | 'shares'>
 
 /** Share of total market cap held by the top `n` companies. */
 export function capShare(snap: CapSnapshot, n: number): number | null {
   if (!snap.total) return null
   return snap.rows.slice(0, n).reduce((a, r) => a + r.marketCap, 0) / snap.total
 }
+
 
 /* ═══════════════════════════════════════════════════════════════════════════
    4 · Formatting
