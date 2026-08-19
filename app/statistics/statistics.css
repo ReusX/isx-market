@@ -558,3 +558,34 @@
   .stw-rail-figs { margin-inline-start: 0; }
 }
 
+/* ── 44px targets ───────────────────────────────────────────────────────────
+   §25. The reference's boxes are 30–32px and they are kept — a taller pill
+   would change the bar's proportion — so the target is added behind them as a
+   transparent pseudo-element, the same box/target split the homepage CTAs and
+   the screener's filter tokens already use. */
+.stw-periods button,
+.stw-seg button,
+.stw-sec-pick,
+.stw-more,
+.stw-retry { position: relative; }
+.stw-periods button::after,
+.stw-seg button::after,
+.stw-sec-pick::after,
+.stw-more::after,
+.stw-retry::after {
+  content: '';
+  position: absolute;
+  inset: 50% 0 auto;
+  block-size: 44px;
+  transform: translateY(-50%);
+  pointer-events: auto;
+}
+/* The tab strip is already 38px tall; it only needs the remaining 6px. */
+.stw-tabs button { position: relative; }
+.stw-tabs button::before {
+  content: '';
+  position: absolute;
+  inset: 50% 0 auto;
+  block-size: 44px;
+  transform: translateY(-50%);
+}

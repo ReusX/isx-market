@@ -6,12 +6,18 @@ import { absUrl, seoAlternates } from '@/lib/seo'
 // this layout /statistics inherited the site default and competed with the
 // homepage for the same title.
 export const metadata: Metadata = {
-  title: { absolute: 'إحصائيات بورصة العراق · تدفق الأجانب وهيكل الملكية' },
-  description: 'أرقام السوق العراقي شهرياً: صافي شراء وبيع المستثمرين الأجانب، دوران القطاعات، توزيع الملكية بين العراقيين والأجانب، وكبار المساهمين.',
+  /* Retitled with this phase. The old title described a foreign-flow and
+     ownership hub, which is what the route used to be; it is now a market
+     statistics workspace, and a title that names modules the page no longer
+     leads with is a title Google will replace with scraped text. The house
+     rules still hold: one script, no brand token, Arabic-only description
+     inside the snippet budget. */
+  title: { absolute: 'احصائيات بورصة العراق · حجم السوق ونشاطه وقيمته السوقية' },
+  description: 'إحصاءات سوق العراق للأوراق المالية: قيمة التداول والحجم والصفقات عبر الزمن، القيمة السوقية حسب القطاع، تركّز السوق، مكرر الربحية، ونشاط القطاعات الشهري.',
   alternates: seoAlternates('/statistics'),
   openGraph: {
     url: absUrl('/statistics'),
-    title: 'إحصائيات بورصة العراق · تدفق الأجانب وهيكل الملكية',
+    title: 'احصائيات بورصة العراق · حجم السوق ونشاطه وقيمته السوقية',
     images: [{ url: '/opengraph-image', width: 1200, height: 630 }],
   },
 }
