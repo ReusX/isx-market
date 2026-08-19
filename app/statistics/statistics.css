@@ -194,6 +194,69 @@
   border: 1px solid var(--mv-line); border-radius: 14px;
   background: var(--mv-panel-solid);
 }
+
+/* ── The plot ───────────────────────────────────────────────────────────────
+   The reference draws to a canvas it sizes in JS; this is SVG, so the height
+   is declared here instead. It is an EXPLICIT height with
+   `preserveAspectRatio: none` rather than a scaling viewBox: a 900x320 box
+   that scales with width collapses to 113px on a 375px screen, which is not a
+   chart any more. Columns stretch instead, which is what a column series can
+   afford to do. */
+.stw-plot { position: relative; margin: 0; }
+.stw-plot svg { display: block; inline-size: 100%; block-size: 320px; }
+.stw-grid { stroke: var(--mv-line); stroke-width: 1; }
+.stw-base { stroke: var(--mv-line-strong); stroke-width: 1; }
+/* The axis layers sit over the stretched plot in HTML, so their type is never
+   distorted by `preserveAspectRatio: none`. */
+/* `direction: ltr` and PHYSICAL offsets, because the SVG's coordinate space is
+   not mirrored under RTL. Using logical properties put the value axis on the
+   opposite side from its own gridlines and reversed the time axis so the
+   newest bucket read as the oldest. */
+.stw-axis-y, .stw-axis-x { position: absolute; inset: 0; direction: ltr; pointer-events: none; }
+.stw-axis-y span {
+  position: absolute; right: 0; transform: translateY(-50%);
+  width: 56px; text-align: left; padding-inline-start: 6px;
+  font: 10px var(--font-numeric), ui-monospace, monospace; color: var(--mv-ink-3);
+}
+.stw-axis-x span {
+  position: absolute; bottom: 2px; transform: translateX(-50%);
+  font: 10px var(--font-numeric), ui-monospace, monospace; color: var(--mv-ink-3);
+  white-space: nowrap;
+}
+.stw-plot { direction: ltr; }
+.stw-tip { direction: rtl; }
+.stw-col { fill: var(--mv-hero); opacity: .82; transition: opacity .12s; }
+.stw-col:hover, .stw-col.is-on { opacity: 1; }
+/* A partly-covered bucket is drawn, but hatched-light so it cannot be read as
+   a complete observation. */
+.stw-col.is-partial { opacity: .45; }
+[data-theme='dark'] .stw-col { fill: var(--mv-hero-bright); opacity: .7; }
+[data-theme='dark'] .stw-col.is-partial { opacity: .38; }
+
+.stw-tip {
+  position: absolute; inset-block-start: 6px;
+  transform: translateX(-50%);
+  display: grid; gap: 2px;
+  padding: 7px 10px;
+  border: 1px solid var(--mv-line); border-radius: 9px;
+  background: var(--mv-panel-solid);
+  box-shadow: 0 8px 24px rgb(0 0 0 / .16);
+  pointer-events: none; white-space: nowrap; z-index: 2;
+}
+.stw-tip strong { font: 700 .8rem var(--font-numeric), ui-monospace, monospace; color: var(--mv-ink); }
+.stw-tip span { font-size: .62rem; color: var(--mv-ink-3); font-family: var(--font-numeric), ui-monospace, monospace; }
+.stw-tip em { font-style: normal; font-size: .62rem; color: var(--mv-down); }
+
+.stw-plot-foot {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 12px; flex-wrap: wrap;
+  margin-block-start: 6px;
+  font-size: .64rem; color: var(--mv-ink-3);
+}
+.stw-plot-gaps { color: var(--mv-ink-2); }
+
+@media (max-width: 1000px) { .stw-plot svg { block-size: 280px; } }
+@media (max-width: 720px)  { .stw-plot svg { block-size: 240px; } }
 /* ── One block from the reference deliberately NOT ported ─────────────────
    The reference's `.stw-*` block carries a compatibility shim for ITS frozen
    detail routes — `.stats-v2`, `.st-head`, `.st-title`, `.st-switch`,

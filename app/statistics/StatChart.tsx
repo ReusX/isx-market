@@ -22,7 +22,11 @@ import { GRAIN_LABEL, iqd, nf0, shortAxis, type Bucket, type Grain, type MetricI
 
 const W = 900
 const H = 320
-const PAD = { top: 14, right: 8, bottom: 26, left: 62 }
+/* The value axis sits on the RIGHT, matching the reference: on an RTL page the
+   eye starts there, and the reference's own plot puts its gutter on that side.
+   The time axis still runs oldest-left to newest-right, because the series is
+   drawn in an unmirrored SVG coordinate space. */
+const PAD = { top: 14, right: 62, bottom: 26, left: 8 }
 const PLOT_W = W - PAD.left - PAD.right
 const PLOT_H = H - PAD.top - PAD.bottom
 
@@ -65,17 +69,12 @@ export function StatChart({
 
   return (
     <figure className="stw-plot">
-      <svg viewBox={`0 0 ${W} ${H}`} role="img"
+      <svg viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" role="img"
         aria-label={`${label} · ${ar ? GRAIN_LABEL[grain].ar : GRAIN_LABEL[grain].en}`}
         onPointerLeave={() => setHover(null)}>
         {ticks.map((t, i) => {
           const y = PAD.top + PLOT_H - (t / max) * PLOT_H
-          return (
-            <g key={i}>
-              <line className="stw-grid" x1={PAD.left} x2={W - PAD.right} y1={y} y2={y} />
-              <text className="stw-axis" x={PAD.left - 8} y={y + 3} textAnchor="end">{fmt(t)}</text>
-            </g>
-          )
+          return <line className="stw-grid" key={i} x1={PAD.left} x2={W - PAD.right} y1={y} y2={y} />
         })}
 
         {buckets.map((b, i) => {
@@ -92,20 +91,31 @@ export function StatChart({
           )
         })}
 
-        {buckets.map((b, i) => i % step === 0 ? (
-          <text key={`x${b.key}`} className="stw-axis"
-            x={PAD.left + i * slot + slot / 2} y={H - 8} textAnchor="middle">
-            {shortAxis(b.key, grain)}
-          </text>
-        ) : null)}
-
         <line className="stw-base" x1={PAD.left} x2={W - PAD.right}
           y1={PAD.top + PLOT_H} y2={PAD.top + PLOT_H} />
       </svg>
 
+      {/* Labels live in HTML, not SVG. The plot stretches with
+          `preserveAspectRatio: none` so an explicit height survives a 375px
+          screen, and any text drawn inside the viewBox would stretch with it. */}
+      <div className="stw-axis-y" aria-hidden="true">
+        {ticks.map((t, i) => (
+          <span key={i} style={{ top: `${((PAD.top + PLOT_H - (t / max) * PLOT_H) / H) * 100}%` }}>
+            {fmt(t)}
+          </span>
+        ))}
+      </div>
+      <div className="stw-axis-x" aria-hidden="true">
+        {buckets.map((b, i) => i % step === 0 ? (
+          <span key={b.key} style={{ left: `${((PAD.left + i * slot + slot / 2) / W) * 100}%` }}>
+            {shortAxis(b.key, grain)}
+          </span>
+        ) : null)}
+      </div>
+
       {active ? (
         <div className="stw-tip" style={{
-          insetInlineStart: `${((PAD.left + (hover! + 0.5) * slot) / W) * 100}%`,
+          left: `${((PAD.left + (hover! + 0.5) * slot) / W) * 100}%`,
         }}>
           <strong><bdi>{activeVal == null ? '—' : fmt(activeVal)}</bdi></strong>
           <span>{active.from === active.to ? active.from : `${active.from} → ${active.to}`}</span>

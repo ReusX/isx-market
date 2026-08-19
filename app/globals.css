@@ -1438,27 +1438,9 @@ h3 {
   display: none;
 }
 
-.statistics-page {
-  gap: 14px;
-  padding-block-start: 14px;
-}
 
-.statistics-heading {
-  padding: 4px 2px 2px;
-}
 
-.statistics-heading h1 {
-  margin: 0;
-  color: var(--text-primary);
-  font-size: 1.25rem;
-  font-weight: 500;
-}
 
-.statistics-heading p {
-  margin: 4px 0 0;
-  color: var(--text-secondary);
-  font-size: 0.75rem;
-}
 
 .statistics-card {
   border: 0;
@@ -1483,9 +1465,6 @@ h3 {
   font-size: 0.69rem;
 }
 
-.statistics-hero {
-  padding: 20px;
-}
 
 .statistics-card-heading {
   display: flex;
@@ -1498,21 +1477,8 @@ h3 {
   font-size: 1.06rem;
 }
 
-.statistics-hero-grid {
-  display: grid;
-  grid-template-columns: 1fr 1.3fr;
-  align-items: center;
-  gap: 24px;
-  direction: ltr;
-}
 
-.statistics-hero-grid > * {
-  direction: rtl;
-}
 
-.statistics-gauge {
-  min-inline-size: 0;
-}
 
 .foreign-gauge-visual.large {
   max-inline-size: 430px;
@@ -1536,10 +1502,6 @@ h3 {
   margin-block-start: 2px;
 }
 
-.statistics-label {
-  color: var(--text-muted);
-  font-size: 0.69rem;
-}
 
 .biggest-buys {
   min-inline-size: 0;
@@ -1592,12 +1554,6 @@ h3 {
   font-style: normal;
 }
 
-.statistics-positive {
-  flex: 0 0 auto;
-  color: #97c459;
-  font-size: 0.8rem;
-  font-weight: 600;
-}
 
 .statistics-text-link {
   display: block;
@@ -3983,73 +3939,15 @@ h1 span {
   font-size: 0.82rem;
 }
 
-.stat-label {
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-}
 
-.stat-icon {
-  position: relative;
-  display: inline-block;
-  inline-size: 15px;
-  block-size: 15px;
-  color: var(--muted);
-  flex: 0 0 auto;
-}
 
-.stat-icon.swap::before,
-.stat-icon.swap::after {
-  content: "";
-  position: absolute;
-  inset-inline: 1px;
-  block-size: 2px;
-  border-radius: 999px;
-  background: currentColor;
-}
 
-.stat-icon.swap::before {
-  inset-block-start: 4px;
-  box-shadow: -2px -2px 0 -1px currentColor;
-}
 
-.stat-icon.swap::after {
-  inset-block-end: 4px;
-  box-shadow: 2px 2px 0 -1px currentColor;
-}
 
-.stat-icon.bars {
-  border-block-end: 2px solid currentColor;
-}
 
-.stat-icon.bars::before,
-.stat-icon.bars::after {
-  content: "";
-  position: absolute;
-  inset-block-end: 3px;
-  inline-size: 3px;
-  border-radius: 2px 2px 0 0;
-  background: currentColor;
-}
 
-.stat-icon.bars::before {
-  inset-inline-start: 2px;
-  block-size: 7px;
-  box-shadow: 5px 3px 0 currentColor, 10px -2px 0 currentColor;
-}
 
-.stat-icon.coin {
-  border: 2px solid currentColor;
-  border-radius: 999px;
-}
 
-.stat-icon.coin::before {
-  content: "";
-  position: absolute;
-  inset: 3px;
-  border-inline: 1px solid currentColor;
-  border-radius: 999px;
-}
 
 .stat-card strong {
   grid-column: 1 / -1;
@@ -4527,15 +4425,7 @@ tbody tr:hover .sparkline polyline {
     border-block-start: 1px solid var(--border);
   }
 
-  .statistics-hero-grid {
-    grid-template-columns: 1fr;
-  }
 
-  .statistics-gauge {
-    max-inline-size: 460px;
-    inline-size: 100%;
-    margin-inline: auto;
-  }
 }
 
 @media (max-width: 720px) {
@@ -4601,9 +4491,6 @@ tbody tr:hover .sparkline polyline {
     padding-inline: 8px;
   }
 
-  .statistics-hero {
-    padding: 14px;
-  }
 
   .shareholders-list {
     padding-block-start: 14px;
@@ -5553,12 +5440,6 @@ html[lang="ar"] .wp-content pre {
 }
 
 
-/* ── Statistics page chrome ──────────────────────────────────────────────── */
-
-.statistics-masonry {
-  column-width: 360px;
-  column-gap: 16px;
-}
 
 /* Masonry items must not break across columns and carry their own gap. */
 .masonry-item {
@@ -5578,30 +5459,8 @@ html[lang="ar"] .wp-content pre {
   min-block-size: 0;
 }
 
-.stat-soon {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  align-items: center;
-  justify-content: center;
-  min-block-size: 160px;
-  padding: 20px;
-  border: 1px dashed var(--border);
-  border-radius: 10px;
-  text-align: center;
-}
 
-.stat-soon strong {
-  color: var(--text-secondary);
-  font-size: 0.78rem;
-}
 
-.stat-soon span {
-  max-inline-size: 260px;
-  color: var(--text-muted);
-  font-size: 0.7rem;
-  line-height: 1.6;
-}
 
 .seg-control {
   display: inline-flex;
@@ -6292,11 +6151,6 @@ button.pulse-tile.is-active .pulse-tile-label svg {
   min-inline-size: 0;
 }
 
-.statistics-empty {
-  margin: 0;
-  color: var(--text-muted);
-  font-size: 0.75rem;
-}
 
 /* ── Statistics cards · interactive affordances ──────────────────────────── */
 
