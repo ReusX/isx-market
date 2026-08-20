@@ -265,7 +265,7 @@ export type CompanyFlow = {
   share: number
 }
 
-export type Roster = Map<string, { ar?: string; sec?: string; logo?: string }>
+export type Roster = Map<string, { name?: string; sec?: string; logo?: string }>
 
 export function companyFlows(rows: FlowRow[], from: string, to: string, roster: Roster): CompanyFlow[] {
   const acc = new Map<string, CompanyFlow>()
@@ -274,7 +274,7 @@ export function companyFlows(rows: FlowRow[], from: string, to: string, roster: 
     const meta = roster.get(r.ticker)
     const e = acc.get(r.ticker) ?? {
       ticker: r.ticker,
-      name: meta?.ar || r.ticker,
+      name: meta?.name || r.ticker,
       sec: meta?.sec ?? null,
       logo: meta?.logo ?? '',
       buy: 0, sell: 0, net: 0, trades: 0, share: 0,
