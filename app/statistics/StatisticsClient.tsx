@@ -432,8 +432,8 @@ function StructureMode({ cap, ar }: { cap: CapSnapshot | null; ar: boolean }) {
             <h2>{ar ? 'القيمة السوقية حسب القطاع' : 'Market cap by sector'}</h2>
             <p>
               {ar
-                ? <>إجمالي <bdi>{iqd(cap.total)}</bdi> د.ع · <bdi>{cap.included}</bdi> من <bdi>{cap.universe}</bdi> شركة مدرجة</>
-                : <>Total <bdi>{iqd(cap.total)}</bdi> IQD · <bdi>{cap.included}</bdi> of <bdi>{cap.universe}</bdi> listed</>}
+                ? <>إجمالي <bdi>{iqd(cap.total)}</bdi> د.ع · <bdi>{cap.included}</bdi> من <bdi>{cap.universe}</bdi> شركة في السجل الحالي</>
+                : <>Total <bdi>{iqd(cap.total)}</bdi> IQD · <bdi>{cap.included}</bdi> of <bdi>{cap.universe}</bdi> in the current roster</>}
             </p>
           </div>
         </div>
@@ -479,8 +479,8 @@ function StructureMode({ cap, ar }: { cap: CapSnapshot | null; ar: boolean }) {
             and a stale close is never described as a current price. */}
         <p className="stw-note stw-cov">
           {ar
-            ? <>القيمة السوقية = آخر إغلاق منشور × الأسهم المصدرة · <bdi>{cap.included}</bdi> من <bdi>{cap.universe}</bdi> شركة مدرجة{cap.officialListed != null ? <> (العدد الرسمي <bdi>{cap.officialListed}</bdi>)</> : null}{cap.excluded > 0 ? <> · استُبعدت <bdi>{cap.excluded}</bdi> لعدم توفر عدد الأسهم</> : null}.</>
-            : <>Market cap = last published close × issued shares · <bdi>{cap.included}</bdi> of <bdi>{cap.universe}</bdi> listed{cap.officialListed != null ? <> (official count <bdi>{cap.officialListed}</bdi>)</> : null}{cap.excluded > 0 ? <> · <bdi>{cap.excluded}</bdi> excluded for a missing share count</> : null}.</>}
+            ? <>القيمة السوقية = آخر إغلاق منشور × الأسهم المصدرة · <bdi>{cap.included}</bdi> من <bdi>{cap.universe}</bdi> شركة في السجل الحالي{cap.officialListed != null ? <> (العدد الرسمي <bdi>{cap.officialListed}</bdi>)</> : null}{cap.excluded > 0 ? <> · استُبعدت <bdi>{cap.excluded}</bdi> لعدم توفر عدد الأسهم</> : null}.</>
+            : <>Market cap = last published close × issued shares · <bdi>{cap.included}</bdi> of <bdi>{cap.universe}</bdi> in the current roster{cap.officialListed != null ? <> (official count <bdi>{cap.officialListed}</bdi>)</> : null}{cap.excluded > 0 ? <> · <bdi>{cap.excluded}</bdi> excluded for a missing share count</> : null}.</>}
         </p>
         {cap.stalePriced > 0 ? (
           <p className="stw-note stw-stale">
