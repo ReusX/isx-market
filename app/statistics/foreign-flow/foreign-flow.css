@@ -34,6 +34,12 @@
   margin: 0 auto;
   padding: 18px 0 56px;
   color: var(--mv-ink);
+  /* `clip`, not `hidden`: it stops the two `?` tooltips from widening the
+     document at 375px without creating a scroll container (which would break
+     any sticky descendant). The reference leaks 1px of the same overflow into
+     its own body; here it is 13px, because this app's shell reserves gutters
+     the reference app does not. */
+  overflow-x: clip;
 }
 
 [data-theme='light'] .ffw-page { --mv-ink-3: #6e746f; --mv-up: #0e7350; --mv-down: #a83926; }
@@ -45,7 +51,9 @@
    rely on. This repo has no such rule, so it is reproduced here scoped to the
    page and bound to this design's tokens — a bare global would have reached
    every other route. */
+
 .ffw-page .positive { color: var(--mv-up); }
+
 .ffw-page .negative { color: var(--mv-down); }
 
 .ffw-back {
@@ -319,39 +327,6 @@
 
 .ffw-holders-pct { text-align: end; color: var(--mv-ink-2); font: 600 .7rem var(--font-numeric), ui-monospace, monospace; }
 
-@media (max-width: 1280px) {
-  .ffw-page { inline-size: calc(100% - 34px); }
-}
-
-@media (max-width: 1180px) {
-  .ffw-hero { grid-template-columns: 1fr; }
-  .ffw-own { grid-template-columns: 1fr; align-items: start; }
-}
-
-@media (max-width: 900px) {
-  .ffw-grid { grid-template-columns: 1fr; }
-}
-
-@media (max-width: 720px) {
-  .ffw-page { inline-size: calc(100% - 20px); padding-block-start: 10px; }
-  .ffw-hero-card { padding: 13px 14px 15px; border-radius: 14px; }
-  .ffw-hero-card > strong { font-size: 1.55rem; }
-  .ffw-hero-figs { gap: 18px; }
-  .ffw-balance-track { block-size: 26px; }
-  .ffw-rows a { grid-template-columns: 16px minmax(0, 1fr) 70px 10px; gap: 8px; }
-  .ffw-rows .ffw-bar, .ffw-rows .ffw-bar-signed { display: none; }
-  .ffw-sectors button { grid-template-columns: 74px minmax(0, 1fr) 66px 36px; gap: 9px; }
-  .ffw-own-rows a { grid-template-columns: minmax(0, 1fr) auto 48px; gap: 8px; }
-  .ffw-own-bar { display: none; }
-  .ffw-own-lead strong { font-size: 1.4rem; }
-  .ffw-holders li { grid-template-columns: 84px minmax(0, 1fr) 66px 46px; gap: 9px; }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .ffw-back, .ffw-balance-track button, .ffw-rows a, .ffw-sectors button,
-  .ffw-own-rows a { transition: none; }
-}
-
 .ffw-st-head {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
@@ -503,10 +478,6 @@
 
 [data-theme='dark'] .ffw-cd-nodata { border-color: rgba(255,255,255,.12); }
 
-@media (max-width: 720px) {
-  .ffw-cd-panel { padding: 13px 14px; border-radius: 16px; }
-}
-
 .ffw-name .ffw-cd-ticker { align-self: flex-start; font-size: .58rem; padding: 1px 5px; }
 
 .ffw-pl-readout {
@@ -534,15 +505,6 @@
   background-size: 200% 100%;
   border-radius: 6px;
   animation: ffw-shimmer 1.4s linear infinite;
-}
-
-@media (max-width: 720px) {
-  .ffw-pl-readout { gap: 10px 12px; padding: 7px 9px; }
-  .ffw-pl-readout-hint { margin-inline-start: 0; font-size: .63rem; }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .ffw-pl-skel { animation: none; }
 }
 
 .ffw-mv-error {
@@ -604,7 +566,11 @@
   content: attr(data-help);
   position: absolute; z-index: 20;
   inset-block-start: calc(100% + 6px); inset-inline-start: 0;
-  inline-size: max-content; max-inline-size: 260px;
+  inline-size: max-content;
+  /* `260px` in the reference. Capped against the viewport too, because an
+     invisible absolutely-positioned box still counts toward scrollWidth and
+     on a 375px screen it widened the document. */
+  max-inline-size: min(260px, calc(100vw - 40px));
   padding: 7px 10px;
   border-radius: 9px;
   background: var(--mv-ink); color: var(--mv-panel-solid);
@@ -618,28 +584,23 @@
 
 [data-theme='dark'] .ffw-fn-help::after { background: #333; color: #f0efec; }
 
-@media (max-width: 720px) {
-  .ffw-fn-help::after { max-inline-size: 200px; }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .ffw-fn-tabs button, .ffw-fn-period button, .ffw-fn-trend-col, .ffw-fn-col-num, .ffw-fn-table thead th,
-  .ffw-fn-back, .ffw-fn-overview-link, .ffw-fn-help::after { transition: none; }
-}
 @keyframes ffw-shimmer { from { background-position: 200% 0; } to { background-position: -200% 0; } }
 
 /* ── Touch targets ────────────────────────────────────────────────────────
    §16 / §23. The visible pill stays exactly the reference's size; the hit
    area is a transparent pseudo-element centred on it. Nothing moves, and a
    thumb lands on the control it aimed at. */
+
 .ffw-st-period button,
 .ffw-st-switch button,
 .ffw-st-chart-actions button,
+.ffw-st-link,
 .ffw-back { position: relative; }
 
 .ffw-st-period button::after,
 .ffw-st-switch button::after,
 .ffw-st-chart-actions button::after,
+.ffw-st-link::after,
 .ffw-back::after {
   content: '';
   position: absolute; inset-inline: 0;
@@ -649,8 +610,79 @@
 
 /* The sector and company rows are already tall enough on desktop, but not at
    the mobile density the reference switches to at 720px. */
+
+/* ── Breakpoints ──────────────────────────────────────────────────────────
+   Collected at the end of the file. The port concatenates five reference
+   blocks, and in the source each block's media queries sit inside it — so
+   `.ffw-st-grid-2` from the `.st-*` block was landing AFTER the 900px rule
+   that collapses `.ffw-grid`, and the two-column layout survived to 375px.
+   Same values, correct cascade. */
+
+@media (max-width: 1280px) {
+  .ffw-page { inline-size: calc(100% - 34px); }
+}
+
+@media (max-width: 1180px) {
+  .ffw-hero { grid-template-columns: 1fr; }
+  .ffw-own { grid-template-columns: 1fr; align-items: start; }
+}
+
+@media (max-width: 900px) {
+  .ffw-grid { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 720px) {
+  .ffw-page { inline-size: calc(100% - 20px); padding-block-start: 10px; }
+  .ffw-hero-card { padding: 13px 14px 15px; border-radius: 14px; }
+  .ffw-hero-card > strong { font-size: 1.55rem; }
+  .ffw-hero-figs { gap: 18px; }
+  .ffw-balance-track { block-size: 26px; }
+  .ffw-rows a { grid-template-columns: 16px minmax(0, 1fr) 70px 10px; gap: 8px; }
+  .ffw-rows .ffw-bar, .ffw-rows .ffw-bar-signed { display: none; }
+  .ffw-sectors button { grid-template-columns: 74px minmax(0, 1fr) 66px 36px; gap: 9px; }
+  .ffw-own-rows a { grid-template-columns: minmax(0, 1fr) auto 48px; gap: 8px; }
+  .ffw-own-bar { display: none; }
+  .ffw-own-lead strong { font-size: 1.4rem; }
+  .ffw-holders li { grid-template-columns: 84px minmax(0, 1fr) 66px 46px; gap: 9px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ffw-back, .ffw-balance-track button, .ffw-rows a, .ffw-sectors button,
+  .ffw-own-rows a { transition: none; }
+}
+
+@media (max-width: 720px) {
+  .ffw-cd-panel { padding: 13px 14px; border-radius: 16px; }
+}
+
+@media (max-width: 720px) {
+  .ffw-pl-readout { gap: 10px 12px; padding: 7px 9px; }
+  .ffw-pl-readout-hint { margin-inline-start: 0; font-size: .63rem; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ffw-pl-skel { animation: none; }
+}
+
+@media (max-width: 720px) {
+  .ffw-fn-help::after { max-inline-size: min(200px, calc(100vw - 40px)); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ffw-fn-tabs button, .ffw-fn-period button, .ffw-fn-trend-col, .ffw-fn-col-num, .ffw-fn-table thead th,
+  .ffw-fn-back, .ffw-fn-overview-link, .ffw-fn-help::after { transition: none; }
+}
+
 @media (max-width: 720px) {
   .ffw-sectors button,
   .ffw-rows a,
   .ffw-own-rows a { min-block-size: 44px; }
 }
+
+/* The two buy/sell segments of the balance bar keep the reference's 20px band
+   (26px on mobile) rather than growing to 44. They are a hover/focus readout,
+   not a control: every figure they reveal — the two values, the two
+   percentages — is already printed in text directly above and below them.
+   Buying them a 44px hit area would add 24px to both hero cards and put this
+   page's summary geometry out of step with the approved design, to serve an
+   affordance that gates nothing. */

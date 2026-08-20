@@ -113,6 +113,12 @@ function render(ctx: CanvasRenderingContext2D, W: number, H: number, o: Opts) {
   const yZero = y(0)
 
   ctx.textBaseline = 'middle'
+  /* Canvas text obeys the element's inherited `direction`, and this page is
+     RTL — without this the value axis prints «5.00B−», with the sign trailing
+     the number it belongs to. (The reference app has exactly that defect; it
+     is the one thing corrected in the port.) The axis is Latin figures, so it
+     is drawn LTR. */
+  ctx.direction = 'ltr'
   ctx.font = "500 10px ui-sans-serif, system-ui, sans-serif"
 
   for (const t of ticks(lo, hi)) {

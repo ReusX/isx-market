@@ -65,7 +65,10 @@ type Ownership = {
 const SECTOR_LABEL = new Map(SECTORS.filter((s) => s.id !== 'all').map((s) => [s.id, s.arFull]))
 
 export function ForeignFlowClient() {
-  const [period, setPeriod] = useState<PeriodId>('1M')
+  /* The reference opens on سنة, and it is the right default here too: a month
+     of foreign flow on this exchange is often one outsized session and 21
+     small ones, which reads as a single spike rather than a market. */
+  const [period, setPeriod] = useState<PeriodId>('1Y')
   const [mode, setMode] = useState<FlowMode>('net')
   const [view, setView] = useState<CompanyView>('netIn')
   const [sector, setSector] = useState<string | null>(null)
@@ -125,7 +128,7 @@ export function ForeignFlowClient() {
     setLoading(false)
   }, [])
 
-  useEffect(() => { void load('1M') }, [load])
+  useEffect(() => { void load('1Y') }, [load])
 
   /* Widening refetches; narrowing does not, because the wider window already
      holds every row the narrower one needs. */
