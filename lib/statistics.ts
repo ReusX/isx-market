@@ -582,3 +582,37 @@ export function shortAxis(key: string, grain: Grain): string {
   const [, m, d] = key.split('-')
   return `${d}/${m}`
 }
+
+/** Full IQD, grouped, with a real minus sign. For a readout where the compact
+ *  form would hide the digits that matter. */
+export const iqdFull = (v: number) =>
+  (v < 0 ? '−' : '') + nf0.format(Math.abs(Math.round(v)))
+
+/* The reference writes these four with Arabic-Indic digits («كانون٢»). This
+   repo's lint forbids them so every figure on a page uses one numeral system;
+   Latin digits here, same as everywhere else. */
+const AR_MONTHS_SHORT = ['كانون2', 'شباط', 'آذار', 'نيسان', 'أيار', 'حزيران',
+  'تموز', 'آب', 'أيلول', 'تشرين1', 'تشرين2', 'كانون1']
+
+/** «18 آب». Day and short month, no year — for a label already inside a year. */
+export function arShort(iso: string | null): string {
+  if (!iso) return '—'
+  const [, m, d] = iso.split('-').map(Number)
+  return `${d} ${AR_MONTHS_SHORT[m - 1]}`
+}
+
+/** «18 آب 2026». Day, short month and YEAR — used wherever two windows are
+ *  compared, because «١٠ آب — ٢٦ آب» for a three-year window reads as sixteen
+ *  days, which is the one thing a period label must never do. */
+export function arShortY(iso: string | null): string {
+  if (!iso) return '—'
+  const [y, m, d] = iso.split('-').map(Number)
+  return `${d} ${AR_MONTHS_SHORT[m - 1]} ${y}`
+}
+
+/** «آب 2026», short form — for a monthly chart bucket. */
+export function arMonthShort(ym: string | null): string {
+  if (!ym) return '—'
+  const [y, m] = ym.split('-').map(Number)
+  return `${AR_MONTHS_SHORT[m - 1]} ${y}`
+}

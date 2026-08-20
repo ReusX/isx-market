@@ -13,6 +13,7 @@ import {
   type Session, type PeriodId, type MetricId, type SectorMonthRow,
   type SectorActivity, type SectorReconciliation, type CapSnapshot, type CapInput,
 } from '@/lib/statistics'
+import { foldSessions, flowWindow, flowTotals, type FlowRow, type FlowSession, type FlowTotals } from '@/lib/foreignFlow'
 import './statistics.css'
 
 /* ═══════════════════════════════════════════════════════════════════════════
@@ -56,7 +57,7 @@ const sectorCodeLabel = (code: string, ar: boolean) => {
   return s ? (ar ? s.arFull : s.enFull) : code
 }
 
-type FlowDay = { date: string; buy: number; sell: number }
+
 
 export default function StatisticsClient() {
   const { lang } = useApp()
@@ -66,7 +67,7 @@ export default function StatisticsClient() {
   const [sectorRows, setSectorRows] = useState<SectorMonthRow[]>([])
   const [cap, setCap] = useState<CapSnapshot | null>(null)
   const [pe, setPe] = useState<{ sym: string; name: string; pe: number }[]>([])
-  const [flow, setFlow] = useState<FlowDay[]>([])
+  const [flowRows, setFlowRows] = useState<FlowRow[]>([])
   const [loading, setLoading] = useState(true)
   const [failed, setFailed] = useState(false)
   /* A partial failure never blanks the page: each of these is a module that
@@ -175,17 +176,10 @@ export default function StatisticsClient() {
             setSectorRows(rows.filter((r) => r.year === y && r.month === m))
           }),
         sb.from('foreign_flow_company_daily')
-          .select('date,side,value').order('date', { ascending: false }).limit(3000)
+          .select('date,ticker,side,value,trades').order('date', { ascending: false }).limit(3000)
           .then(({ data, error }) => {
             if (error || !data?.length) { setFlowFailed(true); return }
-            const byDate = new Map<string, FlowDay>()
-            for (const r of data as { date: string; side: string; value: number | null }[]) {
-              const d = byDate.get(r.date) ?? { date: r.date, buy: 0, sell: 0 }
-              if (r.side === 'buy') d.buy += r.value ?? 0
-              else d.sell += r.value ?? 0
-              byDate.set(r.date, d)
-            }
-            setFlow(Array.from(byDate.values()).sort((a, b) => a.date.localeCompare(b.date)))
+            setFlowRows(data as FlowRow[])
           }),
       ])
     })()
@@ -213,12 +207,22 @@ export default function StatisticsClient() {
   const sectorTotal = recon.totals.value
   const picked = sectors.find((s) => s.key === pickedSector) ?? null
 
-  const flowWindow = useMemo(() => {
-    const n = PERIODS.find((p) => p.id === period)!.sessions
-    return Number.isFinite(n) ? flow.slice(-n) : flow
-  }, [flow, period])
-  const flowBuy = flowWindow.reduce((a, f) => a + f.buy, 0)
-  const flowSell = flowWindow.reduce((a, f) => a + f.sell, 0)
+  /* §4 of the Phase 5 brief: one foreign-flow model. This folds through the
+     SAME `lib/foreignFlow` functions the detail route uses, over the same
+     trading-session calendar, so «التدفق الأجنبي» here and there cannot mean
+     two different things. The fetch stays bounded — 28k rows is not a payload
+     a summary module pulls — so the calendar is clipped to the fetched span
+     and the covered window is stated rather than implied. */
+  const flowSessions = useMemo<FlowSession[]>(() => {
+    if (!flowRows.length) return []
+    let earliest = flowRows[0].date
+    for (const r of flowRows) if (r.date < earliest) earliest = r.date
+    const calendar = sessions.map((s) => s.date).filter((d) => d >= earliest)
+    return foldSessions(flowRows, calendar)
+  }, [flowRows, sessions])
+
+  const flowWin = useMemo(() => flowWindow(flowSessions, period), [flowSessions, period])
+  const flowT = useMemo<FlowTotals | null>(() => flowTotals(flowWin), [flowWin])
 
   const peSorted = useMemo(() => [...pe].sort((a, b) => a.pe - b.pe), [pe])
   const peMedian = useMemo(() => median(pe.map((p) => p.pe)), [pe])
@@ -233,8 +237,8 @@ export default function StatisticsClient() {
       ? <>الأرقام في هذا القسم تتبع الفترة المحددة · <bdi>{t.from}</bdi> — <bdi>{t.to}</bdi> · <bdi>{nf0.format(t.sessions)}</bdi> جلسة</>
       : <>This section follows the selected period · <bdi>{t.from}</bdi> — <bdi>{t.to}</bdi> · <bdi>{nf0.format(t.sessions)}</bdi> sessions</>)
     : scope === 'own' ? (ar
-      ? <>نافذة خاصة بهذا القسم — لا تتبع الفترة المحددة{flowWindow.length ? <> · <bdi>{flowWindow[0].date}</bdi> — <bdi>{flowWindow[flowWindow.length - 1].date}</bdi></> : null}</>
-      : <>This section has its own window — it does not follow the selected period{flowWindow.length ? <> · <bdi>{flowWindow[0].date}</bdi> — <bdi>{flowWindow[flowWindow.length - 1].date}</bdi></> : null}</>)
+      ? <>نافذة خاصة بهذا القسم — لا تتبع الفترة المحددة{flowT ? <> · <bdi>{flowT.from}</bdi> — <bdi>{flowT.to}</bdi></> : null}</>
+      : <>This section has its own window — it does not follow the selected period{flowT ? <> · <bdi>{flowT.from}</bdi> — <bdi>{flowT.to}</bdi></> : null}</>)
     : scope === 'month' ? (ar
       ? <>شهر واحد — لا يتبع الفترة المحددة · <bdi>{arMonth(recon.month)}</bdi></>
       : <>One calendar month — does not follow the selected period · <bdi>{recon.month}</bdi></>)
@@ -405,8 +409,7 @@ export default function StatisticsClient() {
 
             {/* ═══ التدفق الأجنبي ══════════════════════════════════════ */}
             {mode === 'foreign' ? (
-              <ForeignMode window={flowWindow} buy={flowBuy} sell={flowSell}
-                failed={flowFailed} ar={ar} />
+              <ForeignMode t={flowT} failed={flowFailed} ar={ar} />
             ) : null}
           </>
         )}
@@ -713,10 +716,10 @@ function ValuationMode({ rows, med, universe, ar }: {
 /* ── التدفق الأجنبي ────────────────────────────────────────────────────────
    A summary and an entry point. The reconciled model the homepage and the
    detail route already share — no second definition. */
-function ForeignMode({ window: win, buy, sell, failed, ar }: {
-  window: FlowDay[]; buy: number; sell: number; failed: boolean; ar: boolean
+function ForeignMode({ t, failed, ar }: {
+  t: FlowTotals | null; failed: boolean; ar: boolean
 }) {
-  if (failed || !win.length) {
+  if (failed || !t) {
     return (
       <div className="stw-empty">
         <strong>{ar ? 'لا تتوفر بيانات التدفق الأجنبي' : 'No foreign-flow data'}</strong>
@@ -724,9 +727,6 @@ function ForeignMode({ window: win, buy, sell, failed, ar }: {
       </div>
     )
   }
-  const net = buy - sell
-  const total = buy + sell
-  const upDays = win.filter((f) => f.buy - f.sell > 0).length
   return (
     <section className="stw-mode stw-flow" aria-label={ar ? 'التدفق الأجنبي' : 'Foreign flow'}>
       <div className="stw-mode-head">
@@ -734,44 +734,48 @@ function ForeignMode({ window: win, buy, sell, failed, ar }: {
           <h2>{ar ? 'التدفق الأجنبي' : 'Foreign flow'}</h2>
           {/* Its OWN window — never the page's. */}
           <p>{ar
-            ? <>نافذة هذا القسم · <bdi>{win[0].date}</bdi> — <bdi>{win[win.length - 1].date}</bdi> · <bdi>{win.length}</bdi> جلسة</>
-            : <>This section’s own window · <bdi>{win[0].date}</bdi> — <bdi>{win[win.length - 1].date}</bdi> · <bdi>{win.length}</bdi> sessions</>}</p>
+            ? <>نافذة هذا القسم · <bdi>{t.from}</bdi> — <bdi>{t.to}</bdi> · <bdi>{nf0.format(t.sessions)}</bdi> جلسة</>
+            : <>This section’s own window · <bdi>{t.from}</bdi> — <bdi>{t.to}</bdi> · <bdi>{nf0.format(t.sessions)}</bdi> sessions</>}</p>
         </div>
         <Link className="stw-cta" href="/statistics/foreign-flow">{ar ? 'التفاصيل' : 'Details'} ↗</Link>
       </div>
 
       <div className="stw-flow-lead">
         <span>{ar ? 'صافي التدفق' : 'Net flow'}</span>
-        <strong className={net > 0 ? 'is-up' : net < 0 ? 'is-down' : ''}>
-          <bdi>{net > 0 ? '+' : net < 0 ? '−' : ''}{iqd(Math.abs(net))}</bdi> <small>{ar ? 'د.ع' : 'IQD'}</small>
+        <strong className={t.net > 0 ? 'is-up' : t.net < 0 ? 'is-down' : ''}>
+          <bdi>{t.net > 0 ? '+' : t.net < 0 ? '−' : ''}{iqd(Math.abs(t.net))}</bdi> <small>{ar ? 'د.ع' : 'IQD'}</small>
         </strong>
       </div>
 
       <div className="stw-netbars">
         <div className="stw-netwrap">
           <span>{ar ? 'شراء' : 'Buy'}</span>
-          <i className="is-up" style={{ inlineSize: total ? `${(buy / total) * 100}%` : '0%' }} />
-          <bdi>{iqd(buy)}</bdi>
+          <i className="is-up" style={{ inlineSize: t.gross ? `${(t.buy / t.gross) * 100}%` : '0%' }} />
+          <bdi>{iqd(t.buy)}</bdi>
         </div>
         <div className="stw-netwrap">
           <span>{ar ? 'بيع' : 'Sell'}</span>
-          <i className="is-down" style={{ inlineSize: total ? `${(sell / total) * 100}%` : '0%' }} />
-          <bdi>{iqd(sell)}</bdi>
+          <i className="is-down" style={{ inlineSize: t.gross ? `${(t.sell / t.gross) * 100}%` : '0%' }} />
+          <bdi>{iqd(t.sell)}</bdi>
         </div>
       </div>
 
       <dl className="stw-under">
-        <div><dt>{ar ? 'جلسات صافي شراء' : 'Net-buy sessions'}</dt><dd><bdi>{upDays}</bdi><small>{ar ? `من ${win.length}` : `of ${win.length}`}</small></dd></div>
-        <div><dt>{ar ? 'إجمالي التداول الأجنبي' : 'Total foreign turnover'}</dt><dd><bdi>{iqd(total)}</bdi></dd></div>
+        <div>
+          <dt>{ar ? 'جلسات صافي شراء' : 'Net-buy sessions'}</dt>
+          <dd><bdi>{t.buySessions}</bdi><small>{ar ? `من ${t.counted}` : `of ${t.counted}`}</small></dd>
+        </div>
+        <div><dt>{ar ? 'إجمالي التداول الأجنبي' : 'Total foreign turnover'}</dt><dd><bdi>{iqd(t.gross)}</bdi></dd></div>
       </dl>
 
-      {/* The flow fetch is bounded — 28,374 stored rows is not a payload a
-          summary module should pull — so the window it covers is stated rather
-          than implied to be the whole history. */}
+      {/* The flow fetch is bounded — 28k stored rows is not a payload a summary
+          module should pull — so the window it covers is stated rather than
+          implied to be the whole history. Sessions with no observation are
+          counted separately and never summed in as zeros. */}
       <p className="stw-note">
         {ar
-          ? <>نافذة هذا القسم تتبع مصدرها الخاص وتختلف عن باقي أقسام الصفحة · تغطي آخر <bdi>{win.length}</bdi> جلسة تدفق مخزّنة. السجل الكامل في صفحة التفاصيل.</>
-          : <>This section follows its own source and differs from the rest of the page · it covers the most recent <bdi>{win.length}</bdi> stored flow sessions. The full record is on the detail page.</>}
+          ? <>نافذة هذا القسم تتبع مصدرها الخاص وتختلف عن باقي أقسام الصفحة · <bdi>{nf0.format(t.counted)}</bdi> جلسة برصد فعلي{t.missing > 0 ? <> و<bdi>{t.missing}</bdi> جلسة بلا بيانات لم تُحتسب</> : null}. السجل الكامل في صفحة التفاصيل.</>
+          : <>This section follows its own source and differs from the rest of the page · <bdi>{nf0.format(t.counted)}</bdi> sessions observed{t.missing > 0 ? <>, <bdi>{t.missing}</bdi> with no data and not counted</> : null}. The full record is on the detail page.</>}
       </p>
     </section>
   )
