@@ -78,8 +78,8 @@ export function ForeignFlowClient() {
   const [loaded, setLoaded] = useState<Loaded | null>(null)
   const [loading, setLoading] = useState(true)
   const [failed, setFailed] = useState(false)
-  const [roster, setRoster] = useState<Roster>(new Map())
-  const [own, setOwn] = useState<Ownership | null>(null)
+  const [meta, setMeta] = useState<CompanyMeta[]>([])
+  const [ownRows, setOwnRows] = useState<{ month: string; rows: OwnRow[] } | null>(null)
   const [ownFailed, setOwnFailed] = useState(false)
 
   /* The theme is read, never owned — app/layout.tsx sets `data-theme` on
@@ -140,17 +140,22 @@ export function ForeignFlowClient() {
     void load(period)
   }, [period, loaded, load])
 
+  /* The curated roster is fetched ONCE and shared by the ranking, the sector
+     rollup and the ownership name-matching. It used to be fetched by both the
+     roster effect and the ownership effect. */
   useEffect(() => {
     ;(async () => {
-      try {
-        const meta = await fetchCompanyMeta()
-        /* 20 of the 104 curated rows carry an empty `ar`; `companyName` falls
-           back to the English name before it falls back to the ticker, which
-           is what the market board and the screener already do. */
-        setRoster(new Map(meta.map((m) => [m.sym, { name: companyName(m, m.sym), sec: m.sec, logo: m.logo }])))
-      } catch { /* the ranking falls back to tickers */ }
+      try { setMeta(await fetchCompanyMeta()) }
+      catch { /* the ranking falls back to tickers */ }
     })()
   }, [])
+
+  /* 20 of the 104 curated rows carry an empty `ar`; `companyName` falls back to
+     the English name before it falls back to the ticker, which is what the
+     market board and the screener already do. */
+  const roster = useMemo<Roster>(
+    () => new Map(meta.map((m) => [m.sym, { name: companyName(m, m.sym), sec: m.sec, logo: m.logo }])),
+    [meta])
 
   // ── ownership · its own table, its own month, its own failure ────────────
   useEffect(() => {
@@ -164,15 +169,12 @@ export function ForeignFlowClient() {
         const y = latest?.[0]?.year as number | undefined
         const m = latest?.[0]?.month as number | undefined
         if (!y || !m) { setOwnFailed(true); return }
-        const [{ data }, meta] = await Promise.all([
-          sb.from('ownership_monthly')
-            .select('name_ar,iraqi_shares,foreign_shares,foreign_count')
-            .eq('year', y).eq('month', m),
-          fetchCompanyMeta().catch(() => [] as CompanyMeta[]),
-        ])
+        const { data } = await sb.from('ownership_monthly')
+          .select('name_ar,iraqi_shares,foreign_shares,foreign_count')
+          .eq('year', y).eq('month', m)
         const rows = (data as OwnRow[]) ?? []
         if (!rows.length) { setOwnFailed(true); return }
-        setOwn(summariseOwnership(rows, `${y}-${String(m).padStart(2, '0')}`, meta))
+        setOwnRows({ month: `${y}-${String(m).padStart(2, '0')}`, rows })
       } catch { setOwnFailed(true) }
     })()
   }, [])
@@ -181,6 +183,11 @@ export function ForeignFlowClient() {
   const sessions = useMemo<FlowSession[]>(
     () => (loaded ? foldSessions(loaded.rows, loaded.calendar, loaded.oracle) : []),
     [loaded])
+
+  /* Name-matching runs over the month's rows once, not on every render. */
+  const own = useMemo<Ownership | null>(
+    () => (ownRows ? summariseOwnership(ownRows.rows, ownRows.month, meta) : null),
+    [ownRows, meta])
 
   const win = useMemo(() => flowWindow(sessions, period), [sessions, period])
   const t = useMemo(() => flowTotals(win), [win])

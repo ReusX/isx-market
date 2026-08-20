@@ -458,7 +458,10 @@
   box-shadow: var(--mv-shadow);
 }
 
-.ffw-cd-cell-label { color: var(--mv-ink-3); font-size: .66rem; letter-spacing: .02em; }
+/* The reference tracks this label at .02em. Dropped: here the class carries
+   Arabic — «20 آب 2026», «حصة الأجانب من الأسهم المودعة» — and Arabic is a
+   joining script, so positive tracking pulls the letters apart. */
+.ffw-cd-cell-label { color: var(--mv-ink-3); font-size: .66rem; }
 
 .ffw-cd-panel-head { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; margin-block-end: 12px; }
 

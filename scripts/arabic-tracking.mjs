@@ -42,6 +42,7 @@ const LATIN_ONLY = [
   ['[dir=\'ltr\']', 'explicitly LTR'],
   [':lang(en)', 'explicitly English'],
   ['kbd', 'keyboard shortcut glyphs'],
+  ['.ffw-cd-ticker', 'the ISX ticker chip — Latin letters by construction'],
   ['font-family: var(--font-numeric)', 'a mono/numeric rule'],
   ['font-family: var(--font-mono)', 'a mono/numeric rule'],
 ]
