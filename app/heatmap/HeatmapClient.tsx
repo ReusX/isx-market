@@ -232,11 +232,11 @@ export function HeatmapClient() {
           one. §4 of the data map. */}
       {uni && coverage ? (
         <p className="hx-mv-note hx-note">
-          <bdi>{coverage.traded}</bdi> من <bdi>{uni.included}</bdi> شركة على الخريطة تداولت في جلسة {arFull(session)}؛
-          {' '}البقية مسعّرة بآخر إغلاق منشور لها وتشكّل <bdi>{coverage.olderArea.toFixed(0)}%</bdi> من مساحة الخريطة.
-          {' '}استُبعدت <bdi>{uni.excludedNoCap.length}</bdi> شركة لعدم توفر عدد الأسهم
-          و<bdi>{uni.excludedStale.length}</bdi> لتجاوز سعرها 60 يوماً
-          {uni.excludedUnknownAge.length ? <> و<bdi>{uni.excludedUnknownAge.length}</bdi> لعدم معرفة تاريخ آخر تداول</> : null}.
+          <bdi>{coverage.traded}</bdi> من <bdi>{uni.included}</bdi> شركة تداولت في جلسة {arFull(session)}؛
+          {' '}البقية بآخر إغلاق منشور لها — <bdi>{coverage.olderArea.toFixed(0)}%</bdi> من المساحة.
+          {' '}مستبعدة: <bdi>{uni.excludedNoCap.length}</bdi> بلا عدد أسهم،
+          {' '}<bdi>{uni.excludedStale.length}</bdi> بسعر أقدم من 60 يوماً
+          {uni.excludedUnknownAge.length ? <>، <bdi>{uni.excludedUnknownAge.length}</bdi> بتاريخ تداول مجهول</> : null}.
         </p>
       ) : null}
 
@@ -279,7 +279,8 @@ export function HeatmapClient() {
           inside it lit. */}
       <div className="hx-legend">
         <span className="hx-legend-label">التغيّر</span>
-        <div className="hx-legend-bands" onPointerLeave={() => setHoverBand(null)}>
+        <div className="hx-legend-bands" role="group" aria-label="إبراز الشركات حسب شدة التغيّر"
+          onPointerLeave={() => setHoverBand(null)}>
           {BANDS.map((b) => (
             <button key={b} type="button" data-band={b}
               className={hoverBand === b ? 'is-on' : ''}

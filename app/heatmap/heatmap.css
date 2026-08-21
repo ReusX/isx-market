@@ -90,6 +90,13 @@
 
 .hx-note { margin: 0 4px 10px; }
 
+/* The coverage line is the one row this page has that the reference does not,
+   and at 375px it was seven lines. Tighter type there, and it stays visible —
+   hiding a disclosure on the smaller screen would be the wrong economy. */
+@media (max-width: 720px) {
+  .hx-note { font-size: .66rem; line-height: 1.55; padding: 7px 10px; margin-block-end: 8px; }
+}
+
 .hx-stage { position: relative; flex: 1; min-block-size: 0; }
 
 .hx-field {
@@ -476,7 +483,7 @@
 }
 
 @media (max-width: 720px) {
-  .hx-mv-search,   .hx-mv-search { flex: 1 1 140px; max-inline-size: none; }
+  .hx-mv-search { flex: 1 1 140px; max-inline-size: none; }
 }
 
 @keyframes hx-shimmer { from { background-position: 200% 0; } to { background-position: -200% 0; } }
@@ -506,6 +513,25 @@
   .hx-periods,
   .hx-legend-bands { padding-block: 7px; }
 }
+
+/* Width is the other axis, and a transparent overlay cannot buy it here: the
+   pills sit 2px apart, so a 44px target over a 42px pill would overlap its
+   neighbour. The pill itself takes the two pixels. «يوم» measured 42, the
+   legend swatches 43 — and 34 on mobile, where the strip scrolls and the room
+   is free. */
+.hx-periods button { min-inline-size: 44px; }
+
+.hx-legend-bands button { min-inline-size: 44px; }
+
+/* The search field is the most touch-sensitive control on the page and the
+   reference gives it 34px (32 on mobile). The input is what receives focus,
+   so the control itself carries the height rather than an overlay. */
+/* `block-size` on the label is a border-box 44, which leaves the input — the
+   element that actually receives the tap and the focus — at 42. The input
+   carries the floor and the label grows the two pixels around it. */
+.hx-mv-search { block-size: auto; min-block-size: 44px; }
+
+.hx-mv-search input { align-self: stretch; min-block-size: 44px; }
 
 .hx-periods button,
 .hx-legend-bands button,
