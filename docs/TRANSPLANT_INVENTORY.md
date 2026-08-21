@@ -122,7 +122,7 @@ Action legend: **DP** `DIRECT PORT` · **DP+A** `DIRECT PORT + REAL DATA ADAPTER
 | Production route | Design route | Design component(s) | Design CSS | Real data loader | Action |
 |---|---|---|---|---|---|
 | `/pulse` | `/pulse` | `Pulse.tsx`, `PulseBreadthBar.tsx`, `pulseData.ts` | 9057–9459 `.pl-*` | `app/pulse/page.tsx` — `daily_index`, `breadth_daily`, `company_metrics`, `daily_prices`; `lib/market` | **DP+A** |
-| `/news` | `/news` | `NewsFeed.tsx`, `newsData.ts` | 10404–10586 `.nw-*` | `lib/cms` `getPosts` via `components/cms/SectionPage` | **DP+A** |
+| `/news` | `/news` | `NewsFeed.tsx`, `newsData.ts` | 10404–10586 `.nw-*` | `lib/cms` `getPosts` + `financial_reports_public` | ✅ done |
 | `/news/[slug]` | *(stale)* | — see blocker B1 | reuse `.ln-article-*` | `lib/cms` `getPost`, `lib/seo` | **SDW** |
 | `/c/[sym]` | `/companies/[ticker]` | `CompanyDetailPage.tsx`, `companyData.ts`, `ChartEngine.tsx`, `Range52Indicator.tsx`, `SectorChip.tsx` | 7110–7697 `.cd-*` | `app/c/[sym]/page.tsx` — `company_metrics`, `/api/chart/[sym]`, `components/company/*` | **KL+V** |
 | `/c/[sym]/financials` | `/companies/[ticker]/financials` | `FinancialsPage.tsx`, `financialsData.ts` | 8214–8608 `.fn-*` | `components/Financials.tsx`, `lib/fundamentals` (`financial_facts_public`, `_ratios_public`, `_reports_public`) | **KL+V** |
@@ -191,6 +191,29 @@ same shape: WP body, derived TOC, related list. *Proposed resolution — reuse t
 `.ln-article-*` chrome for news articles rather than shipping the stale page.*
 Solvable in-flight; recorded here because it is a composition decision, not a
 copy.
+
+**B1a · `/news/[slug]` left unchanged, as instructed.** The reference has no
+approved article page — only the stale `terminal-shell` one — so the production
+route still renders `components/cms/ArticlePage`. It now sits under a
+transplanted index, which is a visible seam. The `.ln-article-*` chrome from
+`learn/Article.tsx` is the approved surface of that shape and is the proposed
+resolution when Batch D ports Learn.
+
+**B1b · The filing index is only partly public.** `financial_reports_public`
+returns 281 rows against a project record of ~5,749 indexed reports, because the
+view gates on extraction having run. The public feed therefore covers 281
+documents across 77 tickers, and its newest `source_added_date` is 2026-06-21 —
+two months behind the market data. `/news` states that window when the reader
+selects إفصاحات and claims nothing beyond it. A second public view over the
+INDEX rather than the extracted facts would close the gap; it is a view
+definition, not a pipeline. **Open.**
+
+**B1c · The CMS host is down.** `paleturquoise-deer-610016.hostingersite.com`
+returns 403 to every request and `cms.iraqsm.com` does not resolve, so `/news`,
+`/learn` and `/research` all render zero WordPress posts. Pre-existing, not
+introduced here. `/news` degrades honestly because its two streams load
+independently; `/learn` and `/research` still render an empty grid. **Open, and
+outside this migration.**
 
 **B2 · Auth is six net-new production routes.** No `/login`, `/signup`,
 `/forgot-password`, `/verify-email`, `/auth/callback` exists today; production has
