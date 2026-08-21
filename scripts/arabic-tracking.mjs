@@ -49,6 +49,10 @@ const LATIN_ONLY = [
      that sets its face through the shorthand looked like untracked Arabic.
      Same rule, either spelling. */
   ['var(--font-numeric)', 'a mono/numeric rule, in either spelling'],
+  /* The literal string "PDF" on a filing row's document badge. It is a
+     three-letter Latin acronym rendered from a hard-coded literal in
+     NewsClient.tsx, never from data, so it cannot become Arabic. */
+  ['.nw-doc i', 'the literal "PDF" badge on a filing row'],
 ]
 
 function files(dir, out = []) {
