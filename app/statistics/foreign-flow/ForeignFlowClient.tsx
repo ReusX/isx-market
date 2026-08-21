@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import Link from 'next/link'
 import { FlowChart, bucketTitle, type FlowMode } from './FlowChart'
 import {
@@ -505,10 +505,30 @@ export function ForeignFlowClient() {
 /* ── Bits ─────────────────────────────────────────────────────────────────── */
 
 /** Buy / sell proportional bar. Green buy, red sell, exact values, the
- *  percentage relationship, and the net stated separately. */
+ *  percentage relationship, and the net stated separately.
+ *
+ *  The two segments are hit targets as well as a picture, and their PAINTED
+ *  width is a real quantity — on 2026-08-20 foreign buying was 0.1% of the
+ *  session, so the buy segment is 1px wide. Widening the paint would be a lie
+ *  about the proportion, and giving both a 44px target would overlap them.
+ *  So the paint stays proportional and the two invisible targets are tiled
+ *  across the measured track: whichever side is under 44px is clamped up to
+ *  44, and the other yields exactly that much. They abut, never overlap. */
 function Balance({ buy, sell }: { buy: number; sell: number }) {
   const total = buy + sell
   const [on, setOn] = useState<'buy' | 'sell' | null>(null)
+  const trackRef = useRef<HTMLDivElement>(null)
+  const [trackW, setTrackW] = useState(0)
+
+  useEffect(() => {
+    const el = trackRef.current
+    if (!el) return
+    const read = () => setTrackW(el.clientWidth)
+    read()
+    const ro = typeof ResizeObserver !== 'undefined' ? new ResizeObserver(read) : null
+    ro?.observe(el)
+    return () => ro?.disconnect()
+  }, [])
   if (!total) {
     return (
       <div className="ffw-balance">
@@ -522,18 +542,21 @@ function Balance({ buy, sell }: { buy: number; sell: number }) {
     )
   }
   const bs = (buy / total) * 100, ss = (sell / total) * 100
+  const [sellTarget, buyTarget] = tileTargets(trackW, ss, bs)
   return (
     <div className={`ffw-balance${on ? ` is-${on}` : ''}`}>
       <div className="ffw-balance-labels">
         <span className="sell"><small>بيع</small><strong><bdi>{iqd(sell)}</bdi></strong></span>
         <span className="buy"><small>شراء</small><strong><bdi>{iqd(buy)}</bdi></strong></span>
       </div>
-      <div className="ffw-balance-track">
-        <button type="button" className="sell" style={{ inlineSize: `${ss}%` }}
+      <div className="ffw-balance-track" ref={trackRef}>
+        <button type="button" className="sell"
+          style={{ inlineSize: `${ss}%`, ['--ffw-target' as string]: sellTarget }}
           aria-label={`بيع ${iqdFull(sell)} دينار، ${ss.toFixed(1)} بالمئة`}
           onPointerEnter={() => setOn('sell')} onPointerLeave={() => setOn(null)}
           onFocus={() => setOn('sell')} onBlur={() => setOn(null)} />
-        <button type="button" className="buy" style={{ inlineSize: `${bs}%` }}
+        <button type="button" className="buy"
+          style={{ inlineSize: `${bs}%`, ['--ffw-target' as string]: buyTarget }}
           aria-label={`شراء ${iqdFull(buy)} دينار، ${bs.toFixed(1)} بالمئة`}
           onPointerEnter={() => setOn('buy')} onPointerLeave={() => setOn(null)}
           onFocus={() => setOn('buy')} onBlur={() => setOn(null)} />
@@ -638,6 +661,23 @@ function SectorRow({ s, max, on, onEnter, onLeave }: {
       </button>
     </li>
   )
+}
+
+/**
+ * Two abutting hit targets across a track of `w` px, given the two shares.
+ *
+ * Returns CSS lengths. Before the track has been measured, and on a track too
+ * narrow to hold two 44px targets, both fall back to their painted share —
+ * there is no honest way to give both 44px inside 80px, and inventing one
+ * would put two controls on top of each other.
+ */
+function tileTargets(w: number, sellPct: number, buyPct: number): [string, string] {
+  if (w < 88) return [`${sellPct}%`, `${buyPct}%`]
+  let s = (w * sellPct) / 100
+  let b = w - s
+  if (s < 44) { s = 44; b = w - 44 }
+  else if (b < 44) { b = 44; s = w - 44 }
+  return [`${s.toFixed(2)}px`, `${b.toFixed(2)}px`]
 }
 
 const Skel = ({ h }: { h: number }) =>

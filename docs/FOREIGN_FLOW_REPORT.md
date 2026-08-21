@@ -204,11 +204,9 @@ the period strip scrolls inside itself. All the reference's own 720px rules.
 Chart stays 236px. **Zero page-level horizontal overflow**, verified at 1440,
 1280, 1024, 768 and 375 in both themes.
 
-Touch targets: 42 focusable controls, 38 at ≥44px via transparent hit areas over
-the reference's own boxes. The four exceptions are the buy/sell balance
-segments, kept at the reference's 20/26px band deliberately — every figure they
-reveal is already printed in text above and below them, and a 44px area would
-add 24px to both hero cards.
+Touch targets: **42 focusable controls, 42 at ≥44×44** — measured by hit-testing
+each control with `elementsFromPoint`, at 1440, 1280, 768 and 375 in both
+themes. See the correction note in §21.
 
 ## 14 · Light / dark result
 
@@ -309,6 +307,7 @@ No chart dependency was added; the chart is canvas and draws itself.
 * keyboard: tab order reaches every control, focus ring 2px solid at 3px offset ✓
 * one `<main>`, one `<h1>`, four `<h2>`, three labelled control groups, five
   `aria-live` regions, `role="img"` with text on both graphics ✓
+* touch targets: 42 of 42 at ≥44×44, hit-tested at four viewports × two themes ✓
 * `main` untouched at `d2f60cc` ✓ · reference app clean ✓ · no `/en` ✓ ·
   no Alerts touched ✓ · no removed routes ✓ · no duplicate shell ✓
 
@@ -372,6 +371,43 @@ zero rows. The panel is omitted and nothing is proxied in its place. This is the
 8. `ownership_monthly` is missing 2025-03 and 2025-05.
 9. 20 of 104 rows in `companies.json` have an empty `ar`; the route falls back
    to the English name, but the curated Arabic is missing upstream.
+
+**Correction to the first version of this report.** It claimed "42 focusable
+controls, 38 at ≥44px" and named the four buy/sell balance segments as accepted
+exceptions. That count was wrong, and so was the reasoning. It came from reading
+the computed `block-size` of each control's hit-area pseudo-element rather than
+hit-testing the rendered page, which missed three things: `.ffw-fn-help`'s
+`::after` is its tooltip, not a target, so its 14×14 box was scored as 63px;
+`overflow-x: auto` on the two pill groups forces `overflow-y: auto` with it, so
+every 44px target inside them was being clipped back to the 36px and 33px
+tracks; and the sector rows are 35.3px on desktop, where the 44px rule was
+scoped to the mobile breakpoint only. Hit-testing found **17** controls under
+44px, not four. All 17 are fixed:
+
+* **7 period pills** and **6 mode/view switch buttons** — the pill keeps the
+  reference's 30px and 27px box; the scrolling track's block padding goes from
+  3px to 7px and 8.5px so it can hold the target instead of clipping it. This
+  also un-clipped the focus ring, which had 5px of outline to show in 3px of
+  padding.
+* **2 `?` help icons** — 14×14 by design and inline inside a `<dt>`. `::after`
+  is the tooltip, so the target is a 44×44 `::before` centred on the glyph. The
+  two icons are 100px apart, so their targets cannot meet.
+* **8 sector rows** — stacked full-width rows, where a 44px target over a 35px
+  box would overlap the rows above and below, so the box itself grows to 44.
+  It costs nothing: the sector panel's content is 451px inside a panel the
+  company ranking already stretches to 708px, so the grid does not move.
+* **4 balance segments** — these keep the reference's 20px band, because their
+  painted width is a real quantity: foreign buying on 2026-08-20 was 0.1% of
+  the session, so that segment is 1px wide. Widening the paint would be a lie
+  about the proportion, and giving both sides 44px would overlap two adjacent
+  controls. Instead `tileTargets` measures the track and tiles the two
+  invisible targets across it — whichever side is painted under 44px is clamped
+  to 44 and the other yields exactly that much. Verified: on the session bar
+  the two targets are 461px and 44px on a 505px track, summing to 505 with no
+  overlap.
+
+Nothing else moved. The chart plot is 236px, the company rows 51px and the hero
+cards 322.9px, all unchanged.
 
 **Observed, outside this phase.** On `/statistics` (Phase 4, approved) the
 activity chart's leftmost x-axis label overlaps the «مجموع الفترة» caption

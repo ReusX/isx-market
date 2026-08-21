@@ -127,13 +127,42 @@
 
 .ffw-balance-track {
   display: flex; block-size: 20px;
-  border-radius: 6px; overflow: hidden; background: var(--mv-well);
+  border-radius: 6px; background: var(--mv-well);
+  /* The reference clips the two segments to the track with `overflow: hidden`.
+     That also clipped the 44px hit area below, so the segments round their own
+     outer corners instead — logical radii, so it holds in both directions. */
 }
+
+.ffw-balance-track .sell { border-start-start-radius: 6px; border-end-start-radius: 6px; }
+
+.ffw-balance-track .buy { border-start-end-radius: 6px; border-end-end-radius: 6px; }
 
 .ffw-balance-track button {
   block-size: 100%; min-inline-size: 0; border: 0; padding: 0;
+  position: relative;
   cursor: pointer; transition: filter .13s, opacity .13s;
 }
+
+/* 44px of thumb over a 20px band. The painted segment keeps the reference's
+   height exactly; the target grows upward and downward into the label and the
+   caption, both of which are plain text — no adjacent control is overlapped. */
+.ffw-balance-track button::after {
+  content: '';
+  position: absolute; inset-inline: 0;
+  inset-block-start: 50%; transform: translateY(-50%);
+  block-size: 44px;
+}
+
+/* `--ffw-target` is tiled across the track by `tileTargets` in the component:
+   whichever side is painted under 44px gets 44 and the other yields exactly
+   that much, so the two targets abut and never overlap. Falls back to the
+   button's own width if the track has not been measured yet. */
+.ffw-balance-track button::after { inline-size: var(--ffw-target, 100%); }
+
+.ffw-balance-track .sell::after { inset-inline-start: 0; inset-inline-end: auto; }
+
+.ffw-balance-track .buy::after { inset-inline-end: 0; inset-inline-start: auto; }
+
 
 .ffw-balance-track .buy { background: var(--mv-up); }
 
@@ -224,6 +253,12 @@
   padding: 9px 6px; border: 0; border-radius: 9px; background: none;
   font: inherit; text-align: start; cursor: pointer;
   transition: background-color .12s, opacity .12s;
+  /* 35.3px in the reference. These are stacked full-width rows, so a 44px
+     target on a 35px box would overlap the row above and below — the box
+     itself has to be 44. It costs 8.7px per row and nothing else: the sector
+     panel's content is 381px inside a panel the company ranking stretches to
+     697px, so the grid does not move. */
+  min-block-size: 44px;
 }
 
 .ffw-sectors li.is-on button { background: var(--mv-well); }
@@ -344,7 +379,12 @@
 
 .ffw-st-period {
   grid-column: 1 / -1;
-  display: flex; gap: 2px; padding: 3px;
+  display: flex; gap: 2px;
+  /* 3px in the reference. `overflow-x: auto` — needed so the strip scrolls on
+     a narrow screen — forces `overflow-y: auto` with it, so the 44px hit area
+     on each pill was being clipped to the 36px track. The PILL keeps the
+     reference's 30px; the track grows to hold the target. */
+  padding: 7px 3px;
   border-radius: 12px; background: rgba(30,34,32,.055);
   overflow-x: auto; scrollbar-width: none;
 }
@@ -385,7 +425,10 @@
 .ffw-st-link:hover { text-decoration: underline; }
 
 .ffw-st-switch {
-  display: flex; gap: 2px; margin-inline-start: auto; padding: 3px;
+  display: flex; gap: 2px; margin-inline-start: auto;
+  /* Same clip, same fix: 27px buttons, 44px targets, so the track needs
+     8.5px of block padding rather than the reference's 3px. */
+  padding: 8.5px 3px;
   border-radius: 11px; background: rgba(30,34,32,.055);
   overflow-x: auto; scrollbar-width: none;
 }
@@ -560,6 +603,17 @@
 }
 
 .ffw-fn-help { border: 1px solid var(--mv-line-strong); }
+
+/* The icon is 14px by design and sits inline inside a `<dt>`. `::after` is
+   already the tooltip, so the hit area is `::before`: 44x44 centred on the
+   glyph, over label text only. The two icons are 100px apart, so their targets
+   (±22px) cannot meet. */
+.ffw-fn-help::before {
+  content: '';
+  position: absolute; inset-block-start: 50%; inset-inline-start: 50%;
+  inline-size: 44px; block-size: 44px;
+  transform: translate(50%, -50%);
+}
 
 .ffw-fn-help:hover, .ffw-fn-help:focus-visible { color: var(--mv-hero); border-color: var(--mv-hero); outline: none; }
 
