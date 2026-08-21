@@ -386,14 +386,6 @@
 .pl-conc span { color: var(--mv-ink-2); }
 .pl-part-main span { color: var(--mv-ink-2); }
 
-.pl-skel {
-  display: block;
-  background: linear-gradient(90deg, var(--mv-well), var(--mv-line), var(--mv-well));
-  background-size: 200% 100%;
-  border-radius: 6px;
-  animation: mv-shimmer 1.4s linear infinite;
-}
-
 /* ── Dark ───────────────────────────────────────────────────────────────── */
 [data-theme='dark'] .pl-tf { background: rgba(255,255,255,.055); }
 [data-theme='dark'] .pl-part-track i, [data-theme='dark'] .pl-contrib-bar i { background: var(--mv-hero-bright); }
