@@ -88,7 +88,14 @@
 
 .hx-search { margin-inline-start: auto; max-inline-size: 280px; }
 
-.hx-note { margin: 0 4px 10px; }
+/* `.hx-mv-note` is a flex row in the reference because it carries an icon and
+   a `<div>`. This one is a sentence, and as flex items each `<bdi>` and each
+   text node wrapped as its own block — invisible on one desktop line, and at
+   375px it shattered the coverage statement into a ragged column. It is text,
+   so it lays out as text. */
+/* Specificity, not order: `.hx-mv-note` is declared later in this file (it
+   comes from the shared block) and would win a plain `.hx-note` override. */
+.hx-mv-note.hx-note { display: block; margin: 0 4px 10px; }
 
 /* The coverage line is the one row this page has that the reference does not,
    and at 375px it was seven lines. Tighter type there, and it stays visible —
