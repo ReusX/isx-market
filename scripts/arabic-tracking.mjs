@@ -42,9 +42,13 @@ const LATIN_ONLY = [
   ['[dir=\'ltr\']', 'explicitly LTR'],
   [':lang(en)', 'explicitly English'],
   ['kbd', 'keyboard shortcut glyphs'],
-  ['.ffw-cd-ticker', 'the ISX ticker chip — Latin letters by construction'],
   ['font-family: var(--font-numeric)', 'a mono/numeric rule'],
   ['font-family: var(--font-mono)', 'a mono/numeric rule'],
+  /* The `font:` shorthand carries exactly the same signal as `font-family`,
+     and two route ports have now tripped on the difference — a ticker chip
+     that sets its face through the shorthand looked like untracked Arabic.
+     Same rule, either spelling. */
+  ['var(--font-numeric)', 'a mono/numeric rule, in either spelling'],
 ]
 
 function files(dir, out = []) {
