@@ -1,0 +1,154 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   Shared panel chrome — ported once, used by three routes.
+   ═══════════════════════════════════════════════════════════════════════════
+
+   Source: `/Users/amed/iqwealth-design/app/globals.css`, the `.cd-*` company-
+   detail block (7253–7507), the `.fn-help` / `.fn-src` affordance (8439–8477)
+   and the shared `.mv-error` state (6351–6376). Copied, not retyped.
+
+   ── Why these live here and not in a route file ───────────────────────────
+   The reference app declares them inside the company-detail block, and then
+   `Pulse.tsx` and `FinancialsPage.tsx` both render them. They are not company-
+   detail geometry; they are the product's panel vocabulary, and the design app
+   treats them that way in practice even though it files them under one route.
+   Porting them three times would give three definitions of one box.
+
+   Phase 5 could not do this — it needed the same rules before the shared file
+   existed — so `foreign-flow.css` carries its own `.ffw-cd-*` copies. Those
+   stay: rewriting a frozen route to save a duplicate is not worth the risk of
+   moving it. This file starts clean from `/pulse` forward.
+
+   ── The two adaptations, and only these ───────────────────────────────────
+     · `.iq-dark` on the page root → `[data-theme='dark']` on <html>. One theme
+       system, set pre-paint in app/layout.tsx.
+     · `.cd-cell-label` loses its positive tracking. It labels Arabic, and
+       Arabic is a joining script — tracking pulls the joins apart. The same
+       correction was made in Phase 5 and is enforced by
+       scripts/arabic-tracking.mjs.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ── Panel ──────────────────────────────────────────────────────────────── */
+.cd-panel {
+  padding: 15px 17px;
+  border: 1px solid var(--mv-line);
+  border-radius: 18px;
+  background: var(--mv-panel-solid);
+  box-shadow: var(--mv-shadow);
+}
+.cd-panel-head { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; margin-block-end: 12px; }
+.cd-panel-head h2 { margin: 0; font-size: .95rem; letter-spacing: -.02em; color: var(--mv-ink); }
+.cd-panel-note { color: var(--mv-ink-3); font-size: .67rem; }
+.cd-panel-note b { color: var(--mv-hero); font-weight: 700; }
+
+/* Arabic label — no tracking. See the header. */
+.cd-cell-label { color: var(--mv-ink-3); font-size: .66rem; }
+
+.cd-ticker {
+  padding: 2px 7px;
+  border-radius: 6px;
+  background: rgba(49,113,198,.1);
+  color: var(--mv-hero);
+  font: 700 .72rem/1.35 var(--font-numeric), ui-monospace, monospace;
+  letter-spacing: .04em;
+}
+
+/* ── Nothing-to-show ────────────────────────────────────────────────────── */
+.cd-nodata { padding: 22px 20px; border: 1px dashed var(--mv-line-strong); border-radius: 18px; background: var(--mv-well); }
+.cd-nodata strong { display: block; color: var(--mv-ink); font: 600 .88rem var(--font-body), Arial, sans-serif; }
+.cd-nodata p { max-inline-size: 72ch; margin: 7px 0 0; color: var(--mv-ink-3); font-size: .74rem; line-height: 1.75; }
+.cd-nodata-still { margin-block-start: 14px; padding-block-start: 12px; border-block-start: 1px solid var(--mv-line); }
+.cd-nodata-still p { margin-block-start: 3px; color: var(--mv-ink-2); }
+
+/* ── The ⓘ affordance ───────────────────────────────────────────────────── */
+.fn-src, .fn-help {
+  display: inline-grid; place-items: center;
+  inline-size: 14px; block-size: 14px;
+  margin-inline-start: 5px;
+  border-radius: 50%;
+  color: var(--mv-ink-3); font: 600 .58rem var(--font-body), Arial, sans-serif; font-style: normal;
+  cursor: help;
+  vertical-align: 1px;
+}
+.fn-help { border: 1px solid var(--mv-line-strong); }
+
+/* The icon is 14px by design and sits inline inside running text. `::after` is
+   already the tooltip, so the hit area is `::before`: 44x44 centred on the
+   glyph, over label text only. Same treatment Phase 5 shipped for
+   `.ffw-fn-help`; the `translate(50%, -50%)` is the RTL recentring, since
+   `inset-inline-start` resolves to `right`. */
+.fn-help::before {
+  content: '';
+  position: absolute; inset-block-start: 50%; inset-inline-start: 50%;
+  inline-size: 44px; block-size: 44px;
+  transform: translate(50%, -50%);
+}
+.fn-help:hover, .fn-help:focus-visible { color: var(--mv-hero); border-color: var(--mv-hero); outline: none; }
+.fn-src, .fn-help { position: relative; }
+.fn-src:hover, .fn-src:focus-visible { color: var(--mv-hero); outline: none; }
+.fn-src::after, .fn-help::after {
+  content: attr(data-help);
+  position: absolute; z-index: 20;
+  inset-block-start: calc(100% + 6px); inset-inline-start: 0;
+  inline-size: max-content;
+  padding: 7px 10px; border-radius: 9px;
+  background: var(--mv-ink); color: var(--mv-panel-solid);
+  font: 500 .66rem/1.55 var(--font-body), Arial, sans-serif; text-align: start;
+  white-space: normal;
+  opacity: 0; pointer-events: none; transition: opacity .12s;
+}
+.fn-src::after { max-inline-size: 280px; }
+.fn-help::after { max-inline-size: 260px; }
+.fn-src:hover::after, .fn-src:focus-visible::after,
+.fn-help:hover::after, .fn-help:focus-visible::after { opacity: 1; }
+[data-theme='dark'] .fn-src::after,
+[data-theme='dark'] .fn-help::after { background: #333; color: #f0efec; }
+
+/* ── Shared error state ─────────────────────────────────────────────────── */
+.mv-error {
+  display: flex; align-items: center; gap: 15px;
+  margin-block-start: 12px;
+  padding: 26px 24px;
+  border: 1px solid rgba(181,67,47,.24);
+  border-radius: 18px;
+  background: var(--mv-panel-solid);
+  box-shadow: var(--mv-shadow);
+}
+.mv-error-mark {
+  display: grid; place-items: center; flex: none;
+  inline-size: 34px; block-size: 34px;
+  border-radius: 11px;
+  background: var(--mv-down-soft); color: var(--mv-down);
+  font: 700 1rem var(--font-numeric), ui-monospace, monospace;
+}
+.mv-error div { flex: 1; }
+.mv-error strong { display: block; color: var(--mv-ink); font: 600 .9rem var(--font-body), Arial, sans-serif; }
+.mv-error p { margin: 4px 0 0; color: var(--mv-ink-3); font-size: .75rem; }
+.mv-error button {
+  padding: 9px 17px;
+  border: 1px solid var(--mv-line-strong); border-radius: 11px;
+  background: var(--mv-well); color: var(--mv-ink);
+  font: 600 .73rem var(--font-body), Arial, sans-serif; cursor: pointer;
+}
+.mv-error button:hover { border-color: rgba(49,113,198,.4); color: var(--mv-hero); }
+
+@media (max-width: 600px) {
+  /* The reference's own narrow-screen width, plus the anchor flip this repo
+     needs and it did not.
+
+     The tooltip's containing block is the 14px icon, and the reference anchors
+     it at `inset-inline-start` — under RTL that puts its RIGHT edge on the
+     icon and grows it leftwards. Arabic runs right-to-left, so the ⓘ always
+     lands at the LEFT end of the label it follows, which is exactly the side
+     with no room: at 375px the icon sits 50px from the panel's left edge and a
+     200px tooltip hung 150px outside it, taking the whole document into
+     horizontal scroll. Anchoring the other edge grows it back across the
+     panel, where the space actually is. */
+  .fn-src::after, .fn-help::after {
+    max-inline-size: min(200px, calc(100vw - 56px));
+    inset-inline-start: auto;
+    inset-inline-end: 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .fn-src::after, .fn-help::after { transition: none; }
+}
