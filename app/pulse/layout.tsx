@@ -3,7 +3,7 @@ import Freshness from '@/components/seo/Freshness'
 import Breadcrumbs from '@/components/seo/Breadcrumbs'
 import { absUrl, seoAlternates } from '@/lib/seo'
 export const metadata: Metadata = {
-  title: { absolute: 'نبض السوق العراقي · الأسهم الصاعدة والهابطة اليوم' },
+  title: { absolute: 'نبض السوق العراقي · الأسهم الصاعدة والهابطة' },
   description: 'اتساع سوق العراق للأوراق المالية: عدد الأسهم الصاعدة مقابل الهابطة، حجم التداول الصاعد والهابط، القمم والقيعان الجديدة وخط الصعود/الهبوط.',
   alternates: seoAlternates('/pulse'),
   keywords: [

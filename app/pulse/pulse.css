@@ -1,0 +1,585 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   نبض السوق — a DIRECT PORT of the approved reference pulse page.
+   ═══════════════════════════════════════════════════════════════════════════
+
+   Source: `/Users/amed/iqwealth-design/app/globals.css` lines 9013–9460, the
+   route's own block, extracted by matching the block boundary rather than
+   retyped — no length, colour, radius or breakpoint drifts in transit. The
+   panel chrome the markup also renders (`.cd-panel`, `.fn-help`, `.mv-error`)
+   lives in styles/panels.css, ported once for the three routes that use it.
+
+   ── The adaptations, and only these ───────────────────────────────────────
+     · `.pulse-v2` → `.pl-page`. The reference's page-root class is a design-
+       app version marker; production already owns a `.pulse-page` from the
+       old route and two names one letter apart would be a trap.
+     · `.iq-light` / `.iq-dark` on the page root → base rules plus
+       `[data-theme='dark']` on <html>. One theme system, set pre-paint.
+     · `--font-numeric` / `--font-body` gain this repo's fallback stacks.
+     · `.mv-preview { display: none }` dropped — it hid a design-mode state
+       picker that does not ship.
+
+   Nothing else changed. `.pl-*` is unused elsewhere in this repo (the only
+   near-matches are Phase 5's already-namespaced `.ffw-pl-*`), so no rename
+   was needed.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   نبض السوق — market internals
+   ═══════════════════════════════════════════════════════════════════════════
+
+   Page 08. Every module here is TWO NUMBERS COMPARED, never one number shown
+   — which is why there is no KPI grid on a page that would obviously have
+   attracted one. The comparisons are: counts against volume, today against
+   the previous session, each sector against its own company count, and the
+   busiest five names against the whole session.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.pl-page {
+  inline-size: min(1520px, calc(100% - 48px));
+  margin: 0 auto;
+  padding: 22px 0 56px;
+  color: var(--mv-ink);
+}
+
+/* ── Contrast, page-scoped ──────────────────────────────────────────────────
+   Muted, but never difficult to read. `--mv-ink-3` at its global value is
+   comfortable on a bright display and genuinely hard at low brightness, which
+   is where a market page gets read. These raise the third ink one step and
+   deepen the semantic pair — enough to lift them off the panel, not enough to
+   turn a percentage into a signal light.
+
+   Scoped to `.pl-page` DELIBERATELY. The same adjustment probably belongs in
+   the global layer, but that layer is shared with five approved pages and this
+   is a single-page refinement pass. Flagged for the owner rather than applied
+   behind their back. */
+.pl-page {
+  --mv-ink-3: #6e746f;
+  --mv-up: #0e7350;
+  --mv-down: #a83926;
+  --mv-up-soft: rgba(14,115,80,.13);
+  --mv-down-soft: rgba(168,57,38,.12);
+}
+[data-theme='dark'] .pl-page {
+  --mv-ink-3: #9ea29c;
+  --mv-up: #40d795;
+  --mv-down: #f4787d;
+  --mv-up-soft: rgba(64,215,149,.16);
+  --mv-down-soft: rgba(244,120,125,.16);
+}
+
+.pl-head { display: flex; align-items: flex-end; gap: 20px; flex-wrap: wrap; padding: 0 4px 14px; }
+.pl-title h1 { margin: 0; font-size: clamp(1.3rem, 1.9vw, 1.8rem); letter-spacing: -.045em; color: var(--mv-ink); }
+.pl-title p { margin: 5px 0 0; color: var(--mv-ink-2); font-size: .75rem; }
+.pl-head-actions { display: flex; align-items: center; gap: 8px; margin-inline-start: auto; }
+
+/* ── The verdict ────────────────────────────────────────────────────────────
+   A sentence with its rule one click away. Not a score, not a gauge, not a
+   badge — the reader can disagree with the threshold, which is only possible
+   because the threshold is printed.
+
+   Two lines instead of four. The conclusion and the clause that qualifies it
+   read as ONE sentence rather than a headline stacked over a paragraph, and
+   the rule moved behind ⓘ. Same information, ~62px instead of ~104px. */
+.pl-verdict {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 6px 26px;
+  padding: 11px 18px;
+  border: 1px solid var(--mv-line);
+  border-radius: 16px;
+  background: var(--mv-panel);
+  box-shadow: var(--mv-shadow);
+  backdrop-filter: blur(20px) saturate(120%);
+}
+.pl-verdict-main {
+  display: flex; align-items: baseline; gap: 6px; flex-wrap: wrap;
+  margin: 0; min-inline-size: 0;
+}
+.pl-verdict-say { min-inline-size: 0; }
+.pl-verdict-main strong { font-size: 1.04rem; letter-spacing: -.03em; color: var(--mv-ink); }
+.pl-verdict-qual { color: var(--mv-ink-2); font-size: .78rem; }
+.pl-verdict-dot {
+  inline-size: 9px; block-size: 9px; border-radius: 50%;
+  align-self: center; flex: 0 0 auto;
+  background: var(--mv-ink-3);
+}
+.pl-verdict.up .pl-verdict-dot { background: var(--mv-up); box-shadow: 0 0 0 4px var(--mv-up-soft); }
+.pl-verdict.down .pl-verdict-dot { background: var(--mv-down); box-shadow: 0 0 0 4px var(--mv-down-soft); }
+.pl-verdict.mixed .pl-verdict-dot { background: var(--mv-hero); box-shadow: 0 0 0 4px rgba(49,113,198,.16); }
+
+/* The rule affordance. Small, but a real control — not an icon that only
+   works on hover, because on a phone there is no hover. */
+.pl-why {
+  display: inline-flex; align-items: center; gap: 4px;
+  margin-inline-start: 4px; padding: 2px 8px;
+  border: 1px solid var(--mv-line); border-radius: 999px;
+  background: none; color: var(--mv-ink-2);
+  font: 600 .64rem var(--font-body), Arial, sans-serif; cursor: pointer;
+  transition: color .13s, border-color .13s, background-color .13s;
+}
+.pl-why i { font-style: normal; font-size: .72rem; line-height: 1; }
+.pl-why:hover { color: var(--mv-hero); border-color: var(--mv-hero); }
+.pl-why[aria-expanded="true"] { color: white; background: var(--mv-hero); border-color: var(--mv-hero); }
+.pl-why:focus-visible { outline: 2px solid var(--mv-hero); outline-offset: 2px; }
+[data-theme='dark'] .pl-why[aria-expanded="true"] { background: var(--mv-hero-bright); border-color: var(--mv-hero-bright); color: #0d1116; }
+
+.pl-verdict-rule {
+  grid-column: 1 / -1;
+  margin: 2px 0 0; padding-block-start: 9px;
+  border-block-start: 1px solid var(--mv-line);
+  max-inline-size: 96ch;
+  color: var(--mv-ink-2); font-size: .74rem; line-height: 1.8;
+  animation: pl-fade .18s var(--mv-ease, ease-out);
+}
+.pl-verdict-figs { display: flex; gap: 22px; grid-row: 1; margin: 0; }
+.pl-verdict-figs div { display: flex; flex-direction: column; gap: 2px; }
+.pl-verdict-figs dt { color: var(--mv-ink-3); font-size: .62rem; }
+.pl-verdict-figs dd { display: flex; align-items: baseline; gap: 6px; margin: 0; }
+.pl-verdict-figs bdi { color: var(--mv-ink); font: 700 1rem var(--font-numeric), ui-monospace, monospace; }
+.pl-verdict-figs small { color: var(--mv-ink-3); font-size: .62rem; }
+.pl-verdict-figs small bdi { font: 600 .66rem var(--font-numeric), ui-monospace, monospace; color: var(--mv-ink-3); }
+
+@keyframes pl-fade { from { opacity: 0; transform: translateY(-2px); } to { opacity: 1; transform: none; } }
+
+.pl-grid-main { display: grid; grid-template-columns: minmax(0, 1.28fr) minmax(0, 1fr); gap: 14px; margin-block-start: 14px; }
+
+/* ── Breadth fields ─────────────────────────────────────────────────────────
+   Two proportional bars sharing one left-to-right meaning, stacked so the gap
+   between them is visible without being computed. That gap is the page. */
+.pl-field + .pl-field { margin-block-start: 16px; }
+/* The anchor exists so the tooltip can be positioned by percentage along the
+   track while the track itself keeps `overflow: hidden` for its rounded ends. */
+.pl-field-anchor { position: relative; margin-block-start: 7px; }
+.pl-field-track {
+  display: flex; block-size: 22px;
+  border-radius: 6px; overflow: hidden;
+  background: var(--mv-well);
+}
+.pl-field-track button {
+  display: block; block-size: 100%; min-inline-size: 0;
+  border: 0; padding: 0; background: none;
+  cursor: pointer;
+  transition: filter .13s, box-shadow .13s;
+}
+.pl-field-track .up { background: var(--mv-up); }
+.pl-field-track .flat { background: var(--mv-ink-3); opacity: .42; }
+.pl-field-track .down { background: var(--mv-down); }
+.pl-field-track button:hover, .pl-field-track button.is-on { filter: brightness(1.14) saturate(1.1); }
+.pl-field-track button.is-on { box-shadow: inset 0 0 0 2px var(--mv-panel-solid); }
+.pl-field-track button:focus-visible { outline: 2px solid var(--mv-hero); outline-offset: -2px; }
+.pl-field-keys { display: flex; gap: 18px; flex-wrap: wrap; margin-block-start: 8px; }
+.pl-field-keys span { display: inline-flex; align-items: baseline; gap: 6px; font-size: .68rem; transition: opacity .13s; }
+.pl-field-keys i { inline-size: 8px; block-size: 8px; border-radius: 2px; align-self: center; }
+.pl-field-keys .up i { background: var(--mv-up); }
+.pl-field-keys .flat i { background: var(--mv-ink-3); opacity: .42; }
+.pl-field-keys .down i { background: var(--mv-down); }
+.pl-field-keys bdi { color: var(--mv-ink); font: 700 .8rem var(--font-numeric), ui-monospace, monospace; }
+.pl-field-keys small { color: var(--mv-ink-2); font-size: .64rem; }
+.pl-field-keys span.is-on bdi { color: var(--mv-hero); }
+[data-theme='dark'] .pl-field-keys span.is-on bdi { color: var(--mv-hero-bright); }
+
+/* ── The tooltip ────────────────────────────────────────────────────────────
+   One shape for every anchored readout on the page: solid surface (never
+   translucent — it sits over data), tabular figures, sits ABOVE its anchor so
+   it cannot cover the proportion it is explaining, and never takes pointer
+   events so it cannot steal the hover that summoned it. */
+.pl-tip {
+  position: absolute; inset-block-end: calc(100% + 9px);
+  transform: translateX(50%);
+  display: flex; align-items: baseline; gap: 6px;
+  padding: 7px 11px;
+  border: 1px solid var(--mv-line-strong); border-radius: 10px;
+  background: var(--mv-panel-solid);
+  box-shadow: 0 8px 22px -12px rgba(12,16,14,.5);
+  white-space: nowrap; pointer-events: none; z-index: 5;
+  font-size: .68rem;
+  animation: pl-fade .12s var(--mv-ease, ease-out);
+}
+/* RTL: `inset-inline-start` has already flipped to `right`, but `transform`
+   never flips — so centring is +50% here, and the two edge cases clamp the
+   tooltip inside the track instead of letting it hang off the panel. */
+.pl-tip[data-edge="start"] { transform: translateX(0); }
+.pl-tip[data-edge="end"] { transform: translateX(100%); }
+.pl-tip b { font-size: .66rem; font-weight: 600; color: var(--mv-ink-2); }
+.pl-tip b.up { color: var(--mv-up); }
+.pl-tip b.down { color: var(--mv-down); }
+.pl-tip > bdi { color: var(--mv-ink); font: 700 .82rem var(--font-numeric), ui-monospace, monospace; }
+.pl-tip em { color: var(--mv-ink-3); font-style: normal; font-size: .62rem; }
+.pl-tip-pct {
+  padding-inline-start: 7px; margin-inline-start: 1px;
+  border-inline-start: 1px solid var(--mv-line);
+}
+.pl-tip-pct bdi { color: var(--mv-ink-2); font: 700 .74rem var(--font-numeric), ui-monospace, monospace; }
+.pl-tip small { color: var(--mv-ink-3); font-size: .61rem; }
+.pl-tip small bdi { font: 600 .64rem var(--font-numeric), ui-monospace, monospace; }
+.pl-tip-wide { flex-wrap: wrap; max-inline-size: 260px; white-space: normal; }
+.pl-tip-rows { display: grid; grid-template-columns: 1fr 1fr; gap: 2px 14px; inline-size: 100%; margin-block-start: 3px; padding-block-start: 5px; border-block-start: 1px solid var(--mv-line); }
+.pl-tip-rows span { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
+.pl-tip-rows bdi { color: var(--mv-ink); font: 600 .7rem var(--font-numeric), ui-monospace, monospace; }
+
+/* ── The readout ────────────────────────────────────────────────────────────
+   The other half of the inspection system. Used wherever a floating card
+   would land on top of the rows the reader is comparing against — the sector
+   list, the concentration list, and the 260-column history. Fixed position,
+   updates in place, same type scale as the tooltip. */
+.pl-readout {
+  display: flex; align-items: baseline; gap: 15px; flex-wrap: wrap;
+  min-block-size: 30px;
+  margin-block-end: 10px; padding: 6px 10px;
+  border: 1px solid var(--mv-line); border-radius: 10px;
+  background: var(--mv-well);
+  font-size: .7rem;
+}
+.pl-readout-name { color: var(--mv-ink); font-weight: 600; font-size: .72rem; }
+.pl-readout-hint { margin-inline-start: auto; color: var(--mv-ink-3); font-size: .64rem; }
+.pl-read { display: inline-flex; align-items: baseline; gap: 5px; }
+.pl-read em { color: var(--mv-ink-3); font-style: normal; font-size: .64rem; }
+.pl-read bdi { color: var(--mv-ink); font: 700 .78rem var(--font-numeric), ui-monospace, monospace; }
+/* The finding, written out. Leaving a 14-point gap between two bars to be
+   eyeballed is leaving the conclusion unstated. */
+.pl-gap-note {
+  margin: 16px 0 0; padding-block-start: 13px;
+  border-block-start: 1px solid var(--mv-line);
+  color: var(--mv-ink-2); font-size: .73rem; line-height: 1.75;
+}
+
+/* ── Participation ──────────────────────────────────────────────────────── */
+.pl-part-main { display: flex; align-items: baseline; gap: 9px; }
+.pl-part-main strong { font: 700 2rem var(--font-numeric), ui-monospace, monospace; letter-spacing: -.035em; color: var(--mv-ink); }
+.pl-part-main span { color: var(--mv-ink-3); font-size: .73rem; }
+.pl-part-anchor { position: relative; margin-block-start: 12px; }
+.pl-part-track {
+  display: block; inline-size: 100%;
+  block-size: 14px; padding: 3px 0;
+  border: 0; background: none; cursor: pointer;
+}
+.pl-part-track::before {
+  content: ""; position: absolute; inset-inline: 0; inset-block: 3px;
+  border-radius: 5px; background: var(--mv-well);
+}
+.pl-part-track i {
+  position: relative; display: block; block-size: 8px;
+  border-radius: 5px; background: var(--mv-hero);
+  transition: filter .13s;
+}
+.pl-part-track:hover i, .pl-part-track.is-on i { filter: brightness(1.12); }
+.pl-part-track:focus-visible { outline: 2px solid var(--mv-hero); outline-offset: 2px; border-radius: 6px; }
+.pl-delta { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin: 10px 0 0; color: var(--mv-ink-2); font-size: .68rem; }
+.pl-delta bdi { font: 600 .74rem var(--font-numeric), ui-monospace, monospace; color: var(--mv-ink-2); }
+.pl-part-rows { margin: 14px 0 0; padding-block-start: 12px; border-block-start: 1px solid var(--mv-line); }
+.pl-part-rows div { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; padding-block: 7px; }
+.pl-part-rows dt { color: var(--mv-ink-2); font-size: .7rem; }
+.pl-part-rows dd { display: flex; align-items: baseline; gap: 4px; margin: 0; color: var(--mv-ink); font: 600 .78rem var(--font-numeric), ui-monospace, monospace; }
+.pl-part-rows dd small { color: var(--mv-ink-3); font: 500 .58rem var(--font-body), Arial, sans-serif; }
+.pl-sep { color: var(--mv-ink-3); opacity: .5; }
+
+/* ── History ────────────────────────────────────────────────────────────────
+   Columns from a shared zero, not a line: net breadth is a per-session
+   quantity with a sign, and a line implies a continuum between sessions that
+   does not exist. */
+.pl-history { margin-block-start: 14px; }
+.pl-def { display: inline-flex; align-items: center; gap: 4px; }
+.pl-tf { display: flex; gap: 2px; margin-inline-start: auto; padding: 3px; border-radius: 11px; background: rgba(30,34,32,.055); }
+.pl-tf button {
+  padding: 5px 12px; border: 0; border-radius: 8px;
+  background: none; color: var(--mv-ink-2);
+  font: 600 .69rem var(--font-body), Arial, sans-serif; cursor: pointer;
+  transition: color .13s, background-color .13s;
+}
+.pl-tf button:hover { color: var(--mv-ink); background: var(--mv-line); }
+.pl-tf button.active, .pl-tf button.active:hover { color: white; background: var(--mv-hero); }
+.pl-tf button:focus-visible { outline: 2px solid var(--mv-hero); outline-offset: 2px; }
+
+.pl-hist-read { min-block-size: 32px; }
+
+.pl-hist-plot {
+  /* Remounted on a timeframe change, so the swap reads as a new dataset
+     rather than as bars travelling to new heights. 180ms, once. */
+  animation: pl-fade .18s var(--mv-ease, ease-out);
+  position: relative;
+  display: flex; align-items: stretch; gap: var(--pl-gap, 2px);
+  block-size: 168px;
+  /* LTR: time runs oldest-left to newest-right, like every other chart in the
+     product. Letting the flex row take the page's RTL direction would put the
+     newest session on the opposite side from the price charts. */
+  direction: ltr;
+}
+.pl-hist-zero {
+  position: absolute; inset-inline: 0; inset-block-start: 50%;
+  block-size: 1px; background: var(--mv-line-strong);
+}
+.pl-hist-col {
+  position: relative; flex: 1; min-inline-size: 2px;
+  border: 0; padding: 0; background: none; cursor: pointer;
+  border-radius: 2px;
+  transition: background-color .1s;
+}
+.pl-hist-col i { position: absolute; inset-inline: 0; border-radius: 1px; }
+.pl-hist-col.up i { background: var(--mv-up); }
+.pl-hist-col.down i { background: var(--mv-down); }
+.pl-hist-col:hover, .pl-hist-col.is-on { background: var(--mv-well); }
+.pl-hist-col.is-on i { filter: brightness(1.18) saturate(1.1); }
+/* The selected column is marked by a blue rail through the full plot height,
+   not by a fatter bar — widening it would change the value it encodes. */
+.pl-hist-col.is-pin { background: var(--mv-hero-soft, rgba(49,113,198,.12)); box-shadow: inset 0 0 0 1px var(--mv-hero); }
+.pl-hist-col:focus-visible { outline: 2px solid var(--mv-hero); outline-offset: 1px; }
+.pl-hist-axis { display: flex; justify-content: space-between; margin-block-start: 8px; color: var(--mv-ink-2); font-size: .64rem; direction: ltr; }
+
+/* ── Sector breadth ─────────────────────────────────────────────────────── */
+.pl-sectors { display: flex; flex-direction: column; margin: 0; padding: 0; list-style: none; }
+.pl-sectors li { border-block-end: 1px solid var(--mv-line); }
+.pl-sectors li:last-child { border-block-end: 0; }
+.pl-sectors button {
+  display: grid; grid-template-columns: 96px minmax(0, 1fr) 78px 34px;
+  align-items: center; gap: 12px;
+  inline-size: 100%; padding: 9px 6px;
+  border: 0; border-radius: 9px; background: none;
+  font: inherit; text-align: start; cursor: pointer;
+  transition: background-color .12s, opacity .12s, box-shadow .12s;
+}
+.pl-sectors button:focus-visible { outline: 2px solid var(--mv-hero); outline-offset: -2px; }
+.pl-sectors li.is-on button { background: var(--mv-well); }
+/* Selection is blue — green and red are spoken for by direction, and reusing
+   them for "you picked this" would make a selected sector look bullish. */
+.pl-sectors li.is-pin button { box-shadow: inset 0 0 0 1px var(--mv-hero); background: rgba(49,113,198,.07); }
+.pl-sec-panel.has-sel .pl-sectors li:not(.is-on) { opacity: .52; }
+.pl-sec-name { color: var(--mv-ink-2); font-size: .72rem; }
+.pl-sec-track { display: flex; block-size: 9px; border-radius: 4px; overflow: hidden; background: var(--mv-well); }
+.pl-sec-track i.up { background: var(--mv-up); }
+.pl-sec-track i.flat { background: var(--mv-ink-3); opacity: .38; }
+.pl-sec-track i.down { background: var(--mv-down); }
+.pl-sec-counts { display: flex; align-items: baseline; gap: 5px; font: 600 .72rem var(--font-numeric), ui-monospace, monospace; color: var(--mv-ink-2); justify-content: flex-end; }
+.pl-sec-net { font: 700 .76rem var(--font-numeric), ui-monospace, monospace; text-align: end; color: var(--mv-ink-3); }
+
+/* ── Concentration ──────────────────────────────────────────────────────── */
+.pl-conc { display: flex; align-items: baseline; gap: 10px; margin-block-end: 14px; }
+.pl-conc strong { font: 700 2rem var(--font-numeric), ui-monospace, monospace; letter-spacing: -.035em; color: var(--mv-ink); }
+.pl-conc span { color: var(--mv-ink-3); font-size: .73rem; }
+.pl-contrib { display: flex; flex-direction: column; margin: 0; padding: 0; list-style: none; }
+.pl-contrib li { border-block-end: 1px solid var(--mv-line); }
+.pl-contrib li:last-child { border-block-end: 0; }
+.pl-contrib li a {
+  display: grid; grid-template-columns: 18px minmax(0, 1fr) 60px 56px 54px 10px;
+  align-items: center; gap: 10px;
+  padding: 8px 6px;
+  border-radius: 9px;
+  color: inherit; text-decoration: none;
+  transition: background-color .12s;
+}
+.pl-contrib li.is-on a { background: var(--mv-well); }
+.pl-contrib li a:focus-visible { outline: 2px solid var(--mv-hero); outline-offset: -2px; }
+/* The chevron is the click affordance: these rows go somewhere, and a row that
+   navigates should say so before it is hovered on a device that cannot hover. */
+.pl-contrib-go { color: var(--mv-ink-3); font-size: .8rem; opacity: .45; transition: opacity .12s, color .12s; }
+.pl-contrib li.is-on .pl-contrib-go { opacity: 1; color: var(--mv-hero); }
+[data-theme='dark'] .pl-contrib li.is-on .pl-contrib-go { color: var(--mv-hero-bright); }
+.pl-contrib-rank { color: var(--mv-ink-3); font: 600 .66rem var(--font-numeric), ui-monospace, monospace; }
+.pl-contrib-name { display: flex; flex-direction: column; gap: 2px; min-inline-size: 0; }
+.pl-contrib-name strong { color: var(--mv-ink); font: 600 .74rem var(--font-body), Arial, sans-serif; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pl-contrib-name .cd-ticker { align-self: flex-start; font-size: .6rem; padding: 1px 5px; }
+.pl-contrib-bar { block-size: 6px; border-radius: 3px; background: var(--mv-well); overflow: hidden; }
+.pl-contrib-bar i { display: block; block-size: 100%; border-radius: 3px; background: var(--mv-hero); }
+.pl-contrib-val { color: var(--mv-ink-2); font: 600 .72rem var(--font-numeric), ui-monospace, monospace; text-align: end; }
+.pl-contrib-pct { font: 600 .72rem var(--font-numeric), ui-monospace, monospace; text-align: end; color: var(--mv-ink-2); }
+.pl-foot-note { margin: 12px 0 0; color: var(--mv-ink-2); font-size: .66rem; line-height: 1.8; }
+.pl-conc span { color: var(--mv-ink-2); }
+.pl-part-main span { color: var(--mv-ink-2); }
+
+.pl-skel {
+  display: block;
+  background: linear-gradient(90deg, var(--mv-well), var(--mv-line), var(--mv-well));
+  background-size: 200% 100%;
+  border-radius: 6px;
+  animation: mv-shimmer 1.4s linear infinite;
+}
+
+/* ── Dark ───────────────────────────────────────────────────────────────── */
+[data-theme='dark'] .pl-tf { background: rgba(255,255,255,.055); }
+[data-theme='dark'] .pl-part-track i, [data-theme='dark'] .pl-contrib-bar i { background: var(--mv-hero-bright); }
+/* Dark panels are near-black, so the tooltip needs a lifted surface and a
+   heavier shadow or it disappears into whatever it is floating over. */
+[data-theme='dark'] .pl-tip { background: #262626; border-color: rgba(240,239,236,.18); box-shadow: 0 10px 26px -10px rgba(0,0,0,.7); }
+[data-theme='dark'] .pl-hist-col.is-pin { background: rgba(90,160,232,.16); box-shadow: inset 0 0 0 1px var(--mv-hero-bright); }
+[data-theme='dark'] .pl-sectors li.is-pin button { background: rgba(90,160,232,.1); box-shadow: inset 0 0 0 1px var(--mv-hero-bright); }
+[data-theme='dark'] .pl-tf button:hover { background: rgba(255,255,255,.07); }
+
+/* ── Responsive ─────────────────────────────────────────────────────────── */
+@media (max-width: 1280px) { .pl-page { inline-size: calc(100% - 34px); } }
+
+@media (max-width: 1080px) {
+  .pl-grid-main { grid-template-columns: 1fr; }
+  .pl-verdict { grid-template-columns: 1fr; }
+  /* The figures move under the sentence rather than beside it — but they stay
+     on ONE row, so the panel gains a line instead of gaining a block. */
+  .pl-verdict-figs { grid-row: auto; gap: 26px; padding-block-start: 9px; border-block-start: 1px solid var(--mv-line); }
+  .pl-verdict-figs div { flex-direction: row; align-items: baseline; gap: 7px; }
+}
+
+/* Mobile.
+   ────────────────────────────────────────────────────────────────────────
+   The breadth numbers stay — they are the page, and hiding them behind a
+   disclosure would be hiding the answer. What gives way: the history chart
+   loses height, the timeframe control scrolls, and the two dense tables drop
+   their least load-bearing columns. */
+@media (max-width: 720px) {
+  .pl-page { inline-size: calc(100% - 20px); padding-block-start: 12px; }
+  .pl-head-actions { margin-inline-start: auto; }
+  /* Mobile gets its own compact composition rather than the desktop panel with
+     its padding shaved: the qualifier wraps to its own line, and the two
+     figures sit side by side under it. Still two lines of meaning. */
+  .pl-verdict { padding: 10px 13px; border-radius: 14px; }
+  .pl-verdict-main strong { font-size: .95rem; }
+  .pl-verdict-qual { font-size: .74rem; }
+  .pl-verdict-figs { gap: 20px; }
+  .pl-verdict-figs small { display: none; }
+  .pl-verdict-rule { font-size: .71rem; line-height: 1.75; }
+  .pl-field-keys { gap: 12px; }
+  .pl-field-keys small { display: none; }
+  /* Touch targets: a 22px bar segment is tappable, a 9px sector bar is not —
+     the row's full height is the target, which it already is. */
+  .pl-field-track { block-size: 26px; }
+  .pl-hist-col { min-inline-size: 3px; }
+  .pl-readout { gap: 10px 12px; padding: 7px 9px; }
+  /* The hint STAYS on mobile. It reads as filler on a desktop that can hover;
+     on a touch device it is the only thing telling the reader these rows are
+     tappable — and without it the readout is an empty pill. */
+  .pl-readout-hint { margin-inline-start: 0; font-size: .63rem; }
+  .pl-tip { font-size: .66rem; padding: 6px 9px; }
+  .pl-tip-wide { max-inline-size: 220px; }
+  .pl-contrib li a { grid-template-columns: 16px minmax(0, 1fr) 52px 50px 10px; gap: 8px; }
+  .pl-tf { inline-size: 100%; margin-inline-start: 0; overflow-x: auto; scrollbar-width: none; }
+  .pl-tf::-webkit-scrollbar { display: none; }
+  .pl-tf button { flex: 0 0 auto; }
+  .pl-hist-plot { block-size: 128px; }
+  .pl-hist-hint { display: none; }
+  .pl-sectors button { grid-template-columns: 72px minmax(0, 1fr) 30px; gap: 9px; }
+  .pl-sec-counts { display: none; }
+  .pl-contrib-bar { display: none; }
+  .pl-part-main strong, .pl-conc strong { font-size: 1.7rem; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pl-field-track button, .pl-hist-col, .pl-tf button, .pl-sectors button,
+  .pl-contrib li a, .pl-part-track i, .pl-why { transition: none; }
+  .pl-skel, .pl-tip, .pl-hist-plot, .pl-verdict-rule { animation: none; }
+}
+
+/* Coarse pointers never fire hover, so the hover-only affordances are made
+   permanent rather than unreachable. */
+@media (hover: none) {
+  .pl-contrib-go { opacity: .8; }
+}
+/* ═══════════════════════════════════════════════════════════════════════════
+   Added here, not ported. Four things the reference page could not carry.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* 1 · The head action. The reference put a theme toggle and a state picker in
+   this slot; both are design-app furniture. Production's own affordance goes
+   here instead, in the reference's own compact-action shape (`.st-cta`,
+   globals.css 10341) rather than a new one. */
+.pl-head-link {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 9px 14px; min-block-size: 44px; box-sizing: border-box;
+  border: 1px solid var(--mv-line); border-radius: 999px;
+  color: var(--mv-ink-2); font: 600 .67rem var(--font-body), Arial, sans-serif; text-decoration: none;
+  transition: color .13s, border-color .13s, background-color .13s;
+}
+.pl-head-link:hover { color: var(--mv-hero); border-color: var(--mv-hero); background: rgba(49,113,198,.06); }
+.pl-head-link:focus-visible { outline: 2px solid var(--mv-hero); outline-offset: 2px; }
+[data-theme='dark'] .pl-head-link:hover { color: var(--mv-hero-bright); border-color: var(--mv-hero-bright); background: rgba(90,160,232,.1); }
+
+/* 2 · The fourth breadth state. Hatched, never the neutral grey — neutral
+   means measured-flat, and flat is a fact this segment does not have. The
+   angle, the alpha and the reasoning are the heatmap's `[data-band="na"]`, so
+   "no reading" looks the same everywhere in the product. */
+.pl-field-track .na,
+.pl-sec-track i.na {
+  background: repeating-linear-gradient(45deg,
+    var(--mv-line-strong) 0 2px, transparent 2px 5px);
+}
+.pl-field-keys .na i {
+  background: repeating-linear-gradient(45deg,
+    var(--mv-line-strong) 0 2px, transparent 2px 5px);
+  box-shadow: inset 0 0 0 1px var(--mv-line-strong);
+}
+.pl-tip b.na { color: var(--mv-ink-3); }
+
+/* 3 · The two disclosure lines: the no-comparison count, and the one place
+   where the bulletin's traded count and the price record disagree. Sized as
+   the footnote they are — a fact the reader needs once, not a warning. */
+.pl-na-note {
+  margin: 10px 0 0;
+  color: var(--mv-ink-3);
+  font-size: .67rem; line-height: 1.75;
+}
+.pl-na-note bdi { color: var(--mv-ink-2); font-weight: 700; }
+
+/* 4 · Touch targets, measured by real hit-testing rather than by reading
+   `block-size` off a pseudo-element — the mistake Phase 5 made and had to
+   redo. Every interactive control on the page was probed with
+   `document.elementsFromPoint` walking outward from its centre.
+
+   Two techniques, chosen by whether the control sits in a scroll container:
+
+   · An invisible `::before` where nothing clips it. The expansion is vertical
+     only wherever the control has horizontal neighbours (the breadth
+     segments), so no two targets can meet.
+   · A REAL minimum height where a `::before` would be clipped. `.pl-tf`
+     becomes `overflow-x: auto` under 900px, and `overflow-x: auto` forces
+     `overflow-y: auto`, which crops any pseudo-element that leaves the box.
+     The segmented control and the sector rows therefore grow for real.
+
+   Not expanded, deliberately: the history columns. There are up to 260 of
+   them at 2–4px wide, and overlapping invisible 44px hit areas over a dense
+   time series would make the neighbours unreachable — the outcome §19 of the
+   heatmap brief forbids. They keep a real keyboard path (each column is a
+   focusable button carrying the full session in its aria-label) and the fixed
+   readout above the plot states every figure in text. */
+
+.pl-why { position: relative; }
+.pl-why::before {
+  content: ''; position: absolute;
+  inset-inline: 0; inset-block: -13px;
+}
+
+.pl-field-track button { position: relative; }
+.pl-field-track button::before {
+  content: ''; position: absolute;
+  inset-inline: 0; inset-block: -11px;
+}
+/* The reference clips the track to round its ends, which also crops the hit
+   areas back to the 22px bar. The rounding moves onto the outer segments
+   instead: identical shape on screen, nothing clipped. */
+.pl-field-track { overflow: visible; }
+.pl-field-track button:first-child { border-start-start-radius: 6px; border-end-start-radius: 6px; }
+.pl-field-track button:last-child { border-start-end-radius: 6px; border-end-end-radius: 6px; }
+
+.pl-part-track { position: relative; }
+.pl-part-track::before {
+  content: ''; position: absolute;
+  inset-inline: 0; inset-block: -15px;
+}
+
+/* 42x27 visible, in a 2px-gap track: one pixel each side is all there is, and
+   it is exactly enough. */
+.pl-tf button { position: relative; }
+.pl-tf button::before {
+  content: ''; position: absolute;
+  inset-inline: -1px; inset-block: -9px;
+}
+
+/* Real height: these rows are stacked with no gap, so an expanded pseudo-
+   element would overlap the row above and below. */
+.pl-sectors button { min-block-size: 44px; }
+
+@media (max-width: 900px) {
+  /* Inside the horizontal scroller the pseudo-element is cropped, so the
+     control itself carries the height. */
+  .pl-tf button {
+    display: inline-flex; align-items: center;
+    min-block-size: 44px;
+    padding-inline: 14px;
+  }
+  .pl-tf button::before { content: none; }
+}
