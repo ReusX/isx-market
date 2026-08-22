@@ -9,7 +9,7 @@ import {
   fetchLive, mergeCompanies, companyName, SECTORS, isSuspended,
 } from '@/lib/market'
 import {
-  buildReturns, earningsSeries, ttmOf, latestRatios, ownershipFor, holdersFor,
+  buildReturns, earningsSeries, latestAnnual, latestRatios, ownershipFor, holdersFor,
   ISX60_REBASE,
   type Returns, type EarnPeriod, type FactRow, type RatioRow,
   type OwnershipRow, type ShareholderRow, type Holder,
@@ -159,7 +159,7 @@ export function CompanyClient({ sym }: { sym: string }) {
   const noPrior = Boolean(co?.noPrior)
 
   const series = useMemo(() => (data ? earningsSeries(data.facts, mode) : []), [data, mode])
-  const quarterly = useMemo(() => (data ? earningsSeries(data.facts, 'quarterly') : []), [data])
+  const annualSeries = useMemo(() => (data ? earningsSeries(data.facts, 'annual') : []), [data])
   const ratios = useMemo(() => (data ? latestRatios(data.ratios) : { year: null, map: {} }), [data])
   const hasFin = (data?.facts.length ?? 0) > 0 || Object.keys(ratios.map).length > 0
 
@@ -171,8 +171,8 @@ export function CompanyClient({ sym }: { sym: string }) {
   const shares = co?.shares ?? null
   const mcap = co && shares && !suspended ? co.close * shares : null
 
-  const ttmRev = ttmOf(quarterly, 'rev')
-  const ttmNi = ttmOf(quarterly, 'ni')
+  const annRev = latestAnnual(annualSeries, 'rev')
+  const annNi = latestAnnual(annualSeries, 'ni')
   const isBank = co?.sec === 'BANK'
   const eps = ratios.map.eps ?? null
   const pe = eps && eps > 0 && co ? co.close / eps : null
@@ -320,7 +320,7 @@ export function CompanyClient({ sym }: { sym: string }) {
           <>
             <Fundamentals
               isBank={isBank} mcap={mcap} pe={pe} eps={eps} r={ratios.map}
-              ttmRev={ttmRev} ttmNi={ttmNi} />
+              annRev={annRev} annNi={annNi} />
             {series.length ? <Earnings isBank={isBank} series={series} mode={mode} setMode={setMode} sym={sym} /> : null}
           </>
         ) : <NoFinancials name={name} hasOwnership={Boolean(data?.ownership)} />}
@@ -338,7 +338,7 @@ export function CompanyClient({ sym }: { sym: string }) {
 
       <p className="cd-footnote">
         الأسعار من النشرة الرسمية لبورصة العراق · القيمة السوقية = آخر سعر × الأسهم المصدرة ·
-        البيانات المالية مستخرجة من التقارير المنشورة للشركة، والأرقام الفصلية المشتقّة معلَّمة بالرمز ≈.
+        البيانات المالية مستخرجة من التقارير المنشورة للشركة، وتُعرض كما وردت دون اشتقاق فترات غير مُفصح عنها.
       </p>
     </main>
   )
@@ -517,14 +517,17 @@ function ForeignPanel({ f, loading }: {
    Two columns of label/value pairs, not cards. Every row is a real ratio_key
    or a real fact; nothing is filled with a zero when the line was never
    reported. Banks get their own right-hand set. */
-function Fundamentals({ isBank, mcap, pe, eps, r, ttmRev, ttmNi }: {
+function Fundamentals({ isBank, mcap, pe, eps, r, annRev, annNi }: {
   isBank: boolean; mcap: number | null; pe: number | null; eps: number | null
   r: Record<string, number>
-  ttmRev: { value: number | null; derived: boolean }
-  ttmNi: { value: number | null; derived: boolean }
+  annRev: { value: number | null; year: number | null }
+  annNi: { value: number | null; year: number | null }
 }) {
-  const marginTtm = !isBank && ttmRev.value && ttmNi.value != null ? ttmNi.value / ttmRev.value : null
-  const approx = (d: boolean) => (d ? '≈ ' : '')
+  // Margin on the SAME basis as the two lines above it, so the three
+  // reconcile. Both are the last audited year, not a trailing twelve months —
+  // see the note in lib/companyView.ts on why a TTM is not available here.
+  const margin = !isBank && annRev.value && annNi.value != null ? annNi.value / annRev.value : null
+  const yr = (y: number | null) => (y ? ` ${y}` : '')
 
   const valuation: [string, string | null][] = [
     ['القيمة السوقية', mcap ? `${iqd(mcap)} IQD` : null],
@@ -537,20 +540,17 @@ function Fundamentals({ isBank, mcap, pe, eps, r, ttmRev, ttmNi }: {
   ]
   const performance: [string, string | null][] = isBank
     ? [
-        ['الدخل التشغيلي (TTM)', ttmRev.value ? `${approx(ttmRev.derived)}${iqd(ttmRev.value)} IQD` : null],
-        ['صافي الربح (TTM)', ttmNi.value != null ? `${approx(ttmNi.derived)}${iqd(ttmNi.value)} IQD` : null],
+        [`الدخل التشغيلي${yr(annRev.year)}`, annRev.value ? `${iqd(annRev.value)} IQD` : null],
+        [`صافي الربح${yr(annNi.year)}`, annNi.value != null ? `${iqd(annNi.value)} IQD` : null],
         ['العائد على الأصول', r.roa ? `${(r.roa * 100).toFixed(2)}%` : null],
         ['العائد على حقوق الملكية', r.roe ? `${(r.roe * 100).toFixed(2)}%` : null],
         ['كفاية رأس المال', r.capital_adequacy_ratio ? `${(r.capital_adequacy_ratio * 100).toFixed(1)}%` : null],
         ['القروض إلى الودائع', r.loan_to_deposit ? `${(r.loan_to_deposit * 100).toFixed(1)}%` : null],
       ]
     : [
-        ['الإيرادات (TTM)', ttmRev.value ? `${approx(ttmRev.derived)}${iqd(ttmRev.value)} IQD` : null],
-        ['صافي الربح (TTM)', ttmNi.value != null ? `${approx(ttmNi.derived)}${iqd(ttmNi.value)} IQD` : null],
-        // Computed on the SAME basis as the two lines above it, so the three
-        // reconcile. A margin from the last annual filing sitting under two
-        // TTM figures is a subtraction that does not work.
-        ['هامش صافي الربح', marginTtm != null ? `${approx(ttmRev.derived || ttmNi.derived)}${(marginTtm * 100).toFixed(2)}%` : null],
+        [`الإيرادات${yr(annRev.year)}`, annRev.value ? `${iqd(annRev.value)} IQD` : null],
+        [`صافي الربح${yr(annNi.year)}`, annNi.value != null ? `${iqd(annNi.value)} IQD` : null],
+        ['هامش صافي الربح', margin != null ? `${(margin * 100).toFixed(2)}%` : null],
         ['العائد على الأصول', r.roa ? `${(r.roa * 100).toFixed(2)}%` : null],
         ['العائد على حقوق الملكية', r.roe ? `${(r.roe * 100).toFixed(2)}%` : null],
         ['الدين إلى حقوق الملكية', r.debt_to_equity != null ? `${(r.debt_to_equity * 100).toFixed(1)}%` : null],
@@ -595,7 +595,6 @@ function Earnings({ isBank, series, mode, setMode, sym }: {
   const max = Math.max(1, ...series.flatMap(s => [Math.abs(s.rev ?? 0), Math.abs(s.ni ?? 0)]))
   const latest = series[series.length - 1]
   const margin = !isBank && latest?.rev && latest.ni != null ? latest.ni / latest.rev : null
-  const anyDerived = series.some(s => s.derived)
 
   return (
     <div className="cd-panel cd-earn">
@@ -611,7 +610,7 @@ function Earnings({ isBank, series, mode, setMode, sym }: {
 
       {latest ? (
         <p className="cd-earn-latest">
-          <span>{latest.label}{latest.derived ? ' ≈' : ''}</span>
+          <span>{latest.label}</span>
           <b>{isBank ? 'الدخل التشغيلي' : 'الإيرادات'}</b>
           <bdi>{latest.rev != null ? iqd(latest.rev) : '—'}</bdi>
           <b>صافي الربح</b>
@@ -627,7 +626,7 @@ function Earnings({ isBank, series, mode, setMode, sym }: {
               <i className="rev" style={{ blockSize: `${(Math.abs(s.rev ?? 0) / max) * 100}%` }} />
               <i className={`ni ${(s.ni ?? 0) < 0 ? 'neg' : ''}`} style={{ blockSize: `${(Math.abs(s.ni ?? 0) / max) * 100}%` }} />
             </div>
-            <span dir="ltr">{s.label}{s.derived ? ' ≈' : ''}</span>
+            <span dir="ltr">{s.label}</span>
           </div>
         ))}
       </div>
@@ -638,14 +637,13 @@ function Earnings({ isBank, series, mode, setMode, sym }: {
         <Link href={`/c/${sym.toLowerCase()}/financials`}>القوائم المالية الكاملة ←</Link>
       </div>
 
-      {/* Q4 is not filed. It is the annual less the first three quarters, so
-          every cell that carries it says so rather than passing it off as a
-          reported figure. */}
-      {anyDerived ? (
-        <p className="cd-fund-note">
-          الربع الرابع غير مُفصح عنه بذاته؛ يُحتسب كالسنة المالية ناقص الأرباع الثلاثة الأولى، ويُعلَّم بالرمز ≈.
-        </p>
-      ) : null}
+      {/* Only filed periods are plotted. Nothing here is derived — the
+          quarterly rows in this dataset do not reconcile with the annual
+          filing in any company-year, so a computed quarter would be a number
+          that agrees with nothing. */}
+      <p className="cd-fund-note">
+        تُعرض الفترات المُفصح عنها فقط، دون احتساب أي ربع غير منشور.
+      </p>
     </div>
   )
 }

@@ -129,46 +129,47 @@ export function latestRatios(rows: RatioRow[]): { year: number | null; map: Reco
   return { year, map }
 }
 
-/* ── Facts, and the one derived period ────────────────────────────────────
-   Q1–Q3 are stored standalone. Q4 is not filed at all — it is the annual less
-   the first three quarters, so it is DERIVED and every surface that prints it
-   has to say so. `quarterFacts` returns the flag rather than hiding it. */
+/* ── Facts, and why nothing is derived from them ──────────────────────────
+   The first draft of this file derived Q4 as the annual less the first three
+   quarters, which is what the earlier module did and what the reference's mock
+   data supports. The real table does not support it.
+
+   Across every company-year in `financial_facts_public`, exactly THREE have
+   all four quarters filed. In none of them do the quarters reconcile with the
+   annual: IBSD 2025 stores a Q4 equal to its annual figure to the dinar — a
+   full-year number sitting in a quarter slot — BMNS 2025's four quarters sum
+   6% under its annual, and BIIB 2025's sum 157% over. No rule holds across
+   the set, so a derived quarter would be a number that reconciles with
+   nothing while looking exactly like a filed one.
+
+   So: only filed periods are returned, and a Q4 equal to its own annual is
+   dropped as the mislabelled full-year figure it is. Deriving standalone
+   quarters needs the filings themselves read, not this table. */
 
 export type FactRow = { fiscal_year: number; period: string; line_key: string; value_iqd: number | null }
 
-export type EarnPeriod = { year: number; period: string; label: string; rev: number | null; ni: number | null; derived: boolean }
+export type EarnPeriod = { year: number; period: string; label: string; rev: number | null; ni: number | null }
 
 const QS = ['Q1', 'Q2', 'Q3', 'Q4']
+const near = (a: number, b: number) => Math.abs(a - b) / Math.max(Math.abs(a), Math.abs(b), 1) < 0.02
 
 export function earningsSeries(facts: FactRow[], mode: 'annual' | 'quarterly'): EarnPeriod[] {
   const val = (y: number, p: string, k: string) =>
     facts.find(f => f.fiscal_year === y && f.period === p && f.line_key === k)?.value_iqd ?? null
 
-  const standalone = (y: number, p: string, k: string): { v: number | null; derived: boolean } => {
-    if (p !== 'Q4') return { v: val(y, p, k), derived: false }
-    const a = val(y, 'ANNUAL', k), q1 = val(y, 'Q1', k), q2 = val(y, 'Q2', k), q3 = val(y, 'Q3', k)
-    return [a, q1, q2, q3].every(v => v != null)
-      ? { v: (a as number) - (q1 as number) - (q2 as number) - (q3 as number), derived: true }
-      : { v: null, derived: false }
-  }
-
   // Banks file no single revenue line; their top line is net financing income
-  // plus net commissions. Same composite the earlier module used.
+  // plus net commissions.
   const rev = (y: number, p: string) => {
-    const r = standalone(y, p, 'revenue')
-    if (r.v != null) return r
-    const fi = standalone(y, p, 'financing_income'), rc = standalone(y, p, 'revenue_and_commissions')
-    if (fi.v == null && rc.v == null) return { v: null, derived: false }
-    return { v: (fi.v ?? 0) + (rc.v ?? 0), derived: fi.derived || rc.derived }
+    const r = val(y, p, 'revenue')
+    if (r != null) return r
+    const fi = val(y, p, 'financing_income'), rc = val(y, p, 'revenue_and_commissions')
+    return fi == null && rc == null ? null : (fi ?? 0) + (rc ?? 0)
   }
 
   if (mode === 'annual') {
     const yrs = Array.from(new Set(facts.filter(f => f.period === 'ANNUAL').map(f => f.fiscal_year))).sort((a, b) => a - b)
     return yrs
-      .map(y => {
-        const r = rev(y, 'ANNUAL')
-        return { year: y, period: 'ANNUAL', label: String(y), rev: r.v, ni: val(y, 'ANNUAL', 'net_income'), derived: false }
-      })
+      .map(y => ({ year: y, period: 'ANNUAL', label: String(y), rev: rev(y, 'ANNUAL'), ni: val(y, 'ANNUAL', 'net_income') }))
       .filter(r => r.rev != null || r.ni != null)
       .slice(-6)
   }
@@ -176,9 +177,13 @@ export function earningsSeries(facts: FactRow[], mode: 'annual' | 'quarterly'): 
   const out: EarnPeriod[] = []
   for (const y of Array.from(new Set(facts.map(f => f.fiscal_year)))) {
     for (const p of QS) {
-      const r = rev(y, p), n = standalone(y, p, 'net_income')
-      if (r.v == null && n.v == null) continue
-      out.push({ year: y, period: p, label: `${p} ${y}`, rev: r.v, ni: n.v, derived: r.derived || n.derived })
+      const r = rev(y, p), n = val(y, p, 'net_income')
+      if (r == null && n == null) continue
+      // A Q4 equal to its own annual is the full year filed into a quarter
+      // slot. Plotting it would put a 4x bar beside three real ones.
+      const annualNi = val(y, 'ANNUAL', 'net_income')
+      if (p === 'Q4' && n != null && annualNi != null && near(n, annualNi)) continue
+      out.push({ year: y, period: p, label: `${p} ${y}`, rev: r, ni: n })
     }
   }
   return out.sort((a, b) => rank(a.year, a.period) - rank(b.year, b.period)).slice(-6)
@@ -186,15 +191,18 @@ export function earningsSeries(facts: FactRow[], mode: 'annual' | 'quarterly'): 
 
 const rank = (y: number, p: string) => y * 10 + (p === 'ANNUAL' ? 5 : QS.indexOf(p) + 1)
 
-/** Trailing twelve months from the last four standalone quarters, or null. */
-export function ttmOf(series: EarnPeriod[], key: 'rev' | 'ni'): { value: number | null; derived: boolean } {
-  const last4 = series.filter(s => s.period !== 'ANNUAL').slice(-4)
-  if (last4.length < 4) return { value: null, derived: false }
-  let sum = 0
-  for (const s of last4) {
-    const v = s[key]
-    if (v == null) return { value: null, derived: false }
-    sum += v
-  }
-  return { value: sum, derived: last4.some(s => s.derived) }
+/**
+ * The latest FILED annual figure, and the year it belongs to.
+ *
+ * Not a trailing twelve months. A TTM needs four standalone quarters that sum
+ * to something real, and the note above establishes that this table has no
+ * company-year where they do. Printing "TTM" over a sum of four unreconciled
+ * quarters would be the most confident-looking wrong number on the page, so
+ * the figure is the last audited year and the label says which year.
+ */
+export function latestAnnual(series: EarnPeriod[], key: 'rev' | 'ni'): { value: number | null; year: number | null } {
+  const annuals = series.filter(s => s.period === 'ANNUAL' && s[key] != null)
+  if (!annuals.length) return { value: null, year: null }
+  const last = annuals[annuals.length - 1]
+  return { value: last[key], year: last.year }
 }
