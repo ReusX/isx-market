@@ -33,14 +33,10 @@ export const getFx = cache(fetchFx)
  * both now render from `buildFxFaq`.
  */
 
-/**
- * The CBI's official rate is a POLICY rate, not a market quote — it has sat at
- * 1,320 since February 2023 and moves only when the Central Bank decides it
- * does, so there is nothing to scrape. Hence a constant, but a single one, with
- * the date it was last checked. Update both together.
- */
-export const CBI_OFFICIAL_RATE = 1320
-export const CBI_RATE_CONFIRMED = '2026-08-06'
+/* Defined in lib/fxOfficial.ts — a leaf module, so a client component can read
+   the constant without dragging this file's server-only imports with it. */
+export { CBI_OFFICIAL_RATE, CBI_RATE_CONFIRMED } from '@/lib/fxOfficial'
+import { CBI_OFFICIAL_RATE } from '@/lib/fxOfficial'
 
 const ar = (n: number) => n.toLocaleString('en-US', { maximumFractionDigits: 0 })
 

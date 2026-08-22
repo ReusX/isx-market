@@ -1,119 +1,241 @@
 'use client'
 
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { useApp } from '@/context/AppContext'
-import { MarketToolTabs } from '@/components/design/MarketToolTabs'
-import { Badge, Card, DirectionalChange } from '@/components/design/ui'
-import { arDate } from '@/lib/date'
+import {
+  ToolHead, MetaLine, Disclosure, NoHistoryNote, Unavailable, PartialNotice,
+} from '@/components/design/ToolChrome'
+import { DitherArt } from '@/components/design/DitherArt'
+import { SOURCES, nf0, nf2, signed, signedPct, NA, arDate, type Freshness } from '@/lib/marketTools'
+import { CBI_OFFICIAL_RATE, CBI_RATE_CONFIRMED } from '@/lib/fxOfficial'
 import type { FxData } from '@/lib/rates'
+import '@/styles/market-tools.css'
+import '@/styles/panels.css'
 
-const fmt = (n: number, d = 2) => n.toLocaleString('en-US', { minimumFractionDigits: d, maximumFractionDigits: d })
+/**
+ * سعر الدولار — a direct port of the approved FX page.
+ *
+ * One Level-1 number: the parallel-market rate. The official rate is context
+ * and is sized as context, the gap rides on its line, buy/sell/spread are one
+ * utility line, and the explainers are collapsed.
+ *
+ * Everything here comes from a real field:
+ *
+ *   · market buy/sell     `fetchFx` — Alsumaria's daily closing article
+ *   · official rate       CBI_OFFICIAL_RATE, a policy constant with its own
+ *                         confirmation date in lib/fxCopy.ts
+ *   · gap and spread      subtraction of two displayed figures
+ *   · freshness           the source's own observation date, and `stale` when
+ *                         the scrape fell back to the cached row
+ *
+ * NOT here, because nothing stores it: a daily change, a high/low, an intraday
+ * move, and a trend. The source publishes one closing price per day and this
+ * product keeps no previous reading, so there is no yesterday to subtract. The
+ * disclosure says exactly that rather than leaving a blank space.
+ */
+
+type RateId = 'market' | 'official'
+
+const CONVERT_RATES: { id: RateId; short: string }[] = [
+  { id: 'market', short: 'السوق الموازية' },
+  { id: 'official', short: 'الرسمي' },
+]
+
+/** الفجوة — market minus official, the gap the product's own FAQ names. */
+function gap(market: number | null, official: number | null) {
+  if (market == null || official == null) return null
+  const abs = market - official
+  return { abs, pct: (abs / official) * 100 }
+}
+
+/** الفرق — what the changers keep on a round trip. */
+function spread(sell: number | null, buy: number | null) {
+  if (sell == null || buy == null) return null
+  const abs = sell - buy
+  return { abs, pct: (abs / sell) * 100 }
+}
 
 export default function FxClient({ fx }: { fx: FxData | null }) {
-  const { lang } = useApp()
-  const ar = lang === 'ar'
+  const { theme } = useApp()
+  const [convertWith, setConvertWith] = useState<RateId>('market')
 
-  // Rate used for conversion: the quoted selling price (سعر البيع) is what
-  // Iraqis cite as "سعر الدولار"; fall back to buy.
-  const rate = fx?.sell ?? fx?.buy ?? null
+  const marketSell = fx?.sell ?? null
+  const marketBuy = fx?.buy ?? null
+  const marketDown = marketSell == null && marketBuy == null
+  // The sell price is the quoted one; fall back to buy rather than showing
+  // nothing when only one side parsed.
+  const headline = marketSell ?? marketBuy
 
   const [usd, setUsd] = useState('100')
-  const [iqd, setIqd] = useState(() => (rate ? String(Math.round(100 * rate)) : ''))
+  const [iqd, setIqd] = useState(() => (headline ? String(Math.round(100 * headline)) : ''))
+
+  const fresh: Freshness = useMemo(() => ({
+    observed: fx?.date ?? null,
+    stale: Boolean(fx?.stale),
+    source: SOURCES.fx,
+  }), [fx])
+
+  const theGap = gap(headline, CBI_OFFICIAL_RATE)
+  const theSpread = spread(marketSell, marketBuy)
+
+  const activeId: RateId = marketDown ? 'official' : convertWith
+  const active = activeId === 'market' ? headline : CBI_OFFICIAL_RATE
 
   function onUsd(v: string) {
     const c = v.replace(/[^\d.]/g, '')
     setUsd(c)
-    setIqd(rate && c ? String(Math.round(parseFloat(c) * rate)) : '')
+    setIqd(active && c ? String(Math.round(parseFloat(c) * active)) : '')
   }
   function onIqd(v: string) {
     const c = v.replace(/[^\d.]/g, '')
     setIqd(c)
-    setUsd(rate && c ? (parseFloat(c) / rate).toFixed(2) : '')
+    setUsd(active && c ? (parseFloat(c) / active).toFixed(2) : '')
   }
-
-  if (!fx || !rate) {
-    return (
-      <main className="terminal-shell app-page market-tool-page">
-        <MarketToolTabs active="fx" ar={ar} />
-        <div className="empty-state">
-          <strong>{ar ? 'تعذّر تحميل سعر الصرف' : 'Exchange rate unavailable'}</strong>
-          <span>{ar ? 'حاول مرة أخرى بعد قليل.' : 'Please try again shortly.'}</span>
-        </div>
-      </main>
-    )
+  function switchRate(id: RateId) {
+    setConvertWith(id)
+    const r = id === 'market' ? headline : CBI_OFFICIAL_RATE
+    const n = parseFloat(usd)
+    if (r && Number.isFinite(n)) setIqd(String(Math.round(n * r)))
   }
 
   return (
-    <main className="terminal-shell app-page market-tool-page">
-      <MarketToolTabs active="fx" ar={ar} />
+    <main className="mt-page fx-page iq-page">
+      <ToolHead
+        title="سعر الدولار"
+        freshness={fresh}
+        unavailable={marketDown}
+        actions={null}
+      />
 
-      <Card className="market-tool-card market-tool-hero fx-hero">
-        <div className="market-tool-hero-head">
-          <div>
-            <h1>{ar ? 'سعر الدولار اليوم في العراق' : 'USD to IQD rate today'}</h1>
-            <p>{ar ? 'دولار أمريكي / دينار عراقي · السوق الموازي' : 'USD / IQD · parallel market'}</p>
-          </div>
-          {/* A cached rate is not a live one — the page said "مباشر" over a
-              month-old dollar for as long as the source stayed unreadable. */}
-          {fx.stale
-            ? <Badge tone="accent">{ar ? 'آخر سعر معروف' : 'Last known'}</Badge>
-            : <Badge tone="success" dot>{ar ? 'مباشر' : 'LIVE'}</Badge>}
-        </div>
-        <div className="market-tool-headline">
-          <strong><bdi>{fmt(rate, 0)}</bdi> <small>{ar ? 'د.ع لكل دولار' : 'IQD / $1'}</small></strong>
-          {fx.change != null && fx.change !== 0 ? (
-            <span>
-              <DirectionalChange value={fx.change} suffix="" />
-              <small>{ar ? 'مقارنة بسعر أمس' : 'vs. yesterday'}</small>
+      {fx?.stale ? (
+        <PartialNotice>
+          تعذّرت قراءة سعر اليوم. المعروض آخر سعر معروف
+          {fx.date ? <> من <bdi>{arDate(fx.date)}</bdi></> : null}.
+        </PartialNotice>
+      ) : null}
+      {!marketDown && marketBuy == null ? (
+        <PartialNotice>
+          سعر البيع قُرئ بنجاح، وتعذّر استخراج سعر الشراء من مقال اليوم.
+        </PartialNotice>
+      ) : null}
+      {marketDown ? (
+        <PartialNotice>
+          تعذّر الوصول إلى سعر السوق. السعر الرسمي ثابت لا يُقرأ من مصدر خارجي، فبقي يعمل.
+        </PartialNotice>
+      ) : null}
+
+      {/* ═══ Hero · art beside ONE number ═══════════════════════════════════ */}
+      <section className="mt-hero" aria-label="سعر الدولار">
+        <div className="mt-art"><DitherArt scene="fx" theme={theme === 'dark' ? 'dark' : 'light'} /></div>
+
+        <div className="mt-quote">
+          {headline == null ? (
+            <Unavailable
+              what="سعر السوق غير متاح"
+              why="تعذّرت قراءة مقال الإغلاق من المصدر."
+              source={SOURCES.fx}
+            />
+          ) : (
+            <>
+              <p className="mt-quote-label">سعر السوق الموازية</p>
+              <p className="mt-quote-value">
+                <bdi>{nf0.format(headline)}</bdi>
+                <span>د.ع لكل <bdi>$1</bdi></span>
+              </p>
+
+              {/* Utility data, treated as utility data — one line, not a card. */}
+              <p className="fx-sides">
+                <span>شراء <bdi>{marketBuy == null ? NA : nf2.format(marketBuy)}</bdi></span>
+                <i aria-hidden="true">·</i>
+                <span>بيع <bdi>{marketSell == null ? NA : nf2.format(marketSell)}</bdi></span>
+                <i aria-hidden="true">·</i>
+                <span>فرق <bdi>{theSpread ? nf2.format(theSpread.abs) : NA}</bdi></span>
+              </p>
+
+              <MetaLine freshness={fresh} />
+            </>
+          )}
+
+          {/* Context, sized as context. The official rate and its gap ride on
+              one line — the relationship is the point, not two headlines. */}
+          <div className="fx-official">
+            <span className="fx-official-label">السعر الرسمي</span>
+            <span className="fx-official-value"><bdi>{nf0.format(CBI_OFFICIAL_RATE)}</bdi> د.ع</span>
+            <span className="fx-official-gap">
+              الفجوة{' '}
+              {theGap
+                ? <><bdi>{signed(theGap.abs, 1)}</bdi> د.ع · <bdi>{signedPct(theGap.pct, 1)}</bdi></>
+                : <bdi>{NA}</bdi>}
             </span>
-          ) : null}
+          </div>
         </div>
-        {fx.date ? (
-          <span className="market-tool-updated">
-            {ar ? 'آخر تحديث' : 'Updated'}: {ar ? arDate(fx.date) : fx.date}
-            {fx.stale ? <> · {ar ? 'تعذّر تحديث السعر من المصدر' : 'could not refresh from source'}</> : null}
-          </span>
-        ) : null}
-      </Card>
+      </section>
 
-      <div className="fx-quote-grid">
-        {fx.sell != null ? (
-          <Card className="market-tool-card quote-tile">
-            <span className="quote-label"><i className="sell" />{ar ? 'بيع' : 'Sell'}</span>
-            <strong><bdi>{fmt(fx.sell, 2)}</bdi></strong>
-            <small>{ar ? 'سعر بيع الدولار' : 'they sell USD'}</small>
-          </Card>
-        ) : null}
-        {fx.buy != null ? (
-          <Card className="market-tool-card quote-tile">
-            <span className="quote-label"><i className="buy" />{ar ? 'شراء' : 'Buy'}</span>
-            <strong><bdi>{fmt(fx.buy, 2)}</bdi></strong>
-            <small>{ar ? 'سعر شراء الدولار' : 'they buy USD'}</small>
-          </Card>
-        ) : null}
-      </div>
+      {/* ═══ The converter ══════════════════════════════════════════════════ */}
+      <section className="fx-convert" aria-label="محوّل المبالغ">
+        <div className="fx-convert-top">
+          <h2>حوّل مبلغاً</h2>
+          <div className="mt-seg" role="group" aria-label="السعر المستخدم">
+            {CONVERT_RATES.map(r => (
+              <button key={r.id} type="button"
+                className={activeId === r.id ? 'is-on' : ''}
+                aria-pressed={activeId === r.id}
+                disabled={r.id === 'market' && marketDown}
+                onClick={() => switchRate(r.id)}>
+                {r.short}
+              </button>
+            ))}
+          </div>
+        </div>
 
-      <Card className="market-tool-card calculator-card">
-        <h2><span aria-hidden="true">⇄</span> {ar ? 'محوّل العملة' : 'Currency converter'}</h2>
-        <div className="converter-grid">
-          <label className="tool-field">
-            <span>{ar ? 'دينار عراقي' : 'Iraqi Dinar'}</span>
-            <input value={iqd} onChange={e => onIqd(e.target.value)} inputMode="decimal" placeholder="0" />
-          </label>
-          <span className="converter-equals" aria-hidden="true">=</span>
-          <label className="tool-field">
-            <span>{ar ? 'دولار أمريكي' : 'US Dollar'}</span>
+        <div className="fx-convert-row">
+          <label className="mt-field">
+            <span>دولار</span>
             <input value={usd} onChange={e => onUsd(e.target.value)} inputMode="decimal" placeholder="0" />
           </label>
+          <i className="fx-eq" aria-hidden="true">=</i>
+          <label className="mt-field">
+            <span>دينار</span>
+            <input value={iqd} onChange={e => onIqd(e.target.value)} inputMode="decimal" placeholder="0" />
+          </label>
         </div>
-        <p>{ar ? `محسوب على سعر ${fmt(rate, 0)} د.ع للدولار` : `Based on ${fmt(rate, 0)} IQD/$1`}</p>
-      </Card>
 
-      <p className="market-tool-source">
-        {ar ? 'المصدر' : 'Source'}:{' '}
-        <a href={fx.sourceUrl} target="_blank" rel="noopener noreferrer nofollow">{fx.source}</a>
-        {' '}· {ar ? 'يُحدَّث يومياً' : 'updated daily'}
-      </p>
+        <p className="fx-convert-rate">
+          بسعر <bdi>{active == null ? NA : nf0.format(active)}</bdi> د.ع للدولار
+          {marketDown ? ' · سعر السوق غير متاح' : null}
+        </p>
+      </section>
+
+      <div className="mt-more">
+        <Disclosure label="لماذا يوجد سعران؟">
+          <p>
+            السعر الرسمي <bdi>{nf0.format(CBI_OFFICIAL_RATE)}</bdi> ديناراً يقرّه البنك المركزي
+            العراقي — يُستخدم في مزاد العملة والمعاملات الحكومية والمصرفية والاستيراد الرسمي.
+          </p>
+          <p>
+            سعر السوق الموازية هو سعر التداول الفعلي بين الصيارفة والأفراد، ويتحدد بالعرض
+            والطلب. يكون أعلى لأن الطلب على الدولار خارج القنوات الرسمية يفوق ما يوفّره
+            المزاد، والفارق بينهما هو فجوة سعر الصرف.
+          </p>
+          <p className="mt-caveat">
+            السعر المعروض سعر إغلاق منشور لسوق بغداد ويصلح مرجعاً لا سعرَ تنفيذ: يختلف خلال
+            اليوم وبين محافظة وأخرى، ولكل صيرفة فرقها بين البيع والشراء.
+          </p>
+        </Disclosure>
+
+        <Disclosure label="عن المصدر والتحديث">
+          <p>
+            سعر السوق من {SOURCES.fx.host} — مقال أسعار الإغلاق اليومي، بسعرَي الشراء والبيع
+            لكل 100 دولار. السعر الرسمي ليس مقروءاً من مصدر خارجي: هو سعر سياسي ثابت،
+            آخر تأكيد له <bdi>{arDate(CBI_RATE_CONFIRMED)}</bdi>.
+          </p>
+          <p>
+            لا يُعرض تغيّر يومي: المصدر ينشر سعر إغلاق كل يوم دون سعر اليوم السابق، والمنتج
+            لا يحفظ القراءات السابقة، فلا يوجد رقم أمس ليُقارَن به.
+          </p>
+          <NoHistoryNote />
+        </Disclosure>
+      </div>
     </main>
   )
 }
