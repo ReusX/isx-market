@@ -142,16 +142,22 @@ export function latestRatios(rows: RatioRow[]): { year: number | null; map: Reco
    the set, so a derived quarter would be a number that reconciles with
    nothing while looking exactly like a filed one.
 
-   So: only filed periods are returned, and a Q4 equal to its own annual is
-   dropped as the mislabelled full-year figure it is. Deriving standalone
-   quarters needs the filings themselves read, not this table. */
+   So only filed periods are returned, and nothing is derived.
+
+   A Q4 is NOT dropped for equalling its own annual. An earlier pass did that,
+   on the theory that such a row is the full year mislabelled. Checking the
+   documents says otherwise: 20 ticker-years carry both a Q4 and an ANNUAL
+   filing, and in every one of them the two point at DIFFERENT PDFs in
+   `financial_reports_public`. There is not one case of a single document
+   filed under two period codes, so an equal value is two filings agreeing,
+   not a duplicate — and value equality was never evidence of document
+   identity anyway. */
 
 export type FactRow = { fiscal_year: number; period: string; line_key: string; value_iqd: number | null }
 
 export type EarnPeriod = { year: number; period: string; label: string; rev: number | null; ni: number | null }
 
 const QS = ['Q1', 'Q2', 'Q3', 'Q4']
-const near = (a: number, b: number) => Math.abs(a - b) / Math.max(Math.abs(a), Math.abs(b), 1) < 0.02
 
 export function earningsSeries(facts: FactRow[], mode: 'annual' | 'quarterly'): EarnPeriod[] {
   const val = (y: number, p: string, k: string) =>
@@ -179,10 +185,6 @@ export function earningsSeries(facts: FactRow[], mode: 'annual' | 'quarterly'): 
     for (const p of QS) {
       const r = rev(y, p), n = val(y, p, 'net_income')
       if (r == null && n == null) continue
-      // A Q4 equal to its own annual is the full year filed into a quarter
-      // slot. Plotting it would put a 4x bar beside three real ones.
-      const annualNi = val(y, 'ANNUAL', 'net_income')
-      if (p === 'Q4' && n != null && annualNi != null && near(n, annualNi)) continue
       out.push({ year: y, period: p, label: `${p} ${y}`, rev: r, ni: n })
     }
   }

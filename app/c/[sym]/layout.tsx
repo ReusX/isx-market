@@ -1,7 +1,6 @@
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import companiesData from '@/public/data/companies.json'
-import CompanyProfile from '@/components/company/CompanyProfile'
 import { buildCompanySeo } from '@/lib/companySeo'
 import { getQuote, describeQuote } from '@/lib/quote'
 import Breadcrumbs from '@/components/seo/Breadcrumbs'
@@ -103,14 +102,11 @@ export default async function CompanyLayout({ children, params }: Props) {
         ]}
       />
 
-      <CompanyProfile
-        sym={sym}
-        en={company.en}
-        ar={company.ar}
-        sec={company.sec}
-        mcap={company.mcap}
-        quote={quote}
-      />
+      {/* The profile prose has MOVED to the overview route's own page.
+          This layout wraps /c/[sym] AND /c/[sym]/financials, so rendering it
+          here published the same body under two URLs — duplicate content on
+          the route whose whole job is the statements table. It is still
+          server-rendered, just one level down. */}
     </>
   )
 }

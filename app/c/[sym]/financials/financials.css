@@ -1,0 +1,411 @@
+/* ════════════════════════════════════════════════════════════════════════════
+   البيانات المالية — a DIRECT PORT of the approved financials page.
+   ════════════════════════════════════════════════════════════════════════════
+
+   Source: `/Users/amed/iqwealth-design/app/globals.css` lines 8191–8610, the
+   route's own block. The company strip reuses `.cd-*` from the overview page
+   and the ⓘ / ? affordances come from styles/panels.css, both ported once.
+
+   ── The adaptations, and only these ────────────────────────────────
+     · `.financials-v2` → `.fn-page`, matching `.cd-page` / `.pl-page`.
+     · `.iq-dark` on the page root → `[data-theme='dark']` on <html>.
+     · `--font-numeric` / `--font-body` gain this repo's fallback stacks.
+     · the design-mode company/state pickers are dropped.
+     · `.fn-help` / `.fn-src` and their tooltips are NOT redeclared here —
+       styles/panels.css owns them.
+   ════════════════════════════════════════════════════════════════════════════ */
+
+
+.fn-page {
+  inline-size: min(1520px, calc(100% - 48px));
+  margin: 0 auto;
+  padding: 22px 0 64px;
+  color: var(--mv-ink);
+}
+
+/* ── Company strip ──────────────────────────────────────────────────────────
+   One row, 62px. The overview's masthead is 120px and earns it; a second hero
+   on the page below it would just delay the statements. */
+.fn-strip {
+  display: flex; align-items: center; gap: 13px;
+  padding: 11px 15px;
+  border: 1px solid var(--mv-line);
+  border-radius: 17px;
+  background: var(--mv-panel);
+  box-shadow: var(--mv-shadow);
+  backdrop-filter: blur(20px) saturate(120%);
+}
+.fn-back {
+  display: grid; place-items: center; flex: none;
+  inline-size: 32px; block-size: 32px;
+  border: 1px solid var(--mv-line); border-radius: 10px;
+  color: var(--mv-ink-2); text-decoration: none;
+  transition: color .14s, border-color .14s, background-color .14s;
+}
+.fn-back:hover { color: var(--mv-hero); border-color: rgba(49,113,198,.4); background: var(--mv-well); }
+.fn-back i { font-style: normal; font-size: .82rem; }
+.fn-strip .cd-mark { inline-size: 40px; block-size: 40px; border-radius: 12px; font-size: .8rem; }
+.fn-ident { min-inline-size: 0; flex: 1; }
+.fn-ident h1 {
+  margin: 0; font-size: 1.02rem; letter-spacing: -.035em; color: var(--mv-ink);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.fn-ident p { display: flex; align-items: center; gap: 7px; flex-wrap: wrap; margin: 4px 0 0; color: var(--mv-ink-3); font-size: .69rem; }
+.fn-quote { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; }
+.fn-quote strong { display: flex; align-items: baseline; gap: 5px; font: 700 1.1rem var(--font-numeric), ui-monospace, monospace; color: var(--mv-ink); }
+.fn-quote strong small { color: var(--mv-ink-3); font: 600 .6rem var(--font-body), Arial, sans-serif; }
+.fn-chg { display: flex; align-items: baseline; gap: 6px; font: 600 .7rem var(--font-numeric), ui-monospace, monospace; }
+.fn-chg.positive { color: var(--mv-up); }
+.fn-chg.negative { color: var(--mv-down); }
+.fn-chg.neutral { color: var(--mv-ink-3); }
+.fn-overview-link {
+  padding: 7px 13px;
+  border: 1px solid var(--mv-line-strong); border-radius: 11px;
+  color: var(--mv-ink-2); font: 600 .71rem var(--font-body), Arial, sans-serif; text-decoration: none;
+  white-space: nowrap;
+  transition: color .14s, border-color .14s;
+}
+.fn-overview-link:hover { color: var(--mv-hero); border-color: rgba(49,113,198,.42); }
+
+/* ── Controls ───────────────────────────────────────────────────────────── */
+.fn-controls { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin: 15px 2px 12px; }
+.fn-tabs { display: flex; gap: 3px; flex-wrap: wrap; }
+.fn-tabs button {
+  padding: 7px 14px;
+  border: 1px solid transparent; border-radius: 10px;
+  background: none; color: var(--mv-ink-2);
+  font: 600 .74rem var(--font-body), Arial, sans-serif; cursor: pointer;
+  transition: color .14s, background-color .14s;
+}
+.fn-tabs button:hover { color: var(--mv-ink); background: var(--mv-well); }
+.fn-tabs button.active { color: white; background: var(--mv-hero); box-shadow: 0 3px 10px rgba(49,113,198,.26); }
+
+.fn-period { display: flex; gap: 2px; margin-inline-start: auto; padding: 3px; border-radius: 11px; background: rgba(30,34,32,.055); }
+.fn-period button {
+  padding: 5px 13px; border: 0; border-radius: 8px;
+  background: none; color: var(--mv-ink-2);
+  font: 600 .7rem var(--font-body), Arial, sans-serif; cursor: pointer;
+  transition: color .14s, background-color .14s;
+}
+.fn-period button.active { color: white; background: var(--mv-hero); }
+
+.fn-note { margin: 0 2px 12px; }
+.fn-note b { color: var(--mv-ink); font-weight: 700; }
+
+/* ── Panels ─────────────────────────────────────────────────────────────── */
+.fn-panel {
+  padding: 16px 18px;
+  border: 1px solid var(--mv-line);
+  border-radius: 18px;
+  background: var(--mv-panel-solid);
+  box-shadow: var(--mv-shadow);
+}
+
+/* ── Overview ───────────────────────────────────────────────────────────── */
+.fn-overview { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr); gap: 14px; align-items: start; }
+
+.fn-trend { margin: 0; }
+/* Left-to-right, like the price chart and the earnings bars: this is a time
+   series, and letting the flex row take the page's RTL direction puts the
+   newest year on the opposite side from every other chart in the product. */
+.fn-trend-plot { display: flex; direction: ltr; align-items: flex-end; gap: 12px; block-size: 190px; }
+.fn-trend-col {
+  position: relative; flex: 1;
+  display: flex; flex-direction: column; align-items: center; justify-content: flex-end; gap: 8px;
+  block-size: 100%;
+  border-radius: 10px;
+  cursor: default;
+  transition: background-color .13s;
+}
+.fn-trend-col:hover, .fn-trend-col.is-on { background: var(--mv-well); }
+.fn-trend-col:focus-visible { outline: 2px solid var(--mv-hero); outline-offset: 1px; }
+.fn-trend-bars { display: flex; align-items: flex-end; justify-content: center; gap: 5px; inline-size: 100%; block-size: 100%; }
+.fn-trend-bars i { inline-size: 34%; max-inline-size: 30px; min-block-size: 2px; border-radius: 5px 5px 0 0; background: var(--mv-hero); }
+.fn-trend-bars i.ni { background: var(--mv-up); }
+.fn-trend-bars i.ni.neg { background: var(--mv-down); }
+.fn-trend-year { color: var(--mv-ink-3); font: 600 .66rem var(--font-numeric), ui-monospace, monospace; }
+/* Pinned above the column rather than following the pointer: a tooltip that
+   chases the cursor across a five-bar chart is motion for its own sake. */
+.fn-trend-tip {
+  position: absolute; inset-block-end: calc(100% + 4px);
+  display: flex; flex-direction: column; gap: 2px;
+  padding: 6px 9px;
+  border: 1px solid var(--mv-line-strong); border-radius: 10px;
+  background: var(--mv-panel-solid);
+  box-shadow: 0 12px 30px rgba(30,34,32,.14);
+  white-space: nowrap; z-index: 5;
+}
+.fn-trend-tip span { display: flex; align-items: center; gap: 6px; color: var(--mv-ink); font: 600 .68rem var(--font-numeric), ui-monospace, monospace; }
+.fn-trend-tip i, .fn-trend figcaption i {
+  display: inline-block; inline-size: 9px; block-size: 9px; border-radius: 2px; background: var(--mv-hero);
+}
+.fn-trend-tip i.ni, .fn-trend figcaption i.ni { background: var(--mv-up); }
+.fn-trend figcaption { display: flex; gap: 15px; margin-block-start: 10px; color: var(--mv-ink-3); font-size: .65rem; }
+.fn-trend figcaption span { display: inline-flex; align-items: center; gap: 5px; }
+.fn-trend-neg { margin-inline-start: auto; }
+
+.fn-headline-rows { margin: 0; }
+.fn-headline-rows > div {
+  display: grid; grid-template-columns: 1fr auto 64px;
+  align-items: baseline; gap: 10px;
+  padding-block: 9px;
+  border-block-end: 1px solid var(--mv-line);
+}
+.fn-headline-rows dt { color: var(--mv-ink-3); font-size: .71rem; }
+.fn-headline-rows dd { display: flex; align-items: baseline; gap: 4px; margin: 0; color: var(--mv-ink); font: 700 .88rem var(--font-numeric), ui-monospace, monospace; }
+.fn-headline-rows dd small { color: var(--mv-ink-3); font: 500 .58rem var(--font-body), Arial, sans-serif; }
+.fn-headline-rows em { font: 600 .69rem var(--font-numeric), ui-monospace, monospace; font-style: normal; text-align: end; color: var(--mv-ink-3); }
+.fn-headline-rows em.positive { color: var(--mv-up); }
+.fn-headline-rows em.negative { color: var(--mv-down); }
+.fn-headline-pair { display: flex; gap: 22px; margin-block-start: 14px; padding-block-start: 13px; border-block-start: 1px solid var(--mv-line); }
+.fn-headline-pair div { display: flex; flex-direction: column; gap: 3px; }
+.fn-headline-pair strong { display: flex; align-items: baseline; gap: 4px; color: var(--mv-ink); font: 700 1.05rem var(--font-numeric), ui-monospace, monospace; }
+.fn-headline-pair strong small { color: var(--mv-ink-3); font: 600 .58rem var(--font-body), Arial, sans-serif; }
+
+/* ── The statement table ────────────────────────────────────────────────────
+   The instrument. Everything here exists to keep a metric name attached to a
+   number that may be four columns away. */
+.fn-statement { padding: 0; overflow: hidden; }
+.fn-table-head {
+  display: flex; align-items: baseline; justify-content: space-between; gap: 14px; flex-wrap: wrap;
+  padding: 15px 18px 12px;
+}
+.fn-table-head h2 { margin: 0; font-size: .96rem; letter-spacing: -.025em; color: var(--mv-ink); }
+/* The unit, once, where it governs — not appended to ninety cells. */
+.fn-unit { color: var(--mv-ink-3); font-size: .69rem; }
+.fn-unit b { color: var(--mv-ink); font-weight: 700; }
+
+/* Vertical scroller so the header can stick; horizontal so six columns can
+   exist at 900px. `position: sticky` resolves against the nearest scrollport,
+   which is why this element must be the one that scrolls in both axes. */
+.fn-scroll { overflow: auto; max-block-size: min(70vh, 720px); }
+
+.fn-table { inline-size: 100%; border-collapse: separate; border-spacing: 0; }
+.fn-table thead th {
+  position: sticky; inset-block-start: 0; z-index: 3;
+  padding: 9px 14px;
+  background: var(--mv-panel-solid);
+  border-block-end: 1px solid var(--mv-line-strong);
+  color: var(--mv-ink-3); font: 600 .69rem var(--font-body), Arial, sans-serif;
+  white-space: nowrap;
+  transition: background-color .12s;
+}
+.fn-table thead th bdi { font-family: var(--font-numeric), ui-monospace, monospace; }
+
+/* The metric column is pinned. Losing the line name while reading 2021 is the
+   single failure this table cannot have, and it is the reason the cell has an
+   opaque background rather than the panel's translucent one — a transparent
+   pinned cell shows the scrolling numbers straight through it. */
+.fn-col-item {
+  position: sticky; inset-inline-start: 0; z-index: 2;
+  min-inline-size: 210px; max-inline-size: 320px;
+  padding: 9px 14px;
+  text-align: start;
+  background: var(--mv-panel-solid);
+  border-block-end: 1px solid var(--mv-line);
+  color: var(--mv-ink-2); font: 500 .74rem var(--font-body), Arial, sans-serif;
+}
+.fn-table thead .fn-col-item { z-index: 4; }
+.fn-col-num {
+  padding: 9px 14px;
+  text-align: end;
+  border-block-end: 1px solid var(--mv-line);
+  color: var(--mv-ink); font: 500 .76rem var(--font-numeric), ui-monospace, monospace;
+  white-space: nowrap;
+  transition: background-color .12s;
+}
+.fn-col-num bdi.negative { color: var(--mv-down); }
+
+/* ── Hierarchy ──────────────────────────────────────────────────────────────
+   Indentation, weight and rules — not background colours. A component of the
+   line above it is inset and lighter; a subtotal is ruled above and takes the
+   ink back; the statement's bottom line is ruled top and bottom and is the
+   heaviest thing in the table. */
+.fn-table tbody tr[data-depth="1"] .fn-col-item { padding-inline-start: 30px; color: var(--mv-ink-3); font-weight: 400; }
+.fn-table tbody tr[data-depth="1"] .fn-col-num { color: var(--mv-ink-2); font-weight: 400; }
+.fn-table tbody tr[data-kind="subtotal"] > * { border-block-start: 1px solid var(--mv-line-strong); }
+.fn-table tbody tr[data-kind="subtotal"] .fn-col-item,
+.fn-table tbody tr[data-kind="subtotal"] .fn-col-num { color: var(--mv-ink); font-weight: 700; }
+.fn-table tbody tr[data-kind="total"] > * {
+  border-block-start: 2px solid var(--mv-line-strong);
+  border-block-end: 2px solid var(--mv-line-strong);
+}
+.fn-table tbody tr[data-kind="total"] .fn-col-item,
+.fn-table tbody tr[data-kind="total"] .fn-col-num { color: var(--mv-ink); font-weight: 800; font-size: .8rem; }
+
+/* Row and column crosshair. A wide table's real navigation problem is not
+   finding a row, it is staying on one while reading across. */
+.fn-table tbody tr:hover .fn-col-item,
+.fn-table tbody tr:hover .fn-col-num { background: var(--mv-well); }
+.fn-table [data-hover] { background: rgba(49,113,198,.06); }
+.fn-table thead th[data-hover] { color: var(--mv-hero); }
+
+/* The original wording from the filing — real provenance the live page holds
+   and never shows. */
+.fn-line-name { display: inline-flex; align-items: center; }
+/* The filing's own wording, where it is non-obvious. Quiet enough to skip on
+   a scan, present enough to answer "what did the report actually call this". */
+.fn-src-line {
+  display: block;
+  margin-block-start: 2px;
+  color: var(--mv-ink-3); font-size: .62rem; line-height: 1.45;
+  opacity: .85;
+}
+
+
+
+
+
+.fn-derived {
+  margin-inline-start: 4px;
+  color: var(--mv-hero); font: 700 .7rem var(--font-numeric), ui-monospace, monospace; font-style: normal;
+  cursor: help;
+}
+
+.fn-group-row th {
+  position: sticky; inset-inline-start: 0;
+  padding: 14px 14px 6px;
+  text-align: start;
+  background: var(--mv-panel-solid);
+  /* No tracking: these are Arabic group names («التقييم», «الربحية») and
+     Arabic is a joining script. Same correction as `.cd-cell-label`. */
+  color: var(--mv-ink-3); font: 700 .64rem var(--font-body), Arial, sans-serif;
+  border-block-end: 1px solid var(--mv-line);
+}
+.fn-col-trend { padding: 9px 14px; border-block-end: 1px solid var(--mv-line); inline-size: 74px; }
+.fn-spark { inline-size: 52px; block-size: 16px; overflow: visible; }
+.fn-spark polyline { fill: none; stroke: currentColor; stroke-width: 1.4; stroke-linejoin: round; stroke-linecap: round; }
+.fn-spark circle { fill: currentColor; }
+.fn-spark.positive { color: var(--mv-up); }
+.fn-spark.negative { color: var(--mv-down); }
+
+.fn-legend { display: flex; gap: 18px; flex-wrap: wrap; margin: 0; padding: 11px 18px; border-block-start: 1px solid var(--mv-line); color: var(--mv-ink-3); font-size: .65rem; }
+.fn-legend span { display: inline-flex; align-items: center; gap: 5px; }
+
+/* ── Provenance ─────────────────────────────────────────────────────────── */
+.fn-provenance { margin-block-start: 18px; padding: 0 4px; }
+.fn-provenance dl { display: flex; gap: 26px; flex-wrap: wrap; margin: 0 0 10px; }
+.fn-provenance div { display: flex; flex-direction: column; gap: 3px; }
+.fn-provenance dt { color: var(--mv-ink-3); font-size: .64rem; }
+.fn-provenance dd { margin: 0; color: var(--mv-ink-2); font: 600 .72rem var(--font-body), Arial, sans-serif; }
+.fn-provenance p { max-inline-size: 96ch; margin: 0; color: var(--mv-ink-3); font-size: .67rem; line-height: 1.85; }
+
+.fn-empty { text-align: start; }
+.fn-empty-link { display: inline-block; margin-block-start: 16px; color: var(--mv-hero); font: 600 .74rem var(--font-body), Arial, sans-serif; text-decoration: none; }
+
+/* ── Skeleton ───────────────────────────────────────────────────────────── */
+.fn-skel > i, .fn-skel div i {
+  display: block; block-size: 11px; border-radius: 6px;
+  background: linear-gradient(90deg, var(--mv-well), var(--mv-line), var(--mv-well));
+  background-size: 200% 100%;
+  animation: mv-shimmer 1.4s linear infinite;
+}
+.fn-skel > i { margin-block-end: 16px; }
+.fn-skel div { display: grid; grid-template-columns: 1fr repeat(4, 76px); gap: 14px; padding-block: 10px; }
+.fn-skel div i { justify-self: stretch; }
+
+/* ── Dark ───────────────────────────────────────────────────────────────── */
+[data-theme='dark'] .fn-period { background: rgba(255,255,255,.055); }
+[data-theme='dark'] .fn-table [data-hover] { background: rgba(99,154,226,.1); }
+[data-theme='dark'] .fn-table thead th[data-hover] { color: var(--mv-hero-bright); }
+[data-theme='dark'] .fn-derived { color: var(--mv-hero-bright); }
+[data-theme='dark'] .fn-trend-tip { box-shadow: 0 14px 34px rgba(0,0,0,.5); }
+[data-theme='dark'] .fn-trend-bars i { background: var(--mv-hero-bright); }
+[data-theme='dark'] .fn-trend-bars i.ni { background: var(--mv-up); }
+[data-theme='dark'] .fn-trend-bars i.ni.neg { background: var(--mv-down); }
+[data-theme='dark'] .fn-trend figcaption i, [data-theme='dark'] .fn-trend-tip i { background: var(--mv-hero-bright); }
+[data-theme='dark'] .fn-trend figcaption i.ni, [data-theme='dark'] .fn-trend-tip i.ni { background: var(--mv-up); }
+/* Dark tables lose their row rhythm fastest: separators go up in alpha and the
+   pinned column needs a solid plate, not the panel's translucency. */
+[data-theme='dark'] .fn-col-item, [data-theme='dark'] .fn-table thead th, [data-theme='dark'] .fn-group-row th { background: #1f1f1f; }
+[data-theme='dark'] .fn-table tbody tr:hover .fn-col-item { background: #262626; }
+
+/* ── Responsive ─────────────────────────────────────────────────────────── */
+@media (max-width: 1280px) {
+  .fn-page { inline-size: calc(100% - 34px); }
+}
+
+/* Tablet — not an oversized phone. The overview stacks so the chart keeps its
+   width, and the table keeps every column it can fit. */
+@media (max-width: 1080px) {
+  .fn-overview { grid-template-columns: 1fr; }
+  .fn-col-item { min-inline-size: 180px; }
+}
+
+@media (max-width: 860px) {
+  .fn-strip { flex-wrap: wrap; }
+  .fn-ident { flex: 1 1 100%; order: -1; }
+  .fn-overview-link { margin-inline-start: auto; }
+}
+
+/* Mobile.
+   ────────────────────────────────────────────────────────────────────────
+   Not six years on a 390px screen, and not the numbers hidden behind cards
+   either. The metric column stays pinned and narrow, the value columns keep
+   their real width, and the table scrolls horizontally under a stationary
+   line-name column — so one period is fully readable at a time and the next
+   is a swipe away, with the row label never leaving the screen.
+
+   That is the whole mobile strategy: the same table, honestly narrowed. A
+   phone reader of a balance sheet wants the balance sheet. */
+@media (max-width: 720px) {
+  .fn-page { inline-size: calc(100% - 20px); padding-block-start: 12px; }
+
+  .fn-strip { gap: 10px; padding: 10px 12px; border-radius: 15px; }
+  .fn-strip .cd-mark { inline-size: 34px; block-size: 34px; border-radius: 10px; font-size: .68rem; }
+  .fn-ident h1 { font-size: .92rem; }
+  .fn-overview-link { display: none; }
+
+  .fn-tabs { inline-size: 100%; flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; }
+  .fn-tabs::-webkit-scrollbar { display: none; }
+  .fn-tabs button { flex: 0 0 auto; }
+  .fn-period { margin-inline-start: 0; }
+
+  .fn-panel { padding: 13px 14px; border-radius: 16px; }
+  .fn-statement { padding: 0; }
+  .fn-table-head { padding: 13px 14px 10px; }
+  .fn-scroll { max-block-size: none; }
+  .fn-col-item { min-inline-size: 148px; max-inline-size: 148px; padding: 8px 11px; font-size: .7rem; }
+  .fn-table tbody tr[data-depth="1"] .fn-col-item { padding-inline-start: 20px; }
+  .fn-col-num { padding: 8px 11px; font-size: .72rem; }
+  .fn-table thead th { padding: 8px 11px; font-size: .64rem; }
+  /* Scroll snap so a swipe lands on a period boundary instead of halfway
+     through one. */
+  .fn-scroll { scroll-snap-type: x proximity; }
+  .fn-col-num { scroll-snap-align: end; }
+
+  .fn-trend-plot { block-size: 150px; gap: 7px; }
+  .fn-headline-rows > div { grid-template-columns: 1fr auto 54px; }
+  .fn-provenance dl { gap: 16px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fn-tabs button, .fn-period button, .fn-trend-col, .fn-col-num, .fn-table thead th,
+  .fn-back, .fn-overview-link { transition: none; }
+  .fn-skel > i, .fn-skel div i { animation: none; }
+}
+
+/* ════════════════════════════════════════════════════════════════════════════
+   Touch targets, measured by hit-testing outward from each control's centre.
+   ════════════════════════════════════════════════════════════════════════════
+
+   `.fn-tabs` wraps rather than scrolls (`flex-wrap: wrap`), so a pseudo-element
+   would cross into the row below whenever the tabs run to two lines. These
+   carry a real height instead. The back button and the overview link are free
+   to expand, and the per-column PDF links sit in table headers where a
+   vertical expansion has nothing to collide with. */
+
+.fn-tabs button, .fn-period button { min-block-size: 44px; }
+.fn-overview-link { min-block-size: 44px; display: inline-flex; align-items: center; }
+
+.fn-back { position: relative; }
+.fn-back::before {
+  content: ''; position: absolute;
+  inset-inline: -7px; inset-block: -7px;
+}
+
+.fn-col-src { position: relative; }
+.fn-col-src::before {
+  content: ''; position: absolute;
+  inset-inline: -8px; inset-block: -12px;
+}
