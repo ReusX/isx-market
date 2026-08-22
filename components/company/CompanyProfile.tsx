@@ -1,6 +1,7 @@
 'use client'
 
 import { useApp } from '@/context/AppContext'
+import '@/app/c/[sym]/company.css'
 import { COMPANY_PROFILES, type Profile } from '@/lib/companyProfiles'
 import { arDate } from '@/lib/date'
 
@@ -154,43 +155,36 @@ export default function CompanyProfile(props: Props) {
       }
     : base
   const heading = isAr ? `نبذة عن ${name} (${props.sym})` : `About ${name} (${props.sym})`
-  const factsHd = isAr ? 'معلومات أساسية' : 'Key facts'
   const faqHd   = isAr ? 'أسئلة شائعة' : 'Frequently asked questions'
 
   return (
-    <section
+    /* The approved `.cd-about` composition, and still SERVER-rendered here in
+       the layout rather than moved into the client page. This is the route's
+       SEO body — the prose a crawler with no JavaScript reads — so it stays in
+       the document in source order, which is also rule 6 of the reference's
+       own design notes. Only the markup changed; the copy and its language
+       switch are untouched. */
+    <section className="cd-about" id="about"
       aria-label={isAr ? 'نبذة عن الشركة' : 'Company profile'}
-      dir={isAr ? 'rtl' : 'ltr'}
-      style={{
-        maxWidth: 760, margin: '0 auto', padding: '40px 20px 8px',
-        borderTop: '1px solid var(--line, #1f2937)', lineHeight: 1.75,
-        fontSize: 15, color: 'var(--ink3, #9ca3af)',
-        textAlign: isAr ? 'right' : 'left',
-      }}
-    >
-      <h2 style={{ fontSize: 19, fontWeight: 800, color: 'var(--ink, #e5e7eb)', marginBottom: 14 }}>
-        {heading}
-      </h2>
-
-      <p style={{ marginBottom: 22 }}>{p.about}</p>
-
-      <h3 style={{ fontSize: 15, fontWeight: 800, color: 'var(--ink, #e5e7eb)', margin: '0 0 8px' }}>{factsHd}</h3>
-      <dl style={{ display: 'grid', gridTemplateColumns: 'auto 1fr', gap: '6px 16px', marginBottom: 26 }}>
-        {p.facts.map(f => (
-          <div key={f.label} style={{ display: 'contents' }}>
-            <dt style={{ fontWeight: 700, color: 'var(--ink, #e5e7eb)' }}>{f.label}</dt>
-            <dd style={{ margin: 0 }}>{f.value}</dd>
-          </div>
-        ))}
-      </dl>
-
-      <h2 style={{ fontSize: 17, fontWeight: 800, color: 'var(--ink, #e5e7eb)', marginBottom: 12 }}>{faqHd}</h2>
-      {p.faq.map(qa => (
-        <div key={qa.q} style={{ marginBottom: 14 }}>
-          <h3 style={{ fontSize: 15, fontWeight: 700, color: 'var(--ink, #e5e7eb)', margin: '0 0 4px' }}>{qa.q}</h3>
-          <p style={{ margin: 0 }}>{qa.a}</p>
+      dir={isAr ? 'rtl' : 'ltr'}>
+      <div className="cd-sec-head"><h2>{heading}</h2></div>
+      <div className="cd-about-grid">
+        <div className="cd-about-body">
+          <p>{p.about}</p>
+          <h3>{faqHd}</h3>
+          {p.faq.map(qa => (
+            <div className="cd-faq" key={qa.q}>
+              <h4>{qa.q}</h4>
+              <p>{qa.a}</p>
+            </div>
+          ))}
         </div>
-      ))}
+        <dl className="cd-about-facts">
+          {p.facts.map(f => (
+            <div key={f.label}><dt>{f.label}</dt><dd>{f.value}</dd></div>
+          ))}
+        </dl>
+      </div>
     </section>
   )
 }

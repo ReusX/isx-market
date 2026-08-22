@@ -610,3 +610,45 @@
 @media (prefers-reduced-motion: reduce) {
   .cd-skel i, .cd-skel-box, .cd-chart-skeleton i { animation: none; }
 }
+/* ════════════════════════════════════════════════════════════════════════════
+   Touch targets, measured by hit-testing outward from each control's centre.
+   ════════════════════════════════════════════════════════════════════════════
+
+   Invisible `::before` expansions, vertical wherever a control has horizontal
+   neighbours, so no two targets can meet. The approved visual box is
+   unchanged — this is the §18 rule from the reskin brief: keep the geometry,
+   widen the hit area.
+
+   The chart toolbar is handled in styles/chart-engine.css and deliberately
+   does NOT reach 44 in both axes. See the note there. */
+
+.cd-crumbs a, .cd-id-meta a, .cd-sec-head a, .cd-earn-legend a { position: relative; }
+.cd-crumbs a::before, .cd-id-meta a::before,
+.cd-sec-head a::before, .cd-earn-legend a::before {
+  content: ''; position: absolute;
+  inset-inline: -8px; inset-block: -14px;
+}
+
+.cd-action { position: relative; min-block-size: 44px; box-sizing: border-box; }
+
+.cd-anchors a { position: relative; }
+.cd-anchors a::before {
+  content: ''; position: absolute;
+  inset-inline: 0; inset-block: -7px;
+}
+
+/* The section nav is a horizontal scroller under 900px, and `overflow-x: auto`
+   forces `overflow-y: auto`, which crops a pseudo-element. Inside it the
+   control carries a real height instead. */
+@media (max-width: 900px) {
+  .cd-anchors a { min-block-size: 44px; display: inline-flex; align-items: center; }
+  .cd-anchors a::before { content: none; }
+}
+
+/* The earnings period switch is a 2px-gap track, so one pixel each side is
+   all there is — and it is enough at 42px wide. */
+.cd-seg button { position: relative; }
+.cd-seg button::before {
+  content: ''; position: absolute;
+  inset-inline: -1px; inset-block: -9px;
+}

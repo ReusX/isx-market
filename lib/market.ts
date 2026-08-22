@@ -214,9 +214,27 @@ export function matchCompanyName(
   meta: { ar?: string | null }[],
   cover = 0.9,
 ): string {
+  return matchCompanyRecord(raw, meta, cover)?.ar ?? raw
+}
+
+/**
+ * The same match, returning the RECORD rather than just its name.
+ *
+ * `ownership_monthly` and `major_shareholders` carry no ticker column at all —
+ * they key on the Arabic company name as the monthly PDF printed it. Anything
+ * that needs to put those rows on a company page has to resolve a name to a
+ * symbol, and this is the one place that is allowed to: same scoring, same
+ * threshold, same ambiguity rule as the display-name match above, so a company
+ * page and /statistics can never disagree about which row belongs to whom.
+ */
+export function matchCompanyRecord<T extends { ar?: string | null }>(
+  raw: string,
+  meta: T[],
+  cover = 0.9,
+): T | null {
   const a = normalizeAr(raw)
-  if (a.length < 4) return raw
-  let best = { score: 0, name: raw }
+  if (a.length < 4) return null
+  let best: { score: number; rec: T | null } = { score: 0, rec: null }
   let runnerUp = 0
   for (const m of meta) {
     if (!m.ar) continue
@@ -227,11 +245,11 @@ export function matchCompanyName(
     // longer one that happens to start the same way.
     if (!b || Math.min(a.length, b.length) / Math.max(a.length, b.length) < 0.6) continue
     const score = lcsLen(a, b) / Math.min(a.length, b.length)
-    if (score > best.score) { runnerUp = best.score; best = { score, name: m.ar } }
+    if (score > best.score) { runnerUp = best.score; best = { score, rec: m } }
     else if (score > runnerUp) runnerUp = score
   }
   // Two candidates that fit equally well mean we cannot tell them apart.
-  return best.score >= cover && best.score > runnerUp ? best.name : raw
+  return best.score >= cover && best.score > runnerUp ? best.rec : null
 }
 
 export function fmtVol(v: number | null | undefined): string {

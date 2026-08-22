@@ -379,3 +379,43 @@
 .ce-fullscreen:has(.iq-dark) { background: #161616; }
 .ce-scrim, .ce-sheet { z-index: 1250; }
 .ce-toast { z-index: 1300; }
+
+/* ════════════════════════════════════════════════════════════════════════════
+   Touch targets — vertical only, and deliberately not 44 in both axes.
+   ════════════════════════════════════════════════════════════════════════════
+
+   Measured on the rendered toolbar: the four drawing/export icons are 30x30
+   sitting 3px apart, and the range segments are 24px tall in a 2px-gap track
+   with the narrowest at 36px wide. Reaching 44px horizontally would mean hit
+   areas overlapping their neighbours, which makes the neighbour unreachable —
+   the outcome §24 of the brief forbids, and a worse result than a small target
+   that at least hits what the reader aimed at.
+
+   So the expansion is vertical, where the space is genuinely free: every
+   control clears 44px in height, and the widths stay as the approved design
+   drew them. The chart's full toolset is also reachable in fullscreen, where
+   the same controls are laid out with room, and every one of them is labelled
+   and keyboard-reachable in both places. */
+
+.ce-icon { position: relative; }
+.ce-icon::before {
+  content: ''; position: absolute;
+  inset-inline: 0; inset-block: -8px;
+}
+/* A <select> cannot carry a pseudo-element, so the control itself grows. */
+.ce-select select { min-block-size: 44px; }
+
+.ce-seg button { position: relative; }
+.ce-seg button::before {
+  content: ''; position: absolute;
+  inset-inline: -1px; inset-block: -11px;
+}
+
+/* Both rails become horizontal scrollers on a narrow screen, and a scroller
+   crops anything that leaves it, so there the controls carry real height. */
+@media (max-width: 900px) {
+  .ce-seg button, .ce-icon {
+    min-block-size: 44px; display: inline-flex; align-items: center; justify-content: center;
+  }
+  .ce-seg button::before, .ce-icon::before { content: none; }
+}
