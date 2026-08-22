@@ -124,7 +124,7 @@ Action legend: **DP** `DIRECT PORT` · **DP+A** `DIRECT PORT + REAL DATA ADAPTER
 | `/pulse` | `/pulse` | `Pulse.tsx`, `PulseBreadthBar.tsx`, `pulseData.ts` | 9057–9459 `.pl-*` | `app/pulse/page.tsx` — `daily_index`, `breadth_daily`, `company_metrics`, `daily_prices`; `lib/market` | **DP+A** |
 | `/news` | `/news` | `NewsFeed.tsx`, `newsData.ts` | 10404–10586 `.nw-*` | `lib/cms` `getPosts` + `financial_reports_public` | ✅ done |
 | `/news/[slug]` | *(stale)* | — see blocker B1 | reuse `.ln-article-*` | `lib/cms` `getPost`, `lib/seo` | **SDW** |
-| `/c/[sym]` | `/companies/[ticker]` | `CompanyDetailPage.tsx`, `companyData.ts`, `ChartEngine.tsx`, `Range52Indicator.tsx`, `SectorChip.tsx` | 7110–7697 `.cd-*` | `app/c/[sym]/page.tsx` — `company_metrics`, `/api/chart/[sym]`, `components/company/*` | **KL+V** |
+| `/c/[sym]` | `/companies/[ticker]` | `CompanyDetailPage.tsx`, `ChartEngine.tsx` | 7087–7698 `.cd-*`, 7700–8009 `.ce-*` | `company_metrics`, `daily_prices` via `/api/chart/[sym]`, `daily_index`, `financial_facts_public`, `financial_ratios_public`, `ownership_monthly`, `major_shareholders`, `foreign_flow_company_daily` | ✅ done |
 | `/c/[sym]/financials` | `/companies/[ticker]/financials` | `FinancialsPage.tsx`, `financialsData.ts` | 8214–8608 `.fn-*` | `components/Financials.tsx`, `lib/fundamentals` (`financial_facts_public`, `_ratios_public`, `_reports_public`) | **KL+V** |
 
 Path rename in both company rows: production `/c/[sym]` wins. The design path
@@ -214,6 +214,39 @@ returns 403 to every request and `cms.iraqsm.com` does not resolve, so `/news`,
 introduced here. `/news` degrades honestly because its two streams load
 independently; `/learn` and `/research` still render an empty grid. **Open, and
 outside this migration.**
+
+**B1d · Quarterly financial periods do not reconcile, and `/c/[sym]/financials`
+is blocked on what that means.** `financial_facts_public` holds the ISX line
+vocabulary the approved statements table expects — the same `line_key` set, plus
+`source_label_ar` for provenance and `unit_reported` for scaling — so the table
+itself is portable. What is not settled is what a quarterly column *means*.
+
+The approved design labels quarters cumulatively: Q2 → «النصف الأول», Q3 →
+«التسعة أشهر», Q4 → «السنة كاملة». The production module that predates it
+treats them as standalone and derives Q4. **The data supports neither
+consistently.** Across every company-year in the table, three have all four
+quarters, and in none of them do the quarters reconcile with the annual filing:
+
+| Company-year | Q1+Q2+Q3+Q4 | ANNUAL | Reading |
+|---|---|---|---|
+| IBSD 2025 | — | 187.6B | Q4 **equals** ANNUAL to the dinar — a full year in a quarter slot |
+| BMNS 2025 | 180.3B | 191.5B | 6% under |
+| BIIB 2025 | 39.3B | 15.3B | 157% over |
+
+The company page now plots only filed periods and reports the last audited
+annual instead of a TTM (commit `934b36c`). The full statements table needs a
+decision this migration cannot make for you:
+
+1. **Annual columns only**, which are audited and internally consistent, with
+   the quarterly view dropped. Safe, and loses a third of the approved design.
+2. **Both, with quarters labelled exactly as filed** and a stated caveat that
+   they do not sum to the annual. Keeps the design; asks the reader to hold an
+   inconsistency.
+3. **Re-read the filings** to establish the real semantics per company and
+   store it. Correct, and it is pipeline work rather than a reskin.
+
+Recommendation: (2) for this batch, because it ships the approved surface
+without asserting anything false, with (3) recorded as the real fix.
 
 **B2 · Auth is six net-new production routes.** No `/login`, `/signup`,
 `/forgot-password`, `/verify-email`, `/auth/callback` exists today; production has
