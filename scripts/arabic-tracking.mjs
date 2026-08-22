@@ -53,6 +53,10 @@ const LATIN_ONLY = [
      three-letter Latin acronym rendered from a hard-coded literal in
      NewsClient.tsx, never from data, so it cannot become Arabic. */
   ['.nw-doc i', 'the literal "PDF" badge on a filing row'],
+  /* The company masthead's English-name line. The component renders this
+     element only when a Latin name is present and omits it otherwise, rather
+     than falling back to the Arabic one into a tracked rule. */
+  ['.cd-id-en', 'the company masthead\'s English name, rendered only when Latin'],
 ]
 
 function files(dir, out = []) {

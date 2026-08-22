@@ -2,7 +2,6 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { useParams } from 'next/navigation'
-import dynamic from 'next/dynamic'
 import Link from 'next/link'
 import { useApp } from '@/context/AppContext'
 import { fetchLive, fetchCompanyMeta, mergeCompanies, fmtVol, fmtMcap } from '@/lib/market'
@@ -14,28 +13,7 @@ import { Range52Indicator } from '@/components/design/Range52Indicator'
 import PerformanceOverview from '@/components/company/PerformanceOverview'
 import EarningsTrends from '@/components/company/EarningsTrends'
 import CompanyStatistics from '@/components/company/CompanyStatistics'
-
-// Chart pulls in the heavy klinecharts lib. Code-split it and only mount when
-// it nears the viewport, so it stays off the company page's critical path.
-const ChartPlaceholder = () => (
-  <div style={{ height: 360, borderRadius: 16, border: '1px solid var(--line)', background: 'var(--surf)' }} />
-)
-const KChart = dynamic(() => import('@/components/KChart'), { ssr: false, loading: ChartPlaceholder })
-
-function LazyKChart(props: { sym: string; name?: string }) {
-  const ref = useRef<HTMLDivElement>(null)
-  const [show, setShow] = useState(false)
-  useEffect(() => {
-    if (show || !ref.current) return
-    const io = new IntersectionObserver(
-      es => { if (es.some(e => e.isIntersecting)) { setShow(true); io.disconnect() } },
-      { rootMargin: '400px' },
-    )
-    io.observe(ref.current)
-    return () => io.disconnect()
-  }, [show])
-  return <div ref={ref}>{show ? <KChart {...props} /> : <ChartPlaceholder />}</div>
-}
+import { CompanyChart } from '@/components/company/CompanyChart'
 
 // ─── Logo ────────────────────────────────────────────────────────────────────
 function CoLogo({ sym, logo, color }: { sym: string; logo?: string; color?: string }) {
@@ -193,7 +171,7 @@ export default function CompanyPage() {
       </nav>
 
       {/* ── Chart card ── */}
-      <LazyKChart sym={co.sym} name={ar ? co.ar : co.en} />
+      <CompanyChart sym={co.sym} name={ar ? co.ar : co.en} />
 
       {/* ── Performance overview (trailing returns vs ISX60) ── */}
       <PerformanceOverview sym={co.sym} />
