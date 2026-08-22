@@ -193,6 +193,55 @@ export const RATIO_GROUPS: { ar: string; keys: string[] }[] = [
   { ar: "الملاءة", keys: ["debt_to_equity", "debt_to_assets", "current_ratio", "capital_adequacy_ratio", "npl_ratio", "loan_to_deposit"] },
 ];
 
+/* ── Data-quality guard ───────────────────────────────────────────────────
+   TEMPORARY. Delete this block, its use in `buildFinancials`, and the
+   `valuesWithheld` branch in the two pages, once the extraction pipeline
+   normalises units correctly.
+
+   ── The defect ───────────────────────────────────────────────────────────
+   `value_iqd` is meant to be dinars regardless of the scale the filing
+   printed. For most companies it is: filings that change between
+   IQD_THOUSANDS, IQD_MILLIONS and IQD still produce a continuous series. For
+   the tickers below it is not, and the error is a clean factor of 1,000 in
+   one direction or the other — AISP's IQD_THOUSANDS rows read 612,420B where
+   its IQD_MILLIONS rows read 612B; TZNI's 2026 Q1 reads 4.58B against
+   4,100–4,600B in every other year of its own history.
+
+   ── How the list was produced ────────────────────────────────────────────
+   One rule, run over the whole table: within a ticker, a point-in-time anchor
+   line (`total_assets` / `total_equity`) must not span more than 20x across
+   that company's own filings. A balance-sheet total does not move three
+   orders of magnitude. 13 of the 77 tickers that carry an anchor line fail
+   it. The list is written out rather than computed at runtime, so nothing
+   here guesses and nothing rescales.
+
+   ── Why whole tickers, when the defect is per filing ─────────────────────
+   The bad rows are individual filings, not whole companies — most of TZNI's
+   history is correct. Withholding the whole ticker therefore hides some good
+   figures too. That is the intended direction: a reader who sees four correct
+   columns and one silently wrong one has no way to tell which is which, and
+   the page cannot mark the wrong one without the same magnitude guess it is
+   forbidden to make. Failing closed per ticker is the honest coarse option
+   until the source is fixed. */
+
+export type DataQuality = { normalizedValuesTrusted: boolean; reason: string }
+
+const UNIT_DEFECT: DataQuality = {
+  normalizedValuesTrusted: false,
+  reason: 'known unit-normalization defect in the extracted dataset',
+}
+
+export const FINANCIAL_DATA_QUALITY: Record<string, DataQuality> = {
+  AISP: UNIT_DEFECT, BAIB: UNIT_DEFECT, BAME: UNIT_DEFECT, BANS: UNIT_DEFECT,
+  BGUC: UNIT_DEFECT, BIDB: UNIT_DEFECT, HISH: UNIT_DEFECT, HMAN: UNIT_DEFECT,
+  IITC: UNIT_DEFECT, SBPT: UNIT_DEFECT, SIBD: UNIT_DEFECT, SKTA: UNIT_DEFECT,
+  TZNI: UNIT_DEFECT,
+}
+
+/** False only for a ticker explicitly listed above. No inference. */
+export const normalizedValuesTrusted = (ticker: string): boolean =>
+  FINANCIAL_DATA_QUALITY[ticker.toUpperCase()]?.normalizedValuesTrusted !== false
+
 /* ── Cells, columns and the built model ───────────────────────────────────── */
 
 export type Cell = { v: number | null; conflict?: boolean }
@@ -226,6 +275,9 @@ export type Financials = {
   /** Cells dropped because two extractions disagreed and the unit could not
    *  separate them. Surfaced rather than silently blank. */
   conflicts: number
+  /** The ticker is on the data-quality list: columns and their filing links
+   *  are real, but no normalised value may be shown. */
+  valuesWithheld: boolean
 }
 
 export type FactRow = {
@@ -253,9 +305,10 @@ const PERIOD_RANK: Record<string, number> = { Q1: 1, Q2: 2, Q3: 3, Q4: 4, ANNUAL
  * upstream of this file, recorded rather than papered over here.
  */
 export function buildFinancials(
-  facts: FactRow[], ratios: RatioRow[], reports: ReportRow[],
+  ticker: string, facts: FactRow[], ratios: RatioRow[], reports: ReportRow[],
 ): Financials | null {
-  if (!facts.length) return null
+  if (!facts.length && !reports.length) return null
+  const withheld = !normalizedValuesTrusted(ticker)
 
   const template: 'industrial' | 'bank' =
     reports.find(r => r.template === 'bank' || r.template === 'industrial')?.template === 'bank'
@@ -328,8 +381,13 @@ export function buildFinancials(
 
   return {
     template, annualCols, quarterCols,
-    facts: cells, ratios: ratioMap, sourceLabels,
-    years, latest: all[0] ?? null, reportedUnits, conflicts,
+    // Fail closed. The columns and their filing links survive so the reader
+    // can still reach the source document; not one normalised figure does.
+    facts: withheld ? new Map() : cells,
+    ratios: withheld ? new Map() : ratioMap,
+    sourceLabels,
+    years, latest: all[0] ?? null, reportedUnits, conflicts: withheld ? 0 : conflicts,
+    valuesWithheld: withheld,
   }
 }
 

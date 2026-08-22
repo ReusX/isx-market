@@ -81,8 +81,8 @@ export function FinancialsClient({ sym }: { sym: string }) {
   }, [sym])
 
   const fin = useMemo(
-    () => (rows ? buildFinancials(rows.facts, rows.ratios, rows.reports) : null),
-    [rows])
+    () => (rows ? buildFinancials(sym, rows.facts, rows.ratios, rows.reports) : null),
+    [rows, sym])
 
   const statements = useMemo(
     () => (fin ? (Object.keys(TEMPLATES[fin.template]) as StatementId[]) : []),
@@ -154,6 +154,8 @@ export function FinancialsClient({ sym }: { sym: string }) {
         <div className="fn-panel"><Skeleton lines={10} /></div>
       ) : !fin ? (
         <NoFinancials name={name} sym={sym} />
+      ) : fin.valuesWithheld ? (
+        <ValuesWithheld fin={fin} name={name} sym={sym} />
       ) : (
         <>
           <div className="fn-controls">
@@ -563,6 +565,58 @@ function Provenance({ fin }: { fin: Financials }) {
         {' '}الأرقام لأغراض معلوماتية ولا تُغني عن التقرير الأصلي.
       </p>
     </footer>
+  )
+}
+
+/* The approved unavailable state, used for a ticker on the data-quality list.
+   It says what is unavailable and why in the reader's terms — the extracted
+   figures, not the company's own filings — and it keeps the filings reachable,
+   because those documents are correct and are the thing a reader actually
+   wants when the table cannot be shown. */
+function ValuesWithheld({ fin, name, sym }: { fin: Financials; name: string; sym: string }) {
+  const cols = [...fin.annualCols, ...fin.quarterCols]
+  return (
+    <>
+      <div className="cd-nodata cd-nodata-wide fn-empty">
+        <strong>القوائم المالية لهذه الشركة غير معروضة حالياً</strong>
+        <p>
+          تُعرض القوائم بعد توحيد وحدة القياس الواردة في كل إفصاح. لم يكتمل توحيد الوحدة
+          في البيانات المستخرجة لشركة {name}، ولذلك لا تُعرض الأرقام بدل عرض قيم قد تكون
+          غير صحيحة بمقدار ألف ضعف. لا يتعلق ذلك بالتقارير التي نشرتها الشركة — وهي متاحة
+          أدناه كما هي.
+        </p>
+        <div className="cd-nodata-still">
+          <span className="cd-cell-label">ما يزال متوفراً</span>
+          <p>
+            التقارير الأصلية المنشورة، والسعر التاريخي وبيانات الجلسة والقيمة السوقية
+            والأداء مقابل المؤشر في صفحة الشركة.
+          </p>
+        </div>
+        <Link className="fn-empty-link" href={`/c/${sym.toLowerCase()}`}>العودة إلى صفحة الشركة ←</Link>
+      </div>
+
+      {cols.some(c => c.pdfUrl) ? (
+        <section className="fn-panel" aria-label="التقارير الأصلية">
+          <div className="fn-table-head">
+            <h2>التقارير الأصلية</h2>
+            <span className="fn-unit">كما نُشرت لدى هيئة الأوراق المالية</span>
+          </div>
+          <ul className="fn-filings">
+            {cols.filter(c => c.pdfUrl).map(c => (
+              <li key={colKey(c.col)}>
+                <a href={c.pdfUrl as string} target="_blank" rel="noopener noreferrer"
+                  aria-label={`تقرير ${colLabel(c.col)} — يفتح ملف PDF على موقع هيئة الأوراق المالية`}>
+                  <i aria-hidden="true">PDF</i>
+                  <bdi>{colLabel(c.col)}</bdi>
+                  {c.reportedUnit ? <small>الوحدة في التقرير: {UNIT_AR[c.reportedUnit] ?? c.reportedUnit}</small> : null}
+                  <span className="fn-filings-go" aria-hidden="true">↗</span>
+                </a>
+              </li>
+            ))}
+          </ul>
+        </section>
+      ) : null}
+    </>
   )
 }
 

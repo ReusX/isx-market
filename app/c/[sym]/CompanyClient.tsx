@@ -14,6 +14,7 @@ import {
   type Returns, type EarnPeriod, type FactRow, type RatioRow,
   type OwnershipRow, type ShareholderRow, type Holder,
 } from '@/lib/companyView'
+import { normalizedValuesTrusted } from '@/lib/financials'
 import { usableName, iqd, nf0 } from '@/lib/statistics'
 import { arFull } from '@/lib/statistics'
 import companiesData from '@/public/data/companies.json'
@@ -158,10 +159,18 @@ export function CompanyClient({ sym }: { sym: string }) {
   const quiet = Boolean(co?.stale) && !suspended
   const noPrior = Boolean(co?.noPrior)
 
-  const series = useMemo(() => (data ? earningsSeries(data.facts, mode) : []), [data, mode])
-  const annualSeries = useMemo(() => (data ? earningsSeries(data.facts, 'annual') : []), [data])
-  const ratios = useMemo(() => (data ? latestRatios(data.ratios) : { year: null, map: {} }), [data])
-  const hasFin = (data?.facts.length ?? 0) > 0 || Object.keys(ratios.map).length > 0
+  // The same data-quality guard the financials route uses. These modules read
+  // the same extracted facts and ratios, so a ticker whose normalisation is
+  // known bad must not print them here either.
+  const finTrusted = normalizedValuesTrusted(sym)
+  const series = useMemo(
+    () => (data && finTrusted ? earningsSeries(data.facts, mode) : []), [data, mode, finTrusted])
+  const annualSeries = useMemo(
+    () => (data && finTrusted ? earningsSeries(data.facts, 'annual') : []), [data, finTrusted])
+  const ratios = useMemo(
+    () => (data && finTrusted ? latestRatios(data.ratios) : { year: null, map: {} }), [data, finTrusted])
+  const hasFin = finTrusted && ((data?.facts.length ?? 0) > 0 || Object.keys(ratios.map).length > 0)
+  const finWithheld = !finTrusted && (data?.facts.length ?? 0) > 0
 
   if (state === 'notfound') return <NotFound sym={sym} />
   if (state === 'error') return <PageError sym={sym} />
@@ -316,7 +325,20 @@ export function CompanyClient({ sym }: { sym: string }) {
         <SectionHead title="الأساسيات"
           note={hasFin && ratios.year ? `النسب محسوبة على آخر سنة مالية مكتملة (${ratios.year}) وآخر ربع مُعلن.` : undefined}
           link={{ href: `/c/${sym.toLowerCase()}/financials`, label: 'القوائم المالية الكاملة' }} />
-        {loading ? <FundSkeleton /> : hasFin ? (
+        {loading ? <FundSkeleton /> : finWithheld ? (
+          <div className="cd-nodata cd-nodata-wide">
+            <strong>الأساسيات غير معروضة لهذه الشركة حالياً</strong>
+            <p>
+              لم يكتمل توحيد وحدة القياس في البيانات المالية المستخرجة لشركة {name}، ولذلك
+              لا تُعرض نسب التقييم أو الربحية بدل عرض قيم قد تكون غير صحيحة. التقارير الأصلية
+              المنشورة متاحة في صفحة البيانات المالية.
+            </p>
+            <div className="cd-nodata-still">
+              <span className="cd-cell-label">ما يزال متوفراً</span>
+              <p>السعر التاريخي، بيانات الجلسة، القيمة السوقية، والأداء مقابل المؤشر أعلاه.</p>
+            </div>
+          </div>
+        ) : hasFin ? (
           <>
             <Fundamentals
               isBank={isBank} mcap={mcap} pe={pe} eps={eps} r={ratios.map}

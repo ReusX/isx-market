@@ -409,3 +409,35 @@
   content: ''; position: absolute;
   inset-inline: -8px; inset-block: -12px;
 }
+
+/* ── Original filings list ────────────────────────────────────────────────
+   Shown in place of the tables for a ticker on the data-quality guard. The
+   documents are correct even when our extraction of them is not, so this is
+   the one thing that page can still offer, and it is offered as a real list
+   rather than a footnote. Remove with the guard. */
+.fn-filings { display: grid; gap: 6px; margin: 0; padding: 0; list-style: none; }
+.fn-filings a {
+  display: flex; align-items: center; gap: 10px;
+  min-block-size: 44px; padding: 8px 12px;
+  border: 1px solid var(--mv-line); border-radius: 12px;
+  background: var(--mv-well); color: var(--mv-ink-2);
+  font-size: .74rem; text-decoration: none;
+  transition: border-color .13s, color .13s, background-color .13s;
+}
+.fn-filings a:hover { border-color: var(--mv-hero); color: var(--mv-hero); background: rgba(49,113,198,.06); }
+.fn-filings a:focus-visible { outline: 2px solid var(--mv-hero); outline-offset: 2px; }
+.fn-filings i {
+  font-style: normal; font-size: .55rem; font-weight: 700;
+  padding: 2px 6px; border-radius: 4px;
+  background: rgba(49,113,198,.12); color: var(--mv-hero);
+}
+.fn-filings bdi { color: var(--mv-ink); font-weight: 700; }
+.fn-filings small { color: var(--mv-ink-3); font-size: .66rem; }
+.fn-filings-go { margin-inline-start: auto; color: var(--mv-ink-3); }
+[data-theme='dark'] .fn-filings i { background: rgba(90,160,232,.16); color: var(--mv-hero-bright); }
+[data-theme='dark'] .fn-filings a:hover { border-color: var(--mv-hero-bright); color: var(--mv-hero-bright); background: rgba(90,160,232,.1); }
+.fn-empty-link { position: relative; }
+.fn-empty-link::before {
+  content: ''; position: absolute;
+  inset-inline: -8px; inset-block: -13px;
+}
