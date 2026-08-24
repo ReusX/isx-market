@@ -207,8 +207,8 @@
    that scales with width collapses to 113px on a 375px screen, which is not a
    chart any more. Columns stretch instead, which is what a column series can
    afford to do. */
-.stw-plot { position: relative; margin: 0; }
-.stw-plot svg { display: block; inline-size: 100%; block-size: 320px; }
+.stw-plot { position: relative; margin: 0; --stw-plot-h: 320px; }
+.stw-plot svg { display: block; inline-size: 100%; block-size: var(--stw-plot-h); }
 .stw-grid { stroke: var(--mv-line); stroke-width: 1; }
 .stw-base { stroke: var(--mv-line-strong); stroke-width: 1; }
 /* The axis layers sit over the stretched plot in HTML, so their type is never
@@ -217,7 +217,18 @@
    not mirrored under RTL. Using logical properties put the value axis on the
    opposite side from its own gridlines and reversed the time axis so the
    newest bucket read as the oldest. */
-.stw-axis-y, .stw-axis-x { position: absolute; inset: 0; direction: ltr; pointer-events: none; }
+/* ⚠ The layer must be exactly the SVG box, not the whole <figure>.
+   `inset: 0` stretched it over the figcaption as well — 341px against the
+   plot's 320 — with two visible consequences at 1440: the leftmost date on the
+   time axis landed ON TOP of the «مجموع أسبوعي» caption below the chart, and
+   every value label sat ~19px below its own gridline, because both are
+   positioned as a PERCENTAGE of this layer while the percentages are computed
+   against the SVG's viewBox. One custom property keeps the two in lockstep at
+   every breakpoint, so they cannot drift apart again. */
+.stw-axis-y, .stw-axis-x {
+  position: absolute; inset: 0 0 auto 0; block-size: var(--stw-plot-h);
+  direction: ltr; pointer-events: none;
+}
 .stw-axis-y span {
   position: absolute; right: 0; transform: translateY(-50%);
   width: 56px; text-align: left; padding-inline-start: 6px;
@@ -260,8 +271,8 @@
 }
 .stw-plot-gaps { color: var(--mv-ink-2); }
 
-@media (max-width: 1000px) { .stw-plot svg { block-size: 280px; } }
-@media (max-width: 720px)  { .stw-plot svg { block-size: 240px; } }
+@media (max-width: 1000px) { .stw-plot { --stw-plot-h: 280px; } }
+@media (max-width: 720px)  { .stw-plot { --stw-plot-h: 240px; } }
 /* ── One block from the reference deliberately NOT ported ─────────────────
    The reference's `.stw-*` block carries a compatibility shim for ITS frozen
    detail routes — `.stats-v2`, `.st-head`, `.st-title`, `.st-switch`,
@@ -290,11 +301,11 @@
 /* ── بنية السوق · a composition · §9 ─────────────────────────────────────
    Two halves of one argument sharing one baseline, divided by a rule instead
    of being two disconnected cards with empty space in them. */
-.stw-structure, .stw-valuation {
+.stw-structure{
   display: grid; grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr);
   gap: 34px;
 }
-.stw-structure .stw-side, .stw-valuation .stw-side {
+.stw-structure .stw-side{
   padding-inline-start: 34px; border-inline-start: 1px solid var(--mv-line);
 }
 .stw-side-lede { margin: 0 0 14px; font-size: .72rem; line-height: 1.65; color: var(--mv-ink-3); }
@@ -416,24 +427,11 @@
 .stw-more:focus-visible { outline: 2px solid var(--mv-hero); outline-offset: 2px; }
 
 /* ── التقييم · centre, spread, coverage · §15 ────────────────────────────── */
-.stw-val-lead { display: flex; flex-direction: column; gap: 4px; margin-block-end: 18px; }
-.stw-val-lead > span { font-size: .7rem; color: var(--mv-ink-3); }
-.stw-val-lead strong { display: flex; align-items: baseline; gap: 4px; }
 /* `.iq-page` prefix, not decoration: styles/design-tokens.css sets
    `letter-spacing: normal` on `.iq-page :lang(ar)` (0,2,0) to keep tracking off
    Arabic, and a `bdi` inherits `lang` from <html lang="ar">. Without the extra
    class this rule loses at 0,1,2 and its negative tracking silently never
    applies. Same correction Batch B made for the market tools. */
-.iq-page .stw-val-lead strong bdi { font: 700 3rem/1 var(--font-numeric), ui-monospace, monospace; color: var(--mv-ink); letter-spacing: -.025em; }
-.stw-val-lead strong small { font-size: 1.1rem; color: var(--mv-ink-2); font-weight: 500; }
-.stw-val-figs { display: flex; gap: 0; margin: 0; flex-wrap: wrap; }
-.stw-val-figs > div {
-  display: flex; flex-direction: column; gap: 4px;
-  padding-inline: 22px; border-inline-start: 1px solid var(--mv-line);
-}
-.stw-val-figs > div:first-child { padding-inline-start: 0; border-inline-start: 0; }
-.stw-val-figs dt { font-size: .68rem; color: var(--mv-ink-3); }
-.stw-val-figs dd { margin: 0; font: 700 1.05rem var(--font-numeric), ui-monospace, monospace; color: var(--mv-ink); }
 
 .stw-hist { margin: 0; padding: 0; list-style: none; }
 .stw-hist li { display: grid; grid-template-columns: 84px minmax(0, 1fr) 30px; align-items: center; gap: 12px; min-block-size: 34px; }
@@ -558,8 +556,8 @@
 
 /* Tablet keeps the workspace concept and the two-column compositions. §21 */
 @media (max-width: 1080px) {
-  .stw-structure, .stw-valuation { grid-template-columns: minmax(0, 1fr); gap: 26px; }
-  .stw-structure .stw-side, .stw-valuation .stw-side {
+  .stw-structure{ grid-template-columns: minmax(0, 1fr); gap: 26px; }
+  .stw-structure .stw-side{
     padding-inline-start: 0; padding-block-start: 22px;
     border-inline-start: 0; border-block-start: 1px solid var(--mv-line);
   }

@@ -13,11 +13,11 @@
      · the design-mode state picker rules are dropped.
 
    ── On the one collision the inventory flagged ────────────────────
-   `.fx-quote-grid` and `.fx-hero` exist in app/globals.css from the page this
-   replaces, and the approved design uses NEITHER name — its FX classes are
-   `.fx-convert*`, `.fx-official*`, `.fx-sides`, `.fx-eq`. So there is nothing
-   to namespace. Those two legacy rules simply become dead once the old client
-   goes; deleting them belongs to the cleanup pass, not here.
+   `.fx-quote-grid` and `.fx-hero` used to exist in app/globals.css from the
+   page this replaces, and the approved design uses NEITHER name — its FX
+   classes are `.fx-convert*`, `.fx-official*`, `.fx-sides`, `.fx-eq`. So there
+   was nothing to namespace, and the two legacy rules became dead the moment
+   the old client went. The cleanup pass has since deleted them.
    ════════════════════════════════════════════════════════════════════════════ */
 
 /* ═══════════════════════════════════════════════════════════════════════════

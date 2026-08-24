@@ -453,7 +453,6 @@ bdi,
 
 .topbar,
 .index-panel,
-.foreign-flow-card,
 .stats-strip,
 .sector-section,
 .companies-section {
@@ -508,10 +507,8 @@ h3 {
 
 .brand small,
 .company-cell small,
-.foreign-flow-card p,
 .range,
-.sector small,
-.mover-row small {
+.sector small{
   color: var(--muted);
 }
 
@@ -938,88 +935,6 @@ h3 {
   border: 0;
 }
 
-.shared-data-grid {
-  min-inline-size: 0;
-  overflow-x: auto;
-  color: var(--text-secondary);
-}
-
-.shared-data-grid-head {
-  min-inline-size: var(--table-min-width);
-}
-
-.shared-data-grid-row {
-  display: grid;
-  grid-template-columns: var(--table-columns);
-  align-items: center;
-  min-inline-size: var(--table-min-width);
-  min-block-size: 44px;
-  border-block-end: 0.5px solid var(--border);
-}
-
-.shared-data-grid [role="rowgroup"]:last-child .shared-data-grid-row:last-child {
-  border-block-end: 0;
-}
-
-.shared-data-grid-row > [role="columnheader"],
-.shared-data-grid-row > [role="cell"] {
-  min-inline-size: 0;
-  padding-inline: 8px;
-}
-
-.shared-data-grid-row > [role="columnheader"] {
-  color: var(--text-muted);
-  font-size: 0.69rem;
-  font-weight: 600;
-}
-
-.shared-data-grid-row > [role="columnheader"] button {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  padding: 0;
-  border: 0;
-  background: transparent;
-  color: inherit;
-  font: inherit;
-}
-
-.sort-chevron {
-  color: var(--text-primary);
-  font-family: Arial, sans-serif;
-  font-size: 0.72rem;
-  line-height: 1;
-}
-
-.shared-data-grid-row > [role="cell"] {
-  overflow: hidden;
-  font-size: 0.75rem;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.shared-data-grid-row.clickable {
-  cursor: pointer;
-  transition: background 140ms ease;
-}
-
-.shared-data-grid-row.clickable:hover,
-.shared-data-grid-row.clickable:focus-visible {
-  background: var(--surface-2);
-  outline: none;
-}
-
-.shared-data-grid-row.clickable:focus-visible {
-  box-shadow: inset 0 0 0 2px var(--accent);
-}
-
-.market-company-inline {
-  display: flex;
-  align-items: center;
-  min-inline-size: 0;
-  gap: 9px;
-}
-
 .market-company-logo {
   display: grid;
   place-items: center;
@@ -1033,27 +948,6 @@ h3 {
   font-family: var(--font-numeric), ui-monospace, monospace;
   font-size: 0.68rem;
   font-weight: 700;
-}
-
-.market-company-identity {
-  display: flex;
-  align-items: baseline;
-  min-inline-size: 0;
-  gap: 7px;
-}
-
-.market-company-identity strong {
-  overflow: hidden;
-  color: var(--text-primary);
-  font-weight: 600;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.market-company-identity bdi {
-  flex: 0 0 auto;
-  color: var(--text-muted);
-  font-size: 0.68rem;
 }
 
 .numeric-column,
@@ -1116,49 +1010,8 @@ h3 {
   accent-color: var(--text-accent);
 }
 
-
-
-
-.range-52 {
-  position: relative;
-  display: block;
-  inline-size: 100%;
-  max-inline-size: 116px;
-  block-size: 5px;
-  overflow: hidden;
-  border-radius: 3px;
-  background: var(--surface-2);
-}
-
-.range-52 > span {
-  position: absolute;
-  inset-block: 0;
-  inset-inline-start: 0;
-  max-inline-size: 100%;
-  border-radius: inherit;
-  background: var(--text-muted);
-}
-
 .range-52-indicator {
   min-inline-size: 0;
-}
-
-.range-52-indicator.with-values .range-52 {
-  max-inline-size: none;
-}
-
-.range-52-values {
-  display: flex;
-  justify-content: space-between;
-  margin-block-end: 6px;
-  color: var(--text-muted);
-  font-size: 0.68rem;
-}
-
-.range-52-values span {
-  display: flex;
-  align-items: baseline;
-  gap: 4px;
 }
 
 
@@ -1325,10 +1178,6 @@ h3 {
 .foreign-gauge-visual.large .gauge-readout strong {
   font-size: 1.62rem;
   font-weight: 500;
-}
-
-.foreign-gauge-visual.large .flow-totals {
-  margin-block-start: 2px;
 }
 
 
@@ -1533,46 +1382,6 @@ h3 {
   align-items: center;
   gap: 14px;
   margin-block-end: 10px;
-}
-
-.ownership-donut {
-  inline-size: 72px;
-  block-size: 72px;
-  flex: 0 0 72px;
-}
-
-.ownership-donut text {
-  fill: var(--text-primary);
-  font-family: var(--font-numeric), monospace;
-  font-size: 0.7rem;
-  font-weight: 500;
-}
-
-.ownership-legend {
-  display: grid;
-  gap: 5px;
-  color: var(--text-secondary);
-  font-size: 0.7rem;
-}
-
-.ownership-legend span {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-}
-
-.ownership-legend i {
-  inline-size: 7px;
-  block-size: 7px;
-  border-radius: 2px;
-}
-
-.ownership-legend i.iraqi {
-  background: #378add;
-}
-
-.ownership-legend i.foreign {
-  background: #ef9f27;
 }
 
 .ownership-stats {
@@ -2244,31 +2053,6 @@ h3 {
   padding-block-start: 14px;
 }
 
-.market-tool-tabs {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 6px;
-}
-
-.market-tool-tabs a {
-  padding: 8px 16px;
-  border-radius: 6px;
-  background: var(--surface-1);
-  color: var(--text-secondary);
-  font-size: 0.75rem;
-  text-align: center;
-  text-decoration: none;
-}
-
-.market-tool-tabs a:hover {
-  color: var(--text-primary);
-}
-
-.market-tool-tabs a.active {
-  background: var(--nav-active-bg);
-  color: var(--nav-active);
-}
-
 .market-tool-card {
   border: 0;
   background: var(--surface-1);
@@ -2333,12 +2117,6 @@ h3 {
   margin-block-start: 10px;
   color: var(--text-muted);
   font-size: 0.68rem;
-}
-
-.fx-quote-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 12px;
 }
 
 .quote-tile {
@@ -2935,10 +2713,6 @@ h3 {
   color: var(--text-primary);
 }
 
-.company-range-card .range-52 {
-  block-size: 6px;
-}
-
 .company-quick-actions {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -3422,15 +3196,6 @@ h1 span {
   transition: opacity 180ms ease, transform 180ms ease;
 }
 
-.skeleton-block {
-  min-inline-size: 260px;
-  min-block-size: 92px;
-  border-radius: 7px;
-  background: linear-gradient(90deg, var(--border), var(--surface), var(--border));
-  background-size: 220% 100%;
-  animation: skeleton-sheen 1.2s ease-in-out infinite;
-}
-
 .empty-state {
   max-inline-size: 280px;
   padding: 12px;
@@ -3589,44 +3354,11 @@ h1 span {
   border-radius: inherit;
   background: var(--accent);
 }
-
-.foreign-flow-card {
-  display: flex;
-  flex-direction: column;
-  padding: 16px;
-}
-
-.foreign-flow-card h2,
 .sector-section h2,
 .companies-section h2,
 .stats-strip h2 {
   color: var(--ink);
   font-size: 1.15rem;
-}
-
-.flow-status-row {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  color: var(--muted);
-  font-size: 0.78rem;
-  font-weight: 700;
-}
-
-.flow-status-row bdi {
-  margin-inline-start: auto;
-  color: var(--secondary);
-  font-size: 0.74rem;
-}
-
-.flow-status-dot {
-  inline-size: 8px;
-  block-size: 8px;
-  border-radius: 999px;
-}
-
-.gain-dot {
-  background: var(--up);
 }
 
 .loss-dot {
@@ -3636,52 +3368,6 @@ h1 span {
 .gauge-wrap {
   position: relative;
   margin-block: 10px 4px;
-}
-
-.flow-gauge {
-  inline-size: 100%;
-  block-size: auto;
-  overflow: visible;
-}
-
-.gauge-track,
-.gauge-buy,
-.gauge-sell {
-  fill: none;
-  stroke-linecap: round;
-  stroke-width: 14;
-}
-
-.gauge-track {
-  stroke: var(--border);
-}
-
-.gauge-buy {
-  stroke: var(--up);
-}
-
-.gauge-sell {
-  stroke: var(--down);
-}
-
-.gauge-needle {
-  stroke: var(--accent);
-  stroke-linecap: round;
-  stroke-width: 2;
-  transition: x2 220ms ease, y2 220ms ease;
-}
-
-.gauge-pivot {
-  fill: var(--accent);
-}
-
-.gauge-labels {
-  display: flex;
-  justify-content: space-between;
-  direction: ltr;
-  margin-block-start: -16px;
-  color: var(--muted);
-  font-size: 0.78rem;
 }
 
 .gauge-readout {
@@ -3707,51 +3393,6 @@ h1 span {
 .empty-gauge strong {
   color: var(--ink);
   font-size: 1rem;
-}
-
-.gauge-skeleton {
-  inline-size: 140px;
-  block-size: 26px;
-  border-radius: 6px;
-  background: linear-gradient(90deg, var(--border), var(--surface), var(--border));
-  background-size: 220% 100%;
-  animation: skeleton-sheen 1.2s ease-in-out infinite;
-}
-
-.flow-totals {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 0;
-  border-block: 1px solid var(--border);
-}
-
-.flow-totals div {
-  display: grid;
-  gap: 4px;
-  padding: 10px 0;
-}
-
-.flow-totals div + div {
-  padding-inline-start: 12px;
-  border-inline-start: 1px solid var(--border);
-}
-
-.flow-totals span {
-  color: var(--muted);
-  font-size: 0.78rem;
-}
-
-.flow-totals bdi {
-  color: var(--ink);
-  font-weight: 700;
-}
-
-.foreign-flow-card p {
-  margin-block-start: 10px;
-  padding-block-start: 12px;
-  color: var(--secondary);
-  line-height: 1.65;
-  font-size: 0.82rem;
 }
 
 .stat-card {
@@ -3803,18 +3444,10 @@ h1 span {
   inline-size: 74px;
   block-size: 16px;
 }
-
-.sector-chip-section,
 .sector-section,
 .companies-section {
   margin-block-start: 9px;
   padding: 11px;
-}
-
-.sector-chip-section {
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  background: var(--surface);
 }
 
 .section-heading {
@@ -3827,43 +3460,6 @@ h1 span {
 
 .compact-heading {
   margin-block-end: 6px;
-}
-
-.sector-chip-header {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 12px;
-  margin-block-end: 8px;
-}
-
-.chip-eyebrow {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  color: var(--muted);
-  font-size: 0.76rem;
-  font-weight: 700;
-}
-
-.sector-chip-header h2 {
-  margin-block-start: 2px;
-  color: var(--ink);
-  font-size: 1rem;
-  font-weight: 600;
-}
-
-.text-link {
-  color: var(--muted);
-  font-size: 0.82rem;
-  font-weight: 600;
-  text-decoration: none;
-  white-space: nowrap;
-  transition: color 160ms ease;
-}
-
-.text-link:hover {
-  color: var(--accent);
 }
 
 .section-heading button,
@@ -4064,21 +3660,6 @@ th button:hover,
   inline-size: 32px;
   block-size: 32px;
   font-size: 1.2rem;
-}
-
-.mover-row {
-  display: flex;
-  justify-content: space-between;
-  gap: 10px;
-  padding-block: 6px;
-  border-block-start: 1px solid var(--border);
-  color: var(--secondary);
-  font-size: 0.86rem;
-}
-
-.mover-row span,
-.mover-row small {
-  display: block;
 }
 
 .table-wrap {
@@ -4354,11 +3935,6 @@ tbody tr:hover .sparkline polyline {
 
   .pulse-rank {
     grid-row: 1 / 3;
-  }
-
-  .pulse-movers-list .market-company-inline {
-    grid-column: 2;
-    grid-row: 1;
   }
 
   .pulse-price {
@@ -4809,9 +4385,6 @@ html[lang="ar"] .wp-content pre {
 .companies-section .table-wrap tbody tr.row-link:hover { background: var(--surface-2); }
 .company-cell { color: inherit; text-decoration: none; }
 
-.mover-row { text-decoration: none; color: inherit; border-radius: 8px; transition: background-color 120ms ease; }
-.mover-row:hover { background: var(--surface-2); }
-
 
 /* ══ Companies directory ══════════════════════════════════════════════════ */
 .directory-filters {
@@ -5138,18 +4711,6 @@ html[lang="ar"] .wp-content pre {
 
 /* The row itself handles navigation; this anchor exists so the destination is
    crawlable and middle-clickable. */
-.grid-cell-link {
-  display: block;
-  min-inline-size: 0;
-  color: inherit;
-  text-decoration: none;
-}
-
-.shared-data-grid.is-loading .skeleton-block {
-  display: block;
-  block-size: 10px;
-  border-radius: 4px;
-}
 
 
 
@@ -5163,9 +4724,6 @@ html[lang="ar"] .wp-content pre {
 
 /* One glyph in a narrow track: an ellipsis here is wider than what it replaces,
    and it showed up beside the star on phone widths. */
-.shared-data-grid-row > [role="cell"].watch-column {
-  text-overflow: clip;
-}
 
 .watch-star {
   padding: 2px;
@@ -6145,64 +5703,27 @@ button.pulse-tile.is-active .pulse-tile-label svg {
    than after: an empty <tbody> becoming 25 rows, and three one-line "no
    movement" notes becoming three rows each. Structure mirrors the real markup
    so the reserved height follows it, including where mobile restacks. */
-.skeleton-fill,
-.skeleton-line {
-  display: block;
-  border-radius: 5px;
-  background: linear-gradient(90deg, var(--border), var(--surface), var(--border));
-  background-size: 220% 100%;
-  animation: skeleton-sheen 1.2s ease-in-out infinite;
-}
 
 /* Fills whatever box it is given — used for the logo chip. */
-.skeleton-fill {
-  inline-size: 100%;
-  block-size: 100%;
-  border: 0;
-}
 
 /* Matches a line of body text, so a two-line stack is as tall as a real one. */
-.skeleton-line {
-  block-size: 0.72em;
-  margin-block: 0.18em;
-  max-inline-size: 100%;
-}
-
-.skeleton-line.short { block-size: 0.6em; opacity: 0.7; }
-
-.skeleton-stack {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  min-inline-size: 0;
-}
 
 /* Non-interactive: it must not look clickable or take focus. */
-.skeleton-row { pointer-events: none; }
 
 /* The reserve is pinned to the real row height rather than left to whatever
    the placeholder content happens to measure — a bar of shimmer is not the
    same height as a line of Arabic text, and being 15% short still shifts.
    Measured on the live table: 53px here, 295px once mobile restacks each row
    into a card. Re-measure if the row's contents change. */
-.skeleton-row { block-size: 53px; }
-.skeleton-row .company-cell { display: flex; align-items: center; gap: 9px; }
-
-@media (prefers-reduced-motion: reduce) {
-  .skeleton-fill,
-  .skeleton-line { animation: none; }
-}
 
 @media (max-width: 720px) {
   /* Restacked rows are cards, not lines · see the table rules above. */
-  .skeleton-row { block-size: 295px; }
 
   /* Reserving all 25 at card height would be ~7,000px of shimmer — the whole
      phone screen as grey blocks for the length of the fetch. Only the rows
      that can appear IN the viewport need reserving: CLS scores shifts of
      what is on screen, and content appended below the fold moves nothing the
      reader can see. Five cards clear an 812px viewport with room over. */
-  .skeleton-row:nth-of-type(n + 6) { display: none; }
 }
 
 /* ── /auth/reset ────────────────────────────────────────────────────────────

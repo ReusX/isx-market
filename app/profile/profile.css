@@ -36,8 +36,13 @@
   padding: 22px 0 64px;
   color: var(--mv-ink);
 }
-.ac-page.iq-light { --mv-ink-3: #6e746f; --mv-up: #0e7350; --mv-down: #a83926; }
-.ac-page[data-theme='dark']  { --mv-ink-3: #9ea29c; --mv-up: #40d795; --mv-down: #f4787d; }
+/* Two page-root token overrides removed. They were carried over from the
+   reference, where the theme is a class on the page (`.iq-light` / `.iq-dark`);
+   here it is `data-theme` on <html>, so `.ac-page.iq-light` and
+   `.ac-page[data-theme='dark']` matched nothing and never had. Re-pointing them
+   at <html> would CHANGE the page's dark colours, which this phase freezes —
+   so they go as dead selectors, not as a restyle. `/profile` takes the shared
+   token values like every other migrated route. */
 .ac-dot { opacity: .4; }
 
 /* ── Identity · a block, never a hero · §3 ───────────────────────────────── */

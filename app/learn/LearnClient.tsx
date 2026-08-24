@@ -44,6 +44,10 @@ export function LearnClient({
 
   function reset() { setQuery(''); setShown(6) }
 
+  const searchWhy = libraryOk
+    ? 'لا توجد مقالات للبحث فيها بعد.'
+    : 'تعذّر تحميل المكتبة، فلا يمكن البحث فيها الآن.'
+
   return (
     <main className="ln-page iq-page">
       <header className="ln-head">
@@ -99,19 +103,23 @@ export function LearnClient({
       <section className="ln-browse" aria-labelledby="ln-browse-h">
         <div className="ln-browse-head">
           <h2 id="ln-browse-h">جميع المقالات</h2>
-          {/* Disabled while there is nothing to search — and the reason
-              travels with the control. A dead-looking input with no
-              explanation reads as a bug, and the user retries it. */}
+          {/* Disabled while there is nothing to search — and the reason travels
+              with the control. A dead-looking input with no explanation reads
+              as a bug, and the user retries it.
+
+              The reason is not the same in both cases, and saying the wrong one
+              is worse than saying nothing: an empty library means «nothing is
+              written yet», an unreachable CMS means «we could not read it». */}
           <label className="ln-search">
             <span className="sr-only">ابحث في التعلّم</span>
             <input value={query} placeholder="ابحث في التعلّم"
               onChange={(e) => { setQuery(e.target.value); setShown(6) }}
               disabled={items.length === 0}
               aria-describedby={items.length === 0 ? 'ln-search-why' : undefined}
-              title={items.length === 0 ? 'لا توجد مقالات للبحث فيها بعد.' : undefined} />
+              title={items.length === 0 ? searchWhy : undefined} />
           </label>
           {items.length === 0 ? (
-            <span id="ln-search-why" className="sr-only">لا توجد مقالات للبحث فيها بعد.</span>
+            <span id="ln-search-why" className="sr-only">{searchWhy}</span>
           ) : null}
         </div>
 
