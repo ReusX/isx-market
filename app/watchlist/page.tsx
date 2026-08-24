@@ -1,19 +1,13 @@
 import type { Metadata } from 'next'
 import WatchlistClient from './WatchlistClient'
-import { absUrl, seoAlternates } from '@/lib/seo'
 
 export const metadata: Metadata = {
-  title: { absolute: 'قوائم المتابعة · أسهمك المختارة في بورصة العراق' },
-  description: 'تابع أسهمك المفضلة في بورصة العراق · الأسعار والتغيرات اليومية في مكان واحد.',
-  alternates: seoAlternates('/watchlist'),
-  // Not indexed, but a shared link still renders a card — and one pointing at
-  // the homepage instead of the page being shared is simply wrong.
-  openGraph: { url: absUrl('/watchlist'), images: [{ url: '/opengraph-image', width: 1200, height: 630 }] },
-  // Personal tool · a signed-out crawler sees only an empty list. See the note
-  // in app/portfolio/layout.tsx.
-  robots: { index: false, follow: true },
+  title: 'قائمة المتابعة · أسهمك المتابَعة في بورصة العراق',
+  description: 'تابع أسعار الشركات التي اخترتها في بورصة العراق وتغيّرها وقيمتها السوقية في مكان واحد.',
+  // A personal workspace is not a landing page.
+  robots: { index: false, follow: false },
 }
 
-export default function Page() {
+export default function WatchlistPage() {
   return <WatchlistClient />
 }

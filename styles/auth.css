@@ -1,0 +1,317 @@
+/* ════════════════════════════════════════════════════════════════════════════
+   شاشات الدخول — a DIRECT PORT of the approved auth family.
+   ════════════════════════════════════════════════════════════════════════════
+
+   Source: `/Users/amed/iqwealth-design/app/globals.css`, the route's own block,
+   extracted by matching the block boundary rather than retyped.
+
+   ── The adaptations, and only these ────────────────────────────────
+     · `.iq-dark` on the page root → `[data-theme='dark']` on <html>.
+     · `--font-numeric` / `--font-body` gain this repo's fallback stacks.
+     · the design-mode state picker rules are dropped.
+
+   `.au-*` was unused in this repo before this file.
+   ════════════════════════════════════════════════════════════════════════════ */
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   نظام تسجيل الدخول — the authentication family
+   ───────────────────────────────────────────────────────────────────────────
+   Six screens, one system. §2 The composition, form width, field styling,
+   button hierarchy, error and success treatment are defined ONCE here — a
+   visitor moving from login to sign-up to verification never leaves IQWealth.
+
+   The page provides the structure, so the form is not a floating SaaS card on
+   a grey field (§4). Light mode is editorial: cotton ground, dark type, one
+   1-bit plate, blue only on focus and the primary action (§26).
+
+   The 1-bit panel sits BESIDE the form, never behind it — no text over dither,
+   no animation behind inputs. §31
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.au-page {
+  min-block-size: 100dvh;
+  background: var(--mv-panel);
+  color: var(--mv-ink);
+}
+.au-page.iq-light { --mv-ink-3: #6e746f; --mv-up: #0e7350; --mv-down: #a83926; }
+.au-page[data-theme='dark']  { --mv-ink-3: #9ea29c; --mv-up: #40d795; --mv-down: #f4787d; }
+
+.au-split { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 0.92fr); min-block-size: 100dvh; }
+.au-form-side {
+  display: flex; flex-direction: column;
+  padding: 26px clamp(22px, 5vw, 64px) 34px;
+}
+
+/* ── Minimal signed-out chrome · §32 §33 ─────────────────────────────────── */
+.au-chrome { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+.au-brand { display: inline-flex; align-items: center; gap: 9px; text-decoration: none; }
+.au-brand-mark {
+  inline-size: 30px; block-size: 30px; display: grid; place-items: center;
+  border-radius: 8px; background: var(--mv-hero); color: #fff;
+  font: 700 .8rem var(--font-display);
+}
+.au-brand-name { font: 700 .92rem var(--font-display); color: var(--mv-ink); }
+.au-chrome-controls { display: flex; align-items: center; gap: 8px; }
+/* Compact, never primary. §33 */
+.au-mini {
+  display: inline-flex; padding: 3px; gap: 2px;
+  border: 1px solid var(--mv-line); border-radius: 999px; background: var(--mv-well);
+}
+.au-mini button {
+  min-inline-size: 34px; min-block-size: 28px; padding-inline: 8px;
+  border: 0; border-radius: 999px; background: none; cursor: pointer;
+  font: 600 .68rem var(--font-body), Arial, sans-serif; color: var(--mv-ink-3);
+}
+.au-mini button.is-on { background: var(--mv-hero); color: #fff; }
+.au-mini button:focus-visible { outline: 2px solid var(--mv-hero); outline-offset: 2px; }
+.au-mini-btn {
+  inline-size: 34px; block-size: 34px; border-radius: 50%;
+  border: 1px solid var(--mv-line); background: var(--mv-well);
+  color: var(--mv-ink-2); cursor: pointer; font-size: .82rem;
+}
+.au-mini-btn:hover { color: var(--mv-hero); border-color: var(--mv-hero); }
+.au-mini-btn:focus-visible { outline: 2px solid var(--mv-hero); outline-offset: 2px; }
+
+/* ── Body · one measure for the whole family ─────────────────────────────── */
+.au-body {
+  flex: 1; display: flex; flex-direction: column; justify-content: center;
+  inline-size: 100%; max-inline-size: 400px; margin-inline: auto;
+  padding-block: 40px;
+}
+.au-body.is-wide { max-inline-size: 720px; }
+.au-head { margin-block-end: 24px; }
+.au-head h1 { margin: 0; font: 700 clamp(1.35rem, 2.6vw, 1.72rem)/1.2 var(--font-display); color: var(--mv-ink); letter-spacing: -.02em; }
+.au-head p { margin: 8px 0 0; font-size: .82rem; line-height: 1.65; color: var(--mv-ink-2); }
+.au-head bdi { font-family: var(--font-numeric), ui-monospace, monospace; font-weight: 600; color: var(--mv-ink); }
+
+.au-foot {
+  display: flex; align-items: center; justify-content: center; gap: 7px;
+  font-size: .78rem; color: var(--mv-ink-3);
+}
+.au-foot a { color: var(--mv-hero); font-weight: 600; text-decoration: none; }
+[data-theme='dark'] .au-foot a { color: var(--mv-hero-bright); }
+.au-foot a:hover { text-decoration: underline; }
+
+/* Sign-up's benefits column. §11 */
+.au-two { display: grid; grid-template-columns: minmax(0, 1fr) 250px; gap: 42px; align-items: start; }
+.au-benefits { padding-inline-start: 30px; border-inline-start: 1px solid var(--mv-line); }
+.au-benefits h2 { margin: 0 0 14px; font: 700 .84rem var(--font-display); color: var(--mv-ink); }
+.au-benefits ul { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 16px; }
+.au-benefits li { display: flex; flex-direction: column; gap: 3px; }
+.au-benefits strong { font: 600 .8rem var(--font-body), Arial, sans-serif; color: var(--mv-ink); }
+.au-benefits span { font-size: .71rem; line-height: 1.65; color: var(--mv-ink-3); }
+
+/* ── Fields · §8 · labels, not placeholder-only ──────────────────────────── */
+.au-form { display: flex; flex-direction: column; gap: 15px; }
+.au-field { display: flex; flex-direction: column; gap: 6px; }
+.au-field label { font: 600 .74rem var(--font-body), Arial, sans-serif; color: var(--mv-ink-2); }
+.au-field input {
+  inline-size: 100%; min-block-size: 50px; padding-inline: 15px;
+  border: 1px solid var(--mv-line-strong); border-radius: 12px;
+  background: var(--mv-panel-solid); color: var(--mv-ink);
+  font: 500 .92rem var(--font-body), Arial, sans-serif;
+  transition: border-color .13s, box-shadow .13s;
+}
+.au-field input::placeholder { color: var(--mv-ink-3); }
+/* Electric Blue focus, and a ring rather than a border swap so nothing
+   shifts by a pixel on tab. */
+.au-field input:focus-visible {
+  outline: none; border-color: var(--mv-hero);
+  box-shadow: 0 0 0 3px rgba(49,113,198,.18);
+}
+[data-theme='dark'] .au-field input:focus-visible { box-shadow: 0 0 0 3px rgba(90,160,232,.22); }
+.au-field input:disabled { opacity: .6; }
+.au-field.is-bad input { border-color: var(--mv-down); }
+.au-field-hint { margin: 0; font-size: .68rem; color: var(--mv-ink-3); }
+.au-field-err { margin: 0; font-size: .7rem; color: var(--mv-down); }
+.au-ok-inline { color: var(--mv-up); }
+
+/* Password visibility. §6 */
+.au-pw { position: relative; display: flex; }
+.au-pw input { padding-inline-end: 74px; }
+.au-pw button {
+  position: absolute; inset-inline-end: 6px; inset-block: 6px;
+  min-inline-size: 60px; padding-inline: 10px;
+  border: 0; border-radius: 9px; background: none;
+  color: var(--mv-ink-3); cursor: pointer; font: 600 .7rem var(--font-body), Arial, sans-serif;
+}
+.au-pw button:hover { color: var(--mv-hero); background: var(--mv-well); }
+.au-pw button:focus-visible { outline: 2px solid var(--mv-hero); outline-offset: -2px; }
+
+.au-row-end { display: flex; justify-content: flex-end; margin-block-start: -4px; }
+.au-row-end a { font-size: .73rem; color: var(--mv-ink-2); text-decoration: none; }
+.au-row-end a:hover { color: var(--mv-hero); }
+
+/* ── Primary action · §23 · keeps its label while submitting ─────────────── */
+.au-submit {
+  display: flex; align-items: center; justify-content: center; gap: 9px;
+  min-block-size: 50px; margin-block-start: 4px;
+  border: 0; border-radius: 12px; background: var(--mv-hero); color: #fff;
+  cursor: pointer; font: 700 .86rem var(--font-body), Arial, sans-serif;
+  transition: filter .13s;
+}
+.au-submit:hover:not(:disabled) { filter: brightness(1.07); }
+.au-submit:disabled { opacity: .7; cursor: default; }
+.au-submit:focus-visible { outline: 2px solid var(--mv-hero); outline-offset: 3px; }
+.au-spin {
+  inline-size: 14px; block-size: 14px; border-radius: 50%;
+  border: 2px solid rgba(255,255,255,.35); border-block-start-color: #fff;
+  animation: au-spin .7s linear infinite;
+}
+.au-spin.is-lg { inline-size: 26px; block-size: 26px; border-width: 2.5px; border-color: var(--mv-line-strong); border-block-start-color: var(--mv-hero); }
+@keyframes au-spin { to { transform: rotate(360deg); } }
+
+/* ── Errors · §9 §24 · a reason, never raw SDK text ──────────────────────── */
+.au-error {
+  display: flex; gap: 10px; padding: 13px 14px;
+  border: 1px solid rgba(168,60,42,.28); border-radius: 12px;
+  background: rgba(168,60,42,.06);
+}
+.au-error i { font-style: normal; color: var(--mv-down); flex-shrink: 0; line-height: 1.5; }
+.au-error strong { display: block; font: 600 .8rem var(--font-body), Arial, sans-serif; color: var(--mv-ink); }
+.au-error span { display: block; margin-block-start: 3px; font-size: .71rem; line-height: 1.6; color: var(--mv-ink-2); }
+.au-error-act { margin-block-start: 8px; }
+.au-error-act a { font: 600 .73rem var(--font-body), Arial, sans-serif; color: var(--mv-hero); text-decoration: none; border-block-end: 1px solid currentColor; }
+[data-theme='dark'] .au-error-act a { color: var(--mv-hero-bright); }
+.au-inline-err { color: var(--mv-down) !important; }
+
+/* §22 · the protected-route handoff, stated so the user knows why they are here. */
+.au-return {
+  margin: 0 0 16px; padding: 11px 13px; border-radius: 11px;
+  background: rgba(49,113,198,.07); border: 1px solid rgba(49,113,198,.2);
+  font-size: .75rem; line-height: 1.6; color: var(--mv-ink-2);
+}
+[data-theme='dark'] .au-return { background: rgba(90,160,232,.09); border-color: rgba(90,160,232,.2); }
+.au-return strong { color: var(--mv-ink); }
+
+/* ── Outcomes · one shape for every terminal state · §2 ──────────────────── */
+.au-outcome { display: flex; flex-direction: column; gap: 10px; }
+.au-outcome-mark {
+  inline-size: 44px; block-size: 44px; display: grid; place-items: center;
+  border-radius: 50%; font-size: 1.05rem;
+  background: var(--mv-well); color: var(--mv-ink-2);
+  border: 1px solid var(--mv-line-strong);
+}
+.au-outcome.is-good .au-outcome-mark { background: var(--mv-up-soft, rgba(14,115,80,.1)); color: var(--mv-up); border-color: transparent; }
+.au-outcome.is-bad .au-outcome-mark { background: rgba(168,60,42,.09); color: var(--mv-down); border-color: transparent; }
+.au-outcome h2 { margin: 4px 0 0; font: 700 1.05rem var(--font-display); color: var(--mv-ink); }
+.au-outcome-body p { margin: 0 0 9px; font-size: .8rem; line-height: 1.75; color: var(--mv-ink-2); }
+.au-outcome-body p:last-child { margin-block-end: 0; }
+.au-outcome-body bdi { font-weight: 600; color: var(--mv-ink); }
+.au-quiet { color: var(--mv-ink-3) !important; font-size: .72rem !important; }
+.au-outcome-acts { display: flex; gap: 10px; flex-wrap: wrap; margin-block-start: 8px; }
+
+.au-btn {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-block-size: 46px; padding-inline: 18px;
+  border: 1px solid var(--mv-line-strong); border-radius: 11px;
+  background: none; color: var(--mv-ink-2); cursor: pointer;
+  font: 600 .78rem var(--font-body), Arial, sans-serif; text-decoration: none;
+  transition: background-color .13s, color .13s;
+}
+.au-btn:hover { background: var(--mv-well); color: var(--mv-ink); }
+.au-btn:focus-visible { outline: 2px solid var(--mv-hero); outline-offset: 2px; }
+.au-btn:disabled { opacity: .5; cursor: default; }
+.au-btn.is-primary { background: var(--mv-hero); border-color: var(--mv-hero); color: #fff; }
+.au-btn.is-primary:hover { filter: brightness(1.07); background: var(--mv-hero); color: #fff; }
+.au-btn.is-quiet { border-color: transparent; color: var(--mv-ink-3); }
+
+/* §20 · a short processing screen, not a skeleton dashboard. */
+.au-processing { display: flex; flex-direction: column; align-items: center; gap: 12px; padding-block: 34px; text-align: center; }
+.au-processing p { margin: 0; font-size: .82rem; color: var(--mv-ink-2); }
+
+/* Screens that exist in the design but not yet in the product say so, and name
+   the exact call. Same treatment the market tools' missing history got. */
+.au-wiring {
+  display: flex; gap: 9px; margin: 26px 0 0; padding: 12px 13px;
+  border-radius: 11px; background: var(--mv-well);
+  font-size: .69rem; line-height: 1.8; color: var(--mv-ink-3);
+}
+.au-wiring i { font-style: normal; flex-shrink: 0; opacity: .8; }
+.au-wiring strong { color: var(--mv-ink-2); }
+.au-wiring code {
+  font-family: var(--font-numeric), ui-monospace, monospace; font-size: .95em;
+  padding: 1px 5px; border-radius: 5px; background: var(--mv-panel-solid);
+}
+
+/* DESIGN-MODE scaffolding only. */
+.au-preview {
+  display: inline-flex; align-items: center; gap: 7px; align-self: flex-start;
+  margin-block-end: 18px; padding: 4px 4px 4px 11px;
+  border: 1px dashed var(--mv-line-strong); border-radius: 999px;
+  font-size: .64rem; color: var(--mv-ink-3);
+}
+.au-preview select {
+  min-block-size: 30px; padding-inline: 9px;
+  border: 0; border-radius: 999px; background: var(--mv-well);
+  color: var(--mv-ink-2); font: 600 .68rem var(--font-body), Arial, sans-serif;
+}
+
+/* ── The 1-bit side · §3 §5 ──────────────────────────────────────────────── */
+.au-art-side {
+  position: relative; display: flex; flex-direction: column;
+  justify-content: center; align-items: center; gap: 18px;
+  padding: 40px; border-inline-start: 1px solid var(--mv-line);
+  background: var(--mv-well);
+}
+.au-art { inline-size: min(100%, 460px); block-size: min(60vh, 460px); }
+.au-art .dt-art { color: #14161a; }
+[data-theme='dark'] .au-art .dt-art { color: #f0efec; }
+.au-page.iq-light .au-art { opacity: .9; }
+.au-page[data-theme='dark'] .au-art { opacity: .8; }
+.au-art-line {
+  margin: 0; max-inline-size: 34ch; text-align: center;
+  font-size: .76rem; line-height: 1.7; color: var(--mv-ink-3);
+}
+
+/* ── Responsive ──────────────────────────────────────────────────────────── */
+@media (max-width: 1180px) {
+  .au-split { grid-template-columns: minmax(0, 1fr) minmax(0, 0.72fr); }
+  .au-two { grid-template-columns: minmax(0, 1fr); gap: 26px; }
+  .au-benefits { padding-inline-start: 0; padding-block-start: 22px; border-inline-start: 0; border-block-start: 1px solid var(--mv-line); }
+  .au-body.is-wide { max-inline-size: 400px; }
+}
+
+/* Tablet keeps the split. */
+@media (max-width: 900px) {
+  .au-art { block-size: min(46vh, 340px); }
+}
+
+/* ═══ Mobile · single column, form first · §28 ══════════════════════════════
+   The visual stays present and secondary: a short strip ABOVE the form, capped
+   so it can never push the form below the fold. §28 §31 */
+@media (max-width: 760px) {
+  .au-split { grid-template-columns: minmax(0, 1fr); min-block-size: 0; }
+  .au-form-side { order: 2; padding: 0 16px 30px; }
+  .au-art-side {
+    order: 1; padding: 10px 16px 0; gap: 0;
+    border-inline-start: 0; border-block-end: 1px solid var(--mv-line);
+    background: none;
+  }
+  .au-art { inline-size: 100%; block-size: 120px; }
+  .au-art-line { display: none; }
+  .au-chrome { padding-block: 14px; }
+  .au-body { padding-block: 18px 26px; max-inline-size: none; }
+  .au-head h1 { font-size: 1.3rem; }
+  /* Comfortable targets throughout, and enough bottom room that the submit
+     stays reachable above a phone keyboard. §29 §34
+     The chrome controls are compact by design (§33) — compact is a SIZE, not
+     an excuse for a 28px tap target, so they grow on touch without becoming
+     visually primary. */
+  .au-field input, .au-submit, .au-btn { min-block-size: 50px; }
+  .au-brand { min-block-size: 44px; }
+  .au-mini button { min-block-size: 40px; min-inline-size: 44px; }
+  .au-mini-btn { inline-size: 44px; block-size: 44px; }
+  .au-pw button { min-block-size: 42px; }
+  /* Inline padding enlarges the hit area of a text link without moving the
+     line box. */
+  .au-row-end a, .au-foot a { padding-block: 12px; }
+  .au-art { block-size: 138px; }
+  .au-outcome-acts .au-btn { flex: 1; }
+  .au-foot { padding-block-start: 8px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .au-spin { animation: none; }
+  .au-field input, .au-submit, .au-btn, .au-mini button { transition: none; }
+}

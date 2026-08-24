@@ -57,6 +57,9 @@ const LATIN_ONLY = [
      element only when a Latin name is present and omits it otherwise, rather
      than falling back to the Arabic one into a tracked rule. */
   ['.cd-id-en', 'the company masthead\'s English name, rendered only when Latin'],
+  /* A ticker chip. ISX tickers are four Latin letters by construction and the
+     class is only ever put on a `bdi` carrying one. */
+  ['.mv-ticker', 'the ticker chip — Latin symbols only'],
 ]
 
 function files(dir, out = []) {
