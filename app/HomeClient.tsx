@@ -21,7 +21,7 @@ const nf = new Intl.NumberFormat('en-US')
 const compact = new Intl.NumberFormat('en-US', { notation: 'compact', maximumFractionDigits: 1 })
 const price = new Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
 
-type SortKey = 'price' | 'change' | 'volume' | 'value'
+type SortKey = 'price' | 'change' | 'volume' | 'value' | 'mcap'
 type MoverTab = 'mcap' | 'gainers' | 'losers' | 'active'
 
 /**
@@ -70,7 +70,10 @@ export default function HomeClient() {
   const [indexFailed, setIndexFailed] = useState(false)
   const [flowFailed, setFlowFailed] = useState(false)
 
-  const [sortKey, setSortKey] = useState<SortKey>('value')
+  /* Seeded to match the default tab. Left at 'value' the board opened on
+     «القيمة السوقية» while still ordered by traded value — the same
+     mismatch `pickTab` exists to prevent, just on first paint. */
+  const [sortKey, setSortKey] = useState<SortKey>('mcap')
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc')
   const [moverTab, setMoverTab] = useState<MoverTab>('mcap')
   const [query, setQuery] = useState('')
@@ -144,19 +147,56 @@ export default function HomeClient() {
     change: (c) => c.pct,
     volume: (c) => c.shares_traded ?? 0,
     value: (c) => c.vol ?? 0,
+    /* Calls the import directly, not `capOf`: this object is built on every
+       render and `capOf` is declared further down, so referencing it here threw
+       «Cannot access 'capOf' before initialization» and took the whole page
+       with it.
+
+       Unavailable is not zero — but it still has to sort somewhere, and the
+       comparator below pushes it past every real value in either direction, so
+       a company with no cap never lands between two that have one. */
+    mcap: (c) => { const v = liveMcap(c); return v > 0 ? v : Number.NEGATIVE_INFINITY },
   }
 
-  /* The tab drives the MOVER CHIPS, not the table — that is the reference's
-     own division and it is also what keeps §13's «at least 25 rows» true. An
-     earlier draft filtered the table by the tab too, and «الرابحون» on a
-     session with 11 advancers rendered an 11-row board. */
+  /**
+   * The board.
+   *
+   * The tab used to drive only the three mover chips while the table kept its
+   * own pool and its own sort — so «القيمة السوقية» showed a table ordered by
+   * TRADED VALUE with a column of traded values under it. Selecting a
+   * market-cap view and reading BGUC's 274.1M session turnover as its market
+   * capitalisation is the bug that produced.
+   *
+   * The tab now decides both, and the two universes stay distinct:
+   *
+   *   القيمة السوقية   the ROSTER, ranked by `liveMcap`. Market cap is a
+   *                    property of the company, not of the session, so a name
+   *                    that did not trade today still belongs in it.
+   *   every other tab  the session's traded companies, ranked by the column
+   *                    the reader picked, exactly as before.
+   *
+   * The other tabs kept their pool for the reason they always had: filtering
+   * the table by «الرابحون» on a session with 11 advancers rendered an 11-row
+   * board. Market cap does not have that problem — the roster is always full.
+   */
   const rows = useMemo(() => {
     const q = query.trim().toLowerCase()
-    const pool = traded.filter((c) => !q || c.ar.includes(query.trim()) || c.sym.toLowerCase().includes(q))
+    const base = moverTab === 'mcap' ? companies : traded
+    const pool = base.filter((c) => !q || c.ar.includes(query.trim()) || c.sym.toLowerCase().includes(q))
     const get = sortable[sortKey]
-    return [...pool].sort((a, b) => (sortDir === 'asc' ? 1 : -1) * (get(a) - get(b))).slice(0, 25)
+    const dir = sortDir === 'asc' ? 1 : -1
+    return [...pool].sort((a, b) => {
+      const av = get(a), bv = get(b)
+      /* A company with no value for the chosen measure sorts LAST whichever
+         way the column is pointing. Interleaving it at zero would rank an
+         unknown against real numbers. */
+      const aNa = !Number.isFinite(av), bNa = !Number.isFinite(bv)
+      if (aNa !== bNa) return aNa ? 1 : -1
+      if (aNa && bNa) return 0
+      return dir * (av - bv)
+    }).slice(0, 25)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [traded, query, sortKey, sortDir])
+  }, [companies, traded, moverTab, query, sortKey, sortDir])
 
   /**
    * The four modes, and what each one actually ranks.
@@ -224,6 +264,20 @@ export default function HomeClient() {
     if (key === sortKey) setSortDir(sortDir === 'asc' ? 'desc' : 'asc')
     else { setSortKey(key); setSortDir('desc') }
   }
+
+  /** The tab owns the table's default measure; the header can still re-sort. */
+  function pickTab(k: MoverTab) {
+    setMoverTab(k)
+    setSortKey(k === 'mcap' ? 'mcap' : 'value')
+    setSortDir('desc')
+  }
+
+  /* The value column is not one column with two meanings. It is market cap in
+     market-cap mode and traded value everywhere else, and it says which. */
+  const capMode = moverTab === 'mcap'
+  const valueCol = capMode
+    ? { key: 'mcap' as SortKey, label: 'القيمة السوقية' }
+    : { key: 'value' as SortKey, label: 'قيمة التداول' }
 
   const closeExpanded = useCallback(() => setExpanded(false), [])
   const expandedRef = useOverlay(expanded, closeExpanded)
@@ -318,7 +372,7 @@ export default function HomeClient() {
           <div role="tablist" aria-label="تصنيف الشركات">
             {([['mcap', 'القيمة السوقية'], ['gainers', 'الرابحون'], ['losers', 'الخاسرون'], ['active', 'الأكثر نشاطاً']] as const).map(([k, l]) => (
               <button key={k} type="button" role="tab" aria-selected={moverTab === k}
-                className={moverTab === k ? 'active' : ''} onClick={() => setMoverTab(k)}
+                className={moverTab === k ? 'active' : ''} onClick={() => pickTab(k)}
                 /* The market-cap universe is the CURRENT ROSTER and a snapshot,
                    not a session figure and not an official exchange ranking.
                    Carried on the control rather than as a new line of chrome,
@@ -353,7 +407,9 @@ export default function HomeClient() {
           <div className="hm-market-table">
             <table>
               <caption className="sr-only">
-                {rows.length} شركة في جلسة {arSession(session)}
+                {capMode
+                  ? `${rows.length} شركة مرتّبة حسب القيمة السوقية · لقطة على سجل الشركات`
+                  : `${rows.length} شركة في جلسة ${arSession(session)}`}
               </caption>
               <thead>
                 <tr>
@@ -361,7 +417,12 @@ export default function HomeClient() {
                   <th scope="col"><button type="button" onClick={() => sortBy('price')}>آخر سعر</button></th>
                   <th scope="col"><button type="button" onClick={() => sortBy('change')}>التغير</button></th>
                   <th scope="col"><button type="button" onClick={() => sortBy('volume')}>الحجم</button></th>
-                  <th scope="col"><button type="button" onClick={() => sortBy('value')}>القيمة</button></th>
+                  {/* «القيمة» meant traded value while a market-cap tab was
+                      selected. The column now carries the name of the number
+                      actually under it. */}
+                  <th scope="col" aria-sort={sortKey === valueCol.key ? (sortDir === 'desc' ? 'descending' : 'ascending') : undefined}>
+                    <button type="button" onClick={() => sortBy(valueCol.key)}>{valueCol.label}</button>
+                  </th>
                   <th scope="col"><span className="sr-only">اتجاه 7 جلسات</span><bdi aria-hidden="true">7D</bdi></th>
                 </tr>
               </thead>
@@ -383,14 +444,28 @@ export default function HomeClient() {
                     </td>
                     <td><bdi>{price.format(c.close)} IQD</bdi></td>
                     <td>
-                      {c.noPrior ? <Unavailable why="لا يوجد إغلاق سابق" /> : (
+                      {/* A carried-forward row's change belongs to its LAST
+                          traded session, not to this one. In the roster view
+                          that row is on screen precisely because it did not
+                          trade, so the session columns say so instead of
+                          printing an old move as today's. */}
+                      {c.stale ? <Unavailable why={lastTradeNote(c, true)} />
+                        : c.noPrior ? <Unavailable why="لا يوجد إغلاق سابق" /> : (
                         <bdi className={signed(c.pct).tone === 'up' ? 'positive' : signed(c.pct).tone === 'down' ? 'negative' : ''}>
                           {signed(c.pct).text}
                         </bdi>
                       )}
                     </td>
-                    <td><bdi>{nf.format(c.shares_traded ?? 0)}</bdi></td>
-                    <td><bdi>{compact.format(c.vol ?? 0)} IQD</bdi></td>
+                    <td>
+                      {c.stale ? <Unavailable why={lastTradeNote(c, true)} />
+                        : <bdi>{nf.format(c.shares_traded ?? 0)}</bdi>}
+                    </td>
+                    <td>
+                      {capMode
+                        ? (capOf(c) == null ? <Unavailable why="لا يتوفر سعر أو عدد أسهم" />
+                          : <bdi>{compact.format(capOf(c) as number)} IQD</bdi>)
+                        : <bdi>{compact.format(c.vol ?? 0)} IQD</bdi>}
+                    </td>
                     <td>
                       {sparks[c.sym]?.length
                         ? <Sparkline values={sparks[c.sym]} positive={c.pct >= 0} compact />
