@@ -35,22 +35,27 @@ const BASE_FIELDS = 'id,slug,date,modified,title,excerpt,content,featured_media,
 export async function getPosts(
   section: Section,
   { page = 1, perPage = 12 }: { page?: number; perPage?: number } = {}
-): Promise<{ posts: WPPost[]; total: number; totalPages: number }> {
+): Promise<{ posts: WPPost[]; total: number; totalPages: number; ok: boolean }> {
   const catId = CATEGORY_IDS[section]
   try {
     const res = await fetch(
       `${WP}/wp-json/wp/v2/posts?categories=${catId}&page=${page}&per_page=${perPage}&_embed=1&_fields=${BASE_FIELDS}&orderby=date&order=desc`,
       { next: { revalidate: 300 } }
     )
-    if (!res.ok) return { posts: [], total: 0, totalPages: 0 }
+    if (!res.ok) return { posts: [], total: 0, totalPages: 0, ok: false }
     const posts = await res.json()
     return {
       posts,
       total:      parseInt(res.headers.get('X-WP-Total') ?? '0'),
       totalPages: parseInt(res.headers.get('X-WP-TotalPages') ?? '0'),
+      // `ok` separates "the CMS answered, and this section is empty" from "the
+      // CMS did not answer". Without it both arrive as `posts: []` and a
+      // section page cannot tell an empty library from an outage — which are
+      // different facts and owe the reader different screens.
+      ok: true,
     }
   } catch {
-    return { posts: [], total: 0, totalPages: 0 }
+    return { posts: [], total: 0, totalPages: 0, ok: false }
   }
 }
 

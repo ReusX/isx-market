@@ -119,7 +119,9 @@ export default function ProfileClient() {
     return (
       <main className="ac-page iq-page">
         <section className="pf-empty">
-          <strong>سجّل الدخول لعرض حسابك</strong>
+          {/* An `h1`, not a `strong` — this is the whole page when signed out,
+              and a page with no top-level heading has no landmark to enter. */}
+          <h1>سجّل الدخول لعرض حسابك</h1>
           <p>يحتاج هذا القسم إلى حساب. محفظتك وقائمتك تعملان دون تسجيل دخول، ويزامنهما الحساب عبر أجهزتك.</p>
           <button type="button" className="pf-add pf-add-lg" onClick={() => openAuth?.()}>تسجيل الدخول</button>
         </section>

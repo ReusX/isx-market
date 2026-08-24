@@ -115,7 +115,11 @@
   border: 1px dashed var(--mv-line-strong); border-radius: 16px;
   background: var(--mv-well);
 }
-.pf-empty strong { color: var(--mv-ink); font-size: .95rem; }
+/* `h1` joins `strong` here: the signed-out /profile screen is a whole page,
+   and a page whose only heading is a `<strong>` has no `h1` at all. Same
+   treatment, so the visual is unchanged. */
+.pf-empty strong,
+.pf-empty h1 { margin: 0; color: var(--mv-ink); font: 700 .95rem var(--font-body); }
 .pf-empty p { max-inline-size: 46ch; margin: 8px 0 0; color: var(--mv-ink-2); font-size: .75rem; line-height: 1.85; }
 .pf-empty-note { margin-block-start: 12px; color: var(--mv-ink-3); font-size: .66rem; }
 

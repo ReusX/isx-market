@@ -165,9 +165,9 @@ one commit, not three.
 | `/learn/trading-from-zero` | same | `Path.tsx` | same | hand-written static | **DP** |
 | `/about` | `/about` | `About.tsx`, `InfoChrome.tsx`, `infoData.ts` | 12636–13001 `.in-*` | none | **DP** |
 | `/contact` | `/contact` | `Contact.tsx` | same | none | **DP** |
-| `/privacy` | `/privacy` | `LegalDoc.tsx`, `legalContent.ts` | same | none | **DP** (copy stays production's; 10 counsel markers unresolved) |
-| `/legal` | `/legal` | same | same | none | **DP** |
-| 404 / 500 / `error` | `/system` | `StatePage.tsx`, `dataStates.tsx`, `Overlay.tsx`, `Toast.tsx`, `MobileNav.tsx`, `SiteFooter.tsx` | 13293–13365 `.sp-*` | none | **DP** |
+| `/privacy` | `/privacy` | `LegalDoc.tsx`, `legalContent.ts` | same | none | ✅ done — **7 counsel markers visible, see B4** |
+| `/legal` | `/legal` | same | same | none | ✅ done — same |
+| 404 / 500 / `error` | `/system` | `StatePage.tsx`, `dataStates.tsx`, `Overlay.tsx`, `Toast.tsx`, `MobileNav.tsx`, `SiteFooter.tsx` | 13293–13365 `.sp-*` | none | ✅ done (`dataStates`/`Overlay`/`Toast`/`MobileNav`/`SiteFooter` already migrated in Phase 0) |
 
 ### Not migrated
 
@@ -184,20 +184,18 @@ one commit, not three.
 
 ## 4 · Real blockers (§12)
 
-**B1 · `/news/[slug]` has no approved design.** The design app's article page is
-the stale `terminal-shell` version with a mock `DitherGraphic`. The only approved
-long-form reading surface is `learn/Article.tsx` (`.ln-article-*`), which is the
-same shape: WP body, derived TOC, related list. *Proposed resolution — reuse the
-`.ln-article-*` chrome for news articles rather than shipping the stale page.*
-Solvable in-flight; recorded here because it is a composition decision, not a
-copy.
+**B1 · `/news/[slug]` has no approved design. RESOLVED in Batch D.** The design
+app's article page is the stale `terminal-shell` version with a mock
+`DitherGraphic` and was not ported. The only approved long-form reading surface
+is `learn/Article.tsx` (`.ln-*` article layer), which is the same shape: a
+reading column, a contents rail and a way onward. It was transplanted once as
+`components/article/ArticleView.tsx` and both `/news/[slug]` and `/learn/[slug]`
+render it. The seam between the transplanted News index and its articles is
+closed.
 
-**B1a · `/news/[slug]` left unchanged, as instructed.** The reference has no
-approved article page — only the stale `terminal-shell` one — so the production
-route still renders `components/cms/ArticlePage`. It now sits under a
-transplanted index, which is a visible seam. The `.ln-article-*` chrome from
-`learn/Article.tsx` is the approved surface of that shape and is the proposed
-resolution when Batch D ports Learn.
+**B1a · CLOSED by B1.** `components/cms/ArticlePage` is no longer reachable from
+`/news`; its only remaining caller is `/research/[slug]`, which is not part of
+the redesign.
 
 **B1b · The filing index is only partly public.** `financial_reports_public`
 returns 281 rows against a project record of ~5,749 indexed reports, because the
@@ -208,12 +206,16 @@ selects إفصاحات and claims nothing beyond it. A second public view over t
 INDEX rather than the extracted facts would close the gap; it is a view
 definition, not a pipeline. **Open.**
 
-**B1c · The CMS host is down.** `paleturquoise-deer-610016.hostingersite.com`
-returns 403 to every request and `cms.iraqsm.com` does not resolve, so `/news`,
-`/learn` and `/research` all render zero WordPress posts. Pre-existing, not
-introduced here. `/news` degrades honestly because its two streams load
-independently; `/learn` and `/research` still render an empty grid. **Open, and
-outside this migration.**
+**B1c · The CMS outage has CLEARED.** Re-probed during Batch D:
+`paleturquoise-deer-610016.hostingersite.com` and `cms.iraqsm.com` both answer
+200. `/news` now serves **52 real articles** and `/news/[slug]` renders them.
+
+What replaces it is not an outage but a product fact: **WordPress category 4
+(Learn) holds ZERO posts.** `/learn` therefore shows its honest empty state —
+«المحتوى قيد الإعداد» — with the one real guide, `/learn/trading-from-zero`, as
+the beginner entry point above it. `lib/cms.ts` now returns an `ok` flag so an
+empty section and an unreachable CMS are two different screens rather than one.
+**Closed as an outage; the empty Learn library is the owner's content decision.**
 
 **B1d · Quarterly financial periods do not reconcile, and `/c/[sym]/financials`
 is blocked on what that means.** `financial_facts_public` holds the ISX line
@@ -247,6 +249,21 @@ decision this migration cannot make for you:
 
 Recommendation: (2) for this batch, because it ships the approved surface
 without asserting anything false, with (3) recorded as the real fix.
+
+**B4 · `/privacy` and `/legal` ship with SEVEN VISIBLE counsel markers.** The
+approved documents are first-publication drafts written against the audited
+product, and every field that could not be verified is rendered as a visible
+`[مراجعة قانونية: …]` mark rather than guessed. Four are on `/privacy` — data
+hosting locations, retention periods, the minimum account age, and the
+operator's legal name and registered address — and three on `/legal` — the
+liability wording under Iraqi law, whether an indemnity clause belongs at all,
+and the governing law, competent court and operator identity.
+
+They are deliberately visible: a draft that hides its own gaps reads as
+finished and can be published by accident. **These two routes are therefore NOT
+production-ready and must not be deployed until Iraq-qualified counsel has
+resolved all seven.** Nothing about them is a blocker to the rest of the
+migration.
 
 **B2 · Auth is six net-new production routes.** No `/login`, `/signup`,
 `/forgot-password`, `/verify-email`, `/auth/callback` exists today; production has

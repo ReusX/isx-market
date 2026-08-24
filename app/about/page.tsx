@@ -1,97 +1,115 @@
-'use client'
+import Link from 'next/link'
+import { InfoHead, FamilyRow, Plate } from '@/components/info/InfoChrome'
+import { EMAIL, PHONE_DISPLAY, PHONE_INTL, mailto } from '@/lib/infoData'
+import '@/styles/info.css'
 
-import { useApp } from '@/context/AppContext'
-
+/**
+ * /about — من نحن. A direct transplant of the approved page.
+ *
+ * ── What the page is, and what it must not become ─────────────────────────
+ * What is IQWealth, what does it do, why does it exist — concisely. Not a
+ * founder story, not a pitch deck, not an SEO wall.
+ *
+ * The live page is a personal welcome LETTER signed أحمد بلحة, and the letter
+ * is KEPT, verbatim. It is the most credible thing on the site: a named person
+ * saying this is free, it is for you, and it is not finished yet. The
+ * reference file replaces the body with «فقرة تجريبية» placeholders because
+ * the design app had no right to the owner's words — this repo does, so the
+ * real letter goes back in and the placeholders do not ship.
+ *
+ * ── Three claims, and only three ──────────────────────────────────────────
+ * The letter's three real statements — FREE, DAILY DATA, STILL IN DEVELOPMENT
+ * — become a stated strip instead of being buried mid-paragraph. Nothing is
+ * added to them: no accuracy guarantee, no real-time claim, no regulatory
+ * status, no coverage number, no user count, no founding year, no team.
+ *
+ * ── The empty slot, deliberately empty ────────────────────────────────────
+ * The approved design carries a «من أين تأتي البيانات» section for the data
+ * sources and the update methodology. THE PRODUCT HAS NO PUBLISHED
+ * METHODOLOGY — no page states where a price comes from, when it updates, or
+ * what a figure is derived from. So the section ships as a labelled slot with
+ * an honest note and NOTHING under it. The reference's three
+ * «عنوان فرعي / نص تجريبي» rows are removed rather than shipped: an empty slot
+ * is a question, and three placeholder rows on a live page are a lie about
+ * having answered it.
+ */
 export default function AboutPage() {
-  const { lang } = useApp()
-  const ar = lang === 'ar'
-
   return (
-    <div className="terminal-shell app-page prose-page">
+    <main className="in-page in-about iq-page">
+      <InfoHead
+        eyebrow="من نحن"
+        title="أهلاً بك، عزيزي المستثمر"
+        standfirst="منصّة مجانية تساعد المستثمر العراقي على اتخاذ قراراته ببيانات يومية."
+      />
 
-      {/* Header */}
-      <div style={{ marginBottom: 40 }}>
-        <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--brand)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 12 }}>
-          {ar ? 'من نحن' : 'About'}
-        </div>
-        <h1 style={{ fontSize: 32, fontWeight: 900, lineHeight: 1.2, margin: '0 0 16px', color: 'var(--ink)' }}>
-          {ar ? 'أهلاً بك، عزيزي المستثمر' : 'Welcome, Dear Investor'}
-        </h1>
-        <p style={{ fontSize: 16, color: 'var(--ink3)', lineHeight: 1.8, margin: 0 }}>
-          {ar
-            ? 'منصّة مجانية تساعد المستثمر العراقي على اتخاذ قراراته ببيانات يومية موثوقة.'
-            : 'A free platform helping Iraqi investors decide · with reliable daily data.'}
-        </p>
-      </div>
+      {/* The one place in the product that gets to say what it is, so it
+          carries the largest drawing in the system — but it stays a PLATE:
+          framed, and above the text rather than behind it, so the reading is
+          never set on texture. */}
+      <Plate scene="about" tier="hero" />
 
-      <div style={{ height: 1, background: 'var(--line)', marginBottom: 40 }} />
-
-      {/* Welcome letter */}
-      <div style={{ fontSize: 16.5, lineHeight: 2, color: 'var(--ink2)' }}>
-        {ar ? (
-          <>
+      <div className="in-about-grid">
+        <article className="in-body">
+          {/* ── The letter · the live page's own words ─────────────────── */}
+          <div className="in-letter">
             <p>
-              ترحيبٌ خاصٌّ بك، عزيزي المستثمر. أنشأ هذا الموقع <strong style={{ color: 'var(--ink)' }}>أحمد بلحة</strong>،
+              ترحيبٌ خاصٌّ بك، عزيزي المستثمر. أنشأ هذا الموقع <strong>أحمد بلحة</strong>،
               كاتبٌ ماليّ ومستثمرٌ في الأسهم الأمريكية والعراقية.
             </p>
             <p>
-              الموقع مجانيّ تماماً، وقد صُمّم لمساعدة المستثمرين العراقيين على اتخاذ قراراتهم. لا يزال قيد التطوير
-              وستُضاف إليه ميزاتٌ أكثر بكثير، لكن يمكنك الاعتماد عليه في الحصول على معلوماتك اليومية بكل تأكيد.
+              الموقع مجانيّ تماماً، وقد صُمّم لمساعدة المستثمرين العراقيين على اتخاذ قراراتهم.
+              لا يزال قيد التطوير وستُضاف إليه ميزاتٌ أكثر بكثير، لكن يمكنك الاعتماد عليه في
+              الحصول على معلوماتك اليومية بكل تأكيد.
             </p>
-            <p style={{ marginTop: 28 }}>
+            <p className="in-sign">
               مع كل الشكر،<br />
-              <strong style={{ color: 'var(--ink)' }}>أحمد.</strong>
+              <strong>أحمد.</strong>
             </p>
-          </>
-        ) : (
-          <>
-            <p>
-              A special welcome to you, our dear investor. This website was created by{' '}
-              <strong style={{ color: 'var(--ink)' }}>Ahmed Balaha</strong>, a finance writer and investor in
-              US and Iraqi equities.
-            </p>
-            <p>
-              The site is completely free and designed to help Iraqi investors make their decisions. It is still
-              under development and many more features will be added · but you can rely on it for your daily
-              information, for sure.
-            </p>
-            <p style={{ marginTop: 28 }}>
-              With all thanks,<br />
-              <strong style={{ color: 'var(--ink)' }}>Ahmed.</strong>
-            </p>
-          </>
-        )}
-      </div>
+          </div>
 
-      {/* Contact card */}
-      <div style={{
-        marginTop: 40, background: 'var(--surf)', border: '1px solid var(--line)',
-        borderRadius: 16, padding: '22px 24px',
-      }}>
-        <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--ink4)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 16 }}>
-          {ar ? 'للتواصل' : 'Contact'}
-        </div>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-          <a href="mailto:boatlef@gmail.com" style={contactRow}>
-            <span style={iconWrap}>✉️</span>
-            <span style={{ fontFamily: 'var(--font-mono)', fontSize: 14.5, color: 'var(--ink)' }} dir="ltr">boatlef@gmail.com</span>
-          </a>
-          <a href="tel:+9647737339919" style={contactRow}>
-            <span style={iconWrap}>📞</span>
-            <span style={{ fontFamily: 'var(--font-mono)', fontSize: 14.5, color: 'var(--ink)' }} dir="ltr">+964 773 733 9919</span>
-          </a>
-        </div>
-      </div>
+          {/* ── The three real claims ──────────────────────────────────── */}
+          <section className="in-claims" aria-labelledby="in-claims-h">
+            <h2 id="in-claims-h">ما هذه المنصة</h2>
+            <dl>
+              <div>
+                <dt>مجانية</dt>
+                <dd>الوصول إلى كل الصفحات دون اشتراك.</dd>
+              </div>
+              <div>
+                <dt>يومية</dt>
+                <dd>بيانات الجلسة والشركات تُحدَّث مع كل جلسة تداول.</dd>
+              </div>
+              <div>
+                <dt>قيد التطوير</dt>
+                <dd>تُضاف الميزات تباعاً، والقائم عليها معلن.</dd>
+              </div>
+            </dl>
+          </section>
 
-    </div>
+          {/* ── The slot the product has not filled ────────────────────── */}
+          <section className="in-principles" aria-labelledby="in-principles-h">
+            <h2 id="in-principles-h">من أين تأتي البيانات</h2>
+            <p className="in-note">
+              هذا القسم مخصّص لمصادر البيانات ومنهجية التحديث. المحتوى النهائي
+              يُكتب لاحقاً.
+            </p>
+          </section>
+
+          {/* ── One way onward ─────────────────────────────────────────── */}
+          <section className="in-reach" aria-labelledby="in-reach-h">
+            <h2 id="in-reach-h">للتواصل</h2>
+            <p className="in-reach-rows">
+              <a href={mailto()} dir="ltr">{EMAIL}</a>
+              <a href={`tel:${PHONE_INTL}`} dir="ltr">{PHONE_DISPLAY}</a>
+            </p>
+            <Link className="in-reach-go" href="/contact">
+              كل طرق التواصل <i aria-hidden="true">‹</i>
+            </Link>
+          </section>
+
+          <FamilyRow current="/about" />
+        </article>
+      </div>
+    </main>
   )
-}
-
-const contactRow: React.CSSProperties = {
-  display: 'flex', alignItems: 'center', gap: 12, textDecoration: 'none',
-}
-const iconWrap: React.CSSProperties = {
-  width: 36, height: 36, borderRadius: 9, background: 'var(--surf2)',
-  border: '1px solid var(--line)', display: 'flex', alignItems: 'center',
-  justifyContent: 'center', fontSize: 16, flexShrink: 0,
 }
