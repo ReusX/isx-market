@@ -105,6 +105,8 @@
   border-block-end: 1px solid var(--mv-line);
 }
 .mt-art { position: relative; min-block-size: 260px; }
+/* Same constraint as the auth plate — see the note in styles/auth.css. */
+.mt-art canvas { display: block; inline-size: 100%; block-size: 100%; }
 /* Ink is inherited by the canvas and read back out of `color`, so the artwork
    flips with the theme without a line of JS branching. */
 .dt-art { display: block; inline-size: 100%; block-size: 100%; color: #14161a; }

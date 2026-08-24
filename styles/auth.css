@@ -255,7 +255,15 @@
   background: var(--mv-well);
 }
 .au-art { inline-size: min(100%, 460px); block-size: min(60vh, 460px); }
-.au-art .dt-art { color: #14161a; }
+/* The canvas must be constrained by CSS, not by its own attributes.
+   `DitherArt` sets `canvas.width/height` as the BACKING STORE (CSS px x dpr)
+   and leaves the display size to the stylesheet — which every other host in
+   this repo supplies (`.in-plate-frame canvas`, `.sp-plate-frame canvas`,
+   `.ce-plot canvas`, `.ffw-st-chart-plot canvas`). These two did not, so the
+   canvas rendered at its attribute size. On /login and /signup at 375 that
+   was a 2400px-wide canvas inside a 343px box: 2041px of page-level
+   horizontal overflow. */
+.au-art .dt-art { display: block; inline-size: 100%; block-size: 100%; color: #14161a; }
 [data-theme='dark'] .au-art .dt-art { color: #f0efec; }
 .au-page.iq-light .au-art { opacity: .9; }
 .au-page[data-theme='dark'] .au-art { opacity: .8; }
@@ -330,6 +338,8 @@
 .au-field-hint a::before, .au-foot a::before,
 .au-error-act a::before, .au-outcome-acts a::before {
   content: ''; position: absolute;
-  inset-inline: -8px; inset-block: -13px;
+  /* -14, not -13. The link text is 17px tall, so -13 gave a 43px hit area —
+     one pixel under the target the gate measures. */
+  inset-inline: -8px; inset-block: -14px;
 }
 .au-outcome-acts .au-submit::before { content: none; }

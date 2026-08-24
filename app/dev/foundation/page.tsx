@@ -15,6 +15,10 @@ import './foundation.css'
 export const metadata: Metadata = {
   title: 'Foundation proof sheet',
   robots: { index: false, follow: false },
+  /* No canonical at all — a design-mode proof sheet that is not part of the product,
+     so it should not declare itself a duplicate of anything. Left
+     unset it inherits the root's, which points at the homepage. */
+  alternates: { canonical: null },
 }
 
 const ROWS = [

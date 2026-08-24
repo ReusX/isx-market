@@ -46,7 +46,23 @@ function plain(html: string): string {
 export function outlineBody(html: string): { html: string; headings: Heading[] } {
   const headings: Heading[] = []
   let n = 0
-  const out = html.replace(
+
+  /**
+   * An `<h1>` inside the body becomes an `<h2>`.
+   *
+   * The page already has one: the article title. A second `h1` gives the
+   * document two top-level headings and no single entry point for a screen
+   * reader — and it happens for real, on one of the 52 published articles,
+   * where the editor opened the body with a repeat of the headline.
+   *
+   * The WORDS are untouched; only the level changes, and it changes to the
+   * level the editor almost certainly meant — the first section under the
+   * title. That also feeds it into the derived contents list below, which a
+   * body `h1` would otherwise skip.
+   */
+  const levelled = html.replace(/<(\/?)h1(\s|>)/gi, '<$1h2$2')
+
+  const out = levelled.replace(
     /<(h[23])([^>]*)>([\s\S]*?)<\/\1>/gi,
     (whole, tag: string, attrs: string, inner: string) => {
       const text = plain(inner)
