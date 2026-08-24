@@ -49,7 +49,16 @@ const SIDEBAR_KEY = 'iqwealth-sidebar-collapsed'
  * ⚠ 404 and 500 are deliberately NOT here. A failed route whose whole job is
  * "where can I go instead?" should not also take away the answer.
  */
-const BARE_ROUTES = ['/auth']
+const BARE_ROUTES = [
+  '/auth',
+  // The approved auth screens are a full-page composition: their own brand
+  // mark, their own language and theme controls, and a 1-bit art column that
+  // fills the other half of the viewport. Rendering them inside the market
+  // sidebar puts two navigations on one screen and shrinks the form column to
+  // a gutter. Batch C moved these out of a modal and onto routes, so they join
+  // /auth here.
+  '/login', '/signup', '/verify-email', '/forgot-password',
+]
 
 export default function AppFrame({ children }: { children: ReactNode }) {
   const pathname = usePathname() ?? '/'

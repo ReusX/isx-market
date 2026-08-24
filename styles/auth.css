@@ -315,3 +315,21 @@
   .au-spin { animation: none; }
   .au-field input, .au-submit, .au-btn, .au-mini button { transition: none; }
 }
+/* ── Touch targets, hit-tested outward from each control's centre ──────────
+   The chrome controls sit in a row of their own and grow for real; the two
+   inline links (the password hint, the footer) get a vertical pseudo-element
+   so the line box they sit in does not move. The show/hide button lives
+   inside the input's own box, so it grows to the field's height rather than
+   being expanded past it. */
+.au-brand, .au-mini button, .au-mini-btn { min-block-size: 44px; box-sizing: border-box; }
+.au-mini button, .au-mini-btn { min-inline-size: 44px; }
+.au-pw button { min-block-size: 44px; min-inline-size: 60px; }
+.au-submit { min-block-size: 48px; }
+
+.au-field-hint a, .au-foot a, .au-error-act a, .au-outcome-acts a { position: relative; }
+.au-field-hint a::before, .au-foot a::before,
+.au-error-act a::before, .au-outcome-acts a::before {
+  content: ''; position: absolute;
+  inset-inline: -8px; inset-block: -13px;
+}
+.au-outcome-acts .au-submit::before { content: none; }
