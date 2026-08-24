@@ -22,7 +22,7 @@ const compact = new Intl.NumberFormat('en-US', { notation: 'compact', maximumFra
 const price = new Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
 
 type SortKey = 'price' | 'change' | 'volume' | 'value'
-type MoverTab = 'gainers' | 'losers' | 'active'
+type MoverTab = 'mcap' | 'gainers' | 'losers' | 'active'
 
 /**
  * The homepage.
@@ -63,7 +63,7 @@ export default function HomeClient() {
 
   const [sortKey, setSortKey] = useState<SortKey>('value')
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc')
-  const [moverTab, setMoverTab] = useState<MoverTab>('gainers')
+  const [moverTab, setMoverTab] = useState<MoverTab>('mcap')
   const [query, setQuery] = useState('')
   const [expanded, setExpanded] = useState(false)
 
@@ -149,11 +149,39 @@ export default function HomeClient() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [traded, query, sortKey, sortDir])
 
+  /**
+   * The four modes, and what each one actually ranks.
+   *
+   *   القيمة السوقية  market cap descending, recomputed as `close × shares`.
+   *                   `companies.json` carries a STATIC mcap that has gone
+   *                   stale for a good number of tickers, so it is only the
+   *                   fallback. A company with neither a live price nor a
+   *                   share count has an UNKNOWN cap: it is placed after every
+   *                   company that has one and prints `—`, never 0.
+   *   الرابحون/الخاسرون  comparable companies only. A company with no valid
+   *                   prior close has an unknown change, and ranking it at 0%
+   *                   asserts something the data does not say.
+   *   الأكثر نشاطاً    TRADED VALUE descending — the same measure the board's
+   *                   own default sort uses (`c.vol`, which is value in IQD
+   *                   despite its name). Not volume: the two disagree, and
+   *                   switching between them silently is how a list stops
+   *                   meaning one thing.
+   */
+  const liveCap = (c: Company): number | null => {
+    if (c.shares && c.close > 0) return c.close * c.shares
+    return c.mcap ? c.mcap * 1e6 : null
+  }
+
   const movers = useMemo(() => {
+    if (moverTab === 'mcap') {
+      const withCap = traded.filter((c) => liveCap(c) != null)
+      return [...withCap].sort((a, b) => (liveCap(b) as number) - (liveCap(a) as number)).slice(0, 3)
+    }
     const pool = traded.filter((c) => !c.noPrior)
     if (moverTab === 'gainers') return [...pool].sort((a, b) => b.pct - a.pct).slice(0, 3)
     if (moverTab === 'losers') return [...pool].sort((a, b) => a.pct - b.pct).slice(0, 3)
-    return [...traded].sort((a, b) => (b.shares_traded ?? 0) - (a.shares_traded ?? 0)).slice(0, 3)
+    return [...traded].sort((a, b) => (b.vol ?? 0) - (a.vol ?? 0)).slice(0, 3)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [traded, moverTab])
 
   function sortBy(key: SortKey) {
@@ -236,7 +264,9 @@ export default function HomeClient() {
         <header>
           <div>
             <span>لوحة السوق</span>
-            <h2 id="hm-top-t">الشركات الأكثر حركة</h2>
+            {/* Not «الأكثر حركة» any more: the default view is market cap, and
+                three of the four tabs are not about movement at all. */}
+            <h2 id="hm-top-t">أبرز الشركات</h2>
           </div>
           <div className="hm-market-actions">
             <label>
@@ -250,7 +280,7 @@ export default function HomeClient() {
 
         <div className="hm-mover-tabs">
           <div role="tablist" aria-label="تصنيف الشركات">
-            {([['gainers', 'الرابحون'], ['losers', 'الخاسرون'], ['active', 'الأكثر نشاطاً']] as const).map(([k, l]) => (
+            {([['mcap', 'القيمة السوقية'], ['gainers', 'الرابحون'], ['losers', 'الخاسرون'], ['active', 'الأكثر نشاطاً']] as const).map(([k, l]) => (
               <button key={k} type="button" role="tab" aria-selected={moverTab === k}
                 className={moverTab === k ? 'active' : ''} onClick={() => setMoverTab(k)}>{l}</button>
             ))}
@@ -259,7 +289,13 @@ export default function HomeClient() {
             {movers.map((c) => (
               <Link href={`/c/${c.sym}`} key={c.sym}>
                 <bdi>{c.sym}</bdi>
-                <span>{moverTab === 'active' ? compact.format(c.shares_traded ?? 0) : signed(c.pct).text}</span>
+                <span>
+                  {moverTab === 'mcap'
+                    ? (liveCap(c) == null ? <bdi>—</bdi> : <bdi>{compact.format(liveCap(c) as number)}</bdi>)
+                    : moverTab === 'active'
+                      ? <bdi>{compact.format(c.vol ?? 0)}</bdi>
+                      : signed(c.pct).text}
+                </span>
               </Link>
             ))}
           </div>
@@ -273,7 +309,7 @@ export default function HomeClient() {
           <div className="hm-market-table">
             <table>
               <caption className="sr-only">
-                أكثر {rows.length} شركة حركة في جلسة {arSession(session)}
+                {rows.length} شركة في جلسة {arSession(session)}
               </caption>
               <thead>
                 <tr>

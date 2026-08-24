@@ -56,6 +56,10 @@
 
 .sn-head { display: flex; gap: 8px; align-items: center; min-block-size: 72px; padding: 12px 13px; }
 .sn-brand { display: flex; gap: 9px; align-items: center; flex: 1; min-inline-size: 0; text-decoration: none; color: inherit; }
+/* The mark tile. It holds the Star of Ishtar rather than the letters «IQ», so
+   the geometry — not a monospace abbreviation — carries the brand. Kept at
+   30px and on the same centre line as the wordmark; the star is sized to sit
+   inside the tile with its own optical margin rather than filling it. */
 .sn-mark {
   display: grid;
   place-items: center;
@@ -66,11 +70,10 @@
   background: #171918;
   color: #fff;
   box-shadow: inset -5px 0 #3171c6;
-  font-family: var(--font-numeric), ui-monospace, monospace;
-  font-size: 0.68rem;
-  font-weight: 700;
 }
-.sn-brand-name { font-family: var(--font-display), sans-serif; font-size: 0.94rem; font-weight: 700; }
+/* One lockup: mark and wordmark on a shared centre line with a measured gap,
+   read as `[star] IQWealth` rather than as two adjacent elements. */
+.sn-brand-name { font-family: var(--font-display), sans-serif; font-size: 0.94rem; font-weight: 700; letter-spacing: -0.005em; }
 
 .sn-toggle {
   min-inline-size: 30px;

@@ -337,6 +337,17 @@ body:has(.hm)::after {
   position: relative;
   display: flex;
   flex-direction: column;
+  /* ── Interior distribution ────────────────────────────────────────────
+     Measured before this change: header 53px, a 32px gap, the net figure,
+     then ONE HUNDRED AND NINETEEN pixels of nothing, then the buy/sell pair
+     pinned to the floor by `margin-block-start: auto`. The card's own
+     structure created the hole — the giant number floated alone and its
+     supporting figures were as far from it as the card allowed.
+
+     `space-between` spreads the four groups evenly instead, so the same
+     content reads as one deliberate stack: identity, the metric, the split
+     that explains it, the session it belongs to. */
+  justify-content: space-between;
   min-block-size: 520px;
   padding: 30px;
   border: 1px solid rgba(91, 144, 211, 0.2);
@@ -421,7 +432,13 @@ body:has(.hm)::after {
   transform: translateY(-50%);
 }
 
-.hm-flow-result { position: relative; z-index: 1; margin-block-start: 32px; }
+/* The label and the value are ONE metric, not two elements that happen to be
+   near each other: the name sits directly above the figure, tight, and the
+   IQD unit rides the figure's own baseline. */
+.hm-flow-result {
+  position: relative; z-index: 1;
+  display: flex; flex-direction: column; gap: 7px;
+}
 .hm-flow-result > strong { display: flex; align-items: baseline; gap: 9px; direction: ltr; }
 .hm-flow-result > strong bdi {
   font: 700 clamp(2.7rem, 4vw, 4rem) / 0.92 var(--font-numeric), ui-monospace, monospace;
@@ -441,7 +458,7 @@ body:has(.hm)::after {
 .hm-flow-result.buying > strong { color: #48dc88; }
 .hm-flow-result.selling > strong { color: #ee6a6f; }
 .hm-flow-result.neutral > strong { color: #f4f3f1; }
-.hm-flow-result > p { margin: 10px 0 0; color: rgba(194, 216, 241, 0.72); font-size: 0.74rem; }
+.hm-flow-result > p { margin: 0; color: rgba(194, 216, 241, 0.72); font-size: 0.78rem; font-weight: 600; }
 
 .hm-flow-note {
   position: relative;
@@ -455,18 +472,23 @@ body:has(.hm)::after {
 
 /* `margin-block-start: auto` is what anchors the balance bar to the BOTTOM of
    the card — the previous implementation floated it mid-card. */
-.hm-balance { position: relative; z-index: 1; margin-block-start: auto; padding-block: 30px 24px; }
+/* No longer pinned to the floor — the pair belongs WITH the figure it splits,
+   and the card's `space-between` gives it its own share of the space. */
+.hm-balance { position: relative; z-index: 1; padding-block: 0; }
 .hm-balance-labels {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 20px;
-  margin-block-end: 12px;
+  margin-block-end: 14px;
   direction: ltr;
 }
-.hm-balance-labels > span { display: flex; align-items: baseline; gap: 7px; transition: opacity 0.14s; }
+/* Equal visual weight and a shared baseline: two supporting figures, not one
+   loud number and two captions. At 0.92rem they read as footnotes to a 4rem
+   hero; at 1.3rem they read as the two halves the hero is made of. */
+.hm-balance-labels > span { display: flex; align-items: baseline; gap: 8px; transition: opacity 0.14s; }
 .hm-balance-labels > span.buy { justify-content: flex-end; }
-.hm-balance-labels small { color: rgba(194, 216, 241, 0.62); font-size: 0.7rem; }
-.hm-balance-labels strong { color: #f4f3f1; font: 600 0.92rem var(--font-numeric), ui-monospace, monospace; }
+.hm-balance-labels small { color: rgba(194, 216, 241, 0.62); font-size: 0.72rem; }
+.hm-balance-labels strong { color: #f4f3f1; font: 600 1.3rem/1 var(--font-numeric), ui-monospace, monospace; }
 
 .hm-balance-track {
   display: flex;
@@ -668,29 +690,48 @@ body:has(.hm)::after {
 .hm-activity > header span { color: #939894; font-size: 0.58rem; }
 .hm-activity > header h2 { margin: 2px 0 0; font-size: 1rem; font-weight: 600; }
 
+/* ── One internal grid for all three tiles ────────────────────────────────
+   Measured before this change: the feature tile was 305px tall with
+   `align-content: start`, the two stacked tiles 152px each with
+   `align-content: center`. Nothing lined up — the labels sat at three
+   different heights, the change figures floated in three different places,
+   and one 1.7rem number had 305px to itself.
+
+   The three metrics are one module, so they get one geometry:
+
+     row 1   the label, across the tile
+     row 2   the value and its change, sharing a baseline
+     row 3   slack, with the sparkline anchored to the tile's floor
+
+   The Electric-Blue emphasis on قيمة التداول is untouched, and so is every
+   figure. This is distribution, not a restyle. */
 .hm-activity > article {
   position: relative;
   display: grid;
   grid-template-columns: 1fr auto;
-  align-content: center;
-  gap: 2px 8px;
+  grid-template-rows: auto auto 1fr;
+  align-content: start;
+  gap: 6px 10px;
   min-block-size: 70px;
-  padding: 12px;
+  padding: 14px 14px 34px;
   border-radius: 12px;
   background: rgba(255, 255, 255, 0.72);
   overflow: hidden;
   transition: background-color 0.13s;
 }
+.hm-activity article > span { grid-column: 1 / -1; grid-row: 1; }
+.hm-activity article > strong { grid-column: 1; grid-row: 2; align-self: baseline; }
+.hm-activity article > em { grid-column: 2; grid-row: 2; align-self: baseline; justify-self: end; }
 .hm-activity > article:hover { background: rgba(28, 31, 29, 0.035); }
 [data-theme='dark'] .hm-activity > article { color: #eee; background: rgba(53, 53, 53, 0.82); }
 [data-theme='dark'] .hm-activity > article:hover { background: rgba(255, 255, 255, 0.04); }
 
+/* The feature keeps its column and its colour; what it loses is the special
+   internal treatment that stopped it lining up with the other two. */
 .hm-activity > article.feature {
   grid-row: 2 / 4;
   min-block-size: 145px;
   margin-inline-end: 6px;
-  align-content: start;
-  padding-block-start: 18px;
   color: #fff;
   background: var(--mv-hero);
   box-shadow: 0 14px 28px rgba(27, 30, 28, 0.15);
@@ -707,10 +748,13 @@ body:has(.hm)::after {
   gap: 5px;
   font: 600 1.02rem var(--font-numeric), ui-monospace, monospace;
 }
-.hm-activity article.feature strong { display: block; grid-column: 1 / -1; margin-block: 13px; font-size: 1.7rem; }
+/* Bigger type, not a bigger box — the primary metric is primary because it is
+   set larger and coloured, not because it owns empty space. It still shares
+   row 2 with its own change figure. */
+.hm-activity article.feature > strong { font-size: 2rem; }
 .hm-activity article strong small { color: #929793; font-size: 0.5rem; }
 .hm-activity article.feature strong small { color: rgba(255, 255, 255, 0.7); }
-.hm-activity article em { font: normal 0.58rem var(--font-numeric), ui-monospace, monospace; font-style: normal; }
+.hm-activity article em { font: normal 0.68rem var(--font-numeric), ui-monospace, monospace; font-style: normal; }
 .hm-activity article em.positive { color: var(--mv-up); }
 .hm-activity article em.negative { color: var(--mv-down); }
 .hm-activity article.feature em { color: rgba(255, 255, 255, 0.88); }
@@ -719,11 +763,13 @@ body:has(.hm)::after {
 .hm-activity article.feature em.hm-na { color: rgba(255, 255, 255, 0.6); }
 /* The sparkline bleeds to the tile's bottom edge — it is the tile's floor, not
    a chart with a caption. */
+/* One floor, one height, one inset — the sparklines sit on the same line
+   across all three tiles instead of floating at unrelated positions. */
 .hm-activity article svg {
   position: absolute;
-  inset: auto 9px 8px;
-  inline-size: calc(100% - 18px);
-  block-size: 24px;
+  inset: auto 14px 12px;
+  inline-size: calc(100% - 28px);
+  block-size: 22px;
   opacity: 0.65;
 }
 /* Sparkline's polyline is `stroke: currentColor`, which on these tiles resolves

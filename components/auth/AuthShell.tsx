@@ -1,6 +1,7 @@
 "use client";
 
 import { type ReactNode, useState } from "react";
+import { StarMark } from '@/components/brand/StarMark'
 import { DitherArt } from "@/components/design/DitherArt";
 import { useApp } from "@/context/AppContext";
 import { AUTH_ERRORS, ERROR_EN, type AuthErrorId } from "@/lib/auth";
@@ -54,7 +55,7 @@ export function AuthShell({
             {/* The same mark the sidebar uses, so the signed-out shell is
                 recognisably the same product. §32 */}
             <a className="au-brand" href="/">
-              <span className="au-brand-mark">IQ</span>
+              <span className="au-brand-mark" aria-hidden="true"><StarMark size={17} color="#fff" /></span>
               <span className="au-brand-name">IQWealth</span>
             </a>
             <div className="au-chrome-controls">

@@ -310,17 +310,20 @@ export function FlowCard({
 
       {!flow ? (
         <div className="hm-flow-result neutral">
-          <strong><bdi>—</bdi></strong>
           <p>لا تتوفر بيانات تدفق أجنبي لهذه الجلسة.</p>
+          <strong><bdi>—</bdi></strong>
         </div>
       ) : (
         <>
+          {/* Label first, in the DOM as well as on screen. A CSS `order` would
+              move it visually and leave a screen reader hearing the figure
+              before it knows what the figure IS. */}
           <div className={`hm-flow-result ${tone}`}>
+            <p>{neutral ? 'تدفق أجنبي متوازن' : buying ? 'صافي شراء أجنبي' : 'صافي بيع أجنبي'}</p>
             <strong>
               <bdi>{net > 0 ? '+' : net < 0 ? '−' : ''}{compact.format(Math.abs(net))}</bdi>
               <small>IQD</small>
             </strong>
-            <p>{neutral ? 'تدفق أجنبي متوازن' : buying ? 'صافي شراء أجنبي' : 'صافي بيع أجنبي'}</p>
           </div>
 
           {/* The one thing the reference has no slot for: this session is not

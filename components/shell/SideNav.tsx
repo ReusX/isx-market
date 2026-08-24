@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { getNavigationGroups, HOME, isActiveHref, type NavIcon } from '@/lib/navigation'
+import { StarMark } from '@/components/brand/StarMark'
 
 /**
  * The desktop rail.
@@ -70,7 +71,12 @@ export function SideNav({
     <aside className="sn" aria-label="التنقل الرئيسي">
       <div className="sn-head">
         <Link href="/" className="sn-brand" aria-label="IQWealth · الرئيسية">
-          <span className="sn-mark" aria-hidden="true">IQ</span>
+          {/* The real brand mark, not an «IQ» placeholder: the eight-pointed
+              Star of Ishtar from components/brand/StarMark.tsx, which is the
+              same geometry public/favicon.svg carries. Its centre punches
+              through with `fill-rule: evenodd`, so one asset reads correctly
+              on the dark tile in both themes. */}
+          <span className="sn-mark" aria-hidden="true"><StarMark size={17} /></span>
           <span className={collapsed ? 'sr-only' : 'sn-brand-name'}>IQWealth</span>
         </Link>
         <button

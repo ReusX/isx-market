@@ -45,10 +45,11 @@
 /* ── Minimal signed-out chrome · §32 §33 ─────────────────────────────────── */
 .au-chrome { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
 .au-brand { display: inline-flex; align-items: center; gap: 9px; text-decoration: none; }
+/* Same lockup as the sidebar, so the signed-out shell is recognisably the
+   same product — the real mark, not the «IQ» letters. */
 .au-brand-mark {
   inline-size: 30px; block-size: 30px; display: grid; place-items: center;
   border-radius: 8px; background: var(--mv-hero); color: #fff;
-  font: 700 .8rem var(--font-display);
 }
 .au-brand-name { font: 700 .92rem var(--font-display); color: var(--mv-ink); }
 .au-chrome-controls { display: flex; align-items: center; gap: 8px; }
