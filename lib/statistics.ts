@@ -616,3 +616,17 @@ export function arMonthShort(ym: string | null): string {
   const [y, m] = ym.split('-').map(Number)
   return `${AR_MONTHS_SHORT[m - 1]} ${y}`
 }
+
+/**
+ * The full label for one bucket, for the chart readout.
+ *
+ * A week rides its year on the CLOSING date: a week that straddles the turn of
+ * the year otherwise reads «28 كانون١ — 1 كانون٢» with no year at either end.
+ */
+export function bucketLabel(b: Bucket, grain: Grain, ar: boolean): string {
+  if (grain === 'session') return ar ? arFull(b.from) : b.from
+  if (grain === 'month') return ar ? arMonth(b.key) : b.key
+  return ar
+    ? `أسبوع ${arShort(b.from)} — ${arShort(b.to)} ${b.to.slice(0, 4)}`
+    : `Week ${b.from} — ${b.to}`
+}

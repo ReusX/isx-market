@@ -56,6 +56,11 @@
   position: absolute; inset-inline: 0; inset-block-end: 0;
   block-size: 34px; pointer-events: none;
 }
+/* `DitherArt` sets `canvas.width/height` as the BACKING STORE and leaves the
+   display size to CSS. Without this the canvas renders at its attribute size —
+   2400px inside a 1166px band, and 1210px of page overflow. Same constraint as
+   `.au-art`, `.mt-art` and the plate frames. */
+.stw-head-art canvas { display: block; inline-size: 100%; block-size: 100%; }
 [data-theme='light'] .stw .stw-head-art { opacity: .13; }
 [data-theme='dark'] .stw .stw-head-art { opacity: .11; }
 
@@ -301,11 +306,11 @@
 /* ── بنية السوق · a composition · §9 ─────────────────────────────────────
    Two halves of one argument sharing one baseline, divided by a rule instead
    of being two disconnected cards with empty space in them. */
-.stw-structure{
+.stw-structure, .stw-valuation {
   display: grid; grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr);
   gap: 34px;
 }
-.stw-structure .stw-side{
+.stw-structure .stw-side, .stw-valuation .stw-side {
   padding-inline-start: 34px; border-inline-start: 1px solid var(--mv-line);
 }
 .stw-side-lede { margin: 0 0 14px; font-size: .72rem; line-height: 1.65; color: var(--mv-ink-3); }
@@ -556,8 +561,8 @@
 
 /* Tablet keeps the workspace concept and the two-column compositions. §21 */
 @media (max-width: 1080px) {
-  .stw-structure{ grid-template-columns: minmax(0, 1fr); gap: 26px; }
-  .stw-structure .stw-side{
+  .stw-structure, .stw-valuation { grid-template-columns: minmax(0, 1fr); gap: 26px; }
+  .stw-structure .stw-side, .stw-valuation .stw-side {
     padding-inline-start: 0; padding-block-start: 22px;
     border-inline-start: 0; border-block-start: 1px solid var(--mv-line);
   }
@@ -601,4 +606,82 @@
   inset: 50% 0 auto;
   block-size: 44px;
   transform: translateY(-50%);
+}
+
+/* ── التقييم · centre, spread, coverage ───────────────────────────────────
+   Restored from the approved block. These three families were deleted in the
+   cleanup pass as proven-dead, and they WERE dead — the reconstructed
+   valuation mode rendered a band list instead of the median-led composition
+   the design specifies. The transplant puts the composition back, so the
+   rules come back with it, unchanged from the donor. */
+.stw-val-lead { display: flex; flex-direction: column; gap: 4px; margin-block-end: 18px; }
+.stw-val-lead > span { font-size: .7rem; color: var(--mv-ink-3); }
+.stw-val-lead strong { display: flex; align-items: baseline; gap: 4px; }
+.stw-val-lead strong bdi { font: 700 3rem/1 var(--font-numeric), ui-monospace, monospace; color: var(--mv-ink); letter-spacing: -.025em; }
+.stw-val-lead strong small { font-size: 1.1rem; color: var(--mv-ink-2); font-weight: 500; }
+.stw-val-figs { display: flex; gap: 0; margin: 0; flex-wrap: wrap; }
+.stw-val-figs > div {
+  display: flex; flex-direction: column; gap: 4px;
+  padding-inline: 22px; border-inline-start: 1px solid var(--mv-line);
+}
+.stw-val-figs > div:first-child { padding-inline-start: 0; border-inline-start: 0; }
+.stw-val-figs dt { font-size: .68rem; color: var(--mv-ink-3); }
+.stw-val-figs dd { margin: 0; font: 700 1.05rem var(--font-numeric), ui-monospace, monospace; color: var(--mv-ink); }
+
+@media (max-width: 720px) {
+  .stw-val-lead strong bdi { font-size: 2.5rem; }
+  .stw-val-figs > div { padding-inline: 16px; }
+  .stw-val-figs > div:first-child { padding-inline-start: 0; }
+}
+
+/* ── The chart's chrome · readout + export ────────────────────────────────
+   Copied from the approved block, namespaced `stw-` to sit beside the
+   foreign-flow page's own copy (`.ffw-st-chart-*`). Both charts are the same
+   approved component in the reference — one canvas, a live readout above it
+   and a two-button export beside that — and both keep it here. */
+.stw-chart-wrap { display: flex; flex-direction: column; gap: 10px; }
+.stw-chart-bar {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 14px; flex-wrap: wrap;
+}
+.stw-chart-read { flex: 1; min-inline-size: 0; }
+.stw-chart-actions { display: flex; align-items: center; gap: 7px; }
+.stw-chart-actions button {
+  position: relative;
+  min-block-size: 32px; padding-inline: 12px;
+  border: 1px solid var(--mv-line-strong); border-radius: 9px;
+  background: none; color: var(--mv-ink-2); cursor: pointer;
+  font: 600 .7rem var(--font-body), Arial, sans-serif;
+  transition: background-color .13s, color .13s;
+}
+.stw-chart-actions button:hover { background: var(--mv-well); color: var(--mv-ink); }
+.stw-chart-actions button:focus-visible { outline: 2px solid var(--mv-hero); outline-offset: 2px; }
+/* A 32px control in a 44px hit area — the same expander the rest of the page
+   uses, so the button stays visually compact without failing the gate. */
+.stw-chart-actions button::after {
+  content: ''; position: absolute; inset-inline: 0;
+  inset-block-start: 50%; transform: translateY(-50%);
+  block-size: max(100%, 44px);
+}
+.stw-copied { font-size: .68rem; color: var(--mv-hero); }
+[data-theme='dark'] .stw-copied { color: var(--mv-hero-bright); }
+.stw-chart-plot { position: relative; inline-size: 100%; }
+.stw-chart-plot canvas { display: block; inline-size: 100%; block-size: 100%; touch-action: pan-y; }
+
+.stw-readout {
+  display: flex; align-items: baseline; gap: 15px; flex-wrap: wrap;
+  min-block-size: 30px;
+  margin-block-end: 10px; padding: 6px 10px;
+  border: 1px solid var(--mv-line); border-radius: 10px;
+  background: var(--mv-well);
+  font-size: .7rem;
+}
+.stw-readout-name { font-weight: 600; color: var(--mv-ink); }
+.stw-readout-hint { color: var(--mv-ink-3); }
+.stw-read { display: inline-flex; align-items: baseline; gap: 5px; }
+.stw-read em { color: var(--mv-ink-3); font-style: normal; font-size: .64rem; }
+.stw-read bdi { color: var(--mv-ink); font: 700 .78rem var(--font-numeric), ui-monospace, monospace; }
+
+@media (max-width: 720px) {
+  .stw-readout { gap: 10px 12px; padding: 7px 9px; }
 }
