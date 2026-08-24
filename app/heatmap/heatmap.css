@@ -253,7 +253,12 @@
 
 .hx-panel-move { display: flex; align-items: baseline; gap: 8px; margin: 12px 0; }
 
-.hx-panel-move bdi { font: 700 1.5rem var(--font-numeric), ui-monospace, monospace; letter-spacing: -.03em; }
+/* `.iq-page` prefix, not decoration: styles/design-tokens.css sets
+   `letter-spacing: normal` on `.iq-page :lang(ar)` (0,2,0) to keep tracking off
+   Arabic, and a `bdi` inherits `lang` from <html lang="ar">. Without the extra
+   class this rule loses at 0,1,2 and its negative tracking silently never
+   applies. Same correction Batch B made for the market tools. */
+.iq-page .hx-panel-move bdi { font: 700 1.5rem var(--font-numeric), ui-monospace, monospace; letter-spacing: -.03em; }
 
 .hx-panel-move small { color: var(--mv-ink-3); font-size: .65rem; }
 

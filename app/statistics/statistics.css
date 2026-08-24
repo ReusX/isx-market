@@ -68,7 +68,12 @@
 .stw-rail-lead { display: flex; flex-direction: column; gap: 3px; }
 .stw-rail-lead > span { font-size: .68rem; color: var(--mv-ink-3); }
 .stw-rail-lead strong { display: flex; align-items: baseline; gap: 7px; }
-.stw-rail-lead strong bdi { font: 700 1.95rem/1 var(--font-numeric), ui-monospace, monospace; color: var(--mv-ink); letter-spacing: -.02em; }
+/* `.iq-page` prefix, not decoration: styles/design-tokens.css sets
+   `letter-spacing: normal` on `.iq-page :lang(ar)` (0,2,0) to keep tracking off
+   Arabic, and a `bdi` inherits `lang` from <html lang="ar">. Without the extra
+   class this rule loses at 0,1,2 and its negative tracking silently never
+   applies. Same correction Batch B made for the market tools. */
+.iq-page .stw-rail-lead strong bdi { font: 700 1.95rem/1 var(--font-numeric), ui-monospace, monospace; color: var(--mv-ink); letter-spacing: -.02em; }
 .stw-rail-lead strong small { font-size: .72rem; color: var(--mv-ink-2); font-weight: 500; }
 .stw-rail-lead em { font-style: normal; font-size: .68rem; color: var(--mv-ink-3); }
 .stw-rail-lead em bdi { font-family: var(--font-numeric), ui-monospace, monospace; font-weight: 700; }
@@ -414,7 +419,12 @@
 .stw-val-lead { display: flex; flex-direction: column; gap: 4px; margin-block-end: 18px; }
 .stw-val-lead > span { font-size: .7rem; color: var(--mv-ink-3); }
 .stw-val-lead strong { display: flex; align-items: baseline; gap: 4px; }
-.stw-val-lead strong bdi { font: 700 3rem/1 var(--font-numeric), ui-monospace, monospace; color: var(--mv-ink); letter-spacing: -.025em; }
+/* `.iq-page` prefix, not decoration: styles/design-tokens.css sets
+   `letter-spacing: normal` on `.iq-page :lang(ar)` (0,2,0) to keep tracking off
+   Arabic, and a `bdi` inherits `lang` from <html lang="ar">. Without the extra
+   class this rule loses at 0,1,2 and its negative tracking silently never
+   applies. Same correction Batch B made for the market tools. */
+.iq-page .stw-val-lead strong bdi { font: 700 3rem/1 var(--font-numeric), ui-monospace, monospace; color: var(--mv-ink); letter-spacing: -.025em; }
 .stw-val-lead strong small { font-size: 1.1rem; color: var(--mv-ink-2); font-weight: 500; }
 .stw-val-figs { display: flex; gap: 0; margin: 0; flex-wrap: wrap; }
 .stw-val-figs > div {
@@ -451,7 +461,12 @@
 .stw-flow-lead { display: flex; flex-direction: column; gap: 3px; }
 .stw-flow-lead > span { font-size: .68rem; color: var(--mv-ink-3); }
 .stw-flow-lead strong { display: flex; align-items: baseline; gap: 6px; }
-.stw-flow-lead strong bdi { font: 700 2rem/1 var(--font-numeric), ui-monospace, monospace; letter-spacing: -.02em; }
+/* `.iq-page` prefix, not decoration: styles/design-tokens.css sets
+   `letter-spacing: normal` on `.iq-page :lang(ar)` (0,2,0) to keep tracking off
+   Arabic, and a `bdi` inherits `lang` from <html lang="ar">. Without the extra
+   class this rule loses at 0,1,2 and its negative tracking silently never
+   applies. Same correction Batch B made for the market tools. */
+.iq-page .stw-flow-lead strong bdi { font: 700 2rem/1 var(--font-numeric), ui-monospace, monospace; letter-spacing: -.02em; }
 .stw-flow-lead strong small { font-size: .72rem; color: var(--mv-ink-2); font-weight: 500; }
 .stw-flow-lead strong.is-up bdi { color: var(--mv-up); }
 .stw-flow-lead strong.is-down bdi { color: var(--mv-down); }
