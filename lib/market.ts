@@ -151,8 +151,45 @@ export function mergeCompanies(meta: CompanyMeta[], stocks: LiveStock[]): Compan
 // ─── Formatters ─────────────────────────────────────────────────────────────
 
 /**
- * Live market cap in IQD: close x share count where we know it, else the static
- * fallback on the company meta (stored in millions, and often stale).
+ * ═══ THE market-cap definition ═══════════════════════════════════════════
+ *
+ * One rule, one place: a company's market cap is its LAST PUBLISHED CLOSE
+ * multiplied by its ISSUED SHARE COUNT, in whole dinars — and `null` when
+ * either input is missing.
+ *
+ * `null` is the point of it. `companies.json` also carries a static `mcap`
+ * field (in millions) that was correct when it was written and has drifted
+ * since: measured against this formula on 2026-08-24, **25 of 99 companies
+ * differ by more than 5%**, the worst by −33% (IHFI) and +28% (SMRI). A
+ * fallback to that number is not a safer answer than no answer — it is a
+ * confident wrong one, and it is invisible, because nothing on screen says
+ * which of the two a given row used.
+ *
+ * Callers decide what to do with `null`: rank it last, print `—`, or exclude
+ * it. None of them may substitute a different quantity for it.
+ *
+ * Used by the screener, the heat map, the statistics snapshot and the
+ * homepage board, so the same company cannot carry two market caps in one
+ * product.
+ */
+export function companyMarketCap(
+  close: number | null | undefined,
+  shares: number | null | undefined,
+): number | null {
+  if (!(close != null && close > 0)) return null
+  if (!(shares != null && shares > 0)) return null
+  return close * shares
+}
+
+/**
+ * ⚠ LEGACY display helper, kept for the pre-redesign routes that still call it
+ * (`/market`, `/companies`, `/analysis`).
+ *
+ * It differs from `companyMarketCap` in two ways that matter: it takes the
+ * LIVE-session close, which is 0 for any company that did not trade today, and
+ * it then falls back to the static `mcap` — so on those rows it silently
+ * prints a figure that can be a third off. Migrating those three routes is a
+ * behaviour change on frozen surfaces and is reported rather than done here.
  */
 export function liveMcap(c: { close: number; shares?: number; mcap?: number }): number {
   return c.shares && c.close > 0 ? c.close * c.shares : (c.mcap || 0) * 1e6

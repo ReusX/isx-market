@@ -1,3 +1,5 @@
+import { companyMarketCap } from '@/lib/market'
+
 
 /**
  * الإحصائيات — the statistics hub's data model.
@@ -488,7 +490,10 @@ export function capSnapshot(
 
   for (const c of roster) {
     const sh = shares.get(c.sym) ?? 0
-    if (!(c.close > 0) || !(sh > 0)) { excludedSyms.push(c.sym); continue }
+    /* One definition, shared with the screener, the heat map and the homepage
+       board — see `companyMarketCap` in lib/market.ts. */
+    const cap = companyMarketCap(c.close, sh)
+    if (cap == null) { excludedSyms.push(c.sym); continue }
     const meta = names.get(c.sym)
     const name = [
       ar ? meta?.ar : meta?.en, ar ? c.nameAr : c.nameEn,
@@ -496,7 +501,7 @@ export function capSnapshot(
     ].find(usableName) ?? c.sym
     rows.push({
       sym: c.sym, name, sector: c.sector, close: c.close, shares: sh,
-      marketCap: c.close * sh,
+      marketCap: cap,
       daysSinceTrade: c.daysSinceTrade,
       stalePrice: c.daysSinceTrade > STALE_PRICE_DAYS,
       closeDate: c.closeDate,

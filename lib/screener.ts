@@ -1,4 +1,5 @@
 import type { CompanyMeta } from '@/types'
+import { companyMarketCap } from '@/lib/market'
 
 /**
  * فارز الأسهم — the screening data model.
@@ -280,7 +281,7 @@ export function toRow(m: Metric, meta: CompanyMeta | undefined, ar: boolean): Sc
      `last_close × shares` rather than the static figure in companies.json.
      The 20 tickers with no identity row have no share count and therefore no
      market cap — null, not a guess. */
-  const mcap = m.last_close > 0 && meta?.shares ? m.last_close * meta.shares : null
+  const mcap = companyMarketCap(m.last_close, meta?.shares)
   return {
     ...m,
     name,

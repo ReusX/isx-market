@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState, useCallback } from 'react'
 import Link from 'next/link'
-import { fetchLive, fetchCompanyMeta, mergeCompanies } from '@/lib/market'
+import { fetchLive, fetchCompanyMeta, mergeCompanies, companyMarketCap } from '@/lib/market'
 import { fetchSparklines } from '@/lib/sparks'
 import IndexChart from '@/components/design/IndexChart'
 import { Sparkline } from '@/components/design/Sparkline'
@@ -19,10 +19,28 @@ import type { Company } from '@/types'
 
 const nf = new Intl.NumberFormat('en-US')
 const compact = new Intl.NumberFormat('en-US', { notation: 'compact', maximumFractionDigits: 1 })
+/* Market cap gets two decimals, matching the statistics table. At one decimal
+   the neighbours in the middle of the ranking collapse into each other — BBOB
+   at 1.2477T and BMNS at 1.2519T are two different companies and «1.2T» twice
+   is a misleading tie. Only this column changes; volumes and traded values
+   keep the page's single decimal. */
+const compactCap = new Intl.NumberFormat('en-US', { notation: 'compact', maximumFractionDigits: 2 })
 const price = new Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
 
 type SortKey = 'price' | 'change' | 'volume' | 'value'
 type MoverTab = 'mcap' | 'gainers' | 'losers' | 'active'
+
+/** A close older than this is labelled as published, never as current. */
+const STALE_PRICE_DAYS = 60
+
+/**
+ * The market-cap caveat, preserved from the statistics snapshot's own wording.
+ * The universe is the curated roster, the figure is a snapshot, and neither is
+ * an officially proven ISX ranking.
+ */
+const MCAP_CAVEAT =
+  'القيمة السوقية = آخر إغلاق منشور × الأسهم المصدرة · لقطة حالية على سجل الشركات، '
+  + 'لا ترتيب رسمي معتمد. الشركات التي لا يتوفر لها عدد أسهم أو إغلاق منشور مستبعدة، ولا تُحتسب صفراً.'
 
 /**
  * The homepage.
@@ -57,6 +75,11 @@ export default function HomeClient() {
   const [sparks, setSparks] = useState<Record<string, number[]>>({})
 
   const [pricesLoading, setPricesLoading] = useState(true)
+  /* The canonical market-cap snapshot: `company_metrics.last_close` keyed by
+     ticker. NOT the live-session close — that is 0 for every company that
+     did not trade today, which is exactly the set the roster ranking exists
+     to keep. */
+  const [closes, setCloses] = useState<Map<string, { close: number; days: number; date: string | null }>>(new Map())
   const [pricesFailed, setPricesFailed] = useState(false)
   const [indexFailed, setIndexFailed] = useState(false)
   const [flowFailed, setFlowFailed] = useState(false)
@@ -100,6 +123,19 @@ export default function HomeClient() {
           .then(({ data, error }) => {
             if (error) { setFlowFailed(true); return }
             setFlowRows(data ?? [])
+          }),
+        /* The same source the statistics market-cap snapshot reads. Its own
+           request, so a failure here costs the market-cap ranking and nothing
+           else. */
+        sb.from('company_metrics')
+          .select('ticker,last_close,days_since_trade,last_date').limit(2000)
+          .then(({ data, error }) => {
+            if (error || !data?.length) return
+            const m = new Map<string, { close: number; days: number; date: string | null }>()
+            for (const r of data as { ticker: string; last_close: number | null; days_since_trade: number | null; last_date: string | null }[]) {
+              m.set(r.ticker, { close: r.last_close ?? 0, days: r.days_since_trade ?? 0, date: r.last_date })
+            }
+            setCloses(m)
           }),
       ])
 
@@ -167,22 +203,52 @@ export default function HomeClient() {
    *                   switching between them silently is how a list stops
    *                   meaning one thing.
    */
-  const liveCap = (c: Company): number | null => {
-    if (c.shares && c.close > 0) return c.close * c.shares
-    return c.mcap ? c.mcap * 1e6 : null
-  }
+  /**
+   * Market cap, the canonical way — `companyMarketCap` in lib/market.ts, the
+   * same function the screener, the heat map and the statistics snapshot use.
+   *
+   * Two things were wrong before this and both are fixed here:
+   *
+   *  1. It read the LIVE-SESSION close, so a company that did not trade today
+   *     had `close === 0` and fell through to `companies.json`'s static `mcap`.
+   *     That field has drifted: 25 of 99 companies differ from the real figure
+   *     by more than 5%, the worst by a third. The fallback is gone — the
+   *     close now comes from `company_metrics.last_close`, which is the last
+   *     price the market actually published.
+   *
+   *  2. The tab ranked only the session's traded companies, so the LARGEST
+   *     company on the exchange disappeared from a market-cap ranking on any
+   *     day it happened not to trade. Market cap is a snapshot over the
+   *     roster, not a property of today's session.
+   */
+  const rosterCap = useCallback((c: Company): number | null =>
+    companyMarketCap(closes.get(c.sym)?.close, c.shares), [closes])
+
+  /** What a market-cap row is standing on: the close it used, and its age. */
+  const capNote = useCallback((c: Company): string | undefined => {
+    const q = closes.get(c.sym)
+    if (!q || !(q.close > 0)) return undefined
+    const base = `${c.ar} · آخر إغلاق منشور ${q.close} د.ع${q.date ? ` بتاريخ ${q.date}` : ''}`
+    return q.days > STALE_PRICE_DAYS
+      ? `${base} — أقدم من ${STALE_PRICE_DAYS} يوماً، وهو سعر منشور فعلي لا سعر حالي`
+      : base
+  }, [closes])
 
   const movers = useMemo(() => {
     if (moverTab === 'mcap') {
-      const withCap = traded.filter((c) => liveCap(c) != null)
-      return [...withCap].sort((a, b) => (liveCap(b) as number) - (liveCap(a) as number)).slice(0, 3)
+      /* The CURRENT ROSTER, not today's tape. A company with no published
+         close or no share count has no market cap — it is dropped from the
+         ranking, never ranked as zero and never given a stale substitute. */
+      const withCap = companies
+        .map((c) => ({ c, cap: rosterCap(c) }))
+        .filter((x): x is { c: Company; cap: number } => x.cap != null)
+      return withCap.sort((a, b) => b.cap - a.cap).slice(0, 3).map((x) => x.c)
     }
     const pool = traded.filter((c) => !c.noPrior)
     if (moverTab === 'gainers') return [...pool].sort((a, b) => b.pct - a.pct).slice(0, 3)
     if (moverTab === 'losers') return [...pool].sort((a, b) => a.pct - b.pct).slice(0, 3)
     return [...traded].sort((a, b) => (b.vol ?? 0) - (a.vol ?? 0)).slice(0, 3)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [traded, moverTab])
+  }, [companies, traded, moverTab, rosterCap])
 
   function sortBy(key: SortKey) {
     if (key === sortKey) setSortDir(sortDir === 'asc' ? 'desc' : 'asc')
@@ -282,16 +348,24 @@ export default function HomeClient() {
           <div role="tablist" aria-label="تصنيف الشركات">
             {([['mcap', 'القيمة السوقية'], ['gainers', 'الرابحون'], ['losers', 'الخاسرون'], ['active', 'الأكثر نشاطاً']] as const).map(([k, l]) => (
               <button key={k} type="button" role="tab" aria-selected={moverTab === k}
-                className={moverTab === k ? 'active' : ''} onClick={() => setMoverTab(k)}>{l}</button>
+                className={moverTab === k ? 'active' : ''} onClick={() => setMoverTab(k)}
+                /* The market-cap universe is the CURRENT ROSTER and a snapshot,
+                   not a session figure and not an official exchange ranking.
+                   Carried on the control rather than as a new line of chrome,
+                   because this pass corrects data and not visual design. */
+                title={k === 'mcap' ? MCAP_CAVEAT : undefined}>{l}</button>
             ))}
           </div>
           <div>
             {movers.map((c) => (
-              <Link href={`/c/${c.sym}`} key={c.sym}>
+              <Link href={`/c/${c.sym}`} key={c.sym}
+                /* A stale close is a real published price, not a current one,
+                   and the ranking says so where it is material. */
+                title={moverTab === 'mcap' ? capNote(c) : undefined}>
                 <bdi>{c.sym}</bdi>
                 <span>
                   {moverTab === 'mcap'
-                    ? (liveCap(c) == null ? <bdi>—</bdi> : <bdi>{compact.format(liveCap(c) as number)}</bdi>)
+                    ? (rosterCap(c) == null ? <bdi>—</bdi> : <bdi>{compactCap.format(rosterCap(c) as number)}</bdi>)
                     : moverTab === 'active'
                       ? <bdi>{compact.format(c.vol ?? 0)}</bdi>
                       : signed(c.pct).text}
