@@ -1,5 +1,5 @@
 import { liveMcap, SECTORS } from '@/lib/market'
-import { localeDate } from '@/lib/date'
+import { localeDateOrDash } from '@/lib/date'
 import type { Locale } from '@/lib/i18n/locale'
 import type { Company } from '@/types'
 
@@ -203,8 +203,7 @@ export function sessionFreshness(date: string | null, locale: Locale): {
  * is visible instead of collapsing the line it sits on.
  */
 export function sessionDate(date: string | null, locale: Locale): string {
-  if (!date) return '—'
-  return localeDate(date, locale)
+  return localeDateOrDash(date, locale)
 }
 
 /**

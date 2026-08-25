@@ -46,3 +46,14 @@ export function shortDate(raw: string, locale: 'ar' | 'en'): string {
   if (!m || !d) return raw
   return locale === 'ar' ? `${d} ${AR_MONTHS[m]}` : `${d} ${EN_MONTHS[m].slice(0, 3)}`
 }
+
+/**
+ * A date that may be missing, formatted for `locale`.
+ *
+ * Returns «—» rather than an empty string when there is no date: the absence
+ * has to be visible, and an empty string silently collapses the line it sits
+ * on into something that looks like a layout bug.
+ */
+export function localeDateOrDash(raw: string | null | undefined, locale: 'ar' | 'en'): string {
+  return raw ? localeDate(raw, locale) : '—'
+}

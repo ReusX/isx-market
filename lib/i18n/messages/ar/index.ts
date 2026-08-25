@@ -7,6 +7,7 @@ import { data } from './data'
 import { home } from './home'
 import { market } from './market'
 import { screener } from './screener'
+import { heatmap } from './heatmap'
 
 /**
  * The Arabic dictionary — and, because `en` is typed as `typeof ar`, the
@@ -18,4 +19,4 @@ import { screener } from './screener'
  * key removed here but left in `en` fails too, so the dictionaries cannot
  * drift apart in either direction.
  */
-export const ar = { nav, shell, system, glossary, info, data, home, market, screener }
+export const ar = { nav, shell, system, glossary, info, data, home, market, screener, heatmap }

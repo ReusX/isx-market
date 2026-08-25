@@ -9,9 +9,11 @@ import {
 } from '@/lib/heatmap'
 import { periodChange, toRow, sectorLabel, type Metric } from '@/lib/screener'
 import { fetchCompanyMeta, fetchLive } from '@/lib/market'
-import { arFull, nf0 } from '@/lib/statistics'
+import { nf0 } from '@/lib/statistics'
+import { useLocale } from '@/context/LocaleContext'
+import { localeDateOrDash } from '@/lib/date'
 import type { CompanyMeta, LiveStock } from '@/types'
-import './heatmap.css'
+import '@/styles/heatmap.css'
 
 /**
  * خريطة السوق — the market heatmap.
@@ -61,7 +63,9 @@ type Selected = { row: MapRow } | null
    /screener print. */
 const nfPrice = new Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
 
-export function HeatmapClient() {
+export function Heatmap() {
+  const { t, locale, href: L } = useLocale()
+  const hx = t.heatmap
   const [period, setPeriod] = useState<PeriodId>('1d')
   const [zoom, setZoom] = useState<string | null>(null)
   const [selected, setSelected] = useState<Selected>(null)
@@ -133,7 +137,7 @@ export function HeatmapClient() {
   /* `uni?.rows ?? []` reallocates on every render, which would make the two
      treemap memos below recompute on every hover. */
   const rows = useMemo(() => uni?.rows ?? [], [uni])
-  const sectors = useMemo(() => sectorNodes(rows, period), [rows, period])
+  const sectors = useMemo(() => sectorNodes(rows, period, locale), [rows, period, locale])
   const zoomed = zoom ? sectors.find((s) => s.id === zoom) ?? null : null
 
   const sectorBoxes = useMemo(
@@ -175,25 +179,25 @@ export function HeatmapClient() {
     const list = zoomed ? zoomed.list : rows
     return list.filter((r) => r.last_date === session).length
   }, [zoomed, rows, session])
-  const periodLabel = PERIODS.find((p) => p.id === period)!.ar
+  const periodLabel = PERIODS.find((p) => p.id === period)![locale]
 
   return (
     <main className="iq-page hx-page">
       <header className="hx-head">
         <div className="hx-title">
-          <h1>خريطة السوق</h1>
+          <h1>{hx.title}</h1>
           {/* The encoding, stated. Not a tooltip, not a help panel — a line of
               text where the reader already is. */}
           <p>
-            الحجم = <b>القيمة السوقية</b> · اللون = <b>تغيّر {periodLabel}</b> · التجميع = <b>القطاع</b>
+            {hx.sizeIs} <b>{hx.marketCap}</b> · {hx.colourIs} <b>{hx.changeOf(periodLabel)}</b> · {hx.groupIs} <b>{hx.sector}</b>
           </p>
         </div>
 
         <dl className="hx-meta">
-          <div><dt>آخر جلسة</dt><dd>{session ? arFull(session) : '—'}</dd></div>
-          <div><dt>الشركات</dt><dd><bdi>{shown || '—'}</bdi></dd></div>
+          <div><dt>{hx.lastSession}</dt><dd>{localeDateOrDash(session, locale)}</dd></div>
+          <div><dt>{hx.companies}</dt><dd><bdi>{shown || '—'}</bdi></dd></div>
           <div>
-            <dt>تداولت في الجلسة</dt>
+            <dt>{hx.tradedIn}</dt>
             {/* Scoped to whatever «الشركات» beside it is counting. Two figures
                 in one rail measuring different universes is the fault this
                 product keeps finding. */}
@@ -203,17 +207,17 @@ export function HeatmapClient() {
       </header>
 
       <div className="hx-controls">
-        <div className="hx-periods" role="group" aria-label="فترة التغيّر">
+        <div className="hx-periods" role="group" aria-label={hx.periodLabel}>
           {PERIODS.map((p) => (
             <button key={p.id} type="button" className={period === p.id ? 'active' : ''}
               aria-pressed={period === p.id}
-              onClick={() => { setPeriod(p.id); setSelected(null) }}>{p.ar}</button>
+              onClick={() => { setPeriod(p.id); setSelected(null) }}>{p[locale]}</button>
           ))}
         </div>
 
-        <nav className="hx-crumb" aria-label="مسار الخريطة">
+        <nav className="hx-crumb" aria-label={hx.crumbLabel}>
           <button type="button" className={zoom ? '' : 'is-current'}
-            onClick={() => { setZoom(null); setSelected(null) }}>كل القطاعات</button>
+            onClick={() => { setZoom(null); setSelected(null) }}>{hx.allSectors}</button>
           {zoomed ? <><i aria-hidden="true">‹</i><span className="is-current">{zoomed.label}</span></> : null}
         </nav>
 
@@ -221,9 +225,9 @@ export function HeatmapClient() {
             geometry, and the geometry is the message. */}
         <label className="hx-mv-search hx-search" data-filled={query ? 'true' : undefined}>
           <span aria-hidden="true" className="hx-mv-search-icon">⌕</span>
-          <input value={query} dir="auto" placeholder="ابحث عن شركة في الخريطة…"
-            aria-label="بحث في الخريطة" onChange={(e) => setQuery(e.target.value)} />
-          {query ? <button type="button" className="hx-mv-search-clear" aria-label="مسح البحث"
+          <input value={query} dir="auto" placeholder={hx.searchPlaceholder}
+            aria-label={hx.searchLabel} onChange={(e) => setQuery(e.target.value)} />
+          {query ? <button type="button" className="hx-mv-search-clear" aria-label={hx.clearSearch}
             onClick={() => setQuery('')}>✕</button> : null}
         </label>
       </div>
@@ -232,26 +236,27 @@ export function HeatmapClient() {
           one. §4 of the data map. */}
       {uni && coverage ? (
         <p className="hx-mv-note hx-note">
-          <bdi>{coverage.traded}</bdi> من <bdi>{uni.included}</bdi> شركة تداولت في جلسة {arFull(session)}؛
-          {' '}البقية بآخر إغلاق منشور لها — <bdi>{coverage.olderArea.toFixed(0)}%</bdi> من المساحة.
-          {' '}مستبعدة: <bdi>{uni.excludedNoCap.length}</bdi> بلا عدد أسهم،
-          {' '}<bdi>{uni.excludedStale.length}</bdi> بسعر أقدم من 60 يوماً
-          {uni.excludedUnknownAge.length ? <>، <bdi>{uni.excludedUnknownAge.length}</bdi> بتاريخ تداول مجهول</> : null}.
+          {hx.coverage(
+            String(coverage.traded), String(uni.included), localeDateOrDash(session, locale),
+            `${coverage.olderArea.toFixed(0)}%`, String(uni.excludedNoCap.length),
+            String(uni.excludedStale.length),
+            uni.excludedUnknownAge.length ? String(uni.excludedUnknownAge.length) : '',
+          )}
         </p>
       ) : null}
 
       <section className="hx-stage">
         <div className="hx-field" ref={mapRef}
-          aria-label={zoomed ? `شركات قطاع ${zoomed.label}` : 'قطاعات السوق'}>
+          aria-label={zoomed ? hx.sectorOf(zoomed.label) : hx.sectorsLabel}>
           {loading ? <SkeletonField /> : failed || !uni ? (
             <div className="hx-empty">
-              <strong>تعذّر تحميل بيانات الخريطة</strong>
-              <p>لم تصل مؤشرات الشركات. حاول تحديث الصفحة، أو تصفّح <Link href="/market">حركة السوق</Link>.</p>
+              <strong>{hx.loadFailedTitle}</strong>
+              <p>{hx.loadFailedNote} <Link href={L('/market')}>{hx.loadFailedLink}</Link>.</p>
             </div>
           ) : !rows.length ? (
             <div className="hx-empty">
-              <strong>لا توجد شركات مؤهّلة للخريطة</strong>
-              <p>لا شركة تجمع بين قيمة سوقية قابلة للاحتساب وسعر أحدث من 60 يوماً.</p>
+              <strong>{hx.emptyTitle}</strong>
+              <p>{hx.emptyNote}</p>
             </div>
           ) : zoomed ? (
             companyBoxes.map(({ item, box }) => (
@@ -278,14 +283,14 @@ export function HeatmapClient() {
       {/* A control, not a caption: hovering a band leaves only the companies
           inside it lit. */}
       <div className="hx-legend">
-        <span className="hx-legend-label">التغيّر</span>
-        <div className="hx-legend-bands" role="group" aria-label="إبراز الشركات حسب شدة التغيّر"
+        <span className="hx-legend-label">{hx.legendChange}</span>
+        <div className="hx-legend-bands" role="group" aria-label={hx.bandsLabel}
           onPointerLeave={() => setHoverBand(null)}>
           {BANDS.map((b) => (
             <button key={b} type="button" data-band={b}
               className={hoverBand === b ? 'is-on' : ''}
               aria-pressed={hoverBand === b}
-              aria-label={`إبراز الشركات ضمن ${bandLabel(b, cap)}`}
+              aria-label={hx.highlightBand(bandLabel(b, cap))}
               onPointerEnter={() => setHoverBand(b)}
               onFocus={() => setHoverBand(b)} onBlur={() => setHoverBand(null)}
               onClick={() => setHoverBand(hoverBand === b ? null : b)}>
@@ -294,9 +299,9 @@ export function HeatmapClient() {
             </button>
           ))}
         </div>
-        <span className="hx-legend-na"><i aria-hidden="true" />لا قراءة</span>
+        <span className="hx-legend-na"><i aria-hidden="true" />{hx.noReading}</span>
         <span className="hx-legend-scale">
-          مقياس اللون يتدرّج حتى <bdi>±{cap}%</bdi> لفترة {periodLabel}
+          {hx.scaleNote(String(cap), periodLabel)}
         </span>
       </div>
     </main>
@@ -325,14 +330,16 @@ function SectorTile({ node, box, cap, px, dim, onOpen }: {
   node: SectorNode; box: Box; cap: number; px: { w: number; h: number }
   dim: boolean; onOpen: () => void
 }) {
+  const { t } = useLocale()
+  const hx = t.heatmap
   const band = bandOf(node.pct, cap)
   const d = detail(box, px)
   return (
     <button type="button" className="hx-tile hx-tile-sector"
       data-band={band ?? 'na'} data-dim={dim || undefined} data-detail={d}
       style={boxStyle(box)} onClick={onOpen}
-      aria-label={`${node.label}، ${node.list.length} شركة، ${node.pct == null ? 'لا قراءة' : pctText(node.pct)}`}
-      title={`${node.label} · ${pctText(node.pct)} · ${iqdShort(node.marketCap)} IQD · ${node.list.length} شركة${node.missing ? ` · ${node.missing} بلا قراءة` : ''}`}>
+      aria-label={hx.nodeLabel(node.label, String(node.list.length), node.pct == null ? hx.noReading : pctText(node.pct))}
+      title={hx.nodeTitle(node.label, pctText(node.pct), iqdShort(node.marketCap), String(node.list.length), node.missing ? String(node.missing) : '')}>
       <span className="hx-tile-body">
         <strong>{node.label}</strong>
         {d !== 'tick' && d !== 'none' ? (
@@ -342,7 +349,7 @@ function SectorTile({ node, box, cap, px, dim, onOpen }: {
           </span>
         ) : null}
         {d === 'full' ? (
-          <small><bdi>{node.list.length}</bdi> شركة · <bdi>{iqdShort(node.marketCap)}</bdi></small>
+          <small><bdi>{node.list.length}</bdi> {hx.companyUnit} · <bdi>{iqdShort(node.marketCap)}</bdi></small>
         ) : null}
       </span>
     </button>
@@ -353,6 +360,8 @@ function CompanyTile({ row, box, period, cap, px, dim, selected, onSelect }: {
   row: MapRow; box: Box; period: PeriodId; cap: number; px: { w: number; h: number }
   dim: boolean; selected: boolean; onSelect: () => void
 }) {
+  const { t } = useLocale()
+  const hx = t.heatmap
   const pct = periodChange(row, period)
   const band = bandOf(pct, cap)
   const d = detail(box, px)
@@ -361,8 +370,8 @@ function CompanyTile({ row, box, period, cap, px, dim, selected, onSelect }: {
       data-band={band ?? 'na'} data-dim={dim || undefined} data-detail={d}
       data-selected={selected || undefined}
       style={boxStyle(box)} onClick={onSelect}
-      aria-label={`${row.name} ${row.ticker}، ${pct == null ? 'لا قراءة' : pctText(pct)}، القيمة السوقية ${iqdShort(row.marketCap)} دينار`}
-      title={`${row.name} · ${row.ticker} · ${pct == null ? 'لا قراءة لهذه الفترة' : pctText(pct)} · ${nfPrice.format(row.last_close)} د.ع`}>
+      aria-label={hx.tileLabel(row.name, row.ticker, pct == null ? hx.noReading : pctText(pct), iqdShort(row.marketCap))}
+      title={hx.tileTitle(row.name, row.ticker, pct == null ? hx.noReadingPeriod : pctText(pct), nfPrice.format(row.last_close))}>
       <span className="hx-tile-body">
         {d === 'full' ? <strong className="hx-tile-name">{row.name}</strong> : null}
         {d !== 'none' ? <bdi className="hx-tile-ticker">{row.ticker}</bdi> : null}
@@ -384,6 +393,8 @@ function CompanyPanel({ row, period, live, session, onClose }: {
   row: MapRow; period: PeriodId; live: LiveStock | undefined
   session: string | null; onClose: () => void
 }) {
+  const { t, locale, href: L } = useLocale()
+  const hx = t.heatmap
   const pct = periodChange(row, period)
   /* The session figures are only the session's when the company actually
      traded in it. A carry-forward row is labelled with the date it belongs
@@ -391,36 +402,36 @@ function CompanyPanel({ row, period, live, session, onClose }: {
   const traded = live && !live.stale
   const dash = <span className="hx-mv-dash">—</span>
   const rows: [string, React.ReactNode][] = [
-    ['آخر سعر', <><bdi>{nfPrice.format(row.last_close)}</bdi> <small>د.ع</small></>],
-    ['القيمة السوقية', <bdi key="c">{iqdShort(row.marketCap)}</bdi>],
-    ['قيمة التداول', traded ? <bdi key="v">{iqdShort(live!.vol)}</bdi> : dash],
-    ['الحجم', traded ? <bdi key="q">{nf0.format(live!.shares_traded)}</bdi> : dash],
-    ['الصفقات', traded ? <bdi key="t">{nf0.format(live!.deals)}</bdi> : dash],
+    [hx.lastPrice, <><bdi>{nfPrice.format(row.last_close)}</bdi> <small>{hx.currency}</small></>],
+    [hx.marketCapCol, <bdi key="c">{iqdShort(row.marketCap)}</bdi>],
+    [hx.tradedValue, traded ? <bdi key="v">{iqdShort(live!.vol)}</bdi> : dash],
+    [hx.volume, traded ? <bdi key="q">{nf0.format(live!.shares_traded)}</bdi> : dash],
+    [hx.trades, traded ? <bdi key="t">{nf0.format(live!.deals)}</bdi> : dash],
   ]
   return (
-    <aside className="hx-panel" role="dialog" aria-label={`تفاصيل ${row.name}`}>
+    <aside className="hx-panel" role="dialog" aria-label={hx.panelOf(row.name)}>
       <div className="hx-panel-head">
         <div>
           <strong title={row.name}>{row.name}</strong>
-          <p><bdi className="hx-cd-ticker">{row.ticker}</bdi> · {sectorLabel(row.sector, 'ar')}</p>
+          <p><bdi className="hx-cd-ticker">{row.ticker}</bdi> · {sectorLabel(row.sector, locale)}</p>
         </div>
-        <button type="button" onClick={onClose} aria-label="إغلاق">✕</button>
+        <button type="button" onClick={onClose} aria-label={hx.close}>✕</button>
       </div>
       <div className={`hx-panel-move ${pct == null ? '' : pct > 0 ? 'positive' : pct < 0 ? 'negative' : 'neutral'}`}>
         <bdi>{pctText(pct)}</bdi>
-        <small>تغيّر {PERIODS.find((p) => p.id === period)!.ar}</small>
+        <small>{hx.changeIn(PERIODS.find((p) => p.id === period)![locale])}</small>
       </div>
       <dl className="hx-panel-rows">
         {rows.map(([k, v]) => <div key={k}><dt>{k}</dt><dd>{v}</dd></div>)}
       </dl>
       <p className="hx-panel-note">
         {traded && session
-          ? <>أرقام التداول من جلسة {arFull(session)}.</>
+          ? <>{hx.tradedFrom(localeDateOrDash(session, locale))}</>
           : live?.lastTrade
-            ? <>لم تتداول في آخر جلسة · آخر تداول فعلي {arFull(live.lastTrade)}.</>
-            : <>لا تتوفر أرقام تداول لهذه الشركة.</>}
+            ? <>{hx.notTraded(localeDateOrDash(live.lastTrade, locale))}</>
+            : <>{hx.noTradeData}</>}
       </p>
-      <Link className="hx-panel-link" href={`/c/${row.ticker}`}>عرض صفحة الشركة ←</Link>
+      <Link className="hx-panel-link" href={L(`/c/${row.ticker}`)}>{hx.openCompany} <i className="dir-go" aria-hidden="true">←</i></Link>
     </aside>
   )
 }
