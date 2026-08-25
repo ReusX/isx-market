@@ -14,7 +14,7 @@ import {
 import companiesData from '@/public/data/companies.json'
 import type { CompanyMeta } from '@/types'
 import '@/styles/panels.css'
-import '../company.css'
+import '@/styles/company.css'
 import './financials.css'
 
 /**

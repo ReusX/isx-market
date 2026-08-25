@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { GUIDE_SECTIONS, sectionId } from '@/lib/tradingFromZero'
-import '../learn.css'
+import '@/styles/learn.css'
 
 /**
  * `/learn/trading-from-zero` — the beginner path, in the approved chrome.

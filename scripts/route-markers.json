@@ -1,6 +1,7 @@
 {
   "/": "○",
   "/_not-found": "○",
+  "/[...rest]": "ƒ",
   "/about": "○",
   "/alerts": "○",
   "/analysis": "○",
@@ -18,6 +19,7 @@
   "/companies": "○",
   "/contact": "○",
   "/dev/foundation": "○",
+  "/en/[...rest]": "ƒ",
   "/forgot-password": "○",
   "/fx": "○",
   "/gold": "○",

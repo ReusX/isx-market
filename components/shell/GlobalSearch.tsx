@@ -1,5 +1,6 @@
 'use client'
 
+import { useLocale } from '@/context/LocaleContext'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { searchCompanies, splitMatch, type CompanyHit } from '@/lib/companySearch'
@@ -35,6 +36,7 @@ function Marked({ label, query }: { label: string; query: string }) {
 
 export function GlobalSearch({ open, onClose }: { open: boolean; onClose: () => void }) {
   const router = useRouter()
+  const { t, href: L } = useLocale()
   const [query, setQuery] = useState('')
   const [cursor, setCursor] = useState(0)
   const inputRef = useRef<HTMLInputElement | null>(null)
@@ -48,8 +50,10 @@ export function GlobalSearch({ open, onClose }: { open: boolean; onClose: () => 
 
   const go = useCallback((hit: CompanyHit) => {
     close()
-    router.push(`/c/${hit.sym}`)
-  }, [close, router])
+    // Stay in the reader's language. Pushing the bare route sent every English
+    // search result to the Arabic company page.
+    router.push(L(`/c/${hit.sym}`))
+  }, [close, router, L])
 
   function onKeyDown(e: React.KeyboardEvent) {
     if (!results.length) return
@@ -70,7 +74,7 @@ export function GlobalSearch({ open, onClose }: { open: boolean; onClose: () => 
         className="gs-panel"
         role="dialog"
         aria-modal="true"
-        aria-label="البحث عن شركة"
+        aria-label={t.shell.search.dialog}
         tabIndex={-1}
         onMouseDown={(e) => e.stopPropagation()}
       >
@@ -82,8 +86,8 @@ export function GlobalSearch({ open, onClose }: { open: boolean; onClose: () => 
             className="gs-input"
             type="search"
             value={query}
-            placeholder="ابحث عن شركة أو رمز…"
-            aria-label="ابحث عن شركة أو رمز"
+            placeholder={t.shell.search.placeholder}
+            aria-label={t.shell.search.placeholder}
             role="combobox"
             aria-expanded={results.length > 0}
             aria-controls={listId}
@@ -92,14 +96,14 @@ export function GlobalSearch({ open, onClose }: { open: boolean; onClose: () => 
             onChange={(e) => setQuery(e.target.value)}
             onKeyDown={onKeyDown}
           />
-          <button type="button" className="gs-esc" onClick={close}>إغلاق</button>
+          <button type="button" className="gs-esc" onClick={close}>{t.shell.search.close}</button>
         </div>
 
-        <div className="gs-results" id={listId} role="listbox" aria-label="النتائج">
+        <div className="gs-results" id={listId} role="listbox" aria-label={t.shell.search.results}>
           {!query ? (
-            <p className="gs-hint">اكتب اسم شركة أو رمزها.</p>
+            <p className="gs-hint">{t.shell.search.hint}</p>
           ) : results.length === 0 ? (
-            <p className="gs-hint">لا نتائج لـ «{query}».</p>
+            <p className="gs-hint">{t.shell.search.empty(query)}</p>
           ) : (
             results.map((hit, i) => (
               <button
@@ -121,9 +125,9 @@ export function GlobalSearch({ open, onClose }: { open: boolean; onClose: () => 
         </div>
 
         <div className="gs-foot" aria-hidden="true">
-          <span><kbd>↑</kbd><kbd>↓</kbd> للتنقل</span>
-          <span><kbd>↵</kbd> للفتح</span>
-          <span><kbd>Esc</kbd> للإغلاق</span>
+          <span><kbd>↑</kbd><kbd>↓</kbd> {t.shell.search.keyMove}</span>
+          <span><kbd>↵</kbd> {t.shell.search.keyOpen}</span>
+          <span><kbd>Esc</kbd> {t.shell.search.keyClose}</span>
         </div>
       </div>
     </div>

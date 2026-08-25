@@ -1,7 +1,7 @@
 'use client'
 
 import { useApp } from '@/context/AppContext'
-import '@/app/c/[sym]/company.css'
+import '@/styles/company.css'
 import { COMPANY_PROFILES, type Profile } from '@/lib/companyProfiles'
 import { arDate } from '@/lib/date'
 

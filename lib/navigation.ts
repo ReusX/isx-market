@@ -30,17 +30,32 @@
  *                              either way.
  *
  * Privacy and Legal are footer destinations by design, not sidebar items.
+ *
+ * ── Structure here, WORDS in the dictionary ───────────────────────────────
+ * This file used to carry the Arabic labels inline. It no longer carries any
+ * labels at all: an item is an id, an href and a place in the tree, and its
+ * name comes from the per-locale `nav` dictionary, keyed by that id. A label that
+ * exists in one language only is a route that vanishes when you switch, and
+ * inline strings here made that the default outcome rather than a mistake.
+ *
+ * `href` is the LOCALE-FREE route. The shell prefixes it via `useLocale().href`.
  */
 
 export type NavIcon =
   | 'home' | 'chart' | 'filter' | 'grid' | 'stats' | 'pulse' | 'news'
   | 'briefcase' | 'watchlist' | 'exchange' | 'gold' | 'oil' | 'learn'
 
-export type NavGroup = 'السوق' | 'منصتي' | 'أدوات' | 'تعلّم'
+/** Group ids. The visible heading for each is `t.nav.groups[id]`. */
+export type NavGroup = 'market' | 'personal' | 'tools' | 'learn'
+
+/** Item ids. Each is a key of `t.nav`. */
+export type NavId =
+  | 'home' | 'market' | 'screener' | 'stats' | 'heatmap' | 'pulse' | 'news'
+  | 'portfolio' | 'watchlist' | 'fx' | 'gold' | 'oil' | 'learn'
 
 export type NavigationItem = {
-  id: string
-  label: string
+  id: NavId
+  /** Locale-free route. */
   href: string
   icon: NavIcon
   group: NavGroup
@@ -49,29 +64,27 @@ export type NavigationItem = {
   personal?: boolean
 }
 
-export const HOME: NavigationItem = {
-  id: 'home', label: 'الرئيسية', href: '/', icon: 'home', group: 'السوق',
-}
+export const HOME: NavigationItem = { id: 'home', href: '/', icon: 'home', group: 'market' }
 
 export const navigationItems: NavigationItem[] = [
-  { id: 'market',    label: 'حركة السوق',    href: '/market',     icon: 'chart',     group: 'السوق' },
-  { id: 'screener',  label: 'فارز الأسهم',   href: '/screener',   icon: 'filter',    group: 'السوق' },
-  { id: 'stats',     label: 'الإحصائيات',    href: '/statistics', icon: 'stats',     group: 'السوق' },
-  { id: 'heatmap',   label: 'خريطة السوق',   href: '/heatmap',    icon: 'grid',      group: 'السوق' },
-  { id: 'pulse',     label: 'نبض السوق',     href: '/pulse',      icon: 'pulse',     group: 'السوق' },
-  { id: 'news',      label: 'أخبار السوق',   href: '/news',       icon: 'news',      group: 'السوق' },
+  { id: 'market',    href: '/market',     icon: 'chart',     group: 'market' },
+  { id: 'screener',  href: '/screener',   icon: 'filter',    group: 'market' },
+  { id: 'stats',     href: '/statistics', icon: 'stats',     group: 'market' },
+  { id: 'heatmap',   href: '/heatmap',    icon: 'grid',      group: 'market' },
+  { id: 'pulse',     href: '/pulse',      icon: 'pulse',     group: 'market' },
+  { id: 'news',      href: '/news',       icon: 'news',      group: 'market' },
 
-  { id: 'portfolio', label: 'محفظتي',        href: '/portfolio',  icon: 'briefcase', group: 'منصتي', personal: true },
-  { id: 'watchlist', label: 'قوائم المتابعة', href: '/watchlist',  icon: 'watchlist', group: 'منصتي', personal: true },
+  { id: 'portfolio', href: '/portfolio',  icon: 'briefcase', group: 'personal', personal: true },
+  { id: 'watchlist', href: '/watchlist',  icon: 'watchlist', group: 'personal', personal: true },
 
-  { id: 'fx',        label: 'سعر الصرف',     href: '/fx',         icon: 'exchange',  group: 'أدوات' },
-  { id: 'gold',      label: 'سعر الذهب',     href: '/gold',       icon: 'gold',      group: 'أدوات' },
-  { id: 'oil',       label: 'سعر النفط',     href: '/oil',        icon: 'oil',       group: 'أدوات' },
+  { id: 'fx',        href: '/fx',         icon: 'exchange',  group: 'tools' },
+  { id: 'gold',      href: '/gold',       icon: 'gold',      group: 'tools' },
+  { id: 'oil',       href: '/oil',        icon: 'oil',       group: 'tools' },
 
-  { id: 'learn',     label: 'تعلّم',          href: '/learn',      icon: 'learn',     group: 'تعلّم' },
+  { id: 'learn',     href: '/learn',      icon: 'learn',     group: 'learn' },
 ]
 
-export const navigationGroups: NavGroup[] = ['السوق', 'منصتي', 'أدوات', 'تعلّم']
+export const navigationGroups: NavGroup[] = ['market', 'personal', 'tools', 'learn']
 
 export function getNavigationGroups() {
   return navigationGroups.map((group) => ({
@@ -81,20 +94,23 @@ export function getNavigationGroups() {
 }
 
 /** Secondary destinations. Footer and mobile sheet, never the rail. */
-export const INFO_LINKS = [
-  { label: 'من نحن',       href: '/about' },
-  { label: 'تواصل معنا',   href: '/contact' },
-  { label: 'الخصوصية',     href: '/privacy' },
-  { label: 'إشعار قانوني', href: '/legal' },
+export type InfoId = 'about' | 'contact' | 'privacy' | 'legal'
+export const INFO_LINKS: { id: InfoId; href: string }[] = [
+  { id: 'about',   href: '/about' },
+  { id: 'contact', href: '/contact' },
+  { id: 'privacy', href: '/privacy' },
+  { id: 'legal',   href: '/legal' },
 ]
 
 /**
- * Active-route test.
+ * Active-route test, run against the LOCALE-FREE route.
  *
  * `/` matches only itself — without the guard every route is "under" the
- * homepage and the whole rail lights up at once.
+ * homepage and the whole rail lights up at once. Comparing locale-free routes
+ * is what makes `/en/market` light up the Market row: comparing raw pathnames
+ * would have matched nothing at all on the English side.
  */
-export function isActiveHref(href: string, pathname: string): boolean {
-  if (href === '/') return pathname === '/'
-  return pathname === href || pathname.startsWith(`${href}/`)
+export function isActiveHref(href: string, route: string): boolean {
+  if (href === '/') return route === '/'
+  return route === href || route.startsWith(`${href}/`)
 }

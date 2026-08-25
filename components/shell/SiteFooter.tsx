@@ -1,5 +1,8 @@
+'use client'
+
 import Link from 'next/link'
 import { getNavigationGroups, INFO_LINKS } from '@/lib/navigation'
+import { useLocale } from '@/context/LocaleContext'
 
 /**
  * The footer.
@@ -16,31 +19,32 @@ import { getNavigationGroups, INFO_LINKS } from '@/lib/navigation'
  */
 export function SiteFooter() {
   const groups = getNavigationGroups()
+  const { t, href: L } = useLocale()
 
   return (
     <footer className="ft">
       <div className="ft-top">
         <div className="ft-brand">
           <strong>IQWealth</strong>
-          <p>منصّة مجانية للمستثمر العراقي · بيانات يومية من المصادر الرسمية، تحليل، وأدوات بحث.</p>
+          <p>{t.shell.footer.blurb}</p>
         </div>
 
         {groups.map(({ group, items }) => (
-          <nav className="ft-col" key={group} aria-label={group}>
-            <h2>{group}</h2>
+          <nav className="ft-col" key={group} aria-label={t.nav.groups[group]}>
+            <h2>{t.nav.groups[group]}</h2>
             <ul>
               {items.map((item) => (
-                <li key={item.id}><Link href={item.href}>{item.label}</Link></li>
+                <li key={item.id}><Link href={L(item.href)}>{t.nav[item.id]}</Link></li>
               ))}
             </ul>
           </nav>
         ))}
 
-        <nav className="ft-col" aria-label="الموقع">
-          <h2>الموقع</h2>
+        <nav className="ft-col" aria-label={t.nav.info.heading}>
+          <h2>{t.nav.info.heading}</h2>
           <ul>
             {INFO_LINKS.map((l) => (
-              <li key={l.href}><Link href={l.href}>{l.label}</Link></li>
+              <li key={l.href}><Link href={L(l.href)}>{t.nav.info[l.id]}</Link></li>
             ))}
           </ul>
         </nav>
@@ -48,7 +52,7 @@ export function SiteFooter() {
 
       <div className="ft-bottom">
         <span>© {new Date().getFullYear()} IQWealth</span>
-        <span>البيانات لأغراض إعلامية ولا تُعدّ نصيحة استثمارية.</span>
+        <span>{t.shell.footer.disclaimer}</span>
       </div>
     </footer>
   )

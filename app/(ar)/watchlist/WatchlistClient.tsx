@@ -9,7 +9,7 @@ import { iqd, nf0 } from '@/lib/statistics'
 import TickerPicker from '@/components/TickerPicker'
 import '@/styles/panels.css'
 import '@/styles/data-table.css'
-import '@/app/portfolio/portfolio.css'
+import '@/styles/portfolio.css'
 import './watchlist.css'
 
 /**

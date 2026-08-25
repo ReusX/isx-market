@@ -3,7 +3,7 @@
 import { useMemo, useState } from 'react'
 import Link from 'next/link'
 import { filterLearn, learnDate, type LearnItem, type LearnPath } from '@/lib/learn'
-import './learn.css'
+import '@/styles/learn.css'
 
 /**
  * تعلّم — the Learn landing page. A direct transplant of the approved design.

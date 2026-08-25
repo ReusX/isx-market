@@ -197,6 +197,51 @@
 
 .gh-actions { display: flex; gap: 6px; align-items: center; }
 
+/* ── Language switch ──────────────────────────────────────────────────────
+   A text control, never a flag and never a globe icon: a flag is a country and
+   English is not one, and a globe says «language» without saying WHICH. The
+   label is the destination language written in itself, so the person who needs
+   it can read it.
+
+   It sits in the header's global-preference cluster beside the theme toggle.
+   44px on both axes — this is a control a reader hunts for on a phone, and the
+   36px the login button gets is not enough for something you cannot read the
+   page to find.
+
+   `direction: ltr` on the Latin label keeps «English» from being reordered when
+   it sits inside the RTL header; the Arabic label needs no such help because
+   the header is already RTL when it renders.  */
+.gh-lang {
+  display: grid;
+  place-items: center;
+  min-inline-size: 44px;
+  min-block-size: 44px;
+  padding-inline: 10px;
+  border-radius: 11px;
+  color: #717772;
+  text-decoration: none;
+  font-family: var(--font-body), Arial, sans-serif;
+  font-size: 0.78rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+[data-theme='dark'] .gh-lang { color: #9e9e9e; }
+.gh-lang:hover { background: rgb(255 255 255 / 0.5); color: #1e2220; }
+[data-theme='dark'] .gh-lang:hover { background: rgb(255 255 255 / 0.06); color: #fff; }
+.gh-lang:focus-visible { outline: 2px solid #3171c6; outline-offset: 2px; }
+
+/* Below 480px the header holds menu + search + three actions. The label is the
+   one that can go without losing its meaning — it keeps its full accessible
+   name from aria-label, and 44px of target. */
+@media (max-width: 420px) {
+  .gh-lang { padding-inline: 6px; font-size: 0.72rem; }
+}
+
+/* The mobile sheet's copy of the switch. It is an `.mn-row` already, so it
+   inherits the 52px row height and the active treatment; this only stops the
+   Latin label from picking up the sheet's RTL alignment. */
+.mn-lang > span { unicode-bidi: isolate; }
+
 .gh-login {
   min-block-size: 36px;
   padding-inline: 16px;

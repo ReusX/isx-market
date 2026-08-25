@@ -1,9 +1,10 @@
 'use client'
 
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
 import { Sheet } from '@/components/system/Overlay'
 import { getNavigationGroups, HOME, INFO_LINKS, isActiveHref } from '@/lib/navigation'
+import { useLocale, useRoute } from '@/context/LocaleContext'
+import { LanguageSwitch } from './LanguageSwitch'
 
 /**
  * Mobile navigation.
@@ -31,14 +32,15 @@ export function MobileNav({
   signedIn: boolean
   onSearch: () => void
 }) {
-  const pathname = usePathname() ?? '/'
+  const route = useRoute()
+  const { t, href: L } = useLocale()
   const groups = getNavigationGroups()
 
   function Row({ href, label }: { href: string; label: string }) {
-    const active = isActiveHref(href, pathname)
+    const active = isActiveHref(href, route)
     return (
       <Link
-        href={href}
+        href={L(href)}
         className={`mn-row ${active ? 'is-on' : ''}`.trim()}
         aria-current={active ? 'page' : undefined}
         onClick={onClose}
@@ -50,39 +52,47 @@ export function MobileNav({
   }
 
   return (
-    <Sheet open={open} onClose={onClose} title="التنقل" side="inline-start">
+    <Sheet open={open} onClose={onClose} title={t.shell.navMobile} side="inline-start">
       <button
         type="button"
         className="mn-search"
         onClick={() => { onClose(); onSearch() }}
       >
         <i aria-hidden="true" />
-        <span>ابحث عن شركة أو رمز…</span>
+        <span>{t.shell.search.trigger}</span>
       </button>
 
       <div className="mn-group">
-        <Row href={HOME.href} label={HOME.label} />
+        <Row href={HOME.href} label={t.nav.home} />
       </div>
 
       {groups.map(({ group, items }) => (
         <section className="mn-group" key={group}>
-          <h3>{group}</h3>
-          {items.map((item) => <Row key={item.id} href={item.href} label={item.label} />)}
+          <h3>{t.nav.groups[group]}</h3>
+          {items.map((item) => <Row key={item.id} href={item.href} label={t.nav[item.id]} />)}
         </section>
       ))}
 
       <section className="mn-group">
-        <h3>الموقع</h3>
-        {INFO_LINKS.map((l) => <Row key={l.href} href={l.href} label={l.label} />)}
+        <h3>{t.nav.info.heading}</h3>
+        {INFO_LINKS.map((l) => <Row key={l.href} href={l.href} label={t.nav.info[l.id]} />)}
+      </section>
+
+      {/* The language switch, on a phone, in the navigation — NOT buried in
+          account settings. A reader who cannot read the current language must
+          be able to find it from the first sheet they open. */}
+      <section className="mn-group">
+        <h3>{t.shell.language.group}</h3>
+        <LanguageSwitch variant="row" onNavigate={onClose} />
       </section>
 
       <div className="mn-foot">
         {signedIn ? (
-          <Link href="/profile" className="mn-account" onClick={onClose}>حسابي</Link>
+          <Link href={L('/profile')} className="mn-account" onClick={onClose}>{t.shell.account}</Link>
         ) : (
           /* Signed out gets ONE clear entry, not a disabled workspace. */
-          <Link href="/profile" className="mn-signin" onClick={onClose}>
-            تسجيل الدخول · أنشئ حسابك المجاني
+          <Link href={L('/login')} className="mn-signin" onClick={onClose}>
+            {t.shell.signInLong}
           </Link>
         )}
       </div>

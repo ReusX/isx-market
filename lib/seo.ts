@@ -9,20 +9,27 @@
  * canonical still renders a perfectly good page.
  *
  * ── On locales ───────────────────────────────────────────────────────────────
- * The archived version of this file was written for a locale migration that is
- * now DEFERRED until after the redesign is stable in production. It carried a
- * `Locale` type, an `/en` prefix branch in `absUrl`, an `ENGLISH_LIVE` flag,
- * and a `seoAlternates` that emitted a bidirectional hreflang set once that
- * flag flipped.
+ * The locale project is now LIVE, and this file is where its URL rules are
+ * enforced. Arabic sits at the site root and English under `/en`; Arabic was
+ * deliberately NOT moved to `/ar`, so every URL already in Google's index keeps
+ * the address it has.
  *
- * All of it is gone. Not disabled — gone. A dormant `ENGLISH_LIVE = false` is
- * one boolean away from publishing `/en` canonicals for routes that do not
- * exist, and that is precisely the deploy the deferral exists to prevent. The
- * URL structure this file describes is the production one and nothing else.
+ * Two rules matter more than the rest, because breaking either is invisible on
+ * screen and expensive in the index:
  *
- * When the locale project starts, this is the right place to reintroduce it,
- * deliberately, with the routing that makes those URLs real.
+ *   1. EVERY page self-canonicalises to its OWN language's URL. An English page
+ *      never canonicalises to the Arabic one just because they share a data
+ *      source — that asks Google to drop the English page entirely.
+ *   2. An `hreflang` pair is only emitted for routes the registry in
+ *      `lib/i18n/routes.ts` says exist in BOTH languages. It is not enough for
+ *      the URL to resolve: `/en/news/[slug]` would resolve happily while
+ *      serving an Arabic article body, and claiming that as the English
+ *      alternate is the exact failure the registry exists to prevent.
  */
+
+import { DEFAULT_LOCALE, hreflangOf, type Locale } from './i18n/locale'
+import { localePath } from './i18n/paths'
+import { isPaired } from './i18n/routes'
 
 export const SITE = 'https://iraqsm.com'
 
@@ -33,19 +40,39 @@ function normalise(path: string): string {
   return withSlash.endsWith('/') ? withSlash.slice(0, -1) : withSlash
 }
 
-/** Absolute URL for a route. */
-export function absUrl(path: string): string {
-  return `${SITE}${normalise(path)}`
+/**
+ * Absolute URL for a route, in a locale.
+ *
+ * `path` is always the LOCALE-FREE route (`/market`), never a built one
+ * (`/en/market`) — the prefix is this function's job. Callers that omit the
+ * locale get Arabic, which is what all 134 pre-locale call sites meant, so
+ * none of them had to change.
+ */
+export function absUrl(path: string, locale: Locale = DEFAULT_LOCALE): string {
+  return `${SITE}${normalise(localePath(path, locale))}`
 }
 
 /**
- * The `alternates` block for a page's metadata.
+ * The `alternates` block for a page's metadata: the self-canonical, plus the
+ * hreflang set when — and only when — a real pair exists.
  *
- * One key today. It stays a function rather than an inline object because the
- * canonical is the single most consequential string a page emits and it should
- * be derived, never typed — eight pages in this repo were self-canonicalising
- * to the wrong URL, and every one of them looked fine on screen.
+ * `x-default` points at the Arabic URL. This is an Iraqi market product whose
+ * audience reads Arabic; English is the accommodation, not the neutral default.
+ *
+ * It stays a function rather than an inline object because the canonical is the
+ * single most consequential string a page emits and it should be derived, never
+ * typed — eight pages in this repo were self-canonicalising to the wrong URL,
+ * and every one of them looked fine on screen.
  */
-export function seoAlternates(path: string) {
-  return { canonical: absUrl(path) }
+export function seoAlternates(path: string, locale: Locale = DEFAULT_LOCALE) {
+  const canonical = absUrl(path, locale)
+  if (!isPaired(path)) return { canonical }
+  return {
+    canonical,
+    languages: {
+      [hreflangOf('ar')]: absUrl(path, 'ar'),
+      [hreflangOf('en')]: absUrl(path, 'en'),
+      'x-default': absUrl(path, 'ar'),
+    },
+  }
 }

@@ -20,7 +20,7 @@ import { arFull } from '@/lib/statistics'
 import companiesData from '@/public/data/companies.json'
 import type { Company, CompanyMeta } from '@/types'
 import '@/styles/panels.css'
-import './company.css'
+import '@/styles/company.css'
 
 /**
  * صفحة الشركة — a direct port of the approved company page.

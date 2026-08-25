@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { type ReactNode } from 'react'
 import { useApp } from '@/context/AppContext'
+import { useT } from '@/context/LocaleContext'
 import { DitherArt, type Scene } from '@/components/design/DitherArt'
 
 /**
@@ -65,8 +66,9 @@ export function StatePage({
 
 /** The «where else» row · two or three destinations, not a sitemap. */
 export function StateLinks({ items }: { items: { href: string; label: string }[] }) {
+  const t = useT()
   return (
-    <nav className="sp-links" aria-label="وجهات مقترحة">
+    <nav className="sp-links" aria-label={t.system.notFound.suggested}>
       {items.map((i) => <Link key={i.href} href={i.href}>{i.label}</Link>)}
     </nav>
   )

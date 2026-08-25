@@ -1,8 +1,8 @@
 'use client'
 
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
 import { getNavigationGroups, HOME, isActiveHref, type NavIcon } from '@/lib/navigation'
+import { useLocale, useRoute } from '@/context/LocaleContext'
 import { StarMark } from '@/components/brand/StarMark'
 
 /**
@@ -48,14 +48,15 @@ export function SideNav({
   collapsed: boolean
   onToggle: () => void
 }) {
-  const pathname = usePathname() ?? '/'
+  const route = useRoute()
+  const { t, locale, href: L } = useLocale()
   const groups = getNavigationGroups()
 
   function Row({ href, label, icon }: { href: string; label: string; icon: NavIcon }) {
-    const active = isActiveHref(href, pathname)
+    const active = isActiveHref(href, route)
     return (
       <Link
-        href={href}
+        href={L(href)}
         className={`sn-link ${active ? 'is-on' : ''}`.trim()}
         aria-current={active ? 'page' : undefined}
         title={collapsed ? label : undefined}
@@ -68,9 +69,9 @@ export function SideNav({
   }
 
   return (
-    <aside className="sn" aria-label="التنقل الرئيسي">
+    <aside className="sn" aria-label={t.shell.navMain}>
       <div className="sn-head">
-        <Link href="/" className="sn-brand" aria-label="IQWealth · الرئيسية">
+        <Link href={L('/')} className="sn-brand" aria-label={t.shell.brandHome}>
           {/* The real brand mark, not an «IQ» placeholder: the eight-pointed
               Star of Ishtar from components/brand/StarMark.tsx, which is the
               same geometry public/favicon.svg carries. Its centre punches
@@ -83,20 +84,25 @@ export function SideNav({
           type="button"
           className="sn-toggle"
           onClick={onToggle}
-          aria-label={collapsed ? 'توسيع القائمة الجانبية' : 'طي القائمة الجانبية'}
+          aria-label={collapsed ? t.shell.expand : t.shell.collapse}
           aria-expanded={!collapsed}
         >
-          <span aria-hidden="true">{collapsed ? '«' : '»'}</span>
+          {/* The chevron points AT the rail's own edge, so it has to flip with
+              direction: in RTL the rail is on the right and «/» read correctly;
+              in LTR they are mirrored and would point away from the panel. */}
+          <span aria-hidden="true">
+            {locale === 'ar' ? (collapsed ? '«' : '»') : (collapsed ? '»' : '«')}
+          </span>
         </button>
       </div>
 
       <nav className="sn-scroll">
-        <Row href={HOME.href} label={HOME.label} icon={HOME.icon} />
+        <Row href={HOME.href} label={t.nav.home} icon={HOME.icon} />
         {groups.map(({ group, items }) => (
-          <section className="sn-group" key={group} aria-label={group}>
-            <h2 className={collapsed ? 'sr-only' : undefined}>{group}</h2>
+          <section className="sn-group" key={group} aria-label={t.nav.groups[group]}>
+            <h2 className={collapsed ? 'sr-only' : undefined}>{t.nav.groups[group]}</h2>
             {items.map((item) => (
-              <Row key={item.id} href={item.href} label={item.label} icon={item.icon} />
+              <Row key={item.id} href={item.href} label={t.nav[item.id]} icon={item.icon} />
             ))}
           </section>
         ))}

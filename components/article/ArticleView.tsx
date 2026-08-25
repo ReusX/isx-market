@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import type { Heading } from '@/lib/article'
-import '@/app/learn/learn.css'
+import '@/styles/learn.css'
 
 /**
  * The long-form article surface — /news/[slug] and /learn/[slug].

@@ -8,7 +8,7 @@ import { arFull } from '@/lib/statistics'
 import '@/styles/panels.css'
 // The signed-out state reuses the portfolio's empty-state pieces (`.pf-empty`,
 // `.pf-add`), which is what the approved design does too.
-import '@/app/portfolio/portfolio.css'
+import '@/styles/portfolio.css'
 import './profile.css'
 
 /**

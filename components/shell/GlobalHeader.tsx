@@ -3,6 +3,8 @@
 import { useEffect } from 'react'
 import Link from 'next/link'
 import { useApp } from '@/context/AppContext'
+import { useLocale } from '@/context/LocaleContext'
+import { LanguageSwitch } from './LanguageSwitch'
 
 /**
  * The detached top header.
@@ -21,6 +23,7 @@ export function GlobalHeader({
   onSearchOpen: () => void
 }) {
   const { theme, toggleTheme, user, openAuth } = useApp()
+  const { t, href: L } = useLocale()
 
   /**
    * The `/` shortcut, actually bound this time.
@@ -49,30 +52,34 @@ export function GlobalHeader({
         type="button"
         className="gh-menu"
         onClick={onMenu}
-        aria-label="القائمة"
+        aria-label={t.shell.menu}
       >
         <span aria-hidden="true">☰</span>
       </button>
 
       <button type="button" className="gh-searchbtn" onClick={onSearchOpen}>
         <i aria-hidden="true" />
-        <span>ابحث عن شركة أو رمز…</span>
+        <span>{t.shell.search.trigger}</span>
         <kbd aria-hidden="true">/</kbd>
       </button>
 
       <div className="gh-actions">
+        {/* Beside the theme toggle and the account control, which is where the
+            brief puts it: the global-preference cluster, not a settings page. */}
+        <LanguageSwitch />
+
         <button
           type="button"
           className="gh-theme"
           onClick={toggleTheme}
-          aria-label={theme === 'dark' ? 'التبديل إلى الوضع الفاتح' : 'التبديل إلى الوضع الداكن'}
+          aria-label={theme === 'dark' ? t.shell.toLight : t.shell.toDark}
         >
           <span aria-hidden="true">{theme === 'dark' ? '☀' : '☾'}</span>
         </button>
 
         {user ? (
-          <Link href="/profile" className="gh-account" aria-label="حسابي">
-            <span aria-hidden="true">{(user.email ?? '؟').slice(0, 1).toUpperCase()}</span>
+          <Link href={L('/profile')} className="gh-account" aria-label={t.shell.account}>
+            <span aria-hidden="true">{(user.email ?? '?').slice(0, 1).toUpperCase()}</span>
           </Link>
         ) : (
           /* Signed out gets one clear entry. No disabled workspace controls
@@ -81,7 +88,7 @@ export function GlobalHeader({
              family is a later phase, and inventing a second entry point now
              would leave two to reconcile. */
           <button type="button" className="gh-login" onClick={() => openAuth('signin')}>
-            دخول
+            {t.shell.signIn}
           </button>
         )}
       </div>
