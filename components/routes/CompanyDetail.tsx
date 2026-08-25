@@ -1,6 +1,8 @@
 'use client'
 
 import { useEffect, useMemo, useState } from 'react'
+import { useLocale } from '@/context/LocaleContext'
+import { localeDateOrDash } from '@/lib/date'
 import Link from 'next/link'
 import { useApp } from '@/context/AppContext'
 import { CompanyLogo } from '@/components/CompanyLogo'
@@ -51,14 +53,17 @@ import '@/styles/company.css'
  */
 
 const SECTIONS = [
-  { id: 'overview', label: 'نظرة عامة' },
-  { id: 'chart', label: 'السعر' },
-  { id: 'fundamentals', label: 'الأساسيات' },
-  { id: 'ownership', label: 'الملكية' },
-  { id: 'about', label: 'عن الشركة' },
+  { id: 'overview' as const },
+  { id: 'chart' as const },
+  { id: 'fundamentals' as const },
+  { id: 'ownership' as const },
+  { id: 'about' as const },
 ] as const
 
-const SECTOR_AR = new Map(SECTORS.filter(s => s.id !== 'all').map(s => [s.id, s.arFull]))
+/* Full sector names, both languages, keyed by id. */
+const SECTOR_NAME = new Map(
+  SECTORS.filter(s => s.id !== 'all').map(s => [s.id, { ar: s.arFull, en: s.enFull }]),
+)
 
 type Loaded = {
   co: Company
@@ -78,7 +83,9 @@ type MetricRow = {
   last_date: string | null
 }
 
-export function CompanyClient({ sym }: { sym: string }) {
+export function CompanyDetail({ sym }: { sym: string }) {
+  const { t: T, locale, href: L } = useLocale()
+  const cd = T.company
   const { theme, watchlist, toggleWatchlist } = useApp()
   const [data, setData] = useState<Loaded | null>(null)
   const [state, setState] = useState<'loading' | 'ready' | 'notfound' | 'error'>('loading')
@@ -175,7 +182,16 @@ export function CompanyClient({ sym }: { sym: string }) {
   if (state === 'notfound') return <NotFound sym={sym} />
   if (state === 'error') return <PageError sym={sym} />
 
-  const name = co ? companyName({ ar: usableName(co.ar) ? co.ar : null, en: usableName(co.en) ? co.en : null }, sym) : sym
+  /* The reader's language, falling back across languages rather than to a
+     blank — an English reader on a company with no English name gets the
+     official Arabic one, with the ticker beside it. */
+  const name = co
+    ? companyName(
+        { ar: usableName(co.ar) ? co.ar : null, en: usableName(co.en) ? co.en : null },
+        sym,
+        locale,
+      )
+    : sym
   const nameEn = co && usableName(co.en) && /[A-Za-z]/.test(co.en) ? co.en : null
   const shares = co?.shares ?? null
   const mcap = co && shares && !suspended ? co.close * shares : null
@@ -188,10 +204,10 @@ export function CompanyClient({ sym }: { sym: string }) {
 
   return (
     <main className="cd-page iq-page">
-      <nav className="cd-crumbs" aria-label="مسار التصفح">
+      <nav className="cd-crumbs" aria-label={cd.crumbsLabel}>
         <ol>
-          <li><Link href="/market">السوق</Link></li>
-          <li><Link href="/companies">الشركات</Link></li>
+          <li><Link href={L('/market')}>{cd.market}</Link></li>
+          <li><Link href={L('/companies')}>{cd.companies}</Link></li>
           <li aria-current="page">{name}</li>
         </ol>
       </nav>
@@ -208,9 +224,9 @@ export function CompanyClient({ sym }: { sym: string }) {
             <p className="cd-id-meta">
               <bdi className="cd-ticker">{sym}</bdi>
               <span className="cd-sep" aria-hidden="true">·</span>
-              {co ? <Link href={`/market?sector=${co.sec}`}>{SECTOR_AR.get(String(co.sec)) ?? String(co.sec)}</Link> : null}
+              {co ? <Link href={`/market?sector=${co.sec}`}>{SECTOR_NAME.get(String(co.sec))?.[locale] ?? String(co.sec)}</Link> : null}
               <span className="cd-sep" aria-hidden="true">·</span>
-              <span>بورصة العراق</span>
+              <span>{cd.exchange}</span>
             </p>
             {/* Supporting metadata, in its own LTR island. Rendered only when
                 there genuinely is a Latin name. */}
@@ -227,12 +243,12 @@ export function CompanyClient({ sym }: { sym: string }) {
             </span>
           ) : suspended ? (
             <>
-              <span className="cd-price-label">آخر صفقة فعلية</span>
+              <span className="cd-price-label">{cd.lastActualTrade}</span>
               <strong className="cd-price cd-price-dead">
                 <bdi>{nfPrice(co.close)}</bdi><small>IQD</small>
               </strong>
               <span className="cd-state cd-state-dead">
-                موقوف عن التداول{co.lastTrade ? <> · {arFull(co.lastTrade)}</> : null}
+                {cd.suspended}{co.lastTrade ? <> · {localeDateOrDash(co.lastTrade, locale)}</> : null}
               </span>
             </>
           ) : (
@@ -241,12 +257,12 @@ export function CompanyClient({ sym }: { sym: string }) {
               {quiet ? (
                 <span className="cd-change cd-change-none">
                   <span className="mv-dash" aria-hidden="true">—</span>
-                  لم يُتداول في هذه الجلسة
+                  {cd.notTradedSession}
                 </span>
               ) : noPrior ? (
                 <span className="cd-change cd-change-none">
                   <span className="mv-dash" aria-hidden="true">—</span>
-                  لا يوجد إغلاق سابق للمقارنة
+                  {cd.noPriorClose}
                 </span>
               ) : (
                 <span className={`cd-change ${co.change > 0 ? 'positive' : co.change < 0 ? 'negative' : 'neutral'}`}>
@@ -257,10 +273,10 @@ export function CompanyClient({ sym }: { sym: string }) {
               <span className="cd-state">
                 <i aria-hidden="true" />
                 {quiet && co.lastTrade
-                  ? <>آخر تداول {arFull(co.lastTrade)}</>
+                  ? <>{cd.lastTradedOn(localeDateOrDash(co.lastTrade, locale))}</>
                   : data?.metric?.last_date
-                    ? <>إغلاق جلسة {arFull(data.metric.last_date)}</>
-                    : <>آخر جلسة متاحة</>}
+                    ? <>{cd.sessionClose(localeDateOrDash(data.metric.last_date, locale))}</>
+                    : <>{cd.latestAvailable}</>}
               </span>
             </>
           )}
@@ -270,34 +286,34 @@ export function CompanyClient({ sym }: { sym: string }) {
           <button type="button" className={`cd-action ${watchlist.includes(sym) ? 'is-on' : ''}`}
             aria-pressed={watchlist.includes(sym)} onClick={() => toggleWatchlist(sym)}>
             <i aria-hidden="true">★</i>
-            {watchlist.includes(sym) ? 'في المتابعة' : 'متابعة'}
+            {watchlist.includes(sym) ? cd.watching : cd.watch}
           </button>
           <Link className="cd-action" href={`/c/${sym.toLowerCase()}/financials`}>
-            <i aria-hidden="true">▤</i>البيانات المالية
+            <i aria-hidden="true">▤</i>{cd.financials}
           </Link>
         </div>
       </header>
 
-      <nav className="cd-anchors" aria-label="أقسام الصفحة">
+      <nav className="cd-anchors" aria-label={cd.sectionsLabel}>
         {SECTIONS.map(s => (
           <a key={s.id} href={`#${s.id}`}
             aria-current={section === s.id ? 'true' : undefined}
-            onClick={() => setSection(s.id)}>{s.label}</a>
+            onClick={() => setSection(s.id)}>{cd.tabs[s.id]}</a>
         ))}
         <Link className="cd-anchors-out" href={`/c/${sym.toLowerCase()}/financials`}>
-          البيانات المالية <i aria-hidden="true">←</i>
+          {cd.financials} <i className="dir-go" aria-hidden="true">←</i>
         </Link>
       </nav>
 
-      <section className="cd-market" id="chart" aria-label="السعر وبيانات الجلسة">
+      <section className="cd-market" id="chart" aria-label={cd.priceSection}>
         <div className="cd-chart">
           <CompanyChart sym={sym} name={name} />
           {data?.metric?.low_52w != null && data.metric.high_52w != null && co ? (
             <div className="cd-plot-foot">
               <span className="cd-plot-band">
-                {suspended ? 'مدى آخر 52 أسبوع تداول' : 'مدى 52 أسبوعاً'} <bdi>{nfPrice(data.metric.low_52w)}</bdi>
+                {suspended ? cd.band52Stale : cd.band52} <bdi>{nfPrice(data.metric.low_52w)}</bdi>
                 <span className="cd-plot-track" role="img"
-                  aria-label={`السعر عند ${bandPos(co.close, data.metric.low_52w, data.metric.high_52w).toFixed(0)}% من مدى 52 أسبوعاً`}>
+                  aria-label={cd.bandPosition(`${bandPos(co.close, data.metric.low_52w, data.metric.high_52w).toFixed(0)}%`)}>
                   <i style={{ insetInlineStart: `${bandPos(co.close, data.metric.low_52w, data.metric.high_52w)}%` }} />
                 </span>
                 <bdi>{nfPrice(data.metric.high_52w)}</bdi>
@@ -315,27 +331,25 @@ export function CompanyClient({ sym }: { sym: string }) {
           stopped trading, so a five-year return against a live index would be
           the most confident-looking wrong answer this page could give. */}
       {suspended ? null : (
-        <section className="cd-band-row" id="overview" aria-label="الأداء">
+        <section className="cd-band-row" id="overview" aria-label={cd.performance}>
           <Performance sym={sym} co={data?.returns ?? null} bm={data?.bench ?? null} loading={loading} />
           {data?.foreign ? <ForeignPanel f={data.foreign} loading={loading} /> : null}
         </section>
       )}
 
-      <section id="fundamentals" aria-label="الأساسيات">
-        <SectionHead title="الأساسيات"
-          note={hasFin && ratios.year ? `النسب محسوبة على آخر سنة مالية مكتملة (${ratios.year}) وآخر ربع مُعلن.` : undefined}
-          link={{ href: `/c/${sym.toLowerCase()}/financials`, label: 'القوائم المالية الكاملة' }} />
+      <section id="fundamentals" aria-label={cd.fundamentals}>
+        <SectionHead title={cd.fundamentals}
+          note={hasFin && ratios.year ? cd.ratiosNote(String(ratios.year)) : undefined}
+          link={{ href: L(`/c/${sym.toLowerCase()}/financials`), label: cd.fullFinancials }} />
         {loading ? <FundSkeleton /> : finWithheld ? (
           <div className="cd-nodata cd-nodata-wide">
-            <strong>الأساسيات غير معروضة لهذه الشركة حالياً</strong>
+            <strong>{cd.noFundamentals}</strong>
             <p>
-              لم يكتمل توحيد وحدة القياس في البيانات المالية المستخرجة لشركة {name}، ولذلك
-              لا تُعرض نسب التقييم أو الربحية بدل عرض قيم قد تكون غير صحيحة. التقارير الأصلية
-              المنشورة متاحة في صفحة البيانات المالية.
+              {cd.unitGuard(name)}
             </p>
             <div className="cd-nodata-still">
-              <span className="cd-cell-label">ما يزال متوفراً</span>
-              <p>السعر التاريخي، بيانات الجلسة، القيمة السوقية، والأداء مقابل المؤشر أعلاه.</p>
+              <span className="cd-cell-label">{cd.stillAvailable}</span>
+              <p>{cd.stillAvailableNote(false)}</p>
             </div>
           </div>
         ) : hasFin ? (
@@ -348,19 +362,18 @@ export function CompanyClient({ sym }: { sym: string }) {
         ) : <NoFinancials name={name} hasOwnership={Boolean(data?.ownership)} />}
       </section>
 
-      <section id="ownership" aria-label="الملكية والمساهمون">
-        <SectionHead title="الملكية والمساهمون"
-          note={data?.ownership ? `وفق إيداعات ${data.ownership.month}/${data.ownership.year} لدى مركز الإيداع.` : undefined} />
+      <section id="ownership" aria-label={cd.ownershipSection}>
+        <SectionHead title={cd.ownershipSection}
+          note={data?.ownership ? cd.ownershipNote(String(data.ownership.month), String(data.ownership.year)) : undefined} />
         {loading ? <OwnSkeleton /> : (data?.ownership || data?.holders.length)
           ? <Ownership o={data.ownership} holders={data.holders} />
           : <NoData
-              title="لا تتوفر بيانات ملكية لهذه الشركة"
-              body="لم تُنشر إيداعات مركز الإيداع لهذه الشركة في آخر تحديث شهري. تُضاف تلقائياً عند توفرها." />}
+              title={cd.noOwnershipTitle}
+              body={cd.noOwnershipBody} />}
       </section>
 
       <p className="cd-footnote">
-        الأسعار من النشرة الرسمية لبورصة العراق · القيمة السوقية = آخر سعر × الأسهم المصدرة ·
-        البيانات المالية مستخرجة من التقارير المنشورة للشركة، وتُعرض كما وردت دون اشتقاق فترات غير مُفصح عنها.
+        {cd.footnote}
       </p>
     </main>
   )
@@ -373,64 +386,65 @@ function SessionRail({ co, loading, suspended, quiet, noPrior, prevClose, mcap, 
   co: Company | null; loading: boolean; suspended: boolean; quiet: boolean; noPrior: boolean
   prevClose: number | null; mcap: number | null; shares: number | null; pe: number | null
 }) {
+  const { t: T, locale, href: L } = useLocale()
+  const cd = T.company
   if (loading || !co) return <RailSkeleton />
 
   if (suspended) {
     return (
       <aside className="cd-rail">
         <div className="cd-rail-dead">
-          <strong>لا توجد بيانات جلسة</strong>
+          <strong>{cd.noSession}</strong>
           <p>
-            {co.lastTrade ? <>آخر صفقة فعلية على هذا السهم كانت بتاريخ {arFull(co.lastTrade)} بسعر{' '}</> : <>آخر سعر مسجّل هو{' '}</>}
-            <bdi>{nfPrice(co.close)}</bdi> دينار. لا تُحتسب قيمة سوقية للسهم الموقوف،
-            لأنها ستكون سعراً قديماً مضروباً بعدد أسهم حالي.
+            {co.lastTrade ? <>{cd.noSessionWithDate(localeDateOrDash(co.lastTrade, locale))}</> : <>{cd.noSessionNoDate}</>}
+            {cd.suspendedNoCap(nfPrice(co.close))}
           </p>
         </div>
-        {shares ? <RailRow label="الأسهم المصدرة" value={<bdi>{iqd(shares)}</bdi>} /> : null}
+        {shares ? <RailRow label={cd.issuedShares} value={<bdi>{iqd(shares)}</bdi>} /> : null}
       </aside>
     )
   }
 
   return (
-    <aside className="cd-rail" aria-label="بيانات الجلسة">
+    <aside className="cd-rail" aria-label={cd.sessionRailLabel}>
       <div className="cd-rail-group">
-        <span className="cd-cell-label">نطاق الجلسة</span>
+        <span className="cd-cell-label">{cd.sessionRange}</span>
         {quiet ? (
           <p className="cd-rail-note">
-            لم يُتداول السهم في هذه الجلسة. الأرقام أدناه من آخر جلسة تداول فعلية له.
+            {cd.quietNote}
           </p>
         ) : (
           <div className="cd-daybar">
             <div className="cd-daybar-track" role="img"
-              aria-label={`أدنى ${co.low} وأعلى ${co.high} والإغلاق ${co.close}`}>
+              aria-label={cd.rangeLabel(String(co.low), String(co.high), String(co.close))}>
               <i style={{ insetInlineStart: `${bandPos(co.close, co.low, co.high)}%` }} />
             </div>
             <div className="cd-daybar-ends">
-              <span><em>أدنى</em><bdi>{nfPrice(co.low || co.close)}</bdi></span>
-              <span><em>أعلى</em><bdi>{nfPrice(co.high || co.close)}</bdi></span>
+              <span><em>{cd.low}</em><bdi>{nfPrice(co.low || co.close)}</bdi></span>
+              <span><em>{cd.high}</em><bdi>{nfPrice(co.high || co.close)}</bdi></span>
             </div>
           </div>
         )}
       </div>
 
       <div className="cd-rail-group">
-        <RailRow label="الافتتاح" value={quiet || !co.open ? <Dash /> : <bdi>{nfPrice(co.open)}</bdi>} />
-        <RailRow label="إغلاق سابق"
-          value={noPrior || prevClose == null ? <Dash hint="لا يوجد إغلاق سابق قابل للمقارنة" /> : <bdi>{nfPrice(prevClose)}</bdi>} />
+        <RailRow label={cd.open} value={quiet || !co.open ? <Dash /> : <bdi>{nfPrice(co.open)}</bdi>} />
+        <RailRow label={cd.prevClose}
+          value={noPrior || prevClose == null ? <Dash hint={cd.noPriorHint} /> : <bdi>{nfPrice(prevClose)}</bdi>} />
       </div>
 
       <div className="cd-rail-group">
-        <RailRow label="قيمة التداول" strong value={quiet ? <Dash /> : <><bdi>{iqd(co.vol)}</bdi><small>IQD</small></>} />
-        <RailRow label="الحجم" value={quiet ? <Dash /> : <><bdi>{nf0.format(co.shares_traded)}</bdi><small>سهم</small></>} />
-        <RailRow label="الصفقات" value={quiet ? <Dash /> : <bdi>{nf0.format(co.deals)}</bdi>} />
+        <RailRow label={cd.tradedValue} strong value={quiet ? <Dash /> : <><bdi>{iqd(co.vol)}</bdi><small>IQD</small></>} />
+        <RailRow label={cd.volume} value={quiet ? <Dash /> : <><bdi>{nf0.format(co.shares_traded)}</bdi><small>{cd.sharesUnit}</small></>} />
+        <RailRow label={cd.trades} value={quiet ? <Dash /> : <bdi>{nf0.format(co.deals)}</bdi>} />
       </div>
 
       <div className="cd-rail-group">
-        <RailRow label="القيمة السوقية" strong
+        <RailRow label={cd.marketCap} strong
           value={mcap ? <><bdi>{iqd(mcap)}</bdi><small>IQD</small></> : <Dash />} />
-        <RailRow label="الأسهم المصدرة" value={shares ? <bdi>{iqd(shares)}</bdi> : <Dash />} />
-        <RailRow label="مكرر الربحية"
-          value={pe ? <bdi>{pe.toFixed(1)}×</bdi> : <Dash hint="لم تُستخرج بيانات مالية كافية" />} />
+        <RailRow label={cd.issuedShares} value={shares ? <bdi>{iqd(shares)}</bdi> : <Dash />} />
+        <RailRow label={cd.pe}
+          value={pe ? <bdi>{pe.toFixed(1)}×</bdi> : <Dash hint={cd.peHint} />} />
       </div>
     </aside>
   )
@@ -451,19 +465,21 @@ function RailRow({ label, value, strong }: { label: string; value: React.ReactNo
 function Performance({ sym, co, bm, loading }: {
   sym: string; co: Returns | null; bm: Returns | null; loading: boolean
 }) {
+  const { t: T, locale, href: L } = useLocale()
+  const cd = T.company
   const rows = [
-    { label: 'منذ بداية العام', c: co?.ytd ?? null, b: bm?.ytd ?? null },
-    { label: 'سنة', c: co?.y1 ?? null, b: bm?.y1 ?? null },
-    { label: '3 سنوات', c: co?.y3 ?? null, b: bm?.y3 ?? null },
-    { label: '5 سنوات', c: co?.y5 ?? null, b: bm?.y5 ?? null },
+    { label: cd.ytd, c: co?.ytd ?? null, b: bm?.ytd ?? null },
+    { label: cd.y1, c: co?.y1 ?? null, b: bm?.y1 ?? null },
+    { label: cd.y3, c: co?.y3 ?? null, b: bm?.y3 ?? null },
+    { label: cd.y5, c: co?.y5 ?? null, b: bm?.y5 ?? null },
   ].map(r => ({ ...r, c: r.c == null ? null : r.c * 100, b: r.b == null ? null : r.b * 100 }))
   const max = Math.max(20, ...rows.flatMap(r => [Math.abs(r.c ?? 0), Math.abs(r.b ?? 0)]))
 
   return (
     <div className="cd-panel">
       <div className="cd-panel-head">
-        <h2>الأداء مقابل المؤشر</h2>
-        <span className="cd-panel-note">عوائد سعرية تراكمية · المؤشر المرجعي <b>ISX60</b></span>
+        <h2>{cd.vsIndex}</h2>
+        <span className="cd-panel-note">{cd.vsIndexNote} <b>ISX60</b></span>
       </div>
       {loading ? <div className="cd-lines" aria-hidden="true">{[0, 1, 2, 3].map(i => <i key={i} />)}</div> : (
         <div className="cd-perf">
@@ -503,30 +519,32 @@ function PerfBar({ value, max, kind }: { value: number | null; max: number; kind
 function ForeignPanel({ f, loading }: {
   f: { buy: number; sell: number; net: number; sessions: number }; loading: boolean
 }) {
+  const { t: T, locale, href: L } = useLocale()
+  const cd = T.company
   const total = f.buy + f.sell || 1
   return (
     <div className="cd-panel">
       <div className="cd-panel-head">
-        <h2>تداول المستثمرين الأجانب</h2>
-        <span className="cd-panel-note">آخر <bdi>{f.sessions}</bdi> جلسة مسجّلة</span>
+        <h2>{cd.foreignTrading}</h2>
+        <span className="cd-panel-note">{cd.lastNSessions(String(f.sessions))}</span>
       </div>
       {loading ? <div className="cd-lines" aria-hidden="true">{[0, 1, 2].map(i => <i key={i} />)}</div> : (
         <div className="cd-foreign">
           <div className="cd-foreign-net">
-            <span className="cd-cell-label">صافي التدفق</span>
+            <span className="cd-cell-label">{cd.netFlow}</span>
             <strong className={tone(f.net)}>
               <bdi>{f.net >= 0 ? '+' : '−'}{iqd(Math.abs(f.net))}</bdi><small>IQD</small>
             </strong>
-            <span className="cd-foreign-sub">{f.net >= 0 ? 'شراء صافٍ' : 'بيع صافٍ'}</span>
+            <span className="cd-foreign-sub">{f.net >= 0 ? cd.netBuy : cd.netSell}</span>
           </div>
           <div className="cd-foreign-split">
-            <div className="cd-foreign-bar" role="img" aria-label={`شراء ${iqd(f.buy)} وبيع ${iqd(f.sell)}`}>
+            <div className="cd-foreign-bar" role="img" aria-label={cd.buySellBar(iqd(f.buy), iqd(f.sell))}>
               <i className="buy" style={{ inlineSize: `${(f.buy / total) * 100}%` }} />
               <i className="sell" style={{ inlineSize: `${(f.sell / total) * 100}%` }} />
             </div>
             <div className="cd-foreign-keys">
-              <span className="buy"><em>شراء</em><bdi>{iqd(f.buy)}</bdi></span>
-              <span className="sell"><em>بيع</em><bdi>{iqd(f.sell)}</bdi></span>
+              <span className="buy"><em>{cd.buy}</em><bdi>{iqd(f.buy)}</bdi></span>
+              <span className="sell"><em>{cd.sell}</em><bdi>{iqd(f.sell)}</bdi></span>
             </div>
           </div>
         </div>
@@ -545,6 +563,8 @@ function Fundamentals({ isBank, mcap, pe, eps, r, annRev, annNi }: {
   annRev: { value: number | null; year: number | null }
   annNi: { value: number | null; year: number | null }
 }) {
+  const { t: T, locale, href: L } = useLocale()
+  const cd = T.company
   // Margin on the SAME basis as the two lines above it, so the three
   // reconcile. Both are the last audited year, not a trailing twelve months —
   // see the note in lib/companyView.ts on why a TTM is not available here.
@@ -552,40 +572,40 @@ function Fundamentals({ isBank, mcap, pe, eps, r, annRev, annNi }: {
   const yr = (y: number | null) => (y ? ` ${y}` : '')
 
   const valuation: [string, string | null][] = [
-    ['القيمة السوقية', mcap ? `${iqd(mcap)} IQD` : null],
-    ['مكرر الربحية', pe ? `${pe.toFixed(2)}×` : null],
-    ['السعر / القيمة الدفترية', r.pb ? `${r.pb.toFixed(2)}×` : null],
-    ['السعر / المبيعات', r.ps ? `${r.ps.toFixed(2)}×` : null],
-    ['ربحية السهم', eps ? `${eps.toFixed(3)} IQD` : null],
-    ['القيمة الدفترية للسهم', r.bvps ? `${r.bvps.toFixed(2)} IQD` : null],
-    ['عائد التوزيعات', r.dividend_yield ? `${(r.dividend_yield * 100).toFixed(2)}%` : null],
+    [cd.marketCap, mcap ? `${iqd(mcap)} IQD` : null],
+    [cd.pe, pe ? `${pe.toFixed(2)}×` : null],
+    [cd.pb, r.pb ? `${r.pb.toFixed(2)}×` : null],
+    [cd.ps, r.ps ? `${r.ps.toFixed(2)}×` : null],
+    [cd.eps, eps ? `${eps.toFixed(3)} IQD` : null],
+    [cd.bvps, r.bvps ? `${r.bvps.toFixed(2)} IQD` : null],
+    [cd.dividendYield, r.dividend_yield ? `${(r.dividend_yield * 100).toFixed(2)}%` : null],
   ]
   const performance: [string, string | null][] = isBank
     ? [
-        [`الدخل التشغيلي${yr(annRev.year)}`, annRev.value ? `${iqd(annRev.value)} IQD` : null],
-        [`صافي الربح${yr(annNi.year)}`, annNi.value != null ? `${iqd(annNi.value)} IQD` : null],
-        ['العائد على الأصول', r.roa ? `${(r.roa * 100).toFixed(2)}%` : null],
-        ['العائد على حقوق الملكية', r.roe ? `${(r.roe * 100).toFixed(2)}%` : null],
-        ['كفاية رأس المال', r.capital_adequacy_ratio ? `${(r.capital_adequacy_ratio * 100).toFixed(1)}%` : null],
-        ['القروض إلى الودائع', r.loan_to_deposit ? `${(r.loan_to_deposit * 100).toFixed(1)}%` : null],
+        [`${cd.operatingIncome}${yr(annRev.year)}`, annRev.value ? `${iqd(annRev.value)} IQD` : null],
+        [`${cd.netProfit}${yr(annNi.year)}`, annNi.value != null ? `${iqd(annNi.value)} IQD` : null],
+        [cd.roa, r.roa ? `${(r.roa * 100).toFixed(2)}%` : null],
+        [cd.roe, r.roe ? `${(r.roe * 100).toFixed(2)}%` : null],
+        [cd.capitalAdequacy, r.capital_adequacy_ratio ? `${(r.capital_adequacy_ratio * 100).toFixed(1)}%` : null],
+        [cd.loanToDeposit, r.loan_to_deposit ? `${(r.loan_to_deposit * 100).toFixed(1)}%` : null],
       ]
     : [
-        [`الإيرادات${yr(annRev.year)}`, annRev.value ? `${iqd(annRev.value)} IQD` : null],
-        [`صافي الربح${yr(annNi.year)}`, annNi.value != null ? `${iqd(annNi.value)} IQD` : null],
-        ['هامش صافي الربح', margin != null ? `${(margin * 100).toFixed(2)}%` : null],
-        ['العائد على الأصول', r.roa ? `${(r.roa * 100).toFixed(2)}%` : null],
-        ['العائد على حقوق الملكية', r.roe ? `${(r.roe * 100).toFixed(2)}%` : null],
-        ['الدين إلى حقوق الملكية', r.debt_to_equity != null ? `${(r.debt_to_equity * 100).toFixed(1)}%` : null],
+        [`${cd.revenue}${yr(annRev.year)}`, annRev.value ? `${iqd(annRev.value)} IQD` : null],
+        [`${cd.netProfit}${yr(annNi.year)}`, annNi.value != null ? `${iqd(annNi.value)} IQD` : null],
+        [cd.netMargin, margin != null ? `${(margin * 100).toFixed(2)}%` : null],
+        [cd.roa, r.roa ? `${(r.roa * 100).toFixed(2)}%` : null],
+        [cd.roe, r.roe ? `${(r.roe * 100).toFixed(2)}%` : null],
+        [cd.debtToEquity, r.debt_to_equity != null ? `${(r.debt_to_equity * 100).toFixed(1)}%` : null],
       ]
 
   return (
     <div className="cd-fund">
-      <FundColumn title="التقييم" rows={valuation} />
+      <FundColumn title={cd.valuation} rows={valuation} />
       <FundColumn
-        title={isBank ? 'الربحية والملاءة' : 'الربحية والمركز المالي'}
+        title={isBank ? cd.profitabilityBank : cd.profitability}
         rows={performance}
         note={isBank
-          ? 'المصارف لا تُفصح عن سطر إيرادات واحد؛ يُحتسب الدخل التشغيلي كصافي دخل التمويل مضافاً إليه صافي العمولات، ولذلك لا يُعرض هامش صافي الربح.'
+          ? cd.bankMarginNote
           : undefined} />
     </div>
   )
@@ -594,6 +614,8 @@ function Fundamentals({ isBank, mcap, pe, eps, r, annRev, annNi }: {
 function FundColumn({ title, rows, note }: {
   title: string; rows: [string, string | null][]; note?: string
 }) {
+  const { t: T } = useLocale()
+  const cd = T.company
   return (
     <div className="cd-fund-col">
       <h3>{title}</h3>
@@ -601,7 +623,7 @@ function FundColumn({ title, rows, note }: {
         {rows.map(([label, value]) => (
           <div key={label} className={value ? '' : 'is-absent'}>
             <dt>{label}</dt>
-            <dd>{value ? <bdi>{value}</bdi> : <span className="mv-dash" title="غير متوفر في البيانات المنشورة">—</span>}</dd>
+            <dd>{value ? <bdi>{value}</bdi> : <span className="mv-dash" title={cd.notPublished}>—</span>}</dd>
           </div>
         ))}
       </dl>
@@ -614,6 +636,8 @@ function Earnings({ isBank, series, mode, setMode, sym }: {
   isBank: boolean; series: EarnPeriod[]; mode: 'annual' | 'quarterly'
   setMode: (m: 'annual' | 'quarterly') => void; sym: string
 }) {
+  const { t: T, locale, href: L } = useLocale()
+  const cd = T.company
   const max = Math.max(1, ...series.flatMap(s => [Math.abs(s.rev ?? 0), Math.abs(s.ni ?? 0)]))
   const latest = series[series.length - 1]
   const margin = !isBank && latest?.rev && latest.ni != null ? latest.ni / latest.rev : null
@@ -621,23 +645,23 @@ function Earnings({ isBank, series, mode, setMode, sym }: {
   return (
     <div className="cd-panel cd-earn">
       <div className="cd-panel-head">
-        <h2>{isBank ? 'الدخل التشغيلي والأرباح' : 'الإيرادات والأرباح'}</h2>
-        <div className="cd-seg" role="group" aria-label="فترة التقرير">
+        <h2>{isBank ? cd.incomeBank : cd.incomeCorp}</h2>
+        <div className="cd-seg" role="group" aria-label={cd.reportPeriod}>
           <button type="button" className={mode === 'quarterly' ? 'active' : ''}
-            aria-pressed={mode === 'quarterly'} onClick={() => setMode('quarterly')}>ربعي</button>
+            aria-pressed={mode === 'quarterly'} onClick={() => setMode('quarterly')}>{cd.quarterly}</button>
           <button type="button" className={mode === 'annual' ? 'active' : ''}
-            aria-pressed={mode === 'annual'} onClick={() => setMode('annual')}>سنوي</button>
+            aria-pressed={mode === 'annual'} onClick={() => setMode('annual')}>{cd.annual}</button>
         </div>
       </div>
 
       {latest ? (
         <p className="cd-earn-latest">
           <span>{latest.label}</span>
-          <b>{isBank ? 'الدخل التشغيلي' : 'الإيرادات'}</b>
+          <b>{isBank ? cd.operatingIncome : cd.revenue}</b>
           <bdi>{latest.rev != null ? iqd(latest.rev) : '—'}</bdi>
-          <b>صافي الربح</b>
+          <b>{cd.netProfit}</b>
           <bdi className={tone(latest.ni ?? 0)}>{latest.ni != null ? iqd(latest.ni) : '—'}</bdi>
-          {margin != null ? <><b>الهامش</b><bdi className={tone(margin)}>{(margin * 100).toFixed(1)}%</bdi></> : null}
+          {margin != null ? <><b>{cd.margin}</b><bdi className={tone(margin)}>{(margin * 100).toFixed(1)}%</bdi></> : null}
         </p>
       ) : null}
 
@@ -654,9 +678,9 @@ function Earnings({ isBank, series, mode, setMode, sym }: {
       </div>
 
       <div className="cd-earn-legend">
-        <span><i className="rev" aria-hidden="true" />{isBank ? 'الدخل التشغيلي' : 'الإيرادات'}</span>
-        <span><i className="ni" aria-hidden="true" />صافي الربح</span>
-        <Link href={`/c/${sym.toLowerCase()}/financials`}>القوائم المالية الكاملة ←</Link>
+        <span><i className="rev" aria-hidden="true" />{isBank ? cd.operatingIncome : cd.revenue}</span>
+        <span><i className="ni" aria-hidden="true" />{cd.netProfit}</span>
+        <Link href={L(`/c/${sym.toLowerCase()}/financials`)}>{cd.fullFinancials} <i className="dir-go" aria-hidden="true">←</i></Link>
       </div>
 
       {/* Only filed periods are plotted. Nothing here is derived — the
@@ -664,43 +688,45 @@ function Earnings({ isBank, series, mode, setMode, sym }: {
           filing in any company-year, so a computed quarter would be a number
           that agrees with nothing. */}
       <p className="cd-fund-note">
-        تُعرض الفترات المُفصح عنها فقط، دون احتساب أي ربع غير منشور.
+        {cd.disclosedOnly}
       </p>
     </div>
   )
 }
 
 function Ownership({ o, holders }: { o: OwnershipRow | null; holders: Holder[] }) {
+  const { t: T, locale, href: L } = useLocale()
+  const cd = T.company
   const iraqi = o?.iraqi_shares ?? 0, foreign = o?.foreign_shares ?? 0
   const tot = iraqi + foreign
   return (
     <div className="cd-own">
       {o && tot > 0 ? (
         <div className="cd-panel">
-          <div className="cd-panel-head"><h2>تركيبة الملكية</h2></div>
+          <div className="cd-panel-head"><h2>{cd.ownershipMix}</h2></div>
           <div className="cd-own-split">
             <div className="cd-own-bar" role="img"
-              aria-label={`عراقي ${((iraqi / tot) * 100).toFixed(1)}% وأجنبي ${((foreign / tot) * 100).toFixed(1)}%`}>
+              aria-label={cd.ownershipBar(`${((iraqi / tot) * 100).toFixed(1)}%`, `${((foreign / tot) * 100).toFixed(1)}%`)}>
               <i className="iraqi" style={{ inlineSize: `${(iraqi / tot) * 100}%` }} />
               <i className="foreign" style={{ inlineSize: `${(foreign / tot) * 100}%` }} />
             </div>
             <div className="cd-own-keys">
               <span className="iraqi">
-                <em>ملكية عراقية</em>
+                <em>{cd.iraqiOwnership}</em>
                 <bdi>{((iraqi / tot) * 100).toFixed(1)}%</bdi>
-                {o.iraqi_count != null ? <small><bdi>{nf0.format(o.iraqi_count)}</bdi> مساهم</small> : null}
+                {o.iraqi_count != null ? <small><bdi>{nf0.format(o.iraqi_count)}</bdi> {cd.holders}</small> : null}
               </span>
               <span className="foreign">
-                <em>ملكية أجنبية</em>
+                <em>{cd.foreignOwnership}</em>
                 <bdi>{((foreign / tot) * 100).toFixed(1)}%</bdi>
-                {o.foreign_count != null ? <small><bdi>{nf0.format(o.foreign_count)}</bdi> مساهم</small> : null}
+                {o.foreign_count != null ? <small><bdi>{nf0.format(o.foreign_count)}</bdi> {cd.holders}</small> : null}
               </span>
             </div>
           </div>
           <dl className="cd-own-facts">
-            <div><dt>رأس المال المصرّح</dt><dd>{o.capital != null ? <bdi>{iqd(o.capital)}</bdi> : <Dash />}</dd></div>
-            <div><dt>المودع لدى المركز</dt><dd>{o.deposited_capital != null ? <bdi>{iqd(o.deposited_capital)}</bdi> : <Dash />}</dd></div>
-            <div><dt>نسبة الإيداع</dt><dd>{o.deposit_ratio != null ? <bdi>{o.deposit_ratio.toFixed(1)}%</bdi> : <Dash />}</dd></div>
+            <div><dt>{cd.authorisedCapital}</dt><dd>{o.capital != null ? <bdi>{iqd(o.capital)}</bdi> : <Dash />}</dd></div>
+            <div><dt>{cd.depositedCapital}</dt><dd>{o.deposited_capital != null ? <bdi>{iqd(o.deposited_capital)}</bdi> : <Dash />}</dd></div>
+            <div><dt>{cd.depositRatio}</dt><dd>{o.deposit_ratio != null ? <bdi>{o.deposit_ratio.toFixed(1)}%</bdi> : <Dash />}</dd></div>
           </dl>
         </div>
       ) : null}
@@ -708,8 +734,8 @@ function Ownership({ o, holders }: { o: OwnershipRow | null; holders: Holder[] }
       {holders.length ? (
         <div className="cd-panel">
           <div className="cd-panel-head">
-            <h2>كبار المساهمين</h2>
-            <span className="cd-panel-note">حسب آخر إفصاح شهري</span>
+            <h2>{cd.majorShareholders}</h2>
+            <span className="cd-panel-note">{cd.perLatestFiling}</span>
           </div>
           <ul className="cd-holders">
             {holders.map(h => (
@@ -717,7 +743,7 @@ function Ownership({ o, holders }: { o: OwnershipRow | null; holders: Holder[] }
                 <span className="cd-holder-rank"><bdi>{h.rank}</bdi></span>
                 <span className="cd-holder-name">
                   <strong title={h.name}>{h.name}</strong>
-                  <small>{h.foreign ? 'أجنبي' : 'عراقي'}</small>
+                  <small>{h.foreign ? cd.foreign : cd.iraqi}</small>
                 </span>
                 <span className="cd-holder-bar" aria-hidden="true">
                   <i style={{ inlineSize: `${Math.min(h.pct, 100)}%` }} data-foreign={h.foreign || undefined} />
@@ -726,19 +752,18 @@ function Ownership({ o, holders }: { o: OwnershipRow | null; holders: Holder[] }
                 {/* A change that was never filed is not a change of zero. */}
                 <span className="cd-holder-chg">
                   {h.changePct == null
-                    ? <span className="mv-dash" title="لا تتوفر مقارنة موثوقة بالإفصاح السابق">—</span>
+                    ? <span className="mv-dash" title={cd.noReliableCompare}>—</span>
                     : <bdi className={tone(h.changePct)}>{signed(h.changePct, 2)}</bdi>}
                 </span>
               </li>
             ))}
           </ul>
           <p className="cd-fund-note">
-            لا يتضمّن الإفصاح مقارنة موثوقة بالشهر السابق، ولذلك يظهر عمود التغيّر فارغاً بدل صفر.
+            {cd.noCompareNote}
           </p>
         </div>
       ) : (
-        <NoData title="لم تُنشر قائمة كبار المساهمين"
-          body="لا يتضمّن الإفصاح الشهري الأخير كبار مساهمي هذه الشركة." />
+        <NoData title={cd.noShareholdersTitle} body={cd.noShareholdersBody} />
       )}
     </div>
   )
@@ -753,7 +778,7 @@ function SectionHead({ title, note, link }: {
     <div className="cd-sec-head">
       <h2>{title}</h2>
       {note ? <p>{note}</p> : null}
-      {link ? <Link href={link.href}>{link.label} <i aria-hidden="true">←</i></Link> : null}
+      {link ? <Link href={link.href}>{link.label} <i className="dir-go" aria-hidden="true">←</i></Link> : null}
     </div>
   )
 }
@@ -763,44 +788,49 @@ function NoData({ title, body }: { title: string; body: string }) {
 }
 
 function NoFinancials({ name, hasOwnership }: { name: string; hasOwnership: boolean }) {
+  const { t: T, locale, href: L } = useLocale()
+  const cd = T.company
   return (
     <div className="cd-nodata cd-nodata-wide">
-      <strong>لم تُستخرج البيانات المالية لهذه الشركة بعد</strong>
+      <strong>{cd.noFinancialsTitle}</strong>
       <p>
-        تُستخرج القوائم المالية من التقارير المنشورة للشركات. لم يُنشر لشركة {name} تقرير قابل
-        للاستخراج حتى الآن، ولذلك لا تُعرض نسب التقييم أو الربحية — ولا تُعرض أصفاراً بدلاً منها.
+        {cd.noFinancialsBody(name)}
       </p>
       <div className="cd-nodata-still">
-        <span className="cd-cell-label">ما يزال متوفراً</span>
-        <p>السعر التاريخي، بيانات الجلسة، القيمة السوقية، الأداء مقابل المؤشر{hasOwnership ? '، وبيانات الملكية' : ''}.</p>
+        <span className="cd-cell-label">{cd.stillAvailable}</span>
+        <p>{cd.stillAvailableFin(hasOwnership)}</p>
       </div>
     </div>
   )
 }
 
 function NotFound({ sym }: { sym: string }) {
+  const { t: T, locale, href: L } = useLocale()
+  const cd = T.company
   return (
     <main className="cd-page iq-page">
       <div className="cd-notfound">
-        <span className="cd-notfound-mark" aria-hidden="true">؟</span>
-        <h1>لا يوجد سهم بالرمز <bdi>{sym}</bdi></h1>
-        <p>تحقّق من الرمز، أو تصفّح الشركات المدرجة في بورصة العراق.</p>
-        <Link className="cd-action" href="/market">كل الشركات</Link>
+        <span className="cd-notfound-mark" aria-hidden="true">{locale === 'ar' ? '؟' : '?'}</span>
+        <h1>{cd.notFoundTitle(sym)}</h1>
+        <p>{cd.notFoundNote}</p>
+        <Link className="cd-action" href={L('/market')}>{cd.allCompanies}</Link>
       </div>
     </main>
   )
 }
 
 function PageError({ sym }: { sym: string }) {
+  const { t: T, locale, href: L } = useLocale()
+  const cd = T.company
   return (
     <main className="cd-page iq-page">
       <div className="mv-error" role="alert">
         <span className="mv-error-mark" aria-hidden="true">!</span>
         <div>
-          <strong>تعذّر تحميل بيانات <bdi>{sym}</bdi></strong>
-          <p>يمكن إعادة المحاولة، أو العودة إلى صفحة السوق.</p>
+          <strong>{cd.loadFailed(sym)}</strong>
+          <p>{cd.loadFailedNote}</p>
         </div>
-        <button type="button" onClick={() => window.location.reload()}>إعادة المحاولة</button>
+        <button type="button" onClick={() => window.location.reload()}>{cd.retry}</button>
       </div>
     </main>
   )
@@ -830,8 +860,10 @@ const OwnSkeleton = () => (
   </div>
 )
 
-const Dash = ({ hint }: { hint?: string }) =>
-  <span className="mv-dash" title={hint} aria-label="لا تتوفر بيانات">—</span>
+function Dash({ hint }: { hint?: string }) {
+  const { t: T } = useLocale()
+  return <span className="mv-dash" title={hint} aria-label={T.data.unavailable}>—</span>
+}
 const tone = (v: number) => (v > 0 ? 'positive' : v < 0 ? 'negative' : 'neutral')
 const signed = (v: number, d: number) => `${v > 0 ? '+' : ''}${v.toFixed(d)}`
 const nfPriceFmt = new Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })

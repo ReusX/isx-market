@@ -1,21 +1,22 @@
 'use client'
 
 import { Fragment, useEffect, useMemo, useState } from 'react'
+import { useLocale } from '@/context/LocaleContext'
 import Link from 'next/link'
 import { CompanyLogo } from '@/components/CompanyLogo'
 import { companyName, SECTORS } from '@/lib/market'
 import { usableName } from '@/lib/statistics'
 import {
   TEMPLATES, RATIOS, RATIO_GROUPS, buildFinancials, pickUnit, fmtUnit, fmtRatio,
-  colLabel, colKey, UNIT_AR,
-  type StatementId, type PeriodMode, type ColMeta, type Financials,
+  colLabel, colKey, unitLabel, reportedUnitLabel, stmtLabel,
+  type StatementId, type PeriodMode, type ColMeta, type Financials, type Unit,
   type FactRow, type RatioRow, type ReportRow,
 } from '@/lib/financials'
 import companiesData from '@/public/data/companies.json'
 import type { CompanyMeta } from '@/types'
 import '@/styles/panels.css'
 import '@/styles/company.css'
-import './financials.css'
+import '@/styles/financials.css'
 
 /**
  * البيانات المالية — a direct port of the approved financials page.
@@ -39,7 +40,9 @@ import './financials.css'
 
 type Tab = 'overview' | StatementId | 'ratios'
 
-export function FinancialsClient({ sym }: { sym: string }) {
+export function CompanyFinancials({ sym }: { sym: string }) {
+  const { t: T, locale, href: L } = useLocale()
+  const fn = T.financials
   const [rows, setRows] = useState<{ facts: FactRow[]; ratios: RatioRow[]; reports: ReportRow[] } | null>(null)
   const [state, setState] = useState<'loading' | 'ready' | 'error'>('loading')
   const [tab, setTab] = useState<Tab>('overview')
@@ -49,7 +52,11 @@ export function FinancialsClient({ sym }: { sym: string }) {
   const meta = companiesData as CompanyMeta[]
   const known = meta.find(m => m.sym === sym) ?? null
   const name = known
-    ? companyName({ ar: usableName(known.ar) ? known.ar : null, en: usableName(known.en) ? known.en : null }, sym)
+    ? companyName(
+        { ar: usableName(known.ar) ? known.ar : null, en: usableName(known.en) ? known.en : null },
+        sym,
+        locale,
+      )
     : sym
 
   useEffect(() => {
@@ -99,24 +106,24 @@ export function FinancialsClient({ sym }: { sym: string }) {
   }, [fin, mode])
 
   const loading = state === 'loading'
-  const sectorAr = known
-    ? SECTORS.find(s => s.id === known.sec)?.arFull ?? String(known.sec)
+  const sectorLabel = known
+    ? SECTORS.find(s => s.id === known.sec)?.[locale === 'ar' ? 'arFull' : 'enFull'] ?? String(known.sec)
     : ''
 
   return (
     <main className="fn-page iq-page">
-      <nav className="cd-crumbs" aria-label="مسار التصفح">
+      <nav className="cd-crumbs" aria-label={fn.crumbsLabel}>
         <ol>
-          <li><Link href="/companies">الشركات</Link></li>
+          <li><Link href={L('/market')}>{fn.companies}</Link></li>
           <li><Link href={`/c/${sym.toLowerCase()}`}>{name}</Link></li>
-          <li aria-current="page">البيانات المالية</li>
+          <li aria-current="page">{fn.title}</li>
         </ol>
       </nav>
 
       {/* Compact by instruction: enough to know whose statements these are,
           and no more. Not a second masthead. */}
       <header className="fn-strip">
-        <Link className="fn-back" href={`/c/${sym.toLowerCase()}`} aria-label="العودة إلى نظرة عامة">
+        <Link className="fn-back" href={L(`/c/${sym.toLowerCase()}`)} aria-label={fn.backToOverview}>
           <i aria-hidden="true">→</i>
         </Link>
         <span className={`cd-mark ${known?.logo ? 'has-logo' : ''}`} aria-hidden="true">
@@ -129,26 +136,26 @@ export function FinancialsClient({ sym }: { sym: string }) {
           <p>
             <bdi className="cd-ticker">{sym}</bdi>
             <span className="cd-sep" aria-hidden="true">·</span>
-            {sectorAr}
+            {sectorLabel}
             {fin ? (
               <>
                 <span className="cd-sep" aria-hidden="true">·</span>
-                {fin.template === 'bank' ? 'نموذج مصرفي' : 'نموذج صناعي/خدمي'}
+                {fin.template === 'bank' ? fn.templateBank : fn.templateIndustrial}
               </>
             ) : null}
           </p>
         </div>
-        <Link className="fn-overview-link" href={`/c/${sym.toLowerCase()}`}>نظرة عامة</Link>
+        <Link className="fn-overview-link" href={L(`/c/${sym.toLowerCase()}`)}>{fn.overview}</Link>
       </header>
 
       {state === 'error' ? (
         <div className="mv-error" role="alert">
           <span className="mv-error-mark" aria-hidden="true">!</span>
           <div>
-            <strong>تعذّر تحميل القوائم المالية</strong>
-            <p>يمكن إعادة المحاولة، أو العودة إلى صفحة الشركة.</p>
+            <strong>{fn.loadFailed}</strong>
+            <p>{fn.loadFailedNote}</p>
           </div>
-          <button type="button" onClick={() => window.location.reload()}>إعادة المحاولة</button>
+          <button type="button" onClick={() => window.location.reload()}>{fn.retry}</button>
         </div>
       ) : loading ? (
         <div className="fn-panel"><Skeleton lines={10} /></div>
@@ -159,28 +166,28 @@ export function FinancialsClient({ sym }: { sym: string }) {
       ) : (
         <>
           <div className="fn-controls">
-            <div className="fn-tabs" role="tablist" aria-label="أقسام البيانات المالية">
+            <div className="fn-tabs" role="tablist" aria-label={fn.tabsLabel}>
               <button type="button" role="tab" aria-selected={activeTab === 'overview'}
                 className={activeTab === 'overview' ? 'active' : ''}
-                onClick={() => setTab('overview')}>نظرة عامة</button>
+                onClick={() => setTab('overview')}>{fn.tabStatements}</button>
               {statements.map(s => (
                 <button key={s} type="button" role="tab" aria-selected={activeTab === s}
                   className={activeTab === s ? 'active' : ''}
-                  onClick={() => setTab(s)}>{TEMPLATES[fin.template][s]!.label}</button>
+                  onClick={() => setTab(s)}>{stmtLabel(TEMPLATES[fin.template][s]!, locale)}</button>
               ))}
               <button type="button" role="tab" aria-selected={activeTab === 'ratios'}
                 className={activeTab === 'ratios' ? 'active' : ''}
-                onClick={() => setTab('ratios')}>النسب المالية</button>
+                onClick={() => setTab('ratios')}>{fn.tabRatios}</button>
             </div>
 
             {/* Ratios and the overview are annual by construction, so the
                 period control is hidden rather than shown doing nothing. */}
             {activeTab !== 'ratios' && activeTab !== 'overview' && fin.quarterCols.length ? (
-              <div className="fn-period" role="group" aria-label="فترة التقرير">
+              <div className="fn-period" role="group" aria-label={fn.periodGroup}>
                 <button type="button" className={mode === 'ANNUAL' ? 'active' : ''}
-                  aria-pressed={mode === 'ANNUAL'} onClick={() => setMode('ANNUAL')}>سنوي</button>
+                  aria-pressed={mode === 'ANNUAL'} onClick={() => setMode('ANNUAL')}>{fn.annual}</button>
                 <button type="button" className={mode === 'QUARTER' ? 'active' : ''}
-                  aria-pressed={mode === 'QUARTER'} onClick={() => setMode('QUARTER')}>ربعي</button>
+                  aria-pressed={mode === 'QUARTER'} onClick={() => setMode('QUARTER')}>{fn.quarterly}</button>
               </div>
             ) : null}
           </div>
@@ -189,8 +196,7 @@ export function FinancialsClient({ sym }: { sym: string }) {
               column, and the only thing the source actually supports saying. */}
           {mode === 'QUARTER' && activeTab !== 'ratios' && activeTab !== 'overview' ? (
             <p className="mv-note fn-note">
-              تُعرض الفترات كما وردت في الإفصاح، برمز الفترة وسنتها. لا تحدّد البيانات المتاحة
-              المدة التي يغطيها كل تقرير ربعي، ولذلك لا تُجمع الأعمدة الربعية ولا تُقارن بالسنوي.
+              {fn.periodPolicy}
             </p>
           ) : null}
 
@@ -214,6 +220,8 @@ export function FinancialsClient({ sym }: { sym: string }) {
    The multi-year shape on the left and the latest audited year's headline
    figures on the right: the same numbers seen two ways. */
 function Overview({ fin, name }: { fin: Financials; name: string }) {
+  const { t: T, locale, href: L } = useLocale()
+  const fn = T.financials
   const years = fin.years.slice(-6)
   const at = (key: string, y: number) => fin.facts.get(`income:${key}:${y}:ANNUAL`)?.v ?? null
   const rev = (y: number) => at('revenue', y) ?? (
@@ -233,37 +241,37 @@ function Overview({ fin, name }: { fin: Financials; name: string }) {
   if (!withData.length) {
     return (
       <div className="cd-nodata cd-nodata-wide">
-        <strong>لا تتوفر قوائم سنوية لهذه الشركة</strong>
-        <p>الفترات المستخرجة لهذه الشركة ربعية فقط. اختر «ربعي» داخل أي قائمة لعرضها.</p>
+        <strong>{fn.noAnnual}</strong>
+        <p>{fn.noAnnualNote}</p>
       </div>
     )
   }
 
   const rows: [string, number | null, number | null][] = [
-    [fin.template === 'bank' ? 'الدخل التشغيلي' : 'الإيرادات',
+    [fin.template === 'bank' ? fn.operatingIncome : fn.revenue,
       latestY ? rev(latestY) : null, prevY ? rev(prevY) : null],
-    ['صافي الربح', latestY ? at('net_income', latestY) : null, prevY ? at('net_income', prevY) : null],
-    ['إجمالي الأصول',
+    [fn.netProfit, latestY ? at('net_income', latestY) : null, prevY ? at('net_income', prevY) : null],
+    [fn.totalAssets,
       latestY ? fin.facts.get(`balance:total_assets:${latestY}:ANNUAL`)?.v ?? null : null,
       prevY ? fin.facts.get(`balance:total_assets:${prevY}:ANNUAL`)?.v ?? null : null],
-    ['حقوق الملكية',
+    [fn.totalEquity,
       latestY ? fin.facts.get(`balance:total_equity:${latestY}:ANNUAL`)?.v ?? null : null,
       prevY ? fin.facts.get(`balance:total_equity:${prevY}:ANNUAL`)?.v ?? null : null],
   ]
 
   return (
-    <section className="fn-overview" aria-label="نظرة عامة على الأداء المالي">
+    <section className="fn-overview" aria-label={fn.overviewLabel}>
       <div className="fn-panel fn-spine">
         <div className="fn-table-head">
-          <h2>{fin.template === 'bank' ? 'الدخل التشغيلي والأرباح' : 'الإيرادات والأرباح'}</h2>
-          <span className="fn-unit">القيم بـ<b>{unit.label}</b></span>
+          <h2>{fin.template === 'bank' ? fn.incomeBank : fn.incomeCorp}</h2>
+          <span className="fn-unit">{fn.valuesIn}<b>{unitLabel(unit, locale)}</b></span>
         </div>
         <TrendChart series={withData} unit={unit} />
       </div>
 
       <div className="fn-panel fn-headline">
         <div className="fn-table-head">
-          <h2>آخر سنة مالية</h2>
+          <h2>{fn.latestYear}</h2>
           <span className="fn-unit"><bdi>{latestY}</bdi></span>
         </div>
         <dl className="fn-headline-rows">
@@ -274,7 +282,7 @@ function Overview({ fin, name }: { fin: Financials; name: string }) {
                 <dt>{label}</dt>
                 <dd>{now == null ? <span className="mv-dash">—</span> : <bdi>{fmtUnit(now, unit)}</bdi>}</dd>
                 <dd className="fn-headline-chg">
-                  {d == null ? <span className="mv-dash" title="لا توجد سنة سابقة للمقارنة">—</span>
+                  {d == null ? <span className="mv-dash" title={fn.noPriorYear}>—</span>
                     : <bdi className={d > 0 ? 'positive' : d < 0 ? 'negative' : ''}>
                         {d > 0 ? '+' : ''}{(d * 100).toFixed(1)}%
                       </bdi>}
@@ -284,7 +292,7 @@ function Overview({ fin, name }: { fin: Financials; name: string }) {
           })}
         </dl>
         <p className="fn-fine">
-          مقارنة سنوية بين آخر سنتين ماليتين مُفصح عنهما لشركة {name}.
+          {fn.yoyNote(name)}
         </p>
       </div>
     </section>
@@ -293,8 +301,10 @@ function Overview({ fin, name }: { fin: Financials; name: string }) {
 
 function TrendChart({ series, unit }: {
   series: { y: number; rev: number | null; ni: number | null }[]
-  unit: { div: number; label: string }
+  unit: Unit
 }) {
+  const { t: T, locale, href: L } = useLocale()
+  const fn = T.financials
   const [hover, setHover] = useState<number | null>(null)
   const max = Math.max(1, ...series.flatMap(s => [Math.abs(s.rev ?? 0), Math.abs(s.ni ?? 0)]))
   const anyNegative = series.some(s => (s.ni ?? 0) < 0)
@@ -308,8 +318,8 @@ function TrendChart({ series, unit }: {
             {hover === i ? (
               <div className="fn-trend-tip">
                 <b><bdi>{s.y}</bdi></b>
-                <span><em>الإيرادات</em><bdi>{fmtUnit(s.rev, unit)}</bdi></span>
-                <span><em>صافي الربح</em><bdi>{fmtUnit(s.ni, unit)}</bdi></span>
+                <span><em>{fn.revenue}</em><bdi>{fmtUnit(s.rev, unit)}</bdi></span>
+                <span><em>{fn.netProfit}</em><bdi>{fmtUnit(s.ni, unit)}</bdi></span>
               </div>
             ) : null}
             <div className="fn-trend-bars">
@@ -322,9 +332,9 @@ function TrendChart({ series, unit }: {
         ))}
       </div>
       <figcaption className="fn-trend-legend">
-        <span><i className="rev" aria-hidden="true" />الإيرادات</span>
-        <span><i className="ni" aria-hidden="true" />صافي الربح</span>
-        {anyNegative ? <span className="fn-trend-neg">الأعمدة الحمراء خسائر</span> : null}
+        <span><i className="rev" aria-hidden="true" />{fn.revenue}</span>
+        <span><i className="ni" aria-hidden="true" />{fn.netProfit}</span>
+        {anyNegative ? <span className="fn-trend-neg">{fn.redBarsAreLosses}</span> : null}
       </figcaption>
     </figure>
   )
@@ -335,6 +345,8 @@ function Statement({ fin, statement, cols, hoverCol, setHoverCol }: {
   fin: Financials; statement: StatementId; cols: ColMeta[]
   hoverCol: string | null; setHoverCol: (c: string | null) => void
 }) {
+  const { t: T, locale, href: L } = useLocale()
+  const fn = T.financials
   const def = TEMPLATES[fin.template][statement]!
   const isPct = statement === 'metrics'
 
@@ -353,45 +365,45 @@ function Statement({ fin, statement, cols, hoverCol, setHoverCol }: {
   if (!lines.length) {
     return (
       <div className="cd-nodata cd-nodata-wide">
-        <strong>لم تُنشر هذه القائمة لهذه الشركة</strong>
+        <strong>{fn.notPublished}</strong>
         <p>
-          لا تتضمّن التقارير المستخرجة لهذه الشركة {def.label} في أي من الفترات المتاحة.
-          باقي القوائم والنسب معروضة كالمعتاد.
+          {fn.statementMissing(stmtLabel(def, locale))}
+          {fn.othersNormal}
         </p>
       </div>
     )
   }
 
   return (
-    <section className="fn-panel fn-statement" aria-label={def.label}>
+    <section className="fn-panel fn-statement" aria-label={stmtLabel(def, locale)}>
       <div className="fn-table-head">
-        <h2>{def.label}</h2>
+        <h2>{stmtLabel(def, locale)}</h2>
         {/* The unit, stated once, where it governs. Not repeated per cell. */}
         <span className="fn-unit">
-          {isPct ? 'القيم بالنسبة المئوية' : <>القيم بـ<b>{unit.label}</b></>}
+          {isPct ? fn.valuesArePct : <>{fn.valuesIn}<b>{unitLabel(unit, locale)}</b></>}
         </span>
       </div>
 
       <div className="fn-scroll">
         <table className="fn-table">
           <caption className="sr-only">
-            {def.label} — {colLabel(cols[cols.length - 1].col)} إلى {colLabel(cols[0].col)}
+            {fn.spanLabel(stmtLabel(def, locale), colLabel(cols[cols.length - 1].col, locale), colLabel(cols[0].col, locale))}
           </caption>
           <thead>
             <tr>
-              <th scope="col" className="fn-col-item">البند</th>
+              <th scope="col" className="fn-col-item">{fn.item}</th>
               {cols.map(c => {
                 const id = colKey(c.col)
                 return (
                   <th key={id} scope="col" className="fn-col-num"
                     data-hover={hoverCol === id || undefined}
                     onPointerEnter={() => setHoverCol(id)} onPointerLeave={() => setHoverCol(null)}>
-                    <bdi>{colLabel(c.col)}</bdi>
+                    <bdi>{colLabel(c.col, locale)}</bdi>
                     {/* Provenance on the column it belongs to: the filing, and
                         the unit that filing declared. */}
                     {c.pdfUrl ? (
                       <a className="fn-col-src" href={c.pdfUrl} target="_blank" rel="noopener noreferrer"
-                        aria-label={`تقرير ${colLabel(c.col)} — يفتح ملف PDF على موقع هيئة الأوراق المالية`}>
+                        aria-label={fn.reportLink(colLabel(c.col, locale))}>
                         PDF
                       </a>
                     ) : null}
@@ -410,11 +422,11 @@ function Statement({ fin, statement, cols, hoverCol, setHoverCol }: {
                       wording stays one hover away. */}
                   <th scope="row" className="fn-col-item">
                     <span className="fn-line-name">
-                      {l.ar}
+                      {locale === 'ar' ? l.ar : l.en}
                       {src && src !== l.ar ? (
                         <i className="fn-src" tabIndex={0} role="note"
-                          aria-label={`المسمى في المصدر: ${src}`}
-                          data-help={`المسمى في المصدر: ${src}`}>ⓘ</i>
+                          aria-label={fn.sourceLabel(src)}
+                          data-help={fn.sourceLabel(src)}>ⓘ</i>
                       ) : null}
                     </span>
                   </th>
@@ -428,8 +440,8 @@ function Statement({ fin, statement, cols, hoverCol, setHoverCol }: {
                         {v == null ? (
                           <span className="mv-dash"
                             title={cell?.conflict
-                              ? 'وردت قيمتان مختلفتان لهذا البند في الاستخراج، ولم يمكن ترجيح إحداهما'
-                              : 'غير متوفر في التقرير'}>—</span>
+                              ? fn.conflictingValues
+                              : fn.notInReport}>—</span>
                         ) : (
                           <bdi className={v < 0 ? 'negative' : ''}>
                             {isPct ? `${v.toFixed(1)}%` : fmtUnit(v, unit)}
@@ -446,8 +458,8 @@ function Statement({ fin, statement, cols, hoverCol, setHoverCol }: {
       </div>
 
       <p className="fn-legend">
-        <span><span className="mv-dash">—</span> غير متوفر في التقرير</span>
-        <span>كل عمود فترة مُفصح عنها كما وردت، دون احتساب أو اشتقاق.</span>
+        <span><span className="mv-dash">—</span> {fn.notInReport}</span>
+        <span>{fn.asDisclosed}</span>
       </p>
     </section>
   )
@@ -457,6 +469,8 @@ function Statement({ fin, statement, cols, hoverCol, setHoverCol }: {
    A matrix, not twenty cards: ratio down, year across. «ROE 14%» says little;
    «ROE 21 → 17 → 14» says the thing you came for. */
 function Ratios({ fin }: { fin: Financials }) {
+  const { t: T, locale, href: L } = useLocale()
+  const fn = T.financials
   const years = [...fin.years].reverse().slice(0, 6)
   const groups = RATIO_GROUPS
     .map(g => ({ ...g, keys: g.keys.filter(k => years.some(y => fin.ratios.get(`${k}:${y}`) != null)) }))
@@ -465,32 +479,32 @@ function Ratios({ fin }: { fin: Financials }) {
   if (!groups.length) {
     return (
       <div className="cd-nodata cd-nodata-wide">
-        <strong>لا تتوفر نسب مالية محتسبة لهذه الشركة</strong>
-        <p>تُحتسب النسب من القوائم المستخرجة، ولم تتوفر بنود كافية لاحتسابها.</p>
+        <strong>{fn.noRatios}</strong>
+        <p>{fn.noRatiosNote}</p>
       </div>
     )
   }
 
   return (
-    <section className="fn-panel fn-statement" aria-label="النسب المالية">
+    <section className="fn-panel fn-statement" aria-label={fn.ratiosLabel}>
       <div className="fn-table-head">
-        <h2>النسب المالية</h2>
-        <span className="fn-unit">محتسبة من القوائم السنوية</span>
+        <h2>{fn.ratios}</h2>
+        <span className="fn-unit">{fn.fromAnnual}</span>
       </div>
       <div className="fn-scroll">
         <table className="fn-table fn-ratios">
           <thead>
             <tr>
-              <th scope="col" className="fn-col-item">النسبة</th>
+              <th scope="col" className="fn-col-item">{fn.ratio}</th>
               {years.map(y => <th key={y} scope="col" className="fn-col-num"><bdi>{y}</bdi></th>)}
-              <th scope="col" className="fn-col-trend">الاتجاه</th>
+              <th scope="col" className="fn-col-trend">{fn.trend}</th>
             </tr>
           </thead>
           <tbody>
             {groups.map(g => (
               <Fragment key={g.ar}>
                 <tr className="fn-group-row">
-                  <th scope="colgroup" colSpan={years.length + 2}>{g.ar}</th>
+                  <th scope="colgroup" colSpan={years.length + 2}>{g[locale]}</th>
                 </tr>
                 {g.keys.map(k => {
                   const def = RATIOS[k]
@@ -498,8 +512,8 @@ function Ratios({ fin }: { fin: Financials }) {
                   return (
                     <tr key={k}>
                       <th scope="row" className="fn-col-item">
-                        <span>{def.ar}</span>
-                        <i className="fn-help" tabIndex={0} role="note" aria-label={def.help} data-help={def.help}>؟</i>
+                        <span>{def[locale]}</span>
+                        <i className="fn-help" tabIndex={0} role="note" aria-label={locale === 'ar' ? def.help : def.helpEn} data-help={locale === 'ar' ? def.help : def.helpEn}>{locale === 'ar' ? '؟' : '?'}</i>
                       </th>
                       {vals.map((v, i) => (
                         <td key={years[i]} className="fn-col-num">
@@ -539,30 +553,30 @@ function Spark({ values }: { values: (number | null)[] }) {
 }
 
 function Provenance({ fin }: { fin: Financials }) {
-  const units = fin.reportedUnits.map(u => UNIT_AR[u] ?? u)
+  const { t: T, locale, href: L } = useLocale()
+  const fn = T.financials
+  const units = fin.reportedUnits.map(u => reportedUnitLabel(u, locale))
   return (
     <footer className="fn-provenance">
       <dl>
-        <div><dt>المصدر</dt><dd>التقارير المنشورة · هيئة الأوراق المالية العراقية</dd></div>
+        <div><dt>{fn.source}</dt><dd>{fn.sourceValue}</dd></div>
         <div>
-          <dt>آخر فترة مُفصح عنها</dt>
+          <dt>{fn.latestDisclosed}</dt>
           <dd>{fin.latest ? <bdi>{colLabel(fin.latest.col)}</bdi> : <span className="mv-dash">—</span>}</dd>
         </div>
-        <div><dt>الفترات المعروضة</dt><dd><bdi>{fin.annualCols.length + fin.quarterCols.length}</bdi></dd></div>
+        <div><dt>{fn.periodsShown}</dt><dd><bdi>{fin.annualCols.length + fin.quarterCols.length}</bdi></dd></div>
         <div>
-          <dt>الوحدة في التقرير</dt>
+          <dt>{fn.reportedUnit}</dt>
           <dd>{units.length ? units.join(' · ') : <span className="mv-dash">—</span>}</dd>
         </div>
-        <div><dt>العملة</dt><dd>الدينار العراقي (IQD)</dd></div>
+        <div><dt>{fn.currency}</dt><dd>{fn.currencyValue}</dd></div>
       </dl>
       <p>
-        القيم معروضة بالدينار بعد توحيد وحدة التقرير، والوحدة كما وردت في كل إفصاح مذكورة أعلاه.
-        تُعرض كل فترة كما وردت في إفصاحها، ولا تُشتق فترات غير منشورة ولا تُجمع الأعمدة الربعية.
-        قد تختلف تسمية البنود عن التقرير الأصلي — التسمية الأصلية متاحة على البند حيث توفرت.
+        {fn.footnote1}
         {fin.conflicts > 0 ? (
-          <> وردت <bdi>{fin.conflicts}</bdi> قيمة متعارضة في الاستخراج لهذه الشركة، وتظهر خاناتها فارغة.</>
+          <>{fn.conflicts(String(fin.conflicts))}</>
         ) : null}
-        {' '}الأرقام لأغراض معلوماتية ولا تُغني عن التقرير الأصلي.
+        {fn.footnote2}
       </p>
     </footer>
   )
@@ -574,41 +588,39 @@ function Provenance({ fin }: { fin: Financials }) {
    because those documents are correct and are the thing a reader actually
    wants when the table cannot be shown. */
 function ValuesWithheld({ fin, name, sym }: { fin: Financials; name: string; sym: string }) {
+  const { t: T, locale, href: L } = useLocale()
+  const fn = T.financials
   const cols = [...fin.annualCols, ...fin.quarterCols]
   return (
     <>
       <div className="cd-nodata cd-nodata-wide fn-empty">
-        <strong>القوائم المالية لهذه الشركة غير معروضة حالياً</strong>
+        <strong>{fn.withheldTitle}</strong>
         <p>
-          تُعرض القوائم بعد توحيد وحدة القياس الواردة في كل إفصاح. لم يكتمل توحيد الوحدة
-          في البيانات المستخرجة لشركة {name}، ولذلك لا تُعرض الأرقام بدل عرض قيم قد تكون
-          غير صحيحة بمقدار ألف ضعف. لا يتعلق ذلك بالتقارير التي نشرتها الشركة — وهي متاحة
-          أدناه كما هي.
+          {fn.withheldBody(name)}
         </p>
         <div className="cd-nodata-still">
-          <span className="cd-cell-label">ما يزال متوفراً</span>
+          <span className="cd-cell-label">{fn.stillAvailable}</span>
           <p>
-            التقارير الأصلية المنشورة، والسعر التاريخي وبيانات الجلسة والقيمة السوقية
-            والأداء مقابل المؤشر في صفحة الشركة.
+            {fn.withheldStill}
           </p>
         </div>
-        <Link className="fn-empty-link" href={`/c/${sym.toLowerCase()}`}>العودة إلى صفحة الشركة ←</Link>
+        <Link className="fn-empty-link" href={L(`/c/${sym.toLowerCase()}`)}>{fn.backToCompany} <i className="dir-go" aria-hidden="true">←</i></Link>
       </div>
 
       {cols.some(c => c.pdfUrl) ? (
-        <section className="fn-panel" aria-label="التقارير الأصلية">
+        <section className="fn-panel" aria-label={fn.originalReportsLabel}>
           <div className="fn-table-head">
-            <h2>التقارير الأصلية</h2>
-            <span className="fn-unit">كما نُشرت لدى هيئة الأوراق المالية</span>
+            <h2>{fn.originalReports}</h2>
+            <span className="fn-unit">{fn.asPublished}</span>
           </div>
           <ul className="fn-filings">
             {cols.filter(c => c.pdfUrl).map(c => (
               <li key={colKey(c.col)}>
                 <a href={c.pdfUrl as string} target="_blank" rel="noopener noreferrer"
-                  aria-label={`تقرير ${colLabel(c.col)} — يفتح ملف PDF على موقع هيئة الأوراق المالية`}>
+                  aria-label={fn.reportLink(colLabel(c.col, locale))}>
                   <i aria-hidden="true">PDF</i>
-                  <bdi>{colLabel(c.col)}</bdi>
-                  {c.reportedUnit ? <small>الوحدة في التقرير: {UNIT_AR[c.reportedUnit] ?? c.reportedUnit}</small> : null}
+                  <bdi>{colLabel(c.col, locale)}</bdi>
+                  {c.reportedUnit ? <small>{fn.reportedUnitIs(reportedUnitLabel(c.reportedUnit, locale))}</small> : null}
                   <span className="fn-filings-go" aria-hidden="true">↗</span>
                 </a>
               </li>
@@ -621,18 +633,19 @@ function ValuesWithheld({ fin, name, sym }: { fin: Financials; name: string; sym
 }
 
 function NoFinancials({ name, sym }: { name: string; sym: string }) {
+  const { t: T, locale, href: L } = useLocale()
+  const fn = T.financials
   return (
     <div className="cd-nodata cd-nodata-wide fn-empty">
-      <strong>لم تُنشر بيانات مالية لهذه الشركة بعد</strong>
+      <strong>{fn.noneTitle}</strong>
       <p>
-        تُستخرج القوائم المالية من التقارير المنشورة لدى هيئة الأوراق المالية العراقية.
-        لم يُنشر لشركة {name} تقرير قابل للاستخراج حتى الآن.
+        {fn.noneBody(name)}
       </p>
       <div className="cd-nodata-still">
-        <span className="cd-cell-label">ما يزال متوفراً</span>
-        <p>السعر التاريخي، بيانات الجلسة، القيمة السوقية، والأداء مقابل المؤشر في صفحة الشركة.</p>
+        <span className="cd-cell-label">{fn.stillAvailable}</span>
+        <p>{fn.noneNote}</p>
       </div>
-      <Link className="fn-empty-link" href={`/c/${sym.toLowerCase()}`}>العودة إلى صفحة الشركة ←</Link>
+      <Link className="fn-empty-link" href={L(`/c/${sym.toLowerCase()}`)}>{fn.backToCompany} <i className="dir-go" aria-hidden="true">←</i></Link>
     </div>
   )
 }

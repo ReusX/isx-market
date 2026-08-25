@@ -47,7 +47,18 @@ export type Col = { y: number; p: Period }
 
 export type Line = {
   key: string
+  /** The line item as the Iraqi filings name it. */
   ar: string
+  /**
+   * The standard English accounting name for the same line.
+   *
+   * ⚠ These are TERMS, not company names — «صافي التسهيلات الائتمانية
+   * والتمويل» has an established English rendering and translating it is
+   * correct. The prohibition on machine-translating applies to legal COMPANY
+   * names, which are never touched. The figures themselves are shown exactly
+   * as reported, in either language.
+   */
+  en: string
   /** Nesting depth. 0 = top level, 1 = component of the line above it. */
   depth: 0 | 1
   /** A summed line: heavier, ruled above. */
@@ -56,105 +67,105 @@ export type Line = {
   total?: boolean
 }
 
-export const TEMPLATES: Record<"industrial" | "bank", Partial<Record<StatementId, { label: string; lines: Line[] }>>> = {
+export const TEMPLATES: Record<"industrial" | "bank", Partial<Record<StatementId, { label: string; labelEn: string; lines: Line[] }>>> = {
   industrial: {
     income: {
-      label: "قائمة الدخل",
+      label: "قائمة الدخل", labelEn: "Income statement",
       lines: [
-        { key: "revenue", ar: "الإيرادات", depth: 0 },
-        { key: "salaries_wages", ar: "الرواتب والأجور", depth: 1 },
-        { key: "goods_supplies", ar: "المستلزمات السلعية", depth: 1 },
-        { key: "service_supplies", ar: "المستلزمات الخدمية", depth: 1 },
-        { key: "contracts_services", ar: "خدمات العقود", depth: 1 },
-        { key: "purchases_opex", ar: "مشتريات ومصاريف تشغيلية", depth: 1 },
-        { key: "interest_expense", ar: "مصروفات الفوائد", depth: 1 },
-        { key: "depreciation_amortization", ar: "الاندثار والإطفاء", depth: 1 },
-        { key: "taxes_fees", ar: "الضرائب والرسوم", depth: 1 },
-        { key: "total_operating_expenses", ar: "إجمالي المصروفات التشغيلية", depth: 0, subtotal: true },
-        { key: "operating_income", ar: "الربح التشغيلي", depth: 0, subtotal: true },
-        { key: "other_income", ar: "إيرادات أخرى", depth: 1 },
-        { key: "other_expenses", ar: "مصروفات أخرى", depth: 1 },
-        { key: "pretax_income", ar: "الربح قبل الضريبة", depth: 0, subtotal: true },
-        { key: "tax", ar: "ضريبة الدخل", depth: 1 },
-        { key: "net_income", ar: "صافي الربح", depth: 0, total: true },
+        { key: "revenue", ar: "الإيرادات", en: "Revenue", depth: 0 },
+        { key: "salaries_wages", ar: "الرواتب والأجور", en: "Salaries and wages", depth: 1 },
+        { key: "goods_supplies", ar: "المستلزمات السلعية", en: "Goods and materials", depth: 1 },
+        { key: "service_supplies", ar: "المستلزمات الخدمية", en: "Services and supplies", depth: 1 },
+        { key: "contracts_services", ar: "خدمات العقود", en: "Contracted services", depth: 1 },
+        { key: "purchases_opex", ar: "مشتريات ومصاريف تشغيلية", en: "Purchases and operating expenses", depth: 1 },
+        { key: "interest_expense", ar: "مصروفات الفوائد", en: "Interest expense", depth: 1 },
+        { key: "depreciation_amortization", ar: "الاندثار والإطفاء", en: "Depreciation and amortisation", depth: 1 },
+        { key: "taxes_fees", ar: "الضرائب والرسوم", en: "Taxes and fees", depth: 1 },
+        { key: "total_operating_expenses", ar: "إجمالي المصروفات التشغيلية", en: "Total operating expenses", depth: 0, subtotal: true },
+        { key: "operating_income", ar: "الربح التشغيلي", en: "Operating profit", depth: 0, subtotal: true },
+        { key: "other_income", ar: "إيرادات أخرى", en: "Other income", depth: 1 },
+        { key: "other_expenses", ar: "مصروفات أخرى", en: "Other expenses", depth: 1 },
+        { key: "pretax_income", ar: "الربح قبل الضريبة", en: "Profit before tax", depth: 0, subtotal: true },
+        { key: "tax", ar: "ضريبة الدخل", en: "Income tax", depth: 1 },
+        { key: "net_income", ar: "صافي الربح", en: "Net profit", depth: 0, total: true },
       ],
     },
     balance: {
-      label: "المركز المالي",
+      label: "المركز المالي", labelEn: "Balance sheet",
       lines: [
-        { key: "net_fixed_assets", ar: "الأصول الثابتة (صافي)", depth: 1 },
-        { key: "deferred_revenue_expenses", ar: "النفقات الإيرادية المؤجلة", depth: 1 },
-        { key: "projects_under_construction", ar: "مشاريع تحت التنفيذ", depth: 1 },
-        { key: "total_fixed_assets", ar: "إجمالي الأصول الثابتة", depth: 0, subtotal: true },
-        { key: "inventory", ar: "المخزون", depth: 1 },
-        { key: "investments", ar: "الاستثمارات", depth: 1 },
-        { key: "receivables", ar: "الذمم المدينة", depth: 1 },
-        { key: "cash", ar: "النقد", depth: 1 },
-        { key: "total_current_assets", ar: "إجمالي الأصول المتداولة", depth: 0, subtotal: true },
-        { key: "total_assets", ar: "إجمالي الأصول", depth: 0, total: true },
-        { key: "paid_capital", ar: "رأس المال المدفوع", depth: 1 },
-        { key: "reserves", ar: "الاحتياطيات", depth: 1 },
-        { key: "retained_earnings", ar: "الأرباح المحتجزة", depth: 1 },
-        { key: "total_equity", ar: "إجمالي حقوق الملكية", depth: 0, subtotal: true },
-        { key: "long_term_provisions", ar: "مخصصات طويلة الأجل", depth: 1 },
-        { key: "long_term_payables", ar: "ذمم دائنة طويلة الأجل", depth: 1 },
-        { key: "short_term_provisions", ar: "مخصصات قصيرة الأجل", depth: 1 },
-        { key: "short_term_payables", ar: "ذمم دائنة قصيرة الأجل", depth: 1 },
-        { key: "total_equity_and_liabilities", ar: "إجمالي حقوق الملكية والمطلوبات", depth: 0, total: true },
+        { key: "net_fixed_assets", ar: "الأصول الثابتة (صافي)", en: "Fixed assets (net)", depth: 1 },
+        { key: "deferred_revenue_expenses", ar: "النفقات الإيرادية المؤجلة", en: "Deferred revenue expenditure", depth: 1 },
+        { key: "projects_under_construction", ar: "مشاريع تحت التنفيذ", en: "Projects under construction", depth: 1 },
+        { key: "total_fixed_assets", ar: "إجمالي الأصول الثابتة", en: "Total fixed assets", depth: 0, subtotal: true },
+        { key: "inventory", ar: "المخزون", en: "Inventory", depth: 1 },
+        { key: "investments", ar: "الاستثمارات", en: "Investments", depth: 1 },
+        { key: "receivables", ar: "الذمم المدينة", en: "Receivables", depth: 1 },
+        { key: "cash", ar: "النقد", en: "Cash", depth: 1 },
+        { key: "total_current_assets", ar: "إجمالي الأصول المتداولة", en: "Total current assets", depth: 0, subtotal: true },
+        { key: "total_assets", ar: "إجمالي الأصول", en: "Total assets", depth: 0, total: true },
+        { key: "paid_capital", ar: "رأس المال المدفوع", en: "Paid-up capital", depth: 1 },
+        { key: "reserves", ar: "الاحتياطيات", en: "Reserves", depth: 1 },
+        { key: "retained_earnings", ar: "الأرباح المحتجزة", en: "Retained earnings", depth: 1 },
+        { key: "total_equity", ar: "إجمالي حقوق الملكية", en: "Total equity", depth: 0, subtotal: true },
+        { key: "long_term_provisions", ar: "مخصصات طويلة الأجل", en: "Long-term provisions", depth: 1 },
+        { key: "long_term_payables", ar: "ذمم دائنة طويلة الأجل", en: "Long-term payables", depth: 1 },
+        { key: "short_term_provisions", ar: "مخصصات قصيرة الأجل", en: "Short-term provisions", depth: 1 },
+        { key: "short_term_payables", ar: "ذمم دائنة قصيرة الأجل", en: "Short-term payables", depth: 1 },
+        { key: "total_equity_and_liabilities", ar: "إجمالي حقوق الملكية والمطلوبات", en: "Total equity and liabilities", depth: 0, total: true },
       ],
     },
     cashflow: {
-      label: "التدفقات النقدية",
+      label: "التدفقات النقدية", labelEn: "Cash flow",
       lines: [
-        { key: "cfo", ar: "التدفق النقدي من الأنشطة التشغيلية", depth: 0, subtotal: true },
-        { key: "capex", ar: "النفقات الرأسمالية", depth: 1 },
-        { key: "cfi", ar: "التدفق النقدي من الأنشطة الاستثمارية", depth: 0, subtotal: true },
-        { key: "dividends_paid", ar: "توزيعات الأرباح المدفوعة", depth: 1 },
-        { key: "cff", ar: "التدفق النقدي من الأنشطة التمويلية", depth: 0, subtotal: true },
-        { key: "net_change_in_cash", ar: "صافي التغير في النقد", depth: 0, total: true },
-        { key: "cash_beginning", ar: "النقد في بداية الفترة", depth: 1 },
-        { key: "cash_ending", ar: "النقد في نهاية الفترة", depth: 0, subtotal: true },
+        { key: "cfo", ar: "التدفق النقدي من الأنشطة التشغيلية", en: "Cash flow from operating activities", depth: 0, subtotal: true },
+        { key: "capex", ar: "النفقات الرأسمالية", en: "Capital expenditure", depth: 1 },
+        { key: "cfi", ar: "التدفق النقدي من الأنشطة الاستثمارية", en: "Cash flow from investing activities", depth: 0, subtotal: true },
+        { key: "dividends_paid", ar: "توزيعات الأرباح المدفوعة", en: "Dividends paid", depth: 1 },
+        { key: "cff", ar: "التدفق النقدي من الأنشطة التمويلية", en: "Cash flow from financing activities", depth: 0, subtotal: true },
+        { key: "net_change_in_cash", ar: "صافي التغير في النقد", en: "Net change in cash", depth: 0, total: true },
+        { key: "cash_beginning", ar: "النقد في بداية الفترة", en: "Cash at the beginning of the period", depth: 1 },
+        { key: "cash_ending", ar: "النقد في نهاية الفترة", en: "Cash at the end of the period", depth: 0, subtotal: true },
       ],
     },
   },
   bank: {
     income: {
-      label: "قائمة الدخل",
+      label: "قائمة الدخل", labelEn: "Income statement",
       lines: [
-        { key: "financing_income", ar: "صافي إيرادات الفوائد والتمويل", depth: 0 },
-        { key: "revenue_and_commissions", ar: "صافي إيرادات العمولات والأعمال المصرفية", depth: 0 },
-        { key: "ga_expenses", ar: "المصروفات العمومية والإدارية", depth: 1 },
-        { key: "pretax_income", ar: "الربح قبل الضريبة", depth: 0, subtotal: true },
-        { key: "tax", ar: "ضريبة الدخل", depth: 1 },
-        { key: "net_income", ar: "صافي الربح", depth: 0, total: true },
+        { key: "financing_income", ar: "صافي إيرادات الفوائد والتمويل", en: "Net interest and financing income", depth: 0 },
+        { key: "revenue_and_commissions", ar: "صافي إيرادات العمولات والأعمال المصرفية", en: "Net commission and banking income", depth: 0 },
+        { key: "ga_expenses", ar: "المصروفات العمومية والإدارية", en: "General and administrative expenses", depth: 1 },
+        { key: "pretax_income", ar: "الربح قبل الضريبة", en: "Profit before tax", depth: 0, subtotal: true },
+        { key: "tax", ar: "ضريبة الدخل", en: "Income tax", depth: 1 },
+        { key: "net_income", ar: "صافي الربح", en: "Net profit", depth: 0, total: true },
       ],
     },
     balance: {
-      label: "المركز المالي",
+      label: "المركز المالي", labelEn: "Balance sheet",
       lines: [
-        { key: "cash_and_cbi", ar: "النقد والأرصدة لدى البنك المركزي", depth: 1 },
-        { key: "due_from_banks", ar: "الأرصدة لدى المصارف", depth: 1 },
-        { key: "islamic_financing", ar: "صافي التسهيلات الائتمانية والتمويل", depth: 1 },
-        { key: "investments", ar: "الاستثمارات", depth: 1 },
-        { key: "fixed_assets", ar: "الأصول الثابتة", depth: 1 },
-        { key: "total_assets", ar: "إجمالي الأصول", depth: 0, total: true },
-        { key: "customer_deposits", ar: "ودائع العملاء", depth: 1 },
-        { key: "due_to_banks", ar: "المستحق للمصارف", depth: 1 },
-        { key: "other_liabilities", ar: "مطلوبات أخرى", depth: 1 },
-        { key: "paid_capital", ar: "رأس المال المدفوع", depth: 1 },
-        { key: "reserves", ar: "الاحتياطيات", depth: 1 },
-        { key: "retained_earnings", ar: "الأرباح المحتجزة", depth: 1 },
-        { key: "total_equity", ar: "إجمالي حقوق الملكية", depth: 0, subtotal: true },
-        { key: "total_liabilities_and_equity", ar: "إجمالي المطلوبات وحقوق الملكية", depth: 0, total: true },
+        { key: "cash_and_cbi", ar: "النقد والأرصدة لدى البنك المركزي", en: "Cash and balances with the Central Bank", depth: 1 },
+        { key: "due_from_banks", ar: "الأرصدة لدى المصارف", en: "Balances with banks", depth: 1 },
+        { key: "islamic_financing", ar: "صافي التسهيلات الائتمانية والتمويل", en: "Net credit facilities and financing", depth: 1 },
+        { key: "investments", ar: "الاستثمارات", en: "Investments", depth: 1 },
+        { key: "fixed_assets", ar: "الأصول الثابتة", en: "Fixed assets", depth: 1 },
+        { key: "total_assets", ar: "إجمالي الأصول", en: "Total assets", depth: 0, total: true },
+        { key: "customer_deposits", ar: "ودائع العملاء", en: "Customer deposits", depth: 1 },
+        { key: "due_to_banks", ar: "المستحق للمصارف", en: "Due to banks", depth: 1 },
+        { key: "other_liabilities", ar: "مطلوبات أخرى", en: "Other liabilities", depth: 1 },
+        { key: "paid_capital", ar: "رأس المال المدفوع", en: "Paid-up capital", depth: 1 },
+        { key: "reserves", ar: "الاحتياطيات", en: "Reserves", depth: 1 },
+        { key: "retained_earnings", ar: "الأرباح المحتجزة", en: "Retained earnings", depth: 1 },
+        { key: "total_equity", ar: "إجمالي حقوق الملكية", en: "Total equity", depth: 0, subtotal: true },
+        { key: "total_liabilities_and_equity", ar: "إجمالي المطلوبات وحقوق الملكية", en: "Total liabilities and equity", depth: 0, total: true },
       ],
     },
     metrics: {
-      label: "المؤشرات المصرفية",
+      label: "المؤشرات المصرفية", labelEn: "Banking indicators",
       lines: [
-        { key: "capital_adequacy_ratio", ar: "كفاية رأس المال", depth: 0 },
-        { key: "lcr", ar: "نسبة تغطية السيولة", depth: 0 },
-        { key: "nsfr", ar: "صافي التمويل المستقر", depth: 0 },
-        { key: "npl_ratio", ar: "نسبة التعثر", depth: 0 },
+        { key: "capital_adequacy_ratio", ar: "كفاية رأس المال", en: "Capital adequacy ratio", depth: 0 },
+        { key: "lcr", ar: "نسبة تغطية السيولة", en: "Liquidity coverage ratio", depth: 0 },
+        { key: "nsfr", ar: "صافي التمويل المستقر", en: "Net stable funding ratio", depth: 0 },
+        { key: "npl_ratio", ar: "نسبة التعثر", en: "Non-performing loan ratio", depth: 0 },
       ],
     },
   },
@@ -163,34 +174,34 @@ export const TEMPLATES: Record<"industrial" | "bank", Partial<Record<StatementId
 /* ── Ratio definitions, from schema.ratio_defs ────────────────────────────
    Arabic name, unit and the help text the product already writes. */
 export type RatioUnit = "%" | "x" | "IQD" | "";
-export const RATIOS: Record<string, { ar: string; unit: RatioUnit; help: string }> = {
-  eps: { ar: "ربحية السهم", unit: "IQD", help: "حصة السهم الواحد من صافي أرباح الشركة، وتُحسب بقسمة صافي الربح على عدد الأسهم." },
-  bvps: { ar: "القيمة الدفترية للسهم", unit: "IQD", help: "حقوق الملكية مقسومة على عدد الأسهم." },
-  pe: { ar: "مكرر الربحية", unit: "x", help: "سعر السهم مقسوماً على ربحية السهم. الأدنى يعني تقييماً أرخص مقابل الأرباح الحالية." },
-  pb: { ar: "السعر إلى القيمة الدفترية", unit: "x", help: "سعر السهم مقسوماً على القيمة الدفترية للسهم." },
-  ps: { ar: "السعر إلى المبيعات", unit: "x", help: "القيمة السوقية مقسومة على الإيرادات السنوية." },
-  dividend_yield: { ar: "عائد التوزيعات", unit: "%", help: "التوزيعات النقدية السنوية كنسبة من سعر السهم." },
-  roe: { ar: "العائد على حقوق الملكية", unit: "%", help: "صافي الربح كنسبة من حقوق المساهمين — كفاءة الشركة في تحقيق أرباح من أموال المالكين. الأعلى أفضل." },
-  roa: { ar: "العائد على الأصول", unit: "%", help: "صافي الربح كنسبة من إجمالي الأصول." },
-  gross_margin: { ar: "هامش الربح الإجمالي", unit: "%", help: "الربح الإجمالي كنسبة من الإيرادات." },
-  operating_margin: { ar: "هامش الربح التشغيلي", unit: "%", help: "الربح التشغيلي كنسبة من الإيرادات." },
-  net_margin: { ar: "هامش صافي الربح", unit: "%", help: "صافي الربح كنسبة من الإيرادات." },
-  revenue_growth_yoy: { ar: "نمو الإيرادات", unit: "%", help: "تغيّر الإيرادات مقارنة بالسنة المالية السابقة." },
-  net_income_growth_yoy: { ar: "نمو صافي الربح", unit: "%", help: "تغيّر صافي الربح مقارنة بالسنة المالية السابقة." },
-  current_ratio: { ar: "نسبة التداول", unit: "x", help: "الأصول المتداولة مقسومة على المطلوبات قصيرة الأجل — قدرة الشركة على سداد التزاماتها القصيرة. أعلى من 1 أفضل." },
-  debt_to_equity: { ar: "الدين إلى حقوق الملكية", unit: "%", help: "إجمالي المطلوبات كنسبة من حقوق الملكية." },
-  debt_to_assets: { ar: "الدين إلى الأصول", unit: "%", help: "إجمالي المطلوبات كنسبة من إجمالي الأصول." },
-  capital_adequacy_ratio: { ar: "كفاية رأس المال", unit: "%", help: "رأس المال التنظيمي كنسبة من الأصول المرجّحة بالمخاطر. الحد الأدنى الرقابي 12%." },
-  npl_ratio: { ar: "نسبة التعثر", unit: "%", help: "التسهيلات المتعثرة كنسبة من إجمالي التسهيلات. الأدنى أفضل." },
-  loan_to_deposit: { ar: "القروض إلى الودائع", unit: "%", help: "إجمالي التسهيلات مقسومة على ودائع العملاء." },
-  deposit_growth_yoy: { ar: "نمو الودائع", unit: "%", help: "تغيّر ودائع العملاء مقارنة بالسنة المالية السابقة." },
+export const RATIOS: Record<string, { ar: string; en: string; unit: RatioUnit; help: string; helpEn: string }> = {
+  eps: { ar: "ربحية السهم", en: "Earnings per share", unit: "IQD", help: "حصة السهم الواحد من صافي أرباح الشركة، وتُحسب بقسمة صافي الربح على عدد الأسهم.", helpEn: "The company's net profit attributable to one share, computed as net profit divided by the number of shares." },
+  bvps: { ar: "القيمة الدفترية للسهم", en: "Book value per share", unit: "IQD", help: "حقوق الملكية مقسومة على عدد الأسهم.", helpEn: "Shareholders' equity divided by the number of shares." },
+  pe: { ar: "مكرر الربحية", en: "Price / earnings", unit: "x", help: "سعر السهم مقسوماً على ربحية السهم. الأدنى يعني تقييماً أرخص مقابل الأرباح الحالية.", helpEn: "Share price divided by earnings per share. Lower means a cheaper valuation against current earnings." },
+  pb: { ar: "السعر إلى القيمة الدفترية", en: "Price / book", unit: "x", help: "سعر السهم مقسوماً على القيمة الدفترية للسهم.", helpEn: "Share price divided by book value per share." },
+  ps: { ar: "السعر إلى المبيعات", en: "Price / sales", unit: "x", help: "القيمة السوقية مقسومة على الإيرادات السنوية.", helpEn: "Market capitalisation divided by annual revenue." },
+  dividend_yield: { ar: "عائد التوزيعات", en: "Dividend yield", unit: "%", help: "التوزيعات النقدية السنوية كنسبة من سعر السهم.", helpEn: "Annual cash dividends as a percentage of the share price." },
+  roe: { ar: "العائد على حقوق الملكية", en: "Return on equity", unit: "%", help: "صافي الربح كنسبة من حقوق المساهمين — كفاءة الشركة في تحقيق أرباح من أموال المالكين. الأعلى أفضل.", helpEn: "Net profit as a percentage of shareholders' equity — how efficiently the company turns owners' money into profit. Higher is better." },
+  roa: { ar: "العائد على الأصول", en: "Return on assets", unit: "%", help: "صافي الربح كنسبة من إجمالي الأصول.", helpEn: "Net profit as a percentage of total assets." },
+  gross_margin: { ar: "هامش الربح الإجمالي", en: "Gross margin", unit: "%", help: "الربح الإجمالي كنسبة من الإيرادات.", helpEn: "Gross profit as a percentage of revenue." },
+  operating_margin: { ar: "هامش الربح التشغيلي", en: "Operating margin", unit: "%", help: "الربح التشغيلي كنسبة من الإيرادات.", helpEn: "Operating profit as a percentage of revenue." },
+  net_margin: { ar: "هامش صافي الربح", en: "Net profit margin", unit: "%", help: "صافي الربح كنسبة من الإيرادات.", helpEn: "Net profit as a percentage of revenue." },
+  revenue_growth_yoy: { ar: "نمو الإيرادات", en: "Revenue growth", unit: "%", help: "تغيّر الإيرادات مقارنة بالسنة المالية السابقة.", helpEn: "Change in revenue against the previous financial year." },
+  net_income_growth_yoy: { ar: "نمو صافي الربح", en: "Net profit growth", unit: "%", help: "تغيّر صافي الربح مقارنة بالسنة المالية السابقة.", helpEn: "Change in net profit against the previous financial year." },
+  current_ratio: { ar: "نسبة التداول", en: "Current ratio", unit: "x", help: "الأصول المتداولة مقسومة على المطلوبات قصيرة الأجل — قدرة الشركة على سداد التزاماتها القصيرة. أعلى من 1 أفضل.", helpEn: "Current assets divided by short-term liabilities — the company's ability to meet its near-term obligations. Above 1 is better." },
+  debt_to_equity: { ar: "الدين إلى حقوق الملكية", en: "Debt to equity", unit: "%", help: "إجمالي المطلوبات كنسبة من حقوق الملكية.", helpEn: "Total liabilities as a percentage of equity." },
+  debt_to_assets: { ar: "الدين إلى الأصول", en: "Debt to assets", unit: "%", help: "إجمالي المطلوبات كنسبة من إجمالي الأصول.", helpEn: "Total liabilities as a percentage of total assets." },
+  capital_adequacy_ratio: { ar: "كفاية رأس المال", en: "Capital adequacy ratio", unit: "%", help: "رأس المال التنظيمي كنسبة من الأصول المرجّحة بالمخاطر. الحد الأدنى الرقابي 12%.", helpEn: "Regulatory capital as a percentage of risk-weighted assets. The regulatory minimum is 12%." },
+  npl_ratio: { ar: "نسبة التعثر", en: "Non-performing loan ratio", unit: "%", help: "التسهيلات المتعثرة كنسبة من إجمالي التسهيلات. الأدنى أفضل.", helpEn: "Non-performing facilities as a percentage of total facilities. Lower is better." },
+  loan_to_deposit: { ar: "القروض إلى الودائع", en: "Loan to deposit", unit: "%", help: "إجمالي التسهيلات مقسومة على ودائع العملاء.", helpEn: "Total facilities divided by customer deposits." },
+  deposit_growth_yoy: { ar: "نمو الودائع", en: "Deposit growth", unit: "%", help: "تغيّر ودائع العملاء مقارنة بالسنة المالية السابقة.", helpEn: "Change in customer deposits against the previous financial year." },
 };
 
-export const RATIO_GROUPS: { ar: string; keys: string[] }[] = [
-  { ar: "التقييم", keys: ["pe", "pb", "ps", "dividend_yield", "eps", "bvps"] },
-  { ar: "الربحية", keys: ["roe", "roa", "net_margin", "operating_margin", "gross_margin"] },
-  { ar: "النمو", keys: ["revenue_growth_yoy", "net_income_growth_yoy", "deposit_growth_yoy"] },
-  { ar: "الملاءة", keys: ["debt_to_equity", "debt_to_assets", "current_ratio", "capital_adequacy_ratio", "npl_ratio", "loan_to_deposit"] },
+export const RATIO_GROUPS: { ar: string; en: string; keys: string[] }[] = [
+  { ar: "التقييم", en: "Valuation", keys: ["pe", "pb", "ps", "dividend_yield", "eps", "bvps"] },
+  { ar: "الربحية", en: "Profitability", keys: ["roe", "roa", "net_margin", "operating_margin", "gross_margin"] },
+  { ar: "النمو", en: "Growth", keys: ["revenue_growth_yoy", "net_income_growth_yoy", "deposit_growth_yoy"] },
+  { ar: "الملاءة", en: "Solvency", keys: ["debt_to_equity", "debt_to_assets", "current_ratio", "capital_adequacy_ratio", "npl_ratio", "loan_to_deposit"] },
 ];
 
 /* ── Data-quality guard ───────────────────────────────────────────────────
@@ -393,14 +404,21 @@ export function buildFinancials(
 
 /* ── Units and formatting ─────────────────────────────────────────────────── */
 
-export type Unit = { div: number; label: string }
+export type Unit = { div: number; label: string; labelEn: string }
 const UNITS: Unit[] = [
-  { div: 1, label: 'دينار' },
-  { div: 1e3, label: 'ألف دينار' },
-  { div: 1e6, label: 'مليون دينار' },
-  { div: 1e9, label: 'مليار دينار' },
-  { div: 1e12, label: 'تريليون دينار' },
+  { div: 1,    label: 'دينار',         labelEn: 'dinars' },
+  { div: 1e3,  label: 'ألف دينار',     labelEn: 'thousand dinars' },
+  { div: 1e6,  label: 'مليون دينار',   labelEn: 'million dinars' },
+  { div: 1e9,  label: 'مليار دينار',   labelEn: 'billion dinars' },
+  { div: 1e12, label: 'تريليون دينار', labelEn: 'trillion dinars' },
 ]
+
+/** The scale label in the reader's language. */
+export const unitLabel = (u: Unit, locale: 'ar' | 'en') => (locale === 'ar' ? u.label : u.labelEn)
+
+/** A statement's heading in the reader's language. */
+export const stmtLabel = (s: { label: string; labelEn: string }, locale: 'ar' | 'en') =>
+  (locale === 'ar' ? s.label : s.labelEn)
 
 /**
  * Chosen from the MEDIAN absolute value, not the maximum.
@@ -444,9 +462,21 @@ export const UNIT_AR: Record<string, string> = {
   IQD_MILLIONS: 'مليون دينار',
 }
 
+export const UNIT_EN: Record<string, string> = {
+  IQD: 'dinars',
+  IQD_THOUSANDS: 'thousand dinars',
+  IQD_MILLIONS: 'million dinars',
+}
+
+export const reportedUnitLabel = (code: string, locale: 'ar' | 'en') =>
+  (locale === 'ar' ? UNIT_AR[code] : UNIT_EN[code]) ?? code
+
 /**
  * Neutral, by policy. The period CODE and the year, never a duration — see
- * the header. «سنوي» is safe because ANNUAL is unambiguous.
+ * the header. «سنوي» / «Annual» is safe because ANNUAL is unambiguous; a
+ * quarter code is printed as the code itself, because the FILING does not
+ * state the quarter's duration and this product refuses to infer one.
  */
-export const colLabel = (c: Col) => (c.p === 'ANNUAL' ? `سنوي ${c.y}` : `${c.p} ${c.y}`)
+export const colLabel = (c: Col, locale: 'ar' | 'en' = 'ar') =>
+  (c.p === 'ANNUAL' ? `${locale === 'ar' ? 'سنوي' : 'Annual'} ${c.y}` : `${c.p} ${c.y}`)
 export const colKey = (c: Col) => `${c.y}:${c.p}`

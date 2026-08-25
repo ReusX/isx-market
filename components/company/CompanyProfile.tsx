@@ -1,6 +1,6 @@
 'use client'
 
-import { useApp } from '@/context/AppContext'
+import { useLocale } from '@/context/LocaleContext'
 import '@/styles/company.css'
 import { COMPANY_PROFILES, type Profile } from '@/lib/companyProfiles'
 import { arDate } from '@/lib/date'
@@ -61,7 +61,7 @@ function generated(isAr: boolean, props: Props): Profile {
       about:
         `${p.ar} (${p.sym}) شركة مدرجة في سوق العراق للأوراق المالية (بورصة العراق – ISX) ضمن قطاع ${sector.ar}` +
         `${hasMcap ? `، برأس مال سوقي يبلغ نحو ${mcap} دينار عراقي` : ''}. ` +
-        `تابع سعر سهم ${p.ar} المباشر، المخططات التاريخية، حجم التداول، والقيمة السوقية على iraqsm.com. ` +
+        `تابع سعر سهم ${p.ar} بعد كل جلسة، والمخططات التاريخية، وحجم التداول، والقيمة السوقية على iraqsm.com. ` +
         `يتداول سهم ${p.sym} بالدينار العراقي (IQD) في بورصة العراق.`,
       facts: [
         { label: 'الرمز',   value: p.sym },
@@ -71,10 +71,13 @@ function generated(isAr: boolean, props: Props): Profile {
         { label: 'العملة',  value: 'الدينار العراقي (IQD)' },
       ],
       faq: [
-        { q: `كم سعر سهم ${p.ar} اليوم؟`, a: `تابع سعر سهم ${p.ar} (${p.sym}) المباشر اليوم في بورصة العراق على iraqsm.com، مع الرسم البياني والأعلى والأدنى وحجم التداول.` },
+        /* ⚠ The QUESTION keeps «اليوم» because that is how people search it.
+           The ANSWER may not: the product publishes the last session's close,
+           not a live intraday price, so it says which session it is showing. */
+        { q: `كم سعر سهم ${p.ar} اليوم؟`, a: `يعرض iraqsm.com سعر إغلاق سهم ${p.ar} (${p.sym}) في آخر جلسة تداول في بورصة العراق، مع الرسم البياني والأعلى والأدنى وحجم التداول.` },
         { q: `ما هو رمز سهم ${p.ar}؟`, a: `يتداول سهم ${p.ar} تحت الرمز ${p.sym} في بورصة العراق.` },
         { q: `في أي قطاع تعمل ${p.ar}؟`, a: `تعمل ${p.ar} ضمن قطاع ${sector.ar} في السوق العراقي.` },
-        { q: `أين أتابع سعر سهم ${p.sym}؟`, a: `يمكنك متابعة سعر سهم ${p.sym} المباشر، المخططات، وحجم التداول على iraqsm.com.` },
+        { q: `أين أتابع سعر سهم ${p.sym}؟`, a: `يمكنك متابعة سعر سهم ${p.sym}، والمخططات، وحجم التداول على iraqsm.com، محدّثة بعد كل جلسة.` },
       ],
     }
   }
@@ -83,7 +86,7 @@ function generated(isAr: boolean, props: Props): Profile {
     about:
       `${p.en} (${p.sym}) is a company listed on the Iraq Stock Exchange (ISX) in the ${sector.en} sector` +
       `${hasMcap ? `, with a market capitalization of approximately ${mcap} IQD` : ''}. ` +
-      `Track ${p.en}'s live share price, historical price charts, trading volume, and market data on iraqsm.com. ` +
+      `Track ${p.en}'s share price after each session, along with historical charts, trading volume and market data, on iraqsm.com. ` +
       `The ${p.sym} stock trades in Iraqi Dinar (IQD) on the ISX.`,
     facts: [
       { label: 'Ticker',   value: p.sym },
@@ -93,10 +96,12 @@ function generated(isAr: boolean, props: Props): Profile {
       { label: 'Currency', value: 'Iraqi Dinar (IQD)' },
     ],
     faq: [
-      { q: `What is ${p.en}'s share price today?`, a: `Track ${p.en} (${p.sym}) live share price today on the Iraq Stock Exchange (ISX) at iraqsm.com, with charts, highs/lows, and trading volume.` },
+      /* Same rule as the Arabic FAQ: the question may say "today" because that
+         is the search; the answer names the session it is actually showing. */
+      { q: `What is ${p.en}'s share price today?`, a: `iraqsm.com shows ${p.en}'s (${p.sym}) closing price from the latest Iraq Stock Exchange session, with charts, highs and lows, and trading volume.` },
       { q: `What is ${p.en}'s ticker symbol?`, a: `${p.en} trades under the ticker ${p.sym} on the Iraq Stock Exchange (ISX).` },
       { q: `What sector is ${p.en} in?`, a: `${p.en} operates in the ${sector.en} sector of the Iraqi market.` },
-      { q: `Where can I track ${p.sym}'s share price?`, a: `You can track ${p.sym}'s live price, charts, and trading volume on iraqsm.com.` },
+      { q: `Where can I track ${p.sym}'s share price?`, a: `You can follow ${p.sym}'s price, charts and trading volume on iraqsm.com, updated after each session.` },
     ],
   }
 }
@@ -111,8 +116,8 @@ function priceText(q: NonNullable<Props['quote']>, isAr: boolean): string {
 }
 
 export default function CompanyProfile(props: Props) {
-  const { lang } = useApp()
-  const isAr = lang === 'ar'
+  const { locale } = useLocale()
+  const isAr = locale === 'ar'
 
   const curated = COMPANY_PROFILES[props.sym]?.[isAr ? 'ar' : 'en']
   const base    = curated ?? generated(isAr, props)

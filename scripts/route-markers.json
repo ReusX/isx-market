@@ -22,6 +22,8 @@
   "/en": "○",
   "/en/[...rest]": "ƒ",
   "/en/about": "○",
+  "/en/c/[sym]": "ƒ",
+  "/en/c/[sym]/financials": "ƒ",
   "/en/contact": "○",
   "/en/heatmap": "○",
   "/en/market": "○",

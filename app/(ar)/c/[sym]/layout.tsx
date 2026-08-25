@@ -4,9 +4,7 @@ import companiesData from '@/public/data/companies.json'
 import { buildCompanySeo } from '@/lib/companySeo'
 import { getQuote, describeQuote } from '@/lib/quote'
 import Breadcrumbs from '@/components/seo/Breadcrumbs'
-import { SITE } from '@/lib/seo'
-
-const BASE = SITE
+import { absUrl, seoAlternates } from '@/lib/seo'
 
 // Passed to the name shortener so it can reject a core two companies share.
 const ARABIC_NAMES = (companiesData as { ar: string }[]).map(c => c.ar).filter(Boolean)
@@ -34,12 +32,12 @@ export async function generateMetadata({ params }: { params: { sym: string } }):
   const quote = await getQuote(sym)
   const priceLine = quote && !quote.suspended ? describeQuote(quote) : undefined
   const seo     = buildCompanySeo(sym, arName, enName, priceLine, ARABIC_NAMES)
-  const url     = `${BASE}/c/${sym}`
+  const url     = absUrl(`/c/${sym}`)
 
   return {
     title: { absolute: seo.title },
     description: seo.description,
-    alternates: { canonical: url },
+    alternates: seoAlternates(`/c/${sym}`),
     keywords: seo.keywords,
     openGraph: {
       title:       seo.title,
@@ -77,7 +75,7 @@ export default async function CompanyLayout({ children, params }: Props) {
     name: company.en,
     alternateName: seo.altNames,
     tickerSymbol: sym,
-    url: `${BASE}/c/${sym}`,
+    url: absUrl(`/c/${sym}`),
     description: `${company.en} (${sym}) · Iraq Stock Exchange (ISX) share price and market data.`,
   }
 
@@ -97,7 +95,7 @@ export default async function CompanyLayout({ children, params }: Props) {
           defaults to 'ar', so crawlers still get unique content per page. */}
       <Breadcrumbs
         trail={[
-          { name: 'الشركات', path: '/companies' },
+          { name: 'السوق', path: '/market' },
           { name: seo.shortAr, path: `/c/${sym}` },
         ]}
       />
