@@ -36,6 +36,7 @@ export function InfoHead({
   standfirst?: string
   updated?: string
 }) {
+  const { t } = useLocale()
   return (
     <header className="in-head">
       <div className="in-head-row">
@@ -45,7 +46,7 @@ export function InfoHead({
       {standfirst ? <p className="in-standfirst">{standfirst}</p> : null}
       {/* Arabic dates carry Arabic words as well as numerals, so this is NOT
           `bdi`-wrapped — isolating it would reorder the sentence around it. */}
-      {updated ? <p className="in-updated">آخر تحديث {updated}</p> : null}
+      {updated ? <p className="in-updated">{t.info.legal.updated} {updated}</p> : null}
     </header>
   )
 }
@@ -59,9 +60,10 @@ export function InfoHead({
  * legal CONTENT behind a client-only accordion is the thing this avoids.
  */
 export function DocToc({ sections, active }: { sections: LegalSection[]; active: string | null }) {
+  const { t } = useLocale()
   return (
     <nav className="in-toc" aria-labelledby="in-toc-h">
-      <h2 id="in-toc-h">في هذه الصفحة</h2>
+      <h2 id="in-toc-h">{t.info.legal.onThisPage}</h2>
       <ol>
         {sections.map((s, i) => (
           <li key={s.id} className={active === s.id ? 'is-on' : ''}>
@@ -132,11 +134,12 @@ export function InfoSkeleton() {
 }
 
 export function InfoMissing({ note }: { note: string }) {
+  const { t, href } = useLocale()
   return (
     <div className="in-missing" role="status">
-      <strong>تعذّر عرض هذه الصفحة</strong>
+      <strong>{t.info.legal.missingTitle}</strong>
       <span>{note}</span>
-      <Link className="in-missing-go" href="/contact">تواصل معنا</Link>
+      <Link className="in-missing-go" href={href('/contact')}>{t.info.legal.contactUs}</Link>
     </div>
   )
 }

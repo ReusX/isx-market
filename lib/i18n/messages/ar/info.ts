@@ -74,5 +74,13 @@ export const info = {
     },
   },
 
+  legal: {
+    missingTitle: 'تعذّر عرض هذه الصفحة',
+    contactUs: 'تواصل معنا',
+    notice: 'تنويه',
+    onThisPage: 'في هذه الصفحة',
+    updated: 'آخر تحديث',
+  },
+
   familyLabel: 'صفحات الموقع',
 }

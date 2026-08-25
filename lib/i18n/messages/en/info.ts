@@ -55,5 +55,13 @@ export const info: typeof ar = {
     },
   },
 
+  legal: {
+    missingTitle: 'This page couldn’t be shown',
+    contactUs: 'Contact us',
+    notice: 'Notice',
+    onThisPage: 'On this page',
+    updated: 'Last updated',
+  },
+
   familyLabel: 'Site pages',
 }

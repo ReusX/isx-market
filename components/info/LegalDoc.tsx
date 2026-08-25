@@ -1,8 +1,9 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { useLocale } from '@/context/LocaleContext'
 import { InfoHead, DocToc, FamilyRow, Plate } from './InfoChrome'
-import { DOC_UPDATED, type LegalSection, type LegalBlock } from '@/lib/legalContent'
+import { type LegalSection, type LegalBlock } from '@/lib/legalContent'
 import type { Scene } from '@/components/design/DitherArt'
 import '@/styles/info.css'
 
@@ -29,7 +30,7 @@ import '@/styles/info.css'
  * foot of this file for why they are visible rather than smoothed away.
  */
 export function LegalDoc({
-  route, eyebrow, title, sections, banner, scene,
+  route, eyebrow, title, sections, banner, scene, updated,
 }: {
   route: string
   eyebrow: string
@@ -38,7 +39,11 @@ export function LegalDoc({
   /** /legal opens with a standing disclaimer. /privacy does not. */
   banner?: string
   scene: Scene
+  /** The draft date, in the document's own language. */
+  updated: string
 }) {
+  const { t } = useLocale()
+  const lg = t.info.legal
   const active = useActiveSection(sections)
 
   /**
@@ -58,7 +63,7 @@ export function LegalDoc({
 
   return (
     <main className="in-page in-doc iq-page">
-      <InfoHead eyebrow={eyebrow} title={title} updated={DOC_UPDATED} />
+      <InfoHead eyebrow={eyebrow} title={title} updated={updated} />
 
       {/* The band sits between the head and the document, at a third of the
           About plate's height: present but restrained, and once the reading
@@ -72,7 +77,7 @@ export function LegalDoc({
               alert. */}
           {banner ? (
             <aside className="in-banner">
-              <strong>تنويه</strong>
+              <strong>{lg.notice}</strong>
               <p>{banner}</p>
             </aside>
           ) : null}
@@ -95,7 +100,7 @@ export function LegalDoc({
         <aside className="in-rail">
           <details className="in-toc-fold" open={tocOpen}
             onToggle={(e) => setTocOpen((e.target as HTMLDetailsElement).open)}>
-            <summary>في هذه الصفحة</summary>
+            <summary>{lg.onThisPage}</summary>
             <DocToc sections={sections} active={active} />
           </details>
         </aside>
