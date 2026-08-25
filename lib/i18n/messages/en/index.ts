@@ -11,6 +11,7 @@ import { screener } from './screener'
 import { heatmap } from './heatmap'
 import { pulse } from './pulse'
 import { statistics } from './statistics'
+import { flow } from './flow'
 
 /** The English dictionary. Typed against Arabic — see `../ar/index.ts`. */
-export const en: typeof ar = { nav, shell, system, glossary, info, data, home, market, screener, heatmap, pulse, statistics }
+export const en: typeof ar = { nav, shell, system, glossary, info, data, home, market, screener, heatmap, pulse, statistics, flow }

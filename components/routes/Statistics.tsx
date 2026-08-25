@@ -1,6 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useMemo, useState } from 'react'
+import { localeDateOrDash } from '@/lib/date'
 import { useLocale } from '@/context/LocaleContext'
 import type { Locale } from '@/lib/i18n/locale'
 import Link from 'next/link'
@@ -12,7 +13,7 @@ import {
   PERIODS, METRICS, GRAIN_LABEL, REBASE,
   windowFor, grainFor, bucketize, totalsFor, metricOf, median,
   normalizeSectors, SECTOR_LABELS, capSnapshot, capShare, usableName,
-  arFull, arMonth, iqd, nf0, nf1, iqdFull,
+  monthLabel, iqd, nf0, nf1, iqdFull,
   type Session, type PeriodId, type MetricId, type SectorMonthRow,
   type SectorActivity, type SectorReconciliation, type CapSnapshot, type CapInput, type CapRow,
 } from '@/lib/statistics'
@@ -252,8 +253,8 @@ export function Statistics() {
   const scopeLine =
     scope === 'period' && t ? <>{st.scopePeriod(t.from, t.to, nf0.format(t.sessions))}</>
     : scope === 'own' ? <>{st.scopeOwn(flowT ? flowT.from : '', flowT ? flowT.to : '')}</>
-    : scope === 'month' ? <>{st.scopeMonth(arMonth(recon.month))}</>
-    : <>{st.scopeSnapshot(arFull(cap?.session ?? null))}</>
+    : scope === 'month' ? <>{st.scopeMonth(monthLabel(recon.month, locale))}</>
+    : <>{st.scopeSnapshot(localeDateOrDash(cap?.session ?? null, locale))}</>
 
   return (
     <main className="iq-page stw">
@@ -599,7 +600,7 @@ function SectorsMode({ sectors, recon, total, failed, cap, picked, onPick, metri
           <p>
             {metric === 'marketCap'
               ? <>{st.sectorSnapshot(String(sorted.length), iqd(sum))}</>
-              : <>{st.sectorMonth(arMonth(recon.month), String(sorted.length), isCount ? nf0.format(sum) : iqd(sum))}</>}
+              : <>{st.sectorMonth(monthLabel(recon.month, locale), String(sorted.length), isCount ? nf0.format(sum) : iqd(sum))}</>}
           </p>
         </div>
         <SectorSwitch metric={metric} onMetric={onMetric} items={METRICS_S} />
@@ -1011,7 +1012,7 @@ function ForeignMode({ t, buckets, failed }: {
             const net = b.net as number
             return (
               <li key={b.key} className={net >= 0 ? 'is-up' : 'is-down'}
-                title={`${arMonth(b.key)} · ${net >= 0 ? '+' : '−'}${iqdFull(Math.abs(net))} ${st.iqd}`}>
+                title={`${monthLabel(b.key, locale)} · ${net >= 0 ? '+' : '−'}${iqdFull(Math.abs(net))} ${st.iqd}`}>
                 <i style={{ blockSize: `${(Math.abs(net) / max) * 100}%` }} />
               </li>
             )

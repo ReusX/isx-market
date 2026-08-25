@@ -178,12 +178,6 @@ export function flowTotals(rows: FlowSession[]): FlowTotals | null {
 
 export type FlowGrain = 'session' | 'week' | 'month' | 'year'
 
-export const FLOW_GRAIN_LABEL: Record<FlowGrain, string> = {
-  session: 'يومي · كل عمود جلسة',
-  week: 'أسبوعي · كل عمود مجموع أسبوع',
-  month: 'شهري · كل عمود مجموع شهر',
-  year: 'سنوي · كل عمود مجموع سنة',
-}
 
 export function flowGrainFor(period: PeriodId): FlowGrain {
   if (period === '1M' || period === '3M') return 'session'
@@ -297,10 +291,8 @@ export function companyFlows(rows: FlowRow[], from: string, to: string, roster: 
    only the names foreigners accumulated and hides every name they were
    leaving — which is half the question this page exists to answer. */
 export const COMPANY_VIEWS = [
-  { id: 'netIn', label: 'أكبر صافي شراء' },
-  { id: 'netOut', label: 'أكبر صافي بيع' },
-  { id: 'buy', label: 'أكبر شراء' },
-  { id: 'sell', label: 'أكبر بيع' },
+  /* Ids only — the labels are copy and live in the `flow.rank` dictionary. */
+  { id: 'netIn' }, { id: 'netOut' }, { id: 'buy' }, { id: 'sell' },
 ] as const
 export type CompanyView = (typeof COMPANY_VIEWS)[number]['id']
 
@@ -340,13 +332,15 @@ export type SectorFlow = {
   share: number
 }
 
-export function sectorFlows(rows: CompanyFlow[], labels: Map<string, string>): SectorFlow[] {
+/** `unclassifiedLabel` is passed in because it is copy — «غير مصنّف» was
+ *  hardcoded here and reached English readers untranslated. */
+export function sectorFlows(rows: CompanyFlow[], labels: Map<string, string>, unclassifiedLabel = 'غير مصنّف'): SectorFlow[] {
   const by = new Map<string, SectorFlow>()
   for (const c of rows) {
     const id = c.sec ?? 'UNMAPPED'
     const e = by.get(id) ?? {
       id,
-      label: c.sec ? (labels.get(c.sec) ?? c.sec) : 'غير مصنّف',
+      label: c.sec ? (labels.get(c.sec) ?? c.sec) : unclassifiedLabel,
       buy: 0, sell: 0, net: 0, companies: 0, share: 0,
     }
     e.buy += c.buy; e.sell += c.sell; e.companies++

@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import { absUrl, seoAlternates } from '@/lib/seo'
-import { ForeignFlowClient } from './ForeignFlowClient'
+import { ForeignFlow } from '@/components/routes/ForeignFlow'
 
 export const metadata: Metadata = {
   // Without this the page inherited the parent layout's canonical and
@@ -13,10 +13,10 @@ export const metadata: Metadata = {
      arrives with the trading bulletin and the latest stored session is not
      necessarily today's, so both claims were sometimes false. The page names
      the exact session instead. */
-  title: 'تدفق المستثمر الأجنبي | بورصة العراق',
+  title: 'تدفقات المستثمر الأجنبي · بورصة العراق',
   description: 'شراء وبيع المستثمرين غير العراقيين في سوق العراق للأوراق المالية: صافي التدفق لكل جلسة، الرصيد التراكمي، وأكثر الشركات والقطاعات نشاطاً — مع تاريخ كل جلسة.',
 }
 
-export default function ForeignFlowPage() {
-  return <ForeignFlowClient />
+export default function Page() {
+  return <ForeignFlow />
 }

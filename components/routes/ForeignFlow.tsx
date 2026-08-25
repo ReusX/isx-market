@@ -1,21 +1,24 @@
 'use client'
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { localeDateOrDash } from '@/lib/date'
+import { useLocale } from '@/context/LocaleContext'
+import type { Locale } from '@/lib/i18n/locale'
 import Link from 'next/link'
 import { FlowChart, bucketTitle, type FlowMode } from './FlowChart'
 import {
-  PERIODS, iqd, iqdFull, nf0, arFull, arShortY, arMonth,
+  PERIODS, iqd, iqdFull, nf0, shortY, monthLabel,
   type PeriodId,
 } from '@/lib/statistics'
 import {
-  foldSessions, flowWindow, flowTotals, flowBuckets, flowGrainFor, FLOW_GRAIN_LABEL,
+  foldSessions, flowWindow, flowTotals, flowBuckets, flowGrainFor,
   companyFlows, rankCompanies, sectorFlows, COMPANY_VIEWS, isNetView, viewValue,
   type FlowRow, type OracleRow, type FlowSession, type CompanyFlow, type CompanyView,
   type SectorFlow, type Roster,
 } from '@/lib/foreignFlow'
 import { fetchCompanyMeta, matchCompanyName, companyName, SECTORS } from '@/lib/market'
 import type { CompanyMeta } from '@/types'
-import './foreign-flow.css'
+import '@/styles/foreign-flow.css'
 
 /**
  * تدفق المستثمر الأجنبي — the deep foreign-capital surface.
@@ -64,7 +67,9 @@ type Ownership = {
 
 const SECTOR_LABEL = new Map(SECTORS.filter((s) => s.id !== 'all').map((s) => [s.id, s.arFull]))
 
-export function ForeignFlowClient() {
+export function ForeignFlow() {
+  const { t: T, locale, href: L } = useLocale()
+  const ff = T.flow
   /* The reference opens on سنة, and it is the right default here too: a month
      of foreign flow on this exchange is often one outsized session and 21
      small ones, which reads as a single spike rather than a market. */
@@ -154,8 +159,8 @@ export function ForeignFlowClient() {
      the English name before it falls back to the ticker, which is what the
      market board and the screener already do. */
   const roster = useMemo<Roster>(
-    () => new Map(meta.map((m) => [m.sym, { name: companyName(m, m.sym), sec: m.sec, logo: m.logo }])),
-    [meta])
+    () => new Map(meta.map((m) => [m.sym, { name: companyName(m, m.sym, locale), sec: m.sec, logo: m.logo }])),
+    [meta, locale])
 
   // ── ownership · its own table, its own month, its own failure ────────────
   useEffect(() => {
@@ -186,8 +191,8 @@ export function ForeignFlowClient() {
 
   /* Name-matching runs over the month's rows once, not on every render. */
   const own = useMemo<Ownership | null>(
-    () => (ownRows ? summariseOwnership(ownRows.rows, ownRows.month, meta) : null),
-    [ownRows, meta])
+    () => (ownRows ? summariseOwnership(ownRows.rows, ownRows.month, meta, locale) : null),
+    [ownRows, meta, locale])
 
   const win = useMemo(() => flowWindow(sessions, period), [sessions, period])
   const t = useMemo(() => flowTotals(win), [win])
@@ -208,7 +213,7 @@ export function ForeignFlowClient() {
   const top10 = ranked.slice(0, 10)
   const rowMax = Math.max(...top10.map((c) => Math.abs(viewValue(c, view))), 1)
 
-  const periodLabel = PERIODS.find((p) => p.id === period)!.ar
+  const periodLabel = PERIODS.find((p) => p.id === period)![locale]
 
   return (
     /* `iq-page` is how a route opts into the Phase 0 token layer — the
@@ -216,83 +221,85 @@ export function ForeignFlowClient() {
        homepage do it. Without it every panel here paints transparent. */
     <main className="iq-page ffw-page">
       <Link className="ffw-back" href="/statistics">
-        <span aria-hidden="true">›</span> الإحصائيات
+        <span className="dir-go" aria-hidden="true">›</span> {ff.breadcrumb}
       </Link>
 
       <header className="ffw-st-head ffw-head">
         <div className="ffw-st-title">
-          <h1>تدفق المستثمر الأجنبي</h1>
+          <h1>{ff.title}</h1>
           <p>
-            شراء وبيع غير العراقيين لكل شركة، من نشرة التداول اليومية
-            {t ? <> · <bdi>{nf0.format(t.sessions)}</bdi> جلسة في الفترة</> : null}
-            {latest ? <> · آخر جلسة برصد {arFull(latest.date)}</> : null}
+            {ff.standfirst}
+            {t ? <> · {ff.sessionsInPeriod(nf0.format(t.sessions))}</> : null}
+            {latest ? <> · {ff.lastObserved(localeDateOrDash(latest.date, locale))}</> : null}
           </p>
         </div>
-        <div className="ffw-st-period" role="group" aria-label="الفترة">
+        <div className="ffw-st-period" role="group" aria-label={ff.periodGroup}>
           {PERIODS.map((p) => (
             <button key={p.id} type="button" className={period === p.id ? 'active' : ''}
-              aria-pressed={period === p.id} onClick={() => setPeriod(p.id)}>{p.ar}</button>
+              aria-pressed={period === p.id} onClick={() => setPeriod(p.id)}>{p[locale]}</button>
           ))}
         </div>
       </header>
 
       {failed ? (
         <div className="ffw-cd-nodata ffw-cd-nodata-wide">
-          <strong>تعذّر تحميل بيانات التدفق الأجنبي</strong>
+          <strong>{ff.loadFailed}</strong>
           <p>
-            تُنشر أرقام التدفق الأجنبي مع نشرة التداول اليومية. حاول تحديث الصفحة،
-            أو عد إلى <Link href="/statistics">الإحصائيات</Link>.
+            {ff.failedNote}
+            {ff.backTo} <Link href={L('/statistics')}>{ff.statistics}</Link>.
           </p>
         </div>
       ) : (
         <>
           {/* ── Hero · the session and the period, never mixed ──────────── */}
-          <section className="ffw-hero" aria-label="ملخص التدفق">
+          <section className="ffw-hero" aria-label={ff.heroLabel}>
             <article className="ffw-hero-card">
-              <span className="ffw-st-chip ffw-st-chip-session">آخر جلسة برصد</span>
-              <span className="ffw-cd-cell-label">{latest ? arFull(latest.date) : '—'}</span>
+              <span className="ffw-st-chip ffw-st-chip-session">{ff.lastSessionChip}</span>
+              <span className="ffw-cd-cell-label">{latest ? localeDateOrDash(latest.date, locale) : '—'}</span>
               {loading || !latest ? <Skel h={104} /> : (
                 <>
                   <strong className={cls(latest.net)}>
                     <bdi>{sign(latest.net)}{iqd(Math.abs(latest.net))}</bdi>
-                    <em>د.ع</em>
+                    <em>{ff.iqd}</em>
                   </strong>
-                  <p>{latest.net > 0 ? 'صافي شراء أجنبي' : latest.net < 0 ? 'صافي بيع أجنبي' : 'تدفق متوازن'}</p>
+                  <p>{latest.net > 0 ? ff.netBuy : latest.net < 0 ? ff.netSell : ff.balanced}</p>
                   <Balance buy={latest.buy} sell={latest.sell} />
                   <dl className="ffw-hero-figs">
-                    <div><dt>صفقات أجنبية</dt><dd><bdi>{nf0.format(latest.trades)}</bdi></dd></div>
-                    <div><dt>شركات بنشاط أجنبي</dt><dd><bdi>{latest.companies}</bdi></dd></div>
+                    <div><dt>{ff.foreignTrades}</dt><dd><bdi>{nf0.format(latest.trades)}</bdi></dd></div>
+                    <div><dt>{ff.companiesActive}</dt><dd><bdi>{latest.companies}</bdi></dd></div>
                   </dl>
                 </>
               )}
             </article>
 
             <article className="ffw-hero-card is-period">
-              <span className="ffw-st-chip ffw-st-chip-period">الفترة المحددة · {periodLabel}</span>
+              <span className="ffw-st-chip ffw-st-chip-period">{ff.periodChip(periodLabel)}</span>
               <span className="ffw-cd-cell-label">
-                {t ? <>{arShortY(t.from)} — {arShortY(t.to)}</> : '—'}
+                {t ? <>{shortY(t.from, locale)} — {shortY(t.to, locale)}</> : '—'}
               </span>
               {loading || !t ? <Skel h={104} /> : (
                 <>
                   <strong className={cls(t.net)}>
                     <bdi>{sign(t.net)}{iqd(Math.abs(t.net))}</bdi>
-                    <em>د.ع</em>
+                    <em>{ff.iqd}</em>
                   </strong>
                   {/* Persistence, not a sentiment score: two counts and the
                       arithmetic that produced them. */}
                   <p>
-                    صافي {t.net >= 0 ? 'شراء' : 'بيع'} تراكمي على مدى <bdi>{nf0.format(t.counted)}</bdi> جلسة
-                    برصد · <bdi>{t.buySessions}</bdi> جلسة شراء مقابل <bdi>{t.sellSessions}</bdi> جلسة بيع
-                    {t.missing > 0 ? <> · <bdi>{t.missing}</bdi> جلسة بلا بيانات لم تُحتسب</> : null}
+                    {ff.cumulativeLine(
+                      t.net >= 0 ? ff.buying : ff.selling,
+                      nf0.format(t.counted), String(t.buySessions), String(t.sellSessions),
+                      t.missing > 0 ? String(t.missing) : '',
+                    )}
                   </p>
                   <Balance buy={t.buy} sell={t.sell} />
                   <dl className="ffw-hero-figs">
                     <div>
                       <dt>
-                        استمرارية الشراء
+                        {ff.buyContinuity}
                         <i className="ffw-fn-help" tabIndex={0} role="note"
-                          data-help="عدد الجلسات التي كان صافي التدفق فيها موجباً، مقسوماً على عدد الجلسات التي رُصد فيها التدفق فعلاً — لا على جلسات الفترة كلها. النسبة والعددان معروضان معاً."
-                          aria-label="جلسات الشراء مقسومة على الجلسات المرصودة">؟</i>
+                          data-help={ff.buySessionsHelpLong}
+                          aria-label={ff.buySessionsHelp}>{locale === 'ar' ? '؟' : '?'}</i>
                       </dt>
                       <dd>
                         <bdi>{t.counted ? `${((t.buySessions / t.counted) * 100).toFixed(0)}%` : '—'}</bdi>
@@ -301,12 +308,12 @@ export function ForeignFlowClient() {
                     </div>
                     <div>
                       <dt>
-                        إجمالي النشاط
+                        {ff.grossActivity}
                         <i className="ffw-fn-help" tabIndex={0} role="note"
-                          data-help="مجموع الشراء والبيع الأجنبي في الفترة — الإجمالي وليس الصافي. نشاط كبير بصافٍ صغير يعني تبادلاً بين المستثمرين الأجانب أنفسهم."
-                          aria-label="مجموع الشراء والبيع الأجنبي في الفترة">؟</i>
+                          data-help={ff.grossHelpLong}
+                          aria-label={ff.grossHelp}>{locale === 'ar' ? '؟' : '?'}</i>
                       </dt>
-                      <dd><bdi>{iqd(t.gross)}</bdi><small>د.ع</small></dd>
+                      <dd><bdi>{iqd(t.gross)}</bdi><small>{ff.iqd}</small></dd>
                     </div>
                   </dl>
                 </>
@@ -317,13 +324,13 @@ export function ForeignFlowClient() {
           {/* ── Net flow / cumulative balance ───────────────────────────── */}
           <section className="ffw-cd-panel ffw-chart-panel">
             <div className="ffw-cd-panel-head">
-              <h2>{mode === 'net' ? 'صافي التدفق عبر الفترات' : 'الرصيد التراكمي خلال الفترة'}</h2>
-              <span className="ffw-cd-panel-note">{FLOW_GRAIN_LABEL[grain]}</span>
-              <div className="ffw-st-switch" role="group" aria-label="نوع العرض">
+              <h2>{mode === 'net' ? ff.netByPeriod : ff.cumulativeBalance}</h2>
+              <span className="ffw-cd-panel-note">{ff.grain[grain]}</span>
+              <div className="ffw-st-switch" role="group" aria-label={ff.viewGroup}>
                 <button type="button" className={mode === 'net' ? 'active' : ''}
-                  aria-pressed={mode === 'net'} onClick={() => setMode('net')}>صافي كل فترة</button>
+                  aria-pressed={mode === 'net'} onClick={() => setMode('net')}>{ff.netEach}</button>
                 <button type="button" className={mode === 'cum' ? 'active' : ''}
-                  aria-pressed={mode === 'cum'} onClick={() => setMode('cum')}>التراكمي</button>
+                  aria-pressed={mode === 'cum'} onClick={() => setMode('cum')}>{ff.cumulative}</button>
               </div>
             </div>
             {loading || !t ? <Skel h={236} /> : (
@@ -332,10 +339,9 @@ export function ForeignFlowClient() {
                   grain={grain} theme={theme} height={236} />
                 <p className="ffw-st-foot">
                   {mode === 'net'
-                    ? 'أعمدة منفصلة من خط صفر مشترك — كل عمود هو ما حدث خلال تلك الفترة وحدها. لا يُوصَل بينها بخط، لأن الخط يفترض قيماً بين الفترات لم تُرصد.'
-                    : 'خط متصل لأن الرصيد التراكمي كمية مستمرة: صافي التدفق مجموعاً من بداية الفترة المحددة — لا من بداية السجل.'}
-                  {' '}المصدر: foreign_flow_company_daily · {arShortY(t.from)} — {arShortY(t.to)}.
-                  {' '}الجلسات التي لا يوجد لها رصد لا تُرسم ولا تُحتسب صفراً.
+                    ? ff.netNote
+                    : ff.cumNote}
+                  {ff.sourceLine(shortY(t.from, locale), shortY(t.to, locale))}
                 </p>
               </>
             )}
@@ -345,25 +351,25 @@ export function ForeignFlowClient() {
             {/* ── Company activity ───────────────────────────────────── */}
             <section className="ffw-cd-panel ffw-companies">
               <div className="ffw-cd-panel-head">
-                <h2>نشاط الشركات</h2>
-                <span className="ffw-st-chip ffw-st-chip-period">الفترة المحددة</span>
-                <div className="ffw-st-switch" role="group" aria-label="ترتيب الشركات">
+                <h2>{ff.companyActivity}</h2>
+                <span className="ffw-st-chip ffw-st-chip-period">{ff.periodOnly}</span>
+                <div className="ffw-st-switch" role="group" aria-label={ff.rankGroup}>
                   {COMPANY_VIEWS.map((v) => (
                     <button key={v.id} type="button" className={view === v.id ? 'active' : ''}
-                      aria-pressed={view === v.id} onClick={() => setView(v.id)}>{v.label}</button>
+                      aria-pressed={view === v.id} onClick={() => setView(v.id)}>{ff.rank[v.id]}</button>
                   ))}
                 </div>
               </div>
               {loading ? <Skel h={300} /> : !ranked.length ? (
                 <div className="ffw-cd-nodata">
-                  <strong>لا توجد شركات بنشاط أجنبي على هذا الجانب</strong>
-                  <p>جرّب جانباً آخر أو فترة أطول.</p>
+                  <strong>{ff.noCompanies}</strong>
+                  <p>{ff.noCompaniesNote}</p>
                 </div>
               ) : (
                 <>
                   <div className="ffw-pl-readout" aria-live="polite">
                     {row ? <CompanyRead c={ranked.find((x) => x.ticker === row)} />
-                      : <span className="ffw-pl-readout-hint">مرّر على شركة لقراءة أرقامها · النقر يفتح صفحتها</span>}
+                      : <span className="ffw-pl-readout-hint">{ff.companyHint}</span>}
                   </div>
                   <ul className="ffw-rows">
                     {top10.map((c, i) => (
@@ -373,11 +379,7 @@ export function ForeignFlowClient() {
                     ))}
                   </ul>
                   <p className="ffw-st-foot">
-                    <bdi>{ranked.length}</bdi> شركة على هذا الجانب، من أصل
-                    {' '}<bdi>{companies.length}</bdi> شركة بنشاط أجنبي في الفترة.
-                    الشركات التي لا نشاط لها على هذا الجانب غائبة عن الترتيب ولا تظهر بصفر.
-                    مجموع صفوف الشركات يساوي إجمالي الفترة أعلاه بالدينار — الصفوف والإجمالي
-                    من الجدول نفسه. هذا نشاط تداول ولا يعني تغيّراً في الملكية.
+                    {ff.companyFoot(String(ranked.length), String(companies.length))}
                   </p>
                 </>
               )}
@@ -386,20 +388,20 @@ export function ForeignFlowClient() {
             {/* ── Sector allocation ──────────────────────────────────── */}
             <section className={`ffw-cd-panel ffw-sectors-panel ${sector ? 'has-sel' : ''}`}>
               <div className="ffw-cd-panel-head">
-                <h2>توزيع رأس المال الأجنبي</h2>
-                <span className="ffw-st-chip ffw-st-chip-period">الفترة المحددة</span>
-                <span className="ffw-cd-panel-note">حسب القطاع</span>
+                <h2>{ff.capitalSpread}</h2>
+                <span className="ffw-st-chip ffw-st-chip-period">{ff.periodOnly}</span>
+                <span className="ffw-cd-panel-note">{ff.bySector}</span>
               </div>
               {loading ? <Skel h={300} /> : !sectors.length ? (
                 <div className="ffw-cd-nodata">
-                  <strong>لا نشاط أجنبي في الفترة</strong>
-                  <p>جرّب فترة أطول.</p>
+                  <strong>{ff.noSectorActivity}</strong>
+                  <p>{ff.noSectorNote}</p>
                 </div>
               ) : (
                 <>
                   <div className="ffw-pl-readout" aria-live="polite">
                     {sector ? <SectorRead s={sectors.find((x) => x.id === sector)} />
-                      : <span className="ffw-pl-readout-hint">مرّر أو انقر على قطاع لعرض أرقامه</span>}
+                      : <span className="ffw-pl-readout-hint">{ff.sectorHint}</span>}
                   </div>
                   <ul className="ffw-sectors">
                     {sectors.map((s) => (
@@ -408,10 +410,7 @@ export function ForeignFlowClient() {
                     ))}
                   </ul>
                   <p className="ffw-st-foot">
-                    الشريط يقيس إجمالي النشاط (شراء + بيع)، والرقم الملوّن هو الصافي.
-                    قطاع بنشاط كبير وصافٍ قريب من الصفر يعني تبادلاً بين المستثمرين الأجانب
-                    أنفسهم، لا دخولاً أو خروجاً. القطاعات مجمّعة من صفوف الشركات نفسها،
-                    لا من الجدول الشهري.
+                    {ff.sectorFoot}
                   </p>
                 </>
               )}
@@ -421,51 +420,48 @@ export function ForeignFlowClient() {
           {/* ── OWNERSHIP · a different quantity ────────────────────────── */}
           <section className="ffw-cd-panel ffw-own-panel">
             <div className="ffw-cd-panel-head">
-              <h2>الملكية الأجنبية</h2>
-              {own ? <span className="ffw-st-chip ffw-st-chip-snap">لقطة شهرية · {arMonth(own.month)}</span> : null}
-              <Link className="ffw-st-link" href="/statistics/ownership">هيكل الملكية الكامل ←</Link>
-              <Link className="ffw-st-link" href="/statistics/shareholders">كبار المساهمين ←</Link>
+              <h2>{ff.ownership}</h2>
+              {own ? <span className="ffw-st-chip ffw-st-chip-snap">{ff.monthlySnapshot(monthLabel(own.month, locale))}</span> : null}
+              <Link className="ffw-st-link" href={L('/statistics/ownership')}>{ff.fullOwnership} <i className="dir-go" aria-hidden="true">←</i></Link>
+              <Link className="ffw-st-link" href={L('/statistics/shareholders')}>{ff.majorShareholders} <i className="dir-go" aria-hidden="true">←</i></Link>
             </div>
             {ownFailed ? (
               <div className="ffw-mv-error" role="alert">
                 <span className="ffw-mv-error-mark" aria-hidden="true">!</span>
                 <div>
-                  <strong>تعذّر تحميل بيانات الملكية</strong>
-                  <p>أرقام التدفق والنشاط أعلاه محدّثة وكاملة — الملكية جدول شهري منفصل.</p>
+                  <strong>{ff.ownershipFailed}</strong>
+                  <p>{ff.ownershipFailedNote}</p>
                 </div>
               </div>
             ) : !own ? <Skel h={200} /> : (
               <>
                 {/* The sentence that keeps the page honest. */}
                 <p className="ffw-own-note">
-                  الملكية ليست تدفقاً. الأرقام أعلاه تقيس ما تداوله الأجانب خلال الفترة،
-                  وهذه الأرقام تقيس ما يملكونه فعلاً من الأسهم المودعة في تاريخ واحد.
-                  شهرٌ من الشراء الكثيف قد لا يحرّك الملكية إذا جرى بين الأجانب أنفسهم.
+                  {ff.ownershipNote}
                 </p>
                 <div className="ffw-own">
                   <div className="ffw-own-lead">
-                    <span className="ffw-cd-cell-label">حصة الأجانب من الأسهم المودعة</span>
+                    <span className="ffw-cd-cell-label">{ff.foreignShare}</span>
                     <strong><bdi>{own.pct == null ? '—' : `${own.pct.toFixed(1)}%`}</bdi></strong>
                     <div className="ffw-own-track" role="img"
-                      aria-label={own.pct == null ? 'الحصة غير متاحة' : `${own.pct.toFixed(1)} بالمئة ملكية أجنبية`}>
+                      aria-label={own.pct == null ? ff.shareUnavailable : ff.sharePct(own.pct.toFixed(1))}>
                       <i style={{ inlineSize: `${own.pct ?? 0}%` }} />
                     </div>
                     <p>
-                      <bdi>{iqd(own.foreign)}</bdi> سهماً أجنبياً مقابل
-                      {' '}<bdi>{iqd(own.iraqi)}</bdi> سهماً عراقياً
+                      {ff.sharesSplit(iqd(own.foreign), iqd(own.iraqi))}
                     </p>
                   </div>
                   <dl className="ffw-own-figs">
                     <div>
-                      <dt>شركات بملكية أجنبية</dt>
-                      <dd><bdi>{own.withForeign}</bdi><small>من {own.universe} في تقرير الشهر</small></dd>
+                      <dt>{ff.companiesWithForeign}</dt>
+                      <dd><bdi>{own.withForeign}</bdi><small>{ff.ofInReport(String(own.universe))}</small></dd>
                     </div>
                     <div>
-                      <dt>حاملون أجانب</dt>
+                      <dt>{ff.foreignHolders}</dt>
                       <dd><bdi>{nf0.format(own.foreignHolders)}</bdi></dd>
                     </div>
                     <div>
-                      <dt>أعلى نسبة ملكية أجنبية</dt>
+                      <dt>{ff.highestForeign}</dt>
                       <dd>
                         <bdi>{own.top.length ? `${own.top[0].pct.toFixed(1)}%` : '—'}</bdi>
                         <small>{own.top[0]?.name ?? ''}</small>
@@ -487,11 +483,7 @@ export function ForeignFlowClient() {
                   ))}
                 </ul>
                 <p className="ffw-st-foot">
-                  المصدر: ownership_monthly · {arMonth(own.month)}. تُحدَّث شهرياً مع التقرير
-                  الرسمي، ولذلك لا تتبع الفترة المحددة أعلى الصفحة. النسبة = الأسهم الأجنبية
-                  ÷ (الأسهم الأجنبية + العراقية) مجموعةً على شركات الشهر.
-                  {' '}أسماء الشركات في هذا الجدول مستخرجة من تقرير ممسوح ضوئياً وتُطابَق
-                  بالسجل المعتمد عند العرض.
+                  {ff.ownershipSource(monthLabel(own.month, locale))}
                 </p>
               </>
             )}
@@ -515,6 +507,8 @@ export function ForeignFlowClient() {
  *  across the measured track: whichever side is under 44px is clamped up to
  *  44, and the other yields exactly that much. They abut, never overlap. */
 function Balance({ buy, sell }: { buy: number; sell: number }) {
+  const { t: T, locale } = useLocale()
+  const ff = T.flow
   const total = buy + sell
   const [on, setOn] = useState<'buy' | 'sell' | null>(null)
   const trackRef = useRef<HTMLDivElement>(null)
@@ -533,11 +527,11 @@ function Balance({ buy, sell }: { buy: number; sell: number }) {
     return (
       <div className="ffw-balance">
         <div className="ffw-balance-labels">
-          <span className="sell"><small>بيع</small><strong><bdi>0</bdi></strong></span>
-          <span className="buy"><small>شراء</small><strong><bdi>0</bdi></strong></span>
+          <span className="sell"><small>{ff.selling}</small><strong><bdi>0</bdi></strong></span>
+          <span className="buy"><small>{ff.buying}</small><strong><bdi>0</bdi></strong></span>
         </div>
         <div className="ffw-balance-track" />
-        <p>لا نشاط أجنبي — شراء وبيع كلاهما صفر، وليس غياب بيانات.</p>
+        <p>{ff.measuredZero}</p>
       </div>
     )
   }
@@ -546,59 +540,63 @@ function Balance({ buy, sell }: { buy: number; sell: number }) {
   return (
     <div className={`ffw-balance${on ? ` is-${on}` : ''}`}>
       <div className="ffw-balance-labels">
-        <span className="sell"><small>بيع</small><strong><bdi>{iqd(sell)}</bdi></strong></span>
-        <span className="buy"><small>شراء</small><strong><bdi>{iqd(buy)}</bdi></strong></span>
+        <span className="sell"><small>{ff.selling}</small><strong><bdi>{iqd(sell)}</bdi></strong></span>
+        <span className="buy"><small>{ff.buying}</small><strong><bdi>{iqd(buy)}</bdi></strong></span>
       </div>
       <div className="ffw-balance-track" ref={trackRef}>
         <button type="button" className="sell"
           style={{ inlineSize: `${ss}%`, ['--ffw-target' as string]: sellTarget }}
-          aria-label={`بيع ${iqdFull(sell)} دينار، ${ss.toFixed(1)} بالمئة`}
+          aria-label={ff.sellBar(iqdFull(sell), ss.toFixed(1))}
           onPointerEnter={() => setOn('sell')} onPointerLeave={() => setOn(null)}
           onFocus={() => setOn('sell')} onBlur={() => setOn(null)} />
         <button type="button" className="buy"
           style={{ inlineSize: `${bs}%`, ['--ffw-target' as string]: buyTarget }}
-          aria-label={`شراء ${iqdFull(buy)} دينار، ${bs.toFixed(1)} بالمئة`}
+          aria-label={ff.buyBar(iqdFull(buy), bs.toFixed(1))}
           onPointerEnter={() => setOn('buy')} onPointerLeave={() => setOn(null)}
           onFocus={() => setOn('buy')} onBlur={() => setOn(null)} />
       </div>
       <p aria-live="polite">
-        {on === 'buy' ? <><bdi>{iqdFull(buy)}</bdi> شراء · <bdi>{bs.toFixed(1)}%</bdi> من النشاط</>
-          : on === 'sell' ? <><bdi>{iqdFull(sell)}</bdi> بيع · <bdi>{ss.toFixed(1)}%</bdi> من النشاط</>
-            : <><bdi>{bs.toFixed(1)}%</bdi> شراء · <bdi>{ss.toFixed(1)}%</bdi> بيع</>}
+        {on === 'buy' ? <>{ff.buyOf(iqdFull(buy), `${bs.toFixed(1)}%`)}</>
+          : on === 'sell' ? <>{ff.sellOf(iqdFull(sell), `${ss.toFixed(1)}%`)}</>
+            : <>{ff.bothOf(`${bs.toFixed(1)}%`, `${ss.toFixed(1)}%`)}</>}
       </p>
     </div>
   )
 }
 
 function CompanyRead({ c }: { c?: CompanyFlow }) {
+  const { t: T, locale } = useLocale()
+  const ff = T.flow
   if (!c) return <span className="ffw-pl-readout-hint">—</span>
   return (
     <>
       <span className="ffw-pl-readout-name">{c.name}</span>
       <bdi className="ffw-cd-ticker">{c.ticker}</bdi>
-      <span className="ffw-pl-read"><em>شراء</em><bdi className="positive">{iqdFull(c.buy)}</bdi></span>
-      <span className="ffw-pl-read"><em>بيع</em><bdi className="negative">{iqdFull(c.sell)}</bdi></span>
-      <span className="ffw-pl-read"><em>الصافي</em>
+      <span className="ffw-pl-read"><em>{ff.buying}</em><bdi className="positive">{iqdFull(c.buy)}</bdi></span>
+      <span className="ffw-pl-read"><em>{ff.selling}</em><bdi className="negative">{iqdFull(c.sell)}</bdi></span>
+      <span className="ffw-pl-read"><em>{ff.net}</em>
         <bdi className={cls(c.net)}>{sign(c.net)}{iqdFull(Math.abs(c.net))}</bdi>
       </span>
-      <span className="ffw-pl-read"><em>من النشاط الأجنبي</em><bdi>{(c.share * 100).toFixed(1)}%</bdi></span>
-      <span className="ffw-pl-read"><em>صفقات</em><bdi>{nf0.format(c.trades)}</bdi></span>
+      <span className="ffw-pl-read"><em>{ff.ofForeignActivity}</em><bdi>{(c.share * 100).toFixed(1)}%</bdi></span>
+      <span className="ffw-pl-read"><em>{ff.trades}</em><bdi>{nf0.format(c.trades)}</bdi></span>
     </>
   )
 }
 
 function SectorRead({ s }: { s?: SectorFlow }) {
+  const { t: T, locale } = useLocale()
+  const ff = T.flow
   if (!s) return <span className="ffw-pl-readout-hint">—</span>
   return (
     <>
       <span className="ffw-pl-readout-name">{s.label}</span>
-      <span className="ffw-pl-read"><em>شراء</em><bdi className="positive">{iqdFull(s.buy)}</bdi></span>
-      <span className="ffw-pl-read"><em>بيع</em><bdi className="negative">{iqdFull(s.sell)}</bdi></span>
-      <span className="ffw-pl-read"><em>الصافي</em>
+      <span className="ffw-pl-read"><em>{ff.buying}</em><bdi className="positive">{iqdFull(s.buy)}</bdi></span>
+      <span className="ffw-pl-read"><em>{ff.selling}</em><bdi className="negative">{iqdFull(s.sell)}</bdi></span>
+      <span className="ffw-pl-read"><em>{ff.net}</em>
         <bdi className={cls(s.net)}>{sign(s.net)}{iqd(Math.abs(s.net))}</bdi>
       </span>
-      <span className="ffw-pl-read"><em>من النشاط</em><bdi>{(s.share * 100).toFixed(1)}%</bdi></span>
-      <span className="ffw-pl-read"><em>شركات</em><bdi>{s.companies}</bdi></span>
+      <span className="ffw-pl-read"><em>{ff.ofActivity}</em><bdi>{(s.share * 100).toFixed(1)}%</bdi></span>
+      <span className="ffw-pl-read"><em>{ff.companies}</em><bdi>{s.companies}</bdi></span>
     </>
   )
 }
@@ -607,13 +605,15 @@ function CompanyRow({ c, i, view, max, on, onEnter, onLeave }: {
   c: CompanyFlow; i: number; view: CompanyView; max: number
   on: boolean; onEnter: () => void; onLeave: () => void
 }) {
+  const { t: T, locale } = useLocale()
+  const ff = T.flow
   const v = viewValue(c, view)
   const pct = Math.min(100, (Math.abs(v) / max) * 100)
   const signed = isNetView(view)
   return (
     <li className={on ? 'is-on' : ''} onPointerEnter={onEnter} onPointerLeave={onLeave}>
       <Link href={`/c/${c.ticker}`} onFocus={onEnter} onBlur={onLeave}
-        aria-label={`${c.name}: شراء ${iqdFull(c.buy)}، بيع ${iqdFull(c.sell)}، الصافي ${iqdFull(c.net)}`}>
+        aria-label={ff.companyRowLabel(c.name, iqdFull(c.buy), iqdFull(c.sell), iqdFull(c.net))}>
         <span className="ffw-rank"><bdi>{i + 1}</bdi></span>
         <span className="ffw-name">
           <strong title={c.name}>{c.name}</strong>
@@ -644,11 +644,13 @@ function CompanyRow({ c, i, view, max, on, onEnter, onLeave }: {
 function SectorRow({ s, max, on, onEnter, onLeave }: {
   s: SectorFlow; max: number; on: boolean; onEnter: () => void; onLeave: () => void
 }) {
+  const { t: T, locale } = useLocale()
+  const ff = T.flow
   const gross = s.buy + s.sell
   return (
     <li className={on ? 'is-on' : ''} onPointerEnter={onEnter} onPointerLeave={onLeave}>
       <button type="button" onFocus={onEnter} onBlur={onLeave}
-        aria-label={`${s.label}: نشاط ${iqdFull(gross)}، الصافي ${iqdFull(s.net)}`}>
+        aria-label={ff.sectorRowLabel(s.label, iqdFull(gross), iqdFull(s.net))}>
         <span className="ffw-sec-name">{s.label}</span>
         {/* Gross activity split into its buy and sell parts — the shape of the
             bar shows whether a sector was accumulated or churned. */}
@@ -724,7 +726,7 @@ type OwnRow = {
   foreign_count: number | null
 }
 
-function summariseOwnership(rows: OwnRow[], month: string, meta: CompanyMeta[]): Ownership {
+function summariseOwnership(rows: OwnRow[], month: string, meta: CompanyMeta[], locale: Locale): Ownership {
   let iraqi = 0, foreign = 0, holders = 0, withForeign = 0
   const top: { name: string; pct: number }[] = []
   for (const r of rows) {
@@ -737,7 +739,7 @@ function summariseOwnership(rows: OwnRow[], month: string, meta: CompanyMeta[]):
       top.push({
         // The parse mangles Arabic; recover the curated spelling where one
         // clearly matches, exactly as /statistics/ownership already does.
-        name: meta.length ? matchCompanyName(r.name_ar, meta) : r.name_ar,
+        name: meta.length ? matchCompanyName(r.name_ar, meta, 0.9, locale) : r.name_ar,
         pct: (f / (i + f)) * 100,
       })
     }

@@ -575,6 +575,18 @@ export function arFull(iso: string | null): string {
   return `${d} ${AR_MONTHS[m]} ${y}`
 }
 
+/** «August 2026» — the English counterpart of `arMonth`. */
+export function enMonth(ym: string | null): string {
+  if (!ym) return '—'
+  const [y, m] = ym.split('-').map(Number)
+  return `${EN_MONTHS[m]} ${y}`
+}
+
+/** Whichever of the two matches the reader's language. */
+export function monthLabel(ym: string | null, locale: Locale): string {
+  return locale === 'ar' ? arMonth(ym) : enMonth(ym)
+}
+
 /** «آب 2026» — for a month-cadence module. */
 export function arMonth(ym: string | null): string {
   if (!ym) return '—'
@@ -603,6 +615,9 @@ export function enShort(iso: string | null): string {
   return `${d} ${EN_MONTHS_SHORT[m]}`
 }
 
+const EN_MONTHS = ['', 'January', 'February', 'March', 'April', 'May', 'June',
+  'July', 'August', 'September', 'October', 'November', 'December']
+
 const EN_MONTHS_SHORT = ['', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
   'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
 
@@ -620,6 +635,24 @@ export function arShortY(iso: string | null): string {
   if (!iso) return '—'
   const [y, m, d] = iso.split('-').map(Number)
   return `${d} ${AR_MONTHS_SHORT[m]} ${y}`
+}
+
+/**
+ * «24 Aug 2026» — the English counterpart of `arShortY`.
+ *
+ * ⚠ The Arabic form is Arabic TEXT carrying numerals and must never be
+ * `bdi`-isolated; the English one is plain LTR and needs no special handling.
+ * Both are day-first, so a reader switching languages sees the same order.
+ */
+export function enShortY(iso: string | null): string {
+  if (!iso) return '—'
+  const [y, m, d] = iso.split('-').map(Number)
+  return `${d} ${EN_MONTHS_SHORT[m]} ${y}`
+}
+
+/** Whichever of the two matches the reader's language. */
+export function shortY(iso: string | null, locale: Locale): string {
+  return locale === 'ar' ? arShortY(iso) : enShortY(iso)
 }
 
 /** «آب 2026», short form — for a monthly chart bucket. */

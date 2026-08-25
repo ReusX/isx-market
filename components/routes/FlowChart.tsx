@@ -1,7 +1,11 @@
 'use client'
 
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { iqd, iqdFull, arFull, arShort, arMonthShort } from '@/lib/statistics'
+import { useLocale } from '@/context/LocaleContext'
+import { localeDateOrDash } from '@/lib/date'
+import type { Messages } from '@/lib/i18n'
+import type { Locale } from '@/lib/i18n/locale'
+import { iqd, iqdFull, arFull, arShort, enShort, arMonthShort } from '@/lib/statistics'
 import type { FlowBucket, FlowGrain } from '@/lib/foreignFlow'
 
 /**
@@ -239,11 +243,19 @@ function shortAxis(b: FlowBucket, grain: FlowGrain): string {
 
 /** A bucket's own label, at the grain it was built at. A weekly bucket
  *  labelled with one date reads as a session and is a lie about the number. */
-export function bucketTitle(b: FlowBucket, grain: FlowGrain): string {
-  if (grain === 'year') return `سنة ${b.key}`
-  if (grain === 'month') return arMonthShort(b.key)
-  if (grain === 'session') return arFull(b.from)
-  return `أسبوع ${arShort(b.from)} — ${arShort(b.to)} ${b.to.slice(0, 4)}`
+/**
+ * A bucket's title, in the reader's language.
+ *
+ * ⚠ Takes the dictionary rather than reading a hook: this is called from the
+ * canvas draw path and from the parent's readout, neither of which is a
+ * component body.
+ */
+export function bucketTitle(b: FlowBucket, grain: FlowGrain, f: Messages['flow'], locale: Locale): string {
+  const short = (iso: string) => (locale === 'ar' ? arShort(iso) : enShort(iso))
+  if (grain === 'year') return f.yearOf(b.key)
+  if (grain === 'month') return locale === 'ar' ? arMonthShort(b.key) : b.key
+  if (grain === 'session') return localeDateOrDash(b.from, locale)
+  return f.weekOf(short(b.from), short(b.to), b.to.slice(0, 4))
 }
 
 function roundRect(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, r: number) {
@@ -259,6 +271,8 @@ function roundRect(ctx: CanvasRenderingContext2D, x: number, y: number, w: numbe
 export function FlowChart({ buckets, mode, grain, theme, height = 236 }: {
   buckets: FlowBucket[]; mode: FlowMode; grain: FlowGrain; theme: Theme; height?: number
 }) {
+  const { t: T, locale } = useLocale()
+  const f = T.flow
   const wrapRef = useRef<HTMLDivElement>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const sizeRef = useRef({ w: 0, h: 0 })
@@ -327,7 +341,7 @@ export function FlowChart({ buckets, mode, grain, theme, height = 236 }: {
       a.href = off.toDataURL('image/png')
       a.download = `iraqsm-foreign-${mode}-${buckets[buckets.length - 1]?.key ?? 'chart'}.png`
       a.click()
-      setMsg('تم التنزيل')
+      setMsg(f.downloaded)
     } else {
       try {
         const blob: Blob = await new Promise((res, rej) =>
@@ -336,9 +350,9 @@ export function FlowChart({ buckets, mode, grain, theme, height = 236 }: {
           navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]),
           new Promise((_, rej) => setTimeout(() => rej(new Error('timeout')), 2500)),
         ])
-        setMsg('نُسخت الصورة')
+        setMsg(f.copied)
       } catch {
-        setMsg('تعذّر النسخ · استخدم التنزيل')
+        setMsg(f.copyFailed)
       }
     }
     setTimeout(() => setMsg(null), 2400)
@@ -352,14 +366,14 @@ export function FlowChart({ buckets, mode, grain, theme, height = 236 }: {
         <div className="ffw-pl-readout ffw-st-chart-read" aria-live="polite">
           {active ? (
             <>
-              <span className="ffw-pl-readout-name">{bucketTitle(active, grain)}</span>
+              <span className="ffw-pl-readout-name">{bucketTitle(active, grain, f, locale)}</span>
               {active.n === 0 ? (
-                <span className="ffw-pl-read"><em>الرصد</em><bdi>—</bdi></span>
+                <span className="ffw-pl-read"><em>{f.observed}</em><bdi>—</bdi></span>
               ) : mode === 'net' ? (
                 <>
-                  <span className="ffw-pl-read"><em>شراء</em><bdi className="positive">{iqdFull(active.buy)}</bdi></span>
-                  <span className="ffw-pl-read"><em>بيع</em><bdi className="negative">{iqdFull(active.sell)}</bdi></span>
-                  <span className="ffw-pl-read"><em>الصافي</em>
+                  <span className="ffw-pl-read"><em>{f.buying}</em><bdi className="positive">{iqdFull(active.buy)}</bdi></span>
+                  <span className="ffw-pl-read"><em>{f.selling}</em><bdi className="negative">{iqdFull(active.sell)}</bdi></span>
+                  <span className="ffw-pl-read"><em>{f.net}</em>
                     <bdi className={signClass(active.net)}>
                       {sign(active.net)}{iqdFull(Math.abs(active.net ?? 0))}
                     </bdi>
@@ -367,12 +381,12 @@ export function FlowChart({ buckets, mode, grain, theme, height = 236 }: {
                 </>
               ) : (
                 <>
-                  <span className="ffw-pl-read"><em>الرصيد التراكمي</em>
+                  <span className="ffw-pl-read"><em>{f.cumulativeBalanceRead}</em>
                     <bdi className={signClass(active.cum)}>
                       {sign(active.cum)}{iqdFull(Math.abs(active.cum ?? 0))}
                     </bdi>
                   </span>
-                  <span className="ffw-pl-read"><em>صافي الفترة</em>
+                  <span className="ffw-pl-read"><em>{f.periodNet}</em>
                     <bdi className={signClass(active.net)}>
                       {sign(active.net)}{iqd(Math.abs(active.net ?? 0))}
                     </bdi>
@@ -380,24 +394,24 @@ export function FlowChart({ buckets, mode, grain, theme, height = 236 }: {
                 </>
               )}
               {grain !== 'session' ? (
-                <span className="ffw-pl-read"><em>جلسات</em><bdi>{active.n}</bdi></span>
+                <span className="ffw-pl-read"><em>{f.sessions}</em><bdi>{active.n}</bdi></span>
               ) : null}
               {active.missing > 0 ? (
-                <span className="ffw-pl-read"><em>بلا بيانات</em><bdi>{active.missing}</bdi></span>
+                <span className="ffw-pl-read"><em>{f.noData}</em><bdi>{active.missing}</bdi></span>
               ) : null}
             </>
           ) : (
             <span className="ffw-pl-readout-hint">
               {mode === 'net'
-                ? 'مرّر أو انقر على عمود لقراءة الشراء والبيع والصافي'
-                : 'مرّر أو انقر لقراءة الرصيد التراكمي عند ذلك التاريخ'}
+                ? f.hintNet
+                : f.hintCum}
             </span>
           )}
         </div>
         <div className="ffw-st-chart-actions">
           {msg ? <span className="ffw-st-copied" role="status">{msg}</span> : null}
-          <button type="button" onClick={() => exportPng('copy')}>نسخ الصورة</button>
-          <button type="button" onClick={() => exportPng('download')}>تنزيل PNG</button>
+          <button type="button" onClick={() => exportPng('copy')}>{f.copyImage}</button>
+          <button type="button" onClick={() => exportPng('download')}>{f.downloadPng}</button>
         </div>
       </div>
 
@@ -407,8 +421,8 @@ export function FlowChart({ buckets, mode, grain, theme, height = 236 }: {
           ref={canvasRef}
           role="img"
           aria-label={mode === 'net'
-            ? `صافي التدفق الأجنبي عبر ${buckets.length} فترة`
-            : `الرصيد التراكمي للتدفق الأجنبي عبر ${buckets.length} فترة`}
+            ? f.chartNetLabel(String(buckets.length))
+            : f.chartCumLabel(String(buckets.length))}
           onPointerMove={(e) => setHover(indexAt(e.clientX))}
           onPointerDown={(e) => setHover(indexAt(e.clientX))}
           onPointerLeave={() => setHover(null)}

@@ -258,10 +258,17 @@ function lcsLen(a: string, b: string): number {
  */
 export function matchCompanyName(
   raw: string,
-  meta: { ar?: string | null }[],
+  meta: { ar?: string | null; en?: string | null }[],
   cover = 0.9,
+  locale: 'ar' | 'en' = 'ar',
 ): string {
-  return matchCompanyRecord(raw, meta, cover)?.ar ?? raw
+  const hit = matchCompanyRecord(raw, meta, cover)
+  if (!hit) return raw
+  /* The match is made on the Arabic name — the monthly PDF has no ticker
+     column — but what is DISPLAYED follows the reader. Falling back to the
+     Arabic name when a company has no verified English one is deliberate: a
+     legal company name is never machine-translated here. */
+  return (locale === 'en' ? hit.en || hit.ar : hit.ar) ?? raw
 }
 
 /**
