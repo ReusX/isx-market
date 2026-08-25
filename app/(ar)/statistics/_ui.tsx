@@ -4,7 +4,13 @@
 import Link from 'next/link'
 import { CompanyLogo } from '@/components/CompanyLogo'
 
-export const arMonth = ['', 'يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو', 'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر']
+/* ⚠ The third copy of the month table is GONE. It was pan-Arab while the rest
+   of this same route used the Levantine one from lib/statistics, so a reader
+   saw «18 آب 2026» in one panel and «أغسطس 2026» in the next. There is one
+   table now, in lib/date.ts, and this re-exports it under the name the panels
+   already use. */
+import { AR_MONTHS } from '@/lib/date'
+export { AR_MONTHS as arMonth }
 
 export function fmtIQD(v: number): string {
   const a = Math.abs(v), s = v < 0 ? '−' : ''
@@ -15,10 +21,9 @@ export function fmtIQD(v: number): string {
   return s + a.toFixed(0)
 }
 
-export function arDate(iso: string): string {
-  const [y, m, d] = iso.split('-').map(Number)
-  return `${d} ${arMonth[m]} ${y}`
-}
+/* `arDate` was a fourth reimplementation of the same three lines. It is now
+   the one in lib/date.ts, re-exported so existing importers do not move. */
+export { arDate } from '@/lib/date'
 
 // ── Company logo with fallback (mirrors the site CoLogo) ───────────────────────
 export function CoLogo({ sym, logo, size = 28 }: { sym: string; logo?: string; size?: number }) {

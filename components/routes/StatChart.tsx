@@ -1,6 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { useLocale } from '@/context/LocaleContext'
 import {
   iqd, iqdFull, nf0, bucketLabel, metricOf,
   type Bucket, type Grain, type MetricId,
@@ -205,10 +206,12 @@ function roundRect(ctx: CanvasRenderingContext2D, x: number, y: number, w: numbe
   ctx.closePath()
 }
 
-export function StatChart({ buckets, metric, grain, theme, unit, ar, height = 320 }: {
+export function StatChart({ buckets, metric, grain, theme, unit, height = 320 }: {
   buckets: Bucket[]; metric: MetricId; grain: Grain; theme: Theme
-  unit: string; ar: boolean; height?: number
+  unit: string; height?: number
 }) {
+  const { t: T, locale } = useLocale()
+  const st = T.statistics
   const wrapRef = useRef<HTMLDivElement>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const sizeRef = useRef({ w: 0, h: 0 })
@@ -293,7 +296,7 @@ export function StatChart({ buckets, metric, grain, theme, unit, ar, height = 32
       a.href = off.toDataURL('image/png')
       a.download = `iqwealth-${metric}-${buckets[buckets.length - 1]?.key ?? 'chart'}.png`
       a.click()
-      setCopied(ar ? 'تم التنزيل' : 'Downloaded')
+      setCopied(st.downloaded)
     } else {
       try {
         const blob: Blob = await new Promise((res, rej) =>
@@ -304,9 +307,9 @@ export function StatChart({ buckets, metric, grain, theme, unit, ar, height = 32
           navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]),
           new Promise((_, rej) => setTimeout(() => rej(new Error('timeout')), 2500)),
         ])
-        setCopied(ar ? 'نُسخت الصورة' : 'Image copied')
+        setCopied(st.copied)
       } catch {
-        setCopied(ar ? 'تعذّر النسخ · استخدم التنزيل' : 'Copy failed · use download')
+        setCopied(st.copyFailed)
       }
     }
     setTimeout(() => setCopied(null), 2400)
@@ -323,18 +326,18 @@ export function StatChart({ buckets, metric, grain, theme, unit, ar, height = 32
         <div className="stw-readout stw-chart-read" aria-live="polite">
           {active ? (
             <>
-              <span className="stw-readout-name">{bucketLabel(active, grain, ar)}</span>
+              <span className="stw-readout-name">{bucketLabel(active, grain, locale)}</span>
               <span className="stw-read">
                 <em>{unit}</em>
                 {/* `—`, never 0: this bucket has no observation for the metric. */}
                 <bdi>{activeVal == null ? '—' : fmt(activeVal)}</bdi>
               </span>
               {grain !== 'session' ? (
-                <span className="stw-read"><em>{ar ? 'جلسات' : 'sessions'}</em><bdi>{active.n}</bdi></span>
+                <span className="stw-read"><em>{st.chartSessions}</em><bdi>{active.n}</bdi></span>
               ) : null}
               {grain !== 'session' && activeVal != null && active.n - active.missing > 0 ? (
                 <span className="stw-read">
-                  <em>{ar ? 'المعدل لكل جلسة' : 'per session'}</em>
+                  <em>{st.chartPerSession}</em>
                   {/* Divided by the sessions actually MEASURED, not by every
                       session in the bucket — dividing a partial sum by the full
                       count understates the average by exactly the gap. */}
@@ -343,20 +346,20 @@ export function StatChart({ buckets, metric, grain, theme, unit, ar, height = 32
               ) : null}
               {active.missing > 0 ? (
                 <span className="stw-read">
-                  <em>{ar ? 'بلا رصد' : 'unmeasured'}</em><bdi>{active.missing}</bdi>
+                  <em>{st.chartUnmeasured}</em><bdi>{active.missing}</bdi>
                 </span>
               ) : null}
             </>
           ) : (
             <span className="stw-readout-hint">
-              {ar ? 'مرّر أو انقر على العمود لقراءة القيمة الدقيقة' : 'Hover or tap a column for the exact value'}
+              {st.chartHint}
             </span>
           )}
         </div>
         <div className="stw-chart-actions">
           {copied ? <span className="stw-copied" role="status">{copied}</span> : null}
-          <button type="button" onClick={() => exportPng('copy')}>{ar ? 'نسخ الصورة' : 'Copy image'}</button>
-          <button type="button" onClick={() => exportPng('download')}>{ar ? 'تنزيل PNG' : 'Download PNG'}</button>
+          <button type="button" onClick={() => exportPng('copy')}>{st.copyImage}</button>
+          <button type="button" onClick={() => exportPng('download')}>{st.downloadPng}</button>
         </div>
       </div>
 
@@ -367,9 +370,10 @@ export function StatChart({ buckets, metric, grain, theme, unit, ar, height = 32
         <canvas
           ref={canvasRef}
           role="img"
-          aria-label={ar
-            ? `${buckets.length} فترة · القيمة القصوى ${iqd(Math.max(...buckets.map((b) => metricOf(b, metric) ?? 0), 0))}`
-            : `${buckets.length} periods · maximum ${iqd(Math.max(...buckets.map((b) => metricOf(b, metric) ?? 0), 0))}`}
+          aria-label={st.chartCanvasLabel(
+            String(buckets.length),
+            iqd(Math.max(...buckets.map((b) => metricOf(b, metric) ?? 0), 0)),
+          )}
           onPointerMove={(e) => setHover(indexAt(e.clientX))}
           onPointerDown={(e) => setHover(indexAt(e.clientX))}
           onPointerLeave={() => setHover(null)}

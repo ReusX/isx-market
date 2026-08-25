@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { AR_MONTHS_SHORT } from '@/lib/date'
 import { createPortal } from "react-dom";
 
 /**
@@ -183,9 +184,8 @@ const nfP = new Intl.NumberFormat("en-US", { minimumFractionDigits: 2, maximumFr
 const nfI = new Intl.NumberFormat("en-US", { maximumFractionDigits: 0 });
 /* Latin digits, not Arabic-Indic: every figure this chart draws beside these
    labels is Latin, and the repo's lint rule enforces the pairing. */
-const AR_MONTHS = ["كانون2", "شباط", "آذار", "نيسان", "أيار", "حزيران", "تموز", "آب", "أيلول", "تشرين1", "تشرين2", "كانون1"];
-const fmtDay = (t: number) => { const d = new Date(t); return `${d.getUTCDate()} ${AR_MONTHS[d.getUTCMonth()]}`; };
-const fmtFull = (t: number) => { const d = new Date(t); return `${d.getUTCDate()} ${AR_MONTHS[d.getUTCMonth()]} ${d.getUTCFullYear()}`; };
+const fmtDay = (t: number) => { const d = new Date(t); return `${d.getUTCDate()} ${AR_MONTHS_SHORT[d.getUTCMonth() + 1]}`; };
+const fmtFull = (t: number) => { const d = new Date(t); return `${d.getUTCDate()} ${AR_MONTHS_SHORT[d.getUTCMonth() + 1]} ${d.getUTCFullYear()}`; };
 function compact(n: number) {
   const a = Math.abs(n);
   if (a >= 1e9) return (n / 1e9).toFixed(2) + "B";

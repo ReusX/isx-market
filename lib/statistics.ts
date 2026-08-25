@@ -1,4 +1,6 @@
 import { companyMarketCap } from '@/lib/market'
+import { AR_MONTHS, AR_MONTHS_SHORT } from '@/lib/date'
+import type { Locale } from '@/lib/i18n/locale'
 
 
 /**
@@ -59,9 +61,9 @@ export const PERIODS = [
 export type PeriodId = (typeof PERIODS)[number]['id']
 
 export const METRICS = [
-  { id: 'value', ar: 'قيمة التداول', en: 'Traded value', unitAr: 'د.ع', unitEn: 'IQD' },
-  { id: 'volume', ar: 'الحجم', en: 'Volume', unitAr: 'سهم', unitEn: 'shares' },
-  { id: 'trades', ar: 'الصفقات', en: 'Trades', unitAr: 'صفقة', unitEn: 'trades' },
+  { id: 'value', ar: 'قيمة التداول', en: 'Trading Value', unitAr: 'د.ع', unitEn: 'IQD' },
+  { id: 'volume', ar: 'حجم التداول', en: 'Trading Volume', unitAr: 'سهم', unitEn: 'shares' },
+  { id: 'trades', ar: 'عدد الصفقات', en: 'Trades', unitAr: 'صفقة', unitEn: 'trades' },
 ] as const
 export type MetricId = (typeof METRICS)[number]['id']
 
@@ -259,12 +261,12 @@ export const SECTOR_LABELS: Record<SectorKey, { ar: string; en: string }> = {
   banks: { ar: 'المصارف', en: 'Banks' },
   telecom: { ar: 'الاتصالات', en: 'Telecom' },
   industry: { ar: 'الصناعة', en: 'Industry' },
-  tourism: { ar: 'الفنادق والسياحة', en: 'Hotels & tourism' },
+  tourism: { ar: 'الفنادق والسياحة', en: 'Hotels & Tourism' },
   insurance: { ar: 'التأمين', en: 'Insurance' },
   agriculture: { ar: 'الزراعة', en: 'Agriculture' },
   investment: { ar: 'الاستثمار المالي', en: 'Investment' },
   services: { ar: 'الخدمات', en: 'Services' },
-  transfer: { ar: 'التحويل المالي', en: 'Money transfer' },
+  transfer: { ar: 'التحويل المالي', en: 'Money Transfer' },
   unknown: { ar: 'غير مصنّف', en: 'Unclassified' },
 }
 
@@ -482,8 +484,8 @@ export function capSnapshot(
   names: Map<string, { ar?: string; en?: string }>,
   session: string | null,
   officialListed: number | null,
-  ar: boolean,
-  sectorLabelOf: (key: string, ar: boolean) => string,
+  locale: Locale,
+  sectorLabelOf: (key: string, locale: Locale) => string,
 ): CapSnapshot {
   const rows: CapRow[] = []
   const excludedSyms: string[] = []
@@ -496,8 +498,8 @@ export function capSnapshot(
     if (cap == null) { excludedSyms.push(c.sym); continue }
     const meta = names.get(c.sym)
     const name = [
-      ar ? meta?.ar : meta?.en, ar ? c.nameAr : c.nameEn,
-      ar ? meta?.en : meta?.ar, ar ? c.nameEn : c.nameAr,
+      locale === 'ar' ? meta?.ar : meta?.en, locale === 'ar' ? c.nameAr : c.nameEn,
+      locale === 'ar' ? meta?.en : meta?.ar, locale === 'ar' ? c.nameEn : c.nameAr,
     ].find(usableName) ?? c.sym
     rows.push({
       sym: c.sym, name, sector: c.sector, close: c.close, shares: sh,
@@ -519,7 +521,7 @@ export function capSnapshot(
     acc.set(r.sector, cur)
   }
   const bySector = Array.from(acc.entries())
-    .map(([key, v]) => ({ key, label: sectorLabelOf(key, ar), total: v.total, count: v.count }))
+    .map(([key, v]) => ({ key, label: sectorLabelOf(key, locale), total: v.total, count: v.count }))
     .sort((a, b) => b.total - a.total)
 
   const sectorSum = bySector.reduce((a, s) => a + s.total, 0)
@@ -565,20 +567,19 @@ export function iqd(v: number): string {
   return Math.round(v).toString()
 }
 
-const AR_MONTHS = ['كانون الثاني','شباط','آذار','نيسان','أيار','حزيران','تموز','آب','أيلول','تشرين الأول','تشرين الثاني','كانون الأول']
 
 /** «18 آب 2026». Arabic text carrying numerals — never `bdi`-isolated. */
 export function arFull(iso: string | null): string {
   if (!iso) return '—'
   const [y, m, d] = iso.split('-').map(Number)
-  return `${d} ${AR_MONTHS[m - 1]} ${y}`
+  return `${d} ${AR_MONTHS[m]} ${y}`
 }
 
 /** «آب 2026» — for a month-cadence module. */
 export function arMonth(ym: string | null): string {
   if (!ym) return '—'
   const [y, m] = ym.split('-').map(Number)
-  return `${AR_MONTHS[m - 1]} ${y}`
+  return `${AR_MONTHS[m]} ${y}`
 }
 
 /** «08/2026» — compact, for a chart axis. */
@@ -593,17 +594,23 @@ export function shortAxis(key: string, grain: Grain): string {
 export const iqdFull = (v: number) =>
   (v < 0 ? '−' : '') + nf0.format(Math.abs(Math.round(v)))
 
-/* The reference writes these four with Arabic-Indic digits («كانون٢»). This
-   repo's lint forbids them so every figure on a page uses one numeral system;
-   Latin digits here, same as everywhere else. */
-const AR_MONTHS_SHORT = ['كانون2', 'شباط', 'آذار', 'نيسان', 'أيار', 'حزيران',
-  'تموز', 'آب', 'أيلول', 'تشرين1', 'تشرين2', 'كانون1']
+
+/** «18 Aug» — the English counterpart of `arShort`, so a weekly bucket label
+ *  does not fall back to two raw ISO strings on the English chart. */
+export function enShort(iso: string | null): string {
+  if (!iso) return '—'
+  const [, m, d] = iso.split('-').map(Number)
+  return `${d} ${EN_MONTHS_SHORT[m]}`
+}
+
+const EN_MONTHS_SHORT = ['', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+  'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
 
 /** «18 آب». Day and short month, no year — for a label already inside a year. */
 export function arShort(iso: string | null): string {
   if (!iso) return '—'
   const [, m, d] = iso.split('-').map(Number)
-  return `${d} ${AR_MONTHS_SHORT[m - 1]}`
+  return `${d} ${AR_MONTHS_SHORT[m]}`
 }
 
 /** «18 آب 2026». Day, short month and YEAR — used wherever two windows are
@@ -612,14 +619,14 @@ export function arShort(iso: string | null): string {
 export function arShortY(iso: string | null): string {
   if (!iso) return '—'
   const [y, m, d] = iso.split('-').map(Number)
-  return `${d} ${AR_MONTHS_SHORT[m - 1]} ${y}`
+  return `${d} ${AR_MONTHS_SHORT[m]} ${y}`
 }
 
 /** «آب 2026», short form — for a monthly chart bucket. */
 export function arMonthShort(ym: string | null): string {
   if (!ym) return '—'
   const [y, m] = ym.split('-').map(Number)
-  return `${AR_MONTHS_SHORT[m - 1]} ${y}`
+  return `${AR_MONTHS_SHORT[m]} ${y}`
 }
 
 /**
@@ -628,10 +635,10 @@ export function arMonthShort(ym: string | null): string {
  * A week rides its year on the CLOSING date: a week that straddles the turn of
  * the year otherwise reads «28 كانون١ — 1 كانون٢» with no year at either end.
  */
-export function bucketLabel(b: Bucket, grain: Grain, ar: boolean): string {
-  if (grain === 'session') return ar ? arFull(b.from) : b.from
-  if (grain === 'month') return ar ? arMonth(b.key) : b.key
-  return ar
+export function bucketLabel(b: Bucket, grain: Grain, locale: Locale): string {
+  if (grain === 'session') return locale === 'ar' ? arFull(b.from) : b.from
+  if (grain === 'month') return locale === 'ar' ? arMonth(b.key) : b.key
+  return locale === 'ar'
     ? `أسبوع ${arShort(b.from)} — ${arShort(b.to)} ${b.to.slice(0, 4)}`
-    : `Week ${b.from} — ${b.to}`
+    : `Week of ${enShort(b.from)} — ${enShort(b.to)} ${b.to.slice(0, 4)}`
 }

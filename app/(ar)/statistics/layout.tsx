@@ -25,6 +25,6 @@ export const metadata: Metadata = {
 export default function StatisticsLayout({ children }: { children: React.ReactNode }) {
   return <>{children}
 
-      <Breadcrumbs trail={[{ name: 'الإحصائيات', path: '/statistics' }]} />
+      <Breadcrumbs trail={[{ name: 'إحصاءات السوق', path: '/statistics' }]} />
 </>
 }

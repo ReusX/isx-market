@@ -10,6 +10,7 @@ import { market } from './market'
 import { screener } from './screener'
 import { heatmap } from './heatmap'
 import { pulse } from './pulse'
+import { statistics } from './statistics'
 
 /** The English dictionary. Typed against Arabic — see `../ar/index.ts`. */
-export const en: typeof ar = { nav, shell, system, glossary, info, data, home, market, screener, heatmap, pulse }
+export const en: typeof ar = { nav, shell, system, glossary, info, data, home, market, screener, heatmap, pulse, statistics }

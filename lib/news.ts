@@ -1,3 +1,4 @@
+import { AR_MONTHS } from '@/lib/date'
 /**
  * أخبار السوق — the model behind /news.
  *
@@ -69,8 +70,6 @@ export const PERIOD_LABEL: Record<string, string> = {
    Baghdad's — the ISC timestamps arrive as UTC and reading them as UTC would
    move an afternoon filing back three hours. */
 
-const AR_MONTH = ['كانون الثاني', 'شباط', 'آذار', 'نيسان', 'أيار', 'حزيران',
-  'تموز', 'آب', 'أيلول', 'تشرين الأول', 'تشرين الثاني', 'كانون الأول']
 
 /** Baghdad is UTC+3 all year — Iraq has observed no DST since 2015. */
 const BAGHDAD_OFFSET_MS = 3 * 3_600_000
@@ -81,7 +80,7 @@ export const dayKey = (iso: string) => inBaghdad(iso).toISOString().slice(0, 10)
 
 export function dayLabel(iso: string): string {
   const d = inBaghdad(iso)
-  return `${d.getUTCDate()} ${AR_MONTH[d.getUTCMonth()]} ${d.getUTCFullYear()}`
+  return `${d.getUTCDate()} ${AR_MONTHS[d.getUTCMonth() + 1]} ${d.getUTCFullYear()}`
 }
 
 export const timeLabel = (iso: string) => {
