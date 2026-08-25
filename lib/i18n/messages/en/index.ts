@@ -7,6 +7,7 @@ import { info } from './info'
 import { data } from './data'
 import { home } from './home'
 import { market } from './market'
+import { screener } from './screener'
 
 /** The English dictionary. Typed against Arabic — see `../ar/index.ts`. */
-export const en: typeof ar = { nav, shell, system, glossary, info, data, home, market }
+export const en: typeof ar = { nav, shell, system, glossary, info, data, home, market, screener }

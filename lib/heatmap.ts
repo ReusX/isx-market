@@ -1,3 +1,4 @@
+import type { Locale } from '@/lib/i18n/locale'
 import {
   PERIODS as SCREENER_PERIODS, STALE_DAYS, periodChange, sectorLabel,
   type Metric, type ScreenerRow, type PeriodId,
@@ -115,7 +116,7 @@ export type SectorNode = {
   missing: number
 }
 
-export function sectorNodes(rows: MapRow[], period: PeriodId, ar = true): SectorNode[] {
+export function sectorNodes(rows: MapRow[], period: PeriodId, locale: Locale = 'ar'): SectorNode[] {
   const by = new Map<string, MapRow[]>()
   for (const r of rows) {
     const list = by.get(r.sector)
@@ -132,7 +133,7 @@ export function sectorNodes(rows: MapRow[], period: PeriodId, ar = true): Sector
     }
     return {
       id,
-      label: sectorLabel(id, ar),
+      label: sectorLabel(id, locale),
       list,
       marketCap: list.reduce((s, r) => s + r.marketCap, 0),
       /* Cap-weighted, not the mean: a sector's move is what its money did, and

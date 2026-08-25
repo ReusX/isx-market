@@ -65,7 +65,7 @@ export default function PortfolioClient() {
   const rows = useMemo(() => positions(lots, quotes, metaBy), [lots, quotes, metaBy])
   const t = useMemo(() => totals(rows), [rows])
   const alloc = useMemo(
-    () => slices(rows, allocBy, k => sectorLabel(k, true)), [rows, allocBy])
+    () => slices(rows, allocBy, k => sectorLabel(k, 'ar')), [rows, allocBy])
 
   const view = useMemo(() => {
     const q = query.trim().toLowerCase()

@@ -187,7 +187,7 @@ export function PulseClient() {
           if (!key) continue
           let b = buckets.get(key)
           if (!b) {
-            b = { id: key, label: sectorLabel(key, true), up: 0, down: 0, flat: 0, noPrior: 0, measured: 0, traded: 0 }
+            b = { id: key, label: sectorLabel(key, 'ar'), up: 0, down: 0, flat: 0, noPrior: 0, measured: 0, traded: 0 }
             buckets.set(key, b)
           }
           b.traded++

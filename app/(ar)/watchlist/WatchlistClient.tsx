@@ -91,7 +91,7 @@ export default function WatchlistClient() {
 
   const sectors = useMemo(() => {
     const ids = Array.from(new Set(rows.map(r => r.sector).filter(Boolean) as string[]))
-    return ids.filter(id => SECTOR_LABELS[id]).map(id => ({ id, label: sectorLabel(id, true) }))
+    return ids.filter(id => SECTOR_LABELS[id]).map(id => ({ id, label: sectorLabel(id, 'ar') }))
       .sort((a, b) => a.label.localeCompare(b.label, 'ar'))
   }, [rows])
 
@@ -273,7 +273,7 @@ export default function WatchlistClient() {
                       <td className="mv-col-num">
                         {r.mcap == null ? <span className="mv-dash">—</span> : <bdi>{iqd(r.mcap)}</bdi>}
                       </td>
-                      <td className="wl-col-sec">{r.sector ? sectorLabel(r.sector, true) : <span className="mv-dash">—</span>}</td>
+                      <td className="wl-col-sec">{r.sector ? sectorLabel(r.sector, 'ar') : <span className="mv-dash">—</span>}</td>
                       <td className="pf-col-act">
                         <button type="button" className="pf-menu-btn"
                           onClick={e => { e.stopPropagation(); setMenu(m => (m === r.sym ? null : r.sym)) }}

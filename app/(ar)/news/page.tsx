@@ -123,7 +123,7 @@ export default async function NewsPage() {
     <NewsClient
       items={items}
       sectors={Array.from(new Set(filings.items.map(i => i.sector).filter(Boolean) as string[]))
-        .map(id => ({ id, label: sectorLabel(id, true) }))
+        .map(id => ({ id, label: sectorLabel(id, 'ar') }))
         .sort((a, b) => a.label.localeCompare(b.label, 'ar'))}
       articlesOk={articles.ok}
       filingsOk={filings.ok}

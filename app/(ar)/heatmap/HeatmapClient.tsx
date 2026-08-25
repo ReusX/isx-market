@@ -402,7 +402,7 @@ function CompanyPanel({ row, period, live, session, onClose }: {
       <div className="hx-panel-head">
         <div>
           <strong title={row.name}>{row.name}</strong>
-          <p><bdi className="hx-cd-ticker">{row.ticker}</bdi> · {sectorLabel(row.sector, true)}</p>
+          <p><bdi className="hx-cd-ticker">{row.ticker}</bdi> · {sectorLabel(row.sector, 'ar')}</p>
         </div>
         <button type="button" onClick={onClose} aria-label="إغلاق">✕</button>
       </div>

@@ -73,9 +73,9 @@ export const PERIODS = [
   { id: '1d', ar: 'يوم', en: 'Day' },
   { id: '1w', ar: 'أسبوع', en: 'Week' },
   { id: '1m', ar: 'شهر', en: 'Month' },
-  { id: '3m', ar: '3 أشهر', en: '3M' },
-  { id: 'ytd', ar: 'العام', en: 'YTD' },
-  { id: '52w', ar: 'سنة', en: 'Year' },
+  { id: '3m', ar: '3 أشهر', en: '3 months' },
+  { id: 'ytd', ar: 'العام', en: 'Year to date' },
+  { id: '52w', ar: 'سنة', en: '1 year' },
 ] as const
 export type PeriodId = (typeof PERIODS)[number]['id']
 
@@ -128,16 +128,16 @@ export type MetricDef = {
 export const METRICS: MetricDef[] = [
   { id: 'price', ar: 'السعر', en: 'Price', group: 'perf', unitAr: 'IQD', unitEn: 'IQD', scale: 1, step: 0.01 },
   { id: 'change', ar: 'التغيّر', en: 'Change', group: 'perf', unitAr: '٪', unitEn: '%', scale: 1, step: 0.1 },
-  { id: 'band', ar: 'الموقع من مدى 52 أسبوعاً', en: '52-week position', group: 'perf', unitAr: '٪', unitEn: '%', scale: 1, step: 1 },
-  { id: 'liquidity', ar: 'السيولة اليومية', en: 'Daily liquidity', group: 'liq', unitAr: 'مليون IQD', unitEn: 'M IQD', scale: 1e6, step: 0.1 },
-  { id: 'mcap', ar: 'القيمة السوقية', en: 'Market cap', group: 'liq', unitAr: 'مليار IQD', unitEn: 'B IQD', scale: 1e9, step: 0.1 },
-  { id: 'foreign', ar: 'صافي الأجانب 30 يوماً', en: 'Foreign net 30d', group: 'liq', unitAr: 'مليون IQD', unitEn: 'M IQD', scale: 1e6, step: 0.1 },
+  { id: 'band', ar: 'الموقع من مدى 52 أسبوعاً', en: '52-Week Position', group: 'perf', unitAr: '٪', unitEn: '%', scale: 1, step: 1 },
+  { id: 'liquidity', ar: 'السيولة اليومية', en: 'Daily Liquidity', group: 'liq', unitAr: 'مليون IQD', unitEn: 'M IQD', scale: 1e6, step: 0.1 },
+  { id: 'mcap', ar: 'القيمة السوقية', en: 'Market Cap', group: 'liq', unitAr: 'مليار IQD', unitEn: 'B IQD', scale: 1e9, step: 0.1 },
+  { id: 'foreign', ar: 'صافي الأجانب 30 يوماً', en: 'Foreign Net 30d', group: 'liq', unitAr: 'مليون IQD', unitEn: 'M IQD', scale: 1e6, step: 0.1 },
   { id: 'pe', ar: 'مكرر الربحية (TTM)', en: 'P/E (TTM)', group: 'val', scale: 1, step: 0.1 },
 ]
 
 export const GROUPS: { id: MetricDef['group']; ar: string; en: string }[] = [
-  { id: 'perf', ar: 'السعر والأداء', en: 'Price & performance' },
-  { id: 'liq', ar: 'السيولة والحجم', en: 'Liquidity & size' },
+  { id: 'perf', ar: 'السعر والأداء', en: 'Price & Performance' },
+  { id: 'liq', ar: 'السيولة والحجم', en: 'Liquidity & Size' },
   { id: 'val', ar: 'التقييم', en: 'Valuation' },
 ]
 
@@ -173,11 +173,11 @@ export const PRESETS = [
   { id: 'all', ar: 'الكل', en: 'All', hintAr: 'كل الشركات النشطة', hintEn: 'Every active company' },
   { id: 'gainers', ar: 'الرابحون', en: 'Gainers', hintAr: 'ارتفع سعرها خلال الفترة المختارة', hintEn: 'Up over the selected period' },
   { id: 'losers', ar: 'الخاسرون', en: 'Losers', hintAr: 'انخفض سعرها خلال الفترة المختارة', hintEn: 'Down over the selected period' },
-  { id: 'liquid', ar: 'الأكثر سيولة', en: 'Most liquid', hintAr: 'الأعلى في متوسط قيمة التداول اليومية', hintEn: 'Highest 20-session average traded value' },
-  { id: 'cheap', ar: 'الأقل مكرراً', en: 'Lowest P/E', hintAr: 'أدنى مكرر ربحية (TTM)', hintEn: 'Lowest trailing P/E' },
-  { id: 'fbuy', ar: 'شراء أجنبي', en: 'Foreign buying', hintAr: 'صافي شراء أجنبي خلال 30 يوماً', hintEn: 'Net foreign buying over 30 days' },
-  { id: 'fsell', ar: 'بيع أجنبي', en: 'Foreign selling', hintAr: 'صافي بيع أجنبي خلال 30 يوماً', hintEn: 'Net foreign selling over 30 days' },
-  { id: 'nearhigh', ar: 'قرب القمة', en: 'Near high', hintAr: 'ضمن 5٪ من أعلى سعر في 52 أسبوعاً', hintEn: 'Within 5% of the 52-week high' },
+  { id: 'liquid', ar: 'الأكثر سيولة', en: 'Most Liquid', hintAr: 'الأعلى في متوسط قيمة التداول اليومية', hintEn: 'Highest 20-session average trading value' },
+  { id: 'cheap', ar: 'الأقل مكرراً', en: 'Lowest P/E', hintAr: 'أدنى مكرر ربحية (TTM)', hintEn: 'Lowest trailing twelve-month P/E' },
+  { id: 'fbuy', ar: 'شراء أجنبي', en: 'Foreign Buying', hintAr: 'صافي شراء أجنبي خلال 30 يوماً', hintEn: 'Net foreign buying over 30 days' },
+  { id: 'fsell', ar: 'بيع أجنبي', en: 'Foreign Selling', hintAr: 'صافي بيع أجنبي خلال 30 يوماً', hintEn: 'Net foreign selling over 30 days' },
+  { id: 'nearhigh', ar: 'قرب القمة', en: 'Near 52-Week High', hintAr: 'ضمن 5٪ من أعلى سعر في 52 أسبوعاً', hintEn: 'Within 5% of the 52-week high' },
 ] as const
 export type PresetId = (typeof PRESETS)[number]['id']
 
@@ -235,23 +235,39 @@ export const rangeIsSet = (r: Range | undefined): r is Range =>
 export const rangeInvalid = (r: Range | undefined): boolean =>
   Boolean(r && r.min !== null && r.max !== null && r.min > r.max)
 
-/** Sector keys as `company_metrics` writes them, with their Arabic labels. */
+/**
+ * Sector keys as `company_metrics` writes them, with their labels.
+ *
+ * ── Why these tables are not in lib/i18n/messages ─────────────────────────
+ * `PERIODS`, `METRICS`, `GROUPS`, `PRESETS` and this map are TYPED BILINGUAL
+ * DEFINITION TABLES, not scattered literals. Every entry carries both
+ * languages, the type makes a missing one a compile error, and they live in
+ * one module beside the logic that consumes them — which is what the brief is
+ * actually asking for when it says typed message modules rather than an
+ * untyped blob. What it forbids is a literal dropped inline at a call site,
+ * and these are the opposite of that.
+ *
+ * Call sites read `def[locale]`, never `ar ? def.ar : def.en`.
+ */
 export const SECTOR_LABELS: Record<string, { ar: string; en: string }> = {
   Banks: { ar: 'المصارف', en: 'Banks' },
   Telecom: { ar: 'الاتصالات', en: 'Telecom' },
   Industry: { ar: 'الصناعة', en: 'Industry' },
-  Tourism: { ar: 'الفنادق والسياحة', en: 'Hotels & tourism' },
+  Tourism: { ar: 'الفنادق والسياحة', en: 'Hotels & Tourism' },
   Insurance: { ar: 'التأمين', en: 'Insurance' },
   Agriculture: { ar: 'الزراعة', en: 'Agriculture' },
   Investment: { ar: 'الاستثمار المالي', en: 'Investment' },
   Services: { ar: 'الخدمات', en: 'Services' },
-  'Money Transfer': { ar: 'التحويل المالي', en: 'Money transfer' },
+  'Money Transfer': { ar: 'التحويل المالي', en: 'Money Transfer' },
   Other: { ar: 'أخرى', en: 'Other' },
 }
 
-export function sectorLabel(key: string, ar: boolean): string {
+export function sectorLabel(key: string, locale: 'ar' | 'en'): string {
   const s = SECTOR_LABELS[key]
-  return s ? (ar ? s.ar : s.en) : key
+  // An unmapped key falls through as itself rather than as «أخرى»: a sector the
+  // source added and this table has not learned yet should be visible, not
+  // silently swept into Other.
+  return s ? s[locale] : key
 }
 
 /**
