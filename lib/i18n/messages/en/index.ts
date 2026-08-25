@@ -14,6 +14,8 @@ import { statistics } from './statistics'
 import { flow } from './flow'
 import { company } from './company'
 import { financials } from './financials'
+import { news } from './news'
+import { learn } from './learn'
 
 /** The English dictionary. Typed against Arabic — see `../ar/index.ts`. */
-export const en: typeof ar = { nav, shell, system, glossary, info, data, home, market, screener, heatmap, pulse, statistics, flow, company, financials }
+export const en: typeof ar = { nav, shell, system, glossary, info, data, home, market, screener, heatmap, pulse, statistics, flow, company, financials, news, learn }

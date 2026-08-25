@@ -1,8 +1,9 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { useLocale } from '@/context/LocaleContext'
 import Link from 'next/link'
-import { GUIDE_SECTIONS, sectionId } from '@/lib/tradingFromZero'
+import { guideSections, sectionId } from '@/lib/tradingFromZero'
 import '@/styles/learn.css'
 
 /**
@@ -28,7 +29,10 @@ import '@/styles/learn.css'
  * prices — the market page is one session behind, not live. The two
  * destinations survive as ordinary links.
  */
-export function GuideClient() {
+export function LearnGuide() {
+  const { t: T, locale, href: L } = useLocale()
+  const ln = T.learn
+  const sections = guideSections(locale)
   const [active, setActive] = useState<string | null>(null)
 
   /**
@@ -40,7 +44,7 @@ export function GuideClient() {
    * contents link — the one moment the highlight matters most.
    */
   useEffect(() => {
-    const ids = GUIDE_SECTIONS.map((_, i) => sectionId(i))
+    const ids = sections.map((_, i) => sectionId(i))
     const onScroll = () => {
       let current: string | null = ids[0] ?? null
       for (const id of ids) {
@@ -60,31 +64,31 @@ export function GuideClient() {
     }
   }, [])
 
-  const index = Math.max(0, GUIDE_SECTIONS.findIndex((_, i) => sectionId(i) === active))
+  const index = Math.max(0, sections.findIndex((_, i) => sectionId(i) === active))
 
   return (
     <main className="ln-art ln-path-page iq-page">
       <header className="ln-art-head">
-        <nav className="ln-crumbs" aria-label="مسار التنقل">
-          <Link href="/learn">تعلّم</Link>
+        <nav className="ln-crumbs" aria-label={ln.crumbsLabel}>
+          <Link href={L('/learn')}>{ln.title}</Link>
           <i aria-hidden="true">›</i>
-          <span>ابدأ من هنا</span>
+          <span>{ln.startHere}</span>
         </nav>
       </header>
 
       <div className="ln-art-grid">
         <article className="ln-body">
-          <h1>تعلم تداول الأسهم من الصفر · دليل المبتدئين في بورصة العراق</h1>
+          <h1>{ln.guideH1}</h1>
           <p className="ln-standfirst">
-            هل تريد الاستثمار في بورصة العراق لكنك لا تعرف من أين تبدأ؟ هذا الدليل يشرح
-            كل ما تحتاج معرفته من الصفر · من مفهوم التداول وحتى أول صفقة.
+            {ln.guideIntro}
+            {ln.guideStandfirst}
           </p>
           <p className="ln-art-meta">
-            <bdi>{GUIDE_SECTIONS.length}</bdi> أقسام
+            {ln.sectionsCount(String(sections.length))}
           </p>
 
           <div className="ln-prose">
-            {GUIDE_SECTIONS.map((s, i) => (
+            {sections.map((s, i) => (
               <section key={sectionId(i)}>
                 <h2 id={sectionId(i)}>
                   <span className="ln-step" aria-hidden="true"><bdi>{i + 1}</bdi></span>
@@ -97,12 +101,12 @@ export function GuideClient() {
             ))}
           </div>
 
-          <nav className="ln-pn" aria-label="بعد المسار">
+          <nav className="ln-pn" aria-label={ln.afterPath}>
             <Link href="/market" className="is-prev">
-              <span>تابع السوق</span><strong>حركة السوق</strong>
+              <span>{ln.followMarket}</span><strong>{ln.market}</strong>
             </Link>
             <Link href="/learn" className="is-next">
-              <span>بعد المسار</span><strong>جميع المقالات</strong>
+              <span>{ln.afterPath}</span><strong>{ln.allArticles}</strong>
             </Link>
           </nav>
         </article>
@@ -110,15 +114,15 @@ export function GuideClient() {
         <aside className="ln-rail">
           {/* Real navigation, with a stated position. */}
           <nav className="ln-toc is-path" aria-labelledby="ln-path-h">
-            <h2 id="ln-path-h">أقسام المسار</h2>
+            <h2 id="ln-path-h">{ln.pathSections}</h2>
             <p className="ln-progress">
-              <bdi>{index + 1}</bdi> من <bdi>{GUIDE_SECTIONS.length}</bdi>
+              {ln.ofSections(String(index + 1), String(sections.length))}
               <span className="ln-progress-track" aria-hidden="true">
-                <i style={{ inlineSize: `${((index + 1) / GUIDE_SECTIONS.length) * 100}%` }} />
+                <i style={{ inlineSize: `${((index + 1) / sections.length) * 100}%` }} />
               </span>
             </p>
             <ol>
-              {GUIDE_SECTIONS.map((s, i) => (
+              {sections.map((s, i) => (
                 <li key={sectionId(i)} className={active === sectionId(i) ? 'is-on' : ''}>
                   <a href={`#${sectionId(i)}`}>
                     <bdi>{i + 1}</bdi>

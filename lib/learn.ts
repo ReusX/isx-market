@@ -32,7 +32,7 @@
  * and lesson order do not exist in the data and are not displayed.
  */
 
-import { arDate } from '@/lib/date'
+import { localeDate } from '@/lib/date'
 
 /** ~180 words a minute, floored at one. Arabic prose, measured on the body. */
 export function readingMinutes(text: string): number {
@@ -81,9 +81,9 @@ export function filterLearn(items: LearnItem[], query: string): LearnItem[] {
  * with an `ar-*` locale emits Arabic-Indic digits and Iraqi month names, which
  * is not how this product writes a date anywhere else.
  */
-export function learnDate(iso: string | null | undefined): string | null {
+export function learnDate(iso: string | null | undefined, locale: 'ar' | 'en' = 'ar'): string | null {
   if (!iso) return null
   const day = iso.slice(0, 10)
-  const out = arDate(day)
+  const out = localeDate(day, locale)
   return out === day && !/^\d{4}-\d{2}-\d{2}$/.test(day) ? null : out
 }

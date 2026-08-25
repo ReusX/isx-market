@@ -1,4 +1,7 @@
 import { AR_MONTHS } from '@/lib/date'
+
+const EN_MONTHS = ['', 'January', 'February', 'March', 'April', 'May', 'June',
+  'July', 'August', 'September', 'October', 'November', 'December']
 /**
  * أخبار السوق — the model behind /news.
  *
@@ -30,14 +33,25 @@ import { AR_MONTHS } from '@/lib/date'
 /* ── Types ────────────────────────────────────────────────────────────────
    Two, because the product genuinely has two. */
 export const KINDS = [
-  { id: 'all', label: 'الكل' },
-  { id: 'filing', label: 'إفصاحات', source: 'هيئة الأوراق المالية' },
-  { id: 'article', label: 'أخبار', source: 'تحرير IQWealth' },
+  /* Ids only. The labels and source names are copy and live in the `news`
+     dictionary — «هيئة الأوراق المالية» is a real institution with an official
+     English name, so it is translated rather than transliterated. */
+  { id: 'all' },
+  { id: 'filing' },
+  { id: 'article' },
 ] as const
 export type KindId = (typeof KINDS)[number]['id']
 export type ItemKind = Exclude<KindId, 'all'>
 
 export type NewsItem = {
+  /**
+   * The item's body is in a language other than the page's.
+   *
+   * Set only on `/en/news`, for CMS articles that exist in Arabic alone. The
+   * item stays listed and stays clickable — it is real, current news about
+   * this market — and the reader is told what they are about to open.
+   */
+  foreignLang?: boolean
   id: string
   kind: ItemKind
   /** ISO timestamp. Filings carry ISC's own `source_added_date`. */
@@ -59,10 +73,16 @@ export type NewsItem = {
 
 export const kindMeta = (k: ItemKind) => KINDS.find(x => x.id === k)!
 
-export const PERIOD_LABEL: Record<string, string> = {
-  Q1: 'الربع الأول', Q2: 'الربع الثاني', Q3: 'الربع الثالث', Q4: 'الربع الرابع',
-  ANNUAL: 'البيانات السنوية',
+export const PERIOD_LABEL: Record<string, { ar: string; en: string }> = {
+  Q1:     { ar: 'الربع الأول',    en: 'First quarter' },
+  Q2:     { ar: 'الربع الثاني',   en: 'Second quarter' },
+  Q3:     { ar: 'الربع الثالث',   en: 'Third quarter' },
+  Q4:     { ar: 'الربع الرابع',   en: 'Fourth quarter' },
+  ANNUAL: { ar: 'البيانات السنوية', en: 'Annual statements' },
 }
+
+export const periodLabel = (code: string, locale: 'ar' | 'en') =>
+  PERIOD_LABEL[code]?.[locale] ?? code
 
 /* ── Time ─────────────────────────────────────────────────────────────────
    Exact stamps only. The reference prints «اليوم» / «أمس» against a fixed mock
@@ -78,9 +98,12 @@ const inBaghdad = (iso: string) => new Date(new Date(iso).getTime() + BAGHDAD_OF
 /** The calendar day an instant falls on in Baghdad, as `YYYY-MM-DD`. */
 export const dayKey = (iso: string) => inBaghdad(iso).toISOString().slice(0, 10)
 
-export function dayLabel(iso: string): string {
+export function dayLabel(iso: string, locale: 'ar' | 'en' = 'ar'): string {
   const d = inBaghdad(iso)
-  return `${d.getUTCDate()} ${AR_MONTHS[d.getUTCMonth() + 1]} ${d.getUTCFullYear()}`
+  const day = d.getUTCDate(), m = d.getUTCMonth() + 1, y = d.getUTCFullYear()
+  return locale === 'ar'
+    ? `${day} ${AR_MONTHS[m]} ${y}`
+    : `${day} ${EN_MONTHS[m]} ${y}`
 }
 
 export const timeLabel = (iso: string) => {
@@ -90,13 +113,13 @@ export const timeLabel = (iso: string) => {
 
 export type DayGroup = { day: string; label: string; items: NewsItem[] }
 
-export function groupByDay(items: NewsItem[]): DayGroup[] {
+export function groupByDay(items: NewsItem[], locale: 'ar' | 'en' = 'ar'): DayGroup[] {
   const out: DayGroup[] = []
   for (const it of items) {
     const day = dayKey(it.at)
     const last = out[out.length - 1]
     if (last && last.day === day) last.items.push(it)
-    else out.push({ day, label: dayLabel(it.at), items: [it] })
+    else out.push({ day, label: dayLabel(it.at, locale), items: [it] })
   }
   return out
 }

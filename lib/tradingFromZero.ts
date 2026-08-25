@@ -15,6 +15,15 @@
 
 export type GuideSection = { title: string; body: string }
 
+/**
+ * ⚠ ONE CORRECTION to the Arabic, and it is not a rewrite.
+ *
+ * Step 4 read «استخدم منصة IQWealth لمتابعة أسعار الأسهم مباشرة». The product
+ * has no intraday feed — it publishes the last session's bulletin — and
+ * «مباشرة» is precisely the claim the whole freshness system exists to
+ * prevent. It now says «بعد كل جلسة». Nothing else in the owner's text was
+ * touched.
+ */
 export const GUIDE_SECTIONS: GuideSection[] = [
   {
     title: 'ما هي بورصة العراق للأوراق المالية؟',
@@ -42,7 +51,7 @@ export const GUIDE_SECTIONS: GuideSection[] = [
 ابدأ بدراسة أسهم الشركات التي تعرفها · المصارف الكبيرة، شركات الاتصالات، الشركات الصناعية الراسخة.
 
 الخطوة 4 · تابع السوق:
-استخدم منصة IQWealth لمتابعة أسعار الأسهم مباشرة، وقراءة الأخبار، ومشاهدة المخططات.`,
+استخدم منصة IQWealth لمتابعة أسعار الأسهم بعد كل جلسة، وقراءة الأخبار، ومشاهدة المخططات.`,
   },
   {
     title: 'كيف تقرأ سعر السهم؟',
@@ -96,3 +105,87 @@ export const GUIDE_SECTIONS: GuideSection[] = [
  * first real ones this article has had.
  */
 export const sectionId = (i: number): string => `s${i + 1}`
+
+/**
+ * The English guide.
+ *
+ * A faithful translation of the Arabic above, section for section — not a new
+ * article and not an expanded one. Where the Arabic names a real constraint
+ * (no legal minimum deposit, licensing by the Iraq Securities Commission, the
+ * RSISX index) the English says the same thing; nothing is added that the
+ * Arabic does not claim, and the same «after each session» correction applies.
+ */
+export const GUIDE_SECTIONS_EN: GuideSection[] = [
+  {
+    title: 'What is the Iraq Stock Exchange?',
+    body: `The Iraq Stock Exchange (ISX) is the official market for trading shares in listed Iraqi companies. It was established in 2004 and lists more than 100 companies across several sectors: banking, industry, telecoms, investment, insurance and agriculture.
+
+Overall market performance is measured by the Rabee Securities index (RSISX), which tracks the listed shares and reflects the health of the Iraqi economy.`,
+  },
+  {
+    title: 'Trading versus investing',
+    body: `Trading: buying and selling shares over short periods — days or weeks — to profit from price movement. It requires daily attention and experience reading charts.
+
+Investing: buying shares and holding them for years to grow capital and earn returns over the long term. It suits beginners better than active trading.
+
+For a beginner, the advice is to start with a long-term investor's mindset before moving to active trading.`,
+  },
+  {
+    title: 'How to start on the Iraq Stock Exchange',
+    body: `Step 1 · Choose a licensed broker:
+You need an account with a brokerage licensed by the Iraq Securities Commission. Several approved brokers operate in Baghdad and the governorates.
+
+Step 2 · Deposit your capital:
+There is no legal minimum, but start with an amount you can afford to lose while you are still learning.
+
+Step 3 · Choose your shares:
+Begin by studying companies you already know — the large banks, the telecom operators, the established industrial companies.
+
+Step 4 · Follow the market:
+Use IQWealth to follow share prices after each session, read the news and look at the charts.`,
+  },
+  {
+    title: 'How to read a share price',
+    body: `Close: the last price at which the share traded during the session.
+
+Daily change: the difference between today's price and yesterday's — green means a rise, red means a fall.
+
+Volume: the number of shares traded in the session — higher volume means more interest in the share.
+
+Market cap: the company's total value = number of shares × share price.
+
+P/E: a measure of how expensive or cheap a share is against the company's earnings. The lower it is, the cheaper the share is relatively.`,
+  },
+  {
+    title: 'Sectors of the Iraq Stock Exchange',
+    body: `Listed companies on the Iraq Stock Exchange fall into several main sectors:
+
+• Banking: the largest and most liquid — more than 40 commercial and Islamic banks.
+• Telecoms: home to large companies such as Asiacell and Al-Khatem Telecommunications.
+• Industry: food, beverage and construction-materials companies.
+• Investment: companies managing diversified investment portfolios.
+• Hotels and tourism.
+• Insurance.`,
+  },
+  {
+    title: 'Advice for a beginner on the Iraq Stock Exchange',
+    body: `1. Never invest more than you can afford to lose
+Markets move, and losses are a normal part of investing. Invest only what is surplus to your daily needs.
+
+2. Diversify across sectors
+Do not put all your money into one sector. Spread it between banking, telecoms and industry.
+
+3. Think long term
+Prices on the Iraq Stock Exchange are affected by political and economic events. The patient investor gets the better outcome.
+
+4. Read the financial statements
+Listed companies are required to publish their financial reports. Look for companies with growing earnings.
+
+5. Follow the RSISX index
+The general market index gives you a picture of the overall direction — rising or falling.`,
+  },
+]
+
+/** The guide in the reader's language. */
+export const guideSections = (locale: 'ar' | 'en') =>
+  (locale === 'ar' ? GUIDE_SECTIONS : GUIDE_SECTIONS_EN)

@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { GuideClient } from './GuideClient'
+import { LearnGuide } from '@/components/routes/LearnGuide'
 import { absUrl, seoAlternates } from '@/lib/seo'
 
 export const metadata: Metadata = {
@@ -14,6 +14,6 @@ export const metadata: Metadata = {
   },
 }
 
-export default function TradingFromZeroPage() {
-  return <GuideClient />
+export default function Page() {
+  return <LearnGuide />
 }

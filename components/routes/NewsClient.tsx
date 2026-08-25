@@ -1,13 +1,14 @@
 'use client'
 
 import { useMemo, useState } from 'react'
+import { useLocale } from '@/context/LocaleContext'
 import Link from 'next/link'
 import {
-  KINDS, filterNews, groupByDay, countByKind, kindMeta, timeLabel, dayLabel,
+  KINDS, filterNews, groupByDay, countByKind, timeLabel, dayLabel,
   type KindId, type NewsItem, type ItemKind,
 } from '@/lib/news'
 import '@/styles/panels.css'
-import './news.css'
+import '@/styles/news.css'
 
 /**
  * أخبار السوق — the market event log.
@@ -44,6 +45,8 @@ type Props = {
 }
 
 export function NewsClient({ items, sectors, articlesOk, filingsOk, filingCoverage }: Props) {
+  const { t: T, locale, href: L } = useLocale()
+  const nw = T.news
   const [kind, setKind] = useState<KindId>('all')
   const [sector, setSector] = useState<string>('ALL')
   const [query, setQuery] = useState('')
@@ -52,7 +55,7 @@ export function NewsClient({ items, sectors, articlesOk, filingsOk, filingCovera
   const filtered = useMemo(
     () => filterNews(items, { kind, sector, query }),
     [items, kind, sector, query])
-  const groups = useMemo(() => groupByDay(filtered.slice(0, shown)), [filtered, shown])
+  const groups = useMemo(() => groupByDay(filtered.slice(0, shown), locale), [filtered, shown, locale])
 
   const filtering = kind !== 'all' || sector !== 'ALL' || query.trim() !== ''
   function reset() { setKind('all'); setSector('ALL'); setQuery(''); setShown(PAGE) }
@@ -66,45 +69,45 @@ export function NewsClient({ items, sectors, articlesOk, filingsOk, filingCovera
       {/* ── Header · compact, then straight into the controls ────────────── */}
       <header className="nw-head">
         <div className="st-title">
-          <h1>أخبار السوق</h1>
+          <h1>{nw.title}</h1>
           <p>
-            إفصاحات الشركات وأخبار السوق
+            {nw.standfirst}
             {/* The date is NOT bdi-wrapped. An Arabic date carries Arabic
                 words AND Latin numerals, so isolating the whole run reorders
                 it — the reference prints «منذ ايار 2026 30» for exactly this
                 reason. Only the pure figure beside it is isolated. */}
-            {items.length ? <> · <bdi>{items.length}</bdi> عنصراً منذ {dayLabel(oldest!)}</> : null}
+            {items.length ? <> · {nw.itemsSince(String(items.length), dayLabel(oldest!, locale))}</> : null}
           </p>
         </div>
       </header>
 
       {/* ── Controls · type, search, sector ──────────────────────────────── */}
       <div className="nw-controls">
-        <div className="st-switch nw-kinds" role="group" aria-label="نوع العنصر">
+        <div className="st-switch nw-kinds" role="group" aria-label={nw.kindGroup}>
           {KINDS.map(k => (
             <button key={k.id} type="button" className={kind === k.id ? 'active' : ''}
               aria-pressed={kind === k.id}
               onClick={() => { setKind(k.id); setShown(PAGE) }}>
-              {k.label}
+              {nw.kinds[k.id]}
               <bdi className="nw-kind-n">{countByKind(items, k.id)}</bdi>
             </button>
           ))}
         </div>
 
         <label className="nw-mv-search nw-search">
-          <span className="sr-only">بحث في الأخبار</span>
+          <span className="sr-only">{nw.searchLabel}</span>
           <input
             type="search" value={query}
             onChange={e => { setQuery(e.target.value); setShown(PAGE) }}
-            placeholder="ابحث بالعنوان أو الشركة أو الرمز أو المصدر"
-            aria-label="ابحث بالعنوان أو الشركة أو الرمز أو المصدر" />
+            placeholder={nw.searchFull}
+            aria-label={nw.searchFull} />
         </label>
 
         <label className="nw-mv-select nw-sector">
-          <span className="sr-only">القطاع</span>
+          <span className="sr-only">{nw.sector}</span>
           <select value={sector} onChange={e => { setSector(e.target.value); setShown(PAGE) }}
-            aria-label="تصفية حسب القطاع">
-            <option value="ALL">كل القطاعات</option>
+            aria-label={nw.sectorFilter}>
+            <option value="ALL">{nw.allSectors}</option>
             {sectors.map(s => <option key={s.id} value={s.id}>{s.label}</option>)}
           </select>
         </label>
@@ -114,35 +117,35 @@ export function NewsClient({ items, sectors, articlesOk, filingsOk, filingCovera
       <div className="nw-status">
         <span className="nw-count">
           <bdi>{filtered.length}</bdi>
-          {' '}{filtering ? 'عنصراً مطابقاً' : 'عنصراً'}
-          {filtered.length !== items.length ? <> من <bdi>{items.length}</bdi></> : null}
+          {' '}{filtering ? nw.matching : nw.items}
+          {filtered.length !== items.length ? <> {nw.ofTotal(String(items.length))}</> : null}
         </span>
         {filtering ? (
           <>
             {kind !== 'all' ? (
               <button type="button" className="nw-chip" onClick={() => setKind('all')}>
-                {KINDS.find(k => k.id === kind)!.label} <i aria-hidden="true">×</i>
-                <span className="sr-only">إزالة تصفية النوع</span>
+                {nw.kinds[kind]} <i aria-hidden="true">×</i>
+                <span className="sr-only">{nw.removeKind}</span>
               </button>
             ) : null}
             {sector !== 'ALL' ? (
               <button type="button" className="nw-chip" onClick={() => setSector('ALL')}>
                 {sectors.find(s => s.id === sector)?.label ?? sector} <i aria-hidden="true">×</i>
-                <span className="sr-only">إزالة تصفية القطاع</span>
+                <span className="sr-only">{nw.removeSector}</span>
               </button>
             ) : null}
             {query.trim() ? (
               <button type="button" className="nw-chip" onClick={() => setQuery('')}>
                 «{query.trim()}» <i aria-hidden="true">×</i>
-                <span className="sr-only">مسح البحث</span>
+                <span className="sr-only">{nw.clearSearch}</span>
               </button>
             ) : null}
-            <button type="button" className="nw-reset" onClick={reset}>إعادة التعيين</button>
+            <button type="button" className="nw-reset" onClick={reset}>{nw.reset}</button>
           </>
         ) : null}
         {degraded ? (
           <span className="nw-degraded">
-            {!articlesOk ? 'الأخبار التحريرية غير متاحة مؤقتاً' : 'الإفصاحات غير متاحة مؤقتاً'}
+            {!articlesOk ? nw.articlesDown : nw.filingsDown}
           </span>
         ) : null}
       </div>
@@ -153,13 +156,13 @@ export function NewsClient({ items, sectors, articlesOk, filingsOk, filingCovera
           <div>
             {!articlesOk ? (
               <>
-                <strong>تعذّر تحميل الأخبار التحريرية</strong>
-                <p>الإفصاحات أدناه محدّثة. الأخبار التحريرية تأتي من مصدر منفصل.</p>
+                <strong>{nw.articlesFailedTitle}</strong>
+                <p>{nw.articlesFailedNote}</p>
               </>
             ) : (
               <>
-                <strong>تعذّر تحميل فهرس الإفصاحات</strong>
-                <p>الأخبار التحريرية أدناه محدّثة. الإفصاحات تأتي من مصدر منفصل.</p>
+                <strong>{nw.filingsFailedTitle}</strong>
+                <p>{nw.filingsFailedNote}</p>
               </>
             )}
           </div>
@@ -171,9 +174,7 @@ export function NewsClient({ items, sectors, articlesOk, filingsOk, filingCovera
           it changes how the list should be read. */}
       {kind === 'filing' && filingCoverage ? (
         <p className="nw-coverage">
-          يغطي فهرس الإفصاحات المتاح للعرض <bdi>{filingCoverage.count}</bdi> وثيقة منشورة،
-          من {dayLabel(filingCoverage.oldest)} إلى {dayLabel(filingCoverage.newest)}.
-          ليست كل إفصاحات الفترة متاحة هنا.
+          {nw.coverage(String(filingCoverage.count), dayLabel(filingCoverage.oldest, locale), dayLabel(filingCoverage.newest, locale))}
         </p>
       ) : null}
 
@@ -182,22 +183,22 @@ export function NewsClient({ items, sectors, articlesOk, filingsOk, filingCovera
         <div className="cd-nodata cd-nodata-wide nw-empty">
           {!items.length ? (
             <>
-              <strong>لا توجد عناصر منشورة بعد</strong>
-              <p>تظهر الإفصاحات فور نشرها من هيئة الأوراق المالية، والأخبار عند صدورها.</p>
+              <strong>{nw.emptyTitle}</strong>
+              <p>{nw.emptyNote}</p>
             </>
           ) : (
             <>
               <strong>
                 {query.trim()
-                  ? <>لا نتائج مطابقة لـ «{query.trim()}»</>
-                  : 'لا عناصر ضمن هذه التصفية'}
+                  ? <>{nw.noMatch(query.trim())}</>
+                  : nw.noneInFilter}
               </strong>
               <p>
                 {query.trim()
-                  ? 'جرّب اسم شركة أو رمزاً أو كلمة من العنوان.'
-                  : 'جرّب نوعاً آخر أو قطاعاً آخر.'}
+                  ? nw.tryCompany
+                  : nw.tryOtherFilter}
               </p>
-              <button type="button" className="nw-reset nw-reset-lg" onClick={reset}>إعادة التعيين</button>
+              <button type="button" className="nw-reset nw-reset-lg" onClick={reset}>{nw.reset}</button>
             </>
           )}
         </div>
@@ -216,7 +217,7 @@ export function NewsClient({ items, sectors, articlesOk, filingsOk, filingCovera
           </div>
           {shown < filtered.length ? (
             <button type="button" className="nw-more" onClick={() => setShown(s => s + PAGE)}>
-              عرض المزيد
+              {nw.showMore}
               <bdi>{Math.min(PAGE, filtered.length - shown)}</bdi>
             </button>
           ) : (
@@ -235,7 +236,8 @@ export function NewsClient({ items, sectors, articlesOk, filingsOk, filingCovera
    article share a skeleton so the eye can scan a column, but never share a
    look: the type mark and the document line keep them apart. */
 function Row({ item, query }: { item: NewsItem; query: string }) {
-  const meta = kindMeta(item.kind as ItemKind)
+  const { t: T, locale } = useLocale()
+  const nw = T.news
   // A ticker search matches the COMPANY, not the headline, so highlighting
   // only the headline leaves results on screen with nothing marked and the
   // reader wondering what matched — mark whichever field hit.
@@ -252,8 +254,15 @@ function Row({ item, query }: { item: NewsItem; query: string }) {
       <time className="nw-time" dateTime={item.at}>{timeLabel(item.at)}</time>
 
       <span className="nw-body">
-        <span className="nw-kind-label">{meta.label}</span>
-        <strong className="nw-headline">{highlight(item.headline, query)}</strong>
+        <span className="nw-kind-label">{nw.kinds[item.kind]}</span>
+        <strong className="nw-headline">
+          {highlight(item.headline, query)}
+          {/* Marked, not hidden: the article is real and current, and the
+              reader is told which language it opens in before they click. */}
+          {item.foreignLang && nw.arabicArticle
+            ? <span className="nw-lang" lang="ar-IQ" dir="auto">{nw.arabicArticle}</span>
+            : null}
+        </strong>
         {item.excerpt ? <span className="nw-excerpt">{item.excerpt}</span> : null}
         <span className="nw-meta">
           <span className={`nw-source${srcHit ? ' is-hit' : ''}`}>{highlight(item.source, query)}</span>
@@ -275,7 +284,7 @@ function Row({ item, query }: { item: NewsItem; query: string }) {
           <bdi className="cd-ticker">{item.symbol}</bdi>
         </span>
       ) : (
-        <span className="nw-co nw-co-market"><span>السوق</span></span>
+        <span className="nw-co nw-co-market"><span>{nw.market}</span></span>
       )}
 
       <span className="nw-go" aria-hidden="true">{item.external ? '↗' : '‹'}</span>
@@ -286,11 +295,11 @@ function Row({ item, query }: { item: NewsItem; query: string }) {
     <li className={`nw-row is-${item.kind}`}>
       {item.external ? (
         <a href={item.href} target="_blank" rel="noopener noreferrer"
-          aria-label={`${meta.label}: ${item.name ?? ''} ${item.headline} · يفتح ملف PDF على موقع هيئة الأوراق المالية`}>
+          aria-label={nw.filingLink(nw.kinds[item.kind], item.name ?? '', item.headline)}>
           {body}
         </a>
       ) : (
-        <Link href={item.href} aria-label={`${meta.label}: ${item.headline}`}>{body}</Link>
+        <Link href={item.href} aria-label={`${nw.kinds[item.kind]}: ${item.headline}`}>{body}</Link>
       )}
     </li>
   )

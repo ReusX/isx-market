@@ -300,3 +300,19 @@
   content: ''; position: absolute;
   inset-inline: 0; inset-block: -11px;
 }
+
+/* ── Foreign-language marker ──────────────────────────────────────────────
+   Only ever rendered on /en/news, beside an article whose body is Arabic.
+   Quiet by design: it is a fact about the item, not a warning about it. */
+.nw-lang {
+  display: inline-block;
+  margin-inline-start: 8px;
+  padding-inline: 6px;
+  border: 1px solid var(--mv-line, #d8d6d1);
+  border-radius: 5px;
+  color: var(--mv-ink3, #6e746f);
+  font-size: 0.68rem;
+  font-weight: 600;
+  vertical-align: middle;
+  white-space: nowrap;
+}

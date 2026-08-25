@@ -1,6 +1,7 @@
 'use client'
 
 import { useMemo, useState } from 'react'
+import { useLocale } from '@/context/LocaleContext'
 import Link from 'next/link'
 import { filterLearn, learnDate, type LearnItem, type LearnPath } from '@/lib/learn'
 import '@/styles/learn.css'
@@ -28,13 +29,15 @@ import '@/styles/learn.css'
  * The reference's topic filter is not here — see the note in `lib/learn.ts`.
  * Its four labels are placeholders over a taxonomy that does not exist.
  */
-export function LearnClient({
+export function LearnIndex({
   items, path, libraryOk,
 }: {
   items: LearnItem[]
   path: LearnPath
   libraryOk: boolean
 }) {
+  const { t: T, locale, href: L } = useLocale()
+  const ln = T.learn
   const [query, setQuery] = useState('')
   const [shown, setShown] = useState(6)
 
@@ -45,38 +48,38 @@ export function LearnClient({
   function reset() { setQuery(''); setShown(6) }
 
   const searchWhy = libraryOk
-    ? 'لا توجد مقالات للبحث فيها بعد.'
-    : 'تعذّر تحميل المكتبة، فلا يمكن البحث فيها الآن.'
+    ? ln.nothingToSearch
+    : ln.libraryFailed
 
   return (
     <main className="ln-page iq-page">
       <header className="ln-head">
         <div className="ln-title">
-          <h1>تعلّم</h1>
+          <h1>{ln.title}</h1>
         </div>
       </header>
 
       {/* ── ابدأ من هنا · the one real guide the product has ─────────────── */}
       <section className="ln-start" aria-labelledby="ln-start-h">
-        <h2 id="ln-start-h">ابدأ من هنا</h2>
+        <h2 id="ln-start-h">{ln.startHere}</h2>
         <Link className="ln-path" href={path.href}>
           <span className="ln-path-copy">
             <strong>{path.title}</strong>
             <em>{path.summary}</em>
             <span className="ln-path-meta">
-              <bdi>{path.sections}</bdi> أقسام
+              {ln.sectionsCount(String(path.sections))}
               <i aria-hidden="true">·</i>
-              <bdi>{path.minutes}</bdi> دقيقة
+              {ln.minutes(String(path.minutes))}
             </span>
           </span>
-          <span className="ln-path-go">ابدأ <i aria-hidden="true">‹</i></span>
+          <span className="ln-path-go">{ln.start} <i className="dir-go" aria-hidden="true">‹</i></span>
         </Link>
       </section>
 
       {/* ── أحدث المقالات · a wider row, not the same grid ───────────────── */}
       {items.length > 0 ? (
         <section className="ln-latest" aria-labelledby="ln-latest-h">
-          <h2 id="ln-latest-h">أحدث المقالات</h2>
+          <h2 id="ln-latest-h">{ln.latest}</h2>
           <ul className="ln-feature">
             {items.slice(0, 3).map((l) => (
               <li key={l.slug}>
@@ -84,11 +87,11 @@ export function LearnClient({
                   <strong>{l.title}</strong>
                   {l.summary ? <em>{l.summary}</em> : null}
                   <span className="ln-card-meta">
-                    <bdi>{l.minutes}</bdi> دقائق
-                    {learnDate(l.updated) ? (
+                    {ln.minutesPlural(String(l.minutes))}
+                    {learnDate(l.updated, locale) ? (
                       <>
                         <i aria-hidden="true">·</i>
-                        آخر تحديث {learnDate(l.updated)}
+                        {ln.lastUpdated(learnDate(l.updated, locale)!)}
                       </>
                     ) : null}
                   </span>
@@ -102,7 +105,7 @@ export function LearnClient({
       {/* ── جميع المقالات · the browsable library ────────────────────────── */}
       <section className="ln-browse" aria-labelledby="ln-browse-h">
         <div className="ln-browse-head">
-          <h2 id="ln-browse-h">جميع المقالات</h2>
+          <h2 id="ln-browse-h">{ln.allArticles}</h2>
           {/* Disabled while there is nothing to search — and the reason travels
               with the control. A dead-looking input with no explanation reads
               as a bug, and the user retries it.
@@ -111,8 +114,8 @@ export function LearnClient({
               is worse than saying nothing: an empty library means «nothing is
               written yet», an unreachable CMS means «we could not read it». */}
           <label className="ln-search">
-            <span className="sr-only">ابحث في التعلّم</span>
-            <input value={query} placeholder="ابحث في التعلّم"
+            <span className="sr-only">{ln.searchLabel}</span>
+            <input value={query} placeholder={ln.searchPlaceholder}
               onChange={(e) => { setQuery(e.target.value); setShown(6) }}
               disabled={items.length === 0}
               aria-describedby={items.length === 0 ? 'ln-search-why' : undefined}
@@ -125,8 +128,8 @@ export function LearnClient({
 
         {filtering ? (
           <p className="ln-filtered">
-            <bdi>{results.length}</bdi> من <bdi>{items.length}</bdi>
-            <button type="button" onClick={reset}>مسح</button>
+            {ln.ofTotal(String(results.length), String(items.length))}
+            <button type="button" onClick={reset}>{ln.clear}</button>
           </p>
         ) : null}
 
@@ -135,18 +138,18 @@ export function LearnClient({
              read as it — and it names nothing about the failure itself. */
           <div className="ln-partial" role="status">
             <i aria-hidden="true">△</i>
-            تعذّر تحميل المكتبة حالياً. «ابدأ من هنا» أعلاه لا يزال متاحاً.
+            {ln.libraryDown}
           </div>
         ) : items.length === 0 ? (
           <div className="ln-empty">
-            <strong>المحتوى قيد الإعداد</strong>
-            <span>ستظهر المقالات هنا فور نشرها.</span>
+            <strong>{ln.emptyTitle}</strong>
+            <span>{ln.emptyNote}</span>
           </div>
         ) : results.length === 0 ? (
           <div className="ln-empty">
-            <strong>لا نتائج</strong>
-            <span>جرّب كلمة أخرى أو امسح البحث.</span>
-            <button type="button" className="ln-reset" onClick={reset}>مسح البحث</button>
+            <strong>{ln.noResults}</strong>
+            <span>{ln.noResultsNote}</span>
+            <button type="button" className="ln-reset" onClick={reset}>{ln.clearSearch}</button>
           </div>
         ) : (
           <>
@@ -159,7 +162,7 @@ export function LearnClient({
                       {l.summary ? <em>{l.summary}</em> : null}
                     </span>
                     <span className="ln-row-meta">
-                      <bdi>{l.minutes}</bdi> دقائق
+                      {ln.minutesPlural(String(l.minutes))}
                     </span>
                     <i className="ln-row-go" aria-hidden="true">‹</i>
                   </Link>
@@ -168,7 +171,7 @@ export function LearnClient({
             </ul>
             {results.length > visible.length ? (
               <button type="button" className="ln-more" onClick={() => setShown((n) => n + 6)}>
-                عرض المزيد
+                {ln.showMore}
               </button>
             ) : null}
           </>
