@@ -165,7 +165,7 @@ one commit, not three.
 | `/learn/trading-from-zero` | same | `Path.tsx` | same | hand-written static | **DP** |
 | `/about` | `/about` | `About.tsx`, `InfoChrome.tsx`, `infoData.ts` | 12636–13001 `.in-*` | none | **DP** |
 | `/contact` | `/contact` | `Contact.tsx` | same | none | **DP** |
-| `/privacy` | `/privacy` | `LegalDoc.tsx`, `legalContent.ts` | same | none | ✅ done — **7 counsel markers visible, see B4** |
+| `/privacy` | `/privacy` | `LegalDoc.tsx`, `legalContent.ts` | same | none | ✅ done — counsel markers resolved 2026-08-25, see B4 |
 | `/legal` | `/legal` | same | same | none | ✅ done — same |
 | 404 / 500 / `error` | `/system` | `StatePage.tsx`, `dataStates.tsx`, `Overlay.tsx`, `Toast.tsx`, `MobileNav.tsx`, `SiteFooter.tsx` | 13293–13365 `.sp-*` | none | ✅ done (`dataStates`/`Overlay`/`Toast`/`MobileNav`/`SiteFooter` already migrated in Phase 0) |
 
@@ -250,20 +250,15 @@ decision this migration cannot make for you:
 Recommendation: (2) for this batch, because it ships the approved surface
 without asserting anything false, with (3) recorded as the real fix.
 
-**B4 · `/privacy` and `/legal` ship with SEVEN VISIBLE counsel markers.** The
-approved documents are first-publication drafts written against the audited
-product, and every field that could not be verified is rendered as a visible
-`[مراجعة قانونية: …]` mark rather than guessed. Four are on `/privacy` — data
-hosting locations, retention periods, the minimum account age, and the
-operator's legal name and registered address — and three on `/legal` — the
-liability wording under Iraqi law, whether an indemnity clause belongs at all,
-and the governing law, competent court and operator identity.
-
-They are deliberately visible: a draft that hides its own gaps reads as
-finished and can be published by accident. **These two routes are therefore NOT
-production-ready and must not be deployed until Iraq-qualified counsel has
-resolved all seven.** Nothing about them is a blocker to the rest of the
-migration.
+**B4 · `/privacy` and `/legal` counsel markers. RESOLVED 2026-08-25.** The
+seven visible `[مراجعة قانونية: …]` markers were replaced with final copy
+supplied by the operator — operator identity, hosting locations, retention,
+minimum age, liability, indemnity (answered NO) and governing law. Nothing was
+invented to close them: no legal entity, no street address, no hosting country,
+no fixed retention period, no specific court. Zero markers remain in the
+rendered DOM. Both routes are production-ready as copy; see
+[`LEGAL_LAUNCH_BLOCKERS.md`](./LEGAL_LAUNCH_BLOCKERS.md) for the per-marker
+record and one editorial note about `/legal` §14 overlapping §9 and §16.
 
 **B2 · Auth is six net-new production routes.** No `/login`, `/signup`,
 `/forgot-password`, `/verify-email`, `/auth/callback` exists today; production has

@@ -87,8 +87,8 @@ full-page auth composition.
 |---|---|---|---|---|---|---|
 | `/about` | Who built the platform and why | **migrated (Batch D)** | ○ | ✅ | Static, in-repo | The «where the data comes from» section is a **deliberately empty slot** — the product publishes no methodology |
 | `/contact` | Contact channels | **migrated (Batch D)** | ○ | ✅ | `lib/infoData.ts` | **No form and no endpoint.** Six topic links are `mailto:` with a prefilled subject |
-| `/privacy` | Privacy policy | **migrated (Batch D)** | ○ | ✅ | `lib/legalContent.ts` | ⚠ **NOT production-ready** — 4 visible counsel markers |
-| `/legal` | Terms + disclaimer | **migrated (Batch D)** | ○ | ✅ | `lib/legalContent.ts` | ⚠ **NOT production-ready** — 3 visible counsel markers |
+| `/privacy` | Privacy policy | **migrated (Batch D)** | ○ | ✅ | `lib/legalContent.ts` | Counsel markers RESOLVED 2026-08-25; retention is stated as criteria, not fixed periods, because the product enforces no timer |
+| `/legal` | Terms + disclaimer | **migrated (Batch D)** | ○ | ✅ | `lib/legalContent.ts` | Counsel markers RESOLVED 2026-08-25; no indemnity clause, and no specific court named |
 
 ## System and infrastructure
 

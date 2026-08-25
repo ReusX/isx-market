@@ -1,11 +1,12 @@
 /**
- * The Privacy Policy and the Terms of Use — FIRST PUBLICATION DRAFTS.
+ * The Privacy Policy and the Terms of Use — PUBLISHED COPY.
  *
  * ═══ HOW THIS WAS WRITTEN ══════════════════════════════════════════════════
  * Not from a template. Every factual sentence below was checked against the
  * real product at isx-market@d2f60cc, read-only, and anything that could not
- * be verified is either absent or marked `[مراجعة قانونية]` rather than
- * guessed. The verified inventory:
+ * be verified was left open for the operator rather than guessed — see the
+ * STATUS block further down for how those seven fields were finally answered.
+ * The verified inventory:
  *
  * ── Authentication ────────────────────────────────────────────────────────
  * `components/auth/AuthModal.tsx` calls exactly four Supabase methods:
@@ -79,8 +80,35 @@
  * Where the legal position is unsettled the drafting is conservative and the
  * question is flagged, never resolved by invention.
  *
- * ⚠ THESE ARE DRAFTS. They require review by Iraq-qualified counsel before
- *   publication. See the checklist in DESIGN_MODE.md.
+ * ── STATUS · the seven counsel markers are RESOLVED ──────────────────────
+ * Final copy was supplied by the operator on 2026-08-25 and replaces every
+ * `[مراجعة قانونية: …]` marker this file used to carry. The wording is
+ * deliberately conservative and it is what the operator chose to publish:
+ *
+ *   operator     identified as the platform IQWealth on iraqsm.com, with no
+ *                legal-entity name or registered address invented for it
+ *   hosting      «inside Iraq or outside, depending on the provider» — no
+ *                country is named, because none was verified
+ *   retention    criteria, not fixed periods: the product enforces no timer,
+ *                so none is promised
+ *   age          18+, stated and enforceable by account restriction
+ *   liability    limited to what Iraqi law permits, with the carve-out for
+ *                what may not be excluded left intact
+ *   indemnity    deliberately ABSENT. The section is now «الاستخدام المسؤول»
+ *                and says in as many words that no clause obliges the user to
+ *                indemnify us for third-party claims
+ *   law          Iraqi law and the competent Iraqi courts, with no specific
+ *                court or venue named
+ *
+ * Standing claims, unchanged and still true: no GDPR compliance is asserted;
+ * no comprehensive Iraqi data-protection statute is claimed to govern the
+ * platform; no regulatory status, licence or brokerage capacity is claimed
+ * anywhere; account deletion is still the manual email process the product
+ * actually performs, with no promised turnaround.
+ *
+ * `REVIEW()` below is intentionally kept. Nothing calls it today, and that is
+ * the point — it is the machinery for marking the next open field visibly if
+ * one ever appears, rather than letting it hide inside smooth prose.
  */
 
 export type LegalBlock =
@@ -112,6 +140,14 @@ export const PRIVACY_DOC: LegalSection[] = [
       { kind: "p", text: "توضّح هذه السياسة ما الذي تجمعه منصّة IQWealth عنك، ولماذا تجمعه، وأين يُخزَّن، وما الذي يمكنك طلبه بشأنه. وهي تغطّي الموقع وجميع صفحاته وخدماته." },
       { kind: "p", text: "المنصّة مجانية ولا تتقاضى أي مبالغ، ولا تطلب بيانات بطاقات أو حسابات مصرفية، ولا تنفّذ أي عملية شراء أو بيع. يمكنك تصفّح معظم الصفحات دون إنشاء حساب أصلاً؛ ولا يُجمع عنك سوى بيانات تقنية محدودة موضّحة أدناه." },
       { kind: "note", text: "لا توجد في العراق حتى تاريخ هذه النسخة قوانين شاملة لحماية البيانات الشخصية نافذة، وثمّة مشروع قانون قيد الإعداد. نلتزم بما هو نافذ، ونصوغ هذه السياسة على نحو متحفّظ لا يَعِد بما لا نستطيع تنفيذه." },
+    ],
+  },
+  {
+    id: "operator",
+    title: "من يدير المنصة",
+    blocks: [
+      { kind: "p", text: "تُدار منصة IQWealth عبر النطاق iraqsm.com، ويُشار إليها في هذه السياسة بعبارات «المنصة» أو «نحن». IQWealth منصة معلومات وبيانات مالية وليست وسيطاً مالياً أو بورصةً أو مستشاراً استثمارياً." },
+      { kind: "p", text: "لأي استفسار يتعلق بالخصوصية أو البيانات الشخصية، استخدم وسيلة التواصل المنشورة في صفحة «اتصل بنا». ويُعد البريد الإلكتروني المنشور هناك قناة الاتصال الرسمية للطلبات المتعلقة بالوصول إلى البيانات أو تصحيحها أو حذف الحساب." },
     ],
   },
   {
@@ -181,7 +217,8 @@ export const PRIVACY_DOC: LegalSection[] = [
       },
       { kind: "p", text: "وننشر مواداً تحريرية من نظام إدارة محتوى خاص بنا. هذا النظام مصدرٌ للمحتوى ولا يستقبل أي بيانات عنك." },
       { kind: "note", text: "مصادر بيانات السوق — هيئة الأوراق المالية العراقية وسوق العراق للأوراق المالية وشركات الوساطة والمصادر الإعلامية ومواقع أسعار الذهب والنفط — نقرأ منها معلومات منشورة للعموم. لا نرسل إليها شيئاً عنك، ولا علاقة لها ببياناتك الشخصية." },
-      { kind: "p", text: `يجري تشغيل هذه الخدمات على بنية تحتية قد تقع خارج العراق. ${REVIEW("تحديد مواقع استضافة البيانات وإدراجها صراحةً")}` },
+      { kind: "p", text: "تعتمد المنصة على مزوّدي خدمات تقنيين من أطراف ثالثة لتشغيل الاستضافة وقواعد البيانات والمصادقة والتحليلات والخدمات المساندة. وقد تُعالج البيانات أو تُخزّن على بنية تحتية تقع داخل العراق أو خارجه بحسب مزوّد الخدمة وموقع أنظمته في وقت المعالجة." },
+      { kind: "p", text: "لا نَعِد بأن جميع البيانات تبقى داخل دولة أو مركز بيانات محدد. وعند استخدام مزوّد خارجي، نقتصر قدر الإمكان على البيانات اللازمة لتشغيل الخدمة ونطبق وسائل الحماية المتاحة في المنتج وإعدادات المزوّد." },
     ],
   },
   {
@@ -194,10 +231,12 @@ export const PRIVACY_DOC: LegalSection[] = [
   },
   {
     id: "retention",
-    title: "الاحتفاظ بالبيانات",
+    title: "مدة الاحتفاظ بالبيانات",
     blocks: [
-      { kind: "p", text: "نحتفظ ببيانات حسابك وبما أنشأته داخل المنصّة ما دام الحساب قائماً، لأن هذه البيانات هي الخدمة نفسها. أما البيانات التقنية والسجلّات فتُحفظ لدى مزوّدي الخدمة وفق مددهم." },
-      { kind: "p", text: `${REVIEW("اعتماد مدد احتفاظ محدّدة للحسابات غير النشطة وللسجلّات")} لم تُحدَّد بعد مدد رقمية، ولا نذكر هنا مدّة لم نعتمدها فعلاً.` },
+      { kind: "p", text: "نحتفظ بالبيانات الشخصية فقط للمدة اللازمة للغرض الذي جُمعت من أجله، أو لتشغيل الحساب والخدمة، أو لحماية المنصة من إساءة الاستخدام، أو للوفاء بالتزامات قانونية واجبة التطبيق." },
+      { kind: "p", text: "عند إغلاق الحساب أو قبول طلب حذفه، نحذف أو نُخفي هوية البيانات المرتبطة بالحساب عندما لا تعود هناك حاجة مشروعة للاحتفاظ بها. وقد تبقى نسخ محدودة لمدة إضافية داخل النسخ الاحتياطية أو سجلات الأمان إلى أن تنتهي دورة الاحتفاظ الخاصة بتلك الأنظمة أو عندما يكون الاحتفاظ مطلوباً لإثبات معاملة أو التعامل مع نزاع أو متطلب قانوني." },
+      { kind: "p", text: "لا نستخدم مدة احتفاظ واحدة لجميع أنواع البيانات؛ وتختلف المدة بحسب نوع السجل والغرض منه. ويمكن طلب معلومات عن فئة محددة من البيانات عبر قناة الخصوصية المنشورة في صفحة «اتصل بنا»." },
+      { kind: "note", text: "عملياً: بيانات حسابك وما أنشأته داخل المنصّة تبقى ما دام الحساب قائماً، لأن هذه البيانات هي الخدمة نفسها. والبيانات التقنية والسجلّات تُحفظ لدى مزوّدي الخدمة وفق دورات الاحتفاظ الخاصة بهم." },
     ],
   },
   {
@@ -226,9 +265,10 @@ export const PRIVACY_DOC: LegalSection[] = [
   },
   {
     id: "children",
-    title: "الأطفال",
+    title: "العمر المسموح",
     blocks: [
-      { kind: "p", text: `لا نوجّه المنصّة إلى الأطفال ولا نجمع بياناتهم عن قصد. ${REVIEW("تحديد حدّ أدنى لعمر إنشاء الحساب وإدراجه هنا وفي شروط الاستخدام")} ولم يُعتمد بعد حدٌّ عمري، ولا نذكر رقماً لم يُقرَّر.` },
+      { kind: "p", text: "الخدمة مخصّصة للأشخاص الذين تبلغ أعمارهم 18 عاماً أو أكثر. لا تستهدف المنصة الأطفال ولا تطلب عن علم إنشاء حسابات لأشخاص دون هذا العمر." },
+      { kind: "p", text: "إذا تبيّن لنا أن حساباً أُنشئ لشخص دون السن المسموح، يجوز لنا تقييد الحساب أو حذفه واتخاذ الخطوات المعقولة لإزالة البيانات المرتبطة به، مع مراعاة أي التزام قانوني يوجب الاحتفاظ بسجل محدد." },
       { kind: "p", text: "إذا كنت وليّ أمر وتعتقد أن طفلاً أنشأ حساباً، راسلنا وسنعالج الأمر." },
     ],
   },
@@ -260,8 +300,8 @@ export const PRIVACY_DOC: LegalSection[] = [
     id: "contact",
     title: "التواصل",
     blocks: [
-      { kind: "p", text: "لأي سؤال أو طلب يتعلّق بالخصوصية، راسلنا على boatlef@gmail.com. هذا هو القناة المعتمدة لطلبات الخصوصية؛ ولا تُعدّ حسابات التواصل الاجتماعي قناةً رسمية لها." },
-      { kind: "p", text: `${REVIEW("الاسم القانوني للمشغّل وعنوانه المسجّل")}` },
+      { kind: "p", text: "لأي سؤال أو طلب يتعلّق بالخصوصية، راسلنا على boatlef@gmail.com — وهو البريد نفسه المنشور في صفحة «اتصل بنا». هذه هي القناة المعتمدة لطلبات الخصوصية؛ ولا تُعدّ حسابات التواصل الاجتماعي قناةً رسمية لها." },
+      { kind: "p", text: "ومن يدير المنصة موضّح في قسم «من يدير المنصة» أعلاه." },
     ],
   },
 ];
@@ -390,16 +430,19 @@ export const TERMS_DOC: LegalSection[] = [
     id: "liability",
     title: "حدود المسؤولية",
     blocks: [
-      { kind: "p", text: "تُقدَّم المنصّة مجاناً وبحالتها الراهنة. ولا نتحمّل المسؤولية عن الخسائر الناجمة عن الاعتماد على بياناتها أو أدواتها في اتّخاذ قرار استثماري، ولا عن انقطاع الخدمة، ولا عن خطأ أو تأخّر أو نقص في بيانات مصدر خارجي، ولا عن فقدان بيانات محفوظة في متصفّحك." },
-      { kind: "p", text: "ولا يُقصد بهذا البند استبعاد أي مسؤولية لا يجيز القانون النافذ استبعادها، ولا مسؤوليتنا عن الغشّ أو الخطأ الجسيم." },
-      { kind: "p", text: `${REVIEW("صياغة حدود المسؤولية بما يتوافق مع القانون العراقي وحدود ما يجيز استبعاده")}` },
+      { kind: "p", text: "تُقدَّم المنصة ومحتواها وبياناتها وأدواتها على أساس معلوماتي. نبذل جهداً معقولاً لعرض البيانات بصورة دقيقة ومحدثة، لكننا لا نضمن أن تكون كل البيانات كاملة أو خالية من التأخير أو الأخطاء أو الانقطاعات، ولا نضمن استمرار توفر أي مصدر خارجي." },
+      { kind: "p", text: "أنت مسؤول عن التحقق من المعلومات قبل اتخاذ أي قرار مالي أو استثماري. ولا تُعد الأسعار أو المؤشرات أو الإحصاءات أو الأخبار أو الأدوات المعروضة توصيةً بشراء أو بيع أي ورقة مالية، ولا تشكّل استشارة استثمارية أو قانونية أو ضريبية." },
+      { kind: "p", text: "إلى أقصى حد يسمح به القانون العراقي الواجب التطبيق، لا نتحمل المسؤولية عن الخسائر غير المباشرة أو التبعية أو خسارة الفرص أو الأرباح الناتجة عن الاعتماد على معلومات المنصة أو تعذر الوصول إليها. ولا يحد هذا النص من أي مسؤولية لا يجوز قانوناً استبعادها أو تقييدها." },
+      { kind: "note", text: "المنصّة مجانية وتُقدَّم بحالتها الراهنة، ويشمل ما سبق انقطاع الخدمة، وخطأ أو تأخّر أو نقص في بيانات مصدر خارجي، وفقدان بيانات محفوظة في متصفّحك." },
     ],
   },
   {
     id: "indemnity",
-    title: "التعويض",
+    title: "الاستخدام المسؤول",
     blocks: [
-      { kind: "p", text: `${REVIEW("البتّ في إدراج بند تعويض من عدمه")} لم يُدرَج بند تعويض في هذه المسوّدة: المنصّة مجانية ولا تتيح للمستخدمين نشر محتوى عام، ولا نرى ما يبرّره حالياً. يُحسم الأمر عند المراجعة القانونية.` },
+      { kind: "p", text: "تتعهد بعدم استخدام المنصة بطريقة غير مشروعة، أو لمحاولة الوصول غير المصرح به إلى الحسابات أو الأنظمة، أو لتعطيل الخدمة، أو لاستخراج البيانات آلياً على نحو يضر بالبنية التحتية أو يتجاوز وسائل الوصول التي نتيحها صراحةً." },
+      { kind: "p", text: "يجوز لنا تقييد أو إيقاف الوصول عند وجود سبب معقول للاعتقاد بوجود إساءة استخدام أو خطر أمني أو مخالفة جوهرية لهذه الشروط، مع مراعاة القانون الواجب التطبيق." },
+      { kind: "note", text: "لا تتضمّن هذه الشروط بنداً يُلزمك بتعويضنا عن مطالبات الغير." },
     ],
   },
   {
@@ -419,10 +462,11 @@ export const TERMS_DOC: LegalSection[] = [
   },
   {
     id: "law",
-    title: "القانون المختصّ وتسوية النزاعات",
+    title: "القانون الواجب التطبيق وتسوية النزاعات",
     blocks: [
-      { kind: "p", text: `${REVIEW("القانون الواجب التطبيق، والمحكمة المختصّة، والاسم القانوني للمشغّل وعنوانه")}` },
-      { kind: "p", text: "لم يُحدَّد هذا البند بعد، ولن يُملأ بافتراض. يُستكمل بعد تحديد الكيان القانوني المشغّل للمنصّة ومراجعة محامٍ مؤهّل في العراق." },
+      { kind: "p", text: "تخضع هذه الشروط وتُفسَّر وفق القوانين النافذة في جمهورية العراق." },
+      { kind: "p", text: "إذا نشأ نزاع يتعلق بالمنصة أو بهذه الشروط، نسعى أولاً إلى حله بصورة مباشرة ومعقولة عبر قنوات التواصل المنشورة في المنصة. وإذا تعذر الحل الودي، يكون الاختصاص للجهات القضائية العراقية المختصة وفق قواعد الاختصاص النوعي والمكاني المقررة في القانون النافذ." },
+      { kind: "p", text: "تُبرم هذه الشروط بين المستخدم ومشغّل منصة IQWealth على النطاق iraqsm.com. استخدام اسم IQWealth في هذه الشروط هو تعريف بالمنصة والخدمة، ولا يُقصد به الادعاء بصفة تنظيمية أو ترخيص مالي غير موجود." },
     ],
   },
   {
@@ -438,4 +482,4 @@ export const TERMS_DOC: LegalSection[] = [
  * The date of THIS draft, per §16 — not backdated, and not the June 2026
  * string the real pages hard-code. It is the day the text below was written.
  */
-export const DOC_UPDATED = "14 أغسطس 2026";
+export const DOC_UPDATED = "25 أغسطس 2026";

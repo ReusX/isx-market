@@ -12,9 +12,12 @@ import { TERMS_DOC } from '@/lib/legalContent'
  * in meaning: it is the product's only regulatory statement, and paraphrasing
  * it would alter what it says.
  *
- * ⚠ A DRAFT pending Iraq-qualified counsel. Three fields are open here — the
- * wording of the liability limits under Iraqi law, whether an indemnity clause
- * belongs at all, and the governing law, competent court and operator identity.
+ * The three fields that used to carry visible `[مراجعة قانونية]` markers were
+ * resolved with final copy from the operator on 2026-08-25: liability is
+ * limited only as far as Iraqi law permits, the indemnity question was
+ * answered NO — that section is now «الاستخدام المسؤول» and states plainly
+ * that no clause obliges the user to indemnify us — and the governing law is
+ * Iraq with its competent courts, naming no specific court or venue.
  */
 export default function LegalPage() {
   return (

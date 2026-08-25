@@ -1,129 +1,69 @@
-# Legal launch blockers — `/privacy` and `/legal`
+# Legal launch blockers — RESOLVED
 
-Audited on `implement/iqwealth-redesign` at `5293069`. Source of the text:
-[`lib/legalContent.ts`](../lib/legalContent.ts); rendered by
-[`components/info/LegalDoc.tsx`](../components/info/LegalDoc.tsx).
+**Status: closed on 2026-08-25.** All seven `[مراجعة قانونية: …]` markers on
+`/privacy` and `/legal` were replaced with final copy supplied by the operator.
+Zero markers remain in the rendered DOM of either page. Neither route is a
+launch blocker any more.
 
-**Both routes are NOT production-ready.** Seven fields could not be determined
-from the product or the code, and each is rendered as a visible
-`[مراجعة قانونية: …]` marker rather than guessed. The markers are deliberately
-visible: a draft that hides its own gaps reads as finished and can be published
-by accident.
-
-Nothing below is a drafting suggestion. Each row states what is missing and who
-can supply it — the answers are the operator's and their counsel's, not the
-code's.
+Source of the text: [`lib/legalContent.ts`](../lib/legalContent.ts); rendered by
+[`components/info/LegalDoc.tsx`](../components/info/LegalDoc.tsx). The visible
+revision date is **25 أغسطس 2026**.
 
 ---
 
-## How to read this
+## What each marker became
 
-- **Route / section** — the `id` is the anchor, e.g. `/privacy#retention`.
-- **Current visible placeholder** — exactly what a reader sees today.
-- **Why the code cannot answer** — what was searched, and what was not found.
-- **Input required** — the factual or legal decision needed to close the item.
-
-Removing a marker without supplying the answer would leave unsupported wording
-behind, which is worse than the visible gap. Do not do it.
-
----
-
-## 1 · `/privacy#processors` — data-hosting locations
-
-| | |
-|---|---|
-| **Placeholder** | `[مراجعة قانونية: تحديد مواقع استضافة البيانات وإدراجها صراحةً]` |
-| **Sentence it sits in** | «يجري تشغيل هذه الخدمات على بنية تحتية قد تقع خارج العراق.» |
-| **Why the code cannot answer** | The repo names the processors (Supabase for auth + database, Vercel for hosting and the two measurement products, WordPress for articles) but nowhere records the **regions** those instances run in. The Supabase project ref and the Vercel project settings hold that fact; the source tree does not. Guessing a region would be a false statement about where a user's data physically sits. |
-| **Input required** | From the operator: the Supabase project's region and the Vercel deployment regions, confirmed from each provider's dashboard. From counsel: whether Iraqi law as it stands requires those locations to be disclosed, and in what form. |
-
-## 2 · `/privacy#retention` — retention periods
-
-| | |
-|---|---|
-| **Placeholder** | `[مراجعة قانونية: اعتماد مدد احتفاظ محدّدة للحسابات غير النشطة وللسجلّات]` |
-| **Sentence it sits in** | «لم تُحدَّد بعد مدد رقمية، ولا نذكر هنا مدّة لم نعتمدها فعلاً.» |
-| **Why the code cannot answer** | There is no retention job, no TTL, no scheduled purge and no `deleted_at` anywhere in the repo — verified by grep across `app/`, `lib/`, `scripts/` and the cron routes. Data is kept indefinitely because nothing has been built to remove it. A policy cannot state a period the system does not implement. |
-| **Input required** | An operator **decision** on how long an inactive account and its logs are kept, then an implementation to enforce it. Counsel confirms whether a stated period is required at all under Iraqi law. Until both exist, the honest sentence is the one already printed. |
-
-## 3 · `/privacy#children` — minimum age for an account
-
-| | |
-|---|---|
-| **Placeholder** | `[مراجعة قانونية: تحديد حدّ أدنى لعمر إنشاء الحساب وإدراجه هنا وفي شروط الاستخدام]` |
-| **Sentence it sits in** | «لا نوجّه المنصّة إلى الأطفال ولا نجمع بياناتهم عن قصد. … ولم يُعتمد بعد حدٌّ عمري، ولا نذكر رقماً لم يُقرَّر.» |
-| **Why the code cannot answer** | Sign-up collects an email and a password and nothing else — no date of birth, no age attestation, no gate. There is no age field on `profiles`. The product therefore has no minimum age to disclose, and inventing one (13, 16, 18) would state a rule that nothing enforces. |
-| **Input required** | An operator decision on the minimum age, whether it is enforced at sign-up or only stated, and counsel's view on the age Iraqi law implies for contracting. The number must land in **both** documents, not one. |
-
-## 4 · `/privacy#contact` — operator's legal name and registered address
-
-| | |
-|---|---|
-| **Placeholder** | `[مراجعة قانونية: الاسم القانوني للمشغّل وعنوانه المسجّل]` |
-| **Context** | The privacy contact section already names the real channel — `boatlef@gmail.com` — and states it is the authorised route for privacy requests. What is missing is the identity of the data controller behind it. |
-| **Why the code cannot answer** | The repo contains a person's name (أحمد بلحة, on `/about`) and a brand (IQWealth). Neither is a **legal entity**. There is no company registration number, no trade name, no registered address anywhere in the product, and a personal name is not automatically the controller's legal identity. |
-| **Input required** | From the operator: whether IQWealth is operated by a registered company or by an individual, the exact legal name, and the registered address. See also item 7 — the same fact is needed in the Terms. |
-
-## 5 · `/legal#liability` — limitation of liability wording
-
-| | |
-|---|---|
-| **Placeholder** | `[مراجعة قانونية: صياغة حدود المسؤولية بما يتوافق مع القانون العراقي وحدود ما يجيز استبعاده]` |
-| **Why the code cannot answer** | This is purely a question of law. Which heads of liability may be excluded, and how far, is set by Iraqi statute and case law — not by anything observable in the product. A template clause copied from an English-law or US-style agreement is the specific failure mode this marker exists to prevent. |
-| **Input required** | Drafting by Iraq-qualified counsel, stating what may be limited, what may not, and the wording. |
-
-## 6 · `/legal#indemnity` — whether an indemnity clause belongs
-
-| | |
-|---|---|
-| **Placeholder** | `[مراجعة قانونية: البتّ في إدراج بند تعويض من عدمه]` |
-| **Sentence it sits in** | «لم يُدرَج بند تعويض في هذه المسوّدة: المنصّة مجانية ولا تتيح للمستخدمين نشر محتوى عام، ولا نرى ما يبرّره حالياً.» |
-| **Why the code cannot answer** | The product reasoning is already stated and is accurate against the code — the platform is free, and there is no user-generated public content anywhere (no comments, no posts, no uploads, no public profiles; verified). Whether that reasoning is *legally* sufficient to omit an indemnity is not a product question. |
-| **Input required** | A yes/no from counsel. If yes, the clause itself. This is the lowest-risk of the seven: the current text neither asserts nor omits anything false. |
-
-## 7 · `/legal#law` — governing law, competent court, operator identity
-
-| | |
-|---|---|
-| **Placeholder** | `[مراجعة قانونية: القانون الواجب التطبيق، والمحكمة المختصّة، والاسم القانوني للمشغّل وعنوانه]` |
-| **Why the code cannot answer** | Three separate facts, none of them derivable. The pre-redesign `/legal` did assert Iraqi governing law, but it named no court and no entity, and an assertion without a forum or a party is not a usable clause. Naming a court by inference would be an invention. |
-| **Input required** | From counsel: the governing law and the competent court. From the operator: the same legal name and address as item 4. |
+| # | Was | Now | What was deliberately NOT done |
+|---|---|---|---|
+| 1 | `/privacy` operator legal name + registered address | New section **«من يدير المنصة»** (§2) identifying the platform as IQWealth on iraqsm.com, and stating it is an information platform — not a broker, exchange or investment adviser | No legal-entity name and no street address invented |
+| 2 | `/privacy` data-hosting locations | **«مزوّدو الخدمة»** (§7) now says processing may sit inside Iraq **or outside**, depending on the provider and where its systems are at the time | No hosting country named — none was verified from the deployed provider config |
+| 3 | `/privacy` retention periods | **«مدة الاحتفاظ بالبيانات»** (§9) states retention *criteria* — purpose, account operation, abuse protection, legal obligation — plus what survives in backups | No fixed period promised, because the product enforces no timer |
+| 4 | `/privacy` minimum account age | **«العمر المسموح»** (§13) — **18+**, with the right to restrict or delete an underage account | No age gate is claimed at sign-up; the rule is stated and enforced by action |
+| 5 | `/legal` liability wording | **«حدود المسؤولية»** (§13) limits liability only *to the extent Iraqi law permits*, with the carve-out for what may not be excluded intact | No blanket exclusion |
+| 6 | `/legal` whether an indemnity clause belongs | Answered **NO**. The section is now **«الاستخدام المسؤول»** (§14) and says in as many words that nothing in the terms obliges the user to indemnify us for third-party claims | No broad indemnity clause added |
+| 7 | `/legal` governing law, court, operator | **«القانون الواجب التطبيق وتسوية النزاعات»** (§17) — Iraqi law, competent Iraqi courts under the statutory rules of jurisdiction | No specific court or venue named; no registered entity asserted |
 
 ---
 
-## Adjacent findings — not markers, but check them at the same time
+## Standing claims re-verified after the edit
 
-**A · Account deletion is described as a manual email process, and that is a
-commitment.** `/privacy#deletion` states that full account deletion is requested
-by writing from the registered address, that it is handled by hand, and — in a
-`note` block — that there is no in-app delete button and therefore no promised
-turnaround. That text is accurate about the product: there is no
-account-deletion server action, and `profiles` has no DELETE policy. **The legal
-copy does not over-promise**, so this is not one of the seven blockers. It does
-commit the operator to actually honouring emailed deletion requests. See
-[`FINAL_ROUTE_INVENTORY.md`](./FINAL_ROUTE_INVENTORY.md) and the pre-deploy
-report for the engineering status.
-
-**B · The security section makes a testable claim, and it now holds.**
-`/privacy#security` states that account-data access is restricted at the database
-level so a user reaches only their own rows. That claim was verified on
-2026-08-24 with two real authenticated sessions: 16/16 isolation checks passed,
-including unfiltered reads, widened filters, cross-user update, delete, and an
-upsert carrying another user's id. Re-run that probe if RLS policies change.
-
-**C · The analytics disclosure is current.** `/privacy#processors` names Vercel
-Analytics and Speed Insights explicitly. Both are still rendered in
-[`app/layout.tsx`](../app/layout.tsx). If either is removed or another
-measurement service is added, this section must change with it.
+- **No GDPR compliance claimed.** The string does not appear on either page.
+- **No comprehensive Iraqi data-protection statute claimed to govern the
+  platform.** `/privacy` still opens by saying none is in force and that a draft
+  law exists.
+- **No regulatory status, licence or brokerage capacity claimed** anywhere. The
+  only regulatory sentences are negative ones — «ليست شركة وساطة مالية مرخّصة»,
+  «ليست وسيطاً مالياً أو بورصةً أو مستشاراً استثمارياً».
+- **Account deletion is still the manual email process** the product actually
+  performs, and `/privacy` still states there is no in-app delete button and no
+  promised turnaround.
+- **The security claim still holds.** «لا يصل المستخدم إلا إلى صفوفه» is backed
+  by the two-user RLS isolation test — 16/16 checks passed with two real
+  authenticated sessions.
+- **Analytics disclosure still matches what renders.** Vercel Analytics and
+  Speed Insights are named, and both are still mounted in `app/layout.tsx`.
+- **Alerts** appear only as retained backend data (`price_alerts`), never as
+  navigation.
 
 ---
 
-## Status
+## One editorial note for the operator
 
-| | |
-|---|---|
-| `/privacy` | **BLOCKS DEPLOYMENT** — 4 unresolved markers |
-| `/legal` | **BLOCKS DEPLOYMENT** — 3 unresolved markers |
+`/legal` now has three sections in the same territory:
 
-Every other migrated route is unaffected. Nothing here blocks the rest of the
-migration; it blocks publishing these two documents.
+- §9 **«الاستخدام المقبول»** — a list of prohibited acts (unauthorised access,
+  disrupting the service, heavy scraping, unlawful use)
+- §14 **«الاستخدام المسؤول»** — the supplied replacement, which covenants the
+  same acts and adds the right to restrict access
+- §16 **«إنهاء الحساب أو تقييده»** — which already carries that restriction right
+
+The supplied wording was placed **verbatim** rather than edited, because it is
+the operator's legal copy. But §14 largely restates §9 and §16. Merging §14's
+distinctive sentence — the explicit absence of an indemnity — into §9 and
+deleting the rest would say the same thing once instead of three times. That is
+a drafting call for the operator, not a code change, and nothing is false as it
+stands.
+
+## Remaining launch blockers from this file
+
+**None.**

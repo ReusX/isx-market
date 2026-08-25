@@ -4,15 +4,17 @@ import { PRIVACY_DOC } from '@/lib/legalContent'
 /**
  * /privacy — سياسة الخصوصية.
  *
- * A direct transplant of the approved page. The text is a first-publication
- * DRAFT written against the audited product, not a template: every factual
- * sentence in `lib/legalContent.ts` was checked against this repo, and
- * anything that could not be verified carries a visible `[مراجعة قانونية]`
- * marker instead of a guess.
+ * A direct transplant of the approved page. The text was written against the
+ * audited product, not from a template: every factual sentence in
+ * `lib/legalContent.ts` was checked against this repo, and anything that could
+ * not be verified was left open rather than guessed.
  *
- * ⚠ It requires Iraq-qualified counsel before publication. Four fields are
- * still open here — data-hosting locations, retention periods, the minimum
- * age for an account, and the operator's legal name and registered address.
+ * The four fields that used to carry visible `[مراجعة قانونية]` markers —
+ * hosting locations, retention periods, the minimum account age, and who
+ * operates the platform — were resolved with final copy from the operator on
+ * 2026-08-25. Nothing was invented to close them: no country is named for the
+ * hosting, no fixed retention period is promised that the product cannot
+ * enforce, and no legal entity or registered address is asserted.
  */
 export default function PrivacyPage() {
   return (
