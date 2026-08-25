@@ -15,8 +15,12 @@ export const metadata: Metadata = {
   ],
   openGraph: {
     url: absUrl('/gold'),
-    title: 'سعر الذهب مباشر اليوم في العراق | اسعار الذهب عالمياً · Iraq Gold Rate',
-    description: 'سعر الذهب مباشر اليوم في العراق لكل غرام ومثقال بالدينار العراقي والدولار، مع السعر العالمي للأونصة. Live Iraq gold price per gram & mithqal.',
+    /* ⚠ «مباشر» removed from the OG TITLE. It stays in `keywords`, where it is a
+       search term people type, not a claim the card makes — the source
+       publishes one daily price list and this product re-reads it every three
+       hours, which is not a live feed. */
+    title: 'سعر الذهب اليوم في العراق · مثقال وغرام عيار 21 و24',
+    description: 'سعر الذهب اليوم في العراق لكل غرام ومثقال بالدينار العراقي والدولار، مع السعر العالمي للأونصة. Iraq gold price per gram and mithqal.',
     images: [{ url: '/opengraph-image', width: 1200, height: 630 }],
   },
 }
@@ -29,7 +33,7 @@ const faqSchema = {
       '@id': absUrl('/gold'),
       url: absUrl('/gold'),
       name: 'Gold Price in Iraq Today · Iraq Gold Rate in Iraqi Dinar',
-      description: 'Live gold price in Iraq today in IQD and USD · per gram and mithqal for 24K, 21K, and 18K gold.',
+      description: 'Gold price in Iraq in IQD and USD · per gram and mithqal for 24K, 21K and 18K gold.',
       inLanguage: ['ar-IQ', 'en'],
       about: {
         '@type': 'Thing',

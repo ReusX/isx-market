@@ -1,6 +1,7 @@
 "use client";
 
 import { type ReactNode } from "react";
+import { useLocale } from '@/context/LocaleContext'
 import {
   freshnessLabel, freshnessLine, freshnessTone,
   type Freshness, type Source,
@@ -32,15 +33,17 @@ export function ToolHead({
       unavailable is two claims that cannot both hold. §23 */
   unavailable?: boolean;
 }) {
+  const { t: T, locale } = useLocale()
+  const rt = T.rates
   return (
     <header className="mt-head">
       <div className="mt-title">
         <div className="mt-title-row">
           <h1>{title}</h1>
           {pending
-            ? <span className="mt-fresh is-pending">جارٍ القراءة</span>
+            ? <span className="mt-fresh is-pending">{rt.tools.reading}</span>
             : unavailable
-              ? <span className="mt-fresh is-stale"><i aria-hidden="true">△</i>غير متاح</span>
+              ? <span className="mt-fresh is-stale"><i aria-hidden="true">△</i>{rt.tools.unavailable}</span>
               : <FreshnessChip freshness={freshness} />}
         </div>
         {lede ? <p>{lede}</p> : null}
@@ -60,11 +63,13 @@ export function ToolHead({
  * an honest chip, not a loud one.
  */
 export function FreshnessChip({ freshness }: { freshness: Freshness }) {
+  const { t: T, locale } = useLocale()
+  const rt = T.rates
   const tone = freshnessTone(freshness);
   return (
-    <span className={`mt-fresh is-${tone}`} title={freshnessLine(freshness)}>
+    <span className={`mt-fresh is-${tone}`} title={freshnessLine(freshness, rt.tools, locale)}>
       <i aria-hidden="true">{tone === "current" ? "◆" : tone === "carried" ? "◇" : "△"}</i>
-      {freshnessLabel(freshness)}
+      {freshnessLabel(freshness, rt.tools)}
     </span>
   );
 }
@@ -77,10 +82,12 @@ export function FreshnessChip({ freshness }: { freshness: Freshness }) {
 export function MetaLine({
   freshness, extra,
 }: { freshness: Freshness; extra?: ReactNode }) {
+  const { t: T, locale } = useLocale()
+  const rt = T.rates
   const s = freshness.source;
   return (
     <p className="mt-meta">
-      <span>{freshnessLine(freshness)}</span>
+      <span>{freshnessLine(freshness, rt.tools, locale)}</span>
       <i aria-hidden="true">·</i>
       {s.url.startsWith("http")
         ? <a href={s.url} target="_blank" rel="noopener noreferrer nofollow">{s.host}</a>
@@ -98,6 +105,8 @@ export function MetaLine({
 export function Disclosure({
   label, children, id,
 }: { label: string; children: ReactNode; id?: string }) {
+  const { t: T, locale } = useLocale()
+  const rt = T.rates
   return (
     <details className="mt-disclose" id={id}>
       <summary>
@@ -113,13 +122,15 @@ export function Disclosure({
 export function Unavailable({
   what, why, source,
 }: { what: string; why: string; source?: Source }) {
+  const { t: T, locale } = useLocale()
+  const rt = T.rates
   return (
     <div className="mt-unavailable">
       <strong>{what}</strong>
       <span>{why}</span>
       {source ? (
         <span className="mt-unavailable-src">
-          المصدر: {source.host} · سيعود السعر عند نجاح القراءة التالية.
+          {rt.tools.sourceWillReturn(source.host)}
         </span>
       ) : null}
     </div>
@@ -128,6 +139,8 @@ export function Unavailable({
 
 /* ── Partial failure · §38 · keep the usable parts ────────────────────────── */
 export function PartialNotice({ children }: { children: ReactNode }) {
+  const { t: T, locale } = useLocale()
+  const rt = T.rates
   return (
     <div className="mt-partial" role="status">
       <i aria-hidden="true">△</i>
@@ -151,11 +164,11 @@ export function SkeletonBlock({ lines = 3, tall }: { lines?: number; tall?: bool
  * the source — not as a banner competing with the quote.
  */
 export function NoHistoryNote() {
+  const { t: T, locale } = useLocale()
+  const rt = T.rates
   return (
     <p>
-      لا يحتفظ المنتج بأي سلسلة زمنية لهذه الأسعار — كل قراءة تحلّ محل سابقتها،
-      ولذلك لا يوجد رسم بياني تاريخي هنا. رسمُ سلسلة تبدأ من يوم تشغيل التخزين،
-      ولا يستعيد ما لم يُسجَّل.
+      {rt.tools.noSeries}
     </p>
   );
 }

@@ -1,6 +1,9 @@
 'use client'
 
 import { useMemo, useState } from 'react'
+import { useLocale } from '@/context/LocaleContext'
+import type { Messages } from '@/lib/i18n'
+import { localeDate } from '@/lib/date'
 import { useApp } from '@/context/AppContext'
 import {
   ToolHead, MetaLine, Disclosure, NoHistoryNote, Unavailable, PartialNotice,
@@ -47,20 +50,26 @@ const OUNCE_G = 31.1035
 const LEAD_KARAT = 21
 
 type UnitId = 'gram' | 'mithqal' | 'ounce'
-const UNITS: { id: UnitId; label: string }[] = [
-  { id: 'gram', label: 'غرام' },
-  { id: 'mithqal', label: 'مثقال' },
-  { id: 'ounce', label: 'أونصة' },
+const UNITS: { id: UnitId }[] = [
+  { id: 'gram' as const },
+  { id: 'mithqal' as const },
+  { id: 'ounce' as const },
 ]
 const unitGrams = (u: UnitId) => (u === 'gram' ? 1 : u === 'mithqal' ? MITHQAL_G : OUNCE_G)
 
 /** What each karat is used for locally. Descriptive, not a rating. */
 const USE: Record<number, string> = {
-  24: 'سبائك وادخار', 22: 'مجوهرات',
-  21: 'الأكثر تداولاً في الأسواق العراقية', 18: 'مجوهرات', 14: 'مجوهرات',
+  24: 'useBullion', 22: 'useJewellery',
+  21: 'useMostTraded', 18: 'useJewellery', 14: 'useJewellery',
 }
 
-export default function GoldClient({ gold, fx }: { gold: GoldData | null; fx: FxData | null }) {
+type GoldCopy = Messages['rates']['gold']
+const unitName = (id: UnitId, g: GoldCopy) =>
+  id === 'gram' ? g.unitGram : id === 'mithqal' ? g.unitMithqal : g.unitOunce
+
+export default function GoldPage({ gold, fx }: { gold: GoldData | null; fx: FxData | null }) {
+  const { t: T, locale } = useLocale()
+  const g = T.rates.gold
   const { theme } = useApp()
   const karats = useMemo(
     () => (gold?.grams ?? []).filter(g => g.iqd > 0).sort((a, b) => b.karat - a.karat),
@@ -96,44 +105,44 @@ export default function GoldClient({ gold, fx }: { gold: GoldData | null; fx: Fx
 
   return (
     <main className="mt-page gd-page iq-page">
-      <ToolHead title="سعر الذهب" freshness={fresh} unavailable={down} actions={null} />
+      <ToolHead title={g.pageTitle} freshness={fresh} unavailable={down} actions={null} />
 
       {!down && fxDown ? (
         <PartialNotice>
-          الأسعار بالدينار سليمة، وتعذّر جلب سعر الصرف — حُذف المقابل بالدولار وحده.
+          {g.fxDownNote}
         </PartialNotice>
       ) : null}
 
       {down ? (
         <Unavailable
-          what="أسعار الذهب غير متاحة"
-          why="تعذّرت قراءة قائمة الأسعار، ولا يحتفظ المنتج بقائمة سابقة يعرضها بدلاً منها."
+          what={g.unavailableWhat}
+          why={g.unavailableWhy}
           source={SOURCES.gold}
         />
       ) : (
         <>
           {/* ═══ Hero · one karat, one unit, one number ═════════════════════ */}
-          <section className="mt-hero" aria-label="سعر الذهب">
+          <section className="mt-hero" aria-label={g.heroLabel}>
             <div className="mt-art"><DitherArt scene="gold" theme={theme === 'dark' ? 'dark' : 'light'} /></div>
 
             <div className="mt-quote">
               <p className="mt-quote-label">
-                عيار <bdi>{sel.karat}</bdi>
-                {sel.karat === LEAD_KARAT ? <em> · الأكثر تداولاً</em> : null}
+                {g.karat(String(sel.karat))}
+                {sel.karat === LEAD_KARAT ? <em> · {g.mostTraded}</em> : null}
               </p>
               <p className="mt-quote-value">
                 <bdi>{nf0.format(unitPrice(sel))}</bdi>
-                <span>د.ع لل{unitMeta.label}</span>
+                <span>{g.perUnit(unitName(unit, g))}</span>
               </p>
 
               {/* The unit switch sits directly under the number it changes. */}
-              <div className="mt-seg gd-units" role="group" aria-label="الوحدة">
+              <div className="mt-seg gd-units" role="group" aria-label={g.unitGroup}>
                 {UNITS.map(u => (
                   <button key={u.id} type="button"
                     className={unit === u.id ? 'is-on' : ''}
                     aria-pressed={unit === u.id}
                     onClick={() => setUnit(u.id)}>
-                    {u.label}
+                    {unitName(u.id, g)}
                   </button>
                 ))}
               </div>
@@ -141,8 +150,8 @@ export default function GoldClient({ gold, fx }: { gold: GoldData | null; fx: Fx
               <MetaLine
                 freshness={fresh}
                 extra={
-                  <span className="gd-kind" title="سعر منشور في السوق المحلية، وليس سعراً عالمياً محوَّلاً">
-                    سعر محلي منشور
+                  <span className="gd-kind" title={g.localKindTitle}>
+                    {g.localKind}
                   </span>
                 }
               />
@@ -150,10 +159,10 @@ export default function GoldClient({ gold, fx }: { gold: GoldData | null; fx: Fx
           </section>
 
           {/* ═══ Karat strip · a list, not a table ══════════════════════════ */}
-          <section className="gd-strip" aria-label="الأسعار حسب العيار">
+          <section className="gd-strip" aria-label={g.byKaratLabel}>
             <div className="gd-strip-head">
-              <h2>حسب العيار</h2>
-              <span>بال{unitMeta.label} · د.ع</span>
+              <h2>{g.byKarat}</h2>
+              <span>{g.inUnit(unitName(unit, g))}</span>
             </div>
             <ul>
               {karats.map(k => (
@@ -161,7 +170,7 @@ export default function GoldClient({ gold, fx }: { gold: GoldData | null; fx: Fx
                   <button type="button" onClick={() => setKarat(k.karat)}
                     aria-pressed={k.karat === sel.karat}>
                     <span className="gd-strip-k">
-                      عيار <bdi>{k.karat}</bdi>
+                      {g.karat(String(k.karat))}
                       {k.karat === LEAD_KARAT ? <em>{USE[k.karat] ?? ''}</em> : null}
                     </span>
                     <bdi className="gd-strip-v">{nf0.format(unitPrice(k))}</bdi>
@@ -172,73 +181,64 @@ export default function GoldClient({ gold, fx }: { gold: GoldData | null; fx: Fx
           </section>
 
           {/* ═══ Calculator ════════════════════════════════════════════════ */}
-          <section className="gd-calc" aria-label="حاسبة قيمة الذهب">
+          <section className="gd-calc" aria-label={g.calcLabel}>
             <div className="gd-calc-top">
-              <h2>احسب قيمة وزن</h2>
+              <h2>{g.weightCalc}</h2>
               <label className="mt-field is-inline">
-                <span>الكمية بال{unitMeta.label}</span>
+                <span>{g.amountIn(unitName(unit, g))}</span>
                 <input value={qty} inputMode="decimal" placeholder="0"
                   onChange={e => setQty(e.target.value.replace(/[^\d.]/g, ''))} />
               </label>
             </div>
             <p className="gd-calc-value">
               <bdi>{calcTotal == null ? NA : nf0.format(Math.round(calcTotal))}</bdi>
-              <span>د.ع</span>
+              <span>{g.iqd}</span>
             </p>
             <p className="gd-calc-note">
-              عيار <bdi>{sel.karat}</bdi> · بال{unitMeta.label}
+              {g.karatIn(String(sel.karat), unitName(unit, g))}
               {!fxDown && calcTotal != null && marketRate
-                ? <> · ≈ <bdi>${nf2.format(calcTotal / marketRate)}</bdi> بسعر السوق الموازية</>
+                ? <> · ≈ <bdi>${nf2.format(calcTotal / marketRate)}</bdi> {g.atMarketRate}</>
                 : null}
-              {' '}— قيمة معدنية من سعر القائمة، دون أجور صياغة.
+              {g.metalValueNote}
             </p>
           </section>
 
           <div className="mt-more">
-            <Disclosure label="معلومات السعر">
+            <Disclosure label={g.priceInfo}>
               <p>
-                هذه قائمة أسعار محلية عراقية تُنشر يومياً، وليست سعراً عالمياً للأونصة
-                محوَّلاً إلى الدينار. المصدر ينشر سعر الغرام لكل عيار؛ المثقال يساوي{' '}
-                <bdi>{MITHQAL_G}</bdi> غراماً والأونصة <bdi>{OUNCE_G}</bdi> غراماً، وسعراهما
-                هنا ضربٌ مباشر لسعر الغرام — لا رسوم مصنعية ولا هامش صائغ.
+                {g.localListNote(String(MITHQAL_G), String(OUNCE_G))}
               </p>
               {impliedRate ? (
                 <p>
-                  أرقام الدولار في القائمة من المصدر نفسه. نسبتها إلى أسعار الدينار تعني أنه
-                  يحوّل بسعر قريب من <bdi>{nf0.format(impliedRate)}</bdi> ديناراً للدولار —
-                  أي قرب السعر الرسمي <bdi>{nf0.format(CBI_OFFICIAL_RATE)}</bdi>
-                  {marketRate ? <>، لا سعر السوق الموازية <bdi>{nf0.format(marketRate)}</bdi></> : null}.
-                  من يحمل دولارات ويشتري محلياً يدفع فعلياً أكثر مما يوحي به ذلك العمود.
+                  {g.impliedRateNote(nf0.format(impliedRate), nf0.format(CBI_OFFICIAL_RATE), marketRate ? nf0.format(marketRate) : '')}
                 </p>
               ) : null}
               <p className="gd-usd-row">
-                سعر عيار <bdi>{sel.karat}</bdi> بال{unitMeta.label} ={' '}
-                <bdi>{nf0.format(unitPrice(sel))}</bdi> د.ع
-                {sel.usd > 0 ? <> · رقم المصدر <bdi>${nf0.format(sel.usd * unitGrams(unit))}</bdi></> : null}
-                {marketRate ? <> · بسعر السوق <bdi>${nf0.format(unitPrice(sel) / marketRate)}</bdi></> : null}
+                {g.karatPrice(String(sel.karat), unitName(unit, g), nf0.format(unitPrice(sel)))}
+                {sel.usd > 0 ? <>{g.sourceFigure(`$${nf0.format(sel.usd * unitGrams(unit))}`)}</> : null}
+                {marketRate ? <>{g.atMarket(`$${nf0.format(unitPrice(sel) / marketRate)}`)}</> : null}
               </p>
             </Disclosure>
 
             {gold?.ounceSell || gold?.ounceBuy ? (
-              <Disclosure label="سعر الأونصة كما ينشره المصدر">
+              <Disclosure label={g.ounceAsPublished}>
                 {/* Neither side coloured. The old page painted شراء green, which
                     reads as "up" everywhere else — this is a price, not a change. */}
                 <p className="gd-ounce">
-                  <span>بيع <bdi>{gold.ounceSell ? nf0.format(gold.ounceSell.iqd) : NA}</bdi> د.ع</span>
+                  <span>{g.ounceSell} <bdi>{gold.ounceSell ? nf0.format(gold.ounceSell.iqd) : NA}</bdi> {g.iqd}</span>
                   <i aria-hidden="true">·</i>
-                  <span>شراء <bdi>{gold.ounceBuy ? nf0.format(gold.ounceBuy.iqd) : NA}</bdi> د.ع</span>
+                  <span>{g.ounceBuy} <bdi>{gold.ounceBuy ? nf0.format(gold.ounceBuy.iqd) : NA}</bdi> {g.iqd}</span>
                 </p>
                 <p>
-                  المصدر لا يوضّح من أي طرف يقرأ «البيع» و«الشراء»، والفرق بين الرقمين ضئيل.
-                  لذلك يُعرض الرقمان كما نُشرا ولا يُحسب منهما هامش صيرفة أو صياغة.
+                  {g.ounceSideNote}
                 </p>
               </Disclosure>
             ) : null}
 
-            <Disclosure label="عن المصدر والتحديث">
+            <Disclosure label={g.aboutSource}>
               <p>
                 {SOURCES.gold.host} · {SOURCES.gold.note}.
-                {!fxDown ? <> سعر الصرف المستخدم في المقابل بالدولار من {SOURCES.fx.host}.</> : null}
+                {!fxDown ? <>{g.fxSourceNote(SOURCES.fx.host)}</> : null}
               </p>
               <NoHistoryNote />
             </Disclosure>

@@ -1,3 +1,8 @@
+import { localeDate } from "@/lib/date";
+import type { Messages } from "@/lib/i18n";
+
+type ToolCopy = Messages["rates"]["tools"];
+
 /**
  * أدوات الأسواق — the shared spine behind سعر الصرف · الذهب · النفط.
  *
@@ -83,11 +88,6 @@ export type Freshness = {
 export const today = (): string =>
   new Date(Date.now() + 3 * 3_600_000).toISOString().slice(0, 10)
 
-const AR_MONTH = [
-  "يناير", "فبراير", "مارس", "أبريل", "مايو", "يونيو",
-  "يوليو", "أغسطس", "سبتمبر", "أكتوبر", "نوفمبر", "ديسمبر",
-];
-
 /**
  * The sources do not agree on a separator: Alsumaria's date arrives as
  * `YYYY-MM-DD` and iraqgoldprice.com's as `(YYYY/MM/DD)`. Normalising here
@@ -96,11 +96,18 @@ const AR_MONTH = [
  */
 const isoish = (v: string): string => v.trim().replace(/\//g, "-");
 
-/** «12 أغسطس 2026» — Latin digits, matching every other surface. */
-export function arDate(raw: string): string {
-  const [y, m, d] = isoish(raw).split("-").map(Number);
-  if (!y || !m || !d || !AR_MONTH[m - 1]) return raw;
-  return `${d} ${AR_MONTH[m - 1]} ${y}`;
+/**
+ * «12 آب 2026» / «12 August 2026» — Latin digits, matching every other surface.
+ *
+ * ⚠ This was a FIFTH private copy of the month table, and a pan-Arab one while
+ * the rest of the product had moved to the Iraqi names. It now delegates to
+ * the single table in lib/date.ts.
+ */
+export function toolDate(raw: string, locale: "ar" | "en" = "ar"): string {
+  const iso = isoish(raw);
+  const [y, m, d] = iso.split("-").map(Number);
+  if (!y || !m || !d) return raw;
+  return localeDate(iso, locale);
 }
 
 /** Whole days between two dates, either separator. */
@@ -117,14 +124,15 @@ export function daysBetween(a: string, b: string): number {
  * is one day old is normal; a delayed source that is one day old is worth
  * saying; a policy rate has no age at all, only a confirmation date.
  */
-export function freshnessLine(f: Freshness): string {
-  if (f.stale) return "تعذّر تحديث المصدر · هذه آخر قراءة معروفة";
-  if (!f.observed) return "لا يوجد تاريخ رصد من المصدر";
+export function freshnessLine(f: Freshness, t: ToolCopy, locale: "ar" | "en"): string {
+  if (f.stale) return t.staleRead;
+  if (!f.observed) return t.noObserved;
   const age = daysBetween(f.observed, today());
-  if (f.source.cadence === "policy") return `آخر تأكيد ${arDate(f.observed)}`;
-  if (age <= 0) return `رصد ${arDate(f.observed)}`;
-  if (age === 1) return `رصد ${arDate(f.observed)} · قراءة الأمس`;
-  return `رصد ${arDate(f.observed)} · ${agePhrase(age)}`;
+  const when = toolDate(f.observed, locale);
+  if (f.source.cadence === "policy") return t.confirmedOn(when);
+  if (age <= 0) return t.observedOn(when);
+  if (age === 1) return t.observedYesterday(when);
+  return t.observedAge(when, agePhrase(age, t, locale));
 }
 
 /**
@@ -133,11 +141,15 @@ export function freshnessLine(f: Freshness): string {
  * «2 أيام», which is the plural applied to a dual and reads as a bug to any
  * Arabic reader. Same class as the portfolio's «2 عمليات».
  */
-export function agePhrase(n: number): string {
-  if (n === 1) return "قبل يوم";
-  if (n === 2) return "قبل يومين";
-  if (n <= 10) return `قبل ${n} أيام`;
-  return `قبل ${n} يوماً`;
+export function agePhrase(n: number, t: ToolCopy, locale: "ar" | "en"): string {
+  /* ⚠ Arabic counts days in FOUR forms, not two — singular, DUAL, the 3–10
+     plural, and the 11+ accusative singular. English has two. The branches are
+     kept for both languages so the Arabic stays correct; English simply
+     returns the same phrase from three of them. */
+  if (n === 1) return t.ago1;
+  if (n === 2) return t.ago2;
+  if (n <= 10) return t.agoFew(String(n));
+  return t.agoMany(String(n));
 }
 
 /** The chip's tone. Three states, and none of them is "live". */
@@ -149,11 +161,11 @@ export function freshnessTone(f: Freshness): "current" | "carried" | "stale" {
   return age <= 1 ? "current" : "carried";
 }
 
-export function freshnessLabel(f: Freshness): string {
+export function freshnessLabel(f: Freshness, t: ToolCopy): string {
   const tone = freshnessTone(f);
-  if (tone === "stale") return "آخر قراءة معروفة";
-  if (tone === "carried") return "قراءة مُرحّلة";
-  return f.source.cadence === "policy" ? "سعر ثابت" : "أحدث رصد";
+  if (tone === "stale") return t.lastKnown;
+  if (tone === "carried") return t.carried;
+  return f.source.cadence === "policy" ? t.fixedRate : t.latestRead;
 }
 
 /* ── Numbers ─────────────────────────────────────────────────────────────── */

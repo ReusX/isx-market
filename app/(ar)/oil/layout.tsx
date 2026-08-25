@@ -20,7 +20,7 @@ export const metadata: Metadata = {
   openGraph: {
     url: absUrl('/oil'),
     title: 'سعر النفط اليوم في العراق · برنت وخام البصرة وسلة أوبك · Iraq Oil Price',
-    description: 'سعر برميل النفط اليوم مباشر: برنت، غرب تكساس WTI، خام البصرة، وسلة أوبك بالدولار والدينار العراقي. Live Brent, WTI, Basrah & OPEC basket prices.',
+    description: 'سعر برميل النفط اليوم: برنت، غرب تكساس WTI، خام البصرة، وسلة أوبك بالدولار والدينار العراقي. Brent, WTI, Basrah and OPEC basket prices.',
     images: [{ url: '/opengraph-image', width: 1200, height: 630 }],
   },
 }
@@ -33,7 +33,7 @@ const faqSchema = {
       '@id': absUrl('/oil'),
       url: absUrl('/oil'),
       name: 'Oil Price Today in Iraq · Brent, WTI, Basrah Crude & OPEC Basket',
-      description: 'Live oil price today in USD and Iraqi Dinar per barrel · Brent, WTI, Iraq Basrah Heavy/Medium crude, Dubai and the OPEC basket.',
+      description: 'Oil price in USD and Iraqi dinars per barrel · Brent, WTI, Basrah Heavy and Medium crude, Dubai and the OPEC basket.',
       inLanguage: ['ar-IQ', 'en'],
       about: { '@type': 'Thing', name: 'Oil Price', sameAs: 'https://en.wikipedia.org/wiki/Price_of_oil' },
       breadcrumb: {
@@ -106,7 +106,7 @@ export default function OilLayout({ children }: { children: React.ReactNode }) {
           سعر النفط اليوم في العراق بالدولار والدينار العراقي
         </h2>
         <p style={{ marginBottom: 16 }}>
-          توفّر هذه الصفحة سعر برميل النفط اليوم مباشر لأهم الخامات العالمية والإقليمية: خام برنت، وخام غرب تكساس
+          توفّر هذه الصفحة سعر برميل النفط لأهم الخامات العالمية والإقليمية: خام برنت، وخام غرب تكساس
           الوسيط (WTI)، وسلة أوبك، وخام دبي، إضافة إلى خامي التصدير العراقيين الرئيسيين البصرة الثقيل والبصرة المتوسط.
           تُعرض الأسعار بالدولار الأمريكي للبرميل مع ما يعادلها بالدينار العراقي حسب سعر الصرف الحالي.
         </p>

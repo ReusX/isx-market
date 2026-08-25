@@ -117,3 +117,20 @@ export function buildFxFaq(fx: FxData | null): FxQa[] {
     },
   ]
 }
+
+
+/**
+ * The English one-line rate sentence.
+ *
+ * ⚠ No «today». The source publishes a daily CLOSING rate and this product
+ * stores no history, so the sentence says what it is — the latest published
+ * closing rate — rather than implying a live intraday quote. The Arabic
+ * equivalent keeps «اليوم» in the SEARCH phrasing of its title only, and its
+ * body carries the same qualification.
+ */
+export function describeFxRateEn(fx: { buy?: number | null; sell?: number | null } | null): string | null {
+  const market = fx?.sell ?? fx?.buy ?? null
+  if (!market) return null
+  const n = (v: number) => v.toLocaleString('en-US', { maximumFractionDigits: 0 })
+  return `is about ${n(market)} dinars on the parallel market, against an official rate of ${n(CBI_OFFICIAL_RATE)}`
+}

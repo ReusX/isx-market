@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import { describeFxRate, getFx } from '@/lib/fxCopy'
-import FxClient from './FxClient'
+import FxSurface from '@/components/routes/FxPage'
 import { absUrl, seoAlternates } from '@/lib/seo'
 
 // Re-scrape at most every 3h (lib sets the data-cache TTL); the page itself
@@ -71,5 +71,5 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default async function FxPage() {
   const fx = await getFx()
-  return <FxClient fx={fx} />
+  return <FxSurface fx={fx} />
 }

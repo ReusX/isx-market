@@ -13,26 +13,26 @@
 
 export type Region = 'iraq' | 'benchmark' | 'regional'
 
-export type BlendDef = { key: string; ar: string; region: Region; flag: string }
+export type BlendDef = { key: string; ar: string; en: string; region: Region; flag: string }
 
 export const BLEND_DEFS: BlendDef[] = [
-  { key: 'Basrah-Heavy', ar: 'البصرة الثقيل', region: 'iraq', flag: '🇮🇶' },
-  { key: 'Basrah-Medium', ar: 'البصرة المتوسط', region: 'iraq', flag: '🇮🇶' },
-  { key: 'Brent-Crude', ar: 'خام برنت', region: 'benchmark', flag: '🇬🇧' },
-  { key: 'WTI-Crude', ar: 'غرب تكساس WTI', region: 'benchmark', flag: '🇺🇸' },
-  { key: 'Opec-Basket', ar: 'سلة أوبك', region: 'benchmark', flag: '🛢️' },
-  { key: 'Dubai', ar: 'دبي/عُمان', region: 'benchmark', flag: '🇦🇪' },
-  { key: 'Murban-Crude', ar: 'مربان', region: 'benchmark', flag: '🇦🇪' },
-  { key: 'Arab-Light', ar: 'العربي الخفيف', region: 'regional', flag: '🇸🇦' },
-  { key: 'Kuwait-Export-Blend', ar: 'مزيج الكويت', region: 'regional', flag: '🇰🇼' },
-  { key: 'Iran-Heavy', ar: 'إيران الثقيل', region: 'regional', flag: '🇮🇷' },
-  { key: 'Iran-Light', ar: 'إيران الخفيف', region: 'regional', flag: '🇮🇷' },
+  { key: 'Basrah-Heavy', ar: 'البصرة الثقيل', en: 'Basrah Heavy', region: 'iraq', flag: '🇮🇶' },
+  { key: 'Basrah-Medium', ar: 'البصرة المتوسط', en: 'Basrah Medium', region: 'iraq', flag: '🇮🇶' },
+  { key: 'Brent-Crude', ar: 'خام برنت', en: 'Brent Crude', region: 'benchmark', flag: '🇬🇧' },
+  { key: 'WTI-Crude', ar: 'غرب تكساس WTI', en: 'WTI Crude', region: 'benchmark', flag: '🇺🇸' },
+  { key: 'Opec-Basket', ar: 'سلة أوبك', en: 'OPEC Basket', region: 'benchmark', flag: '🛢️' },
+  { key: 'Dubai', ar: 'دبي/عُمان', en: 'Dubai / Oman', region: 'benchmark', flag: '🇦🇪' },
+  { key: 'Murban-Crude', ar: 'مربان', en: 'Murban', region: 'benchmark', flag: '🇦🇪' },
+  { key: 'Arab-Light', ar: 'العربي الخفيف', en: 'Arab Light', region: 'regional', flag: '🇸🇦' },
+  { key: 'Kuwait-Export-Blend', ar: 'مزيج الكويت', en: 'Kuwait Export Blend', region: 'regional', flag: '🇰🇼' },
+  { key: 'Iran-Heavy', ar: 'إيران الثقيل', en: 'Iran Heavy', region: 'regional', flag: '🇮🇷' },
+  { key: 'Iran-Light', ar: 'إيران الخفيف', en: 'Iran Light', region: 'regional', flag: '🇮🇷' },
 ]
 
-export const REGION_LABEL: Record<Region, string> = {
-  iraq: 'الخام العراقي',
-  benchmark: 'المؤشرات العالمية',
-  regional: 'خامات أوبك والمنطقة',
+export const REGION_LABEL: Record<Region, { ar: string; en: string }> = {
+  iraq:      { ar: 'الخام العراقي',        en: 'Iraqi crude' },
+  benchmark: { ar: 'المؤشرات العالمية',    en: 'Global benchmarks' },
+  regional:  { ar: 'خامات أوبك والمنطقة',  en: 'OPEC and regional grades' },
 }
 
 export const HERO_KEY = 'Basrah-Heavy'
