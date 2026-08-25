@@ -2,6 +2,7 @@ import { nav } from './nav'
 import { shell } from './shell'
 import { system } from './system'
 import { glossary } from './glossary'
+import { info } from './info'
 
 /**
  * The Arabic dictionary — and, because `en` is typed as `typeof ar`, the
@@ -13,4 +14,4 @@ import { glossary } from './glossary'
  * key removed here but left in `en` fails too, so the dictionaries cannot
  * drift apart in either direction.
  */
-export const ar = { nav, shell, system, glossary }
+export const ar = { nav, shell, system, glossary, info }

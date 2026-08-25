@@ -3,6 +3,7 @@
 import { type ReactNode } from 'react'
 import Link from 'next/link'
 import { useApp } from '@/context/AppContext'
+import { useLocale } from '@/context/LocaleContext'
 import { DitherArt, type Scene } from '@/components/design/DitherArt'
 import { FAMILY } from '@/lib/infoData'
 import type { LegalSection } from '@/lib/legalContent'
@@ -86,10 +87,11 @@ export function DocToc({ sections, active }: { sections: LegalSection[]; active:
  * proximity, not to substitute for the footer.
  */
 export function FamilyRow({ current }: { current: string }) {
+  const { t, href: L } = useLocale()
   return (
-    <nav className="in-family" aria-label="صفحات الموقع">
+    <nav className="in-family" aria-label={t.info.familyLabel}>
       {FAMILY.filter((f) => f.href !== current).map((f) => (
-        <Link key={f.href} href={f.href}>{f.label}</Link>
+        <Link key={f.href} href={L(f.href)}>{t.nav.info[f.id]}</Link>
       ))}
     </nav>
   )

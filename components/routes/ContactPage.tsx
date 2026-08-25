@@ -3,8 +3,9 @@
 import { useState } from 'react'
 import { InfoHead, FamilyRow, Plate } from '@/components/info/InfoChrome'
 import {
-  EMAIL, PHONE_DISPLAY, PHONE_INTL, REPLY_TIME, SOCIAL, TOPICS, mailto,
+  EMAIL, PHONE_DISPLAY, PHONE_INTL, SOCIAL, TOPIC_IDS, mailto,
 } from '@/lib/infoData'
+import { useT } from '@/context/LocaleContext'
 import '@/styles/info.css'
 
 /**
@@ -36,7 +37,9 @@ import '@/styles/info.css'
  * channels are typographic; the platform name and the handle carry the
  * recognition.
  */
-export function ContactClient() {
+export function ContactPage() {
+  const t = useT()
+  const c = t.info.contact
   const [copied, setCopied] = useState(false)
 
   /* The only interaction on the page, and it is entirely client-side. A phone
@@ -57,9 +60,9 @@ export function ContactClient() {
   return (
     <main className="in-page in-contact iq-page">
       <InfoHead
-        eyebrow="تواصل معنا"
-        title="يسعدنا سماعك"
-        standfirst="سؤال، اقتراح، أو بلاغ عن مشكلة — الوصول إلينا بخطوة واحدة."
+        eyebrow={c.eyebrow}
+        title={c.title}
+        standfirst={c.standfirst}
       />
 
       {/* A split, not a stack. One column of sections down the middle of a
@@ -72,23 +75,23 @@ export function ContactClient() {
         <div className="in-body">
           {/* ── The primary channel · one, and unmistakable ────────────── */}
           <section className="in-primary" aria-labelledby="in-primary-h">
-            <h2 id="in-primary-h">البريد الإلكتروني</h2>
+            <h2 id="in-primary-h">{c.emailHeading}</h2>
             <a className="in-mail" href={mailto()} dir="ltr">{EMAIL}</a>
-            <p className="in-reply">{REPLY_TIME}</p>
+            <p className="in-reply">{c.replyTime}</p>
             <button type="button" className="in-copy" onClick={copyEmail}>
-              {copied ? 'تم النسخ' : 'نسخ العنوان'}
+              {copied ? c.copied : c.copy}
             </button>
             {/* Announced politely so it is not read over the button label. */}
-            <span className="sr-only" role="status">{copied ? 'تم نسخ البريد الإلكتروني' : ''}</span>
+            <span className="sr-only" role="status">{copied ? c.copiedAnnounce : ''}</span>
           </section>
 
           {/* ── The other channels · stated, not decorated ─────────────── */}
           <section className="in-channels" aria-labelledby="in-channels-h">
-            <h2 id="in-channels-h">قنوات أخرى</h2>
+            <h2 id="in-channels-h">{c.channelsHeading}</h2>
             <ul>
               <li>
                 <a href={`tel:${PHONE_INTL}`}>
-                  <span className="in-ch-name">الهاتف</span>
+                  <span className="in-ch-name">{c.phone}</span>
                   <bdi dir="ltr">{PHONE_DISPLAY}</bdi>
                 </a>
               </li>
@@ -98,7 +101,7 @@ export function ContactClient() {
                     <span className="in-ch-name">{s.label}</span>
                     <bdi dir="ltr">{s.handle}</bdi>
                     <i className="in-ch-out" aria-hidden="true">↗</i>
-                    <span className="sr-only">يفتح في نافذة جديدة</span>
+                    <span className="sr-only">{c.newWindow}</span>
                   </a>
                 </li>
               ))}
@@ -107,14 +110,14 @@ export function ContactClient() {
 
           {/* ── The six topics · now addressed ─────────────────────────── */}
           <section className="in-topics" aria-labelledby="in-topics-h">
-            <h2 id="in-topics-h">بخصوص ماذا؟</h2>
-            <p className="in-note">اختر موضوعاً ليُفتح بريد جاهز بالعنوان المناسب.</p>
+            <h2 id="in-topics-h">{c.topicsHeading}</h2>
+            <p className="in-note">{c.topicsNote}</p>
             <ul>
-              {TOPICS.map((t) => (
-                <li key={t.id}>
-                  <a href={mailto(t.subject)}>
-                    <span>{t.label}</span>
-                    <i aria-hidden="true">‹</i>
+              {TOPIC_IDS.map((id) => (
+                <li key={id}>
+                  <a href={mailto(c.topics[id].subject)}>
+                    <span>{c.topics[id].label}</span>
+                    <i className="dir-go" aria-hidden="true">‹</i>
                   </a>
                 </li>
               ))}

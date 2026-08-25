@@ -778,3 +778,19 @@
 .in-tick.is-tr { inset-block-start: 6px; inset-inline-end: 6px; border-block-start: 1px solid currentColor; border-inline-end: 1px solid currentColor; }
 .in-tick.is-bl { inset-block-end: 6px; inset-inline-start: 6px; border-block-end: 1px solid currentColor; border-inline-start: 1px solid currentColor; }
 .in-tick.is-br { inset-block-end: 6px; inset-inline-end: 6px; border-block-end: 1px solid currentColor; border-inline-end: 1px solid currentColor; }
+
+/* ── Directional glyphs ───────────────────────────────────────────────────
+   The product writes «go» and «back» affordances as a bare chevron in the
+   markup: `<i aria-hidden="true">‹</i>`. In RTL that glyph points forward. In
+   LTR it points backwards, so an English reader sees every «continue» link
+   with an arrow aimed at the previous page.
+
+   The glyph is not mirrored by the bidi algorithm — it is content, not
+   punctuation with a mirrored pair in this context — so direction has to be
+   applied here. `.dir-go` marks an element whose glyph means «onward», and it
+   flips with the document.
+
+   `display: inline-block` is required: a transform does nothing to an inline
+   box. */
+.dir-go { display: inline-block; }
+[dir='ltr'] .dir-go { transform: scaleX(-1); }
