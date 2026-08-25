@@ -1,4 +1,7 @@
+'use client'
+
 import type { ReactNode } from 'react'
+import { useT } from '@/context/LocaleContext'
 
 /**
  * The data-state vocabulary — the words this product uses for absence.
@@ -30,7 +33,8 @@ import type { ReactNode } from 'react'
 
 /** We do not have this value. */
 export function Unavailable({ why }: { why?: string }) {
-  const label = why ?? 'غير متاح'
+  const t = useT()
+  const label = why ?? t.data.unavailable
   return <bdi className="ds-na" title={label} aria-label={label}>—</bdi>
 }
 
@@ -40,11 +44,13 @@ export function Zero() {
 }
 
 /** Measured, and the measurement is «nothing happened». */
-export function NoActivity({ label = 'لا نشاط' }: { label?: string }) {
+export function NoActivity({ label }: { label?: string }) {
+  const t = useT()
+  const text = label ?? t.data.noActivity
   return (
     <span className="ds-idle">
       <bdi>0</bdi>
-      <small>{label}</small>
+      <small>{text}</small>
     </span>
   )
 }
@@ -83,11 +89,12 @@ export function Freshness({
  * reader who knows the shape of the gap can decide whether it matters to them.
  */
 export function PartialNotice({ text, onRetry }: { text: string; onRetry?: () => void }) {
+  const t = useT()
   return (
     <div className="ds-partial" role="status">
       <i aria-hidden="true">△</i>
       <span>{text}</span>
-      {onRetry ? <button type="button" onClick={onRetry}>أعد المحاولة</button> : null}
+      {onRetry ? <button type="button" onClick={onRetry}>{t.data.retry}</button> : null}
     </div>
   )
 }
@@ -100,11 +107,12 @@ export function PartialNotice({ text, onRetry }: { text: string; onRetry?: () =>
  * error state makes things worse than the error.
  */
 export function ModuleError({ what, onRetry }: { what: string; onRetry?: () => void }) {
+  const t = useT()
   return (
     <div className="ds-modfail" role="status">
-      <strong>تعذّر تحميل {what}</strong>
-      <span>بقية الصفحة تعمل.</span>
-      {onRetry ? <button type="button" onClick={onRetry}>أعد المحاولة</button> : null}
+      <strong>{t.data.moduleFailed(what)}</strong>
+      <span>{t.data.restOfPageOk}</span>
+      {onRetry ? <button type="button" onClick={onRetry}>{t.data.retry}</button> : null}
     </div>
   )
 }

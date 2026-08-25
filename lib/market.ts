@@ -1,6 +1,6 @@
 import type { Company, CompanyMeta, LiveData, LiveStock } from '@/types'
 import { createClient } from '@/lib/supabase/client'
-import { arDate } from '@/lib/date'
+import { arDate, enDate } from '@/lib/date'
 
 // ─── Data fetchers ──────────────────────────────────────────────────────────
 
@@ -200,13 +200,23 @@ export function liveMcap(c: { close: number; shares?: number; mcap?: number }): 
  * and the derived company_metrics row. Meta wins: a handful of metrics rows
  * carry junk Arabic names straight from the bulletin parse ("8", "15"), so a
  * candidate also has to actually read as a name rather than a number.
+ *
+ * ── On locale ─────────────────────────────────────────────────────────────
+ * `locale` only reorders the candidate list; it never filters it. An English
+ * reader looking at a company that has no English name gets the official
+ * Arabic one, with the ticker beside it, because that is the truth. The
+ * alternative — an empty cell, or worse a machine-made translation of a legal
+ * company name — is the failure mode the brief calls out by name.
  */
 export function companyName(
   c: { ar?: string | null; en?: string | null; name_ar?: string | null; name_en?: string | null },
   ticker: string,
+  locale: 'ar' | 'en' = 'ar',
 ): string {
-  const named = [c.ar, c.en, c.name_ar, c.name_en]
-    .find(v => v && /[A-Za-z؀-ۿ]/.test(v))
+  const order = locale === 'ar'
+    ? [c.ar, c.en, c.name_ar, c.name_en]
+    : [c.en, c.name_en, c.ar, c.name_ar]
+  const named = order.find(v => v && /[A-Za-z؀-ۿ]/.test(v))
   return named?.trim() || ticker
 }
 
@@ -305,7 +315,10 @@ export function fmtVol(v: number | null | undefined): string {
 export function lastTradeNote(c: { stale?: boolean; lastTrade?: string }, ar: boolean): string | undefined {
   if (!c.stale) return undefined
   return c.lastTrade
-    ? (ar ? `آخر تداول: ${arDate(c.lastTrade)}` : `Last traded ${c.lastTrade}`)
+    // ⚠ The English branch used to print the raw ISO string — «Last traded
+    // 2026-08-19» beside an Arabic column reading «19 أغسطس 2026». Same date,
+    // two formats, one of them not written for a reader.
+    ? (ar ? `آخر تداول: ${arDate(c.lastTrade)}` : `Last traded ${enDate(c.lastTrade)}`)
     : (ar ? 'لم يتداول في الجلسة الأخيرة' : 'Did not trade in the latest session')
 }
 

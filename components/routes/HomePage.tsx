@@ -2,19 +2,21 @@
 
 import { useEffect, useMemo, useState, useCallback } from 'react'
 import Link from 'next/link'
-import { fetchLive, fetchCompanyMeta, mergeCompanies, liveMcap, lastTradeNote } from '@/lib/market'
+import { fetchLive, fetchCompanyMeta, mergeCompanies, liveMcap, lastTradeNote, companyName } from '@/lib/market'
 import { fetchSparklines } from '@/lib/sparks'
 import IndexChart from '@/components/design/IndexChart'
 import { Sparkline } from '@/components/design/Sparkline'
 import { CompanyLogo } from '@/components/CompanyLogo'
 import { useOverlay } from '@/components/system/Overlay'
 import { useApp } from '@/context/AppContext'
+import { useLocale } from '@/context/LocaleContext'
 import { Skeleton, ModuleError, Freshness, Unavailable } from '@/components/system/DataStates'
 import {
-  computeBreadth, computeFlow, computeSectors, sessionFreshness, arSession, signed,
+  computeBreadth, computeFlow, computeSectors, sessionFreshness, sessionDate, signed,
   type Breadth, type Flow, type IndexRow, type SectorMove,
 } from '@/lib/homeData'
 import { HeroCard, BreadthCard, ActivityCard, FlowCard, SectorsCard } from './HomeModules'
+import '@/styles/home.css'
 import type { Company } from '@/types'
 
 const nf = new Intl.NumberFormat('en-US')
@@ -29,9 +31,6 @@ type MoverTab = 'mcap' | 'gainers' | 'losers' | 'active'
  * snapshot, so neither is an officially proven ISX ranking. The wording matches
  * what `/market` and `/companies` already say about the same number.
  */
-const MCAP_CAVEAT =
-  'القيمة السوقية = آخر سعر تداول × الأسهم المصدرة، بالقيمة نفسها المعروضة في صفحتي السوق والشركات · '
-  + 'لقطة على سجل الشركات لا ترتيب رسمي معتمد. الشركات التي لا يتوفر لها سعر أو عدد أسهم مستبعدة، ولا تُحتسب صفراً.'
 
 /**
  * The homepage.
@@ -57,8 +56,11 @@ const MCAP_CAVEAT =
  * panel to a full-route error throws away everything that DID load, which is
  * the most common way an error state makes things worse than the error.
  */
-export default function HomeClient() {
+export function HomePage() {
   const { profile } = useApp()
+  const { t, locale, href: L } = useLocale()
+  const h = t.home
+  const ar = locale === 'ar'
 
   const [companies, setCompanies] = useState<Company[]>([])
   const [series, setSeries] = useState<IndexRow[]>([])
@@ -124,12 +126,12 @@ export default function HomeClient() {
 
   /** The one canonical session every module is labelled with. */
   const session = latest?.date ?? null
-  const fresh = sessionFreshness(session)
+  const fresh = sessionFreshness(session, locale)
 
   const traded = useMemo(() => companies.filter((c) => c.close > 0 && !c.stale), [companies])
   const breadth = useMemo<Breadth | null>(
     () => (traded.length ? computeBreadth(traded, latest) : null), [traded, latest])
-  const sectors = useMemo<SectorMove[]>(() => computeSectors(traded), [traded])
+  const sectors = useMemo<SectorMove[]>(() => computeSectors(traded, locale), [traded, locale])
 
   /* Foreign flow uses ITS OWN latest date, and the page states when that
      differs from the index session rather than pretending they match. */
@@ -239,7 +241,7 @@ export default function HomeClient() {
   /** What a ranked row is standing on: today's close, or the last real trade. */
   const capNote = useCallback((c: Company): string | undefined => {
     if (!(liveMcap(c) > 0)) return undefined
-    return c.stale ? `${c.ar} · ${lastTradeNote(c, true)}` : undefined
+    return c.stale ? `${c.ar} · ${lastTradeNote(c, ar)}` : undefined
   }, [])
 
   const movers = useMemo(() => {
@@ -276,8 +278,8 @@ export default function HomeClient() {
      market-cap mode and traded value everywhere else, and it says which. */
   const capMode = moverTab === 'mcap'
   const valueCol = capMode
-    ? { key: 'mcap' as SortKey, label: 'القيمة السوقية' }
-    : { key: 'value' as SortKey, label: 'قيمة التداول' }
+    ? { key: 'mcap' as SortKey, label: h.movers.valueCapMode }
+    : { key: 'value' as SortKey, label: h.movers.valueTradeMode }
 
   const closeExpanded = useCallback(() => setExpanded(false), [])
   const expandedRef = useOverlay(expanded, closeExpanded)
@@ -292,15 +294,20 @@ export default function HomeClient() {
      its place when it does not. */
   const [hour, setHour] = useState<number | null>(null)
   useEffect(() => { setHour(new Date().getHours()) }, [])
-  const salutation = hour == null ? null : hour < 12 ? 'صباح الخير' : 'مساء الخير'
+  const salutation = hour == null ? null : hour < 12 ? h.morning : h.evening
   const name = profile?.username?.trim() || null
 
   return (
     <main className="iq-page hm">
       <div className="hm-intro">
         <div>
-          <span>نظرة السوق{session ? ` · ${arSession(session)}` : ''}</span>
-          <h1>{name && salutation ? `${salutation}، ${name}` : 'نظرة على السوق'}</h1>
+          <span>{h.eyebrow}{session ? ` · ${sessionDate(session, locale)}` : ''}</span>
+          {/* Signed in, the reader is greeted by name — the approved
+              composition. Signed out, the page leads with what it is showing.
+              The old fallback «نظرة على السوق» named the module, not the
+              subject, and said nothing a reader did not already know from
+              having clicked. */}
+          <h1>{name && salutation ? h.greeting(salutation, name) : h.title}</h1>
         </div>
         {/* No `stamp`. It is `<bdi>`-isolated inside the chip, which reorders
             «16 أغسطس 2026» to «أغسطس 16 2026» — and the intro line above
@@ -311,9 +318,9 @@ export default function HomeClient() {
       {/* ── the 12-column composition ───────────────────────────────────────
           Four of the six modules have DIFFERENT widths, because the reference
           gives them different widths. 8/4 on the hero row, 3/4/5 beneath. */}
-      <section className="hm-comp" aria-label="ملخص السوق العراقي">
+      <section className="hm-comp" aria-label={h.summaryLabel}>
         {indexFailed ? (
-          <article className="hm-hero hm-hero-failed"><ModuleError what="مؤشر ISX60" /></article>
+          <article className="hm-hero hm-hero-failed"><ModuleError what={t.data.modules.isx60} /></article>
         ) : !latest ? (
           <article className="hm-hero hm-hero-failed"><Skeleton shape="chart" rows={1} /></article>
         ) : (
@@ -321,13 +328,13 @@ export default function HomeClient() {
         )}
 
         {flowFailed ? (
-          <article className="hm-flow hm-flow-failed"><ModuleError what="تدفق المستثمر الأجنبي" /></article>
+          <article className="hm-flow hm-flow-failed"><ModuleError what={t.data.modules.foreignFlow} /></article>
         ) : (
           <FlowCard flow={flow} behind={flowBehind} />
         )}
 
         {pricesFailed ? (
-          <article className="hm-breadth hm-mod-failed"><ModuleError what="اتساع السوق" onRetry={loadPrices} /></article>
+          <article className="hm-breadth hm-mod-failed"><ModuleError what={t.data.modules.breadth} onRetry={loadPrices} /></article>
         ) : pricesLoading ? (
           <article className="hm-breadth hm-mod-failed"><Skeleton shape="rows" rows={4} /></article>
         ) : (
@@ -335,13 +342,13 @@ export default function HomeClient() {
         )}
 
         {indexFailed ? (
-          <section className="hm-activity hm-mod-failed"><ModuleError what="نشاط السوق" /></section>
+          <section className="hm-activity hm-mod-failed"><ModuleError what={t.data.modules.activity} /></section>
         ) : (
           <ActivityCard rows={series} />
         )}
 
         {pricesFailed ? (
-          <section className="hm-sectors hm-mod-failed"><ModuleError what="أداء القطاعات" onRetry={loadPrices} /></section>
+          <section className="hm-sectors hm-mod-failed"><ModuleError what={t.data.modules.sectors} onRetry={loadPrices} /></section>
         ) : pricesLoading ? (
           <section className="hm-sectors hm-mod-failed"><Skeleton shape="rows" rows={5} /></section>
         ) : (
@@ -353,36 +360,36 @@ export default function HomeClient() {
       <section className="hm-market" aria-labelledby="hm-top-t">
         <header>
           <div>
-            <span>لوحة السوق</span>
+            <span>{h.movers.eyebrow}</span>
             {/* Not «الأكثر حركة» any more: the default view is market cap, and
                 three of the four tabs are not about movement at all. */}
-            <h2 id="hm-top-t">أبرز الشركات</h2>
+            <h2 id="hm-top-t">{h.movers.title}</h2>
           </div>
           <div className="hm-market-actions">
             <label>
               <span aria-hidden="true">⌕</span>
-              <span className="sr-only">ابحث عن شركة</span>
-              <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="ابحث عن شركة..." />
+              <span className="sr-only">{h.movers.search}</span>
+              <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder={h.movers.searchPlaceholder} />
             </label>
-            <Link href="/market">جميع الشركات ↗</Link>
+            <Link href={L('/market')}>{h.movers.all} <i className="dir-go" aria-hidden="true">↗</i></Link>
           </div>
         </header>
 
         <div className="hm-mover-tabs">
-          <div role="tablist" aria-label="تصنيف الشركات">
-            {([['mcap', 'القيمة السوقية'], ['gainers', 'الرابحون'], ['losers', 'الخاسرون'], ['active', 'الأكثر نشاطاً']] as const).map(([k, l]) => (
+          <div role="tablist" aria-label={h.movers.tablist}>
+            {([['mcap', h.movers.tabMcap], ['gainers', h.movers.tabGainers], ['losers', h.movers.tabLosers], ['active', h.movers.tabActive]] as const).map(([k, l]) => (
               <button key={k} type="button" role="tab" aria-selected={moverTab === k}
                 className={moverTab === k ? 'active' : ''} onClick={() => pickTab(k)}
                 /* The market-cap universe is the CURRENT ROSTER and a snapshot,
                    not a session figure and not an official exchange ranking.
                    Carried on the control rather than as a new line of chrome,
                    because this pass corrects data and not visual design. */
-                title={k === 'mcap' ? MCAP_CAVEAT : undefined}>{l}</button>
+                title={k === 'mcap' ? h.movers.capNote : undefined}>{l}</button>
             ))}
           </div>
           <div>
             {movers.map((c) => (
-              <Link href={`/c/${c.sym}`} key={c.sym}
+              <Link href={L(`/c/${c.sym}`)} key={c.sym}
                 /* A stale close is a real published price, not a current one,
                    and the ranking says so where it is material. */
                 title={moverTab === 'mcap' ? capNote(c) : undefined}>
@@ -400,7 +407,7 @@ export default function HomeClient() {
         </div>
 
         {pricesFailed ? (
-          <ModuleError what="أسعار الشركات" onRetry={loadPrices} />
+          <ModuleError what={t.data.modules.prices} onRetry={loadPrices} />
         ) : pricesLoading ? (
           <Skeleton shape="table" rows={10} />
         ) : (
@@ -408,36 +415,36 @@ export default function HomeClient() {
             <table>
               <caption className="sr-only">
                 {capMode
-                  ? `${rows.length} شركة مرتّبة حسب القيمة السوقية · لقطة على سجل الشركات`
-                  : `${rows.length} شركة في جلسة ${arSession(session)}`}
+                  ? h.movers.captionCap(String(rows.length))
+                  : h.movers.captionSession(String(rows.length), sessionDate(session, locale))}
               </caption>
               <thead>
                 <tr>
-                  <th scope="col">الشركة</th>
-                  <th scope="col"><button type="button" onClick={() => sortBy('price')}>آخر سعر</button></th>
-                  <th scope="col"><button type="button" onClick={() => sortBy('change')}>التغير</button></th>
-                  <th scope="col"><button type="button" onClick={() => sortBy('volume')}>الحجم</button></th>
+                  <th scope="col">{h.movers.colCompany}</th>
+                  <th scope="col"><button type="button" onClick={() => sortBy('price')}>{h.movers.colPrice}</button></th>
+                  <th scope="col"><button type="button" onClick={() => sortBy('change')}>{h.movers.colChange}</button></th>
+                  <th scope="col"><button type="button" onClick={() => sortBy('volume')}>{h.movers.colVolume}</button></th>
                   {/* «القيمة» meant traded value while a market-cap tab was
                       selected. The column now carries the name of the number
                       actually under it. */}
                   <th scope="col" aria-sort={sortKey === valueCol.key ? (sortDir === 'desc' ? 'descending' : 'ascending') : undefined}>
                     <button type="button" onClick={() => sortBy(valueCol.key)}>{valueCol.label}</button>
                   </th>
-                  <th scope="col"><span className="sr-only">اتجاه 7 جلسات</span><bdi aria-hidden="true">7D</bdi></th>
+                  <th scope="col"><span className="sr-only">{h.movers.colTrend}</span><bdi aria-hidden="true">7D</bdi></th>
                 </tr>
               </thead>
               <tbody>
                 {rows.map((c) => (
                   <tr key={c.sym}>
                     <td>
-                      <Link href={`/c/${c.sym}`}>
+                      <Link href={L(`/c/${c.sym}`)}>
                         {/* No `color`: the reference's mark is one uniform
                             Electric-Blue chip, and the per-company colour is
                             an inline background that would override it. Real
                             logos still render, in the same 33px box. */}
                         <CompanyLogo sym={c.sym} logo={c.logo} />
                         <span>
-                          <strong>{c.ar}</strong>
+                          <strong>{companyName(c, c.sym, locale)}</strong>
                           <small><bdi dir="ltr">{c.sym}</bdi></small>
                         </span>
                       </Link>
@@ -449,27 +456,27 @@ export default function HomeClient() {
                           that row is on screen precisely because it did not
                           trade, so the session columns say so instead of
                           printing an old move as today's. */}
-                      {c.stale ? <Unavailable why={lastTradeNote(c, true)} />
-                        : c.noPrior ? <Unavailable why="لا يوجد إغلاق سابق" /> : (
+                      {c.stale ? <Unavailable why={lastTradeNote(c, ar)} />
+                        : c.noPrior ? <Unavailable why={t.data.why.noPriorClose} /> : (
                         <bdi className={signed(c.pct).tone === 'up' ? 'positive' : signed(c.pct).tone === 'down' ? 'negative' : ''}>
                           {signed(c.pct).text}
                         </bdi>
                       )}
                     </td>
                     <td>
-                      {c.stale ? <Unavailable why={lastTradeNote(c, true)} />
+                      {c.stale ? <Unavailable why={lastTradeNote(c, ar)} />
                         : <bdi>{nf.format(c.shares_traded ?? 0)}</bdi>}
                     </td>
                     <td>
                       {capMode
-                        ? (capOf(c) == null ? <Unavailable why="لا يتوفر سعر أو عدد أسهم" />
+                        ? (capOf(c) == null ? <Unavailable why={t.data.why.noPriceOrShares} />
                           : <bdi>{compact.format(capOf(c) as number)} IQD</bdi>)
                         : <bdi>{compact.format(c.vol ?? 0)} IQD</bdi>}
                     </td>
                     <td>
                       {sparks[c.sym]?.length
                         ? <Sparkline values={sparks[c.sym]} positive={c.pct >= 0} compact />
-                        : <Unavailable why="لا يتوفر تاريخ كافٍ" />}
+                        : <Unavailable why={t.data.why.notEnoughHistory} />}
                     </td>
                   </tr>
                 ))}
@@ -486,11 +493,11 @@ export default function HomeClient() {
       {expanded ? (
         <div className="ov-scrim hm-expand-scrim" onMouseDown={closeExpanded}>
           <div ref={expandedRef} className="hm-expand-host" role="dialog" aria-modal="true"
-            aria-label="مخطط ISX60 الموسّع" tabIndex={-1} onMouseDown={(e) => e.stopPropagation()}>
+            aria-label={h.index.expandedLabel} tabIndex={-1} onMouseDown={(e) => e.stopPropagation()}>
             <header>
-              <h2 className="ty-section-title"><bdi>ISX60</bdi> · مخطط موسّع</h2>
+              <h2 className="ty-section-title"><bdi>ISX60</bdi> · {h.index.expanded}</h2>
               <button type="button" className="mv-btn is-compact" onClick={closeExpanded} data-autofocus>
-                إغلاق
+                {h.movers.close}
               </button>
             </header>
             <div className="hm-expand-body"><IndexChart rows={series} /></div>

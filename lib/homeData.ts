@@ -1,4 +1,6 @@
 import { liveMcap, SECTORS } from '@/lib/market'
+import { localeDate } from '@/lib/date'
+import type { Locale } from '@/lib/i18n/locale'
 import type { Company } from '@/types'
 
 /**
@@ -72,7 +74,14 @@ export type SectorMove = {
   count: number
 }
 
-const SECTOR_AR = new Map(SECTORS.filter((s) => s.id !== 'all').map((s) => [s.id, s.ar]))
+/* Full sector names, both languages, keyed by id. `arFull`/`enFull` rather
+   than the short chip forms: the homepage sector rows have room for «الفنادق
+   والسياحة» and «Hotels & tourism», and the abbreviated pair reads as a
+   different taxonomy from the one the market board and the screener use. */
+const SECTOR_NAME = new Map(
+  SECTORS.filter((s) => s.id !== 'all')
+    .map((s) => [s.id, { ar: s.arFull ?? s.ar, en: s.enFull ?? s.en }]),
+)
 
 /**
  * Breadth from the merged company list.
@@ -130,11 +139,10 @@ export function computeFlow(
  * unknown change are excluded from the mean rather than treated as zero —
  * the same rule as breadth.
  */
-export function computeSectors(traded: Company[]): SectorMove[] {
+export function computeSectors(traded: Company[], locale: Locale): SectorMove[] {
   const acc = new Map<string, { wsum: number; w: number; value: number; count: number }>()
   for (const c of traded) {
-    const label = SECTOR_AR.get(c.sec)
-    if (!label) continue
+    if (!SECTOR_NAME.has(c.sec)) continue
     const e = acc.get(c.sec) ?? { wsum: 0, w: 0, value: 0, count: 0 }
     e.value += c.vol ?? 0   // `vol` is traded VALUE in IQD, despite the name
     e.count += 1
@@ -148,7 +156,7 @@ export function computeSectors(traded: Company[]): SectorMove[] {
   return Array.from(acc.entries())
     .map(([id, e]) => ({
       id,
-      label: SECTOR_AR.get(id) ?? id,
+      label: SECTOR_NAME.get(id)?.[locale] ?? id,
       pct: e.w ? e.wsum / e.w : 0,
       value: e.value,
       count: e.count,
@@ -163,28 +171,40 @@ export function computeSectors(traded: Company[]): SectorMove[] {
  * product has. The verdict is stated against that cadence rather than against
  * the clock, and nothing here ever returns «مباشر».
  */
-export function sessionFreshness(date: string | null): {
+export function sessionFreshness(date: string | null, locale: Locale): {
   tone: 'live' | 'recent' | 'stale' | 'unknown'
   label: string
 } {
-  if (!date) return { tone: 'unknown', label: 'لا توجد بيانات' }
+  const ar = locale === 'ar'
+  if (!date) return { tone: 'unknown', label: ar ? 'لا توجد بيانات' : 'No data' }
   const days = Math.floor((Date.now() - new Date(`${date}T00:00:00Z`).getTime()) / 86400_000)
   /* ISX trades Sunday–Thursday, so a Friday/Saturday gap is normal and a
-     4-day-old bulletin on a Sunday is not late. Beyond that it is. */
-  if (days <= 4) return { tone: 'recent', label: 'آخر جلسة' }
-  return { tone: 'stale', label: `متأخرة ${days} يوماً` }
+     4-day-old bulletin on a Sunday is not late. Beyond that it is.
+
+     ⚠ `tone: 'live'` is in the union and is never returned. That is deliberate
+     and it stays that way: the product has no intraday feed, so nothing here
+     may ever render as «مباشر» / «Live». */
+  if (days <= 4) return { tone: 'recent', label: ar ? 'آخر جلسة' : 'Latest session' }
+  return {
+    tone: 'stale',
+    label: ar ? `متأخرة ${days} يوماً` : `${days} days behind`,
+  }
 }
 
-/** «13 أغسطس 2026» — an exact date, never «اليوم». */
-const AR_MONTHS = [
-  'يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو',
-  'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر',
-]
-
-export function arSession(date: string | null): string {
+/**
+ * «13 أغسطس 2026» / «13 August 2026» — an exact date, never «اليوم»/«today».
+ *
+ * The site shows the last PUBLISHED session. Writing «today» over it would be
+ * a claim about freshness that the bulletin does not support, in either
+ * language, and it is the one thing the whole freshness system exists to
+ * prevent.
+ *
+ * Returns «—» for a missing date rather than an empty string, so the absence
+ * is visible instead of collapsing the line it sits on.
+ */
+export function sessionDate(date: string | null, locale: Locale): string {
   if (!date) return '—'
-  const [y, m, d] = date.split('-').map(Number)
-  return `${d} ${AR_MONTHS[m - 1]} ${y}`
+  return localeDate(date, locale)
 }
 
 /**

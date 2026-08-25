@@ -6,7 +6,8 @@ import { Sparkline } from '@/components/design/Sparkline'
 import { loadFullHistory } from '@/components/design/IndexChart'
 import { Unavailable, Freshness } from '@/components/system/DataStates'
 import type { Breadth, Flow, IndexRow, SectorMove } from '@/lib/homeData'
-import { arSession, signed } from '@/lib/homeData'
+import { useLocale } from '@/context/LocaleContext'
+import { sessionDate, signed } from '@/lib/homeData'
 
 /* ═══════════════════════════════════════════════════════════════════════════
    Homepage modules — a VISUAL RE-PORT of the approved reference app.
@@ -62,7 +63,7 @@ const RANGES = [
   { id: '3M', label: '3M', days: 92 },
   { id: '1Y', label: '1Y', days: 365 },
   { id: '5Y', label: '5Y', days: 1826 },
-  { id: 'ALL', label: 'الكل', days: Number.POSITIVE_INFINITY },
+  { id: 'ALL', label: null, days: Number.POSITIVE_INFINITY },
 ] as const
 
 type RangeId = (typeof RANGES)[number]['id']
@@ -87,6 +88,8 @@ export function HeroCard({
   session: string | null
   onExpand: () => void
 }) {
+  const { t, locale, href: L } = useLocale()
+  const h = t.home
   const [range, setRange] = useState<RangeId>('1Y')
   const [full, setFull] = useState<{ date: string; isx60: number }[] | null>(null)
   const [fullLoading, setFullLoading] = useState(false)
@@ -125,7 +128,7 @@ export function HeroCard({
       x: Math.round((i / (vals.length - 1)) * VB_W),
       y: Math.round(TOP + (1 - (v - lo) / span) * (BOT - TOP)),
       value: px2.format(v),
-      time: arSession(visible[i].date),
+      time: sessionDate(visible[i].date, locale),
     }))
     const trace = pts.map((p, i) => `${i === 0 ? 'M' : 'L'}${p.x},${p.y}`).join(' ')
     const first = vals[0]
@@ -175,7 +178,7 @@ export function HeroCard({
     <article className={`hm-hero${up ? '' : ' is-down'}`} aria-labelledby="hm-isx-t">
       <header>
         <div>
-          <span>مؤشر السوق العراقي</span>
+          <span>{h.index.eyebrow}</span>
           <h2 id="hm-isx-t"><bdi>ISX60</bdi></h2>
         </div>
         <div className="hm-hero-actions">
@@ -184,14 +187,14 @@ export function HeroCard({
               <path d="M6 2H2v4M10 14h4v-4" fill="none" stroke="currentColor" strokeWidth="1.5"
                 strokeLinecap="round" strokeLinejoin="round" />
             </svg>
-            المخطط الكامل
+            {h.index.fullChart}
           </button>
-          <div className="hm-periods" role="group" aria-label="الفترة الزمنية">
+          <div className="hm-periods" role="group" aria-label={h.index.periods}>
             {RANGES.map((r) => (
               <button key={r.id} type="button" className={range === r.id ? 'active' : ''}
                 aria-pressed={range === r.id}
                 onClick={() => { setRange(r.id); setActive(null) }}>
-                {r.label}
+                {r.label ?? h.index.rangeAll}
               </button>
             ))}
           </div>
@@ -208,14 +211,14 @@ export function HeroCard({
             {' '}{up ? '↗' : '↘'}
           </span>
         ) : (
-          <span className="hm-noprior"><Unavailable why="لا توجد جلسة سابقة للمقارنة" /></span>
+          <span className="hm-noprior"><Unavailable why={t.data.why.noPriorSession} /></span>
         )}
       </div>
 
       <div className="hm-index-chart" tabIndex={0} role="application" onKeyDown={key}
         onPointerMove={move} onPointerDown={move} onPointerLeave={() => setActive(null)}
         onBlur={() => setActive(null)}
-        aria-label={`رسم مؤشر ISX60 · ${range} · استخدم الأسهم لقراءة النقاط`}>
+        aria-label={h.index.plotLabel(range)}>
         {geo ? (
           <>
             <svg viewBox={`0 0 ${VB_W} ${VB_H}`} preserveAspectRatio="none" role="img">
@@ -253,12 +256,12 @@ export function HeroCard({
           «آخر تحديث 14:00», an intraday stamp this product does not have; the
           slot carries the canonical session date instead. Same geometry. */}
       <footer>
-        <span>أدنى الفترة <bdi>{geo ? geo.lo : '—'}</bdi></span>
-        {/* NOT in a `bdi`. `arSession` returns «16 أغسطس 2026», which is Arabic
+        <span>{h.index.low} <bdi>{geo ? geo.lo : '—'}</bdi></span>
+        {/* NOT in a `bdi`. `sessionDate` returns «16 أغسطس 2026», which is Arabic
             text carrying numerals; isolating it as LTR reorders it to
             «أغسطس 16 2026». Only the pure figures beside it are isolated. */}
-        <span className="hm-hero-session">آخر جلسة {arSession(session)}</span>
-        <span>أعلى الفترة <bdi>{geo ? geo.hi : '—'}</bdi></span>
+        <span className="hm-hero-session">{h.index.session(sessionDate(session, locale))}</span>
+        <span>{h.index.high} <bdi>{geo ? geo.hi : '—'}</bdi></span>
       </footer>
     </article>
   )
@@ -282,6 +285,8 @@ export function FlowCard({
   flow: Flow | null
   behind: boolean
 }) {
+  const { t, locale, href: L } = useLocale()
+  const h = t.home
   const [focus, setFocus] = useState<'buy' | 'sell' | null>(null)
 
   const total = flow ? flow.buy + flow.sell : 0
@@ -297,20 +302,20 @@ export function FlowCard({
 
       <header>
         <div>
-          <span id="hm-flow-t">تدفق المستثمر الأجنبي</span>
-          <small>السيولة الدولية</small>
+          <span id="hm-flow-t">{h.flow.title}</span>
+          <small>{h.flow.sub}</small>
         </div>
         <div className="hm-flow-head-end">
-          <time dateTime={flow?.date ?? undefined}>{arSession(flow?.date ?? null)}</time>
-          <Link className="hm-flow-cta" href="/statistics/foreign-flow">
-            التفاصيل <span aria-hidden="true">↗</span>
+          <time dateTime={flow?.date ?? undefined}>{sessionDate(flow?.date ?? null, locale)}</time>
+          <Link className="hm-flow-cta" href={L('/statistics/foreign-flow')}>
+            {h.flow.details} <span className="dir-go" aria-hidden="true">↗</span>
           </Link>
         </div>
       </header>
 
       {!flow ? (
         <div className="hm-flow-result neutral">
-          <p>لا تتوفر بيانات تدفق أجنبي لهذه الجلسة.</p>
+          <p>{h.flow.none}</p>
           <strong><bdi>—</bdi></strong>
         </div>
       ) : (
@@ -319,7 +324,7 @@ export function FlowCard({
               move it visually and leave a screen reader hearing the figure
               before it knows what the figure IS. */}
           <div className={`hm-flow-result ${tone}`}>
-            <p>{neutral ? 'تدفق أجنبي متوازن' : buying ? 'صافي شراء أجنبي' : 'صافي بيع أجنبي'}</p>
+            <p>{neutral ? h.flow.balanced : buying ? h.flow.netBuy : h.flow.netSell}</p>
             <strong>
               <bdi>{net > 0 ? '+' : net < 0 ? '−' : ''}{compact.format(Math.abs(net))}</bdi>
               <small>IQD</small>
@@ -330,45 +335,45 @@ export function FlowCard({
               always the index session, and the page states that rather than
               letting two dates read as one. */}
           {behind ? (
-            <p className="hm-flow-note">بيانات التدفق أقدم من جلسة المؤشر.</p>
+            <p className="hm-flow-note">{h.flow.staleNote}</p>
           ) : null}
 
           {/* The balance bar is bottom-anchored (`margin-block-start: auto`) in
               the reference, and each side is a real control: focusing one mutes
               the other and the sentence below swaps to that side's figures. */}
           <div className={`hm-balance${focus ? ` is-focus-${focus}` : ''}`}
-            aria-label={`شراء أجنبي ${compact.format(flow.buy)} دينار، بيع أجنبي ${compact.format(flow.sell)} دينار`}>
+            aria-label={h.flow.barLabel(compact.format(flow.buy), compact.format(flow.sell))}>
             <div className="hm-balance-labels">
-              <span className="sell"><small>بيع</small><strong><bdi>{compact.format(flow.sell)}</bdi></strong></span>
-              <span className="buy"><small>شراء</small><strong><bdi>{compact.format(flow.buy)}</bdi></strong></span>
+              <span className="sell"><small>{t.glossary.sell}</small><strong><bdi>{compact.format(flow.sell)}</bdi></strong></span>
+              <span className="buy"><small>{t.glossary.buy}</small><strong><bdi>{compact.format(flow.buy)}</bdi></strong></span>
             </div>
             <div className="hm-balance-track" role="group"
-              aria-label={`${flow.buyShare.toFixed(1)} بالمئة شراء و${flow.sellShare.toFixed(1)} بالمئة بيع`}>
+              aria-label={h.flow.splitLabel(flow.buyShare.toFixed(1), flow.sellShare.toFixed(1))}>
               <button type="button" className="sell" style={{ inlineSize: `${flow.sellShare}%` }}
-                aria-label={`بيع أجنبي ${compact.format(flow.sell)} دينار، ${flow.sellShare.toFixed(1)} بالمئة`}
+                aria-label={h.flow.sellSeg(compact.format(flow.sell), flow.sellShare.toFixed(1))}
                 onPointerEnter={() => setFocus('sell')} onPointerLeave={() => setFocus(null)}
                 onFocus={() => setFocus('sell')} onBlur={() => setFocus(null)} />
               <button type="button" className="buy" style={{ inlineSize: `${flow.buyShare}%` }}
-                aria-label={`شراء أجنبي ${compact.format(flow.buy)} دينار، ${flow.buyShare.toFixed(1)} بالمئة`}
+                aria-label={h.flow.buySeg(compact.format(flow.buy), flow.buyShare.toFixed(1))}
                 onPointerEnter={() => setFocus('buy')} onPointerLeave={() => setFocus(null)}
                 onFocus={() => setFocus('buy')} onBlur={() => setFocus(null)} />
             </div>
             <p aria-live="polite">
               {focus === 'buy'
-                ? <><strong><bdi>{compact.format(flow.buy)}</bdi></strong> شراء أجنبي · <bdi>{flow.buyShare.toFixed(1)}%</bdi> من التداول الأجنبي</>
+                ? <><strong><bdi>{compact.format(flow.buy)}</bdi></strong> {h.flow.readBuy} · <bdi>{flow.buyShare.toFixed(1)}%</bdi> {h.flow.ofForeign}</>
                 : focus === 'sell'
-                ? <><strong><bdi>{compact.format(flow.sell)}</bdi></strong> بيع أجنبي · <bdi>{flow.sellShare.toFixed(1)}%</bdi> من التداول الأجنبي</>
-                : neutral ? 'التداول الأجنبي متقارب بين الشراء والبيع'
-                : <><strong><bdi>{Math.max(flow.buyShare, flow.sellShare).toFixed(1)}%</bdi></strong> من التداول الأجنبي {buying ? 'شراء' : 'بيع'}</>}
+                ? <><strong><bdi>{compact.format(flow.sell)}</bdi></strong> {h.flow.readSell} · <bdi>{flow.sellShare.toFixed(1)}%</bdi> {h.flow.ofForeign}</>
+                : neutral ? h.flow.close
+                : <>{h.flow.shareLine(`${Math.max(flow.buyShare, flow.sellShare).toFixed(1)}%`, buying)}</>}
             </p>
           </div>
         </>
       )}
 
       <footer>
-        <span><i className="buy" /> شراء</span>
-        <span><i className="sell" /> بيع</span>
-        <small>جلسة {arSession(flow?.date ?? null)}</small>
+        <span><i className="buy" /> {t.glossary.buy}</span>
+        <span><i className="sell" /> {t.glossary.sell}</span>
+        <small>{h.flow.sessionOf(sessionDate(flow?.date ?? null, locale))}</small>
       </footer>
     </article>
   )
@@ -394,14 +399,16 @@ export function FlowCard({
 type BKey = 'up' | 'flat' | 'down' | 'na'
 
 export function BreadthCard({ b }: { b: Breadth | null }) {
+  const { t, locale, href: L } = useLocale()
+  const h = t.home
   const [focus, setFocus] = useState<BKey | null>(null)
   if (!b) return null
 
   const keys: { k: BKey; label: string; n: number }[] = [
-    { k: 'up', label: 'رابح', n: b.advancing },
-    { k: 'flat', label: 'ثابت', n: b.unchanged },
-    { k: 'down', label: 'خاسر', n: b.declining },
-    { k: 'na', label: 'دون إغلاق سابق', n: b.unavailable },
+    { k: 'up', label: h.breadth.up, n: b.advancing },
+    { k: 'flat', label: h.breadth.flat, n: b.unchanged },
+    { k: 'down', label: h.breadth.down, n: b.declining },
+    { k: 'na', label: h.breadth.na, n: b.unavailable },
   ]
 
   const total = b.traded || 1
@@ -420,17 +427,17 @@ export function BreadthCard({ b }: { b: Breadth | null }) {
   return (
     <article className="hm-breadth" aria-labelledby="hm-breadth-t">
       <header>
-        <span id="hm-breadth-t">اتساع السوق</span>
-        <Link href="/pulse">التفاصيل ↗</Link>
+        <span id="hm-breadth-t">{h.breadth.title}</span>
+        <Link href={L('/market')}>{h.breadth.details} <i className="dir-go" aria-hidden="true">↗</i></Link>
       </header>
 
       <div className="hm-ring" data-hi={focus ?? undefined}
         style={{ ['--s1' as string]: `${s1}%`, ['--s2' as string]: `${s2}%`, ['--s3' as string]: `${s3}%` }}
         role="img"
-        aria-label={`${b.advancing} رابح، ${b.unchanged} ثابت، ${b.declining} خاسر، ${b.unavailable} دون إغلاق سابق، من ${b.traded} شركة متداولة`}>
+        aria-label={h.breadth.reading(String(b.advancing), String(b.unchanged), String(b.declining), String(b.unavailable), String(b.traded))}>
         <span>
           <strong><bdi>{focus ? keys.find((x) => x.k === focus)!.n : headline == null ? '—' : `${headline}%`}</bdi></strong>
-          <small>{focus ? keys.find((x) => x.k === focus)!.label : 'إيجابي'}</small>
+          <small>{focus ? keys.find((x) => x.k === focus)!.label : h.breadth.positive}</small>
         </span>
       </div>
 
@@ -452,8 +459,8 @@ export function BreadthCard({ b }: { b: Breadth | null }) {
           of the 103 listed. The reference has no slot for this; the card has
           room for it and the previous pass was right to add it. */}
       <p className="hm-breadth-denom">
-        <bdi>{b.traded}</bdi> شركة متداولة
-        {b.listed != null ? <> من <bdi>{b.listed}</bdi> مدرجة</> : null}
+        {h.breadth.traded(String(b.traded))}
+        {b.listed != null ? <> {h.breadth.ofListed(String(b.listed))}</> : null}
       </p>
     </article>
   )
@@ -476,15 +483,30 @@ export function BreadthCard({ b }: { b: Breadth | null }) {
    prior sessions of `daily_index`.
    ═══════════════════════════════════════════════════════════════════════════ */
 
-type Metric = { label: string; unit: string; pick: (r: IndexRow) => number | null; fmt: (n: number) => string }
+type MetricId = 'value' | 'volume' | 'trades'
+type Metric = { id: MetricId; pick: (r: IndexRow) => number | null; fmt: (n: number) => string }
 
+/* Only the parts that are NOT language: the id, how to read the figure out of
+   a row, and how to format it. The name and the unit are copy and live in the
+   dictionary, reached through `label()` / `unit()` inside the card. */
 const METRICS: Metric[] = [
-  { label: 'قيمة التداول', unit: 'IQD', pick: (r) => r.total_value, fmt: (n) => compact.format(n) },
-  { label: 'حجم التداول', unit: 'سهم', pick: (r) => r.total_volume, fmt: (n) => compact.format(n) },
-  { label: 'الصفقات', unit: 'صفقة', pick: (r) => r.total_trades, fmt: (n) => nf.format(n) },
+  { id: 'value',  pick: (r) => r.total_value,  fmt: (n: number) => compact.format(n) },
+  { id: 'volume', pick: (r) => r.total_volume, fmt: (n: number) => compact.format(n) },
+  { id: 'trades', pick: (r) => r.total_trades, fmt: (n: number) => nf.format(n) },
 ]
 
 export function ActivityCard({ rows }: { rows: IndexRow[] }) {
+  const { t, locale, href: L } = useLocale()
+  const h = t.home
+
+  /* The three metric names and their units are copy, so they come from the
+     dictionary rather than from METRICS — which now carries only the id, the
+     accessor and the formatter, i.e. the parts that are not language. */
+  const label = (id: MetricId) =>
+    id === 'value' ? h.activity.value : id === 'volume' ? h.activity.volume : h.activity.trades
+  const unit = (id: MetricId) =>
+    id === 'value' ? h.activity.unitIqd : id === 'volume' ? h.activity.unitShares : h.activity.unitTrades
+
   const items = useMemo(() => METRICS.map((m) => {
     const series = rows.map(m.pick).filter((v): v is number => v != null)
     const trend = series.slice(-7)
@@ -497,25 +519,25 @@ export function ActivityCard({ rows }: { rows: IndexRow[] }) {
   return (
     <section className="hm-activity" aria-labelledby="hm-act-t">
       <header>
-        <span>جلسة السوق</span>
-        <h2 id="hm-act-t">نشاط السوق</h2>
+        <span>{h.activity.eyebrow}</span>
+        <h2 id="hm-act-t">{h.activity.title}</h2>
       </header>
       {items.map((it, i) => (
-        <article className={i === 0 ? 'feature' : ''} key={it.label}>
-          <span>{it.label}</span>
+        <article className={i === 0 ? 'feature' : ''} key={it.id}>
+          <span>{label(it.id)}</span>
           <strong>
             {it.now == null ? <Unavailable /> : <bdi>{it.fmt(it.now)}</bdi>}
-            <small>{it.unit}</small>
+            <small>{unit(it.id)}</small>
           </strong>
           {it.change == null ? (
-            <em className="hm-na"><Unavailable why="لا توجد جلسة سابقة للمقارنة" /></em>
+            <em className="hm-na"><Unavailable why={t.data.why.noPriorSession} /></em>
           ) : (
             <em className={signed(it.change, 1).tone === 'up' ? 'positive' : signed(it.change, 1).tone === 'down' ? 'negative' : ''}>
               <bdi>{signed(it.change, 1).text}</bdi>
             </em>
           )}
           {it.trend.length > 1
-            ? <Sparkline values={it.trend} positive={(it.change ?? 0) >= 0} compact label={`اتجاه ${it.label}`} />
+            ? <Sparkline values={it.trend} positive={(it.change ?? 0) >= 0} compact label={h.activity.trendOf(label(it.id))} />
             : null}
         </article>
       ))}
@@ -548,6 +570,8 @@ export function ActivityCard({ rows }: { rows: IndexRow[] }) {
    ═══════════════════════════════════════════════════════════════════════════ */
 
 export function SectorsCard({ sectors }: { sectors: SectorMove[] }) {
+  const { t, locale, href: L } = useLocale()
+  const h = t.home
   const [focus, setFocus] = useState<string | null>(null)
   if (!sectors.length) return null
   const ranked = [...sectors].sort((a, b) => b.pct - a.pct)
@@ -556,10 +580,10 @@ export function SectorsCard({ sectors }: { sectors: SectorMove[] }) {
     <section className="hm-sectors" aria-labelledby="hm-sec-t">
       <header>
         <div>
-          <span>أداء القطاعات</span>
-          <h2 id="hm-sec-t">حركة السوق حسب القطاع</h2>
+          <span>{h.sectors.eyebrow}</span>
+          <h2 id="hm-sec-t">{h.sectors.title}</h2>
         </div>
-        <Link href="/heatmap">الخريطة الكاملة ↗</Link>
+        <Link href={L('/heatmap')}>{h.sectors.map} <i className="dir-go" aria-hidden="true">↗</i></Link>
       </header>
       <div className={`hm-sector-bars${focus ? ' is-focused' : ''}`}>
         {ranked.map((s) => (
@@ -567,7 +591,7 @@ export function SectorsCard({ sectors }: { sectors: SectorMove[] }) {
             className={focus === s.id ? 'is-on' : ''}
             onPointerEnter={() => setFocus(s.id)} onPointerLeave={() => setFocus(null)}
             onFocus={() => setFocus(s.id)} onBlur={() => setFocus(null)}
-            aria-label={`${s.label}، ${s.pct >= 0 ? 'ارتفاع' : 'انخفاض'} ${Math.abs(s.pct).toFixed(2)} بالمئة`}>
+            aria-label={h.sectors.reading(s.label, s.pct >= 0 ? h.sectors.up : h.sectors.down, Math.abs(s.pct).toFixed(2))}>
             <span>{s.label}</span>
             <div>
               <i className={signed(s.pct).tone === 'down' ? 'negative' : ''}
