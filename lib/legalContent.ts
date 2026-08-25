@@ -94,9 +94,15 @@
  *   age          18+, stated and enforceable by account restriction
  *   liability    limited to what Iraqi law permits, with the carve-out for
  *                what may not be excluded left intact
- *   indemnity    deliberately ABSENT. The section is now «الاستخدام المسؤول»
- *                and says in as many words that no clause obliges the user to
- *                indemnify us for third-party claims
+ *   indemnity    deliberately ABSENT, and said out loud. The standalone
+ *                «الاستخدام المسؤول» section that first carried this was
+ *                merged into «الاستخدام المقبول» — it restated that section
+ *                and «إنهاء الحساب أو تقييده» almost word for word, so the
+ *                terms said one rule three times. Its two non-duplicate ideas
+ *                survive: the scraping bullet now also covers exceeding the
+ *                access we explicitly provide, the enforcement clause now also
+ *                names a security risk and a material breach, and the
+ *                no-indemnity sentence closes «الاستخدام المقبول»
  *   law          Iraqi law and the competent Iraqi courts, with no specific
  *                court or venue named
  *
@@ -395,11 +401,12 @@ export const TERMS_DOC: LegalSection[] = [
         items: [
           "محاولة الوصول غير المصرّح به إلى الأنظمة أو الحسابات أو البيانات.",
           "تعطيل الخدمة أو إثقالها أو التدخّل في عملها.",
-          "السحب الآلي المكثّف للمحتوى على نحو يضرّ بالخدمة أو يخالف القواعد المنشورة.",
+          "السحب الآلي المكثّف للمحتوى على نحو يضرّ بالخدمة أو بالبنية التحتية، أو يتجاوز وسائل الوصول التي نتيحها صراحةً، أو يخالف القواعد المنشورة.",
           "إعادة نشر محتوى المنصّة أو بيعه بما يخالف بند الملكية الفكرية.",
           "استخدام المنصّة في أي غرض مخالف للقانون.",
         ],
       },
+      { kind: "note", text: "لا تتضمن هذه الشروط التزاماً عاماً على المستخدم بتعويض IQWealth عن مطالبات الأطراف الثالثة." },
     ],
   },
   {
@@ -437,15 +444,6 @@ export const TERMS_DOC: LegalSection[] = [
     ],
   },
   {
-    id: "indemnity",
-    title: "الاستخدام المسؤول",
-    blocks: [
-      { kind: "p", text: "تتعهد بعدم استخدام المنصة بطريقة غير مشروعة، أو لمحاولة الوصول غير المصرح به إلى الحسابات أو الأنظمة، أو لتعطيل الخدمة، أو لاستخراج البيانات آلياً على نحو يضر بالبنية التحتية أو يتجاوز وسائل الوصول التي نتيحها صراحةً." },
-      { kind: "p", text: "يجوز لنا تقييد أو إيقاف الوصول عند وجود سبب معقول للاعتقاد بوجود إساءة استخدام أو خطر أمني أو مخالفة جوهرية لهذه الشروط، مع مراعاة القانون الواجب التطبيق." },
-      { kind: "note", text: "لا تتضمّن هذه الشروط بنداً يُلزمك بتعويضنا عن مطالبات الغير." },
-    ],
-  },
-  {
     id: "changes",
     title: "التعديلات على الشروط",
     blocks: [
@@ -457,7 +455,7 @@ export const TERMS_DOC: LegalSection[] = [
     title: "إنهاء الحساب أو تقييده",
     blocks: [
       { kind: "p", text: "يمكنك التوقّف عن استخدام المنصّة في أي وقت، وطلب حذف حسابك على النحو الموضّح في سياسة الخصوصية." },
-      { kind: "p", text: "ويجوز لنا تقييد حساب أو إيقافه إذا استُخدم على نحو يضرّ بالخدمة أو بمستخدميها أو يخالف بند الاستخدام المقبول. ونسعى إلى إشعارك عبر بريدك المسجّل ما لم يمنع ذلك سببٌ أمني." },
+      { kind: "p", text: "ويجوز لنا تقييد الوصول أو إيقاف الحساب عند وجود سبب معقول للاعتقاد بإساءة الاستخدام أو بوجود خطر أمني أو بمخالفة جوهرية لهذه الشروط، بما في ذلك مخالفة بند الاستخدام المقبول، مع مراعاة القانون الواجب التطبيق. ونسعى إلى إشعارك عبر بريدك المسجّل ما لم يمنع ذلك سببٌ أمني." },
     ],
   },
   {
