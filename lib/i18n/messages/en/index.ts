@@ -9,6 +9,7 @@ import { home } from './home'
 import { market } from './market'
 import { screener } from './screener'
 import { heatmap } from './heatmap'
+import { pulse } from './pulse'
 
 /** The English dictionary. Typed against Arabic — see `../ar/index.ts`. */
-export const en: typeof ar = { nav, shell, system, glossary, info, data, home, market, screener, heatmap }
+export const en: typeof ar = { nav, shell, system, glossary, info, data, home, market, screener, heatmap, pulse }

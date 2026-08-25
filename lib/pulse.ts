@@ -51,10 +51,10 @@ export type Session = {
 }
 
 export const TIMEFRAMES = [
-  { id: '1M', label: 'شهر', n: 22 },
-  { id: '3M', label: '3 أشهر', n: 66 },
-  { id: '6M', label: '6 أشهر', n: 132 },
-  { id: '1Y', label: 'سنة', n: 260 },
+  { id: '1M', ar: 'شهر',   en: '1 month',  n: 22 },
+  { id: '3M', ar: '3 أشهر', en: '3 months', n: 66 },
+  { id: '6M', ar: '6 أشهر', en: '6 months', n: 132 },
+  { id: '1Y', ar: 'سنة',   en: '1 year',   n: 260 },
 ] as const
 export type TimeframeId = (typeof TIMEFRAMES)[number]['id']
 
@@ -91,27 +91,33 @@ export const participation = (s: Session) =>
 
 /* ── The verdict ──────────────────────────────────────────────────────────── */
 
+/**
+ * The session's classification.
+ *
+ * ⚠ It returns an ID and a tone, NOT prose.
+ *
+ * The rule sentence used to be built here, from the same constants the
+ * branches test, so that it could not drift away from the calculation. That
+ * guarantee is preserved rather than dropped: the dictionary's `rule` entries
+ * are FUNCTIONS that receive `BROAD`, `WEAK` and `SKEW` at render time, so
+ * neither language can quote a threshold the code does not actually use.
+ *
+ * Still deliberately not a score. A page that prints "market health: 87" is
+ * asking to be trusted about a number nobody can check.
+ */
+export type VerdictId =
+  | 'broadSupported' | 'broadUnsupported' | 'broadNeutral'
+  | 'weakSupported' | 'weakNeutral' | 'balanced'
+
 export type Verdict = {
   tone: 'up' | 'down' | 'mixed'
-  headline: string
-  qualifier: string
-  rule: string
+  id: VerdictId
 }
 
 export const BROAD = 0.6
 export const WEAK = 0.4
 export const SKEW = 0.08
 
-const R_BROAD = 'تُوصف الجلسة بالاتساع الإيجابي عندما ترتفع أكثر من 60% من الشركات القابلة للقياس'
-const R_WEAK = 'يُوصف الاتساع بالسلبي عندما تكون نسبة الشركات المرتفعة 40% أو أقل من القابلة للقياس'
-const R_SKEW = 'ويُعدّ ميل السيولة واضحاً عندما يتجاوز الفرق بين حصة الأسهم الصاعدة من الحجم وحصتها من العدد 8 نقاط مئوية'
-
-/**
- * A classification from two printed thresholds, deliberately NOT a score. A
- * page that prints "market health: 87" is asking to be trusted about a number
- * nobody can check. The rule text is written from the same constants the
- * branches test, so it cannot drift away from the calculation.
- */
 export function verdict(s: Session): Verdict {
   const share = upShare(s)
   const vshare = upVolumeShare(s)
@@ -119,42 +125,12 @@ export function verdict(s: Session): Verdict {
   const weak = share <= WEAK
   const gap = vshare - share
 
-  if (broad && gap > SKEW) return {
-    tone: 'up',
-    headline: 'صعود واسع',
-    qualifier: 'مدعوم بحصة سيولة تفوق حصة العدد',
-    rule: `${R_BROAD}، ${R_SKEW}. تحقّق الشرطان معاً في هذه الجلسة، والميل لصالح الأسهم الصاعدة.`,
-  }
-  if (broad && gap < -SKEW) return {
-    tone: 'mixed',
-    headline: 'اتساع إيجابي',
-    qualifier: 'لكن السيولة تميل إلى الأسهم الهابطة',
-    rule: `${R_BROAD}، ${R_SKEW}. تحقّق الشرطان، إلا أن الميل جاء لصالح الأسهم الهابطة، ولذلك لا تُوصف الجلسة بصعود مدعوم.`,
-  }
-  if (broad) return {
-    tone: 'up',
-    headline: 'اتساع إيجابي',
-    qualifier: 'دون ميل واضح في السيولة',
-    rule: `${R_BROAD}. لم يتجاوز الفرق بين حصة الصاعدة من الحجم وحصتها من العدد 8 نقاط مئوية، فلا يُوصف الصعود بأنه مدعوم أو غير مدعوم.`,
-  }
-  if (weak && gap < -SKEW) return {
-    tone: 'down',
-    headline: 'ضعف واسع',
-    qualifier: 'ومعظم حجم التداول على الأسهم الهابطة',
-    rule: `${R_WEAK}، ${R_SKEW}. تحقّق الشرطان معاً، والميل لصالح الأسهم الهابطة.`,
-  }
-  if (weak) return {
-    tone: 'down',
-    headline: 'اتساع سلبي',
-    qualifier: 'دون ميل واضح في السيولة',
-    rule: `${R_WEAK}. لم يتجاوز الفرق بين حصة الصاعدة من الحجم وحصتها من العدد 8 نقاط مئوية.`,
-  }
-  return {
-    tone: 'mixed',
-    headline: 'جلسة متوازنة',
-    qualifier: 'دون ميل واضح في الاتساع',
-    rule: 'تُصنّف الجلسة متوازنة عندما تبقى حصة الشركات الصاعدة بين 40% و60% من القابلة للقياس، فلا تتحقّق شروط الاتساع الإيجابي ولا السلبي.',
-  }
+  if (broad && gap > SKEW)  return { tone: 'up',    id: 'broadSupported' }
+  if (broad && gap < -SKEW) return { tone: 'mixed', id: 'broadUnsupported' }
+  if (broad)                return { tone: 'up',    id: 'broadNeutral' }
+  if (weak && gap < -SKEW)  return { tone: 'down',  id: 'weakSupported' }
+  if (weak)                 return { tone: 'down',  id: 'weakNeutral' }
+  return { tone: 'mixed', id: 'balanced' }
 }
 
 /* ── Sector breadth ───────────────────────────────────────────────────────

@@ -3,17 +3,19 @@
 import { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import {
-  TIMEFRAMES, verdict, adRatio, netBreadth, upShare, upVolumeShare, participation,
+  TIMEFRAMES, verdict, BROAD, WEAK, SKEW, adRatio, netBreadth, upShare, upVolumeShare, participation,
   comparable, concentration, valueShare, sectorRatio, countLive, pctVsPrev,
   iqd, nf0,
   type Session, type TimeframeId, type SectorBreadth, type ValueRow, type PriceRow,
 } from '@/lib/pulse'
-import { arFull, arShort } from '@/lib/statistics'
+import { arShort } from '@/lib/statistics'
+import { localeDateOrDash } from '@/lib/date'
+import { useLocale } from '@/context/LocaleContext'
 import { sectorLabel } from '@/lib/screener'
 import { companyName, fetchCompanyMeta } from '@/lib/market'
 import type { CompanyMeta } from '@/types'
 import '@/styles/panels.css'
-import './pulse.css'
+import '@/styles/pulse.css'
 
 /**
  * نبض السوق — what is happening underneath the index.
@@ -61,7 +63,9 @@ type Model = {
   tradedGap: { index: number; rows: number } | null
 }
 
-export function PulseClient() {
+export function Pulse() {
+  const { t, locale, href: L } = useLocale()
+  const pl = t.pulse
   const [model, setModel] = useState<Model | null>(null)
   const [state, setState] = useState<'loading' | 'ready' | 'empty' | 'error'>('loading')
   const [tf, setTf] = useState<TimeframeId>('3M')
@@ -234,6 +238,7 @@ export function PulseClient() {
   const loading = state === 'loading'
   const live = model?.live ?? null
   const v = live ? verdict(live) : null
+  const V = v ? pl.verdict[v.id] : null
 
   const shownSector = sector ?? sectorPin
   const secRow = model?.sectors.find(s => s.id === shownSector) ?? null
@@ -243,30 +248,30 @@ export function PulseClient() {
     <main className="pl-page iq-page">
       <header className="pl-head">
         <div className="pl-title">
-          <h1>نبض السوق</h1>
+          <h1>{pl.title}</h1>
           <p>
-            اتساع السوق والمشاركة تحت مستوى المؤشر
-            {live ? <> · جلسة {arFull(live.date)}</> : null}
+            {pl.subhead}
+            {live ? <> · {pl.sessionOf(localeDateOrDash(live.date, locale))}</> : null}
           </p>
         </div>
         <div className="pl-head-actions">
-          <Link className="pl-head-link" href="/market">كل الأسهم ←</Link>
+          <Link className="pl-head-link" href={L('/market')}>{pl.allShares} <i className="dir-go" aria-hidden="true">←</i></Link>
         </div>
       </header>
 
       {state === 'empty' ? (
         <div className="cd-nodata cd-nodata-wide">
-          <strong>لم تُنشر بيانات جلسة بعد</strong>
-          <p>تُحتسب مؤشرات الاتساع من النشرة الرسمية بعد إغلاق الجلسة.</p>
+          <strong>{pl.noSessionTitle}</strong>
+          <p>{pl.noSessionNote}</p>
         </div>
       ) : state === 'error' ? (
         <div className="mv-error" role="alert">
           <span className="mv-error-mark" aria-hidden="true">!</span>
           <div>
-            <strong>تعذّر تحميل بيانات الجلسة</strong>
-            <p>يمكن إعادة المحاولة، أو العودة إلى صفحة السوق.</p>
+            <strong>{pl.failedTitle}</strong>
+            <p>{pl.failedNote}</p>
           </div>
-          <button type="button" onClick={() => window.location.reload()}>إعادة المحاولة</button>
+          <button type="button" onClick={() => window.location.reload()}>{pl.retry}</button>
         </div>
       ) : (
         <>
@@ -274,39 +279,46 @@ export function PulseClient() {
               A sentence with its rule one click away. Not a score, not a
               gauge — the reader can disagree with the threshold, which is only
               possible because the threshold is printed. */}
-          <section className={`pl-verdict ${v?.tone ?? ''}`} aria-label="خلاصة الجلسة">
+          <section className={`pl-verdict ${v?.tone ?? ''}`} aria-label={pl.verdictLabel}>
             {loading || !v || !live ? <SkelLine w="46%" h={20} /> : (
               <>
                 <p className="pl-verdict-main">
                   <span className="pl-verdict-dot" aria-hidden="true" />
                   <span className="pl-verdict-say">
-                    <strong>{v.headline}</strong>
-                    <span className="pl-verdict-qual">، {v.qualifier}</span>
+                    <strong>{V!.headline}</strong>
+                    <span className="pl-verdict-qual">{pl.verdictJoin(V!.headline, V!.qualifier)}</span>
                   </span>
                   <button type="button" className="pl-why" aria-expanded={rule}
                     onClick={() => setRule(r => !r)}
-                    aria-label={rule ? 'إخفاء قاعدة التصنيف' : 'عرض قاعدة التصنيف'}>
+                    aria-label={rule ? pl.hideRule : pl.showRule}>
                     <i aria-hidden="true">ⓘ</i>
-                    <span>القاعدة</span>
+                    <span>{pl.ruleWord}</span>
                   </button>
                 </p>
                 <dl className="pl-verdict-figs">
                   <div>
-                    <dt>صاعد من العدد</dt>
+                    <dt>{pl.upByCount}</dt>
                     <dd>
                       <bdi>{(upShare(live) * 100).toFixed(0)}%</bdi>
-                      <small><bdi>{live.advancers}</bdi> من <bdi>{comparable(live)}</bdi> قابلة للقياس</small>
+                      <small>{pl.ofComparable(String(live.advancers), String(comparable(live)))}</small>
                     </dd>
                   </div>
                   <div>
-                    <dt>صاعد من الحجم</dt>
+                    <dt>{pl.upByVolume}</dt>
                     <dd>
                       <bdi>{(upVolumeShare(live) * 100).toFixed(0)}%</bdi>
-                      <small><bdi>{iqd(live.upVolume)}</bdi> سهم</small>
+                      <small><bdi>{iqd(live.upVolume)}</bdi> {pl.sharesUnit}</small>
                     </dd>
                   </div>
                 </dl>
-                {rule ? <p className="pl-verdict-rule" role="note">{v.rule}</p> : null}
+                {rule ? (
+                  <p className="pl-verdict-rule" role="note">
+                    {/* The thresholds are passed in from the constants the
+                        classification actually tests, so the sentence cannot
+                        quote a number the branch does not use. */}
+                    {V!.rule(`${BROAD * 100}%`, `${WEAK * 100}%`, String(SKEW * 100))}
+                  </p>
+                ) : null}
               </>
             )}
           </section>
@@ -315,36 +327,36 @@ export function PulseClient() {
           <section className="pl-grid-main">
             <div className="cd-panel pl-breadth">
               <div className="cd-panel-head">
-                <h2>الاتساع مقابل السيولة</h2>
+                <h2>{pl.breadthVsLiquidity}</h2>
                 <span className="cd-panel-note">
                   {live && adRatio(live) != null
-                    ? <>نسبة الصاعد للهابط <b><bdi>{adRatio(live)!.toFixed(2)} : 1</bdi></b></>
+                    ? <>{pl.adRatio(adRatio(live)!.toFixed(2))}</>
                     : <>
-                        نسبة الصاعد للهابط <b><bdi>—</bdi></b>
+                        {pl.ratioDash} <b><bdi>—</bdi></b>
                         <i className="fn-help" tabIndex={0} role="note"
-                          data-help="لا يمكن حساب النسبة لعدم وجود شركات خاسرة في الجلسة."
-                          aria-label="لا يمكن حساب النسبة لعدم وجود شركات خاسرة">؟</i>
+                          data-help={pl.noRatioHelp}
+                          aria-label={pl.noRatio}>؟</i>
                       </>}
                 </span>
               </div>
               {loading || !live ? <SkelBlock h={150} /> : (
                 <>
                   <BreadthField
-                    label="عدد الشركات المتداولة" unit="شركة"
-                    total={live.traded} totalLabel="متداولة"
+                    label={pl.countField} unit={pl.countUnit}
+                    total={live.traded} totalLabel={pl.traded}
                     parts={[
-                      { k: 'up', name: 'رابح', v: live.advancers, txt: `${live.advancers} رابح`, fig: String(live.advancers) },
-                      { k: 'flat', name: 'ثابت', v: live.unchanged, txt: `${live.unchanged} ثابت`, fig: String(live.unchanged) },
-                      { k: 'down', name: 'خاسر', v: live.decliners, txt: `${live.decliners} خاسر`, fig: String(live.decliners) },
-                      { k: 'na', name: 'بلا مقارنة', v: live.noPrior ?? 0, txt: `${live.noPrior ?? 0} بلا إغلاق سابق`, fig: String(live.noPrior ?? 0) },
+                      { k: 'up', name: pl.up, v: live.advancers, txt: `${live.advancers} ${pl.up}`, fig: String(live.advancers) },
+                      { k: 'flat', name: pl.flat, v: live.unchanged, txt: `${live.unchanged} ${pl.flat}`, fig: String(live.unchanged) },
+                      { k: 'down', name: pl.down, v: live.decliners, txt: `${live.decliners} ${pl.down}`, fig: String(live.decliners) },
+                      { k: 'na', name: pl.noPrior, v: live.noPrior ?? 0, txt: `${live.noPrior ?? 0} ${pl.noPriorLong}`, fig: String(live.noPrior ?? 0) },
                     ]}
                   />
                   <BreadthField
-                    label="حجم التداول الاتجاهي" unit="سهم"
-                    total={live.upVolume + live.downVolume} totalLabel="حجم اتجاهي"
+                    label={pl.volumeField} unit={pl.sharesUnit}
+                    total={live.upVolume + live.downVolume} totalLabel={pl.volumeTotalLabel}
                     parts={[
-                      { k: 'up', name: 'على الصاعدة', v: live.upVolume, txt: `${iqd(live.upVolume)} سهم`, fig: nf0.format(live.upVolume) },
-                      { k: 'down', name: 'على الهابطة', v: live.downVolume, txt: `${iqd(live.downVolume)} سهم`, fig: nf0.format(live.downVolume) },
+                      { k: 'up', name: pl.onRising, v: live.upVolume, txt: `${iqd(live.upVolume)} ${pl.sharesUnit}`, fig: nf0.format(live.upVolume) },
+                      { k: 'down', name: pl.onFalling, v: live.downVolume, txt: `${iqd(live.downVolume)} ${pl.sharesUnit}`, fig: nf0.format(live.downVolume) },
                     ]}
                   />
                   {/* The gap between the two fields IS the finding, so it is
@@ -352,16 +364,16 @@ export function PulseClient() {
                   <p className="pl-gap-note">
                     {(() => {
                       const gap = (upVolumeShare(live) - upShare(live)) * 100
-                      if (Math.abs(gap) < 4) return 'حصة الأسهم الصاعدة من الحجم تقارب حصتها من العدد — حركة متسقة.'
+                      if (Math.abs(gap) < 4) return pl.skewAligned
                       return gap > 0
-                        ? `الأسهم الصاعدة تستحوذ على حصة من الحجم تفوق حصتها من العدد بـ${Math.abs(gap).toFixed(0)} نقطة مئوية — السيولة مع الاتجاه.`
-                        : `الأسهم الصاعدة تستحوذ على حصة من الحجم تقل عن حصتها من العدد بـ${Math.abs(gap).toFixed(0)} نقطة مئوية — الارتفاع أوسع مما هو مدعوم.`
+                        ? pl.skewWith(Math.abs(gap).toFixed(0))
+                        : pl.skewAgainst(Math.abs(gap).toFixed(0))
                     })()}
                   </p>
                   {live.noPrior ? (
                     <p className="pl-na-note">
-                      <bdi>{live.noPrior}</bdi> {live.noPrior > 2 && live.noPrior < 11 ? 'شركات' : 'شركة'} تداولت في هذه الجلسة دون إغلاق سابق قابل للمقارنة، فلا اتجاه لها.
-                      هي معروضة منفصلة ولم تُحتسب ثابتة، ولا تدخل في حصص العدد أعلاه.
+                      {pl.noPriorNote(String(live.noPrior), live.noPrior > 1)}
+                      {pl.noPriorTail}
                     </p>
                   ) : null}
                 </>
@@ -369,30 +381,30 @@ export function PulseClient() {
             </div>
 
             <div className="cd-panel pl-participation">
-              <div className="cd-panel-head"><h2>المشاركة</h2></div>
+              <div className="cd-panel-head"><h2>{pl.participation}</h2></div>
               {loading || !live ? <SkelBlock h={150} /> : (
                 <>
                   <div className="pl-part-main">
                     <strong><bdi>{live.traded}</bdi></strong>
                     <span>
-                      شركة تداولت{live.listed != null ? <> من أصل <bdi>{live.listed}</bdi> مدرجة</> : null}
+                      {live.listed != null ? pl.tradedOfListed(String(live.listed)) : pl.tradedNoListed}
                     </span>
                   </div>
                   <ParticipationTrack live={live} prev={model?.prev ?? null} />
                   {model?.prev ? (
-                    <Delta label="مقابل الجلسة السابقة" now={live.traded} prev={model.prev.traded} suffix=" شركة" />
+                    <Delta label={pl.vsPrevSession} now={live.traded} prev={model.prev.traded} suffix={pl.companySuffix} />
                   ) : null}
                   <dl className="pl-part-rows">
                     <div>
-                      <dt>القيمة المتداولة</dt>
+                      <dt>{pl.tradedValue}</dt>
                       <dd>{live.totalValue != null ? <><bdi>{iqd(live.totalValue)}</bdi> <small>IQD</small></> : <bdi>—</bdi>}</dd>
                     </div>
                     <div>
-                      <dt>عدد الصفقات</dt>
+                      <dt>{pl.tradeCount}</dt>
                       <dd><bdi>{live.totalTrades != null ? nf0.format(live.totalTrades) : '—'}</bdi></dd>
                     </div>
                     <div>
-                      <dt>قمم / قيعان 52 أسبوعاً</dt>
+                      <dt>{pl.highsLows}</dt>
                       <dd>
                         <bdi className="positive">{live.newHighs ?? '—'}</bdi>
                         <span className="pl-sep">/</span>
@@ -402,8 +414,7 @@ export function PulseClient() {
                   </dl>
                   {model?.tradedGap ? (
                     <p className="pl-na-note">
-                      نشرة الجلسة تذكر <bdi>{model.tradedGap.index}</bdi> شركة متداولة، وسجل الأسعار يحمل{' '}
-                      <bdi>{model.tradedGap.rows}</bdi> صفاً. الأرقام أعلاه محسوبة من سجل الأسعار.
+                      {pl.tradedGap(String(model.tradedGap.index), String(model.tradedGap.rows))}
                     </p>
                   ) : null}
                 </>
@@ -414,17 +425,17 @@ export function PulseClient() {
           {/* ── Historical breadth ───────────────────────────────────────── */}
           <section className="cd-panel pl-history">
             <div className="cd-panel-head">
-              <h2>صافي الاتساع عبر الجلسات</h2>
+              <h2>{pl.netBreadth}</h2>
               <span className="cd-panel-note pl-def">
-                الصاعدة ناقص الهابطة
+                {pl.advMinusDec}
                 <i className="fn-help" tabIndex={0} role="note"
-                  data-help="صافي الاتساع = عدد الشركات المرتفعة ناقص عدد المنخفضة في الجلسة. سجل الجلسات السابقة يقارن كل شركة بآخر إغلاق تداولت فيه، لا بإغلاق الجلسة السابقة، ولذلك لا يفصل الشركات التي لا إغلاق سابق لها."
-                  aria-label="صافي الاتساع = عدد الشركات المرتفعة ناقص عدد المنخفضة">؟</i>
+                  data-help={pl.netBreadthHelpLong}
+                  aria-label={pl.netBreadthHelp}>؟</i>
               </span>
-              <div className="pl-tf" role="group" aria-label="المدة">
+              <div className="pl-tf" role="group" aria-label={pl.timeframe}>
                 {TIMEFRAMES.map(t => (
                   <button key={t.id} type="button" className={tf === t.id ? 'active' : ''}
-                    aria-pressed={tf === t.id} onClick={() => setTf(t.id)}>{t.label}</button>
+                    aria-pressed={tf === t.id} onClick={() => setTf(t.id)}>{t[locale]}</button>
                 ))}
               </div>
             </div>
@@ -439,8 +450,8 @@ export function PulseClient() {
           <section className="pl-grid-main">
             <div className={`cd-panel pl-sec-panel ${shownSector ? 'has-sel' : ''}`}>
               <div className="cd-panel-head">
-                <h2>اتساع القطاعات</h2>
-                <span className="cd-panel-note">توزيع الشركات داخل كل قطاع، لا عائد القطاع</span>
+                <h2>{pl.sectorBreadth}</h2>
+                <span className="cd-panel-note">{pl.sectorNote}</span>
               </div>
               {loading || !model ? <SkelBlock h={200} /> : (
                 <>
@@ -450,18 +461,18 @@ export function PulseClient() {
                     {secRow ? (
                       <>
                         <span className="pl-readout-name">{secRow.label}</span>
-                        <span className="pl-read"><em>رابح</em><bdi className="positive">{secRow.up}</bdi></span>
-                        <span className="pl-read"><em>ثابت</em><bdi>{secRow.flat}</bdi></span>
-                        <span className="pl-read"><em>خاسر</em><bdi className="negative">{secRow.down}</bdi></span>
-                        {secRow.noPrior ? <span className="pl-read"><em>بلا مقارنة</em><bdi>{secRow.noPrior}</bdi></span> : null}
-                        <span className="pl-read"><em>متداولة</em><bdi>{secRow.traded}</bdi></span>
-                        <span className="pl-read"><em>رابح : خاسر</em>
-                          <bdi title={sectorRatio(secRow) == null ? 'لا يمكن حساب النسبة لعدم وجود شركات خاسرة' : undefined}>
+                        <span className="pl-read"><em>{pl.up}</em><bdi className="positive">{secRow.up}</bdi></span>
+                        <span className="pl-read"><em>{pl.flat}</em><bdi>{secRow.flat}</bdi></span>
+                        <span className="pl-read"><em>{pl.down}</em><bdi className="negative">{secRow.down}</bdi></span>
+                        {secRow.noPrior ? <span className="pl-read"><em>{pl.noPrior}</em><bdi>{secRow.noPrior}</bdi></span> : null}
+                        <span className="pl-read"><em>{pl.traded}</em><bdi>{secRow.traded}</bdi></span>
+                        <span className="pl-read"><em>{pl.upToDown}</em>
+                          <bdi title={sectorRatio(secRow) == null ? pl.noRatio : undefined}>
                             {sectorRatio(secRow) != null ? `${sectorRatio(secRow)!.toFixed(2)} : 1` : '—'}
                           </bdi>
                         </span>
                       </>
-                    ) : <span className="pl-readout-hint">مرّر أو انقر على قطاع لعرض توزيعه · النقر يثبّته</span>}
+                    ) : <span className="pl-readout-hint">{pl.sectorHint}</span>}
                   </div>
                   <ul className="pl-sectors">
                     {model.sectors.map(s => (
@@ -477,8 +488,8 @@ export function PulseClient() {
 
             <div className="cd-panel">
               <div className="cd-panel-head">
-                <h2>تركّز التداول</h2>
-                <span className="cd-panel-note">من قيمة التداول، لا من حركة المؤشر</span>
+                <h2>{pl.concentration}</h2>
+                <span className="cd-panel-note">{pl.concentrationNote}</span>
               </div>
               {loading || !model || !live ? <SkelBlock h={200} /> : (
                 <>
@@ -486,9 +497,9 @@ export function PulseClient() {
                     {(() => {
                       const c = concentration(model.byValue, 5, live.totalValue)
                       return c == null
-                        ? <><strong><bdi>—</bdi></strong><span>لا تتوفر قيمة تداول الجلسة لاحتساب التركّز</span></>
+                        ? <><strong><bdi>—</bdi></strong><span>{pl.concentrationNA}</span></>
                         : <><strong><bdi>{(c * 100).toFixed(0)}%</bdi></strong>
-                            <span>من قيمة تداول الجلسة جرت على <bdi>5</bdi> شركات فقط</span></>
+                            <span>{pl.concentrationTop}</span></>
                     })()}
                   </div>
                   <div className="pl-readout" aria-live="polite">
@@ -496,17 +507,17 @@ export function PulseClient() {
                       <>
                         <span className="pl-readout-name">{concRow.name}</span>
                         <bdi className="cd-ticker">{concRow.symbol}</bdi>
-                        <span className="pl-read"><em>قيمة التداول</em><bdi>{nf0.format(concRow.value)}</bdi><em>IQD</em></span>
-                        <span className="pl-read"><em>من قيمة الجلسة</em>
+                        <span className="pl-read"><em>{pl.tradedValue}</em><bdi>{nf0.format(concRow.value)}</bdi><em>IQD</em></span>
+                        <span className="pl-read"><em>{pl.ofSessionValue}</em>
                           <bdi>{(() => { const s = valueShare(concRow.value, live.totalValue); return s == null ? '—' : `${(s * 100).toFixed(1)}%` })()}</bdi>
                         </span>
-                        <span className="pl-read"><em>الحركة</em>
+                        <span className="pl-read"><em>{pl.movement}</em>
                           <bdi className={concRow.pct == null ? '' : concRow.pct > 0 ? 'positive' : concRow.pct < 0 ? 'negative' : ''}>
                             {concRow.pct == null ? '—' : `${concRow.pct > 0 ? '+' : ''}${concRow.pct.toFixed(2)}%`}
                           </bdi>
                         </span>
                       </>
-                    ) : <span className="pl-readout-hint">مرّر على شركة لعرض حصتها · النقر يفتح صفحتها</span>}
+                    ) : <span className="pl-readout-hint">{pl.concentrationHint}</span>}
                   </div>
                   {/* Not an index contribution. The product holds no ISX60
                       constituent weights, so that number cannot be computed
@@ -517,7 +528,7 @@ export function PulseClient() {
                         onPointerEnter={() => setConc(s.symbol)} onPointerLeave={() => setConc(null)}>
                         <Link href={`/c/${s.symbol}`}
                           onFocus={() => setConc(s.symbol)} onBlur={() => setConc(null)}
-                          aria-label={`${s.name} · قيمة التداول ${nf0.format(s.value)} دينار`}>
+                          aria-label={pl.companyValueLabel(s.name, nf0.format(s.value))}>
                           <span className="pl-contrib-rank"><bdi>{i + 1}</bdi></span>
                           <span className="pl-contrib-name">
                             <strong title={s.name}>{s.name}</strong>
@@ -536,8 +547,7 @@ export function PulseClient() {
                     ))}
                   </ul>
                   <p className="pl-foot-note">
-                    الترتيب حسب قيمة التداول في الجلسة. لا تتوفر أوزان مكوّنات مؤشر ISX60 في البيانات،
-                    ولذلك لا تُعرض مساهمة الشركات في حركة المؤشر.
+                    {pl.concentrationFoot}
                   </p>
                 </>
               )}
@@ -562,6 +572,8 @@ type Part = { k: 'up' | 'flat' | 'down' | 'na'; name: string; v: number; txt: st
 function BreadthField({ label, unit, parts, total, totalLabel }: {
   label: string; unit: string; parts: Part[]; total: number; totalLabel: string
 }) {
+  const { t, locale } = useLocale()
+  const pl = t.pulse
   const [on, setOn] = useState<number | null>(null)
   const shown = parts.filter(p => p.v > 0)
   const sum = shown.reduce((a, p) => a + p.v, 0) || 1
@@ -586,7 +598,7 @@ function BreadthField({ label, unit, parts, total, totalLabel }: {
             <bdi>{active.fig}</bdi>
             <em>{unit}</em>
             <span className="pl-tip-pct"><bdi>{((active.v / sum) * 100).toFixed(1)}%</bdi></span>
-            <small>{totalLabel} <bdi>{unit === 'سهم' ? iqd(total) : total}</bdi></small>
+            <small>{totalLabel} <bdi>{unit === pl.sharesUnit ? iqd(total) : total}</bdi></small>
           </span>
         ) : null}
         <div className="pl-field-track">
@@ -596,7 +608,7 @@ function BreadthField({ label, unit, parts, total, totalLabel }: {
               onPointerEnter={() => setOn(i)} onPointerLeave={() => setOn(null)}
               onClick={() => setOn(c => (c === i ? null : i))}
               onFocus={() => setOn(i)} onBlur={() => setOn(null)}
-              aria-label={`${p.txt} · ${((p.v / sum) * 100).toFixed(1)} بالمئة`} />
+              aria-label={pl.sliceLabel(p.txt, ((p.v / sum) * 100).toFixed(1))} />
           ))}
         </div>
       </div>
@@ -617,6 +629,8 @@ function BreadthField({ label, unit, parts, total, totalLabel }: {
    The previous-session comparison is real: `daily_index` stores
    traded_companies per session, so the delta is read, not invented. */
 function ParticipationTrack({ live, prev }: { live: Session; prev: Session | null }) {
+  const { t, locale } = useLocale()
+  const pl = t.pulse
   const [on, setOn] = useState(false)
   const now = participation(live)
   const before = prev ? participation(prev) : null
@@ -627,15 +641,15 @@ function ParticipationTrack({ live, prev }: { live: Session; prev: Session | nul
     <div className="pl-part-anchor">
       {on ? (
         <span className="pl-tip pl-tip-wide" role="tooltip">
-          <b>المشاركة</b>
+          <b>{pl.participation}</b>
           <bdi>{(now * 100).toFixed(1)}%</bdi>
           <span className="pl-tip-rows">
-            <span><em>تداولت</em><bdi>{live.traded}</bdi></span>
-            <span><em>المدرجة</em><bdi>{live.listed ?? '—'}</bdi></span>
-            <span><em>الجلسة السابقة</em><bdi>{before != null ? `${(before * 100).toFixed(1)}%` : '—'}</bdi></span>
-            <span><em>الفرق</em>
+            <span><em>{pl.traded}</em><bdi>{live.traded}</bdi></span>
+            <span><em>{pl.listed}</em><bdi>{live.listed ?? '—'}</bdi></span>
+            <span><em>{pl.prevSession}</em><bdi>{before != null ? `${(before * 100).toFixed(1)}%` : '—'}</bdi></span>
+            <span><em>{pl.difference}</em>
               <bdi className={d == null ? '' : d > 0 ? 'positive' : d < 0 ? 'negative' : ''}>
-                {d == null ? '—' : `${d > 0 ? '+' : d < 0 ? '−' : ''}${Math.abs(d).toFixed(1)} نقطة`}
+                {d == null ? '—' : `${d > 0 ? '+' : d < 0 ? '−' : ''}${Math.abs(d).toFixed(1)} ${pl.points}`}
               </bdi>
             </span>
           </span>
@@ -644,7 +658,7 @@ function ParticipationTrack({ live, prev }: { live: Session; prev: Session | nul
       <button type="button" className={`pl-part-track ${on ? 'is-on' : ''}`}
         onPointerEnter={() => setOn(true)} onPointerLeave={() => setOn(false)}
         onClick={() => setOn(c => !c)} onFocus={() => setOn(true)} onBlur={() => setOn(false)}
-        aria-label={`${(now * 100).toFixed(0)} بالمئة مشاركة · ${live.traded} من ${live.listed ?? '—'}`}>
+        aria-label={pl.participationLabel((now * 100).toFixed(0), String(live.traded), String(live.listed ?? '—'))}>
         <i style={{ inlineSize: `${now * 100}%` }} />
       </button>
     </div>
@@ -673,6 +687,8 @@ function Delta({ label, now, prev, suffix = '' }: { label: string; now: number; 
    the plot: it never moves, never occludes, and at 2px column widths it is the
    only shape that can carry six figures. */
 function NetBreadthChart({ rows, sessions: nSessions }: { rows: Session[]; sessions: number }) {
+  const { t, locale } = useLocale()
+  const pl = t.pulse
   const [hover, setHover] = useState<number | null>(null)
   const [pin, setPin] = useState<number | null>(null)
   const max = Math.max(6, ...rows.map(r => Math.abs(netBreadth(r))))
@@ -685,18 +701,18 @@ function NetBreadthChart({ rows, sessions: nSessions }: { rows: Session[]; sessi
   return (
     <div className="pl-hist">
       <div className="pl-readout pl-hist-read" aria-live="polite">
-        <span className="pl-readout-name">{arFull(active.date)}</span>
-        <span className="pl-read"><em>صافي الاتساع</em>
+        <span className="pl-readout-name">{localeDateOrDash(active.date, locale)}</span>
+        <span className="pl-read"><em>{pl.netBreadthWord}</em>
           <bdi className={nb > 0 ? 'positive' : nb < 0 ? 'negative' : ''}>{nb > 0 ? '+' : ''}{nb}</bdi>
         </span>
-        <span className="pl-read"><em>رابح</em><bdi className="positive">{active.advancers}</bdi></span>
-        <span className="pl-read"><em>ثابت</em><bdi>{active.unchanged}</bdi></span>
-        <span className="pl-read"><em>خاسر</em><bdi className="negative">{active.decliners}</bdi></span>
-        <span className="pl-read"><em>متداولة</em><bdi>{active.traded}</bdi></span>
+        <span className="pl-read"><em>{pl.up}</em><bdi className="positive">{active.advancers}</bdi></span>
+        <span className="pl-read"><em>{pl.flat}</em><bdi>{active.unchanged}</bdi></span>
+        <span className="pl-read"><em>{pl.down}</em><bdi className="negative">{active.decliners}</bdi></span>
+        <span className="pl-read"><em>{pl.traded}</em><bdi>{active.traded}</bdi></span>
         <span className="pl-readout-hint">
           {isLive
-            ? (pin != null && hover == null ? 'جلسة مثبّتة — انقر مرة أخرى للإلغاء' : '')
-            : `آخر جلسة في السجل · ${nSessions} جلسة معروضة`}
+            ? (pin != null && hover == null ? pl.pinnedHint : '')
+            : pl.latestHint(String(nSessions))}
         </span>
       </div>
 
@@ -711,7 +727,7 @@ function NetBreadthChart({ rows, sessions: nSessions }: { rows: Session[]; sessi
               className={`pl-hist-col ${b >= 0 ? 'up' : 'down'} ${idx === i && isLive ? 'is-on' : ''} ${pin === i ? 'is-pin' : ''}`}
               onPointerEnter={() => setHover(i)} onFocus={() => setHover(i)} onBlur={() => setHover(null)}
               onClick={() => setPin(p => (p === i ? null : i))}
-              aria-label={`${arFull(r.date)}: صافي الاتساع ${b}، ${r.advancers} رابح، ${r.decliners} خاسر`}>
+              aria-label={pl.sessionBarLabel(localeDateOrDash(r.date, locale), String(b), String(r.advancers), String(r.decliners))}>
               <i style={{ blockSize: `${h}%`, [b >= 0 ? 'insetBlockEnd' : 'insetBlockStart']: '50%' } as React.CSSProperties} />
             </button>
           )
@@ -730,6 +746,8 @@ function SectorRow({ s, on, pinned, onEnter, onLeave, onPick }: {
   s: SectorBreadth; on: boolean; pinned: boolean
   onEnter: () => void; onLeave: () => void; onPick: () => void
 }) {
+  const { t, locale } = useLocale()
+  const pl = t.pulse
   const net = s.up - s.down
   const d = s.traded || 1
   return (
@@ -737,7 +755,7 @@ function SectorRow({ s, on, pinned, onEnter, onLeave, onPick }: {
       onPointerEnter={onEnter} onPointerLeave={onLeave}>
       <button type="button" onFocus={onEnter} onBlur={onLeave} onClick={onPick}
         aria-pressed={pinned}
-        aria-label={`${s.label}: ${s.up} رابح، ${s.flat} ثابت، ${s.down} خاسر، ${s.noPrior} بلا مقارنة، من ${s.traded} متداولة`}>
+        aria-label={pl.sectorBarLabel(s.label, String(s.up), String(s.flat), String(s.down), String(s.noPrior), String(s.traded))}>
         <span className="pl-sec-name">{s.label}</span>
         <span className="pl-sec-track" aria-hidden="true">
           <i className="up" style={{ inlineSize: `${(s.up / d) * 100}%` }} />
