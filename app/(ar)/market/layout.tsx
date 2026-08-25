@@ -23,7 +23,7 @@ export default function MarketLayout({ children }: { children: React.ReactNode }
     <>
       {children}
 
-      <Breadcrumbs trail={[{ name: 'حركة السوق', path: '/market' }]} />
+      <Breadcrumbs trail={[{ name: 'السوق', path: '/market' }]} />
 
 
       <Freshness

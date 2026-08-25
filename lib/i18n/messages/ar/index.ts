@@ -5,6 +5,7 @@ import { glossary } from './glossary'
 import { info } from './info'
 import { data } from './data'
 import { home } from './home'
+import { market } from './market'
 
 /**
  * The Arabic dictionary — and, because `en` is typed as `typeof ar`, the
@@ -16,4 +17,4 @@ import { home } from './home'
  * key removed here but left in `en` fails too, so the dictionaries cannot
  * drift apart in either direction.
  */
-export const ar = { nav, shell, system, glossary, info, data, home }
+export const ar = { nav, shell, system, glossary, info, data, home, market }
