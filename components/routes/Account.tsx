@@ -1,6 +1,12 @@
 'use client'
 
 import { useEffect, useMemo, useState } from 'react'
+import { useLocale } from '@/context/LocaleContext'
+import { usePathname } from 'next/navigation'
+import { LOCALES, LOCALE_NAME } from '@/lib/i18n/locale'
+import { switchPath } from '@/lib/i18n/paths'
+import type { Messages } from '@/lib/i18n'
+import { localeDateOrDash } from '@/lib/date'
 import Link from 'next/link'
 import { useApp } from '@/context/AppContext'
 import { usePortfolio } from '@/lib/portfolio'
@@ -9,7 +15,7 @@ import '@/styles/panels.css'
 // The signed-out state reuses the portfolio's empty-state pieces (`.pf-empty`,
 // `.pf-add`), which is what the approved design does too.
 import '@/styles/portfolio.css'
-import './profile.css'
+import '@/styles/profile.css'
 
 /**
  * حسابي — a direct port of the approved account page.
@@ -23,7 +29,7 @@ import './profile.css'
  *   email          read from the auth session · DISPLAY ONLY, because no
  *                  email-change interface exists
  *   password       `resetPasswordForEmail` → a link to /auth/reset
- *   language       `useApp().setLang`
+ *   language       the URL — see the LOCALES links below
  *   theme          `useApp().toggleTheme`
  *   referral code  `profiles.referral_code`, UNIQUE and copyable
  *   sign out       `supabase.auth.signOut()`
@@ -37,25 +43,29 @@ import './profile.css'
  */
 
 const SECTIONS = [
-  { id: 'account', label: 'الحساب', hint: 'الاسم والبريد وكلمة المرور' },
-  { id: 'prefs', label: 'التفضيلات', hint: 'اللغة والمظهر' },
-  { id: 'data', label: 'بياناتي', hint: 'القوائم والمحفظة ورمز الدعوة' },
+  { id: 'account' as const },
+  { id: 'prefs' as const },
+  { id: 'data' as const },
 ] as const
 type SectionId = (typeof SECTIONS)[number]['id']
 
-const LANGUAGES = [
-  { id: 'ar', label: 'العربية', note: 'الاتجاه من اليمين إلى اليسار' },
-  { id: 'en', label: 'English', note: 'Left-to-right' },
-] as const
 /* Two options, not three: `toggleTheme` writes 'light' or 'dark' and there is
    no prefers-color-scheme branch anywhere, so «تلقائي» would do nothing. */
 const THEMES = [
-  { id: 'light', label: 'فاتح' },
-  { id: 'dark', label: 'داكن' },
+  { id: 'light' as const },
+  { id: 'dark' as const },
 ] as const
 
-export default function ProfileClient() {
-  const { lang, setLang, theme, toggleTheme, user, profile, authLoading, refreshProfile, signOut, openAuth } = useApp()
+const tabLabel = (id: 'account' | 'prefs' | 'data', ac: Messages['personal']['account']) =>
+  id === 'account' ? ac.tabAccount : id === 'prefs' ? ac.tabPrefs : ac.tabData
+const tabHint = (id: 'account' | 'prefs' | 'data', ac: Messages['personal']['account']) =>
+  id === 'account' ? ac.tabAccountHint : id === 'prefs' ? ac.tabPrefsHint : ac.tabDataHint
+
+export function Account() {
+  const { t: T, locale, href: L } = useLocale()
+  const ac = T.personal.account
+  const pathname = usePathname() ?? '/'
+  const { theme, toggleTheme, user, profile, authLoading, refreshProfile, signOut, openAuth } = useApp()
   const { lots } = usePortfolio()
 
   const [section, setSection] = useState<SectionId>('account')
@@ -71,7 +81,7 @@ export default function ProfileClient() {
   useEffect(() => { setName(profile?.username ?? '') }, [profile?.username])
 
   const email = (user?.email as string | undefined) ?? null
-  const mark = (profile?.username || email || '؟').trim().charAt(0).toUpperCase()
+  const mark = (profile?.username || email || '?').trim().charAt(0).toUpperCase()
   const watchCount = profile?.watchlist?.length ?? 0
 
   const positions = useMemo(
@@ -80,7 +90,7 @@ export default function ProfileClient() {
   async function saveName() {
     const v = name.trim()
     if (!v || v === profile?.username) { setEditing(false); return }
-    if (v.length < 2) { setNameError('الاسم قصير جداً.'); return }
+    if (v.length < 2) { setNameError(ac.nameTooShort); return }
     setSaving(true); setNameError(null)
     try {
       const { createClient } = await import('@/lib/supabase/client')
@@ -88,8 +98,8 @@ export default function ProfileClient() {
       if (error) {
         // The UNIQUE constraint is the only real failure this column has.
         setNameError(error.code === '23505'
-          ? 'هذا الاسم مستخدم بالفعل — اختر اسماً آخر.'
-          : 'تعذّر حفظ الاسم. حاول مرة أخرى.')
+          ? ac.nameTaken
+          : ac.nameSaveFailed)
         return
       }
       await refreshProfile()
@@ -121,9 +131,9 @@ export default function ProfileClient() {
         <section className="pf-empty">
           {/* An `h1`, not a `strong` — this is the whole page when signed out,
               and a page with no top-level heading has no landmark to enter. */}
-          <h1>سجّل الدخول لعرض حسابك</h1>
-          <p>يحتاج هذا القسم إلى حساب. محفظتك وقائمتك تعملان دون تسجيل دخول، ويزامنهما الحساب عبر أجهزتك.</p>
-          <button type="button" className="pf-add pf-add-lg" onClick={() => openAuth?.()}>تسجيل الدخول</button>
+          <h1>{ac.signInTitle}</h1>
+          <p>{ac.signInNote}</p>
+          <button type="button" className="pf-add pf-add-lg" onClick={() => openAuth?.()}>{ac.signIn}</button>
         </section>
       </main>
     )
@@ -132,117 +142,123 @@ export default function ProfileClient() {
   const panels: Record<SectionId, React.ReactNode> = {
     account: (
       <>
-        <h2 className="ac-h2">الحساب</h2>
+        <h2 className="ac-h2">{ac.tabAccount}</h2>
 
         <div className="ac-field">
           <div className="ac-field-head">
-            <span className="ac-label">اسم المستخدم</span>
-            {saved ? <span className="ac-saved" role="status"><i aria-hidden="true">✓</i> تم الحفظ</span> : null}
+            <span className="ac-label">{ac.username}</span>
+            {saved ? <span className="ac-saved" role="status"><i aria-hidden="true">✓</i> {ac.saved}</span> : null}
           </div>
           {!editing ? (
             <div className="ac-static">
-              <span>{profile?.username || 'بلا اسم'}</span>
-              <button type="button" onClick={() => { setEditing(true); setNameError(null) }}>تعديل</button>
+              <span>{profile?.username || ac.noName}</span>
+              <button type="button" onClick={() => { setEditing(true); setNameError(null) }}>{ac.edit}</button>
             </div>
           ) : (
             <div className="ac-edit">
               <label>
-                <span className="sr-only">اسم المستخدم</span>
+                <span className="sr-only">{ac.username}</span>
                 <input value={name} autoFocus autoComplete="username"
                   onChange={e => { setName(e.target.value); setNameError(null) }}
                   onKeyDown={e => { if (e.key === 'Enter') saveName() }}
                   aria-invalid={!!nameError} aria-describedby={nameError ? 'ac-name-err' : undefined} />
               </label>
               <button type="button" className="ac-save" onClick={saveName} disabled={saving}>
-                {saving ? 'جارٍ الحفظ' : 'حفظ'}
+                {saving ? ac.saving : ac.save}
               </button>
               <button type="button" className="ac-cancel"
                 onClick={() => { setEditing(false); setName(profile?.username ?? ''); setNameError(null) }}>
-                إلغاء
+                {ac.cancel}
               </button>
             </div>
           )}
           {nameError
             ? <p className="ac-err" id="ac-name-err" role="alert">{nameError}</p>
-            : <p className="ac-hint">الاسم يظهر في حسابك فقط، ويجب أن يكون غير مستخدم.</p>}
+            : <p className="ac-hint">{ac.nameHint}</p>}
         </div>
 
         {/* Display only, and it says why. */}
         <div className="ac-field">
-          <div className="ac-field-head"><span className="ac-label">البريد الإلكتروني</span></div>
+          <div className="ac-field-head"><span className="ac-label">{ac.email}</span></div>
           <div className="ac-static is-locked">
             <span dir="ltr">{email ?? '—'}</span>
-            <em>غير قابل للتعديل</em>
+            <em>{ac.notEditable}</em>
           </div>
           <p className="ac-hint">
-            تغيير البريد غير متاح في المنتج حالياً — لا توجد واجهة لتحديث بيانات الدخول.
+            {ac.emailNotEditable}
           </p>
         </div>
 
         <div className="ac-field">
-          <div className="ac-field-head"><span className="ac-label">كلمة المرور</span></div>
+          <div className="ac-field-head"><span className="ac-label">{ac.password}</span></div>
           <div className="ac-static">
-            <span>تُغيَّر عبر رابط يُرسَل إلى بريدك</span>
+            <span>{ac.passwordViaEmail}</span>
             <button type="button" onClick={sendReset} disabled={resetSent || !email}>
-              {resetSent ? 'أُرسل الرابط' : 'إرسال رابط التغيير'}
+              {resetSent ? ac.resetSent : ac.sendResetLink}
             </button>
           </div>
           {resetSent ? (
             <p className="ac-ok" role="status">
               <i aria-hidden="true">✓</i>
-              أُرسل رابط إلى <bdi dir="ltr">{email}</bdi>. تحقّق من بريدك، وقد يصل إلى مجلد
-              الرسائل غير المرغوبة.
+              {ac.resetSentTo(email ?? '')}
             </p>
           ) : (
-            <p className="ac-hint">لا يطلب المنتج كلمة المرور الحالية: إعادة التعيين تتم عبر البريد وحده.</p>
+            <p className="ac-hint">{ac.noCurrentPassword}</p>
           )}
         </div>
       </>
     ),
     prefs: (
       <>
-        <h2 className="ac-h2">التفضيلات</h2>
+        <h2 className="ac-h2">{ac.tabPrefs}</h2>
         <div className="ac-field">
-          <div className="ac-field-head"><span className="ac-label">اللغة</span></div>
-          <div className="ac-choice" role="group" aria-label="اللغة">
-            {LANGUAGES.map(l => (
-              <button key={l.id} type="button" className={lang === l.id ? 'is-on' : ''}
-                aria-pressed={lang === l.id} onClick={() => setLang(l.id)}>
-                <strong>{l.label}</strong><span>{l.note}</span>
-              </button>
+          <div className="ac-field-head"><span className="ac-label">{ac.language}</span></div>
+          {/* ⚠ LINKS, not buttons.
+              The locale lives in the URL, so choosing a language means going to
+              a different page — the same rule the header switch follows. The
+              old control set a localStorage flag that changed nothing. */}
+          <div className="ac-choice" role="group" aria-label={ac.language}>
+            {LOCALES.map((id) => (
+              <Link key={id} href={switchPath(pathname, id)} hrefLang={id} lang={id}
+                className={locale === id ? 'is-on' : ''}
+                aria-current={locale === id ? 'true' : undefined}>
+                <strong>{LOCALE_NAME[id]}</strong>
+                <span>{id === 'ar' ? ac.rtl : ac.ltr}</span>
+              </Link>
             ))}
           </div>
+          <p className="ac-hint">{ac.languageNote}</p>
         </div>
         <div className="ac-field">
-          <div className="ac-field-head"><span className="ac-label">المظهر</span></div>
-          <div className="ac-choice" role="group" aria-label="المظهر">
+          <div className="ac-field-head"><span className="ac-label">{ac.appearance}</span></div>
+          <div className="ac-choice" role="group" aria-label={ac.appearance}>
             {THEMES.map(t => (
               <button key={t.id} type="button" className={theme === t.id ? 'is-on' : ''}
                 aria-pressed={theme === t.id}
                 onClick={() => { if (theme !== t.id) toggleTheme() }}>
-                <strong>{t.label}</strong>
+                <strong>{t.id === 'light' ? ac.themeLight : ac.themeDark}</strong>
               </button>
             ))}
           </div>
-          <p className="ac-hint">يُحفظ الاختيار على هذا الجهاز ويُطبَّق قبل رسم الصفحة.</p>
+          <p className="ac-hint">{ac.themeHint}</p>
         </div>
       </>
     ),
     data: (
       <>
-        <h2 className="ac-h2">بياناتي</h2>
+        <h2 className="ac-h2">{ac.myData}</h2>
         <dl className="ac-data">
           <div>
-            <dt>قائمة المتابعة</dt>
-            <dd><bdi>{watchCount}</bdi> شركة · <Link href="/watchlist">عرض</Link></dd>
+            <dt>{T.personal.watchlist.title}</dt>
+            <dd>{ac.watchlistCount(String(watchCount))} · <Link href={L('/watchlist')}>{ac.view}</Link></dd>
           </div>
           <div>
-            <dt>المحفظة</dt>
-            <dd><bdi>{positions}</bdi> مركز · <Link href="/portfolio">عرض</Link></dd>
+            <dt>{T.personal.portfolio.title}</dt>
+            <dd>{ac.portfolioCount(String(positions))} · <Link href={L('/portfolio')}>{ac.view}</Link></dd>
           </div>
           {profile?.referral_code ? (
             <div>
-              <dt>رمز الدعوة</dt>
+              <dt>{ac.inviteCode}</dt>
               <dd>
                 <bdi dir="ltr">{profile.referral_code}</bdi>
                 <button type="button" className="ac-copy"
@@ -250,14 +266,14 @@ export default function ProfileClient() {
                     navigator.clipboard?.writeText(profile.referral_code as string)
                     setCopied(true); setTimeout(() => setCopied(false), 2000)
                   }}>
-                  {copied ? 'نُسخ' : 'نسخ'}
+                  {copied ? ac.copied : ac.copy}
                 </button>
               </dd>
             </div>
           ) : null}
         </dl>
         <p className="ac-hint">
-          تُحفظ المحفظة وقائمة المتابعة على جهازك أولاً، وتُزامَن مع حسابك عند تسجيل الدخول.
+          {ac.localFirst}
         </p>
       </>
     ),
@@ -265,46 +281,46 @@ export default function ProfileClient() {
 
   return (
     <main className="ac-page iq-page">
-      <section className="ac-identity" aria-label="الحساب">
+      <section className="ac-identity" aria-label={ac.tabAccount}>
         <div className="ac-id">
           <span className="ac-mark" aria-hidden="true">{mark}</span>
           <div className="ac-id-copy">
-            <h1>{profile?.username || 'حسابي'}</h1>
+            <h1>{profile?.username || ac.myAccount}</h1>
             {email ? <span dir="ltr" className="ac-id-email">{email}</span> : null}
           </div>
           {profile?.created_at
-            ? <p className="ac-id-since">عضو منذ <bdi>{arFull(profile.created_at.slice(0, 10))}</bdi></p>
+            ? <p className="ac-id-since">{ac.memberSince(localeDateOrDash(profile.created_at.slice(0, 10), locale))}</p>
             : null}
         </div>
       </section>
 
       <div className="ac-body">
-        <nav className="ac-rail" aria-label="أقسام الإعدادات">
+        <nav className="ac-rail" aria-label={ac.settingsSections}>
           {SECTIONS.map(s => (
             <button key={s.id} type="button"
               className={section === s.id ? 'is-on' : ''}
               aria-current={section === s.id ? 'page' : undefined}
               onClick={() => setSection(s.id)}>
-              <strong>{s.label}</strong><span>{s.hint}</span>
+              <strong>{tabLabel(s.id, ac)}</strong><span>{tabHint(s.id, ac)}</span>
             </button>
           ))}
-          <button type="button" className="ac-rail-out" onClick={signOut}>تسجيل الخروج</button>
+          <button type="button" className="ac-rail-out" onClick={signOut}>{ac.signOut}</button>
         </nav>
 
         {/* Mobile: a list that opens one panel at a time. */}
-        <nav className={openPanel ? 'ac-list is-hidden' : 'ac-list'} aria-label="أقسام الإعدادات">
+        <nav className={openPanel ? 'ac-list is-hidden' : 'ac-list'} aria-label={ac.settingsSections}>
           {SECTIONS.map(s => (
             <button key={s.id} type="button" onClick={() => { setSection(s.id); setOpenPanel(s.id) }}>
-              <span><strong>{s.label}</strong><em>{s.hint}</em></span>
+              <span><strong>{tabLabel(s.id, ac)}</strong><em>{tabHint(s.id, ac)}</em></span>
               <i aria-hidden="true">‹</i>
             </button>
           ))}
-          <button type="button" className="ac-list-out" onClick={signOut}>تسجيل الخروج</button>
+          <button type="button" className="ac-list-out" onClick={signOut}>{ac.signOut}</button>
         </nav>
 
         <div className={openPanel ? 'ac-panel is-open' : 'ac-panel'}>
           <button type="button" className="ac-back" onClick={() => setOpenPanel(null)}>
-            <i aria-hidden="true">›</i> كل الإعدادات
+            <i className="dir-go" aria-hidden="true">›</i> {ac.allSettings}
           </button>
           {panels[section]}
 
@@ -316,7 +332,7 @@ export default function ProfileClient() {
             إدارة الجلسات، أو تصدير البيانات. لم يُعرض أيٌّ منها هنا لأنها غير موجودة في المنتج.
           </p>
 
-          <button type="button" className="ac-signout" onClick={signOut}>تسجيل الخروج</button>
+          <button type="button" className="ac-signout" onClick={signOut}>{ac.signOut}</button>
         </div>
       </div>
     </main>

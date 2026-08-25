@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { useLocale } from '@/context/LocaleContext'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useApp } from '@/context/AppContext'
@@ -23,9 +24,9 @@ import type { AuthErrorId } from '@/lib/auth'
  * shared dictionary. The SDK's own English string is never shown.
  */
 export default function AuthCallbackClient() {
-  const { lang } = useApp()
+  const { locale } = useLocale()
   const router = useRouter()
-  const isAr = lang === 'ar'
+  const isAr = locale === 'ar'
   const [error, setError] = useState<AuthErrorId | null>(null)
 
   useEffect(() => {
@@ -54,7 +55,7 @@ export default function AuthCallbackClient() {
     <AuthShell title={isAr ? 'تأكيد الحساب' : 'Confirming your account'}>
       {error ? (
         <>
-          <AuthError id={error} lang={lang} />
+          <AuthError id={error} locale={locale} />
           <Outcome tone="bad" title={isAr ? 'الرابط لم يعد صالحاً' : 'This link is no longer valid'}
             actions={
               <>

@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState, useCallback } from 'react'
+import { useLocale } from '@/context/LocaleContext'
 import Link from 'next/link'
 import { useApp } from '@/context/AppContext'
 import { SECTORS } from '@/lib/market'
@@ -70,9 +71,9 @@ function CoLogo({ sym, logo, color }: { sym: string; logo: string; color: string
   )
 }
 
-function CaseCard({ type, points, lang }: { type: 'bull' | 'bear'; points: AnalysisPoint[]; lang: string }) {
+function CaseCard({ type, points, locale }: { type: 'bull' | 'bear'; points: AnalysisPoint[]; locale: string }) {
   const isBull = type === 'bull'
-  const ar     = lang === 'ar'
+  const ar     = locale === 'ar'
   const accent = isBull ? '#22C55E' : '#EF4444'
   const bg     = isBull ? 'rgba(34,197,94,0.05)'  : 'rgba(239,68,68,0.05)'
   const border = isBull ? 'rgba(34,197,94,0.16)'  : 'rgba(239,68,68,0.16)'
@@ -123,8 +124,8 @@ function Loading({ ar }: { ar: boolean }) {
 
 export default function AnalysisPage({ params }: { params: { sym: string } }) {
   const sym = params.sym.toUpperCase()
-  const { lang } = useApp()
-  const ar = lang === 'ar'
+  const { locale } = useLocale()
+  const ar = locale === 'ar'
 
   const [co,       setCo]       = useState<CoMeta | null>(null)
   const [live,     setLive]     = useState<{ close: number; pct: number } | null>(null)
@@ -277,8 +278,8 @@ export default function AnalysisPage({ params }: { params: { sym: string } }) {
 
           {/* Bull / Bear */}
           <div style={{ display: 'flex', gap: 14, marginBottom: 28, flexWrap: 'wrap' }}>
-            <CaseCard type="bull" points={content.bullCase} lang={lang} />
-            <CaseCard type="bear" points={content.bearCase} lang={lang} />
+            <CaseCard type="bull" points={content.bullCase} locale={locale} />
+            <CaseCard type="bear" points={content.bearCase} locale={locale} />
           </div>
 
           {/* Verdict */}

@@ -2,11 +2,12 @@ import type { Metadata } from 'next'
 import { seoAlternates } from '@/lib/seo'
 import { Account } from '@/components/routes/Account'
 
+/** `/en/profile`. Usability mirror — noindex, no hreflang. */
 export const metadata: Metadata = {
-  title: 'الحساب · الإعدادات',
-  description: 'إعدادات حسابك في IQWealth: الاسم والبريد وكلمة المرور واللغة والمظهر وبياناتك المحفوظة.',
+  title: 'Account · settings',
+  description: 'Your IQWealth account settings: name, email, password, language, appearance and your saved data.',
   robots: { index: false, follow: false },
-  alternates: seoAlternates('/profile'),
+  alternates: seoAlternates('/profile', 'en'),
 }
 
 export default function Page() {

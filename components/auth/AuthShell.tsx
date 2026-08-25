@@ -1,6 +1,11 @@
 "use client";
 
 import { type ReactNode, useState } from "react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { useLocale } from "@/context/LocaleContext";
+import { LOCALES } from "@/lib/i18n/locale";
+import { switchPath } from "@/lib/i18n/paths";
 import { StarMark } from '@/components/brand/StarMark'
 import { DitherArt } from "@/components/design/DitherArt";
 import { useApp } from "@/context/AppContext";
@@ -41,35 +46,46 @@ export function AuthShell({
   /** Sign-up carries the benefits column and needs the wider measure. */
   wide?: boolean;
 }) {
-  // One language and one theme for the whole product, set pre-paint in
-  // app/layout.tsx and carried in AppContext. The design holds them locally
-  // because each of its pages owns a toggle; here that would be a second
-  // source of truth for the same fact.
-  const { lang, setLang, theme, toggleTheme } = useApp();
+  /*
+   * ⚠ The language is the URL, and the theme is localStorage.
+   *
+   * The design holds both locally because each of its pages owns a toggle.
+   * Here that would be a second source of truth: the locale is decided by
+   * which route group rendered this page, and `dir` is already correct on
+   * <html>. So the language control below NAVIGATES — it is two links, not
+   * two buttons — and the `dir` override is gone.
+   */
+  const { theme, toggleTheme } = useApp();
+  const { locale } = useLocale();
+  const pathname = usePathname() ?? "/";
   return (
-    <div className="au-page iq-page" dir={lang === "ar" ? "rtl" : "ltr"}>
+    <div className="au-page iq-page">
       <div className="au-split">
         {/* ── The form side ─────────────────────────────────────────────── */}
         <div className="au-form-side">
           <header className="au-chrome">
             {/* The same mark the sidebar uses, so the signed-out shell is
                 recognisably the same product. §32 */}
-            <a className="au-brand" href="/">
+            <Link className="au-brand" href={switchPath("/", locale)}>
               <span className="au-brand-mark" aria-hidden="true"><StarMark size={17} color="#fff" /></span>
               <span className="au-brand-name">IQWealth</span>
-            </a>
+            </Link>
             <div className="au-chrome-controls">
-              <div className="au-mini" role="group" aria-label={lang === "ar" ? "اللغة" : "Language"}>
-                <button type="button" className={lang === "ar" ? "is-on" : ""}
-                  aria-pressed={lang === "ar"} onClick={() => setLang("ar")}>ع</button>
-                <button type="button" className={lang === "en" ? "is-on" : ""}
-                  aria-pressed={lang === "en"} onClick={() => setLang("en")}>EN</button>
+              <div className="au-mini" role="group" aria-label={locale === "ar" ? "اللغة" : "Language"}>
+                {LOCALES.map((id) => (
+                  <Link key={id} href={switchPath(pathname, id)} hrefLang={id} lang={id}
+                    className={locale === id ? "is-on" : ""}
+                    aria-current={locale === id ? "true" : undefined}
+                    aria-label={id === "ar" ? "التبديل إلى النسخة العربية" : "Switch to the English version"}>
+                    {id === "ar" ? "ع" : "EN"}
+                  </Link>
+                ))}
               </div>
               <button type="button" className="au-mini-btn" onClick={toggleTheme}
                 aria-pressed={theme === "dark"}
                 aria-label={theme === "dark"
-                  ? (lang === "ar" ? "تفعيل المظهر الفاتح" : "Switch to light")
-                  : (lang === "ar" ? "تفعيل المظهر الداكن" : "Switch to dark")}>
+                  ? (locale === "ar" ? "تفعيل المظهر الفاتح" : "Switch to light mode")
+                  : (locale === "ar" ? "تفعيل المظهر الداكن" : "Switch to dark mode")}>
                 {theme === "dark" ? "☀" : "◐"}
               </button>
             </div>
@@ -90,7 +106,7 @@ export function AuthShell({
         <aside className="au-art-side" aria-hidden="true">
           <div className="au-art"><DitherArt scene="auth" theme={theme === "dark" ? "dark" : "light"} /></div>
           <p className="au-art-line">
-            {lang === "ar"
+            {locale === "ar"
               ? "بيانات سوق العراق للأوراق المالية، في مكان واحد."
               : "The Iraq Stock Exchange, in one place."}
           </p>
@@ -141,7 +157,7 @@ export function PasswordField(p: {
   id: string; label: string; value: string; onChange: (v: string) => void;
   error?: string | null; hint?: ReactNode; autoComplete?: string;
   autoFocus?: boolean; disabled?: boolean; onBlur?: () => void;
-  lang: Lang;
+  locale: Lang;
 }) {
   const [shown, setShown] = useState(false);
   return (
@@ -159,11 +175,11 @@ export function PasswordField(p: {
         <button type="button" onClick={() => setShown((s) => !s)}
           aria-pressed={shown}
           aria-label={shown
-            ? (p.lang === "ar" ? "إخفاء كلمة المرور" : "Hide password")
-            : (p.lang === "ar" ? "إظهار كلمة المرور" : "Show password")}>
+            ? (p.locale === "ar" ? "إخفاء كلمة المرور" : "Hide password")
+            : (p.locale === "ar" ? "إظهار كلمة المرور" : "Show password")}>
           {shown
-            ? (p.lang === "ar" ? "إخفاء" : "Hide")
-            : (p.lang === "ar" ? "إظهار" : "Show")}
+            ? (p.locale === "ar" ? "إخفاء" : "Hide")
+            : (p.locale === "ar" ? "إظهار" : "Show")}
         </button>
       </div>
       {p.error ? (
@@ -179,8 +195,8 @@ export function PasswordField(p: {
  * A form-level error. §9 — never one generic «حدث خطأ» when the auth system
  * gave a usable reason, and never the SDK's raw English string.
  */
-export function AuthError({ id, action, lang = "ar" }: { id: AuthErrorId; action?: ReactNode; lang?: Lang }) {
-  const e = (lang === "ar" ? AUTH_ERRORS : ERROR_EN)[id];
+export function AuthError({ id, action, locale = "ar" }: { id: AuthErrorId; action?: ReactNode; locale?: Lang }) {
+  const e = (locale === "ar" ? AUTH_ERRORS : ERROR_EN)[id];
   return (
     <div className="au-error" role="alert">
       <i aria-hidden="true">△</i>

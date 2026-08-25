@@ -1,6 +1,7 @@
 'use client'
 
 import { useApp } from '@/context/AppContext'
+import { useLocale } from '@/context/LocaleContext'
 import PostCard from './PostCard'
 import type { WPPost, Section } from '@/lib/cms'
 import { SECTIONS } from '@/lib/cms'
@@ -11,8 +12,8 @@ interface Props {
 }
 
 export default function SectionPage({ section, posts }: Props) {
-  const { lang } = useApp()
-  const ar   = lang === 'ar'
+  const { locale } = useLocale()
+  const ar   = locale === 'ar'
   const meta = SECTIONS[section]
 
   return (
@@ -57,7 +58,7 @@ export default function SectionPage({ section, posts }: Props) {
           gap: 20,
         }}>
           {posts.map(post => (
-            <PostCard key={post.id} post={post} section={section} lang={lang} />
+            <PostCard key={post.id} post={post} section={section} locale={locale} />
           ))}
         </div>
       )}

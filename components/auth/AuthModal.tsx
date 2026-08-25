@@ -1,15 +1,17 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
+import { useLocale } from '@/context/LocaleContext'
 import { createClient } from '@/lib/supabase/client'
 
 // Note: does NOT import useApp · AppContext imports this file, so importing
 // useApp here would create a circular dependency. Lang is passed as a prop instead.
-interface Props { onClose: () => void; defaultTab?: 'signin' | 'signup'; lang?: string }
+interface Props { onClose: () => void; defaultTab?: 'signin' | 'signup'; locale?: string }
 
 type Tab = 'signin' | 'signup'
 
-export default function AuthModal({ onClose, defaultTab = 'signin', lang = 'ar' }: Props) {
+export default function AuthModal({ onClose, defaultTab = 'signin' }: Props) {
+  const { locale } = useLocale()
   const [tab, setTab] = useState<Tab>(defaultTab)
   const [email, setEmail] = useState('')
   const [password, setPass] = useState('')
@@ -23,7 +25,7 @@ export default function AuthModal({ onClose, defaultTab = 'signin', lang = 'ar' 
   // reads them as "it is broken" rather than "wait a moment".
   const [cooldown, setCooldown] = useState(0)
   const [resent, setResent] = useState(false)
-  const ar = lang === 'ar'
+  const ar = locale === 'ar'
   const sb = createClient()
   const firstFieldRef = useRef<HTMLInputElement>(null)
 

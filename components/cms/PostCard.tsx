@@ -1,20 +1,21 @@
 import Link from 'next/link'
+import { useLocale } from '@/context/LocaleContext'
 import type { WPPost } from '@/lib/cms'
 import { featuredImage, fmtDate, stripHtml, SECTIONS } from '@/lib/cms'
 
 interface Props {
   post:    WPPost
   section: 'news' | 'research' | 'learn'
-  lang:    string
+  locale:    string
 }
 
-export default function PostCard({ post, section, lang }: Props) {
-  const ar    = lang === 'ar'
+export default function PostCard({ post, section, locale }: Props) {
+  const ar    = locale === 'ar'
   const meta  = SECTIONS[section]
   const img   = featuredImage(post, 'medium')
   const title = post.title.rendered
   const blurb = stripHtml(post.excerpt.rendered).slice(0, 120) + '…'
-  const date  = fmtDate(post.date, lang)
+  const date  = fmtDate(post.date, locale)
   const href  = `/${section}/${post.slug}`
 
   return (

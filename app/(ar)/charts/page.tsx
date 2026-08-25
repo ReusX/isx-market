@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState, useMemo } from 'react'
+import { useLocale } from '@/context/LocaleContext'
 import { useApp } from '@/context/AppContext'
 import { fetchLive, fetchCompanyMeta, mergeCompanies } from '@/lib/market'
 import { compositeWatermark, downloadImage, copyImage } from '@/lib/watermark'
@@ -276,8 +277,9 @@ function MiniSpark({ points, up }: { points: number[]; up: boolean }) {
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
 export default function ChartsPage() {
-  const { lang, watchlist } = useApp()
-  const ar = lang === 'ar'
+  const { watchlist } = useApp()
+  const { locale } = useLocale()
+  const ar = locale === 'ar'
 
   const [companies, setCompanies] = useState<Company[]>([])
   const [rsisxPct, setRsisxPct]   = useState(0)

@@ -9,6 +9,7 @@ import { MobileNav } from './MobileNav'
 import { SiteFooter } from './SiteFooter'
 import { ToastProvider } from '@/components/system/Toast'
 import { useApp } from '@/context/AppContext'
+import { splitLocale } from '@/lib/i18n/paths'
 
 const SIDEBAR_KEY = 'iqwealth-sidebar-collapsed'
 
@@ -63,7 +64,16 @@ const BARE_ROUTES = [
 export default function AppFrame({ children }: { children: ReactNode }) {
   const pathname = usePathname() ?? '/'
   const { user } = useApp()
-  const bare = BARE_ROUTES.some((r) => pathname === r || pathname.startsWith(`${r}/`))
+  /*
+   * ⚠ Matched against the LOCALE-FREE route.
+   *
+   * This compared raw pathnames, so `/en/login` matched nothing and the auth
+   * screens rendered inside the market sidebar — two navigations on one
+   * screen, and the form column squeezed into a gutter. Every locale-aware
+   * route test in the shell goes through `splitLocale` for this reason.
+   */
+  const { route } = splitLocale(pathname)
+  const bare = BARE_ROUTES.some((r) => route === r || route.startsWith(`${r}/`))
 
   const [collapsed, setCollapsed] = useState(false)
   const [navOpen, setNavOpen] = useState(false)

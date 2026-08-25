@@ -131,7 +131,12 @@ export type Slice = { key: string; label: string; value: number; pct: number; co
  * than zero-weighted: a position with no price has no weight to give.
  */
 export function slices(
-  rows: Position[], by: 'sector' | 'company', sectorLabel: (k: string) => string,
+  rows: Position[],
+  by: 'sector' | 'company',
+  /** Already bound to the reader's locale by the caller. */
+  sectorLabel: (k: string) => string,
+  /** «غير مصنّف» / «Unclassified» — copy, so it is passed in. */
+  unclassified: string,
 ): Slice[] {
   const valued = rows.filter(r => r.value != null)
   const total = valued.reduce((a, r) => a + (r.value as number), 0)
@@ -140,7 +145,7 @@ export function slices(
   const buckets = new Map<string, { label: string; value: number; count: number }>()
   for (const r of valued) {
     const key = by === 'sector' ? (r.sector ?? 'unknown') : r.sym
-    const label = by === 'sector' ? (r.sector ? sectorLabel(r.sector) : 'غير مصنّف') : r.name
+    const label = by === 'sector' ? (r.sector ? sectorLabel(r.sector) : unclassified) : r.name
     const b = buckets.get(key)
     if (b) { b.value += r.value as number; b.count++ }
     else buckets.set(key, { label, value: r.value as number, count: 1 })

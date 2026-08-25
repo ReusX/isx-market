@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState, useMemo } from 'react'
+import { useLocale } from '@/context/LocaleContext'
 import Link from 'next/link'
 import { useApp } from '@/context/AppContext'
 import { SECTORS, fetchLive, fetchCompanyMeta, mergeCompanies, liveMcap, fmtMcap } from '@/lib/market'
@@ -13,8 +14,8 @@ const SECTOR_COLORS: Record<string, string> = {
 }
 
 export default function AnalysisListPage() {
-  const { lang } = useApp()
-  const ar = lang === 'ar'
+  const { locale } = useLocale()
+  const ar = locale === 'ar'
 
   const [companies, setCompanies] = useState<Company[]>([])
   const [search,    setSearch]    = useState('')

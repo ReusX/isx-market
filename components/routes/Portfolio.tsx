@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useMemo, useRef, useState } from 'react'
+import { useLocale } from '@/context/LocaleContext'
 import Link from 'next/link'
 import { useApp } from '@/context/AppContext'
 import { useMarketData, usePortfolio, type Lot } from '@/lib/portfolio'
@@ -32,9 +33,9 @@ import '@/styles/portfolio.css'
  */
 
 const FILTERS = [
-  { id: 'all', label: 'الكل' },
-  { id: 'up', label: 'رابحة' },
-  { id: 'down', label: 'خاسرة' },
+  { id: 'all' as const },
+  { id: 'up' as const },
+  { id: 'down' as const },
 ] as const
 type FilterId = (typeof FILTERS)[number]['id']
 type SortId = 'value' | 'pl' | 'weight' | 'day'
@@ -45,7 +46,9 @@ const pct = (v: number | null) =>
   v == null ? '—' : `${v > 0 ? '+' : v < 0 ? '−' : ''}${Math.abs(v).toFixed(1)}%`
 const signedIqd = (v: number) => `${v > 0 ? '+' : v < 0 ? '−' : ''}${iqd(Math.abs(v))}`
 
-export default function PortfolioClient() {
+export function Portfolio() {
+  const { t: T, locale, href: L } = useLocale()
+  const pf = T.personal.portfolio
   const { user } = useApp()
   const { meta, metaBy, quotes, loading: pricesLoading } = useMarketData()
   const { lots, ready, addLot, removeLot, removeSym } = usePortfolio()
@@ -65,7 +68,7 @@ export default function PortfolioClient() {
   const rows = useMemo(() => positions(lots, quotes, metaBy), [lots, quotes, metaBy])
   const t = useMemo(() => totals(rows), [rows])
   const alloc = useMemo(
-    () => slices(rows, allocBy, k => sectorLabel(k, 'ar')), [rows, allocBy])
+    () => slices(rows, allocBy, k => sectorLabel(k, locale), pf.unclassified), [rows, allocBy])
 
   const view = useMemo(() => {
     const q = query.trim().toLowerCase()
@@ -114,20 +117,20 @@ export default function PortfolioClient() {
     <main className="pf-page iq-page" onClick={() => setMenu(null)}>
       <header className="pf-head">
         <div className="st-title">
-          <h1>المحفظة</h1>
+          <h1>{pf.title}</h1>
           <p>
-            <span className="pf-private" title="بيانات خاصة بك">
-              <i aria-hidden="true">◆</i> خاصة بك
+            <span className="pf-private" title={pf.privateTitle}>
+              <i aria-hidden="true">◆</i> {pf.private}
             </span>
             <span className="pf-dot" aria-hidden="true">·</span>
-            {signedOut ? 'محفوظة على هذا الجهاز' : 'مُزامنة مع حسابك'}
+            {signedOut ? pf.onThisDevice : pf.syncedWithAccount}
             <span className="pf-dot" aria-hidden="true">·</span>
-            مُسعّرة بآخر إغلاق رسمي
+            {pf.pricedAtClose}
           </p>
         </div>
         <div className="st-head-actions">
           <button type="button" className="pf-add" onClick={() => setSheet({ ...EMPTY_DRAFT })}>
-            <i aria-hidden="true">+</i> إضافة مركز
+            <i aria-hidden="true">+</i> {pf.addPosition}
           </button>
         </div>
       </header>
@@ -136,10 +139,10 @@ export default function PortfolioClient() {
       {signedOut ? (
         <div className="pf-signin">
           <div>
-            <strong>محفظتك محفوظة على هذا الجهاز</strong>
-            <p>سجّل الدخول لمزامنتها عبر أجهزتك. تبقى بياناتك خاصة بك في الحالتين.</p>
+            <strong>{pf.localTitle}</strong>
+            <p>{pf.localNote}</p>
           </div>
-          <Link className="pf-signin-go" href="/login">تسجيل الدخول</Link>
+          <Link className="pf-signin-go" href={L('/login')}>{pf.signIn}</Link>
         </div>
       ) : null}
 
@@ -150,32 +153,31 @@ export default function PortfolioClient() {
         </>
       ) : !rows.length ? (
         <section className="pf-empty">
-          <strong>لا توجد مراكز في محفظتك بعد</strong>
+          <strong>{pf.emptyTitle}</strong>
           <p>
-            أضف أسهمك لمتابعة قيمتها الحالية وأرباحها وتوزيعها على القطاعات،
-            محسوبة من أسعار الإغلاق الرسمية.
+            {pf.emptyLead}
           </p>
           <button type="button" className="pf-add pf-add-lg" onClick={() => setSheet({ ...EMPTY_DRAFT })}>
-            <i aria-hidden="true">+</i> إضافة أول مركز
+            <i aria-hidden="true">+</i> {pf.addFirst}
           </button>
-          <span className="pf-empty-note">تُحفظ محفظتك على جهازك، وتُزامَن عند تسجيل الدخول.</span>
+          <span className="pf-empty-note">{pf.emptyNote}</span>
         </section>
       ) : (
         <>
           {/* ── Summary · one composition, not five cards ──────────────────── */}
-          <section className="pf-summary" aria-label="ملخص المحفظة">
+          <section className="pf-summary" aria-label={pf.summaryLabel}>
             <div className="pf-total">
-              <span className="cd-cell-label">القيمة الحالية</span>
-              <strong><bdi>{iqd(t.value)}</bdi><em>د.ع</em></strong>
+              <span className="cd-cell-label">{pf.currentValue}</span>
+              <strong><bdi>{iqd(t.value)}</bdi><em>{pf.iqd}</em></strong>
               <p className="pf-total-sub">
                 {t.dayChange == null ? (
-                  <span className="mv-dash" title="لا توجد جلسة سابقة للمقارنة">—</span>
+                  <span className="mv-dash" title={pf.noPriorSession}>—</span>
                 ) : (
                   <>
                     <bdi className={t.dayChange > 0 ? 'positive' : t.dayChange < 0 ? 'negative' : ''}>
                       {signedIqd(t.dayChange)}
                     </bdi>
-                    <span>مقابل الجلسة السابقة</span>
+                    <span>{pf.vsPrevSession}</span>
                     <bdi className={t.dayChange > 0 ? 'positive' : t.dayChange < 0 ? 'negative' : ''}>
                       {pct(t.dayPct)}
                     </bdi>
@@ -186,34 +188,34 @@ export default function PortfolioClient() {
             {/* Each figure named precisely: «الربح» alone would collapse three
                 different quantities into one word. */}
             <dl className="pf-figs">
-              <div><dt>التكلفة الإجمالية</dt><dd><bdi>{iqd(t.cost)}</bdi></dd></div>
+              <div><dt>{pf.totalCost}</dt><dd><bdi>{iqd(t.cost)}</bdi></dd></div>
               <div>
                 <dt>
-                  الربح غير المحقق
+                  {pf.unrealised}
                   <i className="fn-help" tabIndex={0} role="note"
-                    data-help="الفرق بين القيمة الحالية والتكلفة للمراكز التي ما زلت تملكها. لا يشمل أي أرباح محققة، لأن المنتج لا يسجّل عمليات البيع."
-                    aria-label="الفرق بين القيمة الحالية والتكلفة للمراكز المملوكة">؟</i>
+                    data-help={pf.unrealisedHelpLong}
+                    aria-label={pf.unrealisedHelp}>{locale === 'ar' ? '؟' : '?'}</i>
                 </dt>
                 <dd className={t.pl > 0 ? 'positive' : t.pl < 0 ? 'negative' : ''}>
                   <bdi>{signedIqd(t.pl)}</bdi>
                 </dd>
               </div>
               <div>
-                <dt>العائد الإجمالي</dt>
+                <dt>{pf.totalReturn}</dt>
                 <dd className={t.pl > 0 ? 'positive' : t.pl < 0 ? 'negative' : ''}>
                   <bdi>{pct(t.plPct)}</bdi>
                 </dd>
               </div>
-              <div><dt>المراكز</dt><dd><bdi>{t.holdings}</bdi></dd></div>
+              <div><dt>{pf.positions}</dt><dd><bdi>{t.holdings}</bdi></dd></div>
             </dl>
             {t.unvalued ? (
               /* The exclusion is stated ON the total it affects. */
               <p className="pf-excluded">
                 <bdi>{t.unvalued}</bdi>{' '}
                 {t.unvalued === 1
-                  ? <>مركز غير مُقيَّم لعدم توفر سعر حالي — مستثنى من القيمة والعائد أعلاه، وتكلفته</>
-                  : <>مراكز غير مُقيَّمة لعدم توفر سعر حالي — مستثناة من القيمة والعائد أعلاه، وتكلفتها</>}
-                {' '}<bdi>{iqd(t.unvaluedCost)}</bdi> د.ع.
+                  ? <>{pf.unvaluedOne}</>
+                  : <>{pf.unvaluedMany}</>}
+                {' '}<bdi>{iqd(t.unvaluedCost)}</bdi> {pf.iqd}.
               </p>
             ) : null}
           </section>
@@ -221,40 +223,40 @@ export default function PortfolioClient() {
           {/* ── Holdings ──────────────────────────────────────────────────── */}
           <section className="pf-panel">
             <div className="pf-panel-head">
-              <h2>المراكز</h2>
-              <div className="st-switch pf-filters" role="group" aria-label="تصفية">
+              <h2>{pf.positions}</h2>
+              <div className="st-switch pf-filters" role="group" aria-label={pf.filterGroup}>
                 {FILTERS.map(f => (
                   <button key={f.id} type="button" className={filter === f.id ? 'active' : ''}
-                    aria-pressed={filter === f.id} onClick={() => setFilter(f.id)}>{f.label}</button>
+                    aria-pressed={filter === f.id} onClick={() => setFilter(f.id)}>{f.id === 'all' ? pf.filterAll : f.id === 'up' ? pf.filterUp : pf.filterDown}</button>
                 ))}
               </div>
               <label className="pf-search">
-                <span className="sr-only">ابحث في مراكزك</span>
+                <span className="sr-only">{pf.searchPositions}</span>
                 <input type="search" value={query} onChange={e => setQuery(e.target.value)}
-                  placeholder="ابحث في مراكزك" aria-label="ابحث في مراكزك" />
+                  placeholder={pf.searchPositions} aria-label={pf.searchPositions} />
               </label>
             </div>
 
             {!view.length ? (
               <div className="cd-nodata">
-                <strong>لا مراكز مطابقة</strong>
-                <p>غيّر التصفية أو امسح البحث.</p>
+                <strong>{pf.noMatch}</strong>
+                <p>{pf.noMatchNote}</p>
                 <button type="button" className="pf-cancel"
-                  onClick={() => { setFilter('all'); setQuery('') }}>إعادة التعيين</button>
+                  onClick={() => { setFilter('all'); setQuery('') }}>{pf.reset}</button>
               </div>
             ) : (
               <div className="pf-scroll">
                 <table className="pf-table">
                   <thead>
                     <tr>
-                      <th scope="col" className="pf-col-co">الشركة</th>
-                      <th scope="col" className="pf-col-num">الكمية</th>
-                      <th scope="col" className="pf-col-num">متوسط الكلفة</th>
-                      <Th id="day" label="السعر · مقابل السابقة" sort={sort} dir={dir} setSort={setSort} setDir={setDir} />
-                      <Th id="value" label="القيمة" sort={sort} dir={dir} setSort={setSort} setDir={setDir} />
-                      <Th id="pl" label="الربح غير المحقق" sort={sort} dir={dir} setSort={setSort} setDir={setDir} />
-                      <Th id="weight" label="الوزن" sort={sort} dir={dir} setSort={setSort} setDir={setDir} />
-                      <th scope="col" className="pf-col-act"><span className="sr-only">إجراءات</span></th>
+                      <th scope="col" className="pf-col-co">{pf.colCompany}</th>
+                      <th scope="col" className="pf-col-num">{pf.colQty}</th>
+                      <th scope="col" className="pf-col-num">{pf.colAvgCost}</th>
+                      <Th id="day" label={pf.colPriceVsPrev} sort={sort} dir={dir} setSort={setSort} setDir={setDir} />
+                      <Th id="value" label={pf.colValue} sort={sort} dir={dir} setSort={setSort} setDir={setDir} />
+                      <Th id="pl" label={pf.unrealised} sort={sort} dir={dir} setSort={setSort} setDir={setDir} />
+                      <Th id="weight" label={pf.colWeight} sort={sort} dir={dir} setSort={setSort} setDir={setDir} />
+                      <th scope="col" className="pf-col-act"><span className="sr-only">{pf.colActions}</span></th>
                     </tr>
                   </thead>
                   <tbody>
@@ -274,8 +276,7 @@ export default function PortfolioClient() {
             )}
 
             <p className="st-foot">
-              القيمة = الكمية × السعر الحالي · الربح غير المحقق = القيمة − التكلفة.
-              {' '}لا يسجّل المنتج عمليات البيع، ولذلك لا يُعرض ربح محقق ولا سجل معاملات.
+              {pf.formulaNote}
             </p>
           </section>
 
@@ -283,12 +284,12 @@ export default function PortfolioClient() {
           {alloc.length ? (
             <section className="pf-panel pf-alloc-panel">
               <div className="pf-panel-head">
-                <h2>التوزيع</h2>
-                <div className="st-switch" role="group" aria-label="أساس التوزيع">
+                <h2>{pf.allocation}</h2>
+                <div className="st-switch" role="group" aria-label={pf.allocBasis}>
                   <button type="button" className={allocBy === 'sector' ? 'active' : ''}
-                    aria-pressed={allocBy === 'sector'} onClick={() => setAllocBy('sector')}>حسب القطاع</button>
+                    aria-pressed={allocBy === 'sector'} onClick={() => setAllocBy('sector')}>{pf.bySector}</button>
                   <button type="button" className={allocBy === 'company' ? 'active' : ''}
-                    aria-pressed={allocBy === 'company'} onClick={() => setAllocBy('company')}>حسب الشركة</button>
+                    aria-pressed={allocBy === 'company'} onClick={() => setAllocBy('company')}>{pf.byCompany}</button>
                 </div>
               </div>
               <div className="pl-readout" aria-live="polite">
@@ -297,20 +298,20 @@ export default function PortfolioClient() {
                   return (
                     <>
                       <span className="pl-readout-name">{s.label}</span>
-                      <span className="pl-read"><em>القيمة</em><bdi>{nf0.format(Math.round(s.value))}</bdi><em>د.ع</em></span>
-                      <span className="pl-read"><em>الوزن</em><bdi>{s.pct.toFixed(1)}%</bdi></span>
+                      <span className="pl-read"><em>{pf.value}</em><bdi>{nf0.format(Math.round(s.value))}</bdi><em>{pf.iqd}</em></span>
+                      <span className="pl-read"><em>{pf.weight}</em><bdi>{s.pct.toFixed(1)}%</bdi></span>
                       {allocBy === 'sector'
-                        ? <span className="pl-read"><em>مراكز</em><bdi>{s.count}</bdi></span> : null}
+                        ? <span className="pl-read"><em>{pf.positionsShort}</em><bdi>{s.count}</bdi></span> : null}
                     </>
                   )
-                })() : <span className="pl-readout-hint">مرّر أو انقر لعرض القيمة الدقيقة</span>}
+                })() : <span className="pl-readout-hint">{pf.allocationHint}</span>}
               </div>
               <ul className="pf-alloc">
                 {alloc.map(s => (
                   <li key={s.key} className={allocOn === s.key ? 'is-on' : ''}
                     onPointerEnter={() => setAllocOn(s.key)} onPointerLeave={() => setAllocOn(null)}>
                     <button type="button" onFocus={() => setAllocOn(s.key)} onBlur={() => setAllocOn(null)}
-                      aria-label={`${s.label}: ${s.pct.toFixed(1)} بالمئة، ${nf0.format(Math.round(s.value))} دينار`}>
+                      aria-label={pf.sliceLabel(s.label, s.pct.toFixed(1), nf0.format(Math.round(s.value)))}>
                       <span className="pf-alloc-label">{s.label}</span>
                       <span className="pf-alloc-track" aria-hidden="true">
                         <i style={{ inlineSize: `${s.pct}%` }} />
@@ -323,7 +324,7 @@ export default function PortfolioClient() {
               </ul>
               {t.unvalued ? (
                 <p className="st-foot">
-                  لا تشمل النسب المراكز غير المُقيَّمة، لأن المركز بلا سعر بلا وزن.
+                  {pf.allocExcludes}
                 </p>
               ) : null}
             </section>
@@ -334,47 +335,47 @@ export default function PortfolioClient() {
       {/* ── Add / edit sheet ─────────────────────────────────────────────── */}
       {sheet ? (
         <div className="pf-overlay" role="dialog" aria-modal="true"
-          aria-label={sheet.id ? 'تعديل عملية شراء' : 'إضافة مركز'}
+          aria-label={sheet.id ? pf.editLot : pf.addPosition}
           onClick={e => { if (e.target === e.currentTarget) setSheet(null) }}>
           <div className="pf-sheet" ref={sheetRef}>
             <div className="pf-sheet-head">
-              <h2>{sheet.id ? 'تعديل عملية شراء' : 'إضافة مركز'}</h2>
-              <button type="button" className="pf-x" onClick={() => setSheet(null)} aria-label="إغلاق">×</button>
+              <h2>{sheet.id ? pf.editLot : pf.addPosition}</h2>
+              <button type="button" className="pf-x" onClick={() => setSheet(null)} aria-label={pf.close}>×</button>
             </div>
             <div className="pf-form">
               <label className="pf-field">
-                <span>الشركة</span>
+                <span>{pf.company}</span>
                 <TickerPicker meta={meta} value={sheet.sym}
                   onChange={v => setSheet(s => s && { ...s, sym: v })} />
               </label>
               <div className="pf-field-row">
                 <label className="pf-field">
-                  <span>الكمية</span>
+                  <span>{pf.quantity}</span>
                   <input value={sheet.qty} inputMode="decimal" autoComplete="off"
                     onChange={e => setSheet(s => s && { ...s, qty: e.target.value.replace(/[^\d.]/g, '') })} />
                 </label>
                 <label className="pf-field">
-                  <span>سعر الشراء</span>
+                  <span>{pf.buyPrice}</span>
                   <input value={sheet.price} inputMode="decimal" autoComplete="off"
                     onChange={e => setSheet(s => s && { ...s, price: e.target.value.replace(/[^\d.]/g, '') })} />
                 </label>
               </div>
               <details className="pf-more" open={!!(sheet.date || sheet.note)}>
-                <summary>تفاصيل اختيارية</summary>
+                <summary>{pf.optionalDetails}</summary>
                 <div className="pf-field-row">
                   <label className="pf-field">
-                    <span>تاريخ الشراء</span>
+                    <span>{pf.buyDate}</span>
                     <input type="date" value={sheet.date}
                       onChange={e => setSheet(s => s && { ...s, date: e.target.value })} />
                   </label>
                   <label className="pf-field">
-                    <span>ملاحظة</span>
+                    <span>{pf.note}</span>
                     <input value={sheet.note} autoComplete="off"
                       onChange={e => setSheet(s => s && { ...s, note: e.target.value })} />
                   </label>
                 </div>
                 <p className="pf-hint">
-                  التاريخ اختياري ولا يُستخدم في أي حساب — لا يُرسم منحنى أداء تاريخي لأن التواريخ قد تكون ناقصة.
+                  {pf.dateOptional}
                 </p>
               </details>
 
@@ -383,17 +384,17 @@ export default function PortfolioClient() {
                 if (!(qty > 0) || !(price > 0)) return null
                 return (
                   <div className="pf-preview">
-                    <span>التكلفة</span>
-                    <bdi>{iqd(qty * price)}</bdi><span>د.ع</span>
+                    <span>{pf.cost}</span>
+                    <bdi>{iqd(qty * price)}</bdi><span>{pf.iqd}</span>
                   </div>
                 )
               })()}
             </div>
             <div className="pf-sheet-foot">
-              <button type="button" className="pf-cancel" onClick={() => setSheet(null)}>إلغاء</button>
+              <button type="button" className="pf-cancel" onClick={() => setSheet(null)}>{pf.cancel}</button>
               <button type="button" className="pf-save" onClick={save}
                 disabled={!sheet.sym || !(parseFloat(sheet.qty) > 0) || !(parseFloat(sheet.price) > 0)}>
-                {sheet.id ? 'حفظ' : 'إضافة'}
+                {sheet.id ? pf.save : pf.add}
               </button>
             </div>
           </div>
@@ -402,20 +403,20 @@ export default function PortfolioClient() {
 
       {/* ── Destructive confirm · names what it destroys ─────────────────── */}
       {confirm ? (
-        <div className="pf-overlay" role="dialog" aria-modal="true" aria-label="تأكيد الحذف"
+        <div className="pf-overlay" role="dialog" aria-modal="true" aria-label={pf.confirmDelete}
           onClick={e => { if (e.target === e.currentTarget) setConfirm(null) }}>
           <div className="pf-sheet pf-confirm">
-            <div className="pf-sheet-head"><h2>حذف المركز</h2></div>
+            <div className="pf-sheet-head"><h2>{pf.deletePosition}</h2></div>
             <p>
-              سيُحذف مركز <strong>{confirm.name}</strong> بالكامل، بما فيه{' '}
+              {pf.willDelete(confirm.name)}{' '}
               <bdi>{confirm.lots.length}</bdi>{' '}
-              {confirm.lots.length === 1 ? 'عملية شراء' : confirm.lots.length === 2 ? 'عمليتا شراء' : 'عمليات شراء'}.
-              لا يمكن التراجع.
+              {confirm.lots.length === 1 ? pf.lotOne : confirm.lots.length === 2 ? pf.lotTwo : pf.lotMany}.
+              {pf.cannotUndo}
             </p>
             <div className="pf-sheet-foot">
-              <button type="button" className="pf-cancel" onClick={() => setConfirm(null)}>إلغاء</button>
+              <button type="button" className="pf-cancel" onClick={() => setConfirm(null)}>{pf.cancel}</button>
               <button type="button" className="pf-delete"
-                onClick={() => { removeSym(confirm.sym); setConfirm(null) }}>حذف المركز</button>
+                onClick={() => { removeSym(confirm.sym); setConfirm(null) }}>{pf.deletePosition}</button>
             </div>
           </div>
         </div>
@@ -428,6 +429,8 @@ function Th({ id, label, sort, dir, setSort, setDir }: {
   id: SortId; label: string; sort: SortId; dir: 'desc' | 'asc'
   setSort: (s: SortId) => void; setDir: (d: 'desc' | 'asc') => void
 }) {
+  const { t: T, locale, href: L } = useLocale()
+  const pf = T.personal.portfolio
   const on = sort === id
   // aria-sort belongs on the header cell, not on the button inside it.
   return (
@@ -446,13 +449,15 @@ function Row({ h, total, open, onToggle, menuOpen, onMenu, onAddLot, onEditLot, 
   menuOpen: boolean; onMenu: (e: React.MouseEvent) => void
   onAddLot: () => void; onEditLot: (l: Lot) => void; onRemove: () => void
 }) {
+  const { t: T, locale, href: L } = useLocale()
+  const pf = T.personal.portfolio
   const weight = h.value != null && total > 0 ? (h.value / total) * 100 : null
   return (
     <>
       <tr className={h.value == null ? 'pf-row pf-unvalued' : 'pf-row'}>
         <td className="pf-col-co">
           <button type="button" className="pf-co" onClick={onToggle}
-            aria-expanded={open} aria-label={`${h.name} · عرض عمليات الشراء`}>
+            aria-expanded={open} aria-label={pf.showLots(h.name)}>
             <span className="pf-co-name">
               <strong title={h.name}>{h.name}</strong>
               <bdi className="cd-ticker">{h.sym}</bdi>
@@ -464,17 +469,17 @@ function Row({ h, total, open, onToggle, menuOpen, onMenu, onAddLot, onEditLot, 
         <td className="pf-col-num"><bdi>{h.avg.toFixed(2)}</bdi></td>
         <td className="pf-col-num">
           {h.price == null ? (
-            <span className="mv-dash" title="لا يتوفر سعر حالي لهذه الشركة">—</span>
+            <span className="mv-dash" title={pf.noCurrentPrice}>—</span>
           ) : (
             <span className="pf-price">
               <bdi>{h.price.toFixed(2)}</bdi>
               {h.dayChange == null
-                ? <span className="mv-dash" title="لا توجد جلسة سابقة للمقارنة">—</span>
+                ? <span className="mv-dash" title={pf.noPriorSession}>—</span>
                 : <bdi className={h.dayPct != null && h.dayPct > 0 ? 'positive' : h.dayPct != null && h.dayPct < 0 ? 'negative' : ''}>
                     {pct(h.dayPct)}
                   </bdi>}
               {h.staleDays != null && h.staleDays > 1
-                ? <em className="pf-stale" title={`آخر تداول قبل ${h.staleDays} جلسة`}>مُرحّل</em>
+                ? <em className="pf-stale" title={pf.carriedTitle(String(h.staleDays))}>{pf.carried}</em>
                 : null}
             </span>
           )}
@@ -495,13 +500,13 @@ function Row({ h, total, open, onToggle, menuOpen, onMenu, onAddLot, onEditLot, 
         </td>
         <td className="pf-col-act">
           <button type="button" className="pf-menu-btn" onClick={onMenu}
-            aria-haspopup="menu" aria-expanded={menuOpen} aria-label={`إجراءات ${h.name}`}>⋯</button>
+            aria-haspopup="menu" aria-expanded={menuOpen} aria-label={pf.actionsFor(h.name)}>⋯</button>
           {menuOpen ? (
             <div className="pf-menu" role="menu" onClick={e => e.stopPropagation()}>
-              <Link role="menuitem" href={`/c/${h.sym.toLowerCase()}`}>صفحة الشركة</Link>
-              <button type="button" role="menuitem" onClick={onAddLot}>إضافة عملية شراء</button>
+              <Link role="menuitem" href={L(`/c/${h.sym.toLowerCase()}`)}>{pf.companyPage}</Link>
+              <button type="button" role="menuitem" onClick={onAddLot}>{pf.addLot}</button>
               <button type="button" role="menuitem" className="pf-menu-danger" onClick={onRemove}>
-                حذف المركز
+                {pf.deletePosition}
               </button>
             </div>
           ) : null}
@@ -513,11 +518,11 @@ function Row({ h, total, open, onToggle, menuOpen, onMenu, onAddLot, onEditLot, 
             <ul className="pf-lots">
               {h.lots.map(l => (
                 <li key={l.id}>
-                  <bdi>{nf0.format(l.qty)}</bdi><span>سهم بسعر</span>
-                  <bdi>{l.price.toFixed(2)}</bdi><span>د.ع</span>
+                  <bdi>{nf0.format(l.qty)}</bdi><span>{pf.sharesAt}</span>
+                  <bdi>{l.price.toFixed(2)}</bdi><span>{pf.iqd}</span>
                   {l.date ? <><span className="pf-dot" aria-hidden="true">·</span><bdi>{l.date}</bdi></> : null}
                   {l.note ? <><span className="pf-dot" aria-hidden="true">·</span><em>{l.note}</em></> : null}
-                  <button type="button" className="pf-lot-edit" onClick={() => onEditLot(l)}>تعديل</button>
+                  <button type="button" className="pf-lot-edit" onClick={() => onEditLot(l)}>{pf.edit}</button>
                 </li>
               ))}
             </ul>

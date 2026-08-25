@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { useLocale } from '@/context/LocaleContext'
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useApp } from '@/context/AppContext'
@@ -31,9 +32,10 @@ const ar = (l: string) => l === 'ar'
 
 /* ── Login ────────────────────────────────────────────────────────────────── */
 export function LoginScreen() {
-  const { lang, user } = useApp()
+  const { user } = useApp()
+  const { locale, href: L } = useLocale()
   const router = useRouter()
-  const isAr = ar(lang)
+  const isAr = locale === 'ar'
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [emailErr, setEmailErr] = useState<FieldError>(null)
@@ -42,18 +44,18 @@ export function LoginScreen() {
   const [busy, setBusy] = useState(false)
 
   // Already signed in? This page has nothing to offer.
-  useEffect(() => { if (user) router.replace('/profile') }, [user, router])
+  useEffect(() => { if (user) router.replace(L('/profile')) }, [user, router])
 
   async function submit(e: React.FormEvent) {
     e.preventDefault()
-    const ee = checkEmail(email, lang), pe = checkPassword(password, lang)
+    const ee = checkEmail(email, locale), pe = checkPassword(password, locale)
     setEmailErr(ee); setPwErr(pe)
     if (ee || pe) return
     setBusy(true); setFormError(null)
     try {
       const { error } = await createClient().auth.signInWithPassword({ email, password })
       if (error) { setFormError(authErrorId(error)); return }
-      router.replace('/profile')
+      router.replace(L('/profile'))
     } catch (err) {
       setFormError(authErrorId(err))
     } finally { setBusy(false) }
@@ -62,21 +64,21 @@ export function LoginScreen() {
   return (
     <AuthShell
       title={isAr ? 'تسجيل الدخول' : 'Sign in'}
-      lede={isAr ? 'للوصول إلى محفظتك وقوائمك عبر أجهزتك.' : 'To reach your portfolio and lists across devices.'}
+      lede={isAr ? 'للوصول إلى محفظتك وقوائمك عبر أجهزتك.' : 'To reach your portfolio and watchlist across your devices.'}
       footer={
         <p>
-          {isAr ? 'لا تملك حساباً؟' : 'No account?'}{' '}
-          <Link href="/signup">{isAr ? 'أنشئ حساباً' : 'Create one'}</Link>
+          {isAr ? 'ليس لديك حساب؟' : 'New to IQWealth?'}{' '}
+          <Link href={L('/signup')}>{isAr ? 'إنشاء حساب' : 'Create an account'}</Link>
         </p>
       }>
       {formError ? (
-        <AuthError id={formError} lang={lang}
+        <AuthError id={formError} locale={locale}
           action={formError === 'unconfirmed'
-            ? <Link href={`/verify-email?email=${encodeURIComponent(email)}`}>
-                {isAr ? 'إرسال رابط جديد' : 'Send a new link'}
+            ? <Link href={L(`/verify-email?email=${encodeURIComponent(email)}`)}>
+                {isAr ? 'إعادة إرسال الرابط' : 'Resend link'}
               </Link>
             : formError === 'credentials'
-              ? <Link href="/forgot-password">{isAr ? 'نسيت كلمة المرور؟' : 'Forgot your password?'}</Link>
+              ? <Link href={L("/forgot-password")}>{isAr ? 'نسيت كلمة المرور؟' : 'Forgot your password?'}</Link>
               : undefined} />
       ) : null}
 
@@ -84,12 +86,12 @@ export function LoginScreen() {
         <Field id="email" label={isAr ? 'البريد الإلكتروني' : 'Email'} type="email"
           value={email} onChange={setEmail} error={emailErr} ltr inputMode="email"
           autoComplete="email" autoFocus disabled={busy}
-          onBlur={() => setEmailErr(checkEmail(email, lang))} />
+          onBlur={() => setEmailErr(checkEmail(email, locale))} />
         <PasswordField id="password" label={isAr ? 'كلمة المرور' : 'Password'}
           value={password} onChange={setPassword} error={pwErr}
-          autoComplete="current-password" disabled={busy} lang={lang}
-          hint={<Link href="/forgot-password">{isAr ? 'نسيت كلمة المرور؟' : 'Forgot your password?'}</Link>} />
-        <Submit busy={busy} busyLabel={isAr ? 'جارٍ الدخول' : 'Signing in'}>
+          autoComplete="current-password" disabled={busy} locale={locale}
+          hint={<Link href={L("/forgot-password")}>{isAr ? 'نسيت كلمة المرور؟' : 'Forgot your password?'}</Link>} />
+        <Submit busy={busy} busyLabel={isAr ? 'جارٍ الدخول' : 'Signing in…'}>
           {isAr ? 'تسجيل الدخول' : 'Sign in'}
         </Submit>
       </form>
@@ -99,9 +101,10 @@ export function LoginScreen() {
 
 /* ── Sign up ──────────────────────────────────────────────────────────────── */
 export function SignUpScreen() {
-  const { lang, user } = useApp()
+  const { user } = useApp()
+  const { locale, href: L } = useLocale()
   const router = useRouter()
-  const isAr = ar(lang)
+  const isAr = locale === 'ar'
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [confirm, setConfirm] = useState('')
@@ -112,12 +115,12 @@ export function SignUpScreen() {
   const [busy, setBusy] = useState(false)
   const [sent, setSent] = useState(false)
 
-  useEffect(() => { if (user && !sent) router.replace('/profile') }, [user, sent, router])
+  useEffect(() => { if (user && !sent) router.replace(L('/profile')) }, [user, sent, router])
 
   async function submit(e: React.FormEvent) {
     e.preventDefault()
-    const ee = checkEmail(email, lang), pe = checkPassword(password, lang)
-    const ce = checkConfirm(password, confirm, lang)
+    const ee = checkEmail(email, locale), pe = checkPassword(password, locale)
+    const ce = checkConfirm(password, confirm, locale)
     setEmailErr(ee); setPwErr(pe); setCErr(ce)
     if (ee || pe || ce) return
     setBusy(true); setFormError(null)
@@ -135,10 +138,10 @@ export function SignUpScreen() {
 
   if (sent) {
     return (
-      <AuthShell title={isAr ? 'تحقّق من بريدك' : 'Check your email'}>
-        <Outcome title={isAr ? 'أُرسل رابط التأكيد' : 'Verification link sent'}
-          actions={<Link className="au-submit" href={`/verify-email?email=${encodeURIComponent(email)}`}>
-            {isAr ? 'لم يصل الرابط؟' : "Didn't get it?"}
+      <AuthShell title={isAr ? 'تحقق من بريدك الإلكتروني' : 'Check your email'}>
+        <Outcome title={isAr ? 'أرسلنا رابط التحقق إلى بريدك.' : 'We sent a verification link to your email address.'}
+          actions={<Link className="au-submit" href={L(`/verify-email?email=${encodeURIComponent(email)}`)}>
+            {isAr ? 'لم يصل الرابط؟' : 'Didn’t get it?'}
           </Link>}>
           <p>
             {isAr ? 'أرسلنا رابط تأكيد إلى ' : 'We sent a verification link to '}
@@ -152,18 +155,18 @@ export function SignUpScreen() {
 
   return (
     <AuthShell wide
-      title={isAr ? 'أنشئ حساباً' : 'Create an account'}
-      lede={isAr ? 'مجاني، ويزامن محفظتك وقوائمك عبر أجهزتك.' : 'Free, and it syncs your portfolio and lists.'}
+      title={isAr ? 'إنشاء حساب' : 'Create an account'}
+      lede={isAr ? 'أنشئ حسابك لمتابعة الشركات وإدارة محفظتك.' : 'Create an account to track companies and manage your portfolio.'}
       footer={
         <p>
-          {isAr ? 'لديك حساب؟' : 'Already registered?'}{' '}
-          <Link href="/login">{isAr ? 'تسجيل الدخول' : 'Sign in'}</Link>
+          {isAr ? 'لديك حساب؟' : 'Already have an account?'}{' '}
+          <Link href={L("/login")}>{isAr ? 'تسجيل الدخول' : 'Sign in'}</Link>
         </p>
       }>
       {formError ? (
-        <AuthError id={formError} lang={lang}
+        <AuthError id={formError} locale={locale}
           action={formError === 'exists'
-            ? <Link href="/login">{isAr ? 'تسجيل الدخول بدلاً من ذلك' : 'Sign in instead'}</Link>
+            ? <Link href={L("/login")}>{isAr ? 'تسجيل الدخول بدلاً من ذلك' : 'Sign in instead'}</Link>
             : undefined} />
       ) : null}
 
@@ -172,14 +175,14 @@ export function SignUpScreen() {
           <Field id="email" label={isAr ? 'البريد الإلكتروني' : 'Email'} type="email"
             value={email} onChange={setEmail} error={emailErr} ltr inputMode="email"
             autoComplete="email" autoFocus disabled={busy}
-            onBlur={() => setEmailErr(checkEmail(email, lang))} />
+            onBlur={() => setEmailErr(checkEmail(email, locale))} />
           <PasswordField id="password" label={isAr ? 'كلمة المرور' : 'Password'}
             value={password} onChange={setPassword} error={pwErr}
-            autoComplete="new-password" disabled={busy} lang={lang}
+            autoComplete="new-password" disabled={busy} locale={locale}
             hint={isAr ? 'ستة أحرف على الأقل.' : 'At least six characters.'} />
           <PasswordField id="confirm" label={isAr ? 'تأكيد كلمة المرور' : 'Confirm password'}
             value={confirm} onChange={setConfirm} error={cErr}
-            autoComplete="new-password" disabled={busy} lang={lang} />
+            autoComplete="new-password" disabled={busy} locale={locale} />
           <Submit busy={busy} busyLabel={isAr ? 'جارٍ الإنشاء' : 'Creating'}>
             {isAr ? 'إنشاء الحساب' : 'Create account'}
           </Submit>
@@ -197,8 +200,8 @@ export function SignUpScreen() {
 
 /* ── Verify email · resend with a real cooldown ───────────────────────────── */
 export function VerifyEmailScreen() {
-  const { lang } = useApp()
-  const isAr = ar(lang)
+  const { locale, href: L } = useLocale()
+  const isAr = locale === 'ar'
   const params = useSearchParams()
   const [email, setEmail] = useState(params.get('email') ?? '')
   const [cooldown, setCooldown] = useState(0)
@@ -213,7 +216,7 @@ export function VerifyEmailScreen() {
   }, [cooldown])
 
   async function resend() {
-    const ee = checkEmail(email, lang)
+    const ee = checkEmail(email, locale)
     if (ee) { setFormError('unknown'); return }
     setBusy(true); setFormError(null)
     try {
@@ -230,8 +233,8 @@ export function VerifyEmailScreen() {
 
   return (
     <AuthShell title={isAr ? 'تفعيل الحساب' : 'Verify your email'}
-      footer={<p><Link href="/login">{isAr ? 'العودة إلى تسجيل الدخول' : 'Back to sign in'}</Link></p>}>
-      {formError ? <AuthError id={formError} lang={lang} /> : null}
+      footer={<p><Link href={L("/login")}>{isAr ? 'العودة إلى تسجيل الدخول' : 'Back to sign in'}</Link></p>}>
+      {formError ? <AuthError id={formError} locale={locale} /> : null}
       <Outcome tone={sent ? 'good' : 'neutral'}
         title={sent
           ? (isAr ? 'أُرسل رابط جديد' : 'A new link is on its way')
@@ -258,8 +261,8 @@ export function VerifyEmailScreen() {
 
 /* ── Forgot password ──────────────────────────────────────────────────────── */
 export function ForgotPasswordScreen() {
-  const { lang } = useApp()
-  const isAr = ar(lang)
+  const { locale, href: L } = useLocale()
+  const isAr = locale === 'ar'
   const [email, setEmail] = useState('')
   const [emailErr, setEmailErr] = useState<FieldError>(null)
   const [busy, setBusy] = useState(false)
@@ -267,7 +270,7 @@ export function ForgotPasswordScreen() {
 
   async function submit(e: React.FormEvent) {
     e.preventDefault()
-    const ee = checkEmail(email, lang)
+    const ee = checkEmail(email, locale)
     setEmailErr(ee)
     if (ee) return
     setBusy(true)
@@ -285,7 +288,7 @@ export function ForgotPasswordScreen() {
 
   return (
     <AuthShell title={isAr ? 'إعادة تعيين كلمة المرور' : 'Reset your password'}
-      footer={<p><Link href="/login">{isAr ? 'العودة إلى تسجيل الدخول' : 'Back to sign in'}</Link></p>}>
+      footer={<p><Link href={L("/login")}>{isAr ? 'العودة إلى تسجيل الدخول' : 'Back to sign in'}</Link></p>}>
       {sent ? (
         <Outcome tone="good" title={isAr ? 'إن كان البريد مسجّلاً، وصله رابط' : 'If that address is registered, a link is on its way'}>
           <p>
@@ -299,7 +302,7 @@ export function ForgotPasswordScreen() {
           <Field id="forgot-email" label={isAr ? 'البريد الإلكتروني' : 'Email'} type="email"
             value={email} onChange={setEmail} error={emailErr} ltr inputMode="email"
             autoComplete="email" autoFocus disabled={busy}
-            onBlur={() => setEmailErr(checkEmail(email, lang))}
+            onBlur={() => setEmailErr(checkEmail(email, locale))}
             hint={isAr ? 'سنرسل رابطاً لتعيين كلمة مرور جديدة.' : "We'll email a link to set a new password."} />
           <Submit busy={busy} busyLabel={isAr ? 'جارٍ الإرسال' : 'Sending'}>
             {isAr ? 'إرسال الرابط' : 'Send the link'}

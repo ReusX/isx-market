@@ -1,6 +1,7 @@
 'use client'
 
 import { useMemo, useState } from 'react'
+import { useLocale } from '@/context/LocaleContext'
 import Link from 'next/link'
 import { useApp } from '@/context/AppContext'
 import { useMarketData, usePortfolio } from '@/lib/portfolio'
@@ -10,7 +11,7 @@ import TickerPicker from '@/components/TickerPicker'
 import '@/styles/panels.css'
 import '@/styles/data-table.css'
 import '@/styles/portfolio.css'
-import './watchlist.css'
+import '@/styles/watchlist.css'
 
 /**
  * قائمة المتابعة — a direct port of the approved watchlist page.
@@ -31,9 +32,9 @@ import './watchlist.css'
  */
 
 const FILTERS = [
-  { id: 'all', label: 'الكل' },
-  { id: 'up', label: 'رابحة' },
-  { id: 'down', label: 'خاسرة' },
+  { id: 'all' as const },
+  { id: 'up' as const },
+  { id: 'down' as const },
 ] as const
 type FilterId = (typeof FILTERS)[number]['id']
 type SortId = 'order' | 'price' | 'pct' | 'mcap'
@@ -47,7 +48,9 @@ type Row = {
 
 const pctFmt = (v: number) => `${v > 0 ? '+' : v < 0 ? '−' : ''}${Math.abs(v).toFixed(2)}%`
 
-export default function WatchlistClient() {
+export function Watchlist() {
+  const { t: T, locale, href: L } = useLocale()
+  const wl = T.personal.watchlist
   const { user, watchlist, toggleWatchlist } = useApp()
   const { meta, metaBy, quotes, loading } = useMarketData()
   const { lots } = usePortfolio()
@@ -91,7 +94,7 @@ export default function WatchlistClient() {
 
   const sectors = useMemo(() => {
     const ids = Array.from(new Set(rows.map(r => r.sector).filter(Boolean) as string[]))
-    return ids.filter(id => SECTOR_LABELS[id]).map(id => ({ id, label: sectorLabel(id, 'ar') }))
+    return ids.filter(id => SECTOR_LABELS[id]).map(id => ({ id, label: sectorLabel(id, locale) }))
       .sort((a, b) => a.label.localeCompare(b.label, 'ar'))
   }, [rows])
 
@@ -120,19 +123,19 @@ export default function WatchlistClient() {
     <main className="wl-page iq-page" onClick={() => setMenu(null)}>
       <header className="pf-head">
         <div className="st-title">
-          <h1>قائمة المتابعة</h1>
+          <h1>{wl.title}</h1>
           <p>
-            <span className="pf-private" title="بيانات خاصة بك"><i aria-hidden="true">◆</i> خاصة بك</span>
+            <span className="pf-private" title={wl.privateTitle}><i aria-hidden="true">◆</i> {wl.private}</span>
             <span className="pf-dot" aria-hidden="true">·</span>
-            {signedOut ? 'محفوظة على هذا الجهاز' : 'مُزامنة مع حسابك'}
+            {signedOut ? wl.onThisDevice : wl.syncedWithAccount}
             <span className="pf-dot" aria-hidden="true">·</span>
-            قائمة واحدة، بترتيب الإضافة
+            {wl.oneListNote}
           </p>
         </div>
         <div className="st-head-actions">
           <button type="button" className="pf-add" onClick={() => setAdding(a => !a)}
             aria-expanded={adding}>
-            <i aria-hidden="true">+</i> إضافة شركة
+            <i aria-hidden="true">+</i> {wl.addCompanyBtn}
           </button>
         </div>
       </header>
@@ -140,12 +143,12 @@ export default function WatchlistClient() {
       {adding ? (
         <div className="wl-add" onClick={e => e.stopPropagation()}>
           <label className="pf-field">
-            <span>ابحث عن شركة لإضافتها</span>
+            <span>{wl.searchToAdd}</span>
             <TickerPicker meta={meta} value=""
               onChange={sym => { if (sym) { if (!watchlist.includes(sym)) toggleWatchlist(sym); setAdding(false) } }} />
           </label>
           <p className="pf-hint">
-            المتابعة تبديل: الشركة الموجودة في قائمتك بالفعل لا تُضاف مرتين.
+            {wl.toggleNote}
           </p>
         </div>
       ) : null}
@@ -153,10 +156,10 @@ export default function WatchlistClient() {
       {signedOut ? (
         <div className="pf-signin">
           <div>
-            <strong>قائمتك محفوظة على هذا الجهاز</strong>
-            <p>سجّل الدخول لمزامنتها عبر أجهزتك. تبقى بياناتك خاصة بك في الحالتين.</p>
+            <strong>{wl.localTitle}</strong>
+            <p>{wl.localNote}</p>
           </div>
-          <Link className="pf-signin-go" href="/login">تسجيل الدخول</Link>
+          <Link className="pf-signin-go" href={L('/login')}>{wl.signIn}</Link>
         </div>
       ) : null}
 
@@ -164,43 +167,43 @@ export default function WatchlistClient() {
         <div className="pf-panel"><span className="pl-skel" style={{ blockSize: 360, borderRadius: 16 }} /></div>
       ) : !rows.length ? (
         <section className="pf-empty">
-          <strong>لا شركات في قائمتك بعد</strong>
-          <p>أضف شركات لمتابعة أسعارها وتغيّرها في مكان واحد، أو استخدم نجمة المتابعة في صفحة أي شركة.</p>
+          <strong>{wl.emptyTitle}</strong>
+          <p>{wl.emptyNote}</p>
           <button type="button" className="pf-add pf-add-lg" onClick={() => setAdding(true)}>
-            <i aria-hidden="true">+</i> إضافة أول شركة
+            <i aria-hidden="true">+</i> {wl.addFirst}
           </button>
-          <span className="pf-empty-note">تُحفظ قائمتك على جهازك، وتُزامَن عند تسجيل الدخول.</span>
+          <span className="pf-empty-note">{wl.emptyHint}</span>
         </section>
       ) : (
         <section className="pf-panel wl-panel">
           <div className="wl-tally">
-            <span className="wl-count"><bdi>{tally.total}</bdi> شركة</span>
+            <span className="wl-count"><bdi>{tally.total}</bdi> {wl.companiesUnit}</span>
             <span className="wl-sep" aria-hidden="true">·</span>
-            <span className="wl-up"><bdi>{tally.up}</bdi> رابحة</span>
-            <span className="wl-down"><bdi>{tally.down}</bdi> خاسرة</span>
-            <span className="wl-flat"><bdi>{tally.flat}</bdi> ثابتة</span>
+            <span className="wl-up"><bdi>{tally.up}</bdi> {wl.up}</span>
+            <span className="wl-down"><bdi>{tally.down}</bdi> {wl.down}</span>
+            <span className="wl-flat"><bdi>{tally.flat}</bdi> {wl.flat}</span>
             {tally.noQuote ? (
-              <span className="wl-noquote"><bdi>{tally.noQuote}</bdi> بلا سعر حالي</span>
+              <span className="wl-noquote"><bdi>{tally.noQuote}</bdi> {wl.noQuote}</span>
             ) : null}
           </div>
 
           <div className="wl-controls">
-            <div className="st-switch wl-filters" role="group" aria-label="تصفية">
+            <div className="st-switch wl-filters" role="group" aria-label={wl.filterGroup}>
               {FILTERS.map(f => (
                 <button key={f.id} type="button" className={filter === f.id ? 'active' : ''}
-                  aria-pressed={filter === f.id} onClick={() => setFilter(f.id)}>{f.label}</button>
+                  aria-pressed={filter === f.id} onClick={() => setFilter(f.id)}>{f.id === 'all' ? wl.filterAll : f.id === 'up' ? wl.up : wl.down}</button>
               ))}
             </div>
             <label className="wl-mv-search wl-search">
-              <span className="sr-only">ابحث في قائمتك</span>
+              <span className="sr-only">{wl.searchList}</span>
               <input type="search" value={query} onChange={e => setQuery(e.target.value)}
-                placeholder="ابحث في قائمتك" aria-label="ابحث في قائمتك" />
+                placeholder={wl.searchList} aria-label={wl.searchList} />
             </label>
             {sectors.length > 1 ? (
               <label className="wl-mv-select wl-sector">
-                <span className="sr-only">القطاع</span>
-                <select value={sector} onChange={e => setSector(e.target.value)} aria-label="تصفية حسب القطاع">
-                  <option value="ALL">كل القطاعات</option>
+                <span className="sr-only">{wl.sector}</span>
+                <select value={sector} onChange={e => setSector(e.target.value)} aria-label={wl.sectorFilter}>
+                  <option value="ALL">{wl.allSectors}</option>
                   {sectors.map(s => <option key={s.id} value={s.id}>{s.label}</option>)}
                 </select>
               </label>
@@ -209,28 +212,28 @@ export default function WatchlistClient() {
 
           {filtering ? (
             <p className="wl-filtered">
-              <bdi>{view.length}</bdi> من <bdi>{rows.length}</bdi> مطابقة
+              {wl.matching(String(view.length), String(rows.length))}
               <button type="button" className="pf-cancel"
-                onClick={() => { setFilter('all'); setSector('ALL'); setQuery('') }}>إعادة التعيين</button>
+                onClick={() => { setFilter('all'); setSector('ALL'); setQuery('') }}>{wl.reset}</button>
             </p>
           ) : null}
 
           {!view.length ? (
             <div className="cd-nodata">
-              <strong>لا شركات مطابقة</strong>
-              <p>غيّر التصفية أو امسح البحث — الشركات ما زالت في قائمتك.</p>
+              <strong>{wl.noMatch}</strong>
+              <p>{wl.noMatchNote}</p>
             </div>
           ) : (
             <div className="mv-board-scroll wl-scroll">
               <table className="mv-table wl-table">
                 <thead>
                   <tr>
-                    <th scope="col" className="mv-col-company wl-col-co">الشركة</th>
-                    <Th id="price" label="السعر" sort={sort} dir={dir} setSort={setSort} setDir={setDir} />
-                    <Th id="pct" label="التغيّر" sort={sort} dir={dir} setSort={setSort} setDir={setDir} />
-                    <Th id="mcap" label="القيمة السوقية" sort={sort} dir={dir} setSort={setSort} setDir={setDir} />
-                    <th scope="col" className="wl-col-sec">القطاع</th>
-                    <th scope="col" className="pf-col-act"><span className="sr-only">إجراءات</span></th>
+                    <th scope="col" className="mv-col-company wl-col-co">{wl.colCompany}</th>
+                    <Th id="price" label={wl.colPrice} sort={sort} dir={dir} setSort={setSort} setDir={setDir} />
+                    <Th id="pct" label={wl.colChange} sort={sort} dir={dir} setSort={setSort} setDir={setDir} />
+                    <Th id="mcap" label={wl.colMcap} sort={sort} dir={dir} setSort={setSort} setDir={setDir} />
+                    <th scope="col" className="wl-col-sec">{wl.colSector}</th>
+                    <th scope="col" className="pf-col-act"><span className="sr-only">{wl.colActions}</span></th>
                   </tr>
                 </thead>
                 <tbody>
@@ -242,20 +245,20 @@ export default function WatchlistClient() {
                           <span className="mv-identity-name" title={r.name}>{r.name}</span>
                           <span className="wl-co-sub">
                             <bdi className="mv-ticker">{r.sym}</bdi>
-                            {r.owned ? <span className="wl-badge is-owned">في المحفظة</span> : null}
+                            {r.owned ? <span className="wl-badge is-owned">{wl.inPortfolio}</span> : null}
                           </span>
                         </Link>
                       </td>
                       <td className="mv-col-num">
                         {r.price == null ? (
-                          <span className="pf-nodata" title="لم يصل سعر حالي لهذه الشركة">
-                            <span className="mv-dash">—</span><small>لا سعر</small>
+                          <span className="pf-nodata" title={wl.noQuoteTitle}>
+                            <span className="mv-dash">—</span><small>{wl.noPrice}</small>
                           </span>
                         ) : (
                           <span className="pf-price">
                             <bdi>{r.price.toFixed(2)}</bdi>
                             {r.staleDays != null && r.staleDays > 1
-                              ? <small className="pf-stale">مُرحّل · <bdi>{r.staleDays}</bdi> جلسة</small>
+                              ? <small className="pf-stale">{wl.carried(String(r.staleDays))}</small>
                               : null}
                           </span>
                         )}
@@ -273,18 +276,18 @@ export default function WatchlistClient() {
                       <td className="mv-col-num">
                         {r.mcap == null ? <span className="mv-dash">—</span> : <bdi>{iqd(r.mcap)}</bdi>}
                       </td>
-                      <td className="wl-col-sec">{r.sector ? sectorLabel(r.sector, 'ar') : <span className="mv-dash">—</span>}</td>
+                      <td className="wl-col-sec">{r.sector ? sectorLabel(r.sector, locale) : <span className="mv-dash">—</span>}</td>
                       <td className="pf-col-act">
                         <button type="button" className="pf-menu-btn"
                           onClick={e => { e.stopPropagation(); setMenu(m => (m === r.sym ? null : r.sym)) }}
                           aria-haspopup="menu" aria-expanded={menu === r.sym}
-                          aria-label={`إجراءات ${r.name}`}>⋯</button>
+                          aria-label={wl.actionsFor(r.name)}>⋯</button>
                         {menu === r.sym ? (
                           <div className="pf-menu" role="menu" onClick={e => e.stopPropagation()}>
-                            <Link role="menuitem" href={`/c/${r.sym.toLowerCase()}`}>صفحة الشركة</Link>
+                            <Link role="menuitem" href={L(`/c/${r.sym.toLowerCase()}`)}>{wl.companyPage}</Link>
                             <button type="button" role="menuitem" className="pf-menu-danger"
                               onClick={() => { toggleWatchlist(r.sym); setMenu(null) }}>
-                              إزالة من المتابعة
+                              {wl.removeFromWatchlist}
                             </button>
                           </div>
                         ) : null}
@@ -297,8 +300,8 @@ export default function WatchlistClient() {
           )}
 
           <p className="st-foot">
-            القائمة واحدة ومخزّنة كمصفوفة رموز، ولذلك لا توجد قوائم متعددة ولا ملاحظات ولا تاريخ إضافة.
-            {tally.noQuote ? ' الشركات بلا سعر حالي تبقى معروضة بدل أن تختفي من القائمة.' : ''}
+            {wl.storageNote}
+            {tally.noQuote ? wl.noQuoteNote : ''}
           </p>
         </section>
       )}
