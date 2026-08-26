@@ -18,7 +18,7 @@
 import { readFileSync, readdirSync, statSync } from 'node:fs'
 import { join, relative } from 'node:path'
 
-const ORIGIN = process.argv[2] ?? 'http://localhost:3000'
+const ORIGIN = process.argv[2] ?? process.env.I18N_ORIGIN ?? 'http://localhost:3000'
 const AR = /[؀-ۿ]/
 
 /* ── 1 · Source scan ────────────────────────────────────────────────────── */
@@ -55,6 +55,11 @@ const ALLOW_FILES = [
   'app/api/',                   // ⚠ SEE BELOW — Arabic LLM prompts, not chrome
   'components/info/LegalDoc.tsx',  // parses the «[مراجعة قانونية:…]» marker format
   'lib/i18n/messages/en/',      // the auth error pair and the language endonym
+  'lib/depositoryNames.ts',     // Arabic MATCHING data — the structural words a
+                                // depository name is stripped of, and the
+                                // definite article the stemmer removes. Never
+                                // rendered; it exists to resolve a name to a
+                                // ticker, like the aliases in lib/companySeo.
   'lib/rates.ts',               // Arabic SCRAPE selectors — «شراء»/«بيع» as they
                                 // appear in the source article, not as UI copy
   'lib/tradingFromZero.ts',     // the guide, ar + en side by side

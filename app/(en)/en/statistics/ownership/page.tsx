@@ -10,9 +10,9 @@ export const metadata: Metadata = {
     locale: 'en_US',
     alternateLocale: 'ar_IQ',
   },
-  title: 'Ownership structure · Iraqi against foreign · Iraq Stock Exchange',
+  title: 'Company Ownership | IQWealth',
   description:
-    'How deposited capital is split between Iraqi and foreign investors, for each company listed on the Iraq Stock Exchange — from the monthly depository report.',
+    'The foreign share of deposited capital in companies listed on the Iraq Stock Exchange, from the latest available monthly depository filing.',
 }
 
 export default function Page() {

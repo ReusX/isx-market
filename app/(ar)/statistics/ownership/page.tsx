@@ -9,8 +9,8 @@ export const metadata: Metadata = {
   // og:url must agree with the canonical; a share card pointing at a
   // different URL than the page claims to be is the same defect.
   openGraph: { url: absUrl('/statistics/ownership'), images: [{ url: '/opengraph-image', width: 1200, height: 630 }] },
-  title: 'هيكل الملكية · عراقي مقابل أجنبي | بورصة العراق',
-  description: 'توزيع رأس المال المودع بين المستثمرين العراقيين والأجانب لكل شركة مدرجة في سوق العراق للأوراق المالية.',
+  title: 'ملكية الشركات | IQWealth',
+  description: 'حصة المستثمرين الأجانب من رأس المال المودع في شركات سوق العراق للأوراق المالية، من آخر تقرير إيداع شهري متاح.',
 }
 
 export default function Page() {

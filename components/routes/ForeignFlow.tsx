@@ -220,7 +220,7 @@ export function ForeignFlow() {
        `--mv-*` variables are scoped to it, exactly as /statistics and the
        homepage do it. Without it every panel here paints transparent. */
     <main className="iq-page ffw-page">
-      <Link className="ffw-back" href="/statistics">
+      <Link className="ffw-back" href={L('/statistics')}>
         <span className="dir-go" aria-hidden="true">›</span> {ff.breadcrumb}
       </Link>
 

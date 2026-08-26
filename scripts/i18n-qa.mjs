@@ -7,7 +7,7 @@
  * untranslated chrome. The 1440/375 × light/dark visual pass is done in the
  * browser separately.
  */
-const ORIGIN = 'http://localhost:3000'
+const ORIGIN = process.argv[2] ?? process.env.I18N_ORIGIN ?? 'http://localhost:3000'
 const ROUTES = [
   '/', '/market', '/screener', '/heatmap', '/pulse', '/statistics',
   '/statistics/foreign-flow', '/statistics/ownership', '/statistics/shareholders',

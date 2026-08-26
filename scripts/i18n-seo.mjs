@@ -10,7 +10,7 @@
  *
  * Run against the dev server or a `next start`:  node scripts/i18n-seo.mjs [origin]
  */
-const ORIGIN = process.argv[2] ?? 'http://localhost:3000'
+const ORIGIN = process.argv[2] ?? process.env.I18N_ORIGIN ?? 'http://localhost:3000'
 const SITE = 'https://iraqsm.com'
 
 /** Routes that must carry a reciprocal pair. */
