@@ -18,6 +18,12 @@ import {
   type SectorActivity, type SectorReconciliation, type CapSnapshot, type CapInput, type CapRow,
 } from '@/lib/statistics'
 import { foldSessions, flowWindow, flowTotals, flowBuckets, type FlowRow, type FlowSession, type FlowTotals, type FlowBucket } from '@/lib/foreignFlow'
+/* ⚠ `.mv-table` and its column classes live in their OWN stylesheet — the
+   companies mode borrows the approved board grammar but statistics.css does
+   not carry it, so without this the table rendered completely unstyled:
+   24.5px rows, no padding, body font instead of the tabular numerals. Same
+   trap styles/data-table.css documents in its header for the oil table. */
+import '@/styles/data-table.css'
 import '@/styles/statistics.css'
 
 /* ═══════════════════════════════════════════════════════════════════════════
