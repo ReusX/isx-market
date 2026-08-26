@@ -1,7 +1,6 @@
 import type { Metadata } from 'next'
 import { absUrl, seoAlternates } from '@/lib/seo'
-import { BackHeader } from '../_ui'
-import { OwnershipFull } from '../OwnershipPanel'
+import { OwnershipPage } from '@/components/routes/OwnershipPage'
 
 export const metadata: Metadata = {
   // Without this the page inherited the parent layout's canonical and
@@ -14,14 +13,6 @@ export const metadata: Metadata = {
   description: 'توزيع رأس المال المودع بين المستثمرين العراقيين والأجانب لكل شركة مدرجة في سوق العراق للأوراق المالية.',
 }
 
-export default function OwnershipPage() {
-  return (
-    <main className="terminal-shell app-page statistics-detail-page">
-      <BackHeader
-        title="هيكل الملكية · عراقي مقابل أجنبي"
-        subtitle="توزيع رأس المال المودع بين المستثمرين العراقيين والأجانب"
-      />
-      <OwnershipFull />
-    </main>
-  )
+export default function Page() {
+  return <OwnershipPage />
 }

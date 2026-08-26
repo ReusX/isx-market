@@ -222,7 +222,7 @@ export function NewsClient({ items, sectors, articlesOk, filingsOk, filingCovera
             </button>
           ) : (
             <p className="nw-end">
-              نهاية القائمة · <bdi>{filtered.length}</bdi> عنصراً
+              {nw.endOfList(String(filtered.length))}
             </p>
           )}
         </>

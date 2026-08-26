@@ -66,6 +66,7 @@ export const screener: typeof ar = {
   emptySearch:'search',
   emptyReset: 'Reset filters',
 
+  filtersCompose: 'Filters compose — a company must satisfy all of them. A company with no value for a metric is excluded from filters on that metric, and stays eligible for every other one · “Change” follows the period selected above.',
   footnote:
     'Metrics are computed from each share’s most recent official bulletin · liquidity = 20-session average daily trading value · '
     + 'market cap = last price × issued shares · P/E is trailing twelve months and is shown only for profitable companies whose '

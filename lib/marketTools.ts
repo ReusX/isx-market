@@ -41,6 +41,7 @@ export type Source = {
   cadence: Cadence;
   /** Said in the page's own words, in the footer. */
   note: string;
+  noteEn: string;
 };
 
 export const SOURCES: Record<"fx" | "gold" | "oil" | "cbi", Source> = {
@@ -48,21 +49,25 @@ export const SOURCES: Record<"fx" | "gold" | "oil" | "cbi", Source> = {
     id: "fx", host: "alsumaria.tv", url: "https://www.alsumaria.tv/economy-news",
     cadence: "daily",
     note: "سعر إغلاق سوق بغداد كما تنشره السومرية يومياً · سعر مرجعي لا سعر تنفيذ",
+    noteEn: "The Baghdad market closing rate as Alsumaria publishes it daily · a reference rate, not an execution price",
   },
   cbi: {
     id: "cbi", host: "البنك المركزي العراقي", url: "https://cbi.iq/",
     cadence: "policy",
     note: "سعر سياسي يحدده البنك المركزي ولا يتغيّر إلا بقراره",
+    noteEn: "A policy rate set by the Central Bank; it changes only by its decision",
   },
   gold: {
     id: "gold", host: "iraqgoldprice.com", url: "https://iraqgoldprice.com/",
     cadence: "daily",
     note: "قائمة أسعار محلية تُنشر يومياً · ليست تسعيرة صائغ بعينه",
+    noteEn: "A local price list published daily · not any particular jeweller's price",
   },
   oil: {
     id: "oil", host: "oilprice.com", url: "https://oilprice.com/ar/oil-price-charts",
     cadence: "delayed",
     note: "تقييمات أسعار عالمية بتأخير · لكل خام ختم وقت خاص به",
+    noteEn: "Delayed global price assessments · each crude carries its own timestamp",
   },
 };
 
@@ -183,3 +188,7 @@ export const signedPct = (v: number, d = 2) => `${signed(v, d)}%`;
 
 /** The em dash used everywhere a value is genuinely unknown. Never 0. §37 */
 export const NA = "—";
+
+/** A source's provenance note in the reader's language. */
+export const sourceNote = (src: { note: string; noteEn: string }, locale: "ar" | "en") =>
+  (locale === "ar" ? src.note : src.noteEn);

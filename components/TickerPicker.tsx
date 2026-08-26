@@ -1,18 +1,20 @@
 'use client'
 
 import { useMemo, useState } from 'react'
+import { useLocale } from '@/context/LocaleContext'
 import type { CompanyMeta } from '@/types'
 import { CompanyLogo } from '@/components/CompanyLogo'
 
 /** Searchable company picker (ticker or Arabic/English name). */
 export default function TickerPicker({
-  meta, value, onChange, placeholder = 'ابحث عن شركة…',
+  meta, value, onChange, placeholder,
 }: {
   meta: CompanyMeta[]
   value: string
   onChange: (sym: string) => void
   placeholder?: string
 }) {
+  const { t } = useLocale()
   const [q, setQ]       = useState('')
   const [open, setOpen] = useState(false)
   const selected = useMemo(() => meta.find(m => m.sym === value), [meta, value])
@@ -31,7 +33,7 @@ export default function TickerPicker({
         onChange={e => { setQ(e.target.value); setOpen(true); if (value) onChange('') }}
         onFocus={() => { setOpen(true); setQ('') }}
         onBlur={() => setTimeout(() => setOpen(false), 150)}
-        placeholder={placeholder}
+        placeholder={placeholder ?? t.learn.tickerSearch}
         style={{
           width: '100%', height: 38, borderRadius: 9, background: 'var(--surf2)',
           border: '1px solid var(--line)', color: 'var(--ink)', fontSize: 13,

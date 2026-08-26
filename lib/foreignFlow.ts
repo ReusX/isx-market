@@ -334,7 +334,7 @@ export type SectorFlow = {
 
 /** `unclassifiedLabel` is passed in because it is copy — «غير مصنّف» was
  *  hardcoded here and reached English readers untranslated. */
-export function sectorFlows(rows: CompanyFlow[], labels: Map<string, string>, unclassifiedLabel = 'غير مصنّف'): SectorFlow[] {
+export function sectorFlows(rows: CompanyFlow[], labels: Map<string, string>, unclassifiedLabel: string): SectorFlow[] {
   const by = new Map<string, SectorFlow>()
   for (const c of rows) {
     const id = c.sec ?? 'UNMAPPED'

@@ -1,4 +1,5 @@
 'use client'
+import { useLocale } from '@/context/LocaleContext'
 
 /**
  * Active / suspended split for any company listing.
@@ -15,24 +16,23 @@ export function ListingStatusTabs({
   onChange,
   activeCount,
   suspendedCount,
-  ar = true,
 }: {
   value: ListingStatus
   onChange: (next: ListingStatus) => void
   activeCount: number
   suspendedCount: number
-  ar?: boolean
 }) {
+  const { t } = useLocale()
   const tabs = [
-    { id: 'active' as const, label: ar ? 'المتداولة' : 'Trading', count: activeCount },
-    { id: 'suspended' as const, label: ar ? 'المتوقفة' : 'Suspended', count: suspendedCount },
+    { id: 'active' as const, label: t.chart.index.trading, count: activeCount },
+    { id: 'suspended' as const, label: t.chart.index.suspended, count: suspendedCount },
   ]
 
   return (
     <div
       className="listing-status-tabs"
       role="tablist"
-      aria-label={ar ? 'حالة الإدراج' : 'Listing status'}
+      aria-label={t.chart.index.listingStatus}
     >
       {tabs.map(tab => (
         <button

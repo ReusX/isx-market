@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import { useLocale } from '@/context/LocaleContext'
 import type { Heading } from '@/lib/article'
 import '@/styles/learn.css'
 
@@ -52,12 +53,14 @@ export function ArticleView({
   next: ArticleNeighbour | null
   relatedLabel: string
 }) {
+  const { t: T } = useLocale()
+  const a = T.learn.article
   const hasRail = headings.length > 1 || related.length > 0
 
   return (
     <main className="ln-art iq-page">
       <header className="ln-art-head">
-        <nav className="ln-crumbs" aria-label="مسار التنقل">
+        <nav className="ln-crumbs" aria-label={a.crumbs}>
           <Link href={backHref}>{backLabel}</Link>
           <i aria-hidden="true">›</i>
           <span>{eyebrow}</span>
@@ -93,15 +96,15 @@ export function ArticleView({
           <div className="ln-prose" dangerouslySetInnerHTML={{ __html: bodyHtml }} />
 
           {prev || next ? (
-            <nav className="ln-pn" aria-label="التنقل بين المقالات">
+            <nav className="ln-pn" aria-label={a.articleNav}>
               {prev ? (
                 <Link href={prev.href} className="is-prev">
-                  <span>السابق</span><strong>{prev.title}</strong>
+                  <span>{a.prev}</span><strong>{prev.title}</strong>
                 </Link>
               ) : <span />}
               {next ? (
                 <Link href={next.href} className="is-next">
-                  <span>التالي</span><strong>{next.title}</strong>
+                  <span>{a.next}</span><strong>{next.title}</strong>
                 </Link>
               ) : <span />}
             </nav>
@@ -135,9 +138,11 @@ export function ArticleView({
 
 /** Split out so the rail stays a server component and only this tracks scroll. */
 function ArticleToc({ headings }: { headings: Heading[] }) {
+  const { t: T } = useLocale()
+  const a = T.learn.article
   return (
     <nav className="ln-toc" aria-labelledby="ln-toc-h">
-      <h2 id="ln-toc-h">المحتويات</h2>
+      <h2 id="ln-toc-h">{a.contents}</h2>
       <ol>
         {headings.map((h) => (
           <li key={h.id} className={h.level === 3 ? 'is-sub' : ''}>

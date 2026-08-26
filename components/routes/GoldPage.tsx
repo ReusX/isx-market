@@ -9,7 +9,7 @@ import {
   ToolHead, MetaLine, Disclosure, NoHistoryNote, Unavailable, PartialNotice,
 } from '@/components/design/ToolChrome'
 import { DitherArt } from '@/components/design/DitherArt'
-import { SOURCES, nf0, nf2, NA, type Freshness } from '@/lib/marketTools'
+import { SOURCES, sourceNote, nf0, nf2, NA, type Freshness } from '@/lib/marketTools'
 import { CBI_OFFICIAL_RATE } from '@/lib/fxOfficial'
 import type { GoldData, FxData } from '@/lib/rates'
 import '@/styles/market-tools.css'
@@ -237,7 +237,7 @@ export default function GoldPage({ gold, fx }: { gold: GoldData | null; fx: FxDa
 
             <Disclosure label={g.aboutSource}>
               <p>
-                {SOURCES.gold.host} · {SOURCES.gold.note}.
+                {SOURCES.gold.host} · {sourceNote(SOURCES.gold, locale)}.
                 {!fxDown ? <>{g.fxSourceNote(SOURCES.fx.host)}</> : null}
               </p>
               <NoHistoryNote />

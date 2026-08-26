@@ -1,4 +1,5 @@
 'use client'
+import { useLocale } from '@/context/LocaleContext'
 
 import {
   useCallback, useEffect, useRef, type ReactNode,
@@ -98,7 +99,7 @@ export function useOverlay(open: boolean, onClose: () => void) {
  */
 export function Dialog({
   open, onClose, title, description, tone = "normal", confirmLabel,
-  cancelLabel = "إلغاء", onConfirm, children,
+  cancelLabel, onConfirm, children,
 }: {
   open: boolean;
   onClose: () => void;
@@ -110,6 +111,7 @@ export function Dialog({
   onConfirm: () => void;
   children?: ReactNode;
 }) {
+  const { t } = useLocale()
   const ref = useOverlay(open, onClose);
   if (!open) return null;
 
@@ -133,7 +135,7 @@ export function Dialog({
               On a destructive dialog the safe path should be the one your
               hands find without looking. */}
           <button type="button" className="ov-cancel" onClick={onClose} data-autofocus>
-            {cancelLabel}
+            {cancelLabel ?? t.system.overlay.cancel}
           </button>
           <button
             type="button"
@@ -168,6 +170,7 @@ export function Sheet({
   children: ReactNode;
   footer?: ReactNode;
 }) {
+  const { t } = useLocale()
   const ref = useOverlay(open, onClose);
   const stop = useCallback((e: React.MouseEvent) => e.stopPropagation(), []);
   if (!open) return null;
@@ -188,7 +191,7 @@ export function Sheet({
               side one, so it only appears where it means something. */}
           {side === "block-end" ? <i className="ov-grab" aria-hidden="true" /> : null}
           <strong>{title}</strong>
-          <button type="button" className="ov-sheet-close" onClick={onClose} aria-label="إغلاق">✕</button>
+          <button type="button" className="ov-sheet-close" onClick={onClose} aria-label={t.system.overlay.close}>✕</button>
         </div>
         <div className="ov-sheet-body">{children}</div>
         {footer ? <div className="ov-sheet-foot">{footer}</div> : null}

@@ -60,6 +60,7 @@ export const news = {
   tryCompany: 'جرّب اسم شركة أو رمزاً أو كلمة من العنوان.',
   tryOtherFilter: 'جرّب نوعاً آخر أو قطاعاً آخر.',
   filingLink: (kind: string, name: string, headline: string) => `${kind}: ${name} ${headline} · يفتح ملف PDF على موقع هيئة الأوراق المالية`,
+  endOfList: (n: string) => `نهاية القائمة · ${n} عنصراً`,
   market: 'السوق',
 
   /** Shown on the English page beside an item whose body is Arabic. */

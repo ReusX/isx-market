@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useMemo, useRef, useState } from 'react'
+import { useLocale } from '@/context/LocaleContext'
 import { useApp } from '@/context/AppContext'
 import { ChartEngine } from '@/components/design/ChartEngine'
 import { toBars, hasFullOhlc, hasAnyVolume, type ChartRow } from '@/lib/chartData'
@@ -27,6 +28,8 @@ function Skeleton() {
 }
 
 export function CompanyChart({ sym, name, compact = true }: { sym: string; name?: string; compact?: boolean }) {
+  const { t: T } = useLocale()
+  const ce = T.chart.index
   const { theme } = useApp()
   const hostRef = useRef<HTMLDivElement>(null)
   const [near, setNear] = useState(false)
@@ -70,11 +73,11 @@ export function CompanyChart({ sym, name, compact = true }: { sym: string; name?
         <div className="cd-chart-fail" role="alert">
           <span className="mv-error-mark" aria-hidden="true">!</span>
           <div>
-            <strong>تعذّر تحميل السجل السعري</strong>
-            <p>باقي بيانات الصفحة محدّثة. الرسم البياني وحده تعذّر تحميله.</p>
+            <strong>{ce.chartLoadFailed}</strong>
+            <p>{ce.chartLoadFailedNote}</p>
           </div>
           <button type="button" onClick={() => { setNear(false); setTimeout(() => setNear(true), 0) }}>
-            إعادة المحاولة
+            {ce.retry}
           </button>
         </div>
       ) : !rows ? (
@@ -92,15 +95,18 @@ export function CompanyChart({ sym, name, compact = true }: { sym: string; name?
           />
           {/* Screen readers are not asked to interpret canvas pixels. */}
           <p className="sr-only">
-            رسم بياني لسعر سهم {name ?? sym} ({sym}) من {bars[0] ? new Date(bars[0].t).toISOString().slice(0, 10) : ''}
-            {' '}إلى {bars[bars.length - 1] ? new Date(bars[bars.length - 1].t).toISOString().slice(0, 10) : ''}،
-            {' '}{bars.length} جلسة تداول. آخر إغلاق {bars[bars.length - 1]?.c}.
+            {ce.srDescription(
+              name ?? sym, sym,
+              bars[0] ? new Date(bars[0].t).toISOString().slice(0, 10) : '',
+              bars[bars.length - 1] ? new Date(bars[bars.length - 1].t).toISOString().slice(0, 10) : '',
+              String(bars.length), String(bars[bars.length - 1]?.c ?? ''),
+            )}
           </p>
         </>
       ) : (
         <div className="cd-chart-empty">
-          <strong>لا يوجد سجل سعري كافٍ</strong>
-          <p>لم تُسجَّل صفقات كافية على هذا السهم لرسم سلسلة سعرية.</p>
+          <strong>{ce.notEnoughTitle}</strong>
+          <p>{ce.notEnoughNote}</p>
         </div>
       )}
     </div>

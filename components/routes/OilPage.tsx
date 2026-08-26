@@ -8,7 +8,7 @@ import {
 } from '@/components/design/ToolChrome'
 import { DitherArt } from '@/components/design/DitherArt'
 import {
-  SOURCES, nf0, nf2, signed, signedPct, NA, agePhrase, today, daysBetween,
+  SOURCES, sourceNote, nf0, nf2, signed, signedPct, NA, agePhrase, today, daysBetween,
   type Freshness,
 } from '@/lib/marketTools'
 import {
@@ -287,7 +287,7 @@ export default function OilPage({ oil, fx }: { oil: OilData | null; fx: FxData |
 
             <Disclosure label={o.aboutSource}>
               <p>
-                {o.sourceNote(SOURCES.oil.host, SOURCES.oil.note)}
+                {o.sourceNote(SOURCES.oil.host, sourceNote(SOURCES.oil, locale))}
               </p>
               <p>
                 {o.noBudgetCompare}

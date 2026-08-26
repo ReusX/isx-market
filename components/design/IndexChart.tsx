@@ -1,6 +1,7 @@
 'use client'
 
 import { type PointerEvent, useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useLocale } from '@/context/LocaleContext'
 import Link from 'next/link'
 
 export type IndexRow = { date: string; isx60: number }
@@ -17,7 +18,7 @@ const RANGES = [
   { id: '3M', label: '3M', days: 92 },
   { id: '1Y', label: '1Y', days: 365 },
   { id: '5Y', label: '5Y', days: 1826 },
-  { id: 'ALL', label: 'كل', days: Number.POSITIVE_INFINITY },
+  { id: 'ALL', label: null, days: Number.POSITIVE_INFINITY },
 ] as const
 
 type RangeId = (typeof RANGES)[number]['id']
@@ -91,6 +92,8 @@ export default function IndexChart({
   loading?: boolean
   failed?: boolean
 }) {
+  const { t: T, locale, href: L } = useLocale()
+  const ix = T.chart.index
   const [range, setRange] = useState<RangeId>('1Y')
   const [full, setFull] = useState<IndexRow[] | null>(fullCache)
   const [fullLoading, setFullLoading] = useState(false)
@@ -107,7 +110,7 @@ export default function IndexChart({
     setFullLoading(true)
     loadFullHistory()
       .then(setFull)
-      .catch(() => setToast('تعذّر تحميل الأرشيف الكامل'))
+      .catch(() => setToast(ix.archiveFailed))
       .finally(() => setFullLoading(false))
   }, [needsFull, full, fullLoading])
 
@@ -216,15 +219,19 @@ export default function IndexChart({
     ctx.fillStyle = surface
     ctx.fillRect(0, 0, W, H + head)
 
-    // Header: title on the right (RTL), value on the left.
+    /* Header: the title sits on the reading-start edge — right in Arabic,
+       left in English — and the value opposite it. A canvas has no `dir`, so
+       the alignment is chosen here rather than inherited. */
+    const startX = locale === 'ar' ? W - 18 : 18
+    const endX = locale === 'ar' ? 18 : W - 18
     ctx.textBaseline = 'alphabetic'
-    ctx.textAlign = 'right'
+    ctx.textAlign = locale === 'ar' ? 'right' : 'left'
     ctx.fillStyle = ink
     ctx.font = '600 19px system-ui, -apple-system, "Segoe UI", sans-serif'
-    ctx.fillText('ISX60 · مؤشر السوق العراقي', W - 18, 32)
+    ctx.fillText(ix.watermark, startX, 32)
     ctx.fillStyle = muted
     ctx.font = '13px system-ui, -apple-system, "Segoe UI", sans-serif'
-    ctx.fillText(`${first.date} → ${last.date} · iraqsm.com`, W - 18, 54)
+    ctx.fillText(`${first.date} → ${last.date} · iraqsm.com`, startX, 54)
 
     ctx.textAlign = 'left'
     ctx.fillStyle = ink
@@ -281,7 +288,7 @@ export default function IndexChart({
     ctx.stroke()
 
     return canvas
-  }, [geo, last, first, up, periodChange, periodPct])
+  }, [geo, last, first, up, periodChange, periodPct, ix, locale])
 
   const toBlob = () =>
     new Promise<Blob | null>(resolve => {
@@ -292,18 +299,18 @@ export default function IndexChart({
 
   async function download() {
     const blob = await toBlob()
-    if (!blob) return setToast('لا توجد بيانات للتصدير')
+    if (!blob) return setToast(ix.nothingToExport)
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
     a.href = url
     a.download = `ISX60-${range}-${last?.date ?? ''}.png`
     a.click()
     URL.revokeObjectURL(url)
-    setToast('تم تنزيل الصورة')
+    setToast(ix.downloaded)
   }
 
   function copy() {
-    if (!geo.pts.length) return setToast('لا توجد بيانات للنسخ')
+    if (!geo.pts.length) return setToast(ix.nothingToCopy)
     if (typeof ClipboardItem === 'undefined' || !navigator.clipboard?.write) return void download()
     // ClipboardItem takes the *promise*, not an awaited blob: awaiting first
     // spends the click's user activation and the write is then rejected.
@@ -313,9 +320,9 @@ export default function IndexChart({
     })
     navigator.clipboard
       .write([new ClipboardItem({ 'image/png': png })])
-      .then(() => setToast('تم نسخ الصورة'))
+      .then(() => setToast(ix.copied))
       .catch(() => {
-        setToast('تعذّر النسخ — تم التنزيل بدلاً منه')
+        setToast(ix.copyFellBack)
         void download()
       })
   }
@@ -330,7 +337,7 @@ export default function IndexChart({
   return (
     <div className="index-chart-block">
       <div className="chart-toolbar">
-        <div className="chart-ranges" role="group" aria-label="الفترة الزمنية">
+        <div className="chart-ranges" role="group" aria-label={ix.period}>
           {RANGES.map(r => (
             <button
               key={r.id}
@@ -339,30 +346,30 @@ export default function IndexChart({
               aria-pressed={r.id === range}
               onClick={() => { setRange(r.id); setActive(null) }}
             >
-              {r.label}
+              {r.label ?? ix.rangeAll}
             </button>
           ))}
         </div>
         <div className="chart-tools">
-          <button type="button" className="chart-tool-btn" onClick={copy} aria-label="نسخ صورة المخطط" title="نسخ صورة المخطط">
+          <button type="button" className="chart-tool-btn" onClick={copy} aria-label={ix.copyChart} title={ix.copyChartTitle}>
             <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="9" width="11" height="11" rx="2" /><path d="M5 15V5a2 2 0 0 1 2-2h10" /></svg>
           </button>
-          <button type="button" className="chart-tool-btn" onClick={download} aria-label="تنزيل صورة المخطط" title="تنزيل صورة المخطط">
+          <button type="button" className="chart-tool-btn" onClick={download} aria-label={ix.downloadChart} title={ix.downloadChartTitle}>
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11" /><path d="M7 11l5 5 5-5" /><path d="M5 20h14" /></svg>
           </button>
-          <Link className="chart-tool-link" href="/charts">المخطط الكامل</Link>
+          <Link className="chart-tool-link" href={L('/charts')}>{ix.fullChart}</Link>
         </div>
       </div>
 
       <div
         ref={plotRef}
         className={busy ? 'chart-wrap chart-loading' : 'chart-wrap'}
-        aria-label="رسم مؤشر ISX60"
+        aria-label={ix.plotLabel}
         onPointerDown={onPointer}
         onPointerMove={onPointer}
         onPointerLeave={() => setActive(null)}
       >
-        <svg className="index-chart" viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" role="img" aria-label="مؤشر ISX60">
+        <svg className="index-chart" viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" role="img" aria-label={ix.plotLabel}>
           <defs>
             <linearGradient id="indexFill" x1="0" x2="0" y1="0" y2="1">
               <stop offset="0%" stopColor={up ? 'var(--up)' : 'var(--down)'} stopOpacity="0.26" />
@@ -441,9 +448,9 @@ export default function IndexChart({
         ) : null}
 
         {failed && !visible.length ? (
-          <div className="chart-overlay">تعذّر تحميل بيانات المؤشر</div>
+          <div className="chart-overlay">{ix.loadFailed}</div>
         ) : busy ? (
-          <div className="chart-overlay">جاري تحميل السلسلة…</div>
+          <div className="chart-overlay">{ix.loading}</div>
         ) : null}
       </div>
 
@@ -451,16 +458,16 @@ export default function IndexChart({
         {visible.length ? (
           <>
             <span>
-              أدنى الفترة <bdi dir="ltr">{priceFmt.format(geo.lo)}</bdi>
+              {ix.low} <bdi dir="ltr">{priceFmt.format(geo.lo)}</bdi>
             </span>
             <span>
-              أعلى الفترة <bdi dir="ltr">{priceFmt.format(geo.hi)}</bdi>
+              {ix.high} <bdi dir="ltr">{priceFmt.format(geo.hi)}</bdi>
             </span>
             <span className={up ? 'gain' : 'loss'}>
-              تغيّر الفترة <bdi dir="ltr">{up ? '+' : ''}{periodPct.toFixed(2)}%</bdi>
+              {ix.change} <bdi dir="ltr">{up ? '+' : ''}{periodPct.toFixed(2)}%</bdi>
             </span>
             <span className="chart-sessions">
-              <bdi>{visible.length}</bdi> جلسة
+              <bdi>{visible.length}</bdi> {ix.sessionsUnit}
             </span>
           </>
         ) : null}

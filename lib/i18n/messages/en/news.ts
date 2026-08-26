@@ -47,6 +47,7 @@ export const news: typeof ar = {
   tryCompany: 'Try a company name, a ticker, or a word from the headline.',
   tryOtherFilter: 'Try a different type or sector.',
   filingLink: (kind: string, name: string, headline: string) => `${kind}: ${name} ${headline} · opens a PDF on the Securities Commission website`,
+  endOfList: (n: string) => `End of list · ${n} items`,
   market: 'Market',
 
   /**

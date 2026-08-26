@@ -1,4 +1,5 @@
 'use client'
+import { useLocale } from '@/context/LocaleContext'
 
 import {
   createContext, useCallback, useContext, useEffect, useMemo, useRef,
@@ -123,6 +124,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
 function ToastView({
   t, paused, onDismiss,
 }: { t: Toast; paused: boolean; onDismiss: () => void }) {
+  const { t: T } = useLocale()
   useEffect(() => {
     if (paused) return;
     const id = window.setTimeout(onDismiss, MS[t.tone]);
@@ -145,7 +147,7 @@ function ToastView({
           {t.action.label}
         </button>
       ) : null}
-      <button type="button" className="ty-close" onClick={onDismiss} aria-label="إغلاق">✕</button>
+      <button type="button" className="ty-close" onClick={onDismiss} aria-label={T.system.overlay.close}>✕</button>
     </div>
   );
 }

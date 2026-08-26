@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useMemo, useState } from 'react'
+import { useLocale } from '@/context/LocaleContext'
 import { arMonth, PreviewCard } from './_ui'
 
 export interface ShareRow {
@@ -66,22 +67,24 @@ function useShareholders() {
 
 // ── Compact preview ────────────────────────────────────────────────────────────
 export function ShareholdersPreview() {
+  const { t: T, locale } = useLocale()
+  const ow = T.ownership
   const { loading, uniq, month, stats } = useShareholders()
   const top = useMemo(() => [...uniq].sort((a, b) => (b.curr_pct ?? 0) - (a.curr_pct ?? 0)).slice(0, 3), [uniq])
 
   return (
     <PreviewCard
-      title="كبار المساهمين" subtitle={month ? `أكبر الحصص · ${month}` : 'أكبر الحصص'}
-      badge="شهري" href="/statistics/shareholders" loading={loading}
+      title={ow.shareholdersTitle} subtitle={month ? ow.withMonth(ow.shareholdersSub, month) : ow.shareholdersSub}
+      badge={ow.monthly} href="/statistics/shareholders" loading={loading}
     >
       {!uniq.length ? (
-        <div style={{ fontSize: 12, color: 'var(--ink4)', textAlign: 'center', padding: '20px 0' }}>غير متاح.</div>
+        <div style={{ fontSize: 12, color: 'var(--ink4)', textAlign: 'center', padding: '20px 0' }}>{ow.unavailable}</div>
       ) : (
         <>
           <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
-            <Tile value={stats.holders.toLocaleString('en-US')} label="مساهم كبير" />
-            <Tile value={String(stats.companies)} label="شركة" />
-            <Tile value={String(stats.foreign)} label="أجنبي" accent="var(--gold)" />
+            <Tile value={stats.holders.toLocaleString('en-US')} label={ow.majorHolder} />
+            <Tile value={String(stats.companies)} label={ow.companyUnit} />
+            <Tile value={String(stats.foreign)} label={ow.foreign} accent="var(--gold)" />
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 7 }}>
             {top.map((r, i) => (
@@ -100,6 +103,8 @@ export function ShareholdersPreview() {
 
 // ── Full detail ────────────────────────────────────────────────────────────────
 export function ShareholdersFull() {
+  const { t: T, locale } = useLocale()
+  const ow = T.ownership
   const { loading, uniq, stats } = useShareholders()
   const [q, setQ] = useState('')
   const [nat, setNat] = useState<Nat>('all')
@@ -112,23 +117,23 @@ export function ShareholdersFull() {
   }, [uniq, nat, q])
 
   if (loading) return <div className="skeleton" style={{ height: 400, borderRadius: 16 }} />
-  if (!uniq.length) return <div style={{ textAlign: 'center', padding: '60px 20px', color: 'var(--ink4)' }}>لا توجد بيانات مساهمين.</div>
+  if (!uniq.length) return <div style={{ textAlign: 'center', padding: '60px 20px', color: 'var(--ink4)' }}>{ow.noShareholders}</div>
 
   return (
     <div>
       <div style={{ display: 'flex', gap: 10, marginBottom: 16, flexWrap: 'wrap' }}>
-        <Tile value={stats.holders.toLocaleString('en-US')} label="مساهم كبير" big />
-        <Tile value={String(stats.companies)} label="شركة" big />
-        <Tile value={String(stats.foreign)} label="مساهم أجنبي" accent="var(--gold)" big />
+        <Tile value={stats.holders.toLocaleString('en-US')} label={ow.majorHolder} big />
+        <Tile value={String(stats.companies)} label={ow.companyUnit} big />
+        <Tile value={String(stats.foreign)} label={ow.foreignShareholder} accent="var(--gold)" big />
       </div>
 
       <div style={{ display: 'flex', gap: 8, marginBottom: 12, flexWrap: 'wrap', alignItems: 'center' }}>
-        <input value={q} onChange={e => setQ(e.target.value)} placeholder="ابحث عن شركة أو مساهم…" style={{
+        <input value={q} onChange={e => setQ(e.target.value)} placeholder={ow.searchCompanyOrHolder} style={{
           flex: '1 1 200px', height: 38, borderRadius: 9, background: 'var(--surf3)', border: '1px solid var(--line2)',
           color: 'var(--ink)', fontSize: 13, padding: '0 12px', outline: 'none',
         }} />
         <div style={{ display: 'inline-flex', background: 'var(--surf2)', borderRadius: 7, padding: 2, gap: 2 }}>
-          {([['all', 'الكل'], ['Iraqi', 'عراقي'], ['Foreign', 'أجنبي']] as [Nat, string][]).map(([v, l]) => (
+          {([['all', ow.all], ['Iraqi', ow.iraqi], ['Foreign', ow.foreign]] as [Nat, string][]).map(([v, l]) => (
             <button key={v} onClick={() => setNat(v)} style={{
               border: 'none', borderRadius: 5, padding: '6px 12px', fontSize: 11, fontWeight: 700, cursor: 'pointer',
               background: nat === v ? 'var(--brand)' : 'transparent', color: nat === v ? '#fff' : 'var(--ink3)',
@@ -137,7 +142,7 @@ export function ShareholdersFull() {
         </div>
       </div>
 
-      <div style={{ fontSize: 11, color: 'var(--ink4)', marginBottom: 6 }}>{filtered.length} نتيجة</div>
+      <div style={{ fontSize: 11, color: 'var(--ink4)', marginBottom: 6 }}>{ow.resultsCount(String(filtered.length))}</div>
       <div>
         {filtered.map((r, i) => {
           const up = (r.change_pct ?? 0) > 0, dn = (r.change_pct ?? 0) < 0
@@ -153,7 +158,7 @@ export function ShareholdersFull() {
                 fontSize: 9, fontWeight: 700, padding: '2px 6px', borderRadius: 4, whiteSpace: 'nowrap',
                 background: foreign ? 'rgba(224,169,59,0.15)' : 'var(--brand-soft, rgba(48,138,224,0.12))',
                 color: foreign ? 'var(--gold)' : 'var(--brand)',
-              }}>{foreign ? 'أجنبي' : 'عراقي'}</span>
+              }}>{foreign ? ow.foreign : ow.iraqi}</span>
               <div style={{ textAlign: 'end', minWidth: 64 }}>
                 <div style={{ fontSize: 13.5, fontWeight: 800, fontFamily: 'var(--font-mono)', color: 'var(--ink)' }}>{r.curr_pct?.toFixed(2)}%</div>
                 {(up || dn) && (
@@ -165,7 +170,7 @@ export function ShareholdersFull() {
             </div>
           )
         })}
-        {!filtered.length && <div style={{ fontSize: 12, color: 'var(--ink4)', padding: 16, textAlign: 'center' }}>لا نتائج مطابقة.</div>}
+        {!filtered.length && <div style={{ fontSize: 12, color: 'var(--ink4)', padding: 16, textAlign: 'center' }}>{ow.noMatch}</div>}
       </div>
     </div>
   )

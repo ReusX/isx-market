@@ -28,6 +28,11 @@ export const system = {
   differentSearch: 'جرّب بحثاً مختلفاً',
   loading:     'جارٍ التحميل…',
 
+  overlay: {
+    cancel: 'إلغاء',
+    close: 'إغلاق',
+  },
+
   notFound: {
     metaTitle: 'الصفحة غير موجودة',
     title:     'لا توجد صفحة على هذا المسار',

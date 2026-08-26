@@ -12,6 +12,14 @@
  * articles are Arabic-only and are not mirrored — see `lib/i18n/routes.ts`.
  */
 export const learn = {
+  article: {
+    crumbs: 'مسار التنقل',
+    articleNav: 'التنقل بين المقالات',
+    prev: 'السابق',
+    next: 'التالي',
+    contents: 'المحتويات',
+  },
+  tickerSearch: 'ابحث عن شركة…',
   title: 'تعلّم',
   startHere: 'ابدأ من هنا',
   start: 'ابدأ',

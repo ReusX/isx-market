@@ -45,6 +45,8 @@
   "/en/signup": "○",
   "/en/statistics": "○",
   "/en/statistics/foreign-flow": "○",
+  "/en/statistics/ownership": "○",
+  "/en/statistics/shareholders": "○",
   "/en/verify-email": "○",
   "/en/watchlist": "○",
   "/forgot-password": "○",

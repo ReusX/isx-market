@@ -2,6 +2,7 @@
 
 // Shared bits for the /statistics cards and their dedicated full pages.
 import Link from 'next/link'
+import { useLocale } from '@/context/LocaleContext'
 import { CompanyLogo } from '@/components/CompanyLogo'
 
 /* ⚠ The third copy of the month table is GONE. It was pan-Arab while the rest
@@ -69,6 +70,8 @@ export function PreviewCard({ title, subtitle, badge, badgeLive, href, loading, 
   title: string; subtitle?: string; badge?: string; badgeLive?: boolean
   href: string; loading?: boolean; children: React.ReactNode
 }) {
+  const { t: T, href: L } = useLocale()
+  const ow = T.ownership
   return (
     <section className="app-card statistics-card stat-panel">
       <div className="statistics-card-heading">
@@ -89,7 +92,7 @@ export function PreviewCard({ title, subtitle, badge, badgeLive, href, loading, 
       </div>
 
       <Link className="panel-cta" href={href}>
-        عرض الكل
+        {ow.showAll}
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" aria-hidden="true">
           <path d="M15 6l-6 6 6 6" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
@@ -99,19 +102,25 @@ export function PreviewCard({ title, subtitle, badge, badgeLive, href, loading, 
 }
 
 // ── Page header with back link for the dedicated full pages ────────────────────
-export function BackHeader({ title, subtitle, live }: { title: string; subtitle?: string; live?: boolean }) {
+/**
+ * ⚠ The `live` prop and its «مباشر» badge are REMOVED.
+ *
+ * Both of these pages read a MONTHLY report from the depository. Nothing on
+ * them is live, nothing is even daily, and a green «مباشر» dot over a
+ * month-old table is the single most misleading thing the product could put
+ * on a page. No caller passed it, so nothing rendered it — but leaving it in
+ * meant one prop away from shipping.
+ */
+export function BackHeader({ title, subtitle }: { title: string; subtitle?: string }) {
+  const { t: T, href: L } = useLocale()
+  const ow = T.ownership
   return (
     <>
-      <Link className="statistics-breadcrumb" href="/statistics">
-        <span aria-hidden="true">›</span>
-        الإحصائيات
+      <Link className="statistics-breadcrumb" href={L('/statistics')}>
+        <span className="dir-go" aria-hidden="true">›</span>
+        {ow.breadcrumb}
       </Link>
       <header className="statistics-detail-heading">
-        {live && (
-          <span className="app-badge success">
-            <span className="app-badge-dot" aria-hidden="true" />مباشر
-          </span>
-        )}
         <h1>{title}</h1>
         {subtitle && <p>{subtitle}</p>}
       </header>

@@ -1,7 +1,6 @@
 import type { Metadata } from 'next'
 import { absUrl, seoAlternates } from '@/lib/seo'
-import { BackHeader } from '../_ui'
-import { ShareholdersFull } from '../MajorShareholdersPanel'
+import { ShareholdersPage } from '@/components/routes/ShareholdersPage'
 
 export const metadata: Metadata = {
   // Without this the page inherited the parent layout's canonical and
@@ -14,14 +13,6 @@ export const metadata: Metadata = {
   description: 'أكبر الحصص في الشركات المدرجة بسوق العراق للأوراق المالية، مع الجنسية والنسبة والتغيّر عن الشهر السابق.',
 }
 
-export default function ShareholdersPage() {
-  return (
-    <main className="terminal-shell app-page statistics-detail-page">
-      <BackHeader
-        title="كبار المساهمين"
-        subtitle="أكبر الحصص في الشركات المدرجة · النسبة والتغيّر عن الشهر السابق"
-      />
-      <ShareholdersFull />
-    </main>
-  )
+export default function Page() {
+  return <ShareholdersPage />
 }

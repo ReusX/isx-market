@@ -84,14 +84,15 @@ export function alertHit(a: Alert, price: number): boolean {
   return a.dir === 'above' ? price >= a.target : price <= a.target
 }
 
-// ─── Formatters ─────────────────────────────────────────────────────────────
-export function fmtIQD(v: number): string {
-  const a = Math.abs(v), sign = v < 0 ? '−' : ''
-  if (a >= 1e9) return `${sign}${(a / 1e9).toFixed(2)} مليار`
-  if (a >= 1e6) return `${sign}${(a / 1e6).toFixed(2)} مليون`
-  return `${sign}${Math.round(a).toLocaleString('en')}`
-}
-export const fmtPct = (v: number) => `${v >= 0 ? '+' : '−'}${Math.abs(v).toFixed(1)}%`
+/*
+ * ⚠ `fmtIQD` and `fmtPct` were REMOVED, not translated.
+ *
+ * `fmtIQD` printed «مليار» / «مليون» to every reader — a real gap — but the
+ * whole repo was searched and nothing imported either of them. The live
+ * formatter is the one in the statistics route's `_ui.tsx`, which uses Latin
+ * magnitudes (T/B/M/K) and needs no translation. Translating dead code would
+ * have added a maintenance surface for a function no page renders.
+ */
 export const newId = () => (crypto.randomUUID?.() ?? String(Date.now() + Math.random()))
 
 // ─── Market data (prices + company meta) ──────────────────────────────────────

@@ -9,7 +9,7 @@ import { seoAlternates } from '@/lib/seo'
  * on /profile.
  */
 export const metadata: Metadata = {
-  title: { absolute: 'كلمة مرور جديدة' },
+  title: { absolute: 'Set a new password' },
   robots: { index: false, follow: false },
   /* Self-canonical, not the root's. Without this the page inherits
      `canonical: https://iraqsm.com` from the root layout and tells a
@@ -19,6 +19,6 @@ export const metadata: Metadata = {
   alternates: seoAlternates('/auth/reset', 'en'),
 }
 
-export default function ResetLayout({ children }: { children: React.ReactNode }) {
+export default function EnResetLayout({ children }: { children: React.ReactNode }) {
   return <>{children}</>
 }

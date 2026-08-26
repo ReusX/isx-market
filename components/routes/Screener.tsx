@@ -299,9 +299,7 @@ export function Screener() {
         </div>
       ))}
       <p className="sc-group-note">
-        {ar
-          ? <>الفلاتر تعمل معاً — على الشركة أن تحقق كل الشروط. الشركات التي لا يتوفر لها قياس معيّن تُستبعد من أي فلتر على ذلك القياس، وتبقى مشمولة بالفلاتر الأخرى · «التغيّر» يتبع الفترة المختارة أعلاه.</>
-          : <>Filters compose — a company must satisfy all of them. A company with no value for a metric is excluded from filters on that metric, and stays eligible for every other one · «Change» follows the period selected above.</>}
+        {sc.filtersCompose}
       </p>
     </>
   )

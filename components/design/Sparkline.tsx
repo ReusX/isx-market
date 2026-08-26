@@ -1,3 +1,6 @@
+'use client'
+
+import { useLocale } from '@/context/LocaleContext'
 function points(values: number[], width: number, height: number) {
   const min = Math.min(...values);
   const max = Math.max(...values);
@@ -14,15 +17,16 @@ export function Sparkline({
   values,
   positive = true,
   compact = false,
-  label = "رسم بياني مصغر",
+  label,
 }: {
   values: number[];
   positive?: boolean;
   compact?: boolean;
   label?: string;
 }) {
+  const { t } = useLocale()
   return (
-    <svg className={compact ? "sparkline compact-sparkline" : "sparkline"} viewBox="0 0 90 34" role="img" aria-label={label}>
+    <svg className={compact ? "sparkline compact-sparkline" : "sparkline"} viewBox="0 0 90 34" role="img" aria-label={label ?? t.chart.index.sparkline}>
       <polyline points={points(values, 90, 32)} />
       <path className={positive ? "spark-fill up-fill" : "spark-fill down-fill"} d={`M0,34 L${points(values, 90, 32)} L90,34 Z`} />
     </svg>

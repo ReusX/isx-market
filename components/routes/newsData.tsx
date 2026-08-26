@@ -131,7 +131,7 @@ export async function NewsPage({ locale }: { locale: Locale }) {
     <NewsClient
       items={items}
       sectors={Array.from(new Set(filings.items.map(i => i.sector).filter(Boolean) as string[]))
-        .map(id => ({ id, label: sectorLabel(id, 'ar') }))
+        .map(id => ({ id, label: sectorLabel(id, locale) }))
         .sort((a, b) => a.label.localeCompare(b.label, 'ar'))}
       articlesOk={articles.ok}
       filingsOk={filings.ok}

@@ -335,7 +335,7 @@ export function Pulse() {
                         {pl.ratioDash} <b><bdi>—</bdi></b>
                         <i className="fn-help" tabIndex={0} role="note"
                           data-help={pl.noRatioHelp}
-                          aria-label={pl.noRatio}>؟</i>
+                          aria-label={pl.noRatio}>{locale === 'ar' ? '؟' : '?'}</i>
                       </>}
                 </span>
               </div>
@@ -430,7 +430,7 @@ export function Pulse() {
                 {pl.advMinusDec}
                 <i className="fn-help" tabIndex={0} role="note"
                   data-help={pl.netBreadthHelpLong}
-                  aria-label={pl.netBreadthHelp}>؟</i>
+                  aria-label={pl.netBreadthHelp}>{locale === 'ar' ? '؟' : '?'}</i>
               </span>
               <div className="pl-tf" role="group" aria-label={pl.timeframe}>
                 {TIMEFRAMES.map(t => (

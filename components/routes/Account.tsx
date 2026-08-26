@@ -328,8 +328,7 @@ export function Account() {
               reads as broken; one honest line beats five fake rows. */}
           <p className="ac-absent">
             <i aria-hidden="true">△</i>
-            لا يدعم الحساب حالياً: حذف الحساب، تسجيل الدخول بحسابات خارجية، التحقق بخطوتين،
-            إدارة الجلسات، أو تصدير البيانات. لم يُعرض أيٌّ منها هنا لأنها غير موجودة في المنتج.
+            {ac.notSupported}
           </p>
 
           <button type="button" className="ac-signout" onClick={signOut}>{ac.signOut}</button>

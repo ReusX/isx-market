@@ -16,6 +16,8 @@
  * original filings.
  */
 export const financials = {
+  ttm: 'TTM (آخر 12 شهراً)',
+  fiscalYear: (y: string) => `السنة المالية ${y}`,
   companies: 'الشركات',
   title: 'البيانات المالية',
   templateBank: 'نموذج مصرفي',

@@ -13,6 +13,11 @@ export const system: typeof ar = {
   differentSearch: 'Try a different search',
   loading:     'Loading…',
 
+  overlay: {
+    cancel: 'Cancel',
+    close: 'Close',
+  },
+
   notFound: {
     metaTitle: 'Page not found',
     title:     'There is no page at this address',

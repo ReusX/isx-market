@@ -208,7 +208,7 @@ export function ForeignFlow() {
     () => (loaded && t ? companyFlows(loaded.rows, t.from, t.to, roster) : []),
     [loaded, t, roster])
   const ranked = useMemo(() => rankCompanies(companies, view), [companies, view])
-  const sectors = useMemo(() => sectorFlows(companies, SECTOR_LABEL), [companies])
+  const sectors = useMemo(() => sectorFlows(companies, SECTOR_LABEL, ff.unclassified), [companies, ff])
   const sectorMax = Math.max(...sectors.map((s) => s.buy + s.sell), 1)
   const top10 = ranked.slice(0, 10)
   const rowMax = Math.max(...top10.map((c) => Math.abs(viewValue(c, view))), 1)

@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useMemo, useState } from 'react'
+import { useLocale } from '@/context/LocaleContext'
 import { arMonth, PreviewCard } from './_ui'
 import { fetchCompanyMeta, matchCompanyName } from '@/lib/market'
 import type { CompanyMeta } from '@/types'
@@ -77,6 +78,8 @@ function useOwnership() {
 }
 
 function Donut({ fPct, size = 110 }: { fPct: number; size?: number }) {
+  const { t: T, locale } = useLocale()
+  const ow = T.ownership
   const R = size * 0.38, C = 2 * Math.PI * R, fLen = (fPct / 100) * C
   const c = size / 2
   return (
@@ -85,32 +88,34 @@ function Donut({ fPct, size = 110 }: { fPct: number; size?: number }) {
       <circle cx={c} cy={c} r={R} fill="none" stroke="var(--gold)" strokeWidth={size * 0.13}
         strokeDasharray={`${fLen} ${C - fLen}`} strokeDashoffset={C / 4} transform={`rotate(-90 ${c} ${c})`} />
       <text x={c} y={c - 2} textAnchor="middle" fontSize={size * 0.17} fontWeight="800" fill="var(--ink)" fontFamily="var(--font-mono)">{fPct.toFixed(1)}%</text>
-      <text x={c} y={c + size * 0.14} textAnchor="middle" fontSize={size * 0.085} fill="var(--ink4)">ملكية أجنبية</text>
+      <text x={c} y={c + size * 0.14} textAnchor="middle" fontSize={size * 0.085} fill="var(--ink4)">{ow.foreignOwnership}</text>
     </svg>
   )
 }
 
 // ── Compact preview ────────────────────────────────────────────────────────────
 export function OwnershipPreview() {
+  const { t: T, locale } = useLocale()
+  const ow = T.ownership
   const { loading, month, clean, totals, fPct } = useOwnership()
   return (
     <PreviewCard
-      title="هيكل الملكية" subtitle={month ? `عراقي مقابل أجنبي · ${month}` : 'عراقي مقابل أجنبي'}
-      badge="شهري" href="/statistics/ownership" loading={loading}
+      title={ow.structureTitle} subtitle={month ? ow.withMonth(ow.structureSub, month) : ow.structureSub}
+      badge={ow.monthly} href="/statistics/ownership" loading={loading}
     >
       {!clean.length ? (
-        <div style={{ fontSize: 12, color: 'var(--ink4)', textAlign: 'center', padding: '20px 0' }}>غير متاح.</div>
+        <div style={{ fontSize: 12, color: 'var(--ink4)', textAlign: 'center', padding: '20px 0' }}>{ow.unavailable}</div>
       ) : (
         <div style={{ display: 'flex', gap: 14, alignItems: 'center' }}>
           <Donut fPct={fPct} size={96} />
           <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 8 }}>
             <div style={{ fontSize: 10.5, display: 'flex', gap: 12 }}>
-              <span style={{ color: 'var(--brand)' }}>■ عراقي {(100 - fPct).toFixed(1)}%</span>
-              <span style={{ color: 'var(--gold)' }}>■ أجنبي</span>
+              <span style={{ color: 'var(--brand)' }}>■ {ow.iraqi} {(100 - fPct).toFixed(1)}%</span>
+              <span style={{ color: 'var(--gold)' }}>■ {ow.foreign}</span>
             </div>
             <div style={{ display: 'flex', gap: 8 }}>
-              <Mini value={totals.fHolders.toLocaleString('en-US')} label="حملة أجانب" />
-              <Mini value={String(totals.withForeign)} label="شركات بملكية أجنبية" />
+              <Mini value={totals.fHolders.toLocaleString('en-US')} label={ow.foreignHolders} />
+              <Mini value={String(totals.withForeign)} label={ow.companiesWithForeign} />
             </div>
           </div>
         </div>
@@ -121,6 +126,8 @@ export function OwnershipPreview() {
 
 // ── Full detail ────────────────────────────────────────────────────────────────
 export function OwnershipFull() {
+  const { t: T, locale } = useLocale()
+  const ow = T.ownership
   const { loading, clean, totals, fPct } = useOwnership()
   const [q, setQ] = useState('')
   const [sort, setSort] = useState<Sort>('fpct')
@@ -135,7 +142,7 @@ export function OwnershipFull() {
   }, [clean, q, sort])
 
   if (loading) return <div className="skeleton" style={{ height: 400, borderRadius: 16 }} />
-  if (!clean.length) return <div style={{ textAlign: 'center', padding: '60px 20px', color: 'var(--ink4)' }}>بيانات الملكية غير متاحة.</div>
+  if (!clean.length) return <div style={{ textAlign: 'center', padding: '60px 20px', color: 'var(--ink4)' }}>{ow.noData}</div>
 
   return (
     <div>
@@ -143,21 +150,21 @@ export function OwnershipFull() {
         <Donut fPct={fPct} size={130} />
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10, flex: 1, minWidth: 200 }}>
           <div style={{ fontSize: 11.5, display: 'flex', gap: 14 }}>
-            <span style={{ color: 'var(--brand)' }}>■ عراقي {(100 - fPct).toFixed(1)}%</span>
-            <span style={{ color: 'var(--gold)' }}>■ أجنبي {fPct.toFixed(1)}%</span>
+            <span style={{ color: 'var(--brand)' }}>■ {ow.iraqi} {(100 - fPct).toFixed(1)}%</span>
+            <span style={{ color: 'var(--gold)' }}>■ {ow.foreign} {fPct.toFixed(1)}%</span>
           </div>
           <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-            <Mini value={totals.fHolders.toLocaleString('en-US')} label="حملة أسهم أجانب" big />
-            <Mini value={String(totals.withForeign)} label="شركات بملكية أجنبية" big />
-            <Mini value={fmt(totals.foreign)} label="أسهم مملوكة لأجانب" big />
+            <Mini value={totals.fHolders.toLocaleString('en-US')} label={ow.foreignHoldersLong} big />
+            <Mini value={String(totals.withForeign)} label={ow.companiesWithForeign} big />
+            <Mini value={fmt(totals.foreign)} label={ow.foreignHeldShares} big />
           </div>
         </div>
       </div>
 
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8, marginBottom: 12, flexWrap: 'wrap' }}>
-        <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--ink2)' }}>الشركات حسب الملكية الأجنبية ({ranked.length})</div>
+        <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--ink2)' }}>{ow.byForeign(String(ranked.length))}</div>
         <div style={{ display: 'inline-flex', background: 'var(--surf2)', borderRadius: 7, padding: 2, gap: 2 }}>
-          {([['fpct', 'النسبة'], ['fshares', 'الأسهم'], ['holders', 'الحملة']] as [Sort, string][]).map(([v, l]) => (
+          {([['fpct', ow.sortPct], ['fshares', ow.sortShares], ['holders', ow.sortHolders]] as [Sort, string][]).map(([v, l]) => (
             <button key={v} onClick={() => setSort(v)} style={{
               border: 'none', borderRadius: 5, padding: '5px 11px', fontSize: 11, fontWeight: 700, cursor: 'pointer',
               background: sort === v ? 'var(--brand)' : 'transparent', color: sort === v ? '#fff' : 'var(--ink3)',
@@ -166,7 +173,7 @@ export function OwnershipFull() {
         </div>
       </div>
 
-      <input value={q} onChange={e => setQ(e.target.value)} placeholder="ابحث عن شركة…" style={{
+      <input value={q} onChange={e => setQ(e.target.value)} placeholder={ow.searchCompany} style={{
         width: '100%', height: 38, borderRadius: 9, background: 'var(--surf3)', border: '1px solid var(--line2)',
         color: 'var(--ink)', fontSize: 13, padding: '0 12px', outline: 'none', marginBottom: 12,
       }} />
@@ -181,13 +188,13 @@ export function OwnershipFull() {
                 <div style={{ width: `${Math.min(r.fpct, 100)}%`, height: '100%', background: 'var(--gold)', borderRadius: 3 }} />
               </div>
               <div style={{ fontSize: 9.5, color: 'var(--ink4)', marginTop: 3, fontFamily: 'var(--font-mono)' }}>
-                {fmt(r.foreign_shares ?? 0)} سهم · {r.foreign_count ?? 0} حامل
+                {ow.sharesHolders(fmt(r.foreign_shares ?? 0), String(r.foreign_count ?? 0))}
               </div>
             </div>
             <div style={{ textAlign: 'end', fontSize: 15, fontWeight: 800, fontFamily: 'var(--font-mono)', color: 'var(--gold)' }}>{r.fpct.toFixed(1)}%</div>
           </div>
         ))}
-        {!ranked.length && <div style={{ fontSize: 12, color: 'var(--ink4)', padding: 16, textAlign: 'center' }}>لا نتائج.</div>}
+        {!ranked.length && <div style={{ fontSize: 12, color: 'var(--ink4)', padding: 16, textAlign: 'center' }}>{ow.noResults}</div>}
       </div>
     </div>
   )

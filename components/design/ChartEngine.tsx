@@ -1,6 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useLocale } from "@/context/LocaleContext";
+import type { ReactNode } from "react";
 import { AR_MONTHS_SHORT } from '@/lib/date'
 import { createPortal } from "react-dom";
 
@@ -86,34 +88,34 @@ type Drawing = {
   label?: string;
 };
 
-const RANGES: { id: RangeId; label: string }[] = [
-  { id: "1W", label: "أسبوع" },
-  { id: "1M", label: "شهر" },
-  { id: "3M", label: "3 أشهر" },
-  { id: "1Y", label: "سنة" },
-  { id: "5Y", label: "5 سنوات" },
-  { id: "All", label: "الكل" },
+const RANGES: { id: RangeId }[] = [
+  { id: "1W" },
+  { id: "1M" },
+  { id: "3M" },
+  { id: "1Y" },
+  { id: "5Y" },
+  { id: "All" },
 ];
 const RANGE_DAYS: Record<RangeId, number> = { "1W": 7, "1M": 31, "3M": 92, "1Y": 366, "5Y": 1830, All: Infinity };
 
 /* Daily, weekly, monthly — exactly the three KChart aggregates from the one
    daily series the product has. No intraday: the ISX publishes one bulletin
    per session and there are no ticks to build it from. */
-const INTERVALS: { id: IntervalId; label: string; short: string }[] = [
-  { id: "day", label: "يومي", short: "ي" },
-  { id: "week", label: "أسبوعي", short: "أ" },
-  { id: "month", label: "شهري", short: "ش" },
+const INTERVALS: { id: IntervalId }[] = [
+  { id: "day" },
+  { id: "week" },
+  { id: "month" },
 ];
 
-const TOOLS: { id: ToolId; label: string; icon: React.ReactNode }[] = [
-  { id: "pointer", label: "المؤشر", icon: <path d="M5 3l14 8-6 1.6L10 19z" /> },
-  { id: "trend", label: "خط اتجاه", icon: <><path d="M4 19L20 5" /><circle cx="4" cy="19" r="1.9" /><circle cx="20" cy="5" r="1.9" /></> },
-  { id: "hline", label: "خط أفقي", icon: <><path d="M3 12h18" /><circle cx="12" cy="12" r="1.9" /></> },
-  { id: "hray", label: "شعاع أفقي", icon: <><path d="M4 12h17" /><circle cx="4" cy="12" r="1.9" /></> },
-  { id: "vline", label: "خط عمودي", icon: <><path d="M12 3v18" /><circle cx="12" cy="12" r="1.9" /></> },
-  { id: "rect", label: "مستطيل", icon: <rect x="4" y="6.5" width="16" height="11" rx="1.5" /> },
-  { id: "fib", label: "فيبوناتشي", icon: <><path d="M4 5h16M4 10h16M4 14h16M4 19h16" /></> },
-  { id: "text", label: "نص", icon: <><path d="M5 6h14M12 6v13" /></> },
+const TOOLS: { id: ToolId; icon: ReactNode }[] = [
+  { id: "pointer", icon: <path d="M5 3l14 8-6 1.6L10 19z" /> },
+  { id: "trend", icon: <><path d="M4 19L20 5" /><circle cx="4" cy="19" r="1.9" /><circle cx="20" cy="5" r="1.9" /></> },
+  { id: "hline", icon: <><path d="M3 12h18" /><circle cx="12" cy="12" r="1.9" /></> },
+  { id: "hray", icon: <><path d="M4 12h17" /><circle cx="4" cy="12" r="1.9" /></> },
+  { id: "vline", icon: <><path d="M12 3v18" /><circle cx="12" cy="12" r="1.9" /></> },
+  { id: "rect", icon: <rect x="4" y="6.5" width="16" height="11" rx="1.5" /> },
+  { id: "fib", icon: <><path d="M4 5h16M4 10h16M4 14h16M4 19h16" /></> },
+  { id: "text", icon: <><path d="M5 6h14M12 6v13" /></> },
 ];
 
 /* ── Aggregation ───────────────────────────────────────────────────────── */
@@ -198,6 +200,9 @@ function compact(n: number) {
    Pure: same inputs, same pixels. Called for the live canvas and again, at
    2× with a title band, for export. */
 type RenderOpts = {
+  /** Copy the canvas routines need. See DrawCtx. */
+  textFallback: string;
+  rtl: boolean;
   bars: Bar[]; view: View; type: ChartType; pal: Palette;
   showVolume: boolean; drawings: Drawing[]; selected: string | null;
   cursor: { x: number; y: number } | null;
@@ -345,7 +350,7 @@ function render(ctx: CanvasRenderingContext2D, W: number, H: number, o: RenderOp
   ctx.beginPath();
   ctx.rect(plotX, plotTop - PAD_T, plotW, plotBottom - plotTop + PAD_T);
   ctx.clip();
-  for (const d of o.drawings) drawShape(ctx, d, d.id === o.selected, { xOf, yOf, plotX, plotW, plotTop, plotBottom, pal });
+  for (const d of o.drawings) drawShape(ctx, d, d.id === o.selected, { xOf, yOf, plotX, plotW, plotTop, plotBottom, pal, textFallback: o.textFallback, rtl: o.rtl });
   ctx.restore();
 
   /* ── Axes ── */
@@ -497,6 +502,11 @@ const FIB = [0, 0.236, 0.382, 0.5, 0.618, 0.786, 1];
 type DrawCtx = {
   xOf: (i: number) => number; yOf: (p: number) => number;
   plotX: number; plotW: number; plotTop: number; plotBottom: number; pal: Palette;
+  /** Fallback label for an empty text drawing. Passed in because `drawShape`
+   *  is a module-scope canvas routine and cannot read a hook. */
+  textFallback: string;
+  /** Canvas text direction for the reader's language. */
+  rtl: boolean;
 };
 
 function drawShape(ctx: CanvasRenderingContext2D, d: Drawing, sel: boolean, g: DrawCtx) {
@@ -540,8 +550,8 @@ function drawShape(ctx: CanvasRenderingContext2D, d: Drawing, sel: boolean, g: D
     ctx.globalAlpha = 1;
   } else if (d.tool === "text") {
     ctx.font = "600 12px ui-sans-serif, system-ui, sans-serif";
-    ctx.direction = "rtl"; ctx.textAlign = "right"; ctx.textBaseline = "middle";
-    const label = d.label || "نص";
+    ctx.direction = g.rtl ? "rtl" : "ltr"; ctx.textAlign = g.rtl ? "right" : "left"; ctx.textBaseline = "middle";
+    const label = d.label || g.textFallback;
     const w = ctx.measureText(label).width + 14;
     ctx.fillStyle = pal.draw;
     roundRect(ctx, ax - w / 2, ay - 10, w, 20, 5);
@@ -626,6 +636,8 @@ export function ChartEngine({
   /** Company page (short) vs a standalone tall chart. */
   compactMode?: boolean;
 }) {
+  const { t: T, locale } = useLocale()
+  const ce = T.chart
   const [type, setType] = useState<ChartType>(hasOhlc && !lineOnly ? "candle" : "line");
   const [range, setRange] = useState<RangeId>("1Y");
   const [interval, setIntervalId] = useState<IntervalId>("day");
@@ -727,6 +739,8 @@ export function ChartEngine({
     render(ctx, w, h, {
       bars, view, type, pal, showVolume, drawings, selected, cursor,
       watermark: symbol,
+        textFallback: ce.defaultNote,
+        rtl: locale === 'ar',
     });
   }, [bars, view, type, pal, showVolume, drawings, selected, cursor, symbol]);
 
@@ -860,7 +874,7 @@ export function ChartEngine({
 
     const a = { i: g.iOf(x), p: g.pOf(y) };
     const id = `d${Date.now()}${Math.round(Math.random() * 1e4)}`;
-    const d: Drawing = { id, tool: tool as Drawing["tool"], a, b: { ...a }, label: tool === "text" ? "ملاحظة" : undefined };
+    const d: Drawing = { id, tool: tool as Drawing["tool"], a, b: { ...a }, label: tool === "text" ? ce.defaultNote : undefined };
     setDrawings((prev) => [...prev, d]);
     setSelected(id);
 
@@ -1074,12 +1088,14 @@ export function ChartEngine({
       render(ctx, w, h + band, {
         bars, view, type, pal, showVolume, drawings, selected: null, cursor: null,
         watermark: symbol,
+        textFallback: ce.defaultNote,
+        rtl: locale === 'ar',
         title: {
           name, symbol,
           price: nfP.format(last?.c ?? 0),
           change: `${chg >= 0 ? "+" : ""}${nfP.format(chg)} (${chg >= 0 ? "+" : ""}${pct.toFixed(2)}%)`,
           up: chg >= 0,
-          meta: `${symbol} · ${RANGES.find((r) => r.id === range)!.label} · ${INTERVALS.find((i) => i.id === interval)!.label} · ${type === "candle" ? "شموع" : "خطي"}`,
+          meta: `${symbol} · ${ce.ranges[range]} · ${ce.intervals[interval]} · ${type === "candle" ? ce.candle : ce.line}`,
         },
       });
       if (mode === "download") {
@@ -1087,11 +1103,11 @@ export function ChartEngine({
         a.href = cv.toDataURL("image/png");
         a.download = `${symbol}-iraqsm.png`;
         document.body.appendChild(a); a.click(); a.remove();
-        setToast("تم تنزيل الصورة");
+        setToast(ce.downloaded);
       } else {
         const blob = await new Promise<Blob | null>((res) => cv.toBlob(res, "image/png"));
         if (!blob || !navigator.clipboard || typeof ClipboardItem === "undefined") {
-          setToast("النسخ غير مدعوم في هذا المتصفح · استخدم التنزيل");
+          setToast(ce.copyUnsupported);
         } else {
           /* Raced against a timeout. `clipboard.write` can hang indefinitely
              when the browser is waiting on a permission prompt or the call
@@ -1101,13 +1117,13 @@ export function ChartEngine({
             navigator.clipboard.write([new ClipboardItem({ "image/png": blob })]).then(() => true),
             new Promise<boolean>((res) => setTimeout(() => res(false), 2500)),
           ]);
-          setToast(ok ? "تم نسخ الرسم" : "تعذّر النسخ · استخدم التنزيل");
+          setToast(ok ? ce.copied : ce.copyFailed);
         }
       }
     } catch {
-      setToast("تعذّر تصدير الصورة");
+      setToast(ce.exportFailed);
     }
-  }, [bars, view, type, pal, showVolume, drawings, symbol, name, range, interval]);
+  }, [bars, view, type, pal, showVolume, drawings, symbol, name, range, interval, ce, locale]);
 
   useEffect(() => {
     if (!toast) return;
@@ -1142,26 +1158,26 @@ export function ChartEngine({
         ) : null}
 
         {lineOnly ? null : (
-        <div className="ce-seg" role="group" aria-label="نوع الرسم">
+        <div className="ce-seg" role="group" aria-label={ce.chartType}>
           <button type="button" className={type === "candle" ? "active" : ""}
             aria-pressed={type === "candle"} disabled={!hasOhlc}
-            title={hasOhlc ? "شموع" : "لا تتوفر بيانات افتتاح/أعلى/أدنى لهذه الشركة"}
+            title={hasOhlc ? ce.candle : ce.noOhlcTitle}
             onClick={() => setType("candle")}>
             <svg viewBox="0 0 16 16" aria-hidden="true" className="ce-i"><path d="M5 2v12M11 2v12" strokeWidth="1.3" /><rect x="3" y="5" width="4" height="6" rx="1" /><rect x="9" y="4" width="4" height="7" rx="1" /></svg>
-            <span>شموع</span>
+            <span>{ce.candle}</span>
           </button>
           <button type="button" className={type === "line" ? "active" : ""}
-            aria-pressed={type === "line"} title="خطي" onClick={() => setType("line")}>
+            aria-pressed={type === "line"} title={ce.line} onClick={() => setType("line")}>
             <svg viewBox="0 0 16 16" aria-hidden="true" className="ce-i"><path d="M2 11l3.5-4 3 2.5L14 4" strokeWidth="1.5" fill="none" /></svg>
-            <span>خطي</span>
+            <span>{ce.line}</span>
           </button>
         </div>
         )}
 
-        <div className="ce-seg ce-ranges" role="group" aria-label="المدى الزمني">
+        <div className="ce-seg ce-ranges" role="group" aria-label={ce.timeRange}>
           {RANGES.map((r) => (
             <button key={r.id} type="button" className={range === r.id ? "active" : ""}
-              aria-pressed={range === r.id} onClick={() => setRange(r.id)}>{r.label}</button>
+              aria-pressed={range === r.id} onClick={() => setRange(r.id)}>{ce.ranges[r.id]}</button>
           ))}
         </div>
 
@@ -1169,40 +1185,40 @@ export function ChartEngine({
             supports exactly these three aggregates. */}
         <label className="ce-select">
           <select value={interval} onChange={(e) => setIntervalId(e.target.value as IntervalId)}
-            aria-label="فاصل الشمعة">
-            {INTERVALS.map((i) => <option key={i.id} value={i.id}>{i.label}</option>)}
+            aria-label={ce.candleInterval}>
+            {INTERVALS.map((i) => <option key={i.id} value={i.id}>{ce.intervals[i.id]}</option>)}
           </select>
           <i aria-hidden="true">▾</i>
         </label>
 
         <div className="ce-bar-end">
           {hasVolume ? (
-            <IconBtn label={showVolume ? "إخفاء حجم التداول" : "إظهار حجم التداول"} active={showVolume}
+            <IconBtn label={showVolume ? ce.hideVolume : ce.showVolume} active={showVolume}
               onClick={() => setShowVolume((v) => !v)}>
               <path d="M3 14v-4M7.5 14V6M12 14V3M16.5 14v-6" strokeWidth="1.7" />
             </IconBtn>
           ) : null}
-          <IconBtn label="إعادة ضبط العرض" onClick={resetView}>
+          <IconBtn label={ce.resetView} onClick={resetView}>
             <path d="M4 9a6 6 0 1 1 1.8 4.3" strokeWidth="1.6" fill="none" /><path d="M3 5v4h4" strokeWidth="1.6" fill="none" />
           </IconBtn>
 
           <div className="ce-export">
-            <IconBtn label="تصدير الرسم" active={exportOpen} onClick={() => setExportOpen((v) => !v)}>
+            <IconBtn label={ce.exportChart} active={exportOpen} onClick={() => setExportOpen((v) => !v)}>
               <path d="M10 3v9M10 12l-3-3M10 12l3-3M4 16h12" strokeWidth="1.6" fill="none" />
             </IconBtn>
             {exportOpen ? (
               <div className="ce-menu" role="menu">
                 <button type="button" role="menuitem" onClick={() => exportChart("download")}>
-                  <span>تنزيل الصورة</span><small>PNG</small>
+                  <span>{ce.downloadImage}</span><small>PNG</small>
                 </button>
                 <button type="button" role="menuitem" onClick={() => exportChart("copy")}>
-                  <span>نسخ الصورة</span><small>الحافظة</small>
+                  <span>{ce.copyImage}</span><small>{ce.clipboard}</small>
                 </button>
               </div>
             ) : null}
           </div>
 
-          <IconBtn label={full ? "إغلاق ملء الشاشة" : "ملء الشاشة"} active={full}
+          <IconBtn label={full ? ce.exitFull : ce.enterFull} active={full}
             onClick={() => setFull((v) => !v)}>
             {full
               ? <path d="M8 3v5H3M12 17v-5h5" strokeWidth="1.6" fill="none" />
@@ -1231,31 +1247,31 @@ export function ChartEngine({
           <bdi>{up ? "+" : ""}{nfP.format(chg)}</bdi>
           <bdi>({up ? "+" : ""}{chgPct.toFixed(2)}%)</bdi>
         </span>
-        {showVolume && hasVolume ? <Read k="الحجم" v={bar ? compact(bar.v) : "—"} /> : null}
-        {hoverIdx == null ? <span className="ce-read-hint">مرّر المؤشر على الرسم للقراءة</span> : null}
+        {showVolume && hasVolume ? <Read k={ce.volume} v={bar ? compact(bar.v) : "—"} /> : null}
+        {hoverIdx == null ? <span className="ce-read-hint">{ce.hoverHint}</span> : null}
       </div>
 
       {/* ── Plot + drawing rail ── */}
       <div className="ce-stage">
         {canDraw ? (
-          <div className="ce-tools" role="toolbar" aria-label="أدوات الرسم" aria-orientation="vertical">
+          <div className="ce-tools" role="toolbar" aria-label={ce.drawingTools} aria-orientation="vertical">
             <ToolBtn t={TOOLS[0]} active={tool === "pointer"} onClick={() => armTool("pointer")} />
             <hr />
             {drawingTools.map((t) => (
               <ToolBtn key={t.id} t={t} active={tool === t.id} onClick={() => armTool(t.id)} />
             ))}
             <hr />
-            <IconBtn label="تراجع" disabled={!undoStack.length} onClick={undo} vertical>
+            <IconBtn label={ce.undo} disabled={!undoStack.length} onClick={undo} vertical>
               <path d="M7 5L3 9l4 4" strokeWidth="1.6" fill="none" /><path d="M3 9h8a5 5 0 0 1 0 10H7" strokeWidth="1.6" fill="none" />
             </IconBtn>
-            <IconBtn label="إعادة" disabled={!redoStack.length} onClick={redo} vertical>
+            <IconBtn label={ce.redo} disabled={!redoStack.length} onClick={redo} vertical>
               <path d="M13 5l4 4-4 4" strokeWidth="1.6" fill="none" /><path d="M17 9H9a5 5 0 0 0 0 10h4" strokeWidth="1.6" fill="none" />
             </IconBtn>
-            <IconBtn label="حذف المحدد" disabled={!selected} vertical
+            <IconBtn label={ce.deleteSelected} disabled={!selected} vertical
               onClick={() => { commit(drawings.filter((d) => d.id !== selected)); setSelected(null); }}>
               <path d="M4 6h12M8 6V4h4v2M6 6l1 11h6l1-11" strokeWidth="1.5" fill="none" />
             </IconBtn>
-            <IconBtn label="مسح كل الرسومات" disabled={!drawings.length} vertical
+            <IconBtn label={ce.clearAll} disabled={!drawings.length} vertical
               onClick={() => { commit([]); setSelected(null); }}>
               <path d="M3 10h14M10 3v14" strokeWidth="1.6" transform="rotate(45 10 10)" />
             </IconBtn>
@@ -1267,7 +1283,7 @@ export function ChartEngine({
           <canvas
             ref={canvasRef}
             role="img"
-            aria-label={`رسم ${type === "candle" ? "شموع" : "خطي"} لسعر سهم ${name}، ${RANGES.find((r) => r.id === range)!.label}`}
+            aria-label={ce.chartLabel(type === "candle" ? ce.candle : ce.line, name, ce.ranges[range])}
             onPointerDown={(e) => { onTouchDown(e); onPointerDown(e); }}
             onPointerMove={(e) => { onTouchMove(e); onPointerMove(e); }}
             onPointerUp={(e) => { onTouchUp(e); onPointerUp(e); }}
@@ -1279,12 +1295,12 @@ export function ChartEngine({
           />
           {!bars.length ? (
             <div className="ce-empty">
-              <strong>لا يوجد سجل سعري لهذه الفترة</strong>
-              <p>لم تُسجَّل صفقات على هذا السهم ضمن المدى المختار. جرّب مدى أطول.</p>
+              <strong>{ce.noHistoryTitle}</strong>
+              <p>{ce.noHistoryNote}</p>
             </div>
           ) : null}
           {!hasOhlc && type === "line" ? (
-            <p className="ce-note">لا تتوفر بيانات الافتتاح والأعلى والأدنى لهذه الشركة · العرض خطي على أسعار الإغلاق.</p>
+            <p className="ce-note">{ce.lineOnlyNote}</p>
           ) : null}
         </div>
       </div>
@@ -1294,31 +1310,31 @@ export function ChartEngine({
       {canDraw && mobile ? (
         <>
           <button type="button" className="ce-sheet-open" onClick={() => setSheetOpen(true)}>
-            أدوات الرسم{drawings.length ? ` · ${drawings.length}` : ""}
+            {ce.drawingTools}{drawings.length ? ` · ${drawings.length}` : ""}
           </button>
           {sheetOpen ? (
             <>
               <div className="ce-scrim" onClick={() => setSheetOpen(false)} />
-              <div className="ce-sheet" role="dialog" aria-label="أدوات الرسم">
+              <div className="ce-sheet" role="dialog" aria-label={ce.drawingTools}>
                 <div className="ce-sheet-head">
-                  <strong>أدوات الرسم</strong>
-                  <button type="button" onClick={() => setSheetOpen(false)} aria-label="إغلاق">✕</button>
+                  <strong>{ce.drawingTools}</strong>
+                  <button type="button" onClick={() => setSheetOpen(false)} aria-label={ce.close}>✕</button>
                 </div>
                 <div className="ce-sheet-grid">
                   {TOOLS.map((t) => (
                     <button key={t.id} type="button" className={tool === t.id ? "active" : ""}
                       onClick={() => { armTool(t.id); setSheetOpen(false); }}>
                       <svg viewBox="0 0 24 24" aria-hidden="true">{t.icon}</svg>
-                      <span>{t.label}</span>
+                      <span>{ce.tools[t.id]}</span>
                     </button>
                   ))}
                 </div>
                 <div className="ce-sheet-actions">
-                  <button type="button" disabled={!undoStack.length} onClick={undo}>تراجع</button>
+                  <button type="button" disabled={!undoStack.length} onClick={undo}>{ce.undo}</button>
                   <button type="button" disabled={!selected}
-                    onClick={() => { commit(drawings.filter((d) => d.id !== selected)); setSelected(null); }}>حذف المحدد</button>
+                    onClick={() => { commit(drawings.filter((d) => d.id !== selected)); setSelected(null); }}>{ce.deleteSelected}</button>
                   <button type="button" disabled={!drawings.length}
-                    onClick={() => { commit([]); setSelected(null); setSheetOpen(false); }}>مسح الكل</button>
+                    onClick={() => { commit([]); setSelected(null); setSheetOpen(false); }}>{ce.clearAllShort}</button>
                 </div>
               </div>
             </>
@@ -1363,9 +1379,11 @@ function IconBtn({ label, children, onClick, active, disabled, vertical }: {
 }
 
 function ToolBtn({ t, active, onClick }: { t: typeof TOOLS[number]; active: boolean; onClick: () => void }) {
+  const { t: T } = useLocale()
+  const label = T.chart.tools[t.id]
   return (
     <button type="button" className={`ce-icon ${active ? "active" : ""}`} onClick={onClick}
-      aria-label={t.label} aria-pressed={active} data-tip={t.label} data-side="inline">
+      aria-label={label} aria-pressed={active} data-tip={label} data-side="inline">
       <svg viewBox="0 0 24 24" aria-hidden="true" stroke="currentColor" fill="none"
         strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">{t.icon}</svg>
     </button>

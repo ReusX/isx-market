@@ -153,6 +153,10 @@ export const personal: typeof ar = {
   },
 
   account: {
+    /* ⚠ States what the account does NOT have, by name. The brief forbids
+       advertising unsupported 2FA, session management or exports; saying so
+       outright is stronger than staying silent about them. */
+    notSupported: 'The account does not currently support: deleting your account in-product, signing in with external accounts, two-factor authentication, session management, or data export. None of them is shown here, because none of them exists in the product.',
     settingsSections: 'Settings sections',
     allSettings: 'All settings',
     cancel: 'Cancel',

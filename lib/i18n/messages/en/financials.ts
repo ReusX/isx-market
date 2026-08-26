@@ -1,6 +1,8 @@
 import type { financials as ar } from '../ar/financials'
 
 export const financials: typeof ar = {
+  ttm: 'TTM (last 12 months)',
+  fiscalYear: (y: string) => `FY ${y}`,
   companies: 'Companies',
   title: 'Financials',
   templateBank: 'Bank template',
