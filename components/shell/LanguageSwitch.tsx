@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import { useEffect, useState } from 'react'
 import { usePathname } from 'next/navigation'
 import { useLocale } from '@/context/LocaleContext'
 import { LOCALE_NAME, otherLocale } from '@/lib/i18n/locale'
@@ -45,7 +46,21 @@ export function LanguageSwitch({
   const pathname = usePathname() ?? '/'
   const { locale } = useLocale()
   const target = otherLocale(locale)
-  const href = switchPath(pathname, target)
+
+  /*
+   * The query string is carried across, so switching language on
+   * `/market?sector=BANK` does not silently drop the filter.
+   *
+   * ⚠ Read from `window.location` after mount, NOT from `useSearchParams()`.
+   * That hook opts its whole route out of static rendering in Next 14, and
+   * this component is in the global header — it would have taken all 46
+   * prerendered routes with it. The server renders the bare path, which is
+   * already a correct destination; the query is appended on hydration.
+   */
+  const [search, setSearch] = useState('')
+  useEffect(() => { setSearch(window.location.search) }, [pathname])
+
+  const href = switchPath(pathname, target) + search
 
   /*
    * When the current route has no twin, the switch still works but lands on an
