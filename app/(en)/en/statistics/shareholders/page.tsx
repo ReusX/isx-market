@@ -10,9 +10,9 @@ export const metadata: Metadata = {
     locale: 'en_US',
     alternateLocale: 'ar_IQ',
   },
-  title: 'Major shareholders · Iraq Stock Exchange listed companies',
+  title: 'Major Shareholders in Listed Companies · Iraq Stock Exchange',
   description:
-    'The largest disclosed stakes in companies listed on the Iraq Stock Exchange, with nationality, percentage and the change on the previous month.',
+    'The largest disclosed stakes in companies listed on the Iraq Stock Exchange, with each shareholder\'s ownership percentage, from the monthly depository report.',
 }
 
 export default function Page() {

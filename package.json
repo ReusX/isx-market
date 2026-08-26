@@ -14,7 +14,8 @@
     "cap:sync": "npx cap sync",
     "cap:android": "npx cap open android",
     "cap:ios": "npx cap open ios",
-    "check:i18n": "node scripts/i18n-seo.mjs && node scripts/i18n-strings.mjs && node scripts/i18n-qa.mjs && node scripts/i18n-regress.mjs"
+    "check:i18n": "node scripts/i18n-seo.mjs && node scripts/i18n-strings.mjs && node scripts/i18n-qa.mjs && node scripts/i18n-regress.mjs",
+    "audit:depository": "npx tsx scripts/depository-audit.ts"
   },
   "dependencies": {
     "@capacitor/app": "^6.0.2",

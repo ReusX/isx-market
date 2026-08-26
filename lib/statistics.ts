@@ -568,7 +568,7 @@ export function iqd(v: number): string {
 }
 
 
-/** «18 آب 2026». Arabic text carrying numerals — never `bdi`-isolated. */
+/** «18 أغسطس 2026». Arabic text carrying numerals — never `bdi`-isolated. */
 export function arFull(iso: string | null): string {
   if (!iso) return '—'
   const [y, m, d] = iso.split('-').map(Number)
@@ -628,8 +628,8 @@ export function arShort(iso: string | null): string {
   return `${d} ${AR_MONTHS_SHORT[m]}`
 }
 
-/** «18 آب 2026». Day, short month and YEAR — used wherever two windows are
- *  compared, because «١٠ آب — ٢٦ آب» for a three-year window reads as sixteen
+/** «18 أغسطس 2026». Day, short month and YEAR — used wherever two windows are
+ *  compared, because «10 أغسطس — 26 أغسطس» for a three-year window reads as sixteen
  *  days, which is the one thing a period label must never do. */
 export function arShortY(iso: string | null): string {
   if (!iso) return '—'
@@ -666,7 +666,7 @@ export function arMonthShort(ym: string | null): string {
  * The full label for one bucket, for the chart readout.
  *
  * A week rides its year on the CLOSING date: a week that straddles the turn of
- * the year otherwise reads «28 كانون١ — 1 كانون٢» with no year at either end.
+ * the year otherwise reads «28 ديسمبر — 1 يناير» with no year at either end.
  */
 export function bucketLabel(b: Bucket, grain: Grain, locale: Locale): string {
   if (grain === 'session') return locale === 'ar' ? arFull(b.from) : b.from

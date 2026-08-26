@@ -102,7 +102,7 @@ export const today = (): string =>
 const isoish = (v: string): string => v.trim().replace(/\//g, "-");
 
 /**
- * «12 آب 2026» / «12 August 2026» — Latin digits, matching every other surface.
+ * «12 أغسطس 2026» / «12 August 2026» — Latin digits, matching every other surface.
  *
  * ⚠ This was a FIFTH private copy of the month table, and a pan-Arab one while
  * the rest of the product had moved to the Iraqi names. It now delegates to

@@ -7,7 +7,7 @@ import { CompanyLogo } from '@/components/CompanyLogo'
 
 /* ⚠ The third copy of the month table is GONE. It was pan-Arab while the rest
    of this same route used the Levantine one from lib/statistics, so a reader
-   saw «18 آب 2026» in one panel and «أغسطس 2026» in the next. There is one
+   saw two different month vocabularies on one page. There is one
    table now, in lib/date.ts, and this re-exports it under the name the panels
    already use. */
 import { AR_MONTHS } from '@/lib/date'

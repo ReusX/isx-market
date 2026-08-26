@@ -1,38 +1,30 @@
 /**
  * THE Arabic month names. One table for the whole product.
  *
- * ── Why these names, and not يناير/فبراير ─────────────────────────────────
- * Before this there were THREE tables: this one in pan-Arab form, a Levantine
- * one in lib/statistics.ts, and a third pan-Arab copy in the statistics route's
+ * ── Why these names ───────────────────────────────────────────────────────
+ * Before this there were THREE tables: a pan-Arab one here, a Levantine one
+ * in lib/statistics.ts, and a third pan-Arab copy in the statistics route's
  * own _ui.tsx. /statistics used two of them at once, so the same page printed
  * «18 آب 2026» in one panel and «أغسطس 2026» in another. That is a shipped
- * defect, not merely an inconsistency between routes.
+ * defect, not merely an inconsistency between routes. There is one table now.
  *
- * Unified on the Iraqi/Levantine set, deliberately. This is a product for
- * Iraqi investors and its source of record is the ISX bulletin, which writes
- * dates this way; «آب» is what the reader sees on the document the numbers
- * come from. The brief's Arabic direction — «natural to an Iraqi reader» —
- * points the same way.
- *
- * ⚠ This changes dates on already-accepted surfaces (homepage, market,
- * company). It is one array, and reverting it is one edit.
+ * The set is the pan-Arab one — يناير/فبراير/مارس — chosen by the product
+ * owner and applied everywhere Arabic dates are written: metadata, tooltips,
+ * chart labels, session dates, legal revision dates, news, filings.
  */
 export const AR_MONTHS = [
-  '', 'كانون الثاني', 'شباط', 'آذار', 'نيسان', 'أيار', 'حزيران',
-  'تموز', 'آب', 'أيلول', 'تشرين الأول', 'تشرين الثاني', 'كانون الأول',
+  '', 'يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو',
+  'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر',
 ]
 
 /**
  * Short forms, for a label that already sits inside a known year.
  *
- * ⚠ The reference writes four of these with Arabic-Indic digits («كانون٢»).
- * This repo's lint forbids them so that every figure on a page uses one
- * numeral system — Latin digits here, same as everywhere else.
+ * The Levantine set needed real abbreviation («تشرين الأول» → «تشرين1»); the
+ * pan-Arab names are already short, so abbreviating them further would invent
+ * a second month vocabulary for no gain. Same words, one vocabulary.
  */
-export const AR_MONTHS_SHORT = [
-  '', 'كانون2', 'شباط', 'آذار', 'نيسان', 'أيار', 'حزيران',
-  'تموز', 'آب', 'أيلول', 'تشرين1', 'تشرين2', 'كانون1',
-]
+export const AR_MONTHS_SHORT = AR_MONTHS
 
 /**
  * "2026-07-25" / "2026/07/25" → "25 يوليو 2026", the way the design writes
