@@ -52,12 +52,24 @@ function isPlaceholder(hit) {
   return false
 }
 
+/**
+ * A line may opt out with `secret-scan:allow`. This exists for exactly one
+ * legitimate case — a synthetic fixture that has to LOOK like a credential so
+ * the detector can be tested against it. Use it nowhere else: the pragma is
+ * greppable, so a reviewer can audit every exemption in one command.
+ */
+const ALLOW_PRAGMA = /secret-scan:allow/
+
 function scanText(text) {
   const found = []
+  const lines = text.split('\n')
   for (const rule of RULES) {
     for (const m of text.matchAll(rule.re)) {
       const hit = m[1] ?? m[0]
-      if (!isPlaceholder(hit)) found.push({ rule: rule.id, note: rule.note, hit })
+      if (isPlaceholder(hit)) continue
+      const lineNo = text.slice(0, m.index).split('\n').length
+      if (ALLOW_PRAGMA.test(lines[lineNo - 1] ?? '')) continue
+      found.push({ rule: rule.id, note: rule.note, hit, line: lineNo })
     }
   }
   return found
@@ -66,14 +78,14 @@ function scanText(text) {
 // ── Self-test · the fixture that proves the gate would have caught it ──────
 if (process.argv.includes('--self-test')) {
   const cases = [
-    ['export WP_APP_PASSWORD="Xm8D QRNQ 8g01 WDJ7 UfbQ 6cw5"', true, 'the credential that leaked'],
+    ['export WP_APP_PASSWORD="Xm8D QRNQ 8g01 WDJ7 UfbQ 6cw5"', true, 'the credential that leaked'], // secret-scan:allow — revoked fixture
     ['export WP_APP_PASSWORD="xxxx xxxx xxxx xxxx xxxx xxxx"', false, 'placeholder password'],
     ['export WP_USERNAME=your_wp_admin_username', false, 'placeholder username'],
     ['export ANTHROPIC_API_KEY=sk-ant-...', false, 'elided key'],
-    ['ANTHROPIC_API_KEY=sk-ant-api03-9Fk2LmQ7zXvB4nR8tYwE1aScD', true, 'real-shaped Anthropic key'],
+    ['ANTHROPIC_API_KEY=sk-ant-api03-9Fk2LmQ7zXvB4nR8tYwE1aScD', true, 'real-shaped Anthropic key'], // secret-scan:allow — synthetic
     ['const k = process.env.SUPABASE_SERVICE_ROLE_KEY', false, 'env reference'],
     ['password: "hunter2"', false, 'too short to be opaque'],
-    ['api_key = "a83Jf0aksLd93jdKa0sldkfJ22x"', true, 'assigned opaque literal'],
+    ['api_key = "a83Jf0aksLd93jdKa0sldkfJ22x"', true, 'assigned opaque literal'], // secret-scan:allow — synthetic
     ['SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}', false, 'GitHub secret reference'],
   ]
   let failed = 0
@@ -99,8 +111,7 @@ for (const f of files) {
   try { text = fs.readFileSync(f, 'utf8') } catch { continue }
   if (text.includes('\0')) continue // binary
   for (const hit of scanText(text)) {
-    const line = text.slice(0, text.indexOf(hit.hit)).split('\n').length
-    problems.push(`${f}:${line}  ${hit.note} (${hit.rule})`)
+    problems.push(`${f}:${hit.line}  ${hit.note} (${hit.rule})`)
   }
 }
 
