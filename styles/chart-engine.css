@@ -179,6 +179,9 @@
      from under a zoom. touch-action keeps the browser from claiming the
      gesture before the pinch handler sees it. */
   touch-action: none;
+  /* A drag that starts on the canvas must not select the labels around it. */
+  user-select: none;
+  -webkit-user-select: none;
 }
 .ce-plot canvas { display: block; inline-size: 100%; block-size: 100%; }
 
