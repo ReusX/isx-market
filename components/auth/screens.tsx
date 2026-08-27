@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useLocale } from '@/context/LocaleContext'
 import Link from 'next/link'
-import { useRouter, useSearchParams } from 'next/navigation'
+import { useRouter } from 'next/navigation'
 import { useApp } from '@/context/AppContext'
 import { createClient } from '@/lib/supabase/client'
 import {
@@ -202,8 +202,18 @@ export function SignUpScreen() {
 export function VerifyEmailScreen() {
   const { locale, href: L } = useLocale()
   const isAr = locale === 'ar'
-  const params = useSearchParams()
-  const [email, setEmail] = useState(params.get('email') ?? '')
+  /* ⚠ Read the query from `window.location` after mount, NOT with
+     `useSearchParams()`. That hook suspends during prerendering, so the static
+     HTML for /verify-email was the <Suspense> fallback — which is empty. The
+     shipped document had no <main>, no <h1> and nothing visible before
+     hydration. Reading it in an effect lets the full shell prerender and the
+     address fill in afterwards, and keeps the route static. Same correction
+     LanguageSwitch and MarketBoard already carry. */
+  const [email, setEmail] = useState('')
+  useEffect(() => {
+    const q = new URLSearchParams(window.location.search).get('email')
+    if (q) setEmail(q)
+  }, [])
   const [cooldown, setCooldown] = useState(0)
   const [busy, setBusy] = useState(false)
   const [sent, setSent] = useState(false)

@@ -474,7 +474,11 @@ export function HomePage() {
                         : <bdi>{compact.format(c.vol ?? 0)} IQD</bdi>}
                     </td>
                     <td>
-                      {sparks[c.sym]?.length
+                      {/* `> 1`, not truthy: a ONE-point series divides by
+                          zero in the sparkline's x-step and emits
+                          points="NaN,32.0". MarketBoard and HomeModules
+                          already guard this way; this caller did not. */}
+                      {sparks[c.sym]?.length > 1
                         ? <Sparkline values={sparks[c.sym]} positive={c.pct >= 0} compact />
                         : <Unavailable why={t.data.why.notEnoughHistory} />}
                     </td>

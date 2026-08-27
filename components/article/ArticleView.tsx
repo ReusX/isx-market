@@ -1,3 +1,11 @@
+'use client'
+
+/* This surface calls `useLocale()`, which reads React context. Without the
+   directive above it is a SERVER component, `useLocale` arrives as a client
+   reference rather than a function, and every /news/[slug] request throws
+   `TypeError: (0 , l.bU) is not a function` — a 500 on every article. It did
+   not show up on the dev server, and the build succeeds because the route is
+   dynamic and only fails at request time. */
 import Link from 'next/link'
 import { useLocale } from '@/context/LocaleContext'
 import type { Heading } from '@/lib/article'
