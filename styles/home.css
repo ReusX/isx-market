@@ -286,7 +286,30 @@ body:has(.hm)::after {
 .hm-index-chart svg { inline-size: 100%; block-size: 100%; overflow: visible; }
 .hm-index-chart line { stroke: rgba(255, 255, 255, 0.06); stroke-width: 1; }
 .hm-index-chart .area { fill: url(#hmIndexFill); }
-.hm-index-chart .trace-shadow { fill: none; stroke: currentColor; stroke-width: 10; opacity: 0.48; filter: blur(10px); }
+/* ⚠ The halo, retuned for REAL data.
+
+   The reference's values are `stroke-width: 10; opacity: .48; blur(10px)`,
+   and they are right for the trace the reference draws: a hand-authored
+   mock with a couple of dozen points across 760px. This chart plots the
+   real series — 234 daily points across 309px on a phone, 1.32px apart.
+   Every point carries its own 8.6px blurred halo, so six to twelve of them
+   overlap in each pixel column and composite into one luminous mass. That
+   is the bloom: not a colour that was made neon, but an approved glow
+   summed over an order of magnitude more geometry than it was drawn for.
+
+   So the LANGUAGE is kept — a soft directional lift under the line, same
+   `currentColor`, same #48dc88 — and only its magnitude is brought back
+   into range. `non-scaling-stroke` matters as much as the numbers: without
+   it the halo is stretched by the non-uniform viewBox (0.41× across, 0.86×
+   down) and smears in one axis, which is what blurred the line's edges. */
+.hm-index-chart .trace-shadow {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 4;
+  opacity: 0.18;
+  filter: blur(3px);
+  vector-effect: non-scaling-stroke;
+}
 .hm-index-chart .trace {
   fill: none;
   stroke: currentColor;

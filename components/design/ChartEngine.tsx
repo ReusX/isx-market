@@ -180,7 +180,39 @@ const AXIS_H = 22;   // time axis
 const VOL_H = 52;    // volume pane; capped so it never eats the price
 const PAD_T = 10;
 
-type View = { start: number; count: number };
+/**
+ * Gesture bands for the two axes.
+ *
+ * The drawn axes are AXIS_W (58px) and AXIS_H (22px). 58 is already a
+ * comfortable thumb target; 22 is not, and the brief asks for ~44 where
+ * practical. So the TIME axis claims a taller band than it paints on a coarse
+ * pointer — the extra height reaches up over the volume pane, which carries no
+ * gesture of its own, so nothing is taken away from the user. A mouse keeps the
+ * tight band, because a mouse can hit 22px and stealing plot area from a
+ * precise pointer would be a regression.
+ */
+const TIME_BAND_TOUCH = 44;
+const TIME_BAND_MOUSE = AXIS_H + 6;
+
+/**
+ * `yScale` is the vertical counterpart to `count`.
+ *
+ * The price range was purely auto-fit — always exactly the visible high/low
+ * plus 8%. That is right as a default and useless as an interaction: there was
+ * no way to compress the range to see a flat stretch, or expand it to read a
+ * tight one. 1 keeps the historic auto-fit exactly; >1 widens the range (the
+ * series flattens), <1 narrows it (the series exaggerates).
+ */
+/**
+ * `yOffset` is the vertical counterpart to `start`, in units of the auto-fit
+ * range so it stays meaningful when the data or the interval changes.
+ *
+ * Scaling without panning was a trap: `yScale` below 1 makes the series TALLER
+ * than the pane, and with the price window pinned to the auto-fit midpoint the
+ * overflow simply sat off-screen with no way to reach it. Horizontal drag
+ * worked, vertical did nothing, and the only escape was to zoom back out.
+ */
+type View = { start: number; count: number; yScale: number; yOffset: number };
 
 const nfP = new Intl.NumberFormat("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 3 });
 const nfI = new Intl.NumberFormat("en-US", { maximumFractionDigits: 0 });
@@ -237,6 +269,14 @@ function render(ctx: CanvasRenderingContext2D, W: number, H: number, o: RenderOp
   let hi = Math.max(...vis.map((b) => b.h));
   const padP = (hi - lo) * 0.08 || hi * 0.04 || 1;
   lo -= padP; hi += padP;
+  /* Same midpoint scaling as `geom()`. These two must agree exactly or a
+     drawing lands at a different price than the candle under the finger. */
+  {
+    const span = hi - lo;
+    const midP = (hi + lo) / 2 + (view.yOffset || 0) * span;
+    const halfP = (span / 2) * (view.yScale || 1);
+    lo = midP - halfP; hi = midP + halfP;
+  }
   const yOf = (p: number) => plotTop + (1 - (p - lo) / (hi - lo)) * plotH;
   const pOf = (y: number) => lo + (1 - (y - plotTop) / plotH) * (hi - lo);
   const iOf = (x: number) => view.start + (x - plotX) / bw - 0.5;
@@ -272,25 +312,39 @@ function render(ctx: CanvasRenderingContext2D, W: number, H: number, o: RenderOp
 
   /* ── Price series ── */
   if (o.type === "candle") {
-    // Body width shrinks with zoom; below ~2.4px a candle is a line, and
-    // drawing a 0.4px border on it just turns the whole series to mud.
-    const body = Math.max(1, Math.min(bw * 0.72, 26));
-    const thin = body < 2.4;
+    /* ── Candle geometry ──────────────────────────────────────────────────
+       The old rule drew a BODY only above 2.4px and a bare stroke below it.
+       On a phone that meant no candles at all for any useful range: 1Y is
+       ~250 bars into ~317px of plot, so `bw` is 1.27px, the body computed to
+       0.91px, and the whole series rendered as hairlines. It read as timid
+       because it literally was not a candlestick chart at that width.
+
+       Now a body is always drawn — a 1px filled body is still a body, and it
+       is what makes direction legible — and it is snapped to whole device
+       pixels so edges stay crisp instead of smearing across two columns.
+       `bw - 1` keeps at least a pixel of air between neighbours so a dense
+       series reads as bars rather than a solid block; no bar is dropped and
+       no data is aggregated, so the selected range still means what it says. */
+    const gap = bw > 3 ? 1 : bw > 2 ? 0.5 : 0;
+    const body = Math.max(1, Math.min(Math.round(bw - gap), 26));
+    const wick = body >= 5 ? 1.4 : 1;
     for (let k = 0; k < vis.length; k++) {
       const b = vis[k];
       const x = xOf(first + k);
       const up = b.c >= b.o;
       const col = up ? pal.up : pal.down;
       ctx.strokeStyle = col; ctx.fillStyle = col;
-      ctx.lineWidth = thin ? Math.max(0.8, body) : 1;
+      // Half-pixel centre so a 1px wick lands on one column, not between two.
+      const wx = Math.round(x - wick / 2) + (wick % 2 ? 0.5 : 0);
+      ctx.lineWidth = wick;
       ctx.beginPath();
-      ctx.moveTo(Math.round(x) + 0.5, yOf(b.h));
-      ctx.lineTo(Math.round(x) + 0.5, yOf(b.l));
+      ctx.moveTo(wx, Math.round(yOf(b.h)));
+      ctx.lineTo(wx, Math.round(yOf(b.l)));
       ctx.stroke();
-      if (!thin) {
-        const y1 = yOf(Math.max(b.o, b.c)), y2 = yOf(Math.min(b.o, b.c));
-        ctx.fillRect(x - body / 2, y1, body, Math.max(1, y2 - y1));
-      }
+      const y1 = Math.round(yOf(Math.max(b.o, b.c)));
+      const y2 = Math.round(yOf(Math.min(b.o, b.c)));
+      // A doji still needs a mark: never let the body collapse to nothing.
+      ctx.fillRect(Math.round(x - body / 2), y1, body, Math.max(1, y2 - y1));
     }
   } else {
     ctx.beginPath();
@@ -656,7 +710,7 @@ export function ChartEngine({
   const [pendingId, setPendingId] = useState<string | null>(null);
   const [cursor, setCursor] = useState<{ x: number; y: number } | null>(null);
   const [hoverIdx, setHoverIdx] = useState<number | null>(null);
-  const [view, setView] = useState<View>({ start: 0, count: 60 });
+  const [view, setView] = useState<View>({ start: 0, count: 60, yScale: 1, yOffset: 0 });
   const [toast, setToast] = useState<string | null>(null);
   const [exportOpen, setExportOpen] = useState(false);
   const [sheetOpen, setSheetOpen] = useState(false);
@@ -665,10 +719,12 @@ export function ChartEngine({
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const wrapRef = useRef<HTMLDivElement>(null);
   const sizeRef = useRef({ w: 0, h: 0 });
-  const dragRef = useRef<{ mode: "pan" | "draw" | "move"; x: number; y: number; start: number; id?: string; end?: "a" | "b"; base?: Drawing } | null>(null);
+  const dragRef = useRef<{ mode: "pan" | "draw" | "move" | "scaleY" | "scaleX"; x: number; y: number; start: number; id?: string; end?: "a" | "b"; base?: Drawing; yScale?: number; count?: number; yOffset?: number } | null>(null);
   /** A two-point drawing waiting for its second anchor. */
   const pendingRef = useRef<{ id: string; downX: number; downY: number; before: Drawing[] } | null>(null);
   const pinchRef = useRef<{ dist: number; count: number } | null>(null);
+  /** Last tap on the price axis, for the double-tap that restores auto-fit. */
+  const axisTapRef = useRef<{ t: number; y: number }>({ t: 0, y: 0 });
 
   const pal = theme === "dark" ? DARK : LIGHT;
 
@@ -691,7 +747,7 @@ export function ChartEngine({
 
   // A new dataset resets the window to "everything, right-aligned".
   useEffect(() => {
-    setView({ start: 0, count: Math.max(6, bars.length) });
+    setView({ start: 0, count: Math.max(6, bars.length), yScale: 1, yOffset: 0 });
     setSelected(null);
   }, [bars.length, range, interval]);
 
@@ -787,6 +843,12 @@ export function ChartEngine({
     let hi = vis.length ? Math.max(...vis.map((b) => b.h)) : 1;
     const padP = (hi - lo) * 0.08 || hi * 0.04 || 1;
     lo -= padP; hi += padP;
+    /* Scale about the midpoint, then slide by the pan offset. Expressed in
+       units of the auto-fit span so the offset survives a data change. */
+    const span = hi - lo;
+    const midP = (hi + lo) / 2 + (view.yOffset || 0) * span;
+    const halfP = (span / 2) * (view.yScale || 1);
+    lo = midP - halfP; hi = midP + halfP;
     return {
       plotW, plotTop, plotBottom, bw,
       iOf: (x: number) => view.start + x / bw - 0.5,
@@ -835,7 +897,39 @@ export function ChartEngine({
   function onPointerDown(e: React.PointerEvent) {
     const { x, y } = localPoint(e);
     const g = geom();
-    if (x > g.plotW) return;
+    const coarse = e.pointerType !== "mouse";
+
+    /* ── The price axis ────────────────────────────────────────────────────
+       This used to be `if (x > g.plotW) return` — every touch on the price
+       axis was thrown away, so there was no vertical scaling gesture at all.
+       The axis is 58px wide, so the target was never the problem; the handler
+       simply had no branch for it. */
+    if (x > g.plotW) {
+      try { (e.target as Element).setPointerCapture?.(e.pointerId); } catch { /* not capturable */ }
+      /* Double-tap the axis to restore auto-fit. The toolbar's reset does it
+         too, but after scaling the price range the way back should be under the
+         finger that scaled it — otherwise a hard zoom feels like a dead end. */
+      const now = Date.now(), prev = axisTapRef.current;
+      if (now - prev.t < 320 && Math.abs(y - prev.y) < 24) {
+        axisTapRef.current = { t: 0, y: 0 };
+        setView((v) => ({ ...v, yScale: 1, yOffset: 0 }));
+        return;
+      }
+      axisTapRef.current = { t: now, y };
+      dragRef.current = { mode: "scaleY", x, y, start: view.start, yScale: view.yScale };
+      return;
+    }
+
+    /* ── The time axis ─────────────────────────────────────────────────────
+       Same omission horizontally: a drag down here fell through to "pan",
+       which slides the series instead of spreading it. */
+    const timeBand = coarse ? TIME_BAND_TOUCH : TIME_BAND_MOUSE;
+    const h = wrapRef.current?.clientHeight ?? 0;
+    if (y > h - timeBand) {
+      try { (e.target as Element).setPointerCapture?.(e.pointerId); } catch { /* not capturable */ }
+      dragRef.current = { mode: "scaleX", x, y, start: view.start, count: view.count };
+      return;
+    }
     /* Capture so a drag that leaves the canvas still ends on this element.
        Guarded: setPointerCapture throws NotFoundError when the pointer id is
        not active, and an exception here would abort the rest of the handler
@@ -851,7 +945,7 @@ export function ChartEngine({
         return;
       }
       setSelected(null);
-      dragRef.current = { mode: "pan", x, y, start: view.start };
+      dragRef.current = { mode: "pan", x, y, start: view.start, yOffset: view.yOffset };
       return;
     }
 
@@ -920,6 +1014,15 @@ export function ChartEngine({
     const { x, y } = localPoint(e);
     const g = geom();
     setCursor({ x, y });
+
+    /* Tell a mouse the axes are draggable. Both are painted on the canvas, so
+       CSS cannot target them — the cursor has to be set from the hit test that
+       already knows where the pointer is. */
+    if (!dragRef.current && e.pointerType === "mouse" && canvasRef.current) {
+      const h = wrapRef.current?.clientHeight ?? 0;
+      canvasRef.current.style.cursor =
+        x > g.plotW ? "ns-resize" : y > h - TIME_BAND_MOUSE ? "ew-resize" : "";
+    }
     const idx = Math.round(g.iOf(x));
     setHoverIdx(x < g.plotW && idx >= 0 && idx < bars.length ? idx : null);
 
@@ -934,10 +1037,45 @@ export function ChartEngine({
     const drag = dragRef.current;
     if (!drag) return;
 
+    /* Continuous and proportional: the same finger travel changes the scale by
+       the same RATIO wherever it starts, so the gesture never jumps. Clamped so
+       a fast flick cannot invert or collapse the axis. */
+    if (drag.mode === "scaleY") {
+      const f = Math.exp((y - drag.y) / 160);
+      const next = Math.max(0.15, Math.min(6, (drag.yScale ?? 1) * f));
+      setView((v) => ({ ...v, yScale: next }));
+      return;
+    }
+    if (drag.mode === "scaleX") {
+      /* Drag the axis LEFT and more history is pulled into view — the bars
+         compress. Drag RIGHT and they spread apart. That is the direction every
+         desktop trading platform uses, and it is what the axis being "pulled"
+         implies. Time runs left-to-right on the canvas whatever the page
+         direction, so the sign is the same in Arabic and English. */
+      const f = Math.exp((drag.x - x) / 160);
+      const base = drag.count ?? view.count;
+      setView((v) => {
+        const count = Math.max(8, Math.min(Math.max(bars.length, 8), base * f));
+        const mid = drag.start + base / 2;
+        return { ...v, count, start: mid - count / 2 };
+      });
+      return;
+    }
+
     if (drag.mode === "pan") {
       const shift = (drag.x - x) / g.bw;
       const maxStart = Math.max(0, bars.length - view.count);
-      setView((v) => ({ ...v, start: Math.max(-v.count * 0.08, Math.min(maxStart + v.count * 0.08, drag.start + shift)) }));
+      /* Vertical too. The series follows the finger — drag down and the higher
+         prices above come into view — clamped to a few ranges either side so a
+         flick cannot strand the chart in empty space. */
+      const plotH = Math.max(1, g.plotBottom - g.plotTop);
+      const dy = ((y - drag.y) / plotH) * (view.yScale || 1);
+      const yOffset = Math.max(-3, Math.min(3, (drag.yOffset ?? 0) + dy));
+      setView((v) => ({
+        ...v,
+        start: Math.max(-v.count * 0.08, Math.min(maxStart + v.count * 0.08, drag.start + shift)),
+        yOffset,
+      }));
       return;
     }
     if (drag.mode === "draw") {
@@ -997,7 +1135,7 @@ export function ChartEngine({
       setView((v) => {
         const count = Math.max(8, Math.min(Math.max(bars.length, 8), v.count * factor));
         const ratio = (anchor - v.start) / v.count;
-        return { count, start: anchor - ratio * count };
+        return { ...v, count, start: anchor - ratio * count };
       });
     };
     el.addEventListener("wheel", onWheel, { passive: false });
@@ -1024,7 +1162,7 @@ export function ChartEngine({
       setView((v) => {
         const count = Math.max(8, Math.min(Math.max(bars.length, 8), pinch.count * (pinch.dist / dist)));
         const mid = v.start + v.count / 2;
-        return { count, start: mid - count / 2 };
+        return { ...v, count, start: mid - count / 2 };
       });
     }
   }
@@ -1033,7 +1171,7 @@ export function ChartEngine({
     if (activePointers.current.size < 2) pinchRef.current = null;
   }
 
-  const resetView = () => setView({ start: 0, count: Math.max(6, bars.length) });
+  const resetView = () => setView({ start: 0, count: Math.max(6, bars.length), yScale: 1, yOffset: 0 });
 
   /** Arming any tool abandons a half-drawn object rather than leaving an
    *  orphaned zero-size shape behind — the failure mode this pass fixes. */
