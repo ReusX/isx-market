@@ -8,7 +8,10 @@ export const metadata: Metadata = {
   keywords: [
     'gold price in iraq', 'iraq gold price today', 'gold price iraq 2026',
     'gold price in iraqi dinar', 'iraq gold rate today',
-    'سعر الذهب مباشر', 'سعر الذهب اليوم', 'سعر الذهب اليوم في العراق',
+    /* «سعر الذهب مباشر» dropped: the page prints a daily scrape, and the
+       matching claim was already removed from this route's title and OG
+       description. «اليوم» stays — gold IS refreshed daily. */
+    'سعر الذهب اليوم', 'سعر الذهب اليوم في العراق',
     'اسعار الذهب عالميا', 'اسعار الذهب اليوم في العراق', 'سعر مثقال الذهب عيار 21',
     'سعر غرام الذهب في العراق', 'اسعار الذهب العراق اليوم',
     'سعر الذهب بالدينار العراقي',

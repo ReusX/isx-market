@@ -16,11 +16,19 @@ import { SITE, absUrl, seoAlternates } from '@/lib/seo'
  */
 export const metadata: Metadata = {
   title: {
-    default: 'بورصة العراق · اسعار الاسهم العراقية مباشرة اليوم',
-    // No brand suffix by design · see the note above.
+    /* ⚠ «مباشرة اليوم» is GONE. The board carries the last CLOSED session,
+       so on any non-trading day — and every morning before the close — a
+       title promising today's live prices was simply false. It is the same
+       claim already removed from /gold, /oil and the company pages.
+
+       Still Arabic-only and still with no brand token: a mixed-script title
+       is reordered by bidi and Google rewrites it, which is why the SERP
+       pass landed on one script and no brand. The search terms it earns —
+       «بورصة العراق», «اسعار الاسهم العراقية» — are both intact. */
+    default: 'بورصة العراق · اسعار الاسهم العراقية وبيانات السوق',
     template: '%s',
   },
-  description: 'متابعة مباشرة لأسعار الأسهم المدرجة في بورصة العراق للأوراق المالية مع مؤشر ISX60، المخططات، تدفق الأجانب وأدوات الفرز — محدّثة بعد كل جلسة تداول.',
+  description: 'أسعار الأسهم المدرجة في بورصة العراق للأوراق المالية، وأداء السوق وبيانات الشركات والإفصاحات والإحصاءات — محدّثة بعد كل جلسة تداول.',
   metadataBase: new URL(SITE),
   alternates: seoAlternates('/'),
   keywords: [
@@ -30,7 +38,7 @@ export const metadata: Metadata = {
   ],
   openGraph: {
     title: 'Iraq Stock Market · Iraq Stock Exchange (ISX) | اسعار الاسهم العراقية',
-    description: 'Live prices, charts, and market data for all stocks on the Iraq Stock Exchange (ISX). اسعار الاسهم العراقية مباشرة، سوق الاسهم العراقي، بورصة العراق.',
+    description: 'Prices, charts and market data for every stock on the Iraq Stock Exchange (ISX), updated after each session. اسعار الاسهم العراقية، سوق الاسهم العراقي، بورصة العراق.',
     url: absUrl('/'),
     siteName: 'IQWealth',
     images: [{ url: '/opengraph-image', width: 1200, height: 630 }],

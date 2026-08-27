@@ -3,7 +3,10 @@ import Freshness from '@/components/seo/Freshness'
 import Breadcrumbs from '@/components/seo/Breadcrumbs'
 import { absUrl, seoAlternates } from '@/lib/seo'
 export const metadata: Metadata = {
-  title: { absolute: 'اسعار الاسهم العراقية اليوم · جميع شركات بورصة العراق' },
+  /* «اليوم» removed for the same reason as the root: this is the last closed
+     session, not today. The description already said «بعد كل جلسة» — the
+     title contradicted its own description. */
+  title: { absolute: 'اسعار الاسهم العراقية · جميع شركات بورصة العراق' },
   description: 'أسعار جميع الأسهم المدرجة في بورصة العراق: آخر سعر، نسبة التغيّر، حجم التداول والقيمة السوقية — مرتّبة ومفلترة حسب القطاع ومحدّثة بعد كل جلسة.',
   alternates: seoAlternates('/market'),
   keywords: [
@@ -13,8 +16,8 @@ export const metadata: Metadata = {
   ],
   openGraph: {
     url: absUrl('/market'),
-    title: 'اسعار الاسهم العراقية اليوم · بورصة العراق',
-    description: 'Live prices for all stocks on the Iraq Stock Exchange · اسعار الاسهم العراقية، سوق الاسهم العراقي، مؤشر RSISX.',
+    title: 'اسعار الاسهم العراقية · بورصة العراق',
+    description: 'Prices for every stock on the Iraq Stock Exchange, updated after each session · اسعار الاسهم العراقية، سوق الاسهم العراقي، مؤشر RSISX.',
     images: [{ url: '/opengraph-image', width: 1200, height: 630 }],
   },
 }
@@ -28,7 +31,7 @@ export default function MarketLayout({ children }: { children: React.ReactNode }
 
       <Freshness
         url={absUrl('/market')}
-        name="اسعار الاسهم العراقية اليوم"
+        name="اسعار الاسهم العراقية · بورصة العراق"
         description="أسعار جميع الأسهم المدرجة في بورصة العراق مع التغيّر وحجم التداول والقيمة السوقية."
       />
 
