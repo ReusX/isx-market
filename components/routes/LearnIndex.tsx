@@ -1,0 +1,182 @@
+'use client'
+
+import { useMemo, useState } from 'react'
+import { useLocale } from '@/context/LocaleContext'
+import Link from 'next/link'
+import { filterLearn, learnDate, type LearnItem, type LearnPath } from '@/lib/learn'
+import '@/styles/learn.css'
+
+/**
+ * تعلّم — the Learn landing page. A direct transplant of the approved design.
+ *
+ * The architecture the live page does not have:
+ *
+ *   ابدأ من هنا    one entry point, sized for a real path
+ *   أحدث المقالات   the newest few, in a wider row
+ *   جميع المقالات   the browsable library, with search
+ *
+ * ── The state that matters most here ──────────────────────────────────────
+ * The library ships with nothing in it — WordPress category 4 holds zero
+ * posts. «المحتوى قيد الإعداد» is therefore the page's normal state, not an
+ * afterthought, and the search architecture stays visible so the page still
+ * reads as a section rather than a hole.
+ *
+ * `libraryOk` separates that from an outage. An empty library and a CMS that
+ * did not answer are different facts: the first says "nothing is written
+ * yet", the second says "we could not read it". Collapsing them would tell
+ * the reader the wrong one roughly half the time.
+ *
+ * The reference's topic filter is not here — see the note in `lib/learn.ts`.
+ * Its four labels are placeholders over a taxonomy that does not exist.
+ */
+export function LearnIndex({
+  items, path, libraryOk,
+}: {
+  items: LearnItem[]
+  path: LearnPath
+  libraryOk: boolean
+}) {
+  const { t: T, locale, href: L } = useLocale()
+  const ln = T.learn
+  const [query, setQuery] = useState('')
+  const [shown, setShown] = useState(6)
+
+  const results = useMemo(() => filterLearn(items, query), [items, query])
+  const filtering = query.trim() !== ''
+  const visible = results.slice(0, shown)
+
+  function reset() { setQuery(''); setShown(6) }
+
+  const searchWhy = libraryOk
+    ? ln.nothingToSearch
+    : ln.libraryFailed
+
+  return (
+    <main className="ln-page iq-page">
+      <header className="ln-head">
+        <div className="ln-title">
+          <h1>{ln.title}</h1>
+        </div>
+      </header>
+
+      {/* ── ابدأ من هنا · the one real guide the product has ─────────────── */}
+      <section className="ln-start" aria-labelledby="ln-start-h">
+        <h2 id="ln-start-h">{ln.startHere}</h2>
+        <Link className="ln-path" href={path.href}>
+          <span className="ln-path-copy">
+            <strong>{path.title}</strong>
+            <em>{path.summary}</em>
+            <span className="ln-path-meta">
+              {ln.sectionsCount(String(path.sections))}
+              <i aria-hidden="true">·</i>
+              {ln.minutes(String(path.minutes))}
+            </span>
+          </span>
+          <span className="ln-path-go">{ln.start} <i className="dir-go" aria-hidden="true">‹</i></span>
+        </Link>
+      </section>
+
+      {/* ── أحدث المقالات · a wider row, not the same grid ───────────────── */}
+      {items.length > 0 ? (
+        <section className="ln-latest" aria-labelledby="ln-latest-h">
+          <h2 id="ln-latest-h">{ln.latest}</h2>
+          <ul className="ln-feature">
+            {items.slice(0, 3).map((l) => (
+              <li key={l.slug}>
+                <Link href={l.href}>
+                  <strong>{l.title}</strong>
+                  {l.summary ? <em>{l.summary}</em> : null}
+                  <span className="ln-card-meta">
+                    {ln.minutesPlural(String(l.minutes))}
+                    {learnDate(l.updated, locale) ? (
+                      <>
+                        <i aria-hidden="true">·</i>
+                        {ln.lastUpdated(learnDate(l.updated, locale)!)}
+                      </>
+                    ) : null}
+                  </span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </section>
+      ) : null}
+
+      {/* ── جميع المقالات · the browsable library ────────────────────────── */}
+      <section className="ln-browse" aria-labelledby="ln-browse-h">
+        <div className="ln-browse-head">
+          <h2 id="ln-browse-h">{ln.allArticles}</h2>
+          {/* Disabled while there is nothing to search — and the reason travels
+              with the control. A dead-looking input with no explanation reads
+              as a bug, and the user retries it.
+
+              The reason is not the same in both cases, and saying the wrong one
+              is worse than saying nothing: an empty library means «nothing is
+              written yet», an unreachable CMS means «we could not read it». */}
+          <label className="ln-search">
+            <span className="sr-only">{ln.searchLabel}</span>
+            <input value={query} placeholder={ln.searchPlaceholder}
+              onChange={(e) => { setQuery(e.target.value); setShown(6) }}
+              disabled={items.length === 0}
+              aria-describedby={items.length === 0 ? 'ln-search-why' : undefined}
+              title={items.length === 0 ? searchWhy : undefined} />
+          </label>
+          {items.length === 0 ? (
+            <span id="ln-search-why" className="sr-only">{searchWhy}</span>
+          ) : null}
+        </div>
+
+        {filtering ? (
+          <p className="ln-filtered">
+            {ln.ofTotal(String(results.length), String(items.length))}
+            <button type="button" onClick={reset}>{ln.clear}</button>
+          </p>
+        ) : null}
+
+        {!libraryOk ? (
+          /* The CMS did not answer. This is not «no articles» and must not
+             read as it — and it names nothing about the failure itself. */
+          <div className="ln-partial" role="status">
+            <i aria-hidden="true">△</i>
+            {ln.libraryDown}
+          </div>
+        ) : items.length === 0 ? (
+          <div className="ln-empty">
+            <strong>{ln.emptyTitle}</strong>
+            <span>{ln.emptyNote}</span>
+          </div>
+        ) : results.length === 0 ? (
+          <div className="ln-empty">
+            <strong>{ln.noResults}</strong>
+            <span>{ln.noResultsNote}</span>
+            <button type="button" className="ln-reset" onClick={reset}>{ln.clearSearch}</button>
+          </div>
+        ) : (
+          <>
+            <ul className="ln-list">
+              {visible.map((l) => (
+                <li key={l.slug}>
+                  <Link href={l.href}>
+                    <span className="ln-row-copy">
+                      <strong>{l.title}</strong>
+                      {l.summary ? <em>{l.summary}</em> : null}
+                    </span>
+                    <span className="ln-row-meta">
+                      {ln.minutesPlural(String(l.minutes))}
+                    </span>
+                    <i className="ln-row-go" aria-hidden="true">‹</i>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+            {results.length > visible.length ? (
+              <button type="button" className="ln-more" onClick={() => setShown((n) => n + 6)}>
+                {ln.showMore}
+              </button>
+            ) : null}
+          </>
+        )}
+      </section>
+    </main>
+  )
+}

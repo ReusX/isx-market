@@ -7,14 +7,23 @@ import AuthModal from '@/components/auth/AuthModal'
 
 type Theme = 'dark' | 'light'
 
+/**
+ * ⚠ `lang` is GONE from this context, deliberately.
+ *
+ * It was initialised from `localStorage.getItem('lang')` and nothing on the
+ * site rendered differently because of it — a switch wired to nothing. Worse,
+ * a locale that lives only in localStorage is invisible to a crawler, so the
+ * same URL would have served two languages depending on who asked.
+ *
+ * The locale is now a function of the pathname and nothing else. Read it from
+ * `useLocale()` in `context/LocaleContext.tsx`.
+ */
 interface AppState {
-  lang:        Lang
   theme:       Theme
   user:        any | null
   profile:     UserProfile | null
   watchlist:   string[]
   authLoading: boolean
-  setLang:     (l: Lang) => void
   toggleTheme: () => void
   toggleWatchlist: (sym: string) => void
   refreshProfile:  () => Promise<void>
@@ -28,18 +37,14 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   // Stable client — created once, never recreated
   const supabase = useMemo(() => createClient(), [])
 
-  const [lang, setLangState]   = useState<Lang>('ar')
   const [theme, setThemeState] = useState<Theme>('dark')
   const [user, setUser]         = useState<any | null>(null)
   const [profile, setProfile]   = useState<UserProfile | null>(null)
   const [watchlist, setWatchlist] = useState<string[]>([])
   const [authLoading, setAuthLoading] = useState(true)
   const [authModalTab, setAuthModalTab] = useState<'signin' | 'signup' | null>(null)
-
-  // Init lang + theme + watchlist from localStorage
+  // Init theme + watchlist from localStorage
   useEffect(() => {
-    const saved = localStorage.getItem('lang') as Lang | null
-    if (saved) setLangState(saved)
     const savedTheme = (localStorage.getItem('theme') as Theme | null) ?? 'dark'
     setThemeState(savedTheme)
     document.documentElement.setAttribute('data-theme', savedTheme)
@@ -100,13 +105,6 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     if (u) await fetchProfile(u.id)
   }, [supabase, fetchProfile])
 
-  const setLang = (l: Lang) => {
-    setLangState(l)
-    localStorage.setItem('lang', l)
-    document.documentElement.setAttribute('lang', l)
-    document.documentElement.setAttribute('dir', l === 'ar' ? 'rtl' : 'ltr')
-  }
-
   const toggleTheme = () => {
     setThemeState(prev => {
       const next: Theme = prev === 'dark' ? 'light' : 'dark'
@@ -135,12 +133,12 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   return (
     <AppContext.Provider value={{
-      lang, theme, user, profile, watchlist, authLoading,
-      setLang, toggleTheme, toggleWatchlist, refreshProfile, signOut, openAuth,
+      theme, user, profile, watchlist, authLoading,
+      toggleTheme, toggleWatchlist, refreshProfile, signOut, openAuth,
     }}>
       {children}
       {authModalTab && !user && (
-        <AuthModal defaultTab={authModalTab} lang={lang} onClose={() => setAuthModalTab(null)} />
+        <AuthModal defaultTab={authModalTab} onClose={() => setAuthModalTab(null)} />
       )}
     </AppContext.Provider>
   )

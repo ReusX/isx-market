@@ -1,0 +1,404 @@
+/* ── The public-information family · `.in-*` ──────────────────────────────
+   A direct copy of the approved block (iqwealth-design/app/globals.css
+   12626–13002). Used by /about, /contact, /privacy and /legal — four pages
+   that are one document system, which is the point of the shared block.
+
+   Adaptations: `.iq-dark` / `.iq-light` → `[data-theme]` on <html>, and one
+   Arabic letter-spacing declaration dropped (marked inline) for the same two
+   reasons as in learn.css.
+   ──────────────────────────────────────────────────────────────────────── */
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   PAGE 16 · the public-information family — `.in-*`
+   `/about` · `/contact` · `/privacy` · `/legal`
+
+   One system for four pages. The governing constraints, all from the brief:
+   §10/§19 no cards around legal sections, §14 legal text must not read as
+   secondary, §18 light mode is the important one here, §20 mobile prioritises
+   reading. So the whole layer is measure, scale, rule and space — there is
+   almost no surface in it, and that is the design rather than an omission.
+   ═════════════════════════════════════════════════════════════════════════ */
+
+.in-page {
+  inline-size: min(1080px, calc(100% - 48px));
+  margin: 0 auto;
+  padding: 22px 0 84px;
+  color: var(--mv-ink);
+}
+/* A slightly warmer muted ink than the shared token: these pages are almost
+   entirely text, and the default grey goes flat across a long read. */
+.in-page { --mv-ink-3: #6e746f; }
+[data-theme='dark'] .in-page { --mv-ink-3: #9ea29c; }
+
+/* ── The head · shared by all four ──────────────────────────────────────── */
+.in-head { padding-block-end: 20px; margin-block-end: 30px; border-block-end: 1px solid var(--mv-line); }
+.in-head-row { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+/* The real pages set the eyebrow in brand colour, uppercase, letter-spaced —
+   and the global guard forbids letter-spacing Arabic for good reason. So it
+   is weight and size that separate it, not tracking. */
+.in-eyebrow { margin: 0; font: 700 .72rem var(--font-body); color: var(--mv-hero); }
+[data-theme='dark'] .in-eyebrow { color: var(--mv-hero-bright); }
+/* Negative tracking dropped · §17 · this heading is Arabic prose. */
+.in-head h1 { margin: 10px 0 0; font: 700 clamp(1.5rem, 3.2vw, 2.05rem)/1.28 var(--font-display); color: var(--mv-ink); }
+.in-standfirst { margin: 12px 0 0; max-inline-size: 60ch; font-size: 1rem; line-height: 1.75; color: var(--mv-ink-2); }
+/* §14 · the date is a stated fact beside the title, not fine print under it.
+   The real pages set it in `--ink5`, the faintest ink there is. */
+.in-updated {
+  display: inline-flex; align-items: center; gap: 7px;
+  margin: 16px 0 0; padding: 5px 11px;
+  border: 1px solid var(--mv-line); border-radius: 999px;
+  font-size: .72rem; color: var(--mv-ink-2);
+}
+.in-updated bdi { font-family: var(--font-numeric); font-weight: 600; color: var(--mv-ink); }
+
+/* ── The reading column ─────────────────────────────────────────────────── */
+/* ~66 characters. Arabic sets wider per character than Latin, so the same
+   character count lands a little longer on the page; this is measured to the
+   line a reader actually tracks, not copied from a Latin default. */
+.in-body { max-inline-size: 66ch; min-inline-size: 0; }
+
+.in-prose { font-size: .97rem; line-height: 1.95; color: var(--mv-ink-2); }
+.in-prose p { margin: 0 0 16px; }
+.in-prose section { margin-block-end: 34px; }
+.in-prose section:last-child { margin-block-end: 0; }
+/* Asymmetric section rhythm: more air above a heading than below it. */
+.in-prose h2 {
+  display: flex; align-items: baseline; gap: 11px;
+  margin: 0 0 12px; font: 700 1.12rem/1.4 var(--font-display); color: var(--mv-ink);
+}
+.in-prose ul, .in-prose ol { margin: 0 0 16px; padding-inline-start: 22px; }
+.in-prose ul { list-style: disc; }
+.in-prose ol { list-style: decimal; }
+.in-prose li { margin-block-end: 7px; }
+.in-prose li::marker { color: var(--mv-ink-3); }
+.in-prose a { color: var(--mv-hero); text-decoration: underline; text-underline-offset: 3px; }
+[data-theme='dark'] .in-prose a { color: var(--mv-hero-bright); }
+/* The clause number is structure, not decoration — `/legal` numbers its
+   sections inside the title string today, so there is nothing to link to. */
+.in-num {
+  flex-shrink: 0; min-inline-size: 22px;
+  font: 700 .82rem var(--font-numeric); color: var(--mv-ink-3);
+}
+
+/* ── The standing disclaimer · §17 · ONE surface, and it is not an alert ── */
+.in-banner {
+  margin: 0 0 34px; padding: 16px 18px;
+  border-inline-start: 3px solid var(--mv-hero);
+  background: var(--mv-well); border-radius: 12px;
+}
+[data-theme='dark'] .in-banner { border-inline-start-color: var(--mv-hero-bright); }
+.in-banner strong { display: block; margin-block-end: 6px; font: 700 .76rem var(--font-body); color: var(--mv-ink); }
+.in-banner p { margin: 0; font-size: .88rem; line-height: 1.8; color: var(--mv-ink-2); }
+
+/* ── The document layout · reading column + index ───────────────────────── */
+.in-doc-grid { display: grid; grid-template-columns: minmax(0, 1fr) 250px; gap: 46px; align-items: start; }
+.in-rail { position: sticky; inset-block-start: 16px; }
+.in-toc-fold > summary { display: none; }
+.in-toc h2 { margin: 0 0 10px; font: 700 .74rem var(--font-body); color: var(--mv-ink-3); }
+.in-toc ol { margin: 0; padding: 0; list-style: none; border-inline-start: 1px solid var(--mv-line); }
+/* A 44px row rather than the reference's 7px padding. This index is a real
+   tap target on a phone, where it is the whole navigation for a document
+   fifteen sections long — and `align-items: center` with a stated height keeps
+   a two-line entry from growing a lopsided box. */
+.in-toc li a {
+  display: flex; align-items: center; gap: 9px;
+  min-block-size: 44px; padding: 7px 12px; margin-inline-start: -1px;
+  border-inline-start: 2px solid transparent;
+  font-size: .76rem; line-height: 1.5; color: var(--mv-ink-3); text-decoration: none;
+  transition: color .13s, border-color .13s;
+}
+.in-toc li a:hover { color: var(--mv-ink); }
+.in-toc li a:focus-visible { outline: 2px solid var(--mv-hero); outline-offset: -2px; }
+.in-toc bdi { font-family: var(--font-numeric); font-weight: 700; opacity: .6; }
+.in-toc li.is-on a { color: var(--mv-hero); border-inline-start-color: var(--mv-hero); font-weight: 600; }
+[data-theme='dark'] .in-toc li.is-on a { color: var(--mv-hero-bright); border-inline-start-color: var(--mv-hero-bright); }
+
+/* ── /about ─────────────────────────────────────────────────────────────── */
+/* §6 · a band. Height is capped hard so it can never become the hero the
+   brief rules out, and it carries no text, so losing it costs nothing. */
+/* ── The plate · the imagery system ──────────────────────────────────────────
+   A dithered field alone is a background; a field inside a rule, with corner
+   ticks and a caption, is a PLATE — something printed. That distinction is the
+   whole refinement: the art stops being decoration applied to a page and
+   becomes an object the page contains, which is why it can carry a full hero
+   on /about and three lines of band on /privacy without either reading as a
+   mistake. The frame is also what protects the reading: the art has an edge,
+   so text is never set on top of texture. */
+.in-plate { margin: 0 0 34px; }
+.in-plate-frame {
+  position: relative; overflow: hidden;
+  border: 1px solid var(--mv-line);
+  background: var(--mv-well);
+  color: var(--mv-ink-2);
+}
+[data-theme='dark'] .in-plate-frame { background: #0d0f0e; color: #cfd3cd; }
+.in-plate-frame canvas { display: block; inline-size: 100%; block-size: 100%; }
+/* Corner ticks — the register marks of a printed plate. Four 1px rules, not a
+   second border: a full inner border would double the frame, and the family
+   rule everywhere else in this system is never to double a line. */
+/* `.in-tick` — the plate's corner ticks — moved to styles/system.css.
+   The 404 and 500 plates use the same four corners, and those pages load no
+   route stylesheet, so the shared sub-part lives in the shared file. */
+
+/* The three tiers. Only the proportions change — one drawing language. */
+.in-plate.is-hero .in-plate-frame { block-size: 340px; }
+.in-plate.is-band .in-plate-frame { block-size: 168px; }
+.in-plate.is-panel { margin: 0; }
+/* A DEFINITE height, never `100%`. The frame is a grid item whose own height
+   is content-derived, so `block-size: 100%` resolved to `auto`, and a canvas
+   with an auto height falls back to its intrinsic 150px — the arch was painted
+   into a 150px bitmap and stretched across a 510px box, leaving three
+   quarters of the panel empty. */
+.in-plate.is-panel .in-plate-frame { block-size: 520px; }
+/* §10 · light mode must not be the empty one. The plate is FULL strength on
+   paper and pulled back on the dark surface, where a dense white dither field
+   glares and competes with body text far more than black ink does. */
+[data-theme='dark'] .in-plate-frame canvas { opacity: .8; }
+
+.in-letter { font-size: 1.02rem; line-height: 2; color: var(--mv-ink-2); }
+.in-letter p { margin: 0 0 18px; }
+.in-sign { margin-block-start: 26px; }
+.in-sign strong { color: var(--mv-ink); font-weight: 700; }
+
+.in-claims, .in-principles, .in-reach {
+  margin-block-start: 40px; padding-block-start: 24px;
+  border-block-start: 1px solid var(--mv-line);
+}
+.in-claims h2, .in-principles h2, .in-reach h2 {
+  margin: 0 0 14px; font: 700 .95rem var(--font-display); color: var(--mv-ink);
+}
+/* A definition list, because that is what three claims and their explanations
+   are. Not three cards — §24 rules out the card grid and it would make three
+   plain sentences look like a feature comparison. */
+.in-claims dl { display: flex; flex-direction: column; gap: 2px; margin: 0; }
+.in-claims dl > div {
+  display: grid; grid-template-columns: 130px minmax(0, 1fr); gap: 16px;
+  padding-block: 12px; border-block-end: 1px solid var(--mv-line);
+}
+.in-claims dl > div:last-child { border-block-end: 0; }
+.in-claims dt { font: 700 .88rem var(--font-body); color: var(--mv-ink); }
+.in-claims dd { margin: 0; font-size: .88rem; line-height: 1.75; color: var(--mv-ink-2); }
+
+.in-note { margin: 0 0 14px; font-size: .8rem; line-height: 1.7; color: var(--mv-ink-3); }
+.in-principles ul { display: flex; flex-direction: column; margin: 0; padding: 0; list-style: none; }
+.in-principles li {
+  display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap;
+  padding-block: 11px; border-block-end: 1px solid var(--mv-line);
+}
+.in-principles li:last-child { border-block-end: 0; }
+.in-principles strong { font: 600 .86rem var(--font-body); color: var(--mv-ink); }
+.in-principles span { font-size: .8rem; color: var(--mv-ink-3); }
+
+.in-reach-rows { display: flex; flex-direction: column; gap: 0; margin: 0 0 16px; }
+/* These two are a `mailto:` and a `tel:` — real touch targets on the device
+   where they matter most, so they get the 44px the gate hit-tests for. The
+   reference leaves them at their text height, which on a phone is a 20px tap
+   area for the page's primary action. */
+.in-reach-rows a {
+  display: inline-flex; align-items: center; min-block-size: 44px;
+  font: 600 .95rem var(--font-numeric); color: var(--mv-ink);
+  text-decoration: none; inline-size: fit-content;
+}
+.in-reach-rows a:hover { color: var(--mv-hero); }
+[data-theme='dark'] .in-reach-rows a:hover { color: var(--mv-hero-bright); }
+.in-reach-go {
+  display: inline-flex; align-items: center; gap: 7px;
+  min-block-size: 44px; padding-inline: 2px;
+  font: 600 .84rem var(--font-body); color: var(--mv-hero); text-decoration: none;
+}
+[data-theme='dark'] .in-reach-go { color: var(--mv-hero-bright); }
+.in-reach-go i { font-style: normal; }
+
+/* ── /contact · the split ───────────────────────────────────────────────── */
+/* The approved page was one column down the middle of a wide screen, which is
+   the least memorable thing a contact page can be. The threshold plate takes
+   the second column: the address on one side, an open door on the other. The
+   text column keeps its own measure — the split widens the PAGE, never the
+   line length. */
+.in-split { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 52px; align-items: start; }
+.in-split > .in-body { max-inline-size: 56ch; }
+
+/* ── /contact ───────────────────────────────────────────────────────────── */
+.in-primary h2, .in-channels h2, .in-topics h2 {
+  margin: 0 0 14px; font: 700 .95rem var(--font-display); color: var(--mv-ink);
+}
+.in-channels, .in-topics {
+  margin-block-start: 40px; padding-block-start: 24px;
+  border-block-start: 1px solid var(--mv-line);
+}
+/* The address is the largest thing on the page after the title. It is what
+   the visitor came for; the real page sets it at 18px inside a card. */
+/* The page's primary action. Its glyph height alone is 33px at the small end
+   of the clamp, so it states the 44px minimum rather than inheriting it from
+   the font size. */
+.in-mail {
+  display: inline-flex; align-items: center; min-block-size: 44px;
+  font: 700 clamp(1.15rem, 3.4vw, 1.55rem) var(--font-numeric);
+  color: var(--mv-hero); text-decoration: none; word-break: break-all;
+}
+[data-theme='dark'] .in-mail { color: var(--mv-hero-bright); }
+.in-mail:hover { text-decoration: underline; text-underline-offset: 4px; }
+.in-reply { margin: 10px 0 0; font-size: .8rem; color: var(--mv-ink-3); }
+.in-copy {
+  min-block-size: 44px; margin-block-start: 14px; padding: 0 16px;
+  border: 1px solid var(--mv-line); border-radius: 10px;
+  background: transparent; color: var(--mv-ink-2);
+  font: 600 .78rem var(--font-body); cursor: pointer;
+  transition: border-color .13s, color .13s;
+}
+.in-copy:hover { border-color: var(--mv-line-strong); color: var(--mv-ink); }
+.in-copy:focus-visible { outline: 2px solid var(--mv-hero); outline-offset: 2px; }
+
+.in-channels ul { display: flex; flex-direction: column; margin: 0; padding: 0; list-style: none; }
+.in-channels li { border-block-end: 1px solid var(--mv-line); }
+.in-channels li:last-child { border-block-end: 0; }
+.in-channels a {
+  display: flex; align-items: center; gap: 12px;
+  min-block-size: 52px; color: inherit; text-decoration: none;
+}
+.in-channels a:focus-visible { outline: 2px solid var(--mv-hero); outline-offset: -2px; }
+.in-ch-name { inline-size: 110px; flex-shrink: 0; font: 600 .86rem var(--font-body); color: var(--mv-ink); }
+.in-channels bdi { font-family: var(--font-numeric); font-size: .85rem; color: var(--mv-ink-2); }
+.in-ch-out { margin-inline-start: auto; font-style: normal; font-size: .8rem; color: var(--mv-ink-3); }
+.in-channels a:hover .in-ch-name { color: var(--mv-hero); }
+[data-theme='dark'] .in-channels a:hover .in-ch-name { color: var(--mv-hero-bright); }
+
+.in-topics ul {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  gap: 2px 22px; margin: 0; padding: 0; list-style: none;
+}
+.in-topics li { border-block-end: 1px solid var(--mv-line); }
+.in-topics a {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  min-block-size: 48px; color: var(--mv-ink); text-decoration: none;
+  font-size: .86rem; transition: color .13s;
+}
+.in-topics a:hover { color: var(--mv-hero); }
+[data-theme='dark'] .in-topics a:hover { color: var(--mv-hero-bright); }
+.in-topics a:focus-visible { outline: 2px solid var(--mv-hero); outline-offset: -2px; }
+.in-topics i { font-style: normal; color: var(--mv-ink-3); }
+
+/* ── The key sentence · the documents' only emphasis ────────────────────── */
+/* «we are not a broker», «we do not guarantee accuracy», «there is no delete
+   button yet». A ruled aside rather than bold text: bolding a whole sentence
+   inside a legal paragraph reads as shouting, and stops working the third
+   time it happens. */
+.in-key {
+  margin: 0 0 16px; padding: 12px 15px;
+  border-inline-start: 3px solid var(--mv-hero);
+  background: var(--mv-well); border-radius: 10px;
+  font-size: .92rem; line-height: 1.85; color: var(--mv-ink);
+}
+[data-theme='dark'] .in-key { border-inline-start-color: var(--mv-hero-bright); }
+
+/* A field nobody may invent — operator name, governing law, retention, age.
+   Marked so the draft cannot pretend to be more settled than it is, and so it
+   cannot be published by accident. */
+.in-review {
+  padding: 1px 6px; border-radius: 5px;
+  background: rgba(168,100,42,.12); color: #8a5220;
+  font-size: .86em; font-weight: 600;
+  box-decoration-break: clone; -webkit-box-decoration-break: clone;
+}
+[data-theme='dark'] .in-review { background: rgba(224,164,95,.15); color: #e0a45f; }
+
+/* ── The family row · the reference app has no site footer ──────────────── */
+.in-family {
+  display: flex; flex-wrap: wrap; gap: 6px 20px;
+  margin-block-start: 48px; padding-block-start: 20px;
+  border-block-start: 1px solid var(--mv-line);
+}
+/* «من نحن» is six glyphs wide — under 44px horizontally on its own. The
+   minimum and the padding widen the target; the row's 20px column gap keeps
+   the widened boxes from touching. */
+.in-family a {
+  min-block-size: 44px; min-inline-size: 44px; padding-inline: 4px;
+  display: inline-flex; align-items: center; justify-content: center;
+  font-size: .8rem; color: var(--mv-ink-3); text-decoration: none;
+}
+.in-family a:hover { color: var(--mv-hero); }
+[data-theme='dark'] .in-family a:hover { color: var(--mv-hero-bright); }
+
+/* ── States · §23 keeps failures simple ─────────────────────────────────── */
+.in-skel { display: flex; flex-direction: column; gap: 14px; max-inline-size: 66ch; }
+.in-skel span {
+  display: block; block-size: 15px; border-radius: 6px;
+  background: linear-gradient(90deg, var(--mv-well), var(--mv-line), var(--mv-well));
+  background-size: 200% 100%; animation: in-shimmer 1.5s linear infinite;
+}
+@keyframes in-shimmer { from { background-position: 200% 0; } to { background-position: -200% 0; } }
+.in-skel span:nth-child(2) { inline-size: 88%; }
+.in-skel span:nth-child(3) { inline-size: 94%; }
+.in-skel span:nth-child(4) { inline-size: 71%; }
+.in-skel span:nth-child(5) { inline-size: 83%; }
+
+.in-missing {
+  display: flex; flex-direction: column; align-items: flex-start; gap: 8px;
+  padding: 30px 0;
+}
+.in-missing strong { font: 700 .98rem var(--font-display); color: var(--mv-ink); }
+.in-missing span { font-size: .85rem; color: var(--mv-ink-3); }
+.in-missing-go {
+  min-block-size: 44px; display: inline-flex; align-items: center;
+  margin-block-start: 6px; font: 600 .82rem var(--font-body);
+  color: var(--mv-hero); text-decoration: none;
+}
+[data-theme='dark'] .in-missing-go { color: var(--mv-hero-bright); }
+
+/* ── Responsive ─────────────────────────────────────────────────────────── */
+@media (max-width: 1280px) { .in-page { inline-size: calc(100% - 34px); } }
+
+@media (max-width: 1000px) {
+  .in-doc-grid { grid-template-columns: minmax(0, 1fr); gap: 26px; }
+  /* The contact panel stops being a column and becomes a band ABOVE the
+     content — a 300px portrait plate beside a stacked page reads as a leftover
+     sidebar, and at this width there is no second column to justify it. */
+  .in-split { grid-template-columns: minmax(0, 1fr); gap: 30px; }
+  .in-split > .in-body { max-inline-size: none; }
+  .in-plate.is-panel { order: -1; margin-block-end: 30px; }
+  .in-plate.is-panel .in-plate-frame { block-size: 190px; min-block-size: 0; }
+  .in-plate.is-hero .in-plate-frame { block-size: 260px; }
+  /* `display: contents` so the index becomes a grid item in its own right and
+     can sit above the document — ordering it inside an intact rail only
+     shuffles it within the rail. Same fix the Learn article needed. */
+  .in-rail { display: contents; }
+  .in-toc-fold { order: -1; }
+  .in-body { max-inline-size: none; }
+  /* Folded on small screens (§12). The summary is the control, so it carries
+     a real target size. */
+  .in-toc-fold > summary {
+    display: flex; align-items: center; justify-content: space-between;
+    min-block-size: 48px; padding-inline: 14px;
+    border: 1px solid var(--mv-line); border-radius: 12px;
+    font: 600 .84rem var(--font-body); color: var(--mv-ink);
+    cursor: pointer; list-style: none;
+  }
+  .in-toc-fold > summary::-webkit-details-marker { display: none; }
+  .in-toc-fold > summary::after { content: "⌄"; color: var(--mv-ink-3); }
+  .in-toc-fold[open] > summary { margin-block-end: 12px; }
+  .in-toc-fold[open] > summary::after { content: "⌃"; }
+  .in-toc h2 { display: none; }
+}
+
+@media (max-width: 720px) {
+  .in-page { inline-size: calc(100% - 20px); padding: 14px 0 60px; }
+  .mv-preview { display: none; }
+  .in-art { block-size: 96px; }
+  /* The claims stop being a two-column table and become label-over-value. */
+  .in-claims dl > div { grid-template-columns: minmax(0, 1fr); gap: 4px; }
+  .in-ch-name { inline-size: auto; }
+  .in-channels a { flex-wrap: wrap; gap: 4px 12px; padding-block: 10px; }
+  /* §11 · the emotional effect survives the crop; oversized decoration does
+     not belong on a phone, and art that pushes the email address below the
+     fold has stopped supporting the page and started blocking it. */
+  .in-plate.is-hero .in-plate-frame { block-size: 172px; }
+  .in-plate.is-band .in-plate-frame { block-size: 96px; }
+  .in-plate.is-panel .in-plate-frame { block-size: 150px; }
+  .in-tick { inline-size: 7px; block-size: 7px; }
+  .in-key { padding: 11px 13px; font-size: .89rem; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .in-skel span { animation: none; }
+  .in-toc li a, .in-topics a, .in-copy, .in-channels a .in-ch-name { transition: none; }
+}

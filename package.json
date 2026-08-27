@@ -7,9 +7,16 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
+    "check:tokens": "node scripts/token-parity.mjs && node scripts/contrast.mjs && node scripts/arabic-tracking.mjs",
+    "build:log": "NEXT_DIST_DIR=.next-check next build > .next-build.log 2>&1 || (cat .next-build.log; exit 1)",
+    "check:routes": "npm run build:log && node scripts/route-markers.mjs .next-build.log",
+    "check:routes:update": "npm run build:log && node scripts/route-markers.mjs .next-build.log --update",
     "cap:sync": "npx cap sync",
     "cap:android": "npx cap open android",
-    "cap:ios": "npx cap open ios"
+    "cap:ios": "npx cap open ios",
+    "check:i18n": "node scripts/i18n-seo.mjs && node scripts/i18n-strings.mjs && node scripts/i18n-qa.mjs && node scripts/i18n-detail.mjs && node scripts/i18n-regress.mjs",
+    "audit:depository": "npx tsx scripts/depository-audit.ts",
+    "check:secrets": "node scripts/secret-scan.mjs --self-test && node scripts/secret-scan.mjs"
   },
   "dependencies": {
     "@capacitor/app": "^6.0.2",
@@ -22,7 +29,6 @@
     "@vercel/analytics": "^1.3.1",
     "@vercel/speed-insights": "^1.0.12",
     "clsx": "^2.1.1",
-    "klinecharts": "^10.0.0-beta3",
     "lightweight-charts": "^4.2.0",
     "next": "14.2.15",
     "react": "^18.3.1",

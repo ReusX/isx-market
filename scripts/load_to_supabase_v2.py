@@ -58,35 +58,32 @@ def upsert(client: Client, table: str, rows: list[dict], conflict: str, dry: boo
 
 # ── loaders per table ─────────────────────────────────────────────────────────
 
-def load_companies(client, data, dry):
-    rows = []
-    for c in data.get("companies", []):
-        if not c.get("ticker"):
-            continue
-        rows.append({
-            "ticker":       c["ticker"],
-            "name_ar":      c.get("name_ar"),
-            "name_en":      c.get("name_en"),
-            "sector":       c.get("sector"),
-            "listed_shares":c.get("listed_shares"),
-        })
-    n = upsert(client, "companies", rows, "ticker", dry)
-    if n:
-        print(f"  companies: {n}")
+# `companies` is deliberately NOT loaded from the monthly reports. The full RTL
+# parse mangles Arabic company names — the table still carries "9", "5", "اسٌا سٌل"
+# from when this ran — and nothing in the app reads that table; the site's company
+# register is public/data/companies.json, maintained by sync_companies.py. Writing
+# it from here only corrupts it, so the loader is gone rather than fixed.
 
 
 def load_daily_index(client, data, dry):
+    """Official monthly index series → daily_index.
+
+    Column names follow load_to_supabase.py, which is the canonical schema: it is
+    what the table actually has, and every reader in the app selects `isx60`.
+    """
     rows = []
     for d in data.get("daily_index", []):
         if not d.get("date"):
             continue
         rows.append({
-            "date":   d["date"],
-            "index":  d.get("index"),
-            "change": d.get("change"),
-            "volume": d.get("volume"),
-            "value":  d.get("value"),
-            "trades": _int(d.get("trades")),
+            "date":             d["date"],
+            "isx60":            d.get("isx60"),
+            "isx15":            d.get("isx15"),
+            "total_volume":     d.get("volume"),
+            "total_value":      d.get("value"),
+            "total_trades":     _int(d.get("trades")),
+            "traded_companies": _int(d.get("traded_companies")),
+            "listed_companies": _int(d.get("listed_companies")),
         })
     n = upsert(client, "daily_index", rows, "date", dry)
     if n:
@@ -94,41 +91,41 @@ def load_daily_index(client, data, dry):
 
 
 def load_sector_monthly(client, data, dry):
+    """Sector activity + market cap → sector_monthly.
+
+    Market cap by sector lives in this table, not a separate `market_cap_sector`
+    one — that table has never existed in the database.
+    """
     year, month = data.get("year"), data.get("month")
+    mcap = {m["sector"]: m.get("market_cap")
+            for m in (data.get("market_cap_by_sector") or []) if m.get("sector")}
+
     rows = []
     for s in data.get("sectors", []):
         if not s.get("sector"):
             continue
         rows.append({
-            "year":      year,
-            "month":     month,
-            "sector":    s["sector"],
-            "volume":    s.get("volume"),
-            "value":     s.get("value"),
-            "trades":    _int(s.get("trades")),
-            "companies": _int(s.get("companies")),
-            "listed":    _int(s.get("listed")),
+            "year":             year,
+            "month":            month,
+            "sector":           s["sector"],
+            "volume":           s.get("volume"),
+            "value":            s.get("value"),
+            "trades":           _int(s.get("trades")),
+            "traded_companies": _int(s.get("traded_companies")),
+            "listed_companies": _int(s.get("listed_companies")),
+            "market_cap":       mcap.pop(s["sector"], None),
         })
+    # sectors that appear only in the market-cap table
+    rows += [{"year": year, "month": month, "sector": sec, "market_cap": cap}
+             for sec, cap in mcap.items()]
+
+    # one upsert batch must not carry the same (year,month,sector) twice
+    seen: set[str] = set()
+    rows = [r for r in rows if not (r["sector"] in seen or seen.add(r["sector"]))]
+
     n = upsert(client, "sector_monthly", rows, "year,month,sector", dry)
     if n:
         print(f"  sector_monthly: {n}")
-
-
-def load_market_cap(client, data, dry):
-    year, month = data.get("year"), data.get("month")
-    rows = []
-    for mc in data.get("market_cap_by_sector", []):
-        if not mc.get("sector"):
-            continue
-        rows.append({
-            "year":       year,
-            "month":      month,
-            "sector":     mc["sector"],
-            "market_cap": mc.get("market_cap"),
-        })
-    n = upsert(client, "market_cap_sector", rows, "year,month,sector", dry)
-    if n:
-        print(f"  market_cap_sector: {n}")
 
 
 def load_foreign_flow_daily(client, data, dry):
@@ -292,10 +289,8 @@ def load_capital_events(client, data, dry):
 
 
 LOADERS = [
-    load_companies,
     load_daily_index,
     load_sector_monthly,
-    load_market_cap,
     load_foreign_flow_daily,
     load_foreign_flow_sector,
     load_company_caps,
@@ -306,16 +301,30 @@ LOADERS = [
 ]
 
 
-def process_json(path: Path, client: Client, dry: bool) -> None:
+def process_json(path: Path, client: Client, dry: bool, failures: list[str],
+                 only: set[str] | None = None) -> None:
+    """Run every loader over one report.
+
+    A failing loader does not abort the other ten — one unparseable table should
+    not cost the whole report — but it IS recorded, and main() exits non-zero on
+    any failure. Printing the error and exiting 0 is how four broken loaders ran
+    green in CI for months while sector_monthly silently went two months stale.
+    """
     data = json.loads(path.read_text())
     year, month = data.get("year"), data.get("month")
     mo_str = f"{month:02d}" if month else "??"
     print(f"\n── {path.name} ({year}-{mo_str}) ──")
     for loader in LOADERS:
+        # `--only` exists for scoped repairs: when one table has to be fixed,
+        # rewriting ten others with identical values makes it impossible to say
+        # afterwards that nothing else changed.
+        if only and loader.__name__.removeprefix("load_") not in only:
+            continue
         try:
             loader(client, data, dry)
         except Exception as e:
-            print(f"  ERROR in {loader.__name__}: {e}")
+            print(f"  ERROR in {loader.__name__}: {e}", file=sys.stderr)
+            failures.append(f"{path.name} · {loader.__name__}: {e}")
 
 
 def main() -> None:
@@ -324,10 +333,24 @@ def main() -> None:
     ap.add_argument("--dry-run",     action="store_true")
     ap.add_argument("--parse-first", action="store_true",
                     help="Re-parse PDFs in path/ before loading")
+    ap.add_argument("--only", default=None,
+                    help="Comma-separated table names to load, e.g. --only sector_monthly. "
+                         "Every other loader is skipped, so a scoped repair leaves the rest "
+                         "of the database provably untouched.")
     args = ap.parse_args()
 
     client = sb()
     dry = args.dry_run
+    failures: list[str] = []
+    only = {s.strip() for s in args.only.split(",")} if args.only else None
+
+    if only:
+        known = {f.__name__.removeprefix("load_") for f in LOADERS}
+        unknown = only - known
+        if unknown:
+            sys.exit(f"--only: no such loader(s): {', '.join(sorted(unknown))}\n"
+                     f"known: {', '.join(sorted(known))}")
+        print(f"Scoped run — loading only: {', '.join(sorted(only))}")
 
     if args.parse_first:
         # Parse PDFs first
@@ -351,13 +374,15 @@ def main() -> None:
                 out.write_text(json.dumps(result, ensure_ascii=False, indent=1))
                 print(f"  parsed: {pdf.name}")
             except Exception as e:
-                print(f"  ERROR parsing {pdf.name}: {e}")
+                print(f"  ERROR parsing {pdf.name}: {e}", file=sys.stderr)
+                failures.append(f"parse {pdf.name}: {e}")
 
         json_dir = out_dir
     elif args.path.is_dir():
         json_dir = args.path
     else:
-        process_json(args.path, client, dry)
+        process_json(args.path, client, dry, failures, only)
+        _finish(failures)
         return
 
     import re as _re
@@ -365,9 +390,19 @@ def main() -> None:
     jsons = sorted(j for j in json_dir.glob("*.json") if MAIN_PAT.match(j.name))
     print(f"\nLoading {len(jsons)} main JSON files from {json_dir} (skipping sub-reports)")
     for j in jsons:
-        process_json(j, client, dry)
+        process_json(j, client, dry, failures, only)
 
-    print("\nDone.")
+    _finish(failures)
+
+
+def _finish(failures: list[str]) -> None:
+    if not failures:
+        print("\nDone.")
+        return
+    print(f"\nFAILED — {len(failures)} loader error(s):", file=sys.stderr)
+    for f in failures:
+        print(f"  · {f}", file=sys.stderr)
+    sys.exit(1)
 
 
 if __name__ == "__main__":

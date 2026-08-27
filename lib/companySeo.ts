@@ -192,3 +192,63 @@ export function buildCompanySeo(
 
   return { shortAr, title, description, keywords, h1, altNames }
 }
+
+
+/**
+ * The ENGLISH company SEO fields.
+ *
+ * ── What it will not do ───────────────────────────────────────────────────
+ * It never invents an English company name. `companies.json` carries an `en`
+ * for most listings; where it is missing or is just the ticker echoed back,
+ * the title falls to the TICKER alone and the description carries the official
+ * Arabic name once, so the page still matches a search for it. A machine
+ * translation of a legal corporate name presented as the company's English
+ * name is the exact failure the brief names.
+ *
+ * ── Why it is not a translation of the Arabic ─────────────────────────────
+ * The Arabic title is built around «سعر سهم … اليوم», which is how the query is
+ * typed in Arabic. The English equivalent of that query is "<name> share price"
+ * plus the exchange, and «today» is dropped entirely: the product publishes the
+ * last session's close, so an English title promising today's price would be
+ * making a claim the page then contradicts. The Arabic keeps its «اليوم»
+ * because that is a search phrase already indexed, and its description states
+ * the session — a compromise recorded there, not silently mirrored here.
+ */
+export function buildCompanySeoEn(
+  sym: string,
+  arName: string,
+  enName: string,
+  /** Price sentence from `describeQuote`. Omitted for suspended listings. */
+  priceLine?: string,
+): SeoFields {
+  const seo = COMPANY_SEO[sym] ?? {}
+  const hasEnglishName = Boolean(enName?.trim()) && enName.trim().toUpperCase() !== sym
+  const name = hasEnglishName ? enName.trim() : sym
+
+  const title = hasEnglishName
+    ? `${name} (${sym}) share price · Iraq Stock Exchange`
+    : `${sym} share price · Iraq Stock Exchange`
+
+  const subject = hasEnglishName ? `${name} (${sym})` : `${sym}${arName ? ` · ${arName}` : ''}`
+
+  const description = priceLine
+    ? `${subject} last traded at ${priceLine} on the Iraq Stock Exchange. Track the daily change, trading volume and the 52-week high and low.`
+    : `Track ${subject} on the Iraq Stock Exchange: last price, daily change, trading volume and the 52-week range, updated after each session.`
+
+  const alts = (seo.alts ?? []).filter(Boolean)
+  const keywords = Array.from(new Set([
+    enName, sym, arName, ...alts,
+    `${name} share price`,
+    `${sym} share price`,
+    `${sym} stock`,
+    'iraq stock exchange', 'ISX', 'iraqi stocks', 'iraq share prices',
+  ].filter(Boolean)))
+
+  const h1 = hasEnglishName
+    ? `${name} (${sym}) share price · Iraq Stock Exchange`
+    : `${sym} share price · Iraq Stock Exchange`
+
+  const altNames = Array.from(new Set([arName, ...alts].filter((a) => a && a !== name)))
+
+  return { shortAr: name, title, description, keywords, h1, altNames }
+}

@@ -1,6 +1,7 @@
 'use client'
 
-import { useApp } from '@/context/AppContext'
+import { useLocale } from '@/context/LocaleContext'
+import '@/styles/company.css'
 import { COMPANY_PROFILES, type Profile } from '@/lib/companyProfiles'
 import { arDate } from '@/lib/date'
 
@@ -60,7 +61,7 @@ function generated(isAr: boolean, props: Props): Profile {
       about:
         `${p.ar} (${p.sym}) شركة مدرجة في سوق العراق للأوراق المالية (بورصة العراق – ISX) ضمن قطاع ${sector.ar}` +
         `${hasMcap ? `، برأس مال سوقي يبلغ نحو ${mcap} دينار عراقي` : ''}. ` +
-        `تابع سعر سهم ${p.ar} المباشر، المخططات التاريخية، حجم التداول، والقيمة السوقية على iraqsm.com. ` +
+        `تابع سعر سهم ${p.ar} بعد كل جلسة، والمخططات التاريخية، وحجم التداول، والقيمة السوقية على iraqsm.com. ` +
         `يتداول سهم ${p.sym} بالدينار العراقي (IQD) في بورصة العراق.`,
       facts: [
         { label: 'الرمز',   value: p.sym },
@@ -70,10 +71,13 @@ function generated(isAr: boolean, props: Props): Profile {
         { label: 'العملة',  value: 'الدينار العراقي (IQD)' },
       ],
       faq: [
-        { q: `كم سعر سهم ${p.ar} اليوم؟`, a: `تابع سعر سهم ${p.ar} (${p.sym}) المباشر اليوم في بورصة العراق على iraqsm.com، مع الرسم البياني والأعلى والأدنى وحجم التداول.` },
+        /* ⚠ The QUESTION keeps «اليوم» because that is how people search it.
+           The ANSWER may not: the product publishes the last session's close,
+           not a live intraday price, so it says which session it is showing. */
+        { q: `كم سعر سهم ${p.ar} اليوم؟`, a: `يعرض iraqsm.com سعر إغلاق سهم ${p.ar} (${p.sym}) في آخر جلسة تداول في بورصة العراق، مع الرسم البياني والأعلى والأدنى وحجم التداول.` },
         { q: `ما هو رمز سهم ${p.ar}؟`, a: `يتداول سهم ${p.ar} تحت الرمز ${p.sym} في بورصة العراق.` },
         { q: `في أي قطاع تعمل ${p.ar}؟`, a: `تعمل ${p.ar} ضمن قطاع ${sector.ar} في السوق العراقي.` },
-        { q: `أين أتابع سعر سهم ${p.sym}؟`, a: `يمكنك متابعة سعر سهم ${p.sym} المباشر، المخططات، وحجم التداول على iraqsm.com.` },
+        { q: `أين أتابع سعر سهم ${p.sym}؟`, a: `يمكنك متابعة سعر سهم ${p.sym}، والمخططات، وحجم التداول على iraqsm.com، محدّثة بعد كل جلسة.` },
       ],
     }
   }
@@ -82,7 +86,7 @@ function generated(isAr: boolean, props: Props): Profile {
     about:
       `${p.en} (${p.sym}) is a company listed on the Iraq Stock Exchange (ISX) in the ${sector.en} sector` +
       `${hasMcap ? `, with a market capitalization of approximately ${mcap} IQD` : ''}. ` +
-      `Track ${p.en}'s live share price, historical price charts, trading volume, and market data on iraqsm.com. ` +
+      `Track ${p.en}'s share price after each session, along with historical charts, trading volume and market data, on iraqsm.com. ` +
       `The ${p.sym} stock trades in Iraqi Dinar (IQD) on the ISX.`,
     facts: [
       { label: 'Ticker',   value: p.sym },
@@ -92,10 +96,12 @@ function generated(isAr: boolean, props: Props): Profile {
       { label: 'Currency', value: 'Iraqi Dinar (IQD)' },
     ],
     faq: [
-      { q: `What is ${p.en}'s share price today?`, a: `Track ${p.en} (${p.sym}) live share price today on the Iraq Stock Exchange (ISX) at iraqsm.com, with charts, highs/lows, and trading volume.` },
+      /* Same rule as the Arabic FAQ: the question may say "today" because that
+         is the search; the answer names the session it is actually showing. */
+      { q: `What is ${p.en}'s share price today?`, a: `iraqsm.com shows ${p.en}'s (${p.sym}) closing price from the latest Iraq Stock Exchange session, with charts, highs and lows, and trading volume.` },
       { q: `What is ${p.en}'s ticker symbol?`, a: `${p.en} trades under the ticker ${p.sym} on the Iraq Stock Exchange (ISX).` },
       { q: `What sector is ${p.en} in?`, a: `${p.en} operates in the ${sector.en} sector of the Iraqi market.` },
-      { q: `Where can I track ${p.sym}'s share price?`, a: `You can track ${p.sym}'s live price, charts, and trading volume on iraqsm.com.` },
+      { q: `Where can I track ${p.sym}'s share price?`, a: `You can follow ${p.sym}'s price, charts and trading volume on iraqsm.com, updated after each session.` },
     ],
   }
 }
@@ -110,8 +116,8 @@ function priceText(q: NonNullable<Props['quote']>, isAr: boolean): string {
 }
 
 export default function CompanyProfile(props: Props) {
-  const { lang } = useApp()
-  const isAr = lang === 'ar'
+  const { locale } = useLocale()
+  const isAr = locale === 'ar'
 
   const curated = COMPANY_PROFILES[props.sym]?.[isAr ? 'ar' : 'en']
   const base    = curated ?? generated(isAr, props)
@@ -154,43 +160,36 @@ export default function CompanyProfile(props: Props) {
       }
     : base
   const heading = isAr ? `نبذة عن ${name} (${props.sym})` : `About ${name} (${props.sym})`
-  const factsHd = isAr ? 'معلومات أساسية' : 'Key facts'
   const faqHd   = isAr ? 'أسئلة شائعة' : 'Frequently asked questions'
 
   return (
-    <section
+    /* The approved `.cd-about` composition, and still SERVER-rendered here in
+       the layout rather than moved into the client page. This is the route's
+       SEO body — the prose a crawler with no JavaScript reads — so it stays in
+       the document in source order, which is also rule 6 of the reference's
+       own design notes. Only the markup changed; the copy and its language
+       switch are untouched. */
+    <section className="cd-about" id="about"
       aria-label={isAr ? 'نبذة عن الشركة' : 'Company profile'}
-      dir={isAr ? 'rtl' : 'ltr'}
-      style={{
-        maxWidth: 760, margin: '0 auto', padding: '40px 20px 8px',
-        borderTop: '1px solid var(--line, #1f2937)', lineHeight: 1.75,
-        fontSize: 15, color: 'var(--ink3, #9ca3af)',
-        textAlign: isAr ? 'right' : 'left',
-      }}
-    >
-      <h2 style={{ fontSize: 19, fontWeight: 800, color: 'var(--ink, #e5e7eb)', marginBottom: 14 }}>
-        {heading}
-      </h2>
-
-      <p style={{ marginBottom: 22 }}>{p.about}</p>
-
-      <h3 style={{ fontSize: 15, fontWeight: 800, color: 'var(--ink, #e5e7eb)', margin: '0 0 8px' }}>{factsHd}</h3>
-      <dl style={{ display: 'grid', gridTemplateColumns: 'auto 1fr', gap: '6px 16px', marginBottom: 26 }}>
-        {p.facts.map(f => (
-          <div key={f.label} style={{ display: 'contents' }}>
-            <dt style={{ fontWeight: 700, color: 'var(--ink, #e5e7eb)' }}>{f.label}</dt>
-            <dd style={{ margin: 0 }}>{f.value}</dd>
-          </div>
-        ))}
-      </dl>
-
-      <h2 style={{ fontSize: 17, fontWeight: 800, color: 'var(--ink, #e5e7eb)', marginBottom: 12 }}>{faqHd}</h2>
-      {p.faq.map(qa => (
-        <div key={qa.q} style={{ marginBottom: 14 }}>
-          <h3 style={{ fontSize: 15, fontWeight: 700, color: 'var(--ink, #e5e7eb)', margin: '0 0 4px' }}>{qa.q}</h3>
-          <p style={{ margin: 0 }}>{qa.a}</p>
+      dir={isAr ? 'rtl' : 'ltr'}>
+      <div className="cd-sec-head"><h2>{heading}</h2></div>
+      <div className="cd-about-grid">
+        <div className="cd-about-body">
+          <p>{p.about}</p>
+          <h3>{faqHd}</h3>
+          {p.faq.map(qa => (
+            <div className="cd-faq" key={qa.q}>
+              <h4>{qa.q}</h4>
+              <p>{qa.a}</p>
+            </div>
+          ))}
         </div>
-      ))}
+        <dl className="cd-about-facts">
+          {p.facts.map(f => (
+            <div key={f.label}><dt>{f.label}</dt><dd>{f.value}</dd></div>
+          ))}
+        </dl>
+      </div>
     </section>
   )
 }

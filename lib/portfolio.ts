@@ -84,40 +84,65 @@ export function alertHit(a: Alert, price: number): boolean {
   return a.dir === 'above' ? price >= a.target : price <= a.target
 }
 
-// ─── Formatters ─────────────────────────────────────────────────────────────
-export function fmtIQD(v: number): string {
-  const a = Math.abs(v), sign = v < 0 ? '−' : ''
-  if (a >= 1e9) return `${sign}${(a / 1e9).toFixed(2)} مليار`
-  if (a >= 1e6) return `${sign}${(a / 1e6).toFixed(2)} مليون`
-  return `${sign}${Math.round(a).toLocaleString('en')}`
-}
-export const fmtPct = (v: number) => `${v >= 0 ? '+' : '−'}${Math.abs(v).toFixed(1)}%`
+/*
+ * ⚠ `fmtIQD` and `fmtPct` were REMOVED, not translated.
+ *
+ * `fmtIQD` printed «مليار» / «مليون» to every reader — a real gap — but the
+ * whole repo was searched and nothing imported either of them. The live
+ * formatter is the one in the statistics route's `_ui.tsx`, which uses Latin
+ * magnitudes (T/B/M/K) and needs no translation. Translating dead code would
+ * have added a maintenance surface for a function no page renders.
+ */
 export const newId = () => (crypto.randomUUID?.() ?? String(Date.now() + Math.random()))
 
 // ─── Market data (prices + company meta) ──────────────────────────────────────
+/** One company's current quote, with the two fields the table needs. */
+export interface Quote {
+  price: number
+  /** Previous session's close, or null when there is no comparable one. */
+  prev: number | null
+  /** Sessions since this company last traded. Null when unknown. */
+  staleDays: number | null
+}
+type QuoteRow = { ticker: string; last_close: number; prev_close: number | null; days_since_trade: number | null }
+
 export function useMarketData() {
   const [meta, setMeta]     = useState<CompanyMeta[]>([])
   const [prices, setPrices] = useState<Record<string, number>>({})
+  const [quotes, setQuotes] = useState<Record<string, Quote>>({})
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     ;(async () => {
       try {
         const [{ data }, m] = await Promise.all([
-          createClient().from('company_metrics').select('ticker,last_close'),
+          // prev_close and days_since_trade were always in this table and were
+          // never read. The portfolio needs both: the first to state a day
+          // change instead of leaving the column blank, the second to say a
+          // price is carried forward rather than quietly pricing a position
+          // off a quote from weeks ago.
+          createClient().from('company_metrics').select('ticker,last_close,prev_close,days_since_trade'),
           fetchCompanyMeta().catch(() => [] as CompanyMeta[]),
         ])
         const pm: Record<string, number> = {}
-        for (const r of (data ?? []) as { ticker: string; last_close: number }[]) {
-          if (r.last_close > 0) pm[r.ticker] = r.last_close
+        const qm: Record<string, Quote> = {}
+        for (const r of (data ?? []) as QuoteRow[]) {
+          if (r.last_close > 0) {
+            pm[r.ticker] = r.last_close
+            qm[r.ticker] = {
+              price: r.last_close,
+              prev: r.prev_close != null && r.prev_close > 0 ? r.prev_close : null,
+              staleDays: r.days_since_trade,
+            }
+          }
         }
-        setMeta(m); setPrices(pm)
+        setMeta(m); setPrices(pm); setQuotes(qm)
       } finally { setLoading(false) }
     })()
   }, [])
 
   const metaBy = useMemo(() => new Map(meta.map(m => [m.sym, m])), [meta])
-  return { meta, metaBy, prices, loading }
+  return { meta, metaBy, prices, quotes, loading }
 }
 
 // ─── Synced storage (localStorage + optional Supabase profile column) ──────────

@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import { useLocale } from '@/context/LocaleContext'
 import { useApp } from '@/context/AppContext'
 import type { WPPost, Section } from '@/lib/cms'
 import { featuredImage, fmtDate, authorName, SECTIONS } from '@/lib/cms'
@@ -12,11 +13,11 @@ interface Props {
 }
 
 export default function ArticlePage({ post, section, backHref }: Props) {
-  const { lang } = useApp()
-  const ar   = lang === 'ar'
+  const { locale } = useLocale()
+  const ar   = locale === 'ar'
   const meta = SECTIONS[section]
   const img  = featuredImage(post, 'large')
-  const date = fmtDate(post.date, lang)
+  const date = fmtDate(post.date, locale)
   const auth = authorName(post)
 
   return (

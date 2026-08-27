@@ -16,6 +16,8 @@
  * rendering entirely. This keeps the pages static with ISR.
  */
 
+import { SITE } from '@/lib/seo'
+
 const URL_BASE = process.env.NEXT_PUBLIC_SUPABASE_URL
 const ANON = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 
@@ -66,7 +68,7 @@ export function freshnessJsonLd({
     name,
     description,
     inLanguage: 'ar-IQ',
-    isPartOf: { '@id': 'https://iraqsm.com/#website' },
+    isPartOf: { '@id': `${SITE}/#website` },
     ...(modified ? { dateModified: modified } : {}),
   }
 }

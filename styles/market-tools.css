@@ -1,0 +1,549 @@
+/* ════════════════════════════════════════════════════════════════════════════
+   أدوات الأسواق — a DIRECT PORT of the approved FX / gold / oil pages.
+   ════════════════════════════════════════════════════════════════════════════
+
+   Source: `/Users/amed/iqwealth-design/app/globals.css` lines 11110–11560 —
+   one block, because the three routes share a spine and differ only in
+   composition. `.mt-*` is the shared chrome, `.fx-*` / `.gd-*` / `.ol-*` the
+   per-page pieces, `.dt-art` the 1-bit artwork.
+
+   ── The adaptations, and only these ────────────────────────────────
+     · `.iq-dark` on the page root → `[data-theme='dark']` on <html>.
+     · `--font-numeric` / `--font-body` gain this repo's fallback stacks.
+     · the design-mode state picker rules are dropped.
+
+   ── On the one collision the inventory flagged ────────────────────
+   `.fx-quote-grid` and `.fx-hero` used to exist in app/globals.css from the
+   page this replaces, and the approved design uses NEITHER name — its FX
+   classes are `.fx-convert*`, `.fx-official*`, `.fx-sides`, `.fx-eq`. So there
+   was nothing to namespace, and the two legacy rules became dead the moment
+   the old client went. The cleanup pass has since deleted them.
+   ════════════════════════════════════════════════════════════════════════════ */
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   أدوات الأسواق — سعر الصرف · الذهب · النفط
+   ───────────────────────────────────────────────────────────────────────────
+   These are UTILITY pages, not research terminals. A reader opens one, reads
+   one number, and leaves. Everything below serves that and nothing else.
+
+   The rules that produced this layer, in order of how much they changed:
+
+   1 · ONE Level-1 number per page. `.mt-quote-value` is the only type at that
+       size anywhere in the file. Everything else steps down hard — context
+       sits at .82rem, metadata at .68rem. §32
+   2 · Typography and rules instead of boxes. Each page has THREE surfaces
+       (hero · one interaction · disclosures) where the previous pass had six
+       to eight. Related values are lines, not cards. §24
+   3 · Nothing longer than two lines in the default view. Every explanation
+       lives in `.mt-disclose`, collapsed. §25
+   4 · One 1-bit visual per page, at the top, never behind a number. §3
+
+   Colour discipline · §29 §30 §35: gold is not gold, oil is not black, FX is
+   not green. Brand blue appears on interaction states only; up/down on data
+   only. The artwork is monochrome ink on the page's own surface.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.mt-page {
+  /* Narrower than the analytical pages on purpose — a quote page that spans a
+     1400px board reads as a dashboard no matter how little is on it. */
+  inline-size: min(1080px, calc(100% - 48px));
+  margin: 0 auto;
+  padding: 26px 0 72px;
+  color: var(--mv-ink);
+}
+/* The reference lifts the third ink and deepens the semantic pair per page.
+   `data-theme` is on <html>, not on this element, so the dark half has to be
+   written as an ancestor selector — as written it matched nothing. */
+.mt-page { --mv-ink-3: #6e746f; --mv-up: #0e7350; --mv-down: #a83926; }
+[data-theme='dark'] .mt-page { --mv-ink-3: #9ea29c; --mv-up: #40d795; --mv-down: #f4787d; }
+
+/* ── Head · compact, then out of the way ──────────────────────────────────── */
+.mt-head {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 18px; flex-wrap: wrap; margin-block-end: 26px;
+}
+.mt-title-row { display: flex; align-items: center; gap: 11px; flex-wrap: wrap; }
+.mt-title h1 { margin: 0; font: 700 1.12rem/1.25 var(--font-display); color: var(--mv-ink); }
+.mt-title p { margin: 6px 0 0; max-inline-size: 62ch; font-size: .76rem; line-height: 1.65; color: var(--mv-ink-2); }
+.mt-head-actions { display: flex; align-items: center; gap: 8px; }
+
+/* ── Freshness · honest, and small · §23 ──────────────────────────────────── */
+.mt-fresh {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 3px 9px; border-radius: 999px;
+  border: 1px solid var(--mv-line-strong);
+  font: 600 .63rem var(--font-body), Arial, sans-serif; white-space: nowrap;
+  color: var(--mv-ink-2); background: var(--mv-well);
+}
+.mt-fresh i { font-style: normal; font-size: .58rem; }
+.mt-fresh.is-current { color: var(--mv-hero); border-color: rgba(49,113,198,.34); }
+[data-theme='dark'] .mt-fresh.is-current { color: var(--mv-hero-bright); border-color: rgba(90,160,232,.34); }
+.mt-fresh.is-carried { color: var(--mv-ink-2); }
+.mt-fresh.is-stale { color: #a8642a; border-color: rgba(168,100,42,.36); }
+[data-theme='dark'] .mt-fresh.is-stale { color: #e0a45f; border-color: rgba(224,164,95,.34); }
+.mt-fresh.is-pending { color: var(--mv-ink-3); border-style: dashed; }
+
+/* ── The one provenance line · §22 ────────────────────────────────────────── */
+.mt-meta {
+  display: flex; align-items: center; gap: 7px; flex-wrap: wrap;
+  margin: 14px 0 0; font-size: .68rem; color: var(--mv-ink-3);
+}
+.mt-meta i { font-style: normal; opacity: .45; }
+.mt-meta a { color: var(--mv-ink-2); text-decoration: none; border-block-end: 1px solid var(--mv-line-strong); }
+.mt-meta a:hover { color: var(--mv-hero); }
+[data-theme='dark'] .mt-meta a:hover { color: var(--mv-hero-bright); }
+
+/* ═══ THE HERO ══════════════════════════════════════════════════════════════
+   Art and quote, side by side. The art is a real composition element at ~38%
+   of the width — §3 — not a decorative tile behind a card. There is no border
+   and no panel around either half: the page surface IS the hero, which is what
+   gives the first viewport its air. §33 */
+.mt-hero {
+  display: grid; grid-template-columns: minmax(0, 38fr) minmax(0, 62fr);
+  align-items: stretch; gap: 34px;
+  padding-block-end: 30px; margin-block-end: 30px;
+  border-block-end: 1px solid var(--mv-line);
+}
+.mt-art { position: relative; min-block-size: 260px; }
+/* Same constraint as the auth plate — see the note in styles/auth.css. */
+.mt-art canvas { display: block; inline-size: 100%; block-size: 100%; }
+/* Ink is inherited by the canvas and read back out of `color`, so the artwork
+   flips with the theme without a line of JS branching. */
+.dt-art { display: block; inline-size: 100%; block-size: 100%; color: #14161a; }
+[data-theme='dark'] .dt-art { color: #f0efec; }
+.mt-art { opacity: .92; }
+[data-theme='dark'] .mt-art { opacity: .82; }
+
+.mt-quote { display: flex; flex-direction: column; justify-content: center; min-inline-size: 0; }
+.mt-quote-label {
+  margin: 0; display: flex; align-items: center; gap: 8px;
+  font: 600 .82rem var(--font-body), Arial, sans-serif; color: var(--mv-ink-2);
+}
+.mt-quote-label bdi { font-family: var(--font-numeric), ui-monospace, monospace; }
+.mt-quote-label em { font-style: normal; color: var(--mv-ink-3); font-weight: 500; }
+
+/* The only type at this size in the whole stylesheet. §32 */
+.mt-quote-value {
+  margin: 8px 0 0; display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap;
+}
+.mt-quote-value > bdi {
+  font: 700 clamp(2.9rem, 6.2vw, 4.1rem)/1 var(--font-numeric), ui-monospace, monospace;
+  color: var(--mv-ink);
+}
+/* The reference's own tracking, at the specificity this repo needs.
+   styles/design-tokens.css sets `letter-spacing: normal` on
+   `.iq-page :lang(ar)` (0,2,0) to keep tracking off Arabic, and a `bdi`
+   inherits `lang` from <html lang="ar">, so it beats a plain `.class > bdi`
+   (0,1,1) and the design's -.025em silently never landed — «1,545» rendered
+   as «1 , 545» on the one number the page exists for. That token file
+   anticipates exactly this ("Latin islands inside Arabic opt back in"); this
+   is the opt-in, at 0,2,1. */
+.iq-page .mt-quote-value > bdi { letter-spacing: -.025em; }
+.mt-quote-value > span { font-size: .82rem; font-weight: 500; color: var(--mv-ink-2); }
+.mt-quote-value > span bdi { font-family: var(--font-numeric), ui-monospace, monospace; }
+
+/* ── Segmented controls · the one control shape these pages use · §26 ─────── */
+.mt-seg {
+  display: inline-flex; align-items: center; gap: 3px;
+  padding: 3px; border-radius: 999px;
+  background: var(--mv-well); border: 1px solid var(--mv-line);
+}
+.mt-seg button {
+  min-block-size: 38px; padding: 0 18px;
+  border: 0; border-radius: 999px; background: none;
+  font: 600 .76rem var(--font-body), Arial, sans-serif; color: var(--mv-ink-2); cursor: pointer;
+  transition: background-color .14s, color .14s;
+}
+.mt-seg button:hover:not(:disabled):not(.is-on) { color: var(--mv-ink); background: rgba(30,34,32,.05); }
+[data-theme='dark'] .mt-seg button:hover:not(:disabled):not(.is-on) { background: rgba(240,239,236,.06); }
+.mt-seg button.is-on { background: var(--mv-hero); color: #fff; }
+.mt-seg button:focus-visible { outline: 2px solid var(--mv-hero); outline-offset: 2px; }
+.mt-seg button:disabled { opacity: .4; cursor: default; }
+
+/* ── Fields · large, obviously tappable · §26 ─────────────────────────────── */
+.mt-field { display: flex; flex-direction: column; gap: 6px; min-inline-size: 0; }
+.mt-field > span { font: 600 .7rem var(--font-body), Arial, sans-serif; color: var(--mv-ink-2); }
+.mt-field input {
+  inline-size: 100%; min-block-size: 54px; padding: 0 16px;
+  border: 1px solid var(--mv-line-strong); border-radius: 12px;
+  background: var(--mv-panel); color: var(--mv-ink);
+  font: 700 1.28rem var(--font-numeric), ui-monospace, monospace;
+}
+.mt-field input:focus-visible {
+  outline: 2px solid var(--mv-hero); outline-offset: 1px; border-color: var(--mv-hero);
+}
+.mt-field.is-inline { flex-direction: row; align-items: center; gap: 12px; }
+.mt-field.is-inline > span { flex: 1; font-size: .78rem; }
+.mt-field.is-inline input { inline-size: 150px; min-block-size: 46px; font-size: 1.05rem; }
+
+/* ── Disclosures · everything the default view does not need · §25 ────────── */
+.mt-more { margin-block-start: 34px; border-block-start: 1px solid var(--mv-line); }
+.mt-disclose { border-block-end: 1px solid var(--mv-line); }
+.mt-disclose summary {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  min-block-size: 52px; padding-inline: 2px; cursor: pointer; list-style: none;
+  font: 600 .8rem var(--font-body), Arial, sans-serif; color: var(--mv-ink);
+}
+.mt-disclose summary::-webkit-details-marker { display: none; }
+.mt-disclose summary:hover { color: var(--mv-hero); }
+[data-theme='dark'] .mt-disclose summary:hover { color: var(--mv-hero-bright); }
+.mt-disclose summary:focus-visible { outline: 2px solid var(--mv-hero); outline-offset: -2px; border-radius: 8px; }
+.mt-disclose summary i {
+  font-style: normal; font-size: 1.05rem; color: var(--mv-ink-3);
+  transition: transform .18s;
+}
+.mt-disclose[open] summary i { transform: rotate(45deg); }
+.mt-disclose-body { padding: 2px 2px 20px; }
+.mt-disclose-body p { margin: 0 0 11px; max-inline-size: 74ch; font-size: .76rem; line-height: 1.8; color: var(--mv-ink-2); }
+.mt-disclose-body p:last-child { margin-block-end: 0; }
+.mt-disclose-body bdi { font-family: var(--font-numeric), ui-monospace, monospace; font-weight: 700; color: var(--mv-ink); }
+.mt-caveat { color: var(--mv-ink-3) !important; }
+
+/* ── States ──────────────────────────────────────────────────────────────── */
+.mt-partial {
+  display: flex; align-items: flex-start; gap: 9px;
+  padding: 11px 13px; margin-block-end: 20px;
+  border: 1px solid rgba(168,100,42,.3); border-radius: 11px;
+  background: rgba(168,100,42,.06);
+  font-size: .74rem; line-height: 1.6; color: var(--mv-ink-2);
+}
+.mt-partial i { font-style: normal; color: #a8642a; flex-shrink: 0; line-height: 1.7; }
+[data-theme='dark'] .mt-partial { border-color: rgba(224,164,95,.26); background: rgba(224,164,95,.07); }
+[data-theme='dark'] .mt-partial i { color: #e0a45f; }
+.mt-partial bdi { font-family: var(--font-numeric), ui-monospace, monospace; font-weight: 600; color: var(--mv-ink); }
+
+/* §37 · a sentence, never a zero. */
+.mt-unavailable {
+  display: flex; flex-direction: column; gap: 7px;
+  padding: 30px 22px; border: 1px dashed var(--mv-line-strong); border-radius: 14px;
+  background: var(--mv-well);
+}
+.mt-unavailable strong { font: 700 .95rem var(--font-display); color: var(--mv-ink); }
+.mt-unavailable span { font-size: .76rem; line-height: 1.65; color: var(--mv-ink-2); }
+.mt-unavailable-src { color: var(--mv-ink-3) !important; font-size: .68rem !important; }
+
+.mt-skel { display: flex; flex-direction: column; gap: 12px; }
+.mt-skel span {
+  display: block; block-size: 13px; border-radius: 7px;
+  background: linear-gradient(90deg, var(--mv-well), var(--mv-line), var(--mv-well));
+  background-size: 200% 100%; animation: mt-shimmer 1.5s linear infinite;
+}
+.mt-skel span:first-child { block-size: 26px; inline-size: 44%; }
+.mt-skel span:nth-child(2) { inline-size: 76%; }
+.mt-skel span:nth-child(3) { inline-size: 54%; }
+.mt-skel.is-tall span:first-child { block-size: 58px; inline-size: 62%; }
+@keyframes mt-shimmer { from { background-position: 200% 0; } to { background-position: -200% 0; } }
+
+/* ═══ سعر الصرف ═════════════════════════════════════════════════════════════ */
+
+/* Utility data, sized as utility data — one line, no card. §11 */
+.fx-sides {
+  display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+  margin: 14px 0 0; font-size: .78rem; color: var(--mv-ink-2);
+}
+.fx-sides bdi { font-family: var(--font-numeric), ui-monospace, monospace; font-weight: 700; color: var(--mv-ink); }
+.fx-sides i { font-style: normal; opacity: .4; }
+
+/* Context, and sized as context — the official rate is NOT a second hero. §8
+   A rule instead of a container: the relationship reads without a box. */
+.fx-official {
+  display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap;
+  margin-block-start: 20px; padding-block-start: 15px;
+  border-block-start: 1px solid var(--mv-line);
+  font-size: .78rem; color: var(--mv-ink-2);
+}
+.fx-official-label { color: var(--mv-ink-3); }
+.fx-official-value bdi { font: 700 1.15rem var(--font-numeric), ui-monospace, monospace; color: var(--mv-ink); }
+.fx-official-gap { margin-inline-start: auto; color: var(--mv-ink-3); }
+.fx-official-gap bdi { font-family: var(--font-numeric), ui-monospace, monospace; font-weight: 700; color: var(--mv-ink-2); }
+
+/* The converter · high, large, obvious. §9 */
+.fx-convert {
+  padding: 22px; border: 1px solid var(--mv-line); border-radius: 16px;
+  background: var(--mv-panel-solid);
+}
+.fx-convert-top {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 14px; flex-wrap: wrap; margin-block-end: 16px;
+}
+.fx-convert-top h2, .gd-strip-head h2, .gd-calc-top h2, .ol-strip-head h2 {
+  margin: 0; font: 700 .88rem var(--font-display); color: var(--mv-ink);
+}
+.fx-convert-row {
+  display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: end; gap: 14px;
+}
+.fx-eq { font-style: normal; font-size: 1.15rem; color: var(--mv-ink-3); padding-block-end: 15px; }
+.fx-convert-rate { margin: 14px 0 0; font-size: .72rem; color: var(--mv-ink-3); }
+.fx-convert-rate bdi { font-family: var(--font-numeric), ui-monospace, monospace; font-weight: 700; color: var(--mv-ink-2); }
+
+/* ═══ الذهب ═════════════════════════════════════════════════════════════════ */
+.gd-units { margin-block-start: 18px; }
+.gd-kind {
+  padding: 2px 8px; border-radius: 999px;
+  border: 1px solid var(--mv-line-strong); color: var(--mv-ink-2);
+  font-size: .63rem; font-weight: 600;
+}
+
+/* The karat strip · a list with rules, not a table with borders. §14 */
+.gd-strip { margin-block-end: 26px; }
+.gd-strip-head, .ol-strip-head {
+  display: flex; align-items: baseline; justify-content: space-between;
+  gap: 12px; margin-block-end: 4px;
+}
+.gd-strip-head span, .ol-strip-head span { font-size: .69rem; color: var(--mv-ink-3); }
+.gd-strip ul { margin: 0; padding: 0; list-style: none; }
+.gd-strip li { border-block-end: 1px solid var(--mv-line); }
+.gd-strip li:last-child { border-block-end: 0; }
+.gd-strip button {
+  display: flex; align-items: center; justify-content: space-between; gap: 16px;
+  inline-size: 100%; min-block-size: 52px; padding-inline: 4px;
+  border: 0; background: none; cursor: pointer; font: inherit; text-align: start;
+  transition: background-color .13s;
+}
+.gd-strip button:hover { background: var(--mv-well); }
+.gd-strip button:focus-visible { outline: 2px solid var(--mv-hero); outline-offset: -2px; border-radius: 8px; }
+.gd-strip-k { display: flex; align-items: baseline; gap: 9px; font: 600 .84rem var(--font-body), Arial, sans-serif; color: var(--mv-ink-2); }
+.gd-strip-k bdi { font-family: var(--font-numeric), ui-monospace, monospace; }
+.gd-strip-k em { font-style: normal; font-size: .62rem; font-weight: 600; color: var(--mv-ink-3); }
+.gd-strip-v { font: 600 1.02rem var(--font-numeric), ui-monospace, monospace; color: var(--mv-ink-2); }
+/* The selected karat is the one in the hero, so the link between the two is
+   visible rather than remembered. */
+.gd-strip li.is-on .gd-strip-k { color: var(--mv-ink); }
+.gd-strip li.is-on .gd-strip-k em { color: var(--mv-hero); }
+[data-theme='dark'] .gd-strip li.is-on .gd-strip-k em { color: var(--mv-hero-bright); }
+.gd-strip li.is-on .gd-strip-v { color: var(--mv-ink); font-weight: 700; }
+.gd-strip li.is-on button { box-shadow: inset 3px 0 0 var(--mv-hero); }
+[dir="rtl"] .gd-strip li.is-on button { box-shadow: inset -3px 0 0 var(--mv-hero); }
+
+.gd-calc {
+  padding: 22px; border: 1px solid var(--mv-line); border-radius: 16px;
+  background: var(--mv-panel-solid);
+}
+.gd-calc-top { display: flex; align-items: center; justify-content: space-between; gap: 18px; flex-wrap: wrap; }
+.gd-calc-value { margin: 16px 0 0; display: flex; align-items: baseline; gap: 9px; }
+.iq-page .gd-calc-value bdi { font: 700 2.1rem/1 var(--font-numeric), ui-monospace, monospace; color: var(--mv-ink); letter-spacing: -.02em; }
+.gd-calc-value span { font-size: .8rem; color: var(--mv-ink-2); }
+.gd-calc-note { margin: 11px 0 0; font-size: .7rem; line-height: 1.7; color: var(--mv-ink-3); }
+.gd-calc-note bdi { font-family: var(--font-numeric), ui-monospace, monospace; font-weight: 600; color: var(--mv-ink-2); }
+.gd-usd-row { display: flex; gap: 8px; flex-wrap: wrap; }
+.gd-ounce { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.gd-ounce i { font-style: normal; opacity: .4; }
+
+/* ═══ النفط ═════════════════════════════════════════════════════════════════ */
+.ol-flag { font-size: 1rem; line-height: 1; }
+.ol-change { margin: 12px 0 0; display: flex; align-items: baseline; gap: 12px; color: var(--mv-ink-2); }
+.ol-change bdi { font: 700 .92rem var(--font-numeric), ui-monospace, monospace; }
+.ol-change.is-up bdi { color: var(--mv-up); }
+.ol-change.is-down bdi { color: var(--mv-down); }
+
+/* Brent as immediate context, on a rule. The previous pass needed a whole
+   panel to say this; it is two figures. §17 */
+.ol-vs-brent {
+  display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap;
+  margin-block-start: 20px; padding-block-start: 15px;
+  border-block-start: 1px solid var(--mv-line);
+  font-size: .78rem; color: var(--mv-ink-2);
+}
+.ol-vs-brent bdi { font-family: var(--font-numeric), ui-monospace, monospace; font-weight: 700; color: var(--mv-ink); }
+.ol-vs-gap { margin-inline-start: auto; color: var(--mv-ink-3); }
+.ol-vs-gap bdi.is-up { color: var(--mv-up); }
+.ol-vs-gap bdi.is-down { color: var(--mv-down); }
+
+/* The comparison strip · four bars, no table. §18 */
+.ol-strip { margin-block-end: 26px; }
+.ol-strip ul { margin: 8px 0 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 2px; }
+.ol-strip li {
+  display: grid; grid-template-columns: 168px minmax(0, 1fr) 68px;
+  align-items: center; gap: 14px; min-block-size: 44px;
+}
+.ol-bar-name { display: flex; align-items: center; gap: 8px; font: 500 .78rem var(--font-body), Arial, sans-serif; color: var(--mv-ink-2); white-space: nowrap; }
+.ol-bar-track { block-size: 12px; border-radius: 3px; background: var(--mv-well); overflow: hidden; }
+.ol-bar-fill { display: block; block-size: 100%; border-radius: 3px; background: var(--mv-ink-3); }
+/* Iraq's own grades are the subject of the page, so they carry the brand
+   colour and the rest sit back. Not a data colour — an emphasis. */
+.ol-strip li.is-iraq .ol-bar-name { color: var(--mv-ink); font-weight: 600; }
+.ol-strip li.is-iraq .ol-bar-fill { background: var(--mv-hero); }
+[data-theme='dark'] .ol-strip li.is-iraq .ol-bar-fill { background: var(--mv-hero-bright); }
+.ol-bar-val { text-align: end; font: 600 .88rem var(--font-numeric), ui-monospace, monospace; color: var(--mv-ink); }
+.ol-bar-val::before { content: "$"; opacity: .5; margin-inline-end: 1px; }
+.ol-strip-note { margin: 14px 0 0; font-size: .68rem; line-height: 1.65; color: var(--mv-ink-3); }
+.ol-strip-note bdi { font-family: var(--font-numeric), ui-monospace, monospace; font-weight: 600; }
+
+.ol-calc {
+  padding: 20px 22px; border: 1px solid var(--mv-line); border-radius: 16px;
+  background: var(--mv-panel-solid);
+}
+.ol-calc-row { display: flex; align-items: center; justify-content: space-between; gap: 20px; flex-wrap: wrap; }
+.ol-calc-value { margin: 0; }
+.iq-page .ol-calc-value bdi { font: 700 1.85rem/1 var(--font-numeric), ui-monospace, monospace; color: var(--mv-ink); letter-spacing: -.02em; }
+.ol-calc-note { margin: 12px 0 0; font-size: .7rem; line-height: 1.7; color: var(--mv-ink-3); }
+.ol-calc-note bdi { font-family: var(--font-numeric), ui-monospace, monospace; font-weight: 600; color: var(--mv-ink-2); }
+
+.ol-rate-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-block-end: 14px; font-size: .7rem; color: var(--mv-ink-3); }
+.ol-rate-row .mt-seg button { min-block-size: 34px; padding: 0 14px; font-size: .72rem; }
+
+/* The reference table, inside the disclosure. Short and non-clickable, so the
+   board's 1080px floor and pointer cursor are both overridden. */
+.ol-scroll { max-block-size: none; }
+.ol-table { min-inline-size: 0; }
+.ol-table tbody tr { cursor: default; }
+.ol-col-blend { inline-size: 190px; }
+.ol-col-when { inline-size: 92px; }
+.ol-blend-id { display: flex; align-items: center; gap: 8px; min-inline-size: 0; }
+.ol-blend-id strong { font: 600 .76rem var(--font-body), Arial, sans-serif; color: var(--mv-ink); white-space: nowrap; }
+.ol-group th {
+  padding: 12px 12px 6px !important;
+  font: 700 .63rem var(--font-body), Arial, sans-serif !important; color: var(--mv-ink-3) !important;
+  text-align: start !important; background: none !important;
+  border-block-end: 1px solid var(--mv-line) !important;
+}
+.ol-price bdi::before { content: "$"; opacity: .5; margin-inline-end: 1px; }
+.ol-table td.mv-col-num.is-up bdi { color: var(--mv-up); }
+.ol-table td.mv-col-num.is-down bdi { color: var(--mv-down); }
+.ol-vs bdi.is-up { color: var(--mv-up); }
+.ol-vs bdi.is-down { color: var(--mv-down); }
+.ol-ref { font-size: .63rem; color: var(--mv-ink-3); }
+/* Per-blend recency. The live page prints one time from Math.max of every
+   stamp, so a four-day-old quote borrows Brent's minute. */
+.ol-age { font-size: .68rem; color: var(--mv-ink-3); font-family: var(--font-numeric), ui-monospace, monospace; }
+.ol-age.is-old { color: #a8642a; font-family: var(--font-body), Arial, sans-serif; }
+[data-theme='dark'] .ol-age.is-old { color: #e0a45f; }
+.ol-age.is-old bdi { font-family: var(--font-numeric), ui-monospace, monospace; font-weight: 600; }
+
+/* ── Responsive ───────────────────────────────────────────────────────────── */
+@media (max-width: 1280px) { .mt-page { inline-size: calc(100% - 34px); } }
+
+/* Tablet keeps the side-by-side hero and the full reference table. §29 */
+@media (max-width: 1000px) {
+  .mt-hero { gap: 24px; }
+  .mt-art { min-block-size: 210px; }
+  .ol-strip li { grid-template-columns: 140px minmax(0, 1fr) 62px; gap: 11px; }
+}
+
+/* ═══ Mobile · reduce, do not shrink · §27 §28 ══════════════════════════════
+   The art becomes a narrow cropped strip ABOVE the quote — the quote must not
+   be pushed below the fold, so the visual gets ~120px and no more. */
+@media (max-width: 760px) {
+  .mt-page { inline-size: calc(100% - 20px); padding: 14px 0 56px; }
+  .mt-head { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: start; gap: 12px; margin-block-end: 18px; }
+  .mt-title { grid-column: 1; grid-row: 1; }
+  .mt-head-actions { grid-column: 2; grid-row: 1; }
+
+  .mt-hero { grid-template-columns: minmax(0, 1fr); gap: 16px; padding-block-end: 22px; margin-block-end: 22px; }
+  .mt-art { min-block-size: 0; block-size: 148px; }
+  /* A deliberate crop, not a shrunk desktop image: the field is sampled to the
+     element's own box, so a short wide box reframes the scene rather than
+     scaling it down. §28 */
+  .mt-quote-value > bdi { font-size: clamp(2.6rem, 13vw, 3.4rem); }
+
+  .fx-official, .ol-vs-brent { gap: 8px 12px; }
+  .fx-official-gap, .ol-vs-gap { margin-inline-start: 0; inline-size: 100%; }
+
+  .fx-convert, .gd-calc, .ol-calc { padding: 16px; border-radius: 14px; }
+  .fx-convert-row { grid-template-columns: minmax(0, 1fr); gap: 12px; }
+  .fx-eq { display: none; }
+
+  .mt-seg { inline-size: 100%; }
+  .mt-seg button { flex: 1; min-block-size: 44px; padding: 0 10px; }
+  .ol-rate-row .mt-seg button { min-block-size: 44px; }
+
+  .gd-calc-top { align-items: stretch; flex-direction: column; gap: 12px; }
+  .mt-field.is-inline input { inline-size: 100%; min-block-size: 50px; }
+  .ol-calc-row { align-items: stretch; flex-direction: column; gap: 12px; }
+
+  /* Bars keep their shape; only the name column gives way. */
+  .ol-strip li { grid-template-columns: minmax(0, 1fr) 58px; gap: 8px 10px; min-block-size: 0; padding-block: 7px; }
+  .ol-bar-name { grid-column: 1; white-space: normal; }
+  .ol-bar-val { grid-column: 2; grid-row: 1; }
+  .ol-bar-track { grid-column: 1 / -1; grid-row: 2; }
+
+  /* The reference table still scrolls inside itself, with the identity column
+     pinned using the approved `.mv-col-company` compositing. */
+  .ol-table { min-inline-size: 560px; }
+  .ol-col-blend { inline-size: 150px; }
+  .ol-blend-id strong { font-size: .72rem; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mt-skel span { animation: none; }
+  .mt-seg button, .gd-strip button, .mt-disclose summary i { transition: none; }
+}
+
+/* `.mt-seg` is inline-flex, but inside the quote column's stretch alignment it
+   grew to the full width and stopped reading as a compact control. */
+.mt-quote .mt-seg { align-self: flex-start; }
+
+/* The calculator keeps its box while loading so the page does not reflow when
+   the price lands; only the value is withheld. */
+.gd-calc-skel, .ol-calc-skel { margin-block-start: 16px; }
+.gd-calc-skel .mt-skel span:first-child, .ol-calc-skel .mt-skel span:first-child { block-size: 34px; inline-size: 46%; }
+.mt-field input:disabled { opacity: .55; cursor: default; }
+
+/* The source link sits inline in a 17px meta line. Inline padding does not
+   move the line box but does enlarge the hit area, so the target grows without
+   the metadata growing. §26 */
+.mt-meta a { padding-block: 7px; }
+/* ════════════════════════════════════════════════════════════════════════════
+   Touch targets, measured by hit-testing outward from each control's centre.
+   ════════════════════════════════════════════════════════════════════════════
+
+   The segmented controls carry a real height: they sit in a row of their own
+   with nothing above or below to collide with, and the approved box already
+   reads as a control rather than a chip. The source link in the meta line gets
+   a pseudo-element instead — that line is 17px of metadata and growing it for
+   real would push the number above it. Vertical only, so the spans either side
+   of the link keep their own targets. */
+
+.mt-seg button { min-block-size: 44px; }
+
+.mt-meta a { position: relative; padding-block: 0; }
+.mt-meta a::before {
+  content: ''; position: absolute;
+  inset-inline: -6px; inset-block: -14px;
+}
+
+/* ── The blend table's own chrome ─────────────────────────────────────────
+   The approved oil table is written against `.mv-board-scroll` / `.mv-table` /
+   `.mv-col-*`, which the reference inherits from its market-board block. This
+   repo namespaced that board to `.mk-*` in Phase 2, so those four classes do
+   not exist here — the table rendered unstyled and, with the `min-inline-size`
+   the mobile breakpoint sets, pushed the whole page into horizontal scroll at
+   375px.
+
+   The rules the table actually needs are ported from the reference's own
+   board (globals.css 6148–6217), scoped under `.ol-scroll` / `.ol-table` so
+   nothing else in the product can see them. Declarations unchanged apart from
+   the scroll box, which is sized for a disclosure rather than a full-height
+   board. */
+.ol-scroll {
+  overflow: auto;
+  overscroll-behavior: contain;
+  scrollbar-color: rgba(49,113,198,.34) transparent;
+  scrollbar-width: thin;
+}
+.ol-table { inline-size: 100%; border-collapse: separate; border-spacing: 0; }
+.ol-table thead th {
+  position: sticky; inset-block-start: 0; z-index: 3;
+  padding: 0 12px; block-size: 36px;
+  border-block-end: 1px solid var(--mv-line-strong);
+  background: var(--mv-panel-solid);
+  color: var(--mv-ink-3); font: 600 .655rem var(--font-body), Arial, sans-serif;
+  text-align: start; white-space: nowrap;
+}
+.ol-table thead th.mv-col-num { text-align: end; }
+.ol-table tbody td {
+  padding: 0 12px; block-size: 46px;
+  border-block-end: 1px solid var(--mv-line);
+  color: var(--mv-ink-2);
+  font: 500 .765rem var(--font-numeric), ui-monospace, monospace;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap; vertical-align: middle;
+}
+.ol-table tbody td.mv-col-num { text-align: end; }
+.ol-table tbody td.mv-col-company { white-space: normal; }
+
+/* The rate switch inside the disclosure. The reference sets 34px here and
+   raises it to 44 at its own mobile breakpoint; it is raised in both, because
+   a pointer target is a target on a desktop too. */
+.ol-rate-row .mt-seg button { min-block-size: 44px; }

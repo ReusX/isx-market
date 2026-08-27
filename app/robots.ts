@@ -1,4 +1,5 @@
 import { MetadataRoute } from 'next'
+import { SITE } from '@/lib/seo'
 
 export default function robots(): MetadataRoute.Robots {
   return {
@@ -16,7 +17,7 @@ export default function robots(): MetadataRoute.Robots {
         disallow: ['/api/'],
       },
     ],
-    sitemap: 'https://iraqsm.com/sitemap.xml',
-    host: 'https://iraqsm.com',
+    sitemap: `${SITE}/sitemap.xml`,
+    host: SITE,
   }
 }

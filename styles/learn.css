@@ -1,0 +1,534 @@
+/* ── تعلّم · the Learn system ─────────────────────────────────────────────
+   A direct copy of the approved block (iqwealth-design/app/globals.css
+   12175–12623). Used by /learn, /learn/trading-from-zero and — through the
+   shared long-form view — /learn/[slug] and /news/[slug].
+
+   Adaptations, and only these:
+
+     · `.iq-dark` / `.iq-light` on the page root → `[data-theme]` on <html>.
+       This repo carries the theme in one place, set pre-paint; a second
+       source of truth for the same fact is how a theme flashes.
+
+     · Two Arabic letter-spacing declarations dropped, marked inline. Both
+       were already inert here — `styles/design-tokens.css` resets
+       letter-spacing on `.iq-page :lang(ar)` at (0,2,0), which outranks a
+       bare class rule — and §17 forbids tracking Arabic prose either way, so
+       they are removed rather than left as dead declarations.
+   ──────────────────────────────────────────────────────────────────────── */
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   تعلّم — the Learn system
+   ───────────────────────────────────────────────────────────────────────────
+   An EDITORIAL surface, and it is styled as one. Everything else in the
+   product is scanned; this is read, so the rules are different: a real reading
+   measure, generous leading, headings that carry weight rather than colour,
+   and almost no boxes.
+
+   Three layers:
+     .ln-page      the library — start-here, topics, latest, browse
+     .ln-art       the article/path template — reading column + rail
+     .ln-prose     the body vocabulary an editor writes against: headings,
+                   lists, tables, a formula block, three callout kinds, quotes
+
+   The library is built to scale to dozens of articles across several topics,
+   so the landing shows a WINDOW onto it (latest + a paged list) rather than
+   every row it will ever hold.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.ln-page, .ln-art {
+  inline-size: min(1180px, calc(100% - 48px));
+  margin: 0 auto;
+  padding: 22px 0 72px;
+  color: var(--mv-ink);
+}
+.ln-page, .ln-art { --mv-ink-3: #6e746f; }
+[data-theme='dark'] .ln-page, [data-theme='dark'] .ln-art { --mv-ink-3: #9ea29c; }
+
+.ln-head {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 16px; flex-wrap: wrap;
+  padding-block-end: 16px; margin-block-end: 26px;
+  border-block-end: 1px solid var(--mv-line);
+}
+.ln-title h1 { margin: 0; font: 700 1.3rem/1.2 var(--font-display); color: var(--mv-ink); }
+
+/* Section headings on the library page. A rule, not a card lid. */
+.ln-start h2, .ln-topics h2, .ln-latest h2, .ln-browse-head h2 {
+  margin: 0 0 12px; font: 700 .92rem var(--font-display); color: var(--mv-ink);
+}
+.ln-start, .ln-topics, .ln-latest { margin-block-end: 30px; }
+
+/* ── ابدأ من هنا · one entry, sized for a real path ──────────────────────── */
+/* Capped, and deliberately narrower than the library below it. At the page's
+   full 1170px the single entry point read as a banner with its CTA stranded a
+   screen away from the title it belongs to; at this measure it reads as one
+   focused invitation, which is what it is. */
+.ln-path {
+  display: flex; align-items: center; justify-content: space-between;
+  max-inline-size: 720px;
+  gap: 20px; padding: 20px 22px;
+  border: 1px solid var(--mv-line-strong); border-radius: 16px;
+  background: var(--mv-panel-solid); color: inherit; text-decoration: none;
+  transition: border-color .14s, background-color .14s;
+}
+.ln-path:hover { border-color: var(--mv-hero); }
+.ln-path:focus-visible { outline: 2px solid var(--mv-hero); outline-offset: 2px; }
+.ln-path-copy { display: flex; flex-direction: column; gap: 5px; min-inline-size: 0; }
+.ln-path-copy strong { font: 700 1.05rem var(--font-display); color: var(--mv-ink); }
+.ln-path-copy em { font-style: normal; font-size: .8rem; color: var(--mv-ink-2); }
+.ln-path-meta { display: flex; align-items: center; gap: 7px; font-size: .7rem; color: var(--mv-ink-3); }
+.ln-path-meta bdi { font-family: var(--font-numeric); font-weight: 700; color: var(--mv-ink-2); }
+.ln-path-meta i { font-style: normal; opacity: .45; }
+.ln-path-go {
+  display: inline-flex; align-items: center; gap: 6px; flex-shrink: 0;
+  min-block-size: 44px; padding-inline: 18px;
+  border-radius: 999px; background: var(--mv-hero); color: #fff;
+  font: 700 .8rem var(--font-body);
+}
+.ln-path-go i { font-style: normal; }
+
+/* ── المواضيع · placeholder labels, real behaviour ───────────────────────── */
+.ln-topics ul { display: flex; gap: 8px; flex-wrap: wrap; margin: 0; padding: 0; list-style: none; }
+.ln-topics button {
+  display: inline-flex; align-items: center; gap: 8px;
+  min-block-size: 44px; padding-inline: 14px;
+  border: 1px solid var(--mv-line-strong); border-radius: 999px;
+  background: none; color: var(--mv-ink-2); cursor: pointer;
+  font: 600 .78rem var(--font-body);
+  transition: border-color .13s, color .13s, background-color .13s;
+}
+.ln-topics button:hover { color: var(--mv-ink); border-color: var(--mv-ink-3); }
+.ln-topics button:focus-visible { outline: 2px solid var(--mv-hero); outline-offset: 2px; }
+.ln-topics button.is-on { border-color: var(--mv-hero); color: var(--mv-hero); background: rgba(49,113,198,.07); }
+[data-theme='dark'] .ln-topics button.is-on { border-color: var(--mv-hero-bright); color: var(--mv-hero-bright); background: rgba(90,160,232,.1); }
+.ln-topics bdi { font: 700 .7rem var(--font-numeric); color: var(--mv-ink-3); }
+.ln-topics button.is-on bdi { color: inherit; }
+
+/* ── أحدث المقالات · cards, and the ONLY cards on the page ───────────────── */
+.ln-feature {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(270px, 1fr));
+  gap: 14px; margin: 0; padding: 0; list-style: none;
+}
+.ln-feature a {
+  display: flex; flex-direction: column; gap: 7px; block-size: 100%;
+  padding: 18px; border: 1px solid var(--mv-line); border-radius: 14px;
+  background: var(--mv-panel-solid); color: inherit; text-decoration: none;
+  transition: border-color .14s;
+}
+.ln-feature a:hover { border-color: var(--mv-line-strong); }
+.ln-feature a:focus-visible { outline: 2px solid var(--mv-hero); outline-offset: 2px; }
+.ln-feature strong { font: 700 .95rem/1.45 var(--font-display); color: var(--mv-ink); }
+.ln-feature em { font-style: normal; font-size: .78rem; line-height: 1.6; color: var(--mv-ink-2); }
+.ln-card-topic {
+  align-self: flex-start; padding: 3px 9px; border-radius: 999px;
+  background: var(--mv-well); color: var(--mv-ink-3);
+  font: 600 .62rem var(--font-body);
+}
+.ln-card-meta {
+  display: flex; align-items: center; gap: 6px; flex-wrap: wrap;
+  margin-block-start: auto; padding-block-start: 10px;
+  font-size: .67rem; color: var(--mv-ink-3);
+}
+.ln-card-meta bdi { font-family: var(--font-numeric); font-weight: 600; }
+.ln-card-meta i { font-style: normal; opacity: .45; }
+
+/* ── جميع المقالات · rows, because a library scans better as a list ──────── */
+.ln-browse-head {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 14px; flex-wrap: wrap; margin-block-end: 12px;
+}
+.ln-search input {
+  min-inline-size: 260px; min-block-size: 44px; padding-inline: 14px;
+  border: 1px solid var(--mv-line-strong); border-radius: 11px;
+  background: var(--mv-panel); color: var(--mv-ink);
+  font: 500 .8rem var(--font-body);
+}
+.ln-search input:focus-visible { outline: 2px solid var(--mv-hero); outline-offset: 1px; border-color: var(--mv-hero); }
+.ln-search input:disabled { opacity: .55; }
+.ln-filtered {
+  display: flex; align-items: center; gap: 9px; flex-wrap: wrap;
+  margin: 0 0 10px; font-size: .72rem; color: var(--mv-ink-3);
+}
+.ln-filtered bdi { font: 700 .8rem var(--font-numeric); color: var(--mv-ink); }
+.ln-filtered button {
+  border: 0; background: none; cursor: pointer; padding: 4px 2px;
+  font: 600 .72rem var(--font-body); color: var(--mv-hero);
+}
+[data-theme='dark'] .ln-filtered button { color: var(--mv-hero-bright); }
+
+.ln-list { margin: 0; padding: 0; list-style: none; }
+.ln-list li { border-block-end: 1px solid var(--mv-line); }
+.ln-list a {
+  display: flex; align-items: center; gap: 16px; min-block-size: 74px;
+  padding-inline: 4px; color: inherit; text-decoration: none;
+  transition: background-color .12s;
+}
+.ln-list a:hover { background: var(--mv-well); }
+.ln-list a:focus-visible { outline: 2px solid var(--mv-hero); outline-offset: -2px; border-radius: 9px; }
+.ln-row-copy { display: flex; flex-direction: column; gap: 3px; flex: 1; min-inline-size: 0; }
+.ln-row-copy strong { font: 600 .9rem var(--font-display); color: var(--mv-ink); }
+.ln-row-copy em { font-style: normal; font-size: .74rem; color: var(--mv-ink-3); }
+.ln-row-meta { display: flex; align-items: center; gap: 12px; flex-shrink: 0; font-size: .69rem; color: var(--mv-ink-3); }
+.ln-row-meta bdi { font-family: var(--font-numeric); font-weight: 600; }
+.ln-row-go { font-style: normal; color: var(--mv-ink-3); font-size: 1rem; }
+
+.ln-more {
+  display: block; inline-size: 100%; min-block-size: 46px; margin-block-start: 16px;
+  border: 1px solid var(--mv-line-strong); border-radius: 11px;
+  background: none; color: var(--mv-ink-2); cursor: pointer;
+  font: 600 .78rem var(--font-body);
+  transition: background-color .13s, color .13s;
+}
+.ln-more:hover { background: var(--mv-well); color: var(--mv-ink); }
+.ln-more:focus-visible { outline: 2px solid var(--mv-hero); outline-offset: 2px; }
+
+/* ── States · the empty library is a designed state, not a hole ──────────── */
+.ln-empty {
+  display: flex; flex-direction: column; align-items: center; gap: 8px;
+  padding: 54px 22px; text-align: center;
+  border: 1px dashed var(--mv-line-strong); border-radius: 14px;
+}
+.ln-empty strong { font: 700 .98rem var(--font-display); color: var(--mv-ink); }
+.ln-empty span { font-size: .78rem; color: var(--mv-ink-2); }
+.ln-reset {
+  margin-block-start: 6px; min-block-size: 44px; padding-inline: 18px;
+  display: inline-flex; align-items: center;
+  border: 1px solid var(--mv-line-strong); border-radius: 11px;
+  background: none; color: var(--mv-ink-2); cursor: pointer; text-decoration: none;
+  font: 600 .76rem var(--font-body);
+}
+.ln-reset:hover { background: var(--mv-well); color: var(--mv-ink); }
+.ln-partial {
+  display: flex; align-items: flex-start; gap: 9px;
+  padding: 12px 14px; border: 1px solid rgba(168,100,42,.3); border-radius: 12px;
+  background: rgba(168,100,42,.06);
+  font-size: .74rem; line-height: 1.6; color: var(--mv-ink-2);
+}
+.ln-partial i { font-style: normal; color: #a8642a; flex-shrink: 0; line-height: 1.7; }
+[data-theme='dark'] .ln-partial { border-color: rgba(224,164,95,.26); background: rgba(224,164,95,.07); }
+[data-theme='dark'] .ln-partial i { color: #e0a45f; }
+
+.ln-skel span {
+  display: block; border-radius: 10px;
+  background: linear-gradient(90deg, var(--mv-well), var(--mv-line), var(--mv-well));
+  background-size: 200% 100%; animation: ln-shimmer 1.5s linear infinite;
+}
+.ln-skel.is-start span { block-size: 88px; }
+.ln-skel.is-topics { display: flex; gap: 8px; flex-wrap: wrap; }
+.ln-skel.is-topics span { block-size: 40px; inline-size: 110px; border-radius: 999px; }
+.ln-skel.is-latest { display: grid; grid-template-columns: repeat(auto-fill, minmax(270px, 1fr)); gap: 14px; }
+.ln-skel.is-latest span { block-size: 150px; }
+.ln-skel.is-list { display: flex; flex-direction: column; gap: 10px; }
+.ln-skel.is-list span { block-size: 66px; }
+.ln-skel.is-art { display: flex; flex-direction: column; gap: 14px; }
+.ln-skel.is-art span { block-size: 20px; }
+.ln-skel.is-art span:first-child { block-size: 40px; inline-size: 62%; }
+.ln-skel.is-art span:nth-child(2) { inline-size: 84%; }
+@keyframes ln-shimmer { from { background-position: 200% 0; } to { background-position: -200% 0; } }
+
+/* ═══ The article template ══════════════════════════════════════════════════ */
+.ln-art-head {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 16px; flex-wrap: wrap; margin-block-end: 24px;
+}
+.ln-crumbs { display: flex; align-items: center; gap: 8px; font-size: .73rem; color: var(--mv-ink-3); }
+/* The back link is the article's only escape route, and «تعلّم» is five
+   glyphs — 20×18px as bare text. It states the target size instead. */
+.ln-crumbs a {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-block-size: 44px; min-inline-size: 44px; padding-inline: 4px;
+  color: var(--mv-ink-2); text-decoration: none;
+}
+.ln-crumbs a:hover { color: var(--mv-hero); }
+.ln-crumbs i { font-style: normal; opacity: .45; }
+
+/* Reading column plus a rail. The rail is where navigation lives so the
+   reading measure is never widened to hold it. */
+.ln-art-grid { display: grid; grid-template-columns: minmax(0, 1fr) 260px; gap: 46px; align-items: start; }
+/* ~68 characters — the measure prose is actually read at. */
+.ln-body { max-inline-size: 68ch; min-inline-size: 0; }
+/* Negative tracking dropped · §17 · this heading is Arabic prose. */
+.ln-body h1 { margin: 12px 0 0; font: 700 clamp(1.5rem, 3vw, 2rem)/1.3 var(--font-display); color: var(--mv-ink); }
+/* Standfirst reads as part of the headline, not as the first paragraph. */
+.ln-standfirst { margin: 12px 0 0; font-size: 1rem; line-height: 1.7; color: var(--mv-ink-2); }
+.ln-art-meta {
+  display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+  margin: 16px 0 0; padding-block-end: 22px;
+  border-block-end: 1px solid var(--mv-line);
+  font-size: .71rem; color: var(--mv-ink-3);
+}
+.ln-art-meta bdi { font-family: var(--font-numeric); font-weight: 600; color: var(--mv-ink-2); }
+.ln-art-meta i { font-style: normal; opacity: .45; }
+
+/* ── .ln-prose · the body vocabulary ─────────────────────────────────────── */
+.ln-prose { padding-block-start: 8px; font-size: .95rem; line-height: 1.95; color: var(--mv-ink-2); }
+.ln-prose p { margin: 0 0 18px; }
+/* Asymmetric section rhythm: more air above a heading than below it, so the
+   heading binds to the text it introduces. */
+.ln-prose h2 { margin: 40px 0 14px; font: 700 1.22rem/1.4 var(--font-display); color: var(--mv-ink); }
+.ln-prose h3 { margin: 30px 0 10px; font: 700 1rem/1.45 var(--font-display); color: var(--mv-ink); }
+/* Tailwind's preflight strips `list-style` from every list, so an editorial
+   list has to ask for its markers back by name — without this, «خطوة، خطوة،
+   خطوة» is three unnumbered lines and an ordered list stops being ordered. */
+.ln-prose ul, .ln-prose ol { margin: 0 0 18px; padding-inline-start: 22px; }
+.ln-prose ul { list-style: disc; }
+.ln-prose ol { list-style: decimal; }
+.ln-prose li { margin-block-end: 7px; }
+.ln-prose li::marker { color: var(--mv-ink-3); }
+.ln-prose blockquote {
+  margin: 24px 0; padding-inline-start: 18px;
+  border-inline-start: 3px solid var(--mv-hero);
+  font-size: 1.02rem; line-height: 1.8; color: var(--mv-ink);
+}
+[data-theme='dark'] .ln-prose blockquote { border-inline-start-color: var(--mv-hero-bright); }
+
+/* Formula · an LTR island, because notation is not Arabic-ordered. */
+.ln-formula {
+  margin: 24px 0; padding: 18px 20px;
+  border: 1px solid var(--mv-line); border-radius: 12px;
+  background: var(--mv-well); text-align: center;
+}
+.ln-formula > span {
+  display: block; font: 600 1.15rem var(--font-numeric); color: var(--mv-ink);
+  letter-spacing: .01em;
+}
+.ln-formula figcaption { margin-block-start: 9px; font-size: .7rem; color: var(--mv-ink-3); }
+
+/* Callouts · three kinds, one shape. Distinguished by a rule and a label, not
+   by three different coloured boxes. */
+.ln-callout {
+  margin: 24px 0; padding: 15px 17px;
+  border-radius: 12px; background: var(--mv-well);
+  border-inline-start: 3px solid var(--mv-line-strong);
+}
+.ln-callout strong {
+  display: block; margin-block-end: 5px;
+  font: 700 .75rem var(--font-body); color: var(--mv-ink);
+}
+.ln-callout p { margin: 0; font-size: .88rem; line-height: 1.8; color: var(--mv-ink-2); }
+.ln-callout.is-example { border-inline-start-color: var(--mv-ink-3); }
+.ln-callout.is-define { border-inline-start-color: var(--mv-hero); }
+[data-theme='dark'] .ln-callout.is-define { border-inline-start-color: var(--mv-hero-bright); }
+.ln-callout.is-define strong { color: var(--mv-hero); }
+[data-theme='dark'] .ln-callout.is-define strong { color: var(--mv-hero-bright); }
+/* «في سوق العراق» is the one callout that is about THIS market, so it gets the
+   only accent the prose carries. */
+.ln-callout.is-iraq { border-inline-start-color: #0e7350; background: rgba(14,115,80,.05); }
+[data-theme='dark'] .ln-callout.is-iraq { border-inline-start-color: #40d795; background: rgba(64,215,149,.06); }
+
+/* Tables · quiet, and they scroll inside themselves.
+   ⚠ Three legacy rules reach this table and each had to be answered by name:
+   `table { min-inline-size: 900px }` forced it far past the 68ch reading
+   column; `th { position: sticky; background: var(--surface) }` painted the
+   header — and every row header — in the legacy DARK surface, which reads as a
+   black slab on paper; and `th, td { white-space: nowrap }` would stop prose
+   cells wrapping. None of them can be deleted: frozen routes depend on them. */
+.ln-table-wrap { margin: 24px 0; overflow-x: auto; }
+.ln-table { inline-size: 100%; min-inline-size: 0; border-collapse: collapse; font-size: .84rem; }
+.ln-table th, .ln-table td {
+  padding: 11px 12px; text-align: start; white-space: normal;
+  position: static; background: transparent; border-block-end: 0;
+}
+.ln-table thead th {
+  font: 600 .72rem var(--font-body); color: var(--mv-ink-3);
+  border-block-end: 1px solid var(--mv-line-strong);
+  white-space: nowrap;
+}
+.ln-table tbody th { font: 600 .84rem var(--font-body); color: var(--mv-ink); }
+.ln-table tbody td { color: var(--mv-ink-2); font-family: var(--font-numeric); }
+.ln-table tbody tr { border-block-end: 1px solid var(--mv-line); }
+.ln-table tbody tr:last-child { border-block-end: 0; }
+
+/* ── References · placeholder rows ───────────────────────────────────────── */
+.ln-refs { margin-block-start: 46px; padding-block-start: 22px; border-block-start: 1px solid var(--mv-line); }
+.ln-refs h2 { margin: 0 0 12px; font: 700 .88rem var(--font-display); color: var(--mv-ink); }
+.ln-refs ol { margin: 0; padding-inline-start: 20px; list-style: decimal; }
+.ln-refs li { margin-block-end: 9px; font-size: .78rem; line-height: 1.7; }
+.ln-refs li::marker { color: var(--mv-ink-3); }
+.ln-refs strong { color: var(--mv-ink); font-weight: 600; }
+.ln-refs span { color: var(--mv-ink-3); margin-inline-start: 8px; }
+
+/* ── Previous / next · the way onward the live template has none of ─────── */
+.ln-pn { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; margin-block-start: 34px; }
+.ln-pn a {
+  display: flex; flex-direction: column; gap: 4px;
+  padding: 15px 17px; border: 1px solid var(--mv-line); border-radius: 12px;
+  color: inherit; text-decoration: none; transition: border-color .13s;
+}
+.ln-pn a:hover { border-color: var(--mv-line-strong); }
+.ln-pn a:focus-visible { outline: 2px solid var(--mv-hero); outline-offset: 2px; }
+.ln-pn span { font-size: .67rem; color: var(--mv-ink-3); }
+.ln-pn strong { font: 600 .86rem var(--font-display); color: var(--mv-ink); }
+.ln-pn .is-next { text-align: end; }
+
+/* ── The rail · TOC + related ────────────────────────────────────────────── */
+.ln-rail { position: sticky; inset-block-start: 16px; display: flex; flex-direction: column; gap: 26px; }
+/* Positive tracking dropped · these two labels are Arabic («المحتويات»,
+   «مقالات ذات صلة») and Arabic is a joining script. */
+.ln-toc h2, .ln-related h2 {
+  margin: 0 0 10px; font: 700 .74rem var(--font-body); color: var(--mv-ink-3);
+}
+.ln-toc ol { margin: 0; padding: 0; list-style: none; border-inline-start: 1px solid var(--mv-line); }
+/* 44px, not the reference's 6px padding — the contents list is a real tap
+   target, and on a phone it is the article's whole navigation. */
+.ln-toc li a {
+  display: flex; align-items: center; min-block-size: 44px;
+  padding: 6px 12px; margin-inline-start: -1px;
+  border-inline-start: 2px solid transparent;
+  font-size: .76rem; line-height: 1.5; color: var(--mv-ink-3); text-decoration: none;
+  transition: color .13s, border-color .13s;
+}
+.ln-toc li a:hover { color: var(--mv-ink); }
+.ln-toc li a:focus-visible { outline: 2px solid var(--mv-hero); outline-offset: -2px; }
+.ln-toc li.is-sub a { padding-inline-start: 24px; font-size: .72rem; }
+/* Position, stated. The live guide's contents list is text with no anchors. */
+.ln-toc li.is-on a { color: var(--mv-hero); border-inline-start-color: var(--mv-hero); font-weight: 600; }
+[data-theme='dark'] .ln-toc li.is-on a { color: var(--mv-hero-bright); border-inline-start-color: var(--mv-hero-bright); }
+
+.ln-related ul { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; }
+.ln-related li { border-block-end: 1px solid var(--mv-line); }
+.ln-related li:last-child { border-block-end: 0; }
+/* The reference sizes these rows for a title plus a duration line. A news
+   article carries no duration, so a one-line title collapsed the row to 41px —
+   the minimum states the target rather than relying on the content. */
+.ln-related a {
+  display: flex; flex-direction: column; justify-content: center; gap: 3px;
+  min-block-size: 44px; padding-block: 11px;
+  color: inherit; text-decoration: none;
+}
+.ln-related strong { font: 600 .8rem var(--font-body); color: var(--mv-ink); line-height: 1.45; }
+.ln-related a:hover strong { color: var(--mv-hero); }
+[data-theme='dark'] .ln-related a:hover strong { color: var(--mv-hero-bright); }
+.ln-related em { font-style: normal; font-size: .67rem; color: var(--mv-ink-3); }
+.ln-related bdi { font-family: var(--font-numeric); font-weight: 600; }
+
+/* ── The path variant ────────────────────────────────────────────────────── */
+.ln-path-page .ln-prose h2 { display: flex; align-items: center; gap: 11px; }
+.ln-step {
+  inline-size: 28px; block-size: 28px; flex-shrink: 0;
+  display: grid; place-items: center; border-radius: 50%;
+  background: var(--mv-well); color: var(--mv-ink-3);
+  font: 700 .74rem var(--font-numeric);
+}
+.ln-progress { display: flex; align-items: center; gap: 8px; margin: 0 0 12px; font-size: .69rem; color: var(--mv-ink-3); }
+.ln-progress bdi { font-family: var(--font-numeric); font-weight: 700; color: var(--mv-ink-2); }
+.ln-progress-track { flex: 1; block-size: 4px; border-radius: 2px; background: var(--mv-well); overflow: hidden; }
+.ln-progress-track i { display: block; block-size: 100%; background: var(--mv-hero); border-radius: 2px; }
+[data-theme='dark'] .ln-progress-track i { background: var(--mv-hero-bright); }
+.ln-toc.is-path li a { display: flex; align-items: baseline; gap: 9px; }
+.ln-toc.is-path bdi { font-family: var(--font-numeric); font-weight: 700; opacity: .6; }
+
+/* ── Responsive ──────────────────────────────────────────────────────────── */
+@media (max-width: 1280px) { .ln-page, .ln-art { inline-size: calc(100% - 34px); } }
+
+@media (max-width: 1000px) {
+  .ln-art-grid { grid-template-columns: minmax(0, 1fr); gap: 30px; }
+  /* `display: contents` dissolves the rail so its two children become grid
+     items in their own right. Ordering them inside a still-intact rail would
+     only shuffle them within it — and that put THREE related-article rows
+     between the reader and the article title. The contents list keeps its
+     place above a long read; everything else follows the body. */
+  .ln-rail { display: contents; }
+  .ln-toc { order: -1; }
+  .ln-related { order: 1; }
+  .ln-toc ol { display: flex; flex-wrap: wrap; gap: 2px; border-inline-start: 0; }
+  .ln-toc li a { border-inline-start: 0; border-block-end: 2px solid transparent; padding: 8px 10px; }
+  .ln-toc li.is-on a { border-inline-start: 0; border-block-end-color: var(--mv-hero); }
+  [data-theme='dark'] .ln-toc li.is-on a { border-block-end-color: var(--mv-hero-bright); }
+  .ln-toc li.is-sub a { padding-inline-start: 10px; }
+  .ln-body { max-inline-size: none; }
+}
+
+@media (max-width: 720px) {
+  .ln-page, .ln-art { inline-size: calc(100% - 20px); padding: 14px 0 56px; }
+  .mv-preview { display: none; }
+  .ln-path { flex-direction: column; align-items: stretch; gap: 14px; }
+  .ln-path-go { justify-content: center; }
+  .ln-search input { inline-size: 100%; min-inline-size: 0; }
+  .ln-browse-head { align-items: stretch; flex-direction: column; gap: 10px; }
+  /* Rows restack: title and summary, then the metadata beneath. */
+  .ln-list a { flex-wrap: wrap; gap: 6px 12px; padding-block: 14px; min-block-size: 0; }
+  .ln-row-copy { flex-basis: 100%; }
+  .ln-row-go { display: none; }
+  .ln-prose { font-size: .92rem; line-height: 1.9; }
+  .ln-prose h2 { margin-block-start: 32px; font-size: 1.12rem; }
+  .ln-pn .is-next { text-align: start; }
+  /* The topic strip scrolls rather than wrapping to four lines. */
+  .ln-topics ul { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; padding-block-end: 2px; }
+  .ln-topics ul::-webkit-scrollbar { display: none; }
+  .ln-topics button { white-space: nowrap; min-block-size: 44px; }
+  /* Same treatment for the contents list. Wrapped, real headings would stack
+     into a four-line block above every article; scrolled, it stays one line
+     and keeps the same gesture the topic strip already taught. */
+  .ln-toc ol { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; }
+  .ln-toc ol::-webkit-scrollbar { display: none; }
+  .ln-toc li a { white-space: nowrap; max-inline-size: 46vw; overflow: hidden; text-overflow: ellipsis; }
+  /* ⚠ TRAP · the legacy layer at line ~5019 restacks EVERY `table` into
+     card-per-row on mobile — `display: block`, a visually-hidden `thead` and a
+     `td::before` label pulled from `data-label`. It is load-bearing for frozen
+     routes, so it stays; but it caught this table too, and the result was three
+     black slabs with no header and unreadable text. A prose table is not a data
+     grid: it has few columns, it is read left-to-right, and it already scrolls
+     inside `.ln-table-wrap`. So this puts it back. */
+  .ln-table, .ln-table thead, .ln-table tbody, .ln-table tr, .ln-table th, .ln-table td { display: revert; }
+  .ln-table { min-inline-size: 420px; }
+  .ln-table thead { position: static; inline-size: auto; block-size: auto; overflow: visible; clip: auto; }
+  .ln-table tr { margin: 0; border: 0; border-radius: 0; background: transparent; }
+  .ln-table tbody tr { border-block-end: 1px solid var(--mv-line); }
+  .ln-table th, .ln-table td { padding: 10px 11px; }
+  .ln-table td::before { content: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ln-skel span { animation: none; }
+  .ln-path, .ln-feature a, .ln-list a, .ln-topics button, .ln-more, .ln-pn a, .ln-toc li a { transition: none; }
+}
+
+/* ── The WordPress body inside `.ln-prose` ────────────────────────────────
+   The approved article template renders a structured block list, so its prose
+   vocabulary covers headings, paragraphs, lists, quotes and a formula figure —
+   everything an editor writes AGAINST. A CMS article arrives instead as one
+   blob of WordPress HTML, and it carries three things that list does not:
+   links, images and tables.
+
+   This block is deliberately scoped to `.ln-prose`. The pre-redesign article
+   styling lives on a bare `.wp-content` class in app/globals.css and reaches
+   whatever it is dropped into; namespacing here is what keeps an editorial
+   `<table>` from restyling a market board. */
+.ln-prose a {
+  color: var(--mv-hero); text-decoration: underline; text-underline-offset: 3px;
+  text-decoration-thickness: 1px;
+}
+[data-theme='dark'] .ln-prose a { color: var(--mv-hero-bright); }
+.ln-prose img {
+  display: block; max-inline-size: 100%; block-size: auto;
+  margin: 22px auto; border-radius: 12px;
+}
+.ln-prose figure { margin: 22px 0; }
+.ln-prose figcaption {
+  margin-block-start: 8px; font-size: .74rem; line-height: 1.7;
+  color: var(--mv-ink-3); text-align: center;
+}
+.ln-prose iframe { max-inline-size: 100%; border: 0; border-radius: 12px; }
+/* A wide table scrolls inside its own box; the page never scrolls sideways. */
+.ln-prose table {
+  display: block; overflow-x: auto; max-inline-size: 100%;
+  margin: 22px 0; border-collapse: collapse; font-size: .88rem;
+}
+.ln-prose th, .ln-prose td {
+  padding: 9px 12px; border: 1px solid var(--mv-line); text-align: start;
+}
+.ln-prose th { font-weight: 700; color: var(--mv-ink); background: var(--mv-well); }
+.ln-prose hr { margin: 30px 0; border: 0; border-block-start: 1px solid var(--mv-line); }
+.ln-prose > :first-child { margin-block-start: 0; }
+
+/* The lead image, above the body. Kept out of `.ln-prose` so it is not
+   confused with an inline figure the editor placed. */
+.ln-lead-img {
+  display: block; inline-size: 100%; block-size: auto;
+  margin: 22px 0 0; border-radius: 14px; border: 1px solid var(--mv-line);
+}
+
+/* An article with no outline and nothing related has no rail, so the reading
+   column takes the full measure rather than leaving a column of air. */
+.ln-art-grid.is-solo { grid-template-columns: minmax(0, 1fr); }

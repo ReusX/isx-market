@@ -1,0 +1,654 @@
+/* ════════════════════════════════════════════════════════════════════════════
+   صفحة الشركة — a DIRECT PORT of the approved company page.
+   ════════════════════════════════════════════════════════════════════════════
+
+   Source: `/Users/amed/iqwealth-design/app/globals.css` lines 7087–7698, the
+   route's own block, extracted by matching the block boundary. The chart
+   instrument's chrome is in styles/chart-engine.css; the panel vocabulary and
+   the ⓘ affordance are in styles/panels.css, ported once.
+
+   ── The adaptations, and only these ────────────────────────────────
+     · `.company-v2` → `.cd-page`, matching `.pl-page` and `.nw-page`.
+     · `.iq-dark` on the page root → `[data-theme='dark']` on <html>.
+     · `--font-numeric` / `--font-body` gain this repo's fallback stacks.
+     · the design-mode toolbar rules are dropped — they do not ship.
+     · the rules styles/panels.css already defines (`.cd-panel-head`,
+       `.cd-panel-note`, `.cd-cell-label`, `.cd-ticker`, `.cd-nodata*`) are
+       removed here rather than declared twice; their dark-theme counterparts
+       moved up to sit beside them.
+
+   `.cd-*` was unused in this repo before the pulse port borrowed the panel
+   chrome, and nothing else claims the family.
+   ════════════════════════════════════════════════════════════════════════════ */
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   صفحة الشركة — the company page
+   ═══════════════════════════════════════════════════════════════════════════
+
+   Page 04. Sits on the SHARED layer above (`.iq-page` / `[data-theme]`) — the
+   environment, the floating shell, the `.mv-*` control and state language are
+   all inherited, so this file adds only what one company needs that a list of
+   companies did not.
+
+   The composition is deliberately unlike the board and the screener: those
+   are instruments for scanning many rows, this is a document about one thing.
+   Hence a masthead, a two-column market block, and a reading column at the
+   bottom that is genuinely prose.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.cd-page {
+  inline-size: min(1520px, calc(100% - 48px));
+  margin: 0 auto;
+  padding: 22px 0 64px;
+  color: var(--mv-ink);
+}
+
+
+/* ── Breadcrumbs ────────────────────────────────────────────────────────────
+   Quiet by instruction, and quiet is a size and a colour, not a smaller box:
+   they sit on the canvas with no surface at all. */
+.cd-crumbs ol { display: flex; align-items: center; gap: 7px; margin: 0 0 12px; padding: 0 4px; list-style: none; }
+.cd-crumbs li { display: flex; align-items: center; gap: 7px; color: var(--mv-ink-3); font-size: .69rem; }
+.cd-crumbs li + li::before { content: "‹"; color: var(--mv-ink-3); opacity: .55; }
+.cd-crumbs a { color: var(--mv-ink-3); text-decoration: none; }
+.cd-crumbs a:hover { color: var(--mv-hero); }
+.cd-crumbs [aria-current] { color: var(--mv-ink-2); font-weight: 600; }
+
+/* ── Masthead ───────────────────────────────────────────────────────────────
+   One surface carrying identity, price and actions, because they are one
+   thought. The price is on the far inline edge on a wide screen so the eye
+   travels name → number in one move, and the actions sit under the number
+   rather than beside the name — you decide to follow a company after you have
+   seen what it is doing, not before. */
+.cd-identity {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 22px 30px;
+  padding: 18px 22px;
+  border: 1px solid var(--mv-line);
+  border-radius: 20px;
+  background: var(--mv-panel);
+  box-shadow: var(--mv-shadow);
+  backdrop-filter: blur(20px) saturate(120%);
+}
+
+.cd-id-main { display: flex; align-items: center; gap: 15px; min-inline-size: 0; }
+.cd-id-text { min-inline-size: 0; }
+.cd-id-text h1 {
+  margin: 0;
+  font-size: clamp(1.2rem, 1.85vw, 1.72rem);
+  line-height: 1.24;
+  letter-spacing: -.045em;
+  color: var(--mv-ink);
+  /* Iraqi company names run long — "المصرف العراقي الإسلامي للاستثمار
+     والتنمية" is 43 characters. Two lines is fine on a masthead; three is a
+     header that has become a paragraph. */
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+}
+.cd-id-meta { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin: 6px 0 0; color: var(--mv-ink-2); font-size: .74rem; }
+.cd-id-meta a { color: var(--mv-ink-2); text-decoration: none; border-block-end: 1px solid transparent; }
+.cd-id-meta a:hover { color: var(--mv-hero); border-color: currentColor; }
+.cd-sep { color: var(--mv-ink-3); opacity: .6; }
+.cd-id-en { margin: 5px 0 0; color: var(--mv-ink-3); font-size: .68rem; letter-spacing: .01em; }
+
+/* Logo fallback. Deliberate, not degraded — 57 of 104 companies land here. */
+.cd-mark {
+  display: grid; place-items: center; flex: none;
+  inline-size: 54px; block-size: 54px;
+  border: 1px solid var(--mv-line);
+  border-radius: 16px;
+  background: linear-gradient(150deg, rgba(49,113,198,.14), rgba(49,113,198,.05));
+  color: var(--mv-hero);
+  font: 700 1.02rem/1 var(--font-numeric), ui-monospace, monospace;
+  letter-spacing: .02em;
+  box-shadow: inset 0 1px rgba(255,255,255,.55);
+}
+/* A real logo gets a light plate in BOTH themes: a dark monochrome mark on a
+   dark tile is invisible, and letterboxing an awkward aspect ratio beats
+   stretching it. */
+.cd-mark.has-logo { background: #fff; border-color: rgba(30,34,32,.1); color: #26456f; box-shadow: inset 0 1px rgba(255,255,255,.9); }
+.cd-mark-img { inline-size: 62%; block-size: 62%; object-fit: contain; }
+
+/* ── Price block ────────────────────────────────────────────────────────── */
+.cd-id-price { display: flex; flex-direction: column; align-items: flex-start; gap: 5px; }
+.cd-price-label { color: var(--mv-ink-3); font-size: .66rem; }
+/* Prominent, not absurd: it stops well short of the 44px display size, because
+   a price that outweighs the company's own name is a chart, not a page. */
+.cd-price { display: flex; align-items: baseline; gap: 6px; font: 700 2.05rem/1 var(--font-numeric), ui-monospace, monospace; letter-spacing: -.03em; color: var(--mv-ink); }
+.cd-price small { font: 600 .68rem var(--font-body), Arial, sans-serif; color: var(--mv-ink-3); letter-spacing: 0; }
+.cd-price-dead { color: var(--mv-ink-2); }
+
+.cd-change { display: flex; align-items: baseline; gap: 9px; font: 700 .92rem var(--font-numeric), ui-monospace, monospace; }
+.cd-change.positive { color: var(--mv-up); }
+.cd-change.negative { color: var(--mv-down); }
+.cd-change.neutral { color: var(--mv-ink-2); }
+.cd-change-pct { padding: 2px 7px; border-radius: 7px; background: currentColor; font-size: .8rem; }
+.cd-change-pct bdi, .cd-change-pct { color: inherit; }
+.cd-change.positive .cd-change-pct { background: var(--mv-up-soft); }
+.cd-change.negative .cd-change-pct { background: var(--mv-down-soft); }
+.cd-change.neutral .cd-change-pct { background: var(--mv-well); }
+.cd-change-none { display: flex; align-items: center; gap: 7px; color: var(--mv-ink-3); font: 500 .74rem var(--font-body), Arial, sans-serif; }
+
+.cd-state { display: flex; align-items: center; gap: 6px; margin-block-start: 2px; color: var(--mv-ink-3); font-size: .68rem; }
+.cd-state i { inline-size: 6px; block-size: 6px; border-radius: 50%; background: var(--mv-ink-3); opacity: .7; }
+.cd-state-dead { color: var(--mv-down); font-weight: 600; }
+
+/* ── Actions ────────────────────────────────────────────────────────────────
+   Easy to find, never louder than the research below them. No filled primary
+   button: there is no single action this page wants you to take. */
+.cd-id-actions { display: flex; flex-direction: column; gap: 6px; }
+.cd-action {
+  display: inline-flex; align-items: center; gap: 7px;
+  block-size: 33px;
+  padding-inline: 12px;
+  border: 1px solid var(--mv-line-strong);
+  border-radius: 11px;
+  background: var(--mv-well);
+  color: var(--mv-ink-2);
+  font: 600 .71rem var(--font-body), Arial, sans-serif;
+  text-decoration: none;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: color .15s, border-color .15s, background-color .15s;
+}
+.cd-action:hover { color: var(--mv-hero); border-color: rgba(49,113,198,.42); }
+.cd-action i { font-style: normal; font-size: .8rem; line-height: 1; }
+.cd-action.is-on { color: var(--mv-hero); border-color: rgba(49,113,198,.45); background: rgba(49,113,198,.1); }
+
+/* ── Section anchors ────────────────────────────────────────────────────── */
+.cd-anchors { display: flex; align-items: center; gap: 3px; margin: 14px 0 12px; padding: 0 2px; flex-wrap: wrap; }
+.cd-anchors a {
+  padding: 6px 12px;
+  border-radius: 9px;
+  color: var(--mv-ink-2);
+  font: 600 .72rem var(--font-body), Arial, sans-serif;
+  text-decoration: none;
+  transition: color .15s, background-color .15s;
+}
+.cd-anchors a:hover { color: var(--mv-ink); background: var(--mv-well); }
+.cd-anchors a[aria-current] { color: white; background: var(--mv-hero); box-shadow: 0 3px 10px rgba(49,113,198,.26); }
+.cd-anchors-out { margin-inline-start: auto; color: var(--mv-hero) !important; }
+.cd-anchors-out i { font-style: normal; }
+
+/* ── Market block ───────────────────────────────────────────────────────────
+   Chart and session data side by side, because the rail is read AGAINST the
+   chart. Stacked, the reader has to hold the day's high in memory while
+   scrolling to find where it sits on the line. */
+.cd-market { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 14px; align-items: start; }
+
+.cd-chart, .cd-rail, .cd-panel {
+  padding: 15px 17px;
+  border: 1px solid var(--mv-line);
+  border-radius: 18px;
+  background: var(--mv-panel-solid);
+  box-shadow: var(--mv-shadow);
+}
+
+.cd-chart-head { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; margin-block-end: 10px; }
+.cd-chart-title { display: flex; align-items: baseline; gap: 12px; }
+.cd-chart-delta { display: flex; align-items: baseline; gap: 6px; font: 700 .92rem var(--font-numeric), ui-monospace, monospace; }
+.cd-chart-delta small { color: var(--mv-ink-3); font: 500 .64rem var(--font-body), Arial, sans-serif; }
+.cd-chart-delta.positive { color: var(--mv-up); }
+.cd-chart-delta.negative { color: var(--mv-down); }
+.cd-chart-delta.neutral { color: var(--mv-ink-2); }
+
+/* Period controls. Compact segments, not six large pills — six pills is a
+   toolbar, and this is a footnote to the chart. */
+.cd-periods { display: flex; gap: 2px; margin-inline-start: auto; padding: 3px; border-radius: 11px; background: rgba(30,34,32,.055); }
+.cd-periods button {
+  padding: 5px 11px;
+  border: 0; border-radius: 8px;
+  background: none;
+  color: var(--mv-ink-2);
+  font: 600 .69rem var(--font-body), Arial, sans-serif;
+  cursor: pointer;
+  transition: background-color .15s, color .15s;
+}
+.cd-periods button:hover:not(:disabled) { color: var(--mv-ink); }
+.cd-periods button.active { color: white; background: var(--mv-hero); box-shadow: 0 3px 10px rgba(49,113,198,.28); }
+/* A period the company has no history for is disabled, not silently short. */
+.cd-periods button:disabled { color: var(--mv-ink-3); opacity: .4; cursor: not-allowed; }
+
+/* ── The plot ───────────────────────────────────────────────────────────── */
+.cd-plot { position: relative; margin: 0; }
+.cd-plot svg { display: block; inline-size: 100%; block-size: 306px; overflow: visible; touch-action: pan-y; }
+.cd-grid { stroke: var(--mv-line); stroke-width: 1; vector-effect: non-scaling-stroke; }
+.cd-band-line { stroke: var(--mv-ink-3); stroke-width: 1; stroke-dasharray: 3 5; opacity: .45; vector-effect: non-scaling-stroke; }
+.cd-line { fill: none; stroke: var(--mv-hero); stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; vector-effect: non-scaling-stroke; }
+.cd-last-line { stroke: var(--mv-hero); stroke-width: 1; stroke-dasharray: 2 4; opacity: .5; vector-effect: non-scaling-stroke; }
+.cd-last-dot { fill: var(--mv-hero); stroke: var(--mv-panel-solid); stroke-width: 2; vector-effect: non-scaling-stroke; }
+.cd-vol { fill: var(--mv-ink-3); opacity: .28; }
+.cd-cross { stroke: var(--mv-ink-2); stroke-width: 1; stroke-dasharray: 2 3; opacity: .6; vector-effect: non-scaling-stroke; }
+.cd-cross-dot { fill: var(--mv-hero); stroke: var(--mv-panel-solid); stroke-width: 2; vector-effect: non-scaling-stroke; }
+
+/* The tooltip is HTML, not SVG text: preserveAspectRatio="none" stretches the
+   plot to the container and would stretch any glyph inside it with it. */
+.cd-tip {
+  position: absolute; inset-block-start: 6px;
+  transform: translateX(50%);
+  min-inline-size: 132px;
+  padding: 8px 11px;
+  border: 1px solid var(--mv-line-strong);
+  border-radius: 12px;
+  background: var(--mv-panel-solid);
+  box-shadow: 0 14px 34px rgba(30,34,32,.14);
+  pointer-events: none;
+}
+[dir="rtl"] .cd-tip { transform: translateX(-50%); }
+.cd-tip-date { display: block; margin-block-end: 5px; color: var(--mv-ink-3); font-size: .62rem; }
+.cd-tip dl { display: grid; gap: 2px; margin: 0; }
+.cd-tip dl div { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+.cd-tip dt { color: var(--mv-ink-3); font-size: .64rem; }
+.cd-tip dd { margin: 0; color: var(--mv-ink); font: 600 .7rem var(--font-numeric), ui-monospace, monospace; }
+
+.cd-plot-foot { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; margin-block-start: 8px; color: var(--mv-ink-3); font-size: .65rem; }
+.cd-plot-legend { display: inline-flex; align-items: center; gap: 6px; }
+.cd-plot-legend i { inline-size: 13px; block-size: 3px; border-radius: 2px; background: var(--mv-hero); }
+.cd-plot-legend i.vol { block-size: 8px; inline-size: 4px; background: var(--mv-ink-3); opacity: .45; }
+.cd-plot-band { display: inline-flex; align-items: center; gap: 7px; margin-inline-start: auto; }
+.cd-plot-track { position: relative; inline-size: 96px; block-size: 4px; border-radius: 3px; background: linear-gradient(to left, var(--mv-line-strong), var(--mv-line)); }
+.cd-plot-track i { position: absolute; inset-block: -3px; inline-size: 2px; border-radius: 2px; background: var(--mv-hero); }
+
+.cd-chart-skeleton { block-size: 306px; border-radius: 14px; background: var(--mv-well); overflow: hidden; }
+.cd-chart-skeleton i { display: block; block-size: 100%; background: linear-gradient(90deg, transparent, var(--mv-line), transparent); background-size: 200% 100%; animation: mv-shimmer 1.4s linear infinite; }
+.cd-chart-empty, .cd-chart-fail { display: flex; align-items: center; gap: 13px; min-block-size: 200px; padding: 20px; border-radius: 14px; background: var(--mv-well); }
+.cd-chart-empty { flex-direction: column; justify-content: center; text-align: center; }
+.cd-chart-empty strong, .cd-chart-fail strong { color: var(--mv-ink); font: 600 .86rem var(--font-body), Arial, sans-serif; }
+.cd-chart-empty p, .cd-chart-fail p { max-inline-size: 44ch; margin: 5px 0 0; color: var(--mv-ink-3); font-size: .73rem; line-height: 1.6; }
+.cd-chart-fail { min-block-size: 306px; }
+.cd-chart-fail div { flex: 1; }
+.cd-chart-fail button {
+  padding: 9px 17px; border: 1px solid var(--mv-line-strong); border-radius: 11px;
+  background: var(--mv-panel-solid); color: var(--mv-ink); font: 600 .73rem var(--font-body), Arial, sans-serif; cursor: pointer;
+}
+
+/* ── Session rail ───────────────────────────────────────────────────────────
+   Four groups separated by hairlines. No boxes: a box around three numbers
+   claims they are a unit worth its own frame, and the ink spent on eight such
+   frames is ink not spent on the numbers. */
+.cd-rail { display: flex; flex-direction: column; gap: 12px; }
+.cd-rail-group { display: flex; flex-direction: column; gap: 1px; padding-block-end: 12px; border-block-end: 1px solid var(--mv-line); }
+.cd-rail-group:last-child { padding-block-end: 0; border-block-end: 0; }
+.cd-rail-row { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; padding-block: 5px; }
+.cd-rail-row dt { color: var(--mv-ink-3); font-size: .7rem; }
+.cd-rail-row dd { display: flex; align-items: baseline; gap: 4px; margin: 0; color: var(--mv-ink); font: 600 .78rem var(--font-numeric), ui-monospace, monospace; }
+.cd-rail-row dd small { color: var(--mv-ink-3); font: 500 .6rem var(--font-body), Arial, sans-serif; }
+.cd-rail-row.is-strong dd { font-size: .92rem; font-weight: 700; }
+.cd-rail-note { margin: 6px 0 0; color: var(--mv-ink-3); font-size: .69rem; line-height: 1.65; }
+
+.cd-daybar { margin-block-start: 8px; }
+.cd-daybar-track { position: relative; block-size: 5px; border-radius: 3px; background: var(--mv-well); border: 1px solid var(--mv-line); }
+.cd-daybar-track i { position: absolute; inset-block: -4px; inline-size: 3px; border-radius: 2px; background: var(--mv-hero); box-shadow: 0 0 0 3px rgba(49,113,198,.14); }
+.cd-daybar-ends { display: flex; justify-content: space-between; margin-block-start: 7px; }
+.cd-daybar-ends span { display: flex; flex-direction: column; gap: 2px; }
+.cd-daybar-ends em { color: var(--mv-ink-3); font: 500 .62rem var(--font-body), Arial, sans-serif; font-style: normal; }
+.cd-daybar-ends bdi { color: var(--mv-ink); font: 600 .76rem var(--font-numeric), ui-monospace, monospace; }
+.cd-daybar-ends span:last-child { text-align: end; }
+
+.cd-rail-dead { padding-block-end: 12px; border-block-end: 1px solid var(--mv-line); }
+.cd-rail-dead strong { display: block; color: var(--mv-ink); font: 600 .82rem var(--font-body), Arial, sans-serif; }
+.cd-rail-dead p { margin: 6px 0 0; color: var(--mv-ink-3); font-size: .69rem; line-height: 1.7; }
+
+/* ── Panels ─────────────────────────────────────────────────────────────── */
+.cd-band-row { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); gap: 14px; margin-block-start: 14px; }
+.cd-band-row:has(> :only-child) { grid-template-columns: 1fr; }
+
+
+.cd-sec-head { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; margin: 30px 4px 12px; }
+.cd-sec-head h2 { margin: 0; font-size: 1.1rem; letter-spacing: -.03em; color: var(--mv-ink); }
+.cd-sec-head p { flex: 1 1 220px; margin: 0; color: var(--mv-ink-3); font-size: .69rem; }
+.cd-sec-head a { margin-inline-start: auto; color: var(--mv-hero); font: 600 .73rem var(--font-body), Arial, sans-serif; text-decoration: none; white-space: nowrap; }
+.cd-sec-head a:hover { text-decoration: underline; }
+.cd-sec-head i { font-style: normal; }
+
+/* ── Performance ────────────────────────────────────────────────────────────
+   Two bars per row on a shared centre, so "beat the index" is a shape rather
+   than a subtraction the reader performs. */
+.cd-perf { display: flex; flex-direction: column; gap: 3px; }
+.cd-perf-row { display: grid; grid-template-columns: 92px minmax(0, 1fr) 128px; align-items: center; gap: 12px; padding-block: 5px; }
+.cd-perf-label { color: var(--mv-ink-2); font-size: .71rem; }
+.cd-perf-bars { display: flex; flex-direction: column; gap: 3px; }
+.cd-perf-bar { position: relative; block-size: 9px; border-radius: 3px; background: var(--mv-well); }
+.cd-perf-bar::before { content: ""; position: absolute; inset-block: -2px; inset-inline-start: 50%; inline-size: 1px; background: var(--mv-line-strong); }
+.cd-perf-bar i { position: absolute; inset-block: 0; border-radius: 3px; background: var(--mv-hero); }
+.cd-perf-bar.bm i { background: var(--mv-ink-3); opacity: .5; }
+.cd-perf-bar.pos i { border-start-start-radius: 0; border-end-start-radius: 0; }
+.cd-perf-bar.co.neg i { background: var(--mv-down); }
+.cd-perf-values { display: flex; align-items: baseline; justify-content: flex-end; gap: 12px; font: 700 .8rem var(--font-numeric), ui-monospace, monospace; }
+.cd-perf-values .positive { color: var(--mv-up); }
+.cd-perf-values .negative { color: var(--mv-down); }
+.cd-perf-values .neutral { color: var(--mv-ink-2); }
+.cd-perf-bm { color: var(--mv-ink-3); font-weight: 500; font-size: .73rem; }
+.cd-perf-legend { display: flex; gap: 14px; margin-block-start: 9px; color: var(--mv-ink-3); font-size: .65rem; }
+.cd-perf-legend i { display: inline-block; inline-size: 11px; block-size: 8px; border-radius: 2px; margin-inline-end: 5px; background: var(--mv-hero); }
+.cd-perf-legend i.bm { background: var(--mv-ink-3); opacity: .5; }
+
+/* ── Foreign flow ───────────────────────────────────────────────────────── */
+.cd-foreign { display: flex; flex-direction: column; gap: 14px; }
+.cd-foreign-net { display: flex; flex-direction: column; gap: 3px; }
+.cd-foreign-net strong { display: flex; align-items: baseline; gap: 6px; font: 700 1.5rem var(--font-numeric), ui-monospace, monospace; letter-spacing: -.03em; }
+.cd-foreign-net strong.positive { color: var(--mv-up); }
+.cd-foreign-net strong.negative { color: var(--mv-down); }
+.cd-foreign-net strong.neutral { color: var(--mv-ink-2); }
+.cd-foreign-net strong small { color: var(--mv-ink-3); font: 600 .64rem var(--font-body), Arial, sans-serif; }
+.cd-foreign-sub { color: var(--mv-ink-3); font-size: .69rem; line-height: 1.6; }
+.cd-foreign-bar { display: flex; block-size: 10px; border-radius: 4px; overflow: hidden; background: var(--mv-well); }
+.cd-foreign-bar i.buy { background: var(--mv-up); }
+.cd-foreign-bar i.sell { background: var(--mv-down); }
+.cd-foreign-keys { display: flex; justify-content: space-between; margin-block-start: 8px; }
+.cd-foreign-keys span { display: flex; flex-direction: column; gap: 2px; }
+.cd-foreign-keys em { font-style: normal; font-size: .63rem; }
+.cd-foreign-keys .buy em { color: var(--mv-up); }
+.cd-foreign-keys .sell em { color: var(--mv-down); }
+.cd-foreign-keys bdi { color: var(--mv-ink); font: 600 .8rem var(--font-numeric), ui-monospace, monospace; }
+.cd-foreign-keys span:last-child { text-align: end; }
+
+/* ── Fundamentals ───────────────────────────────────────────────────────── */
+.cd-fund { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 14px; }
+.cd-fund-col { padding: 15px 17px; border: 1px solid var(--mv-line); border-radius: 18px; background: var(--mv-panel-solid); box-shadow: var(--mv-shadow); }
+.cd-fund-col h3 { margin: 0 0 8px; font-size: .82rem; letter-spacing: -.02em; color: var(--mv-ink); }
+.cd-fund-col dl { margin: 0; }
+.cd-fund-col dl div { display: flex; align-items: baseline; justify-content: space-between; gap: 14px; padding-block: 8px; border-block-end: 1px solid var(--mv-line); }
+.cd-fund-col dl div:last-child { border-block-end: 0; }
+.cd-fund-col dt { color: var(--mv-ink-3); font-size: .71rem; }
+.cd-fund-col dd { margin: 0; color: var(--mv-ink); font: 600 .8rem var(--font-numeric), ui-monospace, monospace; }
+/* Absent, not zero. Dimmed as a pair so the row reads as "not reported"
+   rather than as a value you failed to see. */
+.cd-fund-col dl div.is-absent dt { opacity: .62; }
+.cd-fund-note { margin: 10px 0 0; color: var(--mv-ink-3); font-size: .65rem; line-height: 1.7; }
+
+/* ── Earnings ───────────────────────────────────────────────────────────── */
+.cd-earn { margin-block-start: 14px; }
+.cd-seg { display: flex; gap: 2px; margin-inline-start: auto; padding: 3px; border-radius: 10px; background: rgba(30,34,32,.055); }
+.cd-seg button { padding: 4px 11px; border: 0; border-radius: 7px; background: none; color: var(--mv-ink-2); font: 600 .68rem var(--font-body), Arial, sans-serif; cursor: pointer; }
+.cd-seg button.active { color: white; background: var(--mv-hero); }
+.cd-earn-latest { display: flex; align-items: baseline; gap: 7px; flex-wrap: wrap; margin: 0 0 14px; color: var(--mv-ink-3); font-size: .7rem; }
+.cd-earn-latest span { color: var(--mv-ink-2); font-weight: 700; }
+.cd-earn-latest b { color: var(--mv-ink-3); font-weight: 500; }
+.cd-earn-latest bdi { color: var(--mv-ink); font: 700 .78rem var(--font-numeric), ui-monospace, monospace; }
+.cd-earn-latest bdi.positive { color: var(--mv-up); }
+.cd-earn-latest bdi.negative { color: var(--mv-down); }
+
+/* Left-to-right, deliberately. This is a time series and the price chart
+   directly above it runs oldest-left / newest-right, as every price chart
+   has since Playfair. Letting the flex row take the page's RTL direction put
+   the newest quarter on the left of one chart and the right of the other,
+   forty pixels apart. */
+.cd-bars { display: flex; direction: ltr; align-items: flex-end; gap: 14px; block-size: 152px; }
+.cd-bar-col { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; gap: 7px; block-size: 100%; }
+.cd-bar-pair { display: flex; align-items: flex-end; justify-content: center; gap: 4px; inline-size: 100%; block-size: 100%; }
+.cd-bar-pair i { inline-size: 38%; max-inline-size: 24px; min-block-size: 2px; border-radius: 4px 4px 0 0; background: var(--mv-hero); }
+.cd-bar-pair i.ni { background: var(--mv-up); }
+.cd-bar-pair i.ni.neg { background: var(--mv-down); }
+.cd-bar-col > span { color: var(--mv-ink-3); font: 600 .62rem var(--font-numeric), ui-monospace, monospace; }
+.cd-earn-legend { display: flex; align-items: center; gap: 15px; margin-block-start: 12px; color: var(--mv-ink-3); font-size: .65rem; }
+.cd-earn-legend i { display: inline-block; inline-size: 9px; block-size: 9px; border-radius: 2px; margin-inline-end: 5px; background: var(--mv-hero); }
+.cd-earn-legend i.ni { background: var(--mv-up); }
+.cd-earn-legend a { margin-inline-start: auto; color: var(--mv-hero); font-weight: 600; text-decoration: none; }
+
+/* ── Ownership ──────────────────────────────────────────────────────────── */
+.cd-own { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr); gap: 14px; align-items: start; }
+.cd-own-bar { display: flex; block-size: 12px; border-radius: 5px; overflow: hidden; background: var(--mv-well); }
+.cd-own-bar i.iraqi { background: var(--mv-hero); }
+.cd-own-bar i.foreign { background: var(--mv-hero-bright); opacity: .55; }
+.cd-own-keys { display: flex; justify-content: space-between; gap: 16px; margin-block-start: 11px; }
+.cd-own-keys span { display: flex; flex-direction: column; gap: 2px; }
+.cd-own-keys em { font-style: normal; color: var(--mv-ink-3); font-size: .65rem; }
+.cd-own-keys bdi { color: var(--mv-ink); font: 700 1.05rem var(--font-numeric), ui-monospace, monospace; }
+.cd-own-keys small { color: var(--mv-ink-3); font-size: .62rem; }
+.cd-own-keys span:last-child { text-align: end; }
+.cd-own-facts { display: flex; gap: 20px; flex-wrap: wrap; margin: 14px 0 0; padding-block-start: 12px; border-block-start: 1px solid var(--mv-line); }
+.cd-own-facts div { display: flex; flex-direction: column; gap: 3px; }
+.cd-own-facts dt { color: var(--mv-ink-3); font-size: .65rem; }
+.cd-own-facts dd { margin: 0; color: var(--mv-ink); font: 600 .78rem var(--font-numeric), ui-monospace, monospace; }
+
+.cd-holders { display: flex; flex-direction: column; margin: 0; padding: 0; list-style: none; }
+.cd-holders li { display: grid; grid-template-columns: 20px minmax(0, 1fr) 90px 58px 48px; align-items: center; gap: 11px; padding-block: 9px; border-block-end: 1px solid var(--mv-line); }
+.cd-holders li:last-child { border-block-end: 0; }
+.cd-holder-rank { color: var(--mv-ink-3); font: 600 .68rem var(--font-numeric), ui-monospace, monospace; }
+.cd-holder-name { display: flex; flex-direction: column; gap: 2px; min-inline-size: 0; }
+.cd-holder-name strong { color: var(--mv-ink); font: 600 .76rem var(--font-body), Arial, sans-serif; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.cd-holder-name small { color: var(--mv-ink-3); font-size: .62rem; }
+.cd-holder-bar { block-size: 6px; border-radius: 3px; background: var(--mv-well); overflow: hidden; }
+.cd-holder-bar i { display: block; block-size: 100%; border-radius: 3px; background: var(--mv-hero); }
+.cd-holder-bar i[data-foreign] { background: var(--mv-hero-bright); opacity: .6; }
+.cd-holder-pct { color: var(--mv-ink); font: 700 .78rem var(--font-numeric), ui-monospace, monospace; text-align: end; }
+.cd-holder-chg { font: 600 .7rem var(--font-numeric), ui-monospace, monospace; text-align: end; }
+.cd-holder-chg .positive { color: var(--mv-up); }
+.cd-holder-chg .negative { color: var(--mv-down); }
+.cd-holder-chg .neutral { color: var(--mv-ink-3); }
+
+/* ── Missing data ───────────────────────────────────────────────────────────
+   A finished-looking section that names what is absent and what remains.
+   Never a broken empty card, never a blurred paywall. */
+
+/* ── About ──────────────────────────────────────────────────────────────── */
+.cd-about-grid { display: grid; grid-template-columns: minmax(0, 1fr) 290px; gap: 26px; align-items: start; }
+/* A measure, because this is genuinely prose. Arabic at 15px runs wide and a
+   1400px line is unreadable in any script. */
+.cd-about-body { max-inline-size: 74ch; color: var(--mv-ink-2); font-size: .82rem; line-height: 1.95; }
+.cd-about-body > p { margin: 0 0 20px; }
+.cd-about-body h3 { margin: 24px 0 12px; font-size: .95rem; letter-spacing: -.02em; color: var(--mv-ink); }
+.cd-faq { margin-block-end: 15px; }
+.cd-faq h4 { margin: 0 0 4px; font-size: .8rem; font-weight: 700; color: var(--mv-ink); }
+.cd-faq p { margin: 0; }
+.cd-about-facts { margin: 0; padding: 15px 17px; border: 1px solid var(--mv-line); border-radius: 18px; background: var(--mv-panel-solid); box-shadow: var(--mv-shadow); }
+.cd-about-facts div { display: flex; align-items: baseline; justify-content: space-between; gap: 14px; padding-block: 8px; border-block-end: 1px solid var(--mv-line); }
+.cd-about-facts div:last-child { border-block-end: 0; }
+.cd-about-facts dt { color: var(--mv-ink-3); font-size: .71rem; }
+.cd-about-facts dd { margin: 0; color: var(--mv-ink); font: 600 .75rem var(--font-body), Arial, sans-serif; }
+.cd-about-facts a { color: var(--mv-hero); text-decoration: none; }
+
+.cd-footnote { margin: 26px 4px 0; color: var(--mv-ink-3); font-size: .68rem; line-height: 1.85; }
+
+/* ── Company not found ──────────────────────────────────────────────────────
+   Not a generic 404. It states the specific fact (this ticker is not listed),
+   then offers the two things someone in this position actually wants: search,
+   and somewhere to go. */
+.cd-notfound {
+  max-inline-size: 640px;
+  margin: 40px auto;
+  padding: 34px 32px;
+  border: 1px solid var(--mv-line);
+  border-radius: 22px;
+  background: var(--mv-panel-solid);
+  box-shadow: var(--mv-shadow);
+  text-align: center;
+}
+.cd-notfound-mark {
+  display: grid; place-items: center;
+  inline-size: 46px; block-size: 46px;
+  margin: 0 auto 16px;
+  border-radius: 15px;
+  background: var(--mv-well);
+  color: var(--mv-ink-3);
+  font: 700 1.3rem var(--font-body), Arial, sans-serif;
+}
+.cd-notfound h1 { margin: 0; font-size: 1.25rem; letter-spacing: -.03em; color: var(--mv-ink); }
+.cd-notfound h1 bdi { color: var(--mv-hero); font-family: var(--font-numeric), ui-monospace, monospace; }
+.cd-notfound > p { max-inline-size: 46ch; margin: 9px auto 20px; color: var(--mv-ink-3); font-size: .77rem; line-height: 1.75; }
+.cd-notfound-search { max-inline-size: 340px; margin: 0 auto 24px; }
+.cd-notfound-list { text-align: start; padding-block-start: 18px; border-block-start: 1px solid var(--mv-line); }
+.cd-notfound-list ul { display: flex; flex-direction: column; margin: 8px 0 0; padding: 0; list-style: none; }
+.cd-notfound-list a { display: flex; align-items: center; gap: 11px; padding: 8px 9px; border-radius: 11px; color: var(--mv-ink); text-decoration: none; }
+.cd-notfound-list a:hover { background: var(--mv-well); }
+.cd-notfound-list .cd-mark { inline-size: 30px; block-size: 30px; border-radius: 9px; font-size: .68rem; }
+.cd-notfound-list strong { flex: 1; font: 600 .79rem var(--font-body), Arial, sans-serif; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.cd-notfound-all { display: inline-block; margin-block-start: 18px; color: var(--mv-hero); font: 600 .76rem var(--font-body), Arial, sans-serif; text-decoration: none; }
+
+.cd-fullerror { margin: 40px auto; max-inline-size: 620px; }
+
+/* ── Skeletons ──────────────────────────────────────────────────────────── */
+.cd-skel i, .cd-skel-box {
+  display: block;
+  block-size: 11px;
+  margin-block: 6px;
+  border-radius: 6px;
+  background: linear-gradient(90deg, var(--mv-well), var(--mv-line), var(--mv-well));
+  background-size: 200% 100%;
+  animation: mv-shimmer 1.4s linear infinite;
+}
+.cd-skel-box { block-size: 54px; inline-size: 54px; border-radius: 16px; }
+.cd-skel .cd-rail-row i { margin: 0; }
+.cd-lines i { display: block; block-size: 26px; margin-block: 7px; border-radius: 8px; background: var(--mv-well); }
+
+/* ═══ DARK ═════════════════════════════════════════════════════════════════
+   Re-picked, not inverted. Three things worth naming:
+
+   · The chart's area wash is stronger here (.22 → .3 by way of the token
+     already being brighter) because on #161616 a 22% blue fades into the
+     canvas, while on bone it sits proud of it.
+   · The logo plate stays LIGHT in dark mode. Most ISX logos are dark
+     monochrome marks with no light variant; a "correct" dark tile would hide
+     half of them entirely.
+   · Segmented-control wells go from ink-on-light to white-on-dark at a LOWER
+     alpha, since light on dark reads heavier at equal alpha. */
+[data-theme='dark'] .cd-periods, [data-theme='dark'] .cd-seg { background: rgba(255,255,255,.055); }
+[data-theme='dark'] .cd-mark { background: linear-gradient(150deg, rgba(99,154,226,.2), rgba(49,113,198,.07)); color: var(--mv-hero-bright); box-shadow: inset 0 1px rgba(255,255,255,.07); }
+[data-theme='dark'] .cd-mark.has-logo { background: #f4f5f6; border-color: rgba(255,255,255,.12); color: #26456f; }
+[data-theme='dark'] .cd-line, [data-theme='dark'] .cd-last-line, [data-theme='dark'] .cd-last-dot,
+[data-theme='dark'] .cd-cross-dot { stroke: var(--mv-hero-bright); }
+[data-theme='dark'] .cd-last-dot, [data-theme='dark'] .cd-cross-dot { fill: var(--mv-hero-bright); }
+[data-theme='dark'] .cd-vol { opacity: .35; }
+[data-theme='dark'] .cd-tip { box-shadow: 0 18px 44px rgba(0,0,0,.5); }
+[data-theme='dark'] .cd-perf-bar i, [data-theme='dark'] .cd-own-bar i.iraqi,
+[data-theme='dark'] .cd-holder-bar i, [data-theme='dark'] .cd-bar-pair i { background: var(--mv-hero-bright); }
+[data-theme='dark'] .cd-perf-bar.bm i { background: var(--mv-ink-3); }
+[data-theme='dark'] .cd-perf-bar.co.neg i { background: var(--mv-down); }
+[data-theme='dark'] .cd-bar-pair i.ni { background: var(--mv-up); }
+[data-theme='dark'] .cd-bar-pair i.ni.neg { background: var(--mv-down); }
+[data-theme='dark'] .cd-perf-legend i, [data-theme='dark'] .cd-earn-legend i, [data-theme='dark'] .cd-plot-legend i { background: var(--mv-hero-bright); }
+[data-theme='dark'] .cd-perf-legend i.bm, [data-theme='dark'] .cd-plot-legend i.vol { background: var(--mv-ink-3); }
+[data-theme='dark'] .cd-earn-legend i.ni { background: var(--mv-up); }
+[data-theme='dark'] .cd-anchors a[aria-current] { background: var(--mv-hero); box-shadow: none; }
+[data-theme='dark'] .cd-action.is-on { color: var(--mv-hero-bright); background: rgba(49,113,198,.2); }
+/* Long Arabic prose on near-black needs a little more weight than ink-2 gives
+   it, or a 400-word profile turns into grey noise at 300 words. */
+[data-theme='dark'] .cd-about-body { color: #c2c4c0; }
+
+/* ═══ RESPONSIVE ═══════════════════════════════════════════════════════════ */
+
+/* Laptop — the rail narrows before the chart does; the chart is the thing
+   that stops working when it is short. */
+@media (max-width: 1280px) {
+  .cd-page { inline-size: calc(100% - 34px); }
+  .cd-market { grid-template-columns: minmax(0, 1fr) 264px; }
+  .cd-about-grid { grid-template-columns: minmax(0, 1fr) 250px; }
+}
+
+/* Tablet — the rail moves under the chart and becomes a four-across strip,
+   which is the one place on this page where a horizontal group reads better
+   than a vertical one: at this width the chart is still wide. */
+@media (max-width: 1080px) {
+  .cd-market { grid-template-columns: 1fr; }
+  .cd-rail { flex-direction: row; flex-wrap: wrap; }
+  .cd-rail-group { flex: 1 1 190px; padding-block-end: 0; border-block-end: 0; border-inline-end: 1px solid var(--mv-line); padding-inline-end: 14px; }
+  .cd-rail-group:last-child { border-inline-end: 0; padding-inline-end: 0; }
+  .cd-band-row, .cd-own { grid-template-columns: 1fr; }
+  .cd-about-grid { grid-template-columns: 1fr; gap: 18px; }
+  .cd-about-facts { order: -1; }
+}
+
+/* Mobile.
+   ────────────────────────────────────────────────────────────────────────
+   Not the desktop page stacked. The priority order is the brief's: identity,
+   price, chart, essential session metrics, then research.
+
+   · The masthead becomes two rows, price under name, actions a scrolling row.
+   · The chart loses 90px of height and the period control scrolls.
+   · The session rail becomes a two-column grid of label/value pairs — at
+     375px a right-aligned value column leaves the label 40% of the width.
+   · The anchors row scrolls horizontally rather than wrapping to three lines. */
+@media (max-width: 720px) {
+  .cd-page { inline-size: calc(100% - 20px); padding-block-start: 12px; }
+
+  .cd-identity { grid-template-columns: 1fr; gap: 15px; padding: 15px; border-radius: 17px; }
+  .cd-mark { inline-size: 44px; block-size: 44px; border-radius: 13px; font-size: .84rem; }
+  .cd-id-text h1 { font-size: 1.08rem; }
+  .cd-price { font-size: 1.7rem; }
+  .cd-id-actions { flex-direction: row; overflow-x: auto; scrollbar-width: none; }
+  .cd-id-actions::-webkit-scrollbar { display: none; }
+  .cd-action { flex: 0 0 auto; }
+
+  .cd-anchors { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; margin-block: 12px 10px; }
+  .cd-anchors::-webkit-scrollbar { display: none; }
+  .cd-anchors a { flex: 0 0 auto; }
+  .cd-anchors-out { margin-inline-start: 0; }
+
+  .cd-chart, .cd-rail, .cd-panel, .cd-fund-col, .cd-about-facts { padding: 13px 14px; border-radius: 16px; }
+  .cd-plot svg { block-size: 216px; }
+  .cd-chart-skeleton, .cd-chart-fail { block-size: 216px; min-block-size: 216px; }
+  .cd-chart-head { gap: 9px; }
+  .cd-periods { inline-size: 100%; margin-inline-start: 0; overflow-x: auto; scrollbar-width: none; }
+  .cd-periods::-webkit-scrollbar { display: none; }
+  .cd-periods button { flex: 0 0 auto; }
+  /* Touch: a crosshair driven by a finger is covered by the finger, so the
+     tooltip pins to the top of the plot rather than following the pointer. */
+  .cd-tip { inset-inline: 8px auto !important; transform: none !important; inline-size: calc(100% - 16px); }
+  .cd-tip dl { grid-template-columns: 1fr 1fr; display: grid; gap: 2px 14px; }
+
+  .cd-rail { display: grid; grid-template-columns: 1fr 1fr; gap: 0 16px; }
+  .cd-rail-group { flex: none; padding-inline-end: 0; border-inline-end: 0; padding-block: 9px 0; }
+  .cd-rail-group:first-child { grid-column: 1 / -1; }
+  .cd-rail-row { padding-block: 4px; }
+
+  .cd-perf-row { grid-template-columns: 74px minmax(0, 1fr) 104px; gap: 9px; }
+  .cd-perf-label { font-size: .68rem; }
+  .cd-bars { gap: 8px; block-size: 128px; }
+  .cd-holders li { grid-template-columns: 18px minmax(0, 1fr) 52px 46px; gap: 9px; }
+  .cd-holder-bar { display: none; }
+  .cd-sec-head { margin-block-start: 24px; }
+  .cd-sec-head a { margin-inline-start: 0; }
+  .cd-notfound { padding: 26px 18px; border-radius: 18px; }
+}
+
+/* No second @keyframes here on purpose. `mv-shimmer` is already defined for
+   the board's skeleton at the top of the shared layer, and a redeclaration
+   further down the file wins globally — which would have quietly retimed the
+   approved market page's loading state from this page's stylesheet. */
+@media (prefers-reduced-motion: reduce) {
+  .cd-skel i, .cd-skel-box, .cd-chart-skeleton i { animation: none; }
+}
+/* ════════════════════════════════════════════════════════════════════════════
+   Touch targets, measured by hit-testing outward from each control's centre.
+   ════════════════════════════════════════════════════════════════════════════
+
+   Invisible `::before` expansions, vertical wherever a control has horizontal
+   neighbours, so no two targets can meet. The approved visual box is
+   unchanged — this is the §18 rule from the reskin brief: keep the geometry,
+   widen the hit area.
+
+   The chart toolbar is handled in styles/chart-engine.css and deliberately
+   does NOT reach 44 in both axes. See the note there. */
+
+.cd-crumbs a, .cd-id-meta a, .cd-sec-head a, .cd-earn-legend a { position: relative; }
+.cd-crumbs a::before, .cd-id-meta a::before,
+.cd-sec-head a::before, .cd-earn-legend a::before {
+  content: ''; position: absolute;
+  inset-inline: -8px; inset-block: -14px;
+}
+
+.cd-action { position: relative; min-block-size: 44px; box-sizing: border-box; }
+
+.cd-anchors a { position: relative; }
+.cd-anchors a::before {
+  content: ''; position: absolute;
+  inset-inline: 0; inset-block: -7px;
+}
+
+/* The section nav is a horizontal scroller under 900px, and `overflow-x: auto`
+   forces `overflow-y: auto`, which crops a pseudo-element. Inside it the
+   control carries a real height instead. */
+@media (max-width: 900px) {
+  .cd-anchors a { min-block-size: 44px; display: inline-flex; align-items: center; }
+  .cd-anchors a::before { content: none; }
+}
+
+/* The earnings period switch is a 2px-gap track, so one pixel each side is
+   all there is — and it is enough at 42px wide. */
+.cd-seg button { position: relative; }
+.cd-seg button::before {
+  content: ''; position: absolute;
+  inset-inline: -1px; inset-block: -9px;
+}

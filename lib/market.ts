@@ -1,6 +1,6 @@
 import type { Company, CompanyMeta, LiveData, LiveStock } from '@/types'
 import { createClient } from '@/lib/supabase/client'
-import { arDate } from '@/lib/date'
+import { arDate, enDate } from '@/lib/date'
 
 // ─── Data fetchers ──────────────────────────────────────────────────────────
 
@@ -32,7 +32,7 @@ async function fetchLiveRaw(): Promise<LiveData> {
     .from('daily_prices').select('date').order('date', { ascending: false }).limit(1)
   const latest = latestRow?.[0]?.date as string | undefined
   if (!latest) {
-    return { updated: '', stocks: [], rsisx: null, breadth: { up: 0, dn: 0, fl: 0 }, sectors: {} }
+    return { updated: '', stocks: [], rsisx: null, breadth: { up: 0, dn: 0, fl: 0, na: 0 }, sectors: {} }
   }
 
   // the session immediately before it (for change %)
@@ -54,14 +54,23 @@ async function fetchLiveRaw(): Promise<LiveData> {
   }
 
   const stocks: LiveStock[] = []
-  let up = 0, dn = 0, fl = 0
+  let up = 0, dn = 0, fl = 0, na = 0
   for (const r of rows ?? []) {
     if (r.date !== latest) continue
     const close = (r.close as number) ?? 0
     const pc = prevClose.get(r.ticker as string)
-    const change = pc != null ? close - pc : 0
+    /* No prior close means the change is UNKNOWN, not zero. `change` and `pct`
+       stay 0 so every surface that types them as `number` keeps working, but
+       `noPrior` carries the truth and the company is counted separately.
+       Folding these into `fl` said 8 companies were unchanged on 2026-08-13
+       when nobody knew whether they were. */
+    const noPrior = pc == null
+    const change = noPrior ? 0 : close - pc!
     const pct = pc ? (change / pc) * 100 : 0
-    if (change > 0) up++; else if (change < 0) dn++; else fl++
+    if (noPrior) na++
+    else if (change > 0) up++
+    else if (change < 0) dn++
+    else fl++
     stocks.push({
       code: r.ticker as string,
       close,
@@ -70,6 +79,7 @@ async function fetchLiveRaw(): Promise<LiveData> {
       low:   (r.low   as number) ?? close,
       change,
       pct,
+      noPrior,
       vol:   (r.value  as number) ?? 0,
       shares_traded: (r.volume as number) ?? 0,
       deals: (r.trades as number) ?? 0,
@@ -100,7 +110,7 @@ async function fetchLiveRaw(): Promise<LiveData> {
     })
   }
 
-  return { updated: latest, stocks, rsisx: null, breadth: { up, dn, fl }, sectors: {} }
+  return { updated: latest, stocks, rsisx: null, breadth: { up, dn, fl, na }, sectors: {} }
 }
 
 export async function fetchCompanyMeta(): Promise<CompanyMeta[]> {
@@ -128,6 +138,7 @@ export function mergeCompanies(meta: CompanyMeta[], stocks: LiveStock[]): Compan
       low:    live?.low    ?? 0,
       change: live?.change ?? 0,
       pct:    live?.pct    ?? 0,
+      noPrior: live?.noPrior ?? false,
       vol:    live?.vol    ?? 0,
       shares_traded: live?.shares_traded ?? 0,
       deals:  live?.deals  ?? 0,
@@ -140,8 +151,45 @@ export function mergeCompanies(meta: CompanyMeta[], stocks: LiveStock[]): Compan
 // ─── Formatters ─────────────────────────────────────────────────────────────
 
 /**
- * Live market cap in IQD: close x share count where we know it, else the static
- * fallback on the company meta (stored in millions, and often stale).
+ * ═══ THE market-cap definition ═══════════════════════════════════════════
+ *
+ * One rule, one place: a company's market cap is its LAST PUBLISHED CLOSE
+ * multiplied by its ISSUED SHARE COUNT, in whole dinars — and `null` when
+ * either input is missing.
+ *
+ * `null` is the point of it. `companies.json` also carries a static `mcap`
+ * field (in millions) that was correct when it was written and has drifted
+ * since: measured against this formula on 2026-08-24, **25 of 99 companies
+ * differ by more than 5%**, the worst by −33% (IHFI) and +28% (SMRI). A
+ * fallback to that number is not a safer answer than no answer — it is a
+ * confident wrong one, and it is invisible, because nothing on screen says
+ * which of the two a given row used.
+ *
+ * Callers decide what to do with `null`: rank it last, print `—`, or exclude
+ * it. None of them may substitute a different quantity for it.
+ *
+ * Used by the screener, the heat map, the statistics snapshot and the
+ * homepage board, so the same company cannot carry two market caps in one
+ * product.
+ */
+export function companyMarketCap(
+  close: number | null | undefined,
+  shares: number | null | undefined,
+): number | null {
+  if (!(close != null && close > 0)) return null
+  if (!(shares != null && shares > 0)) return null
+  return close * shares
+}
+
+/**
+ * ⚠ LEGACY display helper, kept for the pre-redesign routes that still call it
+ * (`/market`, `/companies`, `/analysis`).
+ *
+ * It differs from `companyMarketCap` in two ways that matter: it takes the
+ * LIVE-session close, which is 0 for any company that did not trade today, and
+ * it then falls back to the static `mcap` — so on those rows it silently
+ * prints a figure that can be a third off. Migrating those three routes is a
+ * behaviour change on frozen surfaces and is reported rather than done here.
  */
 export function liveMcap(c: { close: number; shares?: number; mcap?: number }): number {
   return c.shares && c.close > 0 ? c.close * c.shares : (c.mcap || 0) * 1e6
@@ -152,13 +200,23 @@ export function liveMcap(c: { close: number; shares?: number; mcap?: number }): 
  * and the derived company_metrics row. Meta wins: a handful of metrics rows
  * carry junk Arabic names straight from the bulletin parse ("8", "15"), so a
  * candidate also has to actually read as a name rather than a number.
+ *
+ * ── On locale ─────────────────────────────────────────────────────────────
+ * `locale` only reorders the candidate list; it never filters it. An English
+ * reader looking at a company that has no English name gets the official
+ * Arabic one, with the ticker beside it, because that is the truth. The
+ * alternative — an empty cell, or worse a machine-made translation of a legal
+ * company name — is the failure mode the brief calls out by name.
  */
 export function companyName(
   c: { ar?: string | null; en?: string | null; name_ar?: string | null; name_en?: string | null },
   ticker: string,
+  locale: 'ar' | 'en' = 'ar',
 ): string {
-  const named = [c.ar, c.en, c.name_ar, c.name_en]
-    .find(v => v && /[A-Za-z؀-ۿ]/.test(v))
+  const order = locale === 'ar'
+    ? [c.ar, c.en, c.name_ar, c.name_en]
+    : [c.en, c.name_en, c.ar, c.name_ar]
+  const named = order.find(v => v && /[A-Za-z؀-ۿ]/.test(v))
   return named?.trim() || ticker
 }
 
@@ -200,12 +258,37 @@ function lcsLen(a: string, b: string): number {
  */
 export function matchCompanyName(
   raw: string,
-  meta: { ar?: string | null }[],
+  meta: { ar?: string | null; en?: string | null }[],
   cover = 0.9,
+  locale: 'ar' | 'en' = 'ar',
 ): string {
+  const hit = matchCompanyRecord(raw, meta, cover)
+  if (!hit) return raw
+  /* The match is made on the Arabic name — the monthly PDF has no ticker
+     column — but what is DISPLAYED follows the reader. Falling back to the
+     Arabic name when a company has no verified English one is deliberate: a
+     legal company name is never machine-translated here. */
+  return (locale === 'en' ? hit.en || hit.ar : hit.ar) ?? raw
+}
+
+/**
+ * The same match, returning the RECORD rather than just its name.
+ *
+ * `ownership_monthly` and `major_shareholders` carry no ticker column at all —
+ * they key on the Arabic company name as the monthly PDF printed it. Anything
+ * that needs to put those rows on a company page has to resolve a name to a
+ * symbol, and this is the one place that is allowed to: same scoring, same
+ * threshold, same ambiguity rule as the display-name match above, so a company
+ * page and /statistics can never disagree about which row belongs to whom.
+ */
+export function matchCompanyRecord<T extends { ar?: string | null }>(
+  raw: string,
+  meta: T[],
+  cover = 0.9,
+): T | null {
   const a = normalizeAr(raw)
-  if (a.length < 4) return raw
-  let best = { score: 0, name: raw }
+  if (a.length < 4) return null
+  let best: { score: number; rec: T | null } = { score: 0, rec: null }
   let runnerUp = 0
   for (const m of meta) {
     if (!m.ar) continue
@@ -216,11 +299,11 @@ export function matchCompanyName(
     // longer one that happens to start the same way.
     if (!b || Math.min(a.length, b.length) / Math.max(a.length, b.length) < 0.6) continue
     const score = lcsLen(a, b) / Math.min(a.length, b.length)
-    if (score > best.score) { runnerUp = best.score; best = { score, name: m.ar } }
+    if (score > best.score) { runnerUp = best.score; best = { score, rec: m } }
     else if (score > runnerUp) runnerUp = score
   }
   // Two candidates that fit equally well mean we cannot tell them apart.
-  return best.score >= cover && best.score > runnerUp ? best.name : raw
+  return best.score >= cover && best.score > runnerUp ? best.rec : null
 }
 
 export function fmtVol(v: number | null | undefined): string {
@@ -239,7 +322,10 @@ export function fmtVol(v: number | null | undefined): string {
 export function lastTradeNote(c: { stale?: boolean; lastTrade?: string }, ar: boolean): string | undefined {
   if (!c.stale) return undefined
   return c.lastTrade
-    ? (ar ? `آخر تداول: ${arDate(c.lastTrade)}` : `Last traded ${c.lastTrade}`)
+    // ⚠ The English branch used to print the raw ISO string — «Last traded
+    // 2026-08-19» beside an Arabic column reading «19 أغسطس 2026». Same date,
+    // two formats, one of them not written for a reader.
+    ? (ar ? `آخر تداول: ${arDate(c.lastTrade)}` : `Last traded ${enDate(c.lastTrade)}`)
     : (ar ? 'لم يتداول في الجلسة الأخيرة' : 'Did not trade in the latest session')
 }
 

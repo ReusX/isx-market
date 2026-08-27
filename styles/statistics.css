@@ -1,0 +1,687 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   الإحصائيات — a VISUAL RE-PORT of the approved reference statistics workspace.
+   ═══════════════════════════════════════════════════════════════════════════
+
+   Source: `/Users/amed/iqwealth-design/app/globals.css`, the `.stw-*` block,
+   copied programmatically rather than retyped so no value drifts in transit.
+   Three adaptations, and only three:
+
+     · `.iq-dark` / `.iq-light` on the page root  →  `[data-theme]` on <html>.
+       This application already has ONE theme system, set pre-paint by the
+       inline script in app/layout.tsx. A second would be two sources of truth.
+     · the three font variables gain this repo's fallback stacks.
+     · nothing else. Every length, colour, radius and breakpoint is the
+       reference's own.
+
+   ── Class names ───────────────────────────────────────────────────────────
+   `.stw-*` verbatim: a grep for `.stw-` across globals.css, styles/*.css and
+   every route stylesheet found ZERO matches, and zero in any component, so
+   there is nothing to collide with and no double styling to guard against.
+   Recorded in docs/STATISTICS_DATA_MAP.md §12.
+
+   ── The layout, in one paragraph ──────────────────────────────────────────
+   head → one overview rail → sticky tab bar → one mode at a time. Six modes,
+   each composed differently, so the page reads as a workspace rather than
+   eight stacked panels of equal weight. Only three surfaces keep a border: the
+   chart frame, the sector inspector and the ranking table.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.stw {
+  inline-size: min(1520px, calc(100% - 48px));
+  margin: 0 auto;
+  padding: 22px 0 64px;
+  color: var(--mv-ink);
+  font-family: var(--font-body), Arial, sans-serif;
+}
+
+.stw-head {
+  position: relative;
+  display: flex; align-items: flex-start; justify-content: space-between;
+  gap: 18px; flex-wrap: wrap;
+  /* The end padding is the accent band's room. Without it the texture sits
+     behind the lede, and a decorative field behind body copy is noise. */
+  padding-block-end: 40px;
+}
+.stw-title h1 { margin: 0; font: 700 1.16rem/1.25 var(--font-display), var(--font-body), Arial, sans-serif; color: var(--mv-ink); }
+.stw-title p { margin: 6px 0 0; max-inline-size: 66ch; font-size: .75rem; line-height: 1.6; color: var(--mv-ink-2); }
+.stw-title bdi { font-family: var(--font-numeric), ui-monospace, monospace; font-weight: 600; }
+.stw-head-actions { display: flex; align-items: center; gap: 8px; }
+/* §26 · the single 1-bit accent.
+   A band along the bottom edge of the head, so it reads as a textured rule
+   between the title and the rail. It first sat as a block in the head's end
+   corner and landed directly behind the state select and the theme toggle —
+   decoration under controls, which is the one place an accent must never be.
+   Faint, never behind a number, and pointer-transparent. */
+.stw-head-art {
+  position: absolute; inset-inline: 0; inset-block-end: 0;
+  block-size: 34px; pointer-events: none;
+}
+/* `DitherArt` sets `canvas.width/height` as the BACKING STORE and leaves the
+   display size to CSS. Without this the canvas renders at its attribute size —
+   2400px inside a 1166px band, and 1210px of page overflow. Same constraint as
+   `.au-art`, `.mt-art` and the plate frames. */
+.stw-head-art canvas { display: block; inline-size: 100%; block-size: 100%; }
+[data-theme='light'] .stw .stw-head-art { opacity: .13; }
+[data-theme='dark'] .stw .stw-head-art { opacity: .11; }
+
+/* ── Overview rail · §5 · one strip, four supporting figures ─────────────── */
+.stw-rail {
+  display: flex; align-items: center; gap: 28px; flex-wrap: wrap;
+  padding-block: 14px 16px;
+  border-block: 1px solid var(--mv-line);
+}
+.stw-rail-lead { display: flex; flex-direction: column; gap: 3px; }
+.stw-rail-lead > span { font-size: .68rem; color: var(--mv-ink-3); }
+.stw-rail-lead strong { display: flex; align-items: baseline; gap: 7px; }
+/* `.iq-page` prefix, not decoration: styles/design-tokens.css sets
+   `letter-spacing: normal` on `.iq-page :lang(ar)` (0,2,0) to keep tracking off
+   Arabic, and a `bdi` inherits `lang` from <html lang="ar">. Without the extra
+   class this rule loses at 0,1,2 and its negative tracking silently never
+   applies. Same correction Batch B made for the market tools. */
+.iq-page .stw-rail-lead strong bdi { font: 700 1.95rem/1 var(--font-numeric), ui-monospace, monospace; color: var(--mv-ink); letter-spacing: -.02em; }
+.stw-rail-lead strong small { font-size: .72rem; color: var(--mv-ink-2); font-weight: 500; }
+.stw-rail-lead em { font-style: normal; font-size: .68rem; color: var(--mv-ink-3); }
+.stw-rail-lead em bdi { font-family: var(--font-numeric), ui-monospace, monospace; font-weight: 700; }
+.stw-rail-lead em.is-up bdi { color: var(--mv-up); }
+.stw-rail-lead em.is-down bdi { color: var(--mv-down); }
+.stw-rail-lead em.is-muted { opacity: .8; }
+
+/* Supporting figures ride behind thin rules, not inside boxes. */
+.stw-rail-figs { display: flex; gap: 0; margin: 0; margin-inline-start: auto; flex-wrap: wrap; }
+.stw-rail-figs > div {
+  display: flex; flex-direction: column; gap: 3px;
+  padding-inline: 20px; border-inline-start: 1px solid var(--mv-line);
+}
+.stw-rail-figs > div:first-child { border-inline-start: 0; }
+.stw-rail-figs dt { font-size: .66rem; color: var(--mv-ink-3); white-space: nowrap; }
+.stw-rail-figs dd { margin: 0; font: 700 .95rem var(--font-numeric), ui-monospace, monospace; color: var(--mv-ink); }
+.stw-rail-empty { margin: 0; font-size: .76rem; color: var(--mv-ink-3); }
+
+/* ── Sticky workspace bar · §19 ───────────────────────────────────────────
+   Tabs and the global period control on one band. Sticky, so switching domain
+   never requires scrolling back up — which is most of what makes this read as
+   a workspace rather than a document. */
+.stw-bar {
+  position: sticky; inset-block-start: 0; z-index: 6;
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 16px; flex-wrap: wrap;
+  padding-block: 10px;
+  background: var(--mv-panel);
+  border-block-end: 1px solid var(--mv-line);
+}
+.stw-tabs { display: flex; align-items: center; gap: 2px; flex-wrap: wrap; }
+.stw-tabs button {
+  position: relative; min-block-size: 38px; padding: 0 14px;
+  border: 0; background: none; cursor: pointer;
+  font: 600 .82rem var(--font-body), Arial, sans-serif; color: var(--mv-ink-3);
+  transition: color .13s;
+}
+.stw-tabs button:hover { color: var(--mv-ink); }
+.stw-tabs button.is-on { color: var(--mv-ink); }
+/* The active mark is a rule under the label, not a filled pill: six filled
+   pills in a row would read as six buttons of equal urgency. */
+.stw-tabs button.is-on::after {
+  content: ""; position: absolute; inset-inline: 12px; inset-block-end: 0;
+  block-size: 2px; border-radius: 2px; background: var(--mv-hero);
+}
+[data-theme='dark'] .stw-tabs button.is-on::after { background: var(--mv-hero-bright); }
+.stw-tabs button:focus-visible { outline: 2px solid var(--mv-hero); outline-offset: -3px; border-radius: 8px; }
+
+.stw-periods {
+  display: inline-flex; align-items: center; gap: 2px;
+  padding: 3px; border-radius: 999px;
+  background: var(--mv-well); border: 1px solid var(--mv-line);
+}
+.stw-periods button {
+  min-block-size: 30px; padding: 0 11px;
+  border: 0; border-radius: 999px; background: none; cursor: pointer;
+  font: 600 .7rem var(--font-body), Arial, sans-serif; color: var(--mv-ink-2);
+  transition: background-color .13s, color .13s;
+}
+.stw-periods button:hover:not(.is-on) { color: var(--mv-ink); }
+.stw-periods button.is-on { background: var(--mv-hero); color: #fff; }
+.stw-periods button:focus-visible { outline: 2px solid var(--mv-hero); outline-offset: 2px; }
+
+/* The period rule, kept visible after the redesign. */
+.stw-scope {
+  margin: 12px 0 0; font-size: .68rem; color: var(--mv-ink-3);
+}
+.stw-scope bdi { font-family: var(--font-numeric), ui-monospace, monospace; font-weight: 600; color: var(--mv-ink-2); }
+
+/* ── The workspace ───────────────────────────────────────────────────────── */
+.stw-work { margin-block-start: 18px; }
+.stw-mode { display: block; }
+.stw-mode-head {
+  display: flex; align-items: flex-end; justify-content: space-between;
+  gap: 16px; flex-wrap: wrap; margin-block-end: 14px;
+}
+.stw-mode-head h2 { margin: 0; font: 700 1rem var(--font-display), var(--font-body), Arial, sans-serif; color: var(--mv-ink); }
+.stw-mode-head p { margin: 5px 0 0; display: flex; align-items: center; gap: 6px; font-size: .7rem; color: var(--mv-ink-3); }
+.stw-mode-head p bdi { font-family: var(--font-numeric), ui-monospace, monospace; font-weight: 600; color: var(--mv-ink-2); }
+.stw-side h3 { margin: 0 0 4px; font: 700 .84rem var(--font-display), var(--font-body), Arial, sans-serif; color: var(--mv-ink); }
+
+/* Metric switchers. One shape for all of them. */
+.stw-seg {
+  display: inline-flex; align-items: center; gap: 2px;
+  padding: 3px; border-radius: 999px;
+  background: var(--mv-well); border: 1px solid var(--mv-line);
+}
+.stw-seg button {
+  min-block-size: 32px; padding: 0 13px;
+  border: 0; border-radius: 999px; background: none; cursor: pointer;
+  font: 600 .72rem var(--font-body), Arial, sans-serif; color: var(--mv-ink-2);
+  transition: background-color .13s, color .13s;
+}
+.stw-seg button:hover:not(.is-on) { color: var(--mv-ink); }
+.stw-seg button.is-on { background: var(--mv-hero); color: #fff; }
+.stw-seg button:focus-visible { outline: 2px solid var(--mv-hero); outline-offset: 2px; }
+
+/* §16 · coverage is one line plus an info affordance, never a paragraph. */
+.stw-info {
+  inline-size: 17px; block-size: 17px; padding: 0; flex-shrink: 0;
+  border: 1px solid var(--mv-line-strong); border-radius: 50%;
+  background: none; color: var(--mv-ink-3); cursor: help;
+  font: 600 .6rem var(--font-body), Arial, sans-serif; line-height: 1;
+}
+.stw-info:hover { color: var(--mv-hero); border-color: var(--mv-hero); }
+[data-theme='dark'] .stw-info:hover { color: var(--mv-hero-bright); border-color: var(--mv-hero-bright); }
+
+.stw-note {
+  margin: 12px 0 0; max-inline-size: 82ch;
+  font-size: .69rem; line-height: 1.75; color: var(--mv-ink-3);
+}
+.stw-note bdi { font-family: var(--font-numeric), ui-monospace, monospace; font-weight: 600; color: var(--mv-ink-2); }
+.stw-warn { display: flex; gap: 7px; }
+.stw-warn i { font-style: normal; opacity: .8; flex-shrink: 0; }
+.stw-link { color: var(--mv-hero); text-decoration: none; border-block-end: 1px solid currentColor; }
+[data-theme='dark'] .stw-link { color: var(--mv-hero-bright); }
+
+/* ── النشاط · one chart, dominant · §7 §8 ────────────────────────────────
+   The only framed surface in this mode, and the frame exists to give the
+   canvas a defined ground rather than to group anything. */
+.stw-chart {
+  padding: 14px 10px 6px;
+  border: 1px solid var(--mv-line); border-radius: 14px;
+  background: var(--mv-panel-solid);
+}
+
+/* ── The plot ───────────────────────────────────────────────────────────────
+   The reference draws to a canvas it sizes in JS; this is SVG, so the height
+   is declared here instead. It is an EXPLICIT height with
+   `preserveAspectRatio: none` rather than a scaling viewBox: a 900x320 box
+   that scales with width collapses to 113px on a 375px screen, which is not a
+   chart any more. Columns stretch instead, which is what a column series can
+   afford to do. */
+.stw-plot { position: relative; margin: 0; --stw-plot-h: 320px; }
+.stw-plot svg { display: block; inline-size: 100%; block-size: var(--stw-plot-h); }
+.stw-grid { stroke: var(--mv-line); stroke-width: 1; }
+.stw-base { stroke: var(--mv-line-strong); stroke-width: 1; }
+/* The axis layers sit over the stretched plot in HTML, so their type is never
+   distorted by `preserveAspectRatio: none`. */
+/* `direction: ltr` and PHYSICAL offsets, because the SVG's coordinate space is
+   not mirrored under RTL. Using logical properties put the value axis on the
+   opposite side from its own gridlines and reversed the time axis so the
+   newest bucket read as the oldest. */
+/* ⚠ The layer must be exactly the SVG box, not the whole <figure>.
+   `inset: 0` stretched it over the figcaption as well — 341px against the
+   plot's 320 — with two visible consequences at 1440: the leftmost date on the
+   time axis landed ON TOP of the «مجموع أسبوعي» caption below the chart, and
+   every value label sat ~19px below its own gridline, because both are
+   positioned as a PERCENTAGE of this layer while the percentages are computed
+   against the SVG's viewBox. One custom property keeps the two in lockstep at
+   every breakpoint, so they cannot drift apart again. */
+.stw-axis-y, .stw-axis-x {
+  position: absolute; inset: 0 0 auto 0; block-size: var(--stw-plot-h);
+  direction: ltr; pointer-events: none;
+}
+.stw-axis-y span {
+  position: absolute; right: 0; transform: translateY(-50%);
+  width: 56px; text-align: left; padding-inline-start: 6px;
+  font: 10px var(--font-numeric), ui-monospace, monospace; color: var(--mv-ink-3);
+}
+.stw-axis-x span {
+  position: absolute; bottom: 2px; transform: translateX(-50%);
+  font: 10px var(--font-numeric), ui-monospace, monospace; color: var(--mv-ink-3);
+  white-space: nowrap;
+}
+.stw-plot { direction: ltr; }
+.stw-tip { direction: rtl; }
+.stw-col { fill: var(--mv-hero); opacity: .82; transition: opacity .12s; }
+.stw-col:hover, .stw-col.is-on { opacity: 1; }
+/* A partly-covered bucket is drawn, but hatched-light so it cannot be read as
+   a complete observation. */
+.stw-col.is-partial { opacity: .45; }
+[data-theme='dark'] .stw-col { fill: var(--mv-hero-bright); opacity: .7; }
+[data-theme='dark'] .stw-col.is-partial { opacity: .38; }
+
+.stw-tip {
+  position: absolute; inset-block-start: 6px;
+  transform: translateX(-50%);
+  display: grid; gap: 2px;
+  padding: 7px 10px;
+  border: 1px solid var(--mv-line); border-radius: 9px;
+  background: var(--mv-panel-solid);
+  box-shadow: 0 8px 24px rgb(0 0 0 / .16);
+  pointer-events: none; white-space: nowrap; z-index: 2;
+}
+.stw-tip strong { font: 700 .8rem var(--font-numeric), ui-monospace, monospace; color: var(--mv-ink); }
+.stw-tip span { font-size: .62rem; color: var(--mv-ink-3); font-family: var(--font-numeric), ui-monospace, monospace; }
+.stw-tip em { font-style: normal; font-size: .62rem; color: var(--mv-down); }
+
+.stw-plot-foot {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 12px; flex-wrap: wrap;
+  margin-block-start: 6px;
+  font-size: .64rem; color: var(--mv-ink-3);
+}
+.stw-plot-gaps { color: var(--mv-ink-2); }
+
+@media (max-width: 1000px) { .stw-plot { --stw-plot-h: 280px; } }
+@media (max-width: 720px)  { .stw-plot { --stw-plot-h: 240px; } }
+/* ── One block from the reference deliberately NOT ported ─────────────────
+   The reference's `.stw-*` block carries a compatibility shim for ITS frozen
+   detail routes — `.stats-v2`, `.st-head`, `.st-title`, `.st-switch`,
+   `.st-chart*` and friends. Those are the reference app's own class names.
+
+   This application's `/statistics/foreign-flow`, `/ownership` and
+   `/shareholders` do not emit any of them; they use `statistics-detail-page`
+   and the `statistics-*` family in globals.css, which this phase leaves
+   untouched. Porting the shim would have shipped ~100 lines of CSS for
+   selectors that never appear in this product's DOM.
+   ───────────────────────────────────────────────────────────────────────── */
+
+.stw-under {
+  display: flex; gap: 0; flex-wrap: wrap; margin: 16px 0 0;
+  padding-block: 14px; border-block: 1px solid var(--mv-line);
+}
+.stw-under > div {
+  display: flex; flex-direction: column; gap: 4px;
+  padding-inline: 24px; border-inline-start: 1px solid var(--mv-line);
+}
+.stw-under > div:first-child { padding-inline-start: 0; border-inline-start: 0; }
+.stw-under dt { font-size: .68rem; color: var(--mv-ink-3); }
+.stw-under dd { margin: 0; display: flex; align-items: baseline; gap: 5px; font: 700 1.15rem var(--font-numeric), ui-monospace, monospace; color: var(--mv-ink); }
+.stw-under dd small { font-size: .66rem; font-weight: 500; color: var(--mv-ink-3); font-family: var(--font-body), Arial, sans-serif; }
+
+/* ── بنية السوق · a composition · §9 ─────────────────────────────────────
+   Two halves of one argument sharing one baseline, divided by a rule instead
+   of being two disconnected cards with empty space in them. */
+.stw-structure, .stw-valuation {
+  display: grid; grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr);
+  gap: 34px;
+}
+.stw-structure .stw-side, .stw-valuation .stw-side {
+  padding-inline-start: 34px; border-inline-start: 1px solid var(--mv-line);
+}
+.stw-side-lede { margin: 0 0 14px; font-size: .72rem; line-height: 1.65; color: var(--mv-ink-3); }
+
+/* Ranked rows · §10 · elegant bars, not a grid. */
+.stw-rank { margin: 0; padding: 0; list-style: none; }
+.stw-rank li { border-block-end: 1px solid var(--mv-line); }
+.stw-rank li:last-child { border-block-end: 0; }
+.stw-rank a {
+  display: grid; grid-template-columns: 26px 54px minmax(0, 1fr) 150px 78px 54px;
+  align-items: center; gap: 12px; min-block-size: 44px;
+  color: inherit; text-decoration: none; transition: background-color .12s;
+}
+.stw-rank a:hover { background: var(--mv-well); }
+.stw-rank a:focus-visible { outline: 2px solid var(--mv-hero); outline-offset: -2px; border-radius: 8px; }
+.stw-rank-n { font: 600 .7rem var(--font-numeric), ui-monospace, monospace; color: var(--mv-ink-3); text-align: center; }
+.stw-rank-sym { font: 700 .74rem var(--font-numeric), ui-monospace, monospace; color: var(--mv-hero); }
+[data-theme='dark'] .stw-rank-sym { color: var(--mv-hero-bright); }
+.stw-rank-name {
+  font-size: .78rem; color: var(--mv-ink); white-space: nowrap;
+  overflow: hidden; text-overflow: ellipsis;
+}
+.stw-rank-bar { block-size: 7px; border-radius: 3px; background: var(--mv-well); overflow: hidden; }
+.stw-rank-bar i { display: block; block-size: 100%; border-radius: 3px; background: var(--mv-hero); opacity: .55; }
+[data-theme='dark'] .stw-rank-bar i { background: var(--mv-hero-bright); opacity: .5; }
+.stw-rank-v { text-align: end; font: 600 .82rem var(--font-numeric), ui-monospace, monospace; color: var(--mv-ink); }
+.stw-rank-p { text-align: end; font: 600 .74rem var(--font-numeric), ui-monospace, monospace; color: var(--mv-ink-3); }
+
+.stw-conc { margin: 0; }
+.stw-conc > div {
+  display: flex; align-items: baseline; justify-content: space-between; gap: 14px;
+  padding-block: 10px; border-block-end: 1px solid var(--mv-line);
+}
+.stw-conc > div:last-child { border-block-end: 0; }
+/* The two concentrations are different questions, so a heavier rule separates
+   them rather than a second heading. */
+.stw-conc > div.is-split { margin-block-start: 8px; border-block-start: 1px solid var(--mv-line-strong); padding-block-start: 16px; }
+.stw-conc dt { font-size: .71rem; color: var(--mv-ink-2); }
+.stw-conc dd { margin: 0; font: 700 1.05rem var(--font-numeric), ui-monospace, monospace; color: var(--mv-ink); }
+
+/* ── القطاعات · ranked visual + inspector · §11 §12 ──────────────────────── */
+.stw-sec-body { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 26px; align-items: start; }
+.stw-secs { margin: 0; padding: 0; list-style: none; }
+.stw-secs li { border-block-end: 1px solid var(--mv-line); }
+.stw-secs li:last-child { border-block-end: 0; }
+.stw-secs button {
+  display: grid; grid-template-columns: 132px minmax(0, 1fr) 92px 56px;
+  align-items: center; gap: 14px; inline-size: 100%; min-block-size: 42px;
+  padding-inline: 4px; border: 0; background: none; cursor: pointer;
+  font: inherit; text-align: start; transition: background-color .12s;
+}
+.stw-secs button:hover { background: var(--mv-well); }
+.stw-secs button:focus-visible { outline: 2px solid var(--mv-hero); outline-offset: -2px; border-radius: 8px; }
+.stw-sec-name { font-size: .76rem; color: var(--mv-ink-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.stw-sec-track { block-size: 9px; border-radius: 3px; background: var(--mv-well); overflow: hidden; }
+.stw-sec-track i { display: block; block-size: 100%; border-radius: 3px; background: var(--mv-ink-3); opacity: .5; }
+.stw-sec-v { text-align: end; font: 600 .8rem var(--font-numeric), ui-monospace, monospace; color: var(--mv-ink-2); }
+.stw-sec-p { text-align: end; font: 600 .72rem var(--font-numeric), ui-monospace, monospace; color: var(--mv-ink-3); }
+/* §11 · the top five carry full contrast and the tail steps back, so the
+   ranking is legible before a single number is read. */
+.stw-secs li.is-top .stw-sec-name { color: var(--mv-ink); font-weight: 600; }
+.stw-secs li.is-top .stw-sec-track i { background: var(--mv-hero); opacity: .5; }
+[data-theme='dark'] .stw-secs li.is-top .stw-sec-track i { background: var(--mv-hero-bright); opacity: .45; }
+.stw-secs li.is-top .stw-sec-v { color: var(--mv-ink); }
+.stw-secs li.is-on .stw-sec-track i { opacity: .9; }
+.stw-secs li.is-on button { box-shadow: inset 3px 0 0 var(--mv-hero); }
+[dir="rtl"] .stw-secs li.is-on button { box-shadow: inset -3px 0 0 var(--mv-hero); }
+
+.stw-inspect {
+  position: sticky; inset-block-start: 76px;
+  padding: 16px; border: 1px solid var(--mv-line); border-radius: 14px;
+  background: var(--mv-panel-solid);
+}
+.stw-inspect header { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-block-end: 10px; }
+.stw-inspect header h3 { margin: 0; }
+.stw-inspect header button {
+  inline-size: 28px; block-size: 28px; border: 0; border-radius: 8px;
+  background: none; color: var(--mv-ink-3); cursor: pointer; font-size: .78rem;
+}
+.stw-inspect header button:hover { background: var(--mv-well); color: var(--mv-ink); }
+.stw-inspect dl { margin: 0; }
+.stw-inspect dl > div {
+  display: flex; align-items: baseline; justify-content: space-between; gap: 12px;
+  padding-block: 7px; border-block-end: 1px solid var(--mv-line);
+}
+.stw-inspect dl > div:last-child { border-block-end: 0; }
+.stw-inspect dt { font-size: .69rem; color: var(--mv-ink-3); }
+.stw-inspect dd { margin: 0; font: 600 .84rem var(--font-numeric), ui-monospace, monospace; color: var(--mv-ink); }
+.stw-inspect-hint { margin: 0; padding-block: 20px; text-align: center; font-size: .72rem; color: var(--mv-ink-3); }
+
+/* ── الشركات · a quiet table · §14 ───────────────────────────────────────── */
+.stw-scroll { max-block-size: none; }
+.stw-table { min-inline-size: 0; }
+.stw-table tbody tr { cursor: default; }
+.stw-col-n { inline-size: 44px; text-align: center !important; color: var(--mv-ink-3) !important; font-size: .68rem !important; }
+.stw-col-co { inline-size: auto; min-inline-size: 260px; }
+.stw-col-share { inline-size: 84px; }
+.stw-col-co a { display: flex; align-items: baseline; gap: 10px; min-inline-size: 0; color: inherit; text-decoration: none; }
+.stw-sym { font: 700 .72rem var(--font-numeric), ui-monospace, monospace; color: var(--mv-hero); flex-shrink: 0; }
+[data-theme='dark'] .stw-sym { color: var(--mv-hero-bright); }
+.stw-col-co strong { font: 500 .78rem var(--font-body), Arial, sans-serif; color: var(--mv-ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.stw-col-co a:hover strong { color: var(--mv-hero); }
+.stw-v bdi { font-weight: 700; }
+.stw-sort {
+  display: inline-flex; align-items: center; gap: 5px;
+  border: 0; background: none; cursor: pointer; padding: 0;
+  font: inherit; color: inherit;
+}
+.stw-sort i { font-style: normal; font-size: .6rem; color: var(--mv-hero); }
+[data-theme='dark'] .stw-sort i { color: var(--mv-hero-bright); }
+.stw-more {
+  display: block; inline-size: 100%; min-block-size: 44px; margin-block-start: 12px;
+  border: 1px solid var(--mv-line-strong); border-radius: 11px;
+  background: none; color: var(--mv-ink-2); cursor: pointer;
+  font: 600 .76rem var(--font-body), Arial, sans-serif;
+  transition: background-color .13s, color .13s;
+}
+.stw-more:hover { background: var(--mv-well); color: var(--mv-ink); }
+.stw-more:focus-visible { outline: 2px solid var(--mv-hero); outline-offset: 2px; }
+
+/* ── التقييم · centre, spread, coverage · §15 ────────────────────────────── */
+/* `.iq-page` prefix, not decoration: styles/design-tokens.css sets
+   `letter-spacing: normal` on `.iq-page :lang(ar)` (0,2,0) to keep tracking off
+   Arabic, and a `bdi` inherits `lang` from <html lang="ar">. Without the extra
+   class this rule loses at 0,1,2 and its negative tracking silently never
+   applies. Same correction Batch B made for the market tools. */
+
+.stw-hist { margin: 0; padding: 0; list-style: none; }
+.stw-hist li { display: grid; grid-template-columns: 84px minmax(0, 1fr) 30px; align-items: center; gap: 12px; min-block-size: 34px; }
+.stw-hist-l { font-size: .72rem; color: var(--mv-ink-2); }
+.stw-hist-track { block-size: 12px; border-radius: 3px; background: var(--mv-well); overflow: hidden; }
+.stw-hist-track i { display: block; block-size: 100%; border-radius: 3px; background: var(--mv-hero); opacity: .55; }
+[data-theme='dark'] .stw-hist-track i { background: var(--mv-hero-bright); opacity: .5; }
+.stw-hist-n { text-align: end; font: 700 .8rem var(--font-numeric), ui-monospace, monospace; color: var(--mv-ink); }
+
+/* §17 · an unavailable statistic gets a line, not a surface. */
+.stw-off {
+  display: flex; align-items: center; gap: 9px; flex-wrap: wrap;
+  margin: 22px 0 0; padding-block-start: 14px;
+  border-block-start: 1px solid var(--mv-line);
+  font-size: .73rem; color: var(--mv-ink-2);
+}
+.stw-off em { font-style: normal; color: var(--mv-ink-3); }
+.stw-off .stw-info { cursor: help; inline-size: auto; block-size: 22px; padding-inline: 9px; border-radius: 999px; }
+
+/* ── التدفق الأجنبي · a summary · §18 ────────────────────────────────────── */
+.stw-flow {
+  display: flex; align-items: center; gap: 30px; flex-wrap: wrap;
+  padding-block: 4px 16px; border-block-end: 1px solid var(--mv-line);
+}
+.stw-flow-lead { display: flex; flex-direction: column; gap: 3px; }
+.stw-flow-lead > span { font-size: .68rem; color: var(--mv-ink-3); }
+.stw-flow-lead strong { display: flex; align-items: baseline; gap: 6px; }
+/* `.iq-page` prefix, not decoration: styles/design-tokens.css sets
+   `letter-spacing: normal` on `.iq-page :lang(ar)` (0,2,0) to keep tracking off
+   Arabic, and a `bdi` inherits `lang` from <html lang="ar">. Without the extra
+   class this rule loses at 0,1,2 and its negative tracking silently never
+   applies. Same correction Batch B made for the market tools. */
+.iq-page .stw-flow-lead strong bdi { font: 700 2rem/1 var(--font-numeric), ui-monospace, monospace; letter-spacing: -.02em; }
+.stw-flow-lead strong small { font-size: .72rem; color: var(--mv-ink-2); font-weight: 500; }
+.stw-flow-lead strong.is-up bdi { color: var(--mv-up); }
+.stw-flow-lead strong.is-down bdi { color: var(--mv-down); }
+.stw-flow-lead em { font-style: normal; font-size: .68rem; color: var(--mv-ink-3); }
+.stw-flow-lead em bdi { font-family: var(--font-numeric), ui-monospace, monospace; font-weight: 700; }
+.stw-flow-figs { display: flex; gap: 0; margin: 0; margin-inline-start: auto; flex-wrap: wrap; }
+.stw-flow-figs > div { display: flex; flex-direction: column; gap: 3px; padding-inline: 20px; border-inline-start: 1px solid var(--mv-line); }
+.stw-flow-figs > div:first-child { border-inline-start: 0; }
+.stw-flow-figs dt { font-size: .66rem; color: var(--mv-ink-3); white-space: nowrap; }
+.stw-flow-figs dd { margin: 0; font: 700 .95rem var(--font-numeric), ui-monospace, monospace; color: var(--mv-ink); }
+.stw-flow-figs dd.is-up { color: var(--mv-up); }
+.stw-flow-figs dd.is-down { color: var(--mv-down); }
+
+/* A diverging strip, deliberately small — the shape of the series, not a copy
+   of the detail page's chart system. */
+.stw-netbars {
+  display: flex; align-items: center; gap: 3px;
+  block-size: 88px; margin: 18px 0 0; padding: 0; list-style: none;
+  direction: ltr;
+}
+/* Two equal rows meeting at the zero line. A single full-height flex box with
+   the bars pinned to opposite EDGES looked like a diverging chart and was not:
+   a +1 and a −1 sat at the top and bottom of the strip instead of astride a
+   shared baseline, so the reader compared them against nothing. */
+.stw-netbars li {
+  flex: 1; min-inline-size: 3px; block-size: 100%;
+  display: grid; grid-template-rows: 1fr 1fr;
+}
+.stw-netbars li i { display: block; inline-size: 100%; border-radius: 2px; }
+.stw-netbars li.is-up i { grid-row: 1; align-self: end; background: var(--mv-up); opacity: .75; }
+.stw-netbars li.is-down i { grid-row: 2; align-self: start; background: var(--mv-down); opacity: .75; }
+.stw-netbars li:hover i { opacity: 1; }
+/* The zero line itself, so the baseline is stated rather than implied. */
+.stw-netwrap { position: relative; }
+.stw-netwrap::after {
+  content: ""; position: absolute; inset-inline: 0; inset-block-start: 50%;
+  block-size: 1px; background: var(--mv-line-strong); pointer-events: none;
+}
+
+.stw-cta {
+  display: inline-flex; align-items: center; gap: 7px;
+  min-block-size: 38px; padding-inline: 15px;
+  border: 1px solid var(--mv-hero); border-radius: 999px;
+  color: var(--mv-hero); text-decoration: none;
+  font: 600 .76rem var(--font-body), Arial, sans-serif;
+  transition: background-color .13s, color .13s;
+}
+.stw-cta:hover { background: var(--mv-hero); color: #fff; }
+[data-theme='dark'] .stw-cta { border-color: var(--mv-hero-bright); color: var(--mv-hero-bright); }
+[data-theme='dark'] .stw-cta:hover { background: var(--mv-hero-bright); color: #12140f; }
+.stw-cta i { font-style: normal; }
+
+/* ── States ──────────────────────────────────────────────────────────────── */
+.stw-partial {
+  display: flex; align-items: flex-start; gap: 9px;
+  padding: 12px 14px; border: 1px solid rgba(168,100,42,.3); border-radius: 12px;
+  background: rgba(168,100,42,.06);
+  font-size: .74rem; line-height: 1.6; color: var(--mv-ink-2);
+}
+.stw-partial i { font-style: normal; color: #a8642a; flex-shrink: 0; line-height: 1.7; }
+[data-theme='dark'] .stw-partial { border-color: rgba(224,164,95,.26); background: rgba(224,164,95,.07); }
+[data-theme='dark'] .stw-partial i { color: #e0a45f; }
+
+.stw-empty {
+  display: flex; flex-direction: column; gap: 7px; align-items: center;
+  padding: 46px 22px; border: 1px dashed var(--mv-line-strong); border-radius: 14px;
+  text-align: center;
+}
+.stw-empty strong { font: 700 .95rem var(--font-display), var(--font-body), Arial, sans-serif; color: var(--mv-ink); }
+.stw-empty span { font-size: .76rem; color: var(--mv-ink-2); }
+.stw-empty bdi { font-family: var(--font-numeric), ui-monospace, monospace; font-weight: 600; }
+
+.stw-skel span {
+  display: block; border-radius: 8px;
+  background: linear-gradient(90deg, var(--mv-well), var(--mv-line), var(--mv-well));
+  background-size: 200% 100%; animation: stw-shimmer 1.5s linear infinite;
+}
+.stw-skel-rail { display: flex; align-items: center; gap: 24px; flex-wrap: wrap; }
+.stw-skel-rail span { block-size: 34px; inline-size: 132px; }
+.stw-skel-rail span:first-child { inline-size: 210px; block-size: 46px; }
+.stw-skel-work { display: flex; flex-direction: column; gap: 14px; }
+.stw-skel-work span:first-child { block-size: 34px; inline-size: 42%; }
+.stw-skel-work span:nth-child(2) { block-size: 320px; }
+.stw-skel-work span:nth-child(3) { block-size: 62px; }
+@keyframes stw-shimmer { from { background-position: 200% 0; } to { background-position: -200% 0; } }
+
+/* ── Responsive ──────────────────────────────────────────────────────────── */
+@media (max-width: 1280px) { .stw { inline-size: calc(100% - 34px); } }
+
+/* Tablet keeps the workspace concept and the two-column compositions. §21 */
+@media (max-width: 1080px) {
+  .stw-structure, .stw-valuation { grid-template-columns: minmax(0, 1fr); gap: 26px; }
+  .stw-structure .stw-side, .stw-valuation .stw-side {
+    padding-inline-start: 0; padding-block-start: 22px;
+    border-inline-start: 0; border-block-start: 1px solid var(--mv-line);
+  }
+  .stw-sec-body { grid-template-columns: minmax(0, 1fr) 250px; gap: 18px; }
+  .stw-rank a { grid-template-columns: 24px 48px minmax(0, 1fr) 100px 72px 50px; gap: 10px; }
+}
+
+@media (max-width: 900px) {
+  .stw-sec-body { grid-template-columns: minmax(0, 1fr); }
+  .stw-inspect { position: static; }
+  .stw-rail-figs { margin-inline-start: 0; }
+}
+
+/* ── 44px targets ───────────────────────────────────────────────────────────
+   §25. The reference's boxes are 30–32px and they are kept — a taller pill
+   would change the bar's proportion — so the target is added behind them as a
+   transparent pseudo-element, the same box/target split the homepage CTAs and
+   the screener's filter tokens already use. */
+.stw-periods button,
+.stw-seg button,
+.stw-sec-pick,
+.stw-more,
+.stw-retry { position: relative; }
+.stw-periods button::after,
+.stw-seg button::after,
+.stw-sec-pick::after,
+.stw-more::after,
+.stw-retry::after {
+  content: '';
+  position: absolute;
+  inset: 50% 0 auto;
+  block-size: 44px;
+  transform: translateY(-50%);
+  pointer-events: auto;
+}
+/* The tab strip is already 38px tall; it only needs the remaining 6px. */
+.stw-tabs button { position: relative; }
+.stw-tabs button::before {
+  content: '';
+  position: absolute;
+  inset: 50% 0 auto;
+  block-size: 44px;
+  transform: translateY(-50%);
+}
+
+/* ── التقييم · centre, spread, coverage ───────────────────────────────────
+   Restored from the approved block. These three families were deleted in the
+   cleanup pass as proven-dead, and they WERE dead — the reconstructed
+   valuation mode rendered a band list instead of the median-led composition
+   the design specifies. The transplant puts the composition back, so the
+   rules come back with it, unchanged from the donor. */
+.stw-val-lead { display: flex; flex-direction: column; gap: 4px; margin-block-end: 18px; }
+.stw-val-lead > span { font-size: .7rem; color: var(--mv-ink-3); }
+.stw-val-lead strong { display: flex; align-items: baseline; gap: 4px; }
+.stw-val-lead strong bdi { font: 700 3rem/1 var(--font-numeric), ui-monospace, monospace; color: var(--mv-ink); letter-spacing: -.025em; }
+.stw-val-lead strong small { font-size: 1.1rem; color: var(--mv-ink-2); font-weight: 500; }
+.stw-val-figs { display: flex; gap: 0; margin: 0; flex-wrap: wrap; }
+.stw-val-figs > div {
+  display: flex; flex-direction: column; gap: 4px;
+  padding-inline: 22px; border-inline-start: 1px solid var(--mv-line);
+}
+.stw-val-figs > div:first-child { padding-inline-start: 0; border-inline-start: 0; }
+.stw-val-figs dt { font-size: .68rem; color: var(--mv-ink-3); }
+.stw-val-figs dd { margin: 0; font: 700 1.05rem var(--font-numeric), ui-monospace, monospace; color: var(--mv-ink); }
+
+@media (max-width: 720px) {
+  .stw-val-lead strong bdi { font-size: 2.5rem; }
+  .stw-val-figs > div { padding-inline: 16px; }
+  .stw-val-figs > div:first-child { padding-inline-start: 0; }
+}
+
+/* ── The chart's chrome · readout + export ────────────────────────────────
+   Copied from the approved block, namespaced `stw-` to sit beside the
+   foreign-flow page's own copy (`.ffw-st-chart-*`). Both charts are the same
+   approved component in the reference — one canvas, a live readout above it
+   and a two-button export beside that — and both keep it here. */
+.stw-chart-wrap { display: flex; flex-direction: column; gap: 10px; }
+.stw-chart-bar {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 14px; flex-wrap: wrap;
+}
+.stw-chart-read { flex: 1; min-inline-size: 0; }
+.stw-chart-actions { display: flex; align-items: center; gap: 7px; }
+.stw-chart-actions button {
+  position: relative;
+  min-block-size: 32px; padding-inline: 12px;
+  border: 1px solid var(--mv-line-strong); border-radius: 9px;
+  background: none; color: var(--mv-ink-2); cursor: pointer;
+  font: 600 .7rem var(--font-body), Arial, sans-serif;
+  transition: background-color .13s, color .13s;
+}
+.stw-chart-actions button:hover { background: var(--mv-well); color: var(--mv-ink); }
+.stw-chart-actions button:focus-visible { outline: 2px solid var(--mv-hero); outline-offset: 2px; }
+/* A 32px control in a 44px hit area — the same expander the rest of the page
+   uses, so the button stays visually compact without failing the gate. */
+.stw-chart-actions button::after {
+  content: ''; position: absolute; inset-inline: 0;
+  inset-block-start: 50%; transform: translateY(-50%);
+  block-size: max(100%, 44px);
+}
+.stw-copied { font-size: .68rem; color: var(--mv-hero); }
+[data-theme='dark'] .stw-copied { color: var(--mv-hero-bright); }
+.stw-chart-plot { position: relative; inline-size: 100%; }
+.stw-chart-plot canvas { display: block; inline-size: 100%; block-size: 100%; touch-action: pan-y; }
+
+.stw-readout {
+  display: flex; align-items: baseline; gap: 15px; flex-wrap: wrap;
+  min-block-size: 30px;
+  margin-block-end: 10px; padding: 6px 10px;
+  border: 1px solid var(--mv-line); border-radius: 10px;
+  background: var(--mv-well);
+  font-size: .7rem;
+}
+.stw-readout-name { font-weight: 600; color: var(--mv-ink); }
+.stw-readout-hint { color: var(--mv-ink-3); }
+.stw-read { display: inline-flex; align-items: baseline; gap: 5px; }
+.stw-read em { color: var(--mv-ink-3); font-style: normal; font-size: .64rem; }
+.stw-read bdi { color: var(--mv-ink); font: 700 .78rem var(--font-numeric), ui-monospace, monospace; }
+
+@media (max-width: 720px) {
+  .stw-readout { gap: 10px 12px; padding: 7px 9px; }
+}

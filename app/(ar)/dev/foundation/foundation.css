@@ -1,0 +1,175 @@
+/* Foundation proof sheet. Every value is a token — if a literal appears here,
+   the token layer is missing something. Delete with the route. */
+
+.fd {
+  min-block-size: 100vh;
+  padding: var(--mv-sp-8) var(--mv-sp-6);
+  color: var(--mv-ink);
+  background: var(--mv-env);
+  font-family: var(--font-body), Arial, sans-serif;
+  font-size: var(--mv-fs-body);
+  line-height: var(--mv-lh-body);
+}
+
+.fd-head { max-inline-size: 62ch; margin-block-end: var(--mv-sp-10); }
+
+.fd-eyebrow {
+  margin: 0 0 var(--mv-sp-2);
+  color: var(--mv-ink-3);
+  font-family: var(--font-numeric), ui-monospace, monospace;
+  font-size: var(--mv-fs-micro);
+  font-weight: var(--mv-fw-semibold);
+  letter-spacing: var(--mv-track-tight);
+}
+
+.fd-h1 {
+  margin: 0 0 var(--mv-sp-3);
+  font-family: var(--font-display), var(--font-body), sans-serif;
+  font-size: 1.9rem;
+  font-weight: var(--mv-fw-bold);
+  line-height: var(--mv-lh-tight);
+  letter-spacing: var(--mv-track-display);
+}
+
+.fd-lead { margin: 0; color: var(--mv-ink-2); font-size: var(--mv-fs-lead); }
+
+.fd-panel {
+  max-inline-size: 72ch;
+  margin-block-end: var(--mv-sp-6);
+  padding: var(--mv-sp-5);
+  border: 1px solid var(--mv-line);
+  border-radius: var(--mv-r-panel);
+  background: var(--mv-panel-solid);
+  box-shadow: var(--mv-shadow);
+}
+
+.fd-h2 {
+  margin: 0 0 var(--mv-sp-4);
+  color: var(--mv-ink-2);
+  font-size: var(--mv-fs-label);
+  font-weight: var(--mv-fw-semibold);
+}
+
+/* ── table ─────────────────────────────────────────────────────────────── */
+.fd-table { inline-size: 100%; border-collapse: collapse; }
+
+.fd-table th {
+  padding: 0 var(--mv-sp-3) var(--mv-sp-2);
+  border-block-end: 1px solid var(--mv-line-strong);
+  color: var(--mv-ink-3);
+  font-size: var(--mv-fs-caption);
+  font-weight: var(--mv-fw-semibold);
+  text-align: start;
+}
+
+.fd-table td {
+  block-size: var(--mv-row-h);
+  padding: 0 var(--mv-sp-3);
+  border-block-end: 1px solid var(--mv-line);
+  font-size: var(--mv-fs-body);
+}
+
+.fd-table tr:last-child td { border-block-end: 0; }
+
+.fd-ticker {
+  font-family: var(--font-numeric), ui-monospace, monospace;
+  font-size: var(--mv-fs-label);
+  font-weight: var(--mv-fw-bold);
+}
+
+.fd-num {
+  font-family: var(--font-numeric), ui-monospace, monospace;
+  font-variant-numeric: tabular-nums lining-nums;
+  font-weight: var(--mv-fw-semibold);
+  text-align: end;
+}
+
+.fd-up { color: var(--mv-up); }
+.fd-down { color: var(--mv-down); }
+.fd-flat { color: var(--mv-ink-3); }
+
+/* ── controls ──────────────────────────────────────────────────────────── */
+.fd-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--mv-sp-3);
+  align-items: center;
+}
+
+.fd-btn {
+  min-block-size: var(--mv-control-h);
+  padding-inline: var(--mv-sp-5);
+  border: 1px solid var(--mv-line-strong);
+  border-radius: var(--mv-r-control);
+  color: var(--mv-ink);
+  background: var(--mv-well);
+  font: inherit;
+  font-weight: var(--mv-fw-semibold);
+  cursor: pointer;
+  transition: background-color var(--mv-dur-1), border-color var(--mv-dur-1);
+}
+
+.fd-btn:hover:not(:disabled) { border-color: var(--mv-hero); }
+.fd-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+
+.fd-btn.is-primary {
+  border-color: transparent;
+  color: #fff;
+  background: var(--mv-hero);
+}
+
+.fd-input {
+  min-block-size: var(--mv-control-h);
+  min-inline-size: 22ch;
+  padding-inline: var(--mv-sp-4);
+  border: 1px solid var(--mv-line-strong);
+  border-radius: var(--mv-r-control);
+  color: var(--mv-ink);
+  background: var(--mv-well);
+  font: inherit;
+}
+
+.fd-input::placeholder { color: var(--mv-ink-3); }
+
+.fd-hint {
+  margin-block: var(--mv-sp-4) 0;
+  color: var(--mv-ink-3);
+  font-size: var(--mv-fs-caption);
+}
+
+.fd-hint kbd {
+  padding: 2px var(--mv-sp-1);
+  border: 1px solid var(--mv-line-strong);
+  border-radius: var(--mv-r-chip);
+  font-family: var(--font-numeric), ui-monospace, monospace;
+  font-size: var(--mv-fs-micro);
+}
+
+/* ── chips ─────────────────────────────────────────────────────────────── */
+.fd-chips { display: flex; flex-wrap: wrap; gap: var(--mv-sp-2); }
+
+.fd-chip {
+  display: inline-flex;
+  gap: var(--mv-sp-2);
+  align-items: center;
+  min-block-size: var(--mv-control-h-sm);
+  padding-inline: var(--mv-sp-4);
+  border-radius: var(--mv-r-pill);
+  color: var(--mv-ink-2);
+  background: var(--mv-well);
+  font-size: var(--mv-fs-label);
+  font-weight: var(--mv-fw-semibold);
+}
+
+.fd-chip bdi {
+  font-family: var(--font-numeric), ui-monospace, monospace;
+  font-variant-numeric: tabular-nums lining-nums;
+}
+
+.fd-chip.is-up { color: var(--mv-up); background: var(--mv-up-soft); }
+.fd-chip.is-down { color: var(--mv-down); background: var(--mv-down-soft); }
+
+@media (max-width: 640px) {
+  .fd { padding: var(--mv-sp-5) var(--mv-sp-4); }
+  .fd-h1 { font-size: 1.5rem; }
+}

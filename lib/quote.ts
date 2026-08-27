@@ -73,9 +73,15 @@ export async function getQuote(sym: string): Promise<Quote | null> {
  * bidi reordering, and a meta description has no `<bdi>` to fix it with. Words
  * are immune and read better besides.
  */
-export function describeQuote(q: Quote): string {
-  const price = `${q.close.toLocaleString('en-US', { maximumFractionDigits: 2 })} دينار`
+export function describeQuote(q: Quote, locale: 'ar' | 'en' = 'ar'): string {
+  const n = q.close.toLocaleString('en-US', { maximumFractionDigits: 2 })
+  const price = locale === 'ar' ? `${n} دينار` : `${n} IQD`
   if (q.pct == null || Math.abs(q.pct) < 0.005) return price
-  const dir = q.pct > 0 ? 'بارتفاع' : 'بانخفاض'
-  return `${price}، ${dir} ${Math.abs(q.pct).toFixed(2)}%`
+  /* Direction as a WORD, never a bare sign: a leading «−» inside an Arabic
+     sentence is reordered by bidi and can land against the wrong number. */
+  const dir = locale === 'ar'
+    ? (q.pct > 0 ? 'بارتفاع' : 'بانخفاض')
+    : (q.pct > 0 ? 'up' : 'down')
+  const sep = locale === 'ar' ? '، ' : ', '
+  return `${price}${sep}${dir} ${Math.abs(q.pct).toFixed(2)}%`
 }

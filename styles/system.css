@@ -1,0 +1,796 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   The shared system layer — primitives, surfaces, data states, feedback.
+
+   Ported from the approved reference app's final system pass. One rule governs
+   the whole layer: these surfaces appear on top of every page, so none of them
+   introduces a new colour, radius or shadow language. They reuse `--mv-*`
+   throughout, and they are the only place in the product where the semantic
+   quartet (up / down / warn / hero) means "state" rather than "value".
+
+   ── Two adaptations from the reference app, both deliberate ───────────────
+   1 · Theme. The reference app keys dark off `.iq-dark` on each page. This app
+       has one theme system — `data-theme` on <html> — so every dark rule here
+       is `[data-theme='dark']`. Values are identical; only the selector moved.
+   2 · Scope. Everything is under `.iq-page` or a system class, so the legacy
+       stylesheet and this layer still cannot reach each other. Overlays render
+       in a portal outside `.iq-page`, so their classes carry `.mv-` semantics
+       of their own and are listed in the containment audit.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.sr-only {
+  position: absolute;
+  inline-size: 1px;
+  block-size: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* ═══ Typography primitives ═══════════════════════════════════════════════
+   Named for the JOB, not the size, so a page asks for "a section title" and
+   gets whatever the system currently thinks that is. */
+
+.ty-page-title {
+  margin: 0;
+  font-family: var(--font-display), var(--font-body), sans-serif;
+  font-size: 1.9rem;
+  font-weight: var(--mv-fw-bold);
+  line-height: var(--mv-lh-tight);
+  letter-spacing: var(--mv-track-display);
+  color: var(--mv-ink);
+}
+
+.ty-section-title {
+  margin: 0;
+  font-family: var(--font-display), var(--font-body), sans-serif;
+  font-size: 1.05rem;
+  font-weight: var(--mv-fw-bold);
+  line-height: var(--mv-lh-tight);
+  letter-spacing: var(--mv-track-tight);
+  color: var(--mv-ink);
+}
+
+.ty-metric {
+  font-family: var(--font-numeric), ui-monospace, monospace;
+  font-variant-numeric: tabular-nums lining-nums;
+  font-size: 1.6rem;
+  font-weight: var(--mv-fw-bold);
+  line-height: var(--mv-lh-flush);
+  letter-spacing: var(--mv-track-tighter);
+  color: var(--mv-ink);
+}
+
+.ty-label {
+  font-size: var(--mv-fs-label);
+  font-weight: var(--mv-fw-semibold);
+  color: var(--mv-ink-2);
+}
+
+.ty-body {
+  font-size: var(--mv-fs-lead);
+  line-height: var(--mv-lh-body);
+  color: var(--mv-ink-2);
+}
+
+.ty-meta {
+  font-size: var(--mv-fs-caption);
+  color: var(--mv-ink-3);
+}
+
+/* Reading measure for legal and editorial text. Structure carried by measure,
+   scale and space — not by cards around clauses. */
+.ty-prose {
+  max-inline-size: 68ch;
+  font-size: 0.95rem;
+  line-height: var(--mv-lh-prose);
+  color: var(--mv-ink);
+}
+
+/* Latin inside Arabic. `dir` is set on the element itself, never inferred. */
+.ty-ticker {
+  font-family: var(--font-numeric), ui-monospace, monospace;
+  font-size: var(--mv-fs-label);
+  font-weight: var(--mv-fw-bold);
+  letter-spacing: var(--mv-track-tight);
+}
+
+.ty-num {
+  font-family: var(--font-numeric), ui-monospace, monospace;
+  font-variant-numeric: tabular-nums lining-nums;
+  font-weight: var(--mv-fw-semibold);
+}
+
+/* ═══ Controls ════════════════════════════════════════════════════════════
+   Every interactive control clears 44px, the WCAG 2.2 target-size minimum and
+   the reference app's dominant value. `is-compact` shrinks the BOX, never the
+   hit area — the padding comes off the outside, so the tappable region is
+   still 44px tall via the pseudo-element. */
+
+.mv-btn {
+  display: inline-flex;
+  gap: var(--mv-sp-2);
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  min-block-size: var(--mv-control-h);
+  padding-inline: var(--mv-sp-5);
+  border: 1px solid var(--mv-line-strong);
+  border-radius: var(--mv-r-control);
+  color: var(--mv-ink);
+  background: var(--mv-well);
+  font-family: var(--font-body), Arial, sans-serif;
+  font-size: var(--mv-fs-lead);
+  font-weight: var(--mv-fw-semibold);
+  cursor: pointer;
+  transition: background-color var(--mv-dur-1), border-color var(--mv-dur-1), color var(--mv-dur-1);
+}
+
+.mv-btn:hover:not(:disabled) { border-color: var(--mv-line-strong); background: var(--mv-panel); }
+
+.mv-btn.is-primary {
+  border-color: transparent;
+  color: #fff;
+  background: var(--mv-hero);
+}
+.mv-btn.is-primary:hover:not(:disabled) { background: var(--mv-hero-bright); }
+
+.mv-btn.is-ghost {
+  border-color: transparent;
+  background: transparent;
+  color: var(--mv-ink-2);
+}
+.mv-btn.is-ghost:hover:not(:disabled) { background: var(--mv-well); color: var(--mv-ink); }
+
+/* Red is spent on the destructive ACTION only, never on a whole surface. */
+.mv-btn.is-danger {
+  border-color: transparent;
+  color: #fff;
+  background: #b4392f;
+}
+.mv-btn.is-danger:hover:not(:disabled) { background: #9d3128; }
+
+/* Disabled must stay LEGIBLE. A control faded to invisibility reads as a
+   rendering bug and gets retried. */
+.mv-btn:disabled {
+  cursor: not-allowed;
+  border-style: dashed;
+  color: var(--mv-ink-3);
+  background: transparent;
+}
+
+/* Loading must not resize the control, or the layout jumps under the cursor
+   at the exact moment the user is waiting to see whether the click worked. */
+.mv-btn.is-loading { color: transparent; pointer-events: none; }
+.mv-btn.is-loading::after {
+  content: '';
+  position: absolute;
+  inline-size: 15px;
+  block-size: 15px;
+  border: 2px solid currentColor;
+  border-block-start-color: transparent;
+  border-radius: 50%;
+  color: var(--mv-ink-2);
+  animation: mv-spin 0.7s linear infinite;
+}
+.mv-btn.is-primary.is-loading::after,
+.mv-btn.is-danger.is-loading::after { color: #fff; }
+
+@keyframes mv-spin { to { transform: rotate(360deg); } }
+
+.mv-icon-btn {
+  display: inline-grid;
+  place-items: center;
+  min-inline-size: var(--mv-control-h);
+  min-block-size: var(--mv-control-h);
+  border: 0;
+  border-radius: var(--mv-r-control);
+  background: transparent;
+  color: var(--mv-ink-3);
+  cursor: pointer;
+  transition: color var(--mv-dur-1), background-color var(--mv-dur-1);
+}
+.mv-icon-btn:hover { color: var(--mv-ink); background: var(--mv-well); }
+
+/* Compact: a smaller BOX with a full-size hit area behind it. */
+.mv-btn.is-compact,
+.mv-icon-btn.is-compact {
+  min-block-size: var(--mv-control-h-sm);
+  min-inline-size: var(--mv-control-h-sm);
+  padding-inline: var(--mv-sp-3);
+  font-size: var(--mv-fs-label);
+}
+.mv-btn.is-compact::before,
+.mv-icon-btn.is-compact::before {
+  content: '';
+  position: absolute;
+  inset: 50% 0 auto;
+  block-size: var(--mv-control-h);
+  transform: translateY(-50%);
+}
+.mv-icon-btn.is-compact { position: relative; }
+
+.mv-input {
+  inline-size: 100%;
+  min-block-size: var(--mv-control-h);
+  padding-inline: var(--mv-sp-4);
+  border: 1px solid var(--mv-line-strong);
+  border-radius: var(--mv-r-control);
+  color: var(--mv-ink);
+  background: var(--mv-well);
+  font-family: var(--font-body), Arial, sans-serif;
+  font-size: var(--mv-fs-lead);
+}
+.mv-input::placeholder { color: var(--mv-ink-3); }
+.mv-input:disabled { cursor: not-allowed; border-style: dashed; color: var(--mv-ink-3); }
+
+.mv-field { display: flex; flex-direction: column; gap: var(--mv-sp-2); }
+.mv-field > label { font-size: var(--mv-fs-label); font-weight: var(--mv-fw-semibold); color: var(--mv-ink-2); }
+.mv-field .mv-hint { font-size: var(--mv-fs-caption); color: var(--mv-ink-3); }
+.mv-field .mv-error { font-size: var(--mv-fs-caption); color: var(--mv-down); }
+.mv-field.is-invalid .mv-input { border-color: var(--mv-down); }
+
+.mv-search {
+  display: flex;
+  gap: var(--mv-sp-2);
+  align-items: center;
+  inline-size: 100%;
+  min-block-size: var(--mv-control-h);
+  padding-inline: var(--mv-sp-3);
+  border: 1px solid var(--mv-line);
+  border-radius: var(--mv-r-control);
+  background: var(--mv-well);
+  color: var(--mv-ink-3);
+  font-size: var(--mv-fs-lead);
+  cursor: pointer;
+  text-align: start;
+}
+.mv-search i {
+  flex-shrink: 0;
+  inline-size: 13px;
+  block-size: 13px;
+  border: 1.5px solid currentColor;
+  border-radius: 50%;
+}
+
+.mv-select {
+  min-block-size: var(--mv-control-h);
+  padding-inline: var(--mv-sp-4);
+  border: 1px solid var(--mv-line-strong);
+  border-radius: var(--mv-r-control);
+  color: var(--mv-ink);
+  background: var(--mv-well);
+  font-family: var(--font-body), Arial, sans-serif;
+  font-size: var(--mv-fs-lead);
+  cursor: pointer;
+}
+
+/* Segmented control — one control, mutually exclusive options. */
+.mv-segmented {
+  display: inline-flex;
+  padding: 3px;
+  border: 1px solid var(--mv-line);
+  border-radius: var(--mv-r-control);
+  background: var(--mv-well);
+}
+.mv-segmented button {
+  min-block-size: var(--mv-control-h-sm);
+  padding-inline: var(--mv-sp-4);
+  border: 0;
+  border-radius: calc(var(--mv-r-control) - 3px);
+  background: transparent;
+  color: var(--mv-ink-2);
+  font: var(--mv-fw-semibold) var(--mv-fs-label) var(--font-body), sans-serif;
+  cursor: pointer;
+}
+/* Selected carries background AND weight AND colour, so it survives greyscale
+   and a colour-blind reader. */
+.mv-segmented button[aria-pressed='true'],
+.mv-segmented button[aria-selected='true'] {
+  background: var(--mv-panel-solid);
+  color: var(--mv-ink);
+  font-weight: var(--mv-fw-bold);
+  box-shadow: 0 1px 2px rgb(0 0 0 / 0.08);
+}
+
+.mv-tabs { display: flex; gap: var(--mv-sp-5); border-block-end: 1px solid var(--mv-line); }
+.mv-tabs button {
+  position: relative;
+  min-block-size: var(--mv-control-h);
+  padding: 0 2px;
+  border: 0;
+  background: transparent;
+  color: var(--mv-ink-3);
+  font: var(--mv-fw-semibold) var(--mv-fs-lead) var(--font-body), sans-serif;
+  cursor: pointer;
+}
+.mv-tabs button[aria-selected='true'] { color: var(--mv-ink); font-weight: var(--mv-fw-bold); }
+.mv-tabs button[aria-selected='true']::after {
+  content: '';
+  position: absolute;
+  inset-inline: 0;
+  inset-block-end: -1px;
+  block-size: 2px;
+  background: var(--mv-hero);
+}
+
+.mv-chip {
+  display: inline-flex;
+  gap: var(--mv-sp-2);
+  align-items: center;
+  min-block-size: var(--mv-control-h-sm);
+  padding-inline: var(--mv-sp-4);
+  border: 1px solid transparent;
+  border-radius: var(--mv-r-pill);
+  color: var(--mv-ink-2);
+  background: var(--mv-well);
+  font-size: var(--mv-fs-label);
+  font-weight: var(--mv-fw-semibold);
+  cursor: pointer;
+}
+.mv-chip[aria-pressed='true'] { border-color: var(--mv-hero); color: var(--mv-hero); background: rgb(49 113 198 / 0.1); }
+.mv-chip.is-up { color: var(--mv-up); background: var(--mv-up-soft); }
+.mv-chip.is-down { color: var(--mv-down); background: var(--mv-down-soft); }
+
+/* ═══ Surfaces ════════════════════════════════════════════════════════════ */
+
+.mv-panel {
+  padding: var(--mv-sp-5);
+  border: 1px solid var(--mv-line);
+  border-radius: var(--mv-r-panel);
+  background: var(--mv-panel-solid);
+  box-shadow: var(--mv-shadow);
+}
+.mv-panel.is-flat { box-shadow: none; }
+
+/* A card nested in a card drops its border and uses a divider instead —
+   never double a line. */
+.mv-panel .mv-panel { border: 0; border-radius: 0; box-shadow: none; background: none; padding-inline: 0; }
+
+.mv-well-surface {
+  padding: var(--mv-sp-4);
+  border-radius: var(--mv-r-well);
+  background: var(--mv-well);
+}
+
+.mv-metric { display: flex; flex-direction: column; gap: var(--mv-sp-1); }
+.mv-metric > .ty-label { order: -1; }
+
+.mv-divider { block-size: 1px; border: 0; margin-block: var(--mv-sp-8) var(--mv-sp-6); background: var(--mv-line); }
+
+.mv-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--mv-sp-3);
+  align-items: center;
+  padding: var(--mv-sp-3) var(--mv-sp-4);
+  border: 1px solid var(--mv-line);
+  border-radius: var(--mv-r-control);
+  background: var(--mv-well);
+}
+
+/* ═══ Data states ═════════════════════════════════════════════════════════
+   `—` is deliberately quieter than a number. It is the absence of a value,
+   and drawing it at full weight makes an empty cell shout louder than a full
+   one. */
+
+.ds-na { color: var(--mv-ink-3); font-family: var(--font-numeric), ui-monospace, monospace; cursor: help; }
+.ds-zero { color: var(--mv-ink); font-family: var(--font-numeric), ui-monospace, monospace; }
+.ds-idle { display: inline-flex; gap: 6px; align-items: baseline; }
+.ds-idle bdi { color: var(--mv-ink-2); font-family: var(--font-numeric), ui-monospace, monospace; }
+.ds-idle small { font-size: var(--mv-fs-micro); color: var(--mv-ink-3); }
+
+.ds-fresh {
+  display: inline-flex;
+  gap: 7px;
+  align-items: center;
+  padding: 4px var(--mv-sp-3);
+  border: 1px solid var(--mv-line);
+  border-radius: var(--mv-r-pill);
+  color: var(--mv-ink-2);
+  font-size: var(--mv-fs-label);
+}
+.ds-fresh bdi { color: var(--mv-ink); font-family: var(--font-numeric), ui-monospace, monospace; font-weight: var(--mv-fw-semibold); }
+.ds-fresh i { inline-size: 6px; block-size: 6px; border-radius: 50%; background: var(--mv-ink-3); }
+.ds-fresh.is-live i { background: #0e7350; }
+.ds-fresh.is-recent i { background: var(--mv-hero); }
+.ds-fresh.is-stale { border-color: rgb(168 100 42 / 0.32); background: rgb(168 100 42 / 0.06); }
+.ds-fresh.is-stale i { background: #a8642a; }
+.ds-fresh.is-unknown { border-style: dashed; }
+
+.ds-partial,
+.ds-modfail {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--mv-sp-3);
+  align-items: center;
+  padding: 11px var(--mv-sp-4);
+  margin-block: var(--mv-sp-3);
+  border: 1px solid rgb(168 100 42 / 0.28);
+  border-radius: var(--mv-r-card);
+  background: rgb(168 100 42 / 0.06);
+  color: var(--mv-ink-2);
+  font-size: var(--mv-fs-lead);
+  line-height: var(--mv-lh-body);
+}
+.ds-partial i { font-style: normal; color: #a8642a; }
+.ds-modfail { flex-direction: column; align-items: flex-start; gap: var(--mv-sp-1); }
+.ds-modfail strong { color: var(--mv-ink); font-size: 0.84rem; font-weight: var(--mv-fw-bold); }
+.ds-partial button,
+.ds-modfail button {
+  min-block-size: var(--mv-control-h-sm);
+  padding-inline: var(--mv-sp-3);
+  margin-inline-start: auto;
+  border: 1px solid var(--mv-line);
+  border-radius: var(--mv-r-well);
+  background: transparent;
+  color: var(--mv-ink);
+  font-size: var(--mv-fs-label);
+  font-weight: var(--mv-fw-semibold);
+  cursor: pointer;
+}
+.ds-modfail button { margin-inline-start: 0; margin-block-start: var(--mv-sp-2); }
+
+[data-theme='dark'] .ds-partial,
+[data-theme='dark'] .ds-modfail {
+  border-color: rgb(224 164 95 / 0.26);
+  background: rgb(224 164 95 / 0.07);
+}
+[data-theme='dark'] .ds-partial i { color: #e0a45f; }
+
+.ds-empty { display: flex; flex-direction: column; gap: 7px; align-items: flex-start; padding-block: 26px; }
+.ds-empty strong { color: var(--mv-ink); font-family: var(--font-display), var(--font-body), sans-serif; font-size: 0.98rem; font-weight: var(--mv-fw-bold); }
+.ds-empty span { color: var(--mv-ink-3); font-size: 0.85rem; line-height: var(--mv-lh-body); }
+
+.ds-disabled { display: inline-flex; flex-direction: column; gap: 5px; }
+.ds-why { font-size: var(--mv-fs-label); color: var(--mv-ink-3); }
+
+/* A slow, low-contrast wash — never a bright sweep. A shimmer racing across
+   the screen draws the eye to the one region with nothing to say yet. */
+.ds-skel span {
+  display: block;
+  border-radius: var(--mv-r-chip);
+  background: linear-gradient(90deg, var(--mv-well), var(--mv-line), var(--mv-well));
+  background-size: 200% 100%;
+  animation: ds-wash 2.1s linear infinite;
+}
+@keyframes ds-wash { to { background-position: -200% 0; } }
+.ds-skel.is-text { display: flex; flex-direction: column; gap: var(--mv-sp-3); }
+.ds-skel.is-text span { block-size: 15px; }
+.ds-skel.is-text span:first-child { block-size: 30px; inline-size: 52%; }
+.ds-skel.is-text span:last-child { inline-size: 78%; }
+.ds-skel.is-rows { display: flex; flex-direction: column; gap: var(--mv-sp-2); }
+.ds-skel.is-rows span { block-size: 52px; }
+.ds-skel.is-table { display: flex; flex-direction: column; gap: 1px; }
+.ds-skel.is-table span { block-size: 38px; border-radius: 0; }
+.ds-skel.is-table span:first-child { block-size: 30px; }
+.ds-skel.is-chart span { block-size: 190px; }
+.ds-skel.is-card { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: var(--mv-sp-3); }
+.ds-skel.is-card span { block-size: 130px; }
+
+/* Semantic values. Never colour alone — a direction mark travels with it. */
+.ds-up { color: var(--mv-up); }
+.ds-down { color: var(--mv-down); }
+.ds-flat { color: var(--mv-ink-3); }
+
+@media (prefers-reduced-motion: reduce) {
+  .ds-skel span { animation: none; }
+  .mv-btn.is-loading::after { animation-duration: 2s; }
+}
+
+/* ═══ Feedback · toasts ═══════════════════════════════════════════════════
+   Toasts render in a portal at the document root, OUTSIDE `.iq-page`, so they
+   are theme-scoped on `[data-theme]` directly. They are listed in the
+   containment audit for that reason. */
+
+.ty-live {
+  position: absolute;
+  inline-size: 1px;
+  block-size: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.ty-stack {
+  position: fixed;
+  z-index: 500;
+  /* The INLINE-END corner — the left in RTL. Inline-start is where the rail
+     lives, and a toast stacking over the navigation covers the one thing a
+     reader reaches for when something has just failed. */
+  inset-block-end: var(--mv-sp-5, 20px);
+  inset-inline-end: var(--mv-sp-5, 20px);
+  display: flex;
+  flex-direction: column-reverse;
+  gap: 8px;
+  max-inline-size: min(400px, calc(100vw - 32px));
+  pointer-events: none;
+}
+.ty-stack > * { pointer-events: auto; }
+
+.ty-toast {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  padding: 11px 13px;
+  border: 1px solid var(--mv-line-strong, rgb(20 22 26 / 0.22));
+  border-inline-start-width: 3px;
+  border-radius: 12px;
+  /* Opaque, never translucent. A toast sits over a table of numbers, and a
+     blurred one makes both itself and the figures behind it unreadable. */
+  background: #fff;
+  color: #1e2220;
+  font-size: 0.85rem;
+  line-height: 1.5;
+  box-shadow: 0 6px 22px rgb(20 24 20 / 0.13);
+  animation: ty-in 0.16s cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+[data-theme='dark'] .ty-toast {
+  border-color: rgb(255 255 255 / 0.16);
+  background: #1b1d1c;
+  color: #f0efec;
+  box-shadow: 0 8px 26px rgb(0 0 0 / 0.5);
+}
+
+/* Tone is carried by a mark AND a rule — never by colour alone. */
+.ty-mark {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  inline-size: 20px;
+  block-size: 20px;
+  border-radius: 50%;
+  color: #fff;
+  font-family: var(--font-numeric), ui-monospace, monospace;
+  font-size: 0.68rem;
+  font-weight: 700;
+  font-style: normal;
+}
+.ty-toast.is-success .ty-mark { background: #0e7350; }
+.ty-toast.is-error   .ty-mark { background: #b4392f; }
+.ty-toast.is-warning .ty-mark { background: #a8642a; }
+.ty-toast.is-info    .ty-mark { background: #3171c6; }
+
+.ty-toast.is-success { border-inline-start-color: #0e7350; }
+.ty-toast.is-error   { border-inline-start-color: #b4392f; }
+.ty-toast.is-warning { border-inline-start-color: #a8642a; }
+.ty-toast.is-info    { border-inline-start-color: #3171c6; }
+
+.ty-text { flex: 1; min-inline-size: 0; }
+.ty-count { color: #868c88; font-family: var(--font-numeric), ui-monospace, monospace; font-size: 0.7rem; font-weight: 700; }
+
+.ty-action,
+.ty-close {
+  flex-shrink: 0;
+  min-block-size: 32px;
+  padding-inline: 8px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: #3171c6;
+  font-family: var(--font-body), Arial, sans-serif;
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+[data-theme='dark'] .ty-action { color: #74a9ef; }
+.ty-close { color: #868c88; font-size: 0.72rem; }
+.ty-action:focus-visible,
+.ty-close:focus-visible { outline: 2px solid #3171c6; outline-offset: 1px; }
+
+@keyframes ty-in { from { opacity: 0; transform: translateY(6px); } }
+
+/* ═══ Feedback · overlays ═════════════════════════════════════════════════
+   ⚠ NO backdrop-filter anywhere in this block. iOS WebKit composites a
+   backdrop-filter layer ABOVE later-painted siblings regardless of z-index —
+   it blurred the drawer and swallowed taps. Scrims stay flat, always. */
+
+.ov-scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 600;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: rgb(16 18 16 / 0.52);
+  animation: ov-fade 0.14s ease-out;
+}
+
+.ov-dialog {
+  inline-size: min(440px, 100%);
+  padding: 22px;
+  border: 1px solid rgb(20 22 26 / 0.14);
+  border-radius: 16px;
+  background: #fff;
+  color: #1e2220;
+  box-shadow: 0 18px 50px rgb(16 18 16 / 0.26);
+  animation: ov-pop 0.18s cubic-bezier(0.32, 0.72, 0, 1);
+}
+[data-theme='dark'] .ov-dialog { border-color: rgb(255 255 255 / 0.14); background: #1b1d1c; color: #f0efec; }
+
+.ov-dialog h2 { margin: 0; font-family: var(--font-display), sans-serif; font-size: 1.05rem; font-weight: 700; line-height: 1.4; }
+.ov-dialog p { margin: 10px 0 0; font-size: 0.88rem; line-height: 1.8; color: #565c58; }
+[data-theme='dark'] .ov-dialog p { color: #b4b6b2; }
+
+.ov-actions { display: flex; gap: 10px; margin-block-start: 22px; }
+.ov-cancel,
+.ov-confirm {
+  flex: 1;
+  min-block-size: 44px;
+  padding-inline: 16px;
+  border: 1px solid rgb(20 22 26 / 0.14);
+  border-radius: 11px;
+  font-family: var(--font-body), Arial, sans-serif;
+  font-size: 0.86rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+/* Cancel stays visually easy — the safe path should be the one your hand
+   finds without aiming. */
+.ov-cancel { background: transparent; color: inherit; }
+.ov-confirm { border-color: transparent; background: #3171c6; color: #fff; }
+/* Red is spent on the destructive ACTION only, never the whole dialog. */
+.ov-confirm.is-danger { background: #b4392f; }
+.ov-cancel:focus-visible,
+.ov-confirm:focus-visible { outline: 2px solid #3171c6; outline-offset: 2px; }
+[data-theme='dark'] .ov-confirm:focus-visible { outline-color: #74a9ef; }
+
+.ov-scrim.is-sheet { place-items: end center; padding: 0; }
+
+.ov-sheet {
+  display: flex;
+  flex-direction: column;
+  inline-size: 100%;
+  max-block-size: 88vh;
+  border: 1px solid rgb(20 22 26 / 0.14);
+  background: #fff;
+  color: #1e2220;
+}
+[data-theme='dark'] .ov-sheet { border-color: rgb(255 255 255 / 0.14); background: #1b1d1c; color: #f0efec; }
+
+.ov-sheet.is-bottom {
+  border-start-start-radius: 18px;
+  border-start-end-radius: 18px;
+  /* The home indicator sits under the last row without this. */
+  padding-block-end: env(safe-area-inset-bottom, 0);
+  animation: ov-up 0.22s cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+/* Navigation comes from the inline-start edge — the RIGHT in RTL, under the
+   thumb that pressed the menu button. Positioned absolutely rather than placed
+   by the grid: the scrim's `place-items` is set twice, and whichever won last
+   was centring the navigation panel in the middle of the screen. */
+.ov-sheet.is-side {
+  position: absolute;
+  inset-block: 0;
+  inset-inline-start: 0;
+  inline-size: min(340px, 88vw);
+  max-block-size: none;
+  animation: ov-slide 0.22s cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+.ov-sheet-head {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+  padding: 14px 16px;
+  border-block-end: 1px solid rgb(20 22 26 / 0.09);
+}
+[data-theme='dark'] .ov-sheet-head { border-block-end-color: rgb(255 255 255 / 0.085); }
+.ov-grab { flex-basis: 100%; inline-size: 34px; block-size: 4px; margin: -4px auto 6px; border-radius: 3px; background: rgb(20 22 26 / 0.22); }
+.ov-sheet-head strong { flex: 1; font-family: var(--font-display), sans-serif; font-size: 0.92rem; font-weight: 700; }
+.ov-sheet-close {
+  min-inline-size: 40px;
+  min-block-size: 40px;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  color: #868c88;
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+.ov-sheet-close:focus-visible { outline: 2px solid #3171c6; outline-offset: -2px; }
+.ov-sheet-body { flex: 1; overflow-y: auto; padding: 14px 16px; -webkit-overflow-scrolling: touch; }
+.ov-sheet-foot { padding: 12px 16px; border-block-start: 1px solid rgb(20 22 26 / 0.09); }
+[data-theme='dark'] .ov-sheet-foot { border-block-start-color: rgb(255 255 255 / 0.085); }
+
+@keyframes ov-fade  { from { opacity: 0; } }
+@keyframes ov-pop   { from { opacity: 0; transform: scale(0.985); } }
+@keyframes ov-up    { from { opacity: 0; transform: translateY(14px); } }
+@keyframes ov-slide { from { opacity: 0; transform: translateX(-16px); } }
+
+/* Full-width on a phone, and above the home indicator. */
+@media (max-width: 640px) {
+  .ty-stack {
+    inset-inline: 10px;
+    inset-block-end: calc(10px + env(safe-area-inset-bottom, 0px));
+    max-inline-size: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ty-toast,
+  .ov-scrim,
+  .ov-dialog,
+  .ov-sheet { animation: none; }
+}
+
+/* ── Route states · 404 / 500 / route loading · `.sp-*` ───────────────────
+   A direct copy of the approved block (iqwealth-design/app/globals.css
+   13292–13320), plus its one responsive stray.
+
+   These are the only surfaces that replace a whole page, and they are rare on
+   purpose: a module that fails uses `ModuleError` or `PartialNotice` above and
+   keeps the page. Adaptations: `.iq-dark` → `[data-theme='dark']`, and
+   `.sp-code` is reached through `.iq-page` so its numeric tracking survives
+   the `:lang(ar)` reset in design-tokens.css. */
+/* ── Route states · 404 / 500 / loading ─────────────────────────────────── */
+.sp-page { min-block-size: 74vh; display: grid; place-items: center; padding: 40px 24px 72px; color: var(--mv-ink); }
+.sp-inner { inline-size: min(560px, 100%); text-align: center; }
+.sp-plate { margin: 0 0 28px; }
+.sp-plate-frame {
+  position: relative; overflow: hidden; block-size: 190px;
+  border: 1px solid var(--mv-line); background: var(--mv-well); color: var(--mv-ink-2);
+}
+[data-theme='dark'] .sp-plate-frame { background: #0d0f0e; color: #cfd3cd; }
+.sp-plate-frame canvas { display: block; inline-size: 100%; block-size: 100%; }
+.iq-page .sp-code { margin: 0; font: 700 .78rem var(--font-numeric); color: var(--mv-ink-3); letter-spacing: .06em; }
+.sp-page h1 { margin: 10px 0 0; font: 700 clamp(1.35rem, 4vw, 1.8rem)/1.32 var(--font-display); color: var(--mv-ink); }
+.sp-note { margin: 12px auto 0; max-inline-size: 44ch; font-size: .95rem; line-height: 1.8; color: var(--mv-ink-2); }
+.sp-actions { display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; margin-block-start: 24px; }
+.sp-primary, .sp-secondary {
+  min-block-size: 46px; display: inline-flex; align-items: center; padding-inline: 22px;
+  border-radius: 12px; font: 600 .88rem var(--font-body); cursor: pointer; text-decoration: none;
+}
+.sp-primary { border: 0; background: var(--mv-hero); color: #fff; }
+.sp-secondary { border: 1px solid var(--mv-line); background: transparent; color: var(--mv-ink); }
+.sp-primary:focus-visible, .sp-secondary:focus-visible { outline: 2px solid var(--mv-hero); outline-offset: 2px; }
+.sp-links { display: flex; justify-content: center; gap: 6px 20px; flex-wrap: wrap; margin-block-start: 26px; padding-block-start: 18px; border-block-start: 1px solid var(--mv-line); }
+/* 44px, not the reference's 40 — this is a touch target and the gate
+   measures it. */
+.sp-links a {
+  min-block-size: 44px; min-inline-size: 44px; padding-inline: 4px;
+  display: inline-flex; align-items: center; justify-content: center;
+  font-size: .82rem; color: var(--mv-ink-2); text-decoration: none;
+}
+.sp-links a:hover { color: var(--mv-hero); }
+.sp-hint { margin: 16px 0 0; font-size: .74rem; color: var(--mv-ink-3); }
+.sp-hint a { color: var(--mv-hero); }
+[data-theme='dark'] .sp-hint a { color: var(--mv-hero-bright); }
+.sp-hint kbd { padding: 1px 6px; border: 1px solid var(--mv-line); border-radius: 5px; font-family: var(--font-numeric); font-size: .72em; }
+.sp-loading { inline-size: min(1180px, calc(100% - 48px)); margin: 0 auto; padding: 26px 0 72px; display: flex; flex-direction: column; gap: 22px; }
+
+
+@media (max-width: 1280px) { .sp-loading { inline-size: calc(100% - 34px); } }
+@media (max-width: 720px)  {
+  .sp-loading { inline-size: calc(100% - 20px); }
+  .sp-plate-frame { block-size: 140px; }
+}
+
+/* ── The plate's corner ticks · shared ────────────────────────────────────
+   A thin rule and four corner ticks are what turn a dithered field into a
+   PLATE — something printed rather than a decorative background. Used by
+   `.in-plate-frame` on the information family and by `.sp-plate-frame` on
+   404/500, which load no route stylesheet of their own. */
+.in-tick { position: absolute; inline-size: 9px; block-size: 9px; opacity: .5; }
+.in-tick.is-tl { inset-block-start: 6px; inset-inline-start: 6px; border-block-start: 1px solid currentColor; border-inline-start: 1px solid currentColor; }
+.in-tick.is-tr { inset-block-start: 6px; inset-inline-end: 6px; border-block-start: 1px solid currentColor; border-inline-end: 1px solid currentColor; }
+.in-tick.is-bl { inset-block-end: 6px; inset-inline-start: 6px; border-block-end: 1px solid currentColor; border-inline-start: 1px solid currentColor; }
+.in-tick.is-br { inset-block-end: 6px; inset-inline-end: 6px; border-block-end: 1px solid currentColor; border-inline-end: 1px solid currentColor; }
+
+/* ── Directional glyphs ───────────────────────────────────────────────────
+   The product writes «go» and «back» affordances as a bare chevron in the
+   markup: `<i aria-hidden="true">‹</i>`. In RTL that glyph points forward. In
+   LTR it points backwards, so an English reader sees every «continue» link
+   with an arrow aimed at the previous page.
+
+   The glyph is not mirrored by the bidi algorithm — it is content, not
+   punctuation with a mirrored pair in this context — so direction has to be
+   applied here. `.dir-go` marks an element whose glyph means «onward», and it
+   flips with the document.
+
+   `display: inline-block` is required: a transform does nothing to an inline
+   box. */
+.dir-go { display: inline-block; }
+[dir='ltr'] .dir-go { transform: scaleX(-1); }

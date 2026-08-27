@@ -1,0 +1,421 @@
+/* ════════════════════════════════════════════════════════════════════════════
+   ChartEngine — a DIRECT PORT of the approved charting instrument.
+   ════════════════════════════════════════════════════════════════════════════
+
+   Source: `/Users/amed/iqwealth-design/app/globals.css` lines 7700–8009 (the
+   engine's own block) and 8641–8691 (its portable palette and z-index layers),
+   extracted by matching block boundaries rather than retyped.
+
+   ── Why there is almost nothing to adapt ─────────────────────────
+   `.ce-*` was unused in this repo, and the component carries its own palette
+   rather than borrowing the page's, so it works on `.iq-page` routes and
+   elsewhere alike. The `.iq-dark` marker in these selectors is NOT the app's
+   theme system — ChartEngine writes that class onto its own root from its
+   `theme` prop, so the component stays self-contained and `data-theme` is
+   never touched.
+
+   One line removed: the reference's `--font-numeric` fallback points at
+   `--font-roboto-mono`, which does not exist here. This app declares
+   `--font-numeric` on <html> from next/font, so it inherits.
+   ════════════════════════════════════════════════════════════════════════════ */
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   ChartEngine — the IQWealth charting instrument
+   ═══════════════════════════════════════════════════════════════════════════
+
+   Our own engine, drawn to one canvas. No klinecharts, no lightweight-charts,
+   no library at all: the two the real product uses each ship their own
+   palette, their own type, their own control language and their own idea of
+   what a chart looks like, and both of them are visibly not this product.
+
+   Everything below is chrome — the plot itself is painted in the canvas from
+   the palettes in ChartEngine.tsx, which is where the theming for the drawing
+   surface lives. This file styles the toolbar, the readout rail, the drawing
+   rail, the export menu, fullscreen, and the mobile sheet.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.ce-root { display: flex; flex-direction: column; gap: 0; }
+
+/* ── Top bar ────────────────────────────────────────────────────────────────
+   One row, four groups, everything 30px tall. It reads as a strip of controls
+   rather than a toolbar because nothing in it is bigger than the type beside
+   it — the chart is the instrument, this is its edge. */
+.ce-bar {
+  display: flex; align-items: center; gap: 7px; flex-wrap: wrap;
+  padding-block-end: 9px;
+}
+.ce-ident { display: flex; align-items: baseline; gap: 9px; min-inline-size: 0; margin-inline-end: 4px; }
+.ce-ident strong { font: 700 .92rem var(--font-body), Arial, sans-serif; color: var(--mv-ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-inline-size: 26ch; }
+.ce-ticker { padding: 2px 7px; border-radius: 6px; background: rgba(49,113,198,.1); color: var(--mv-hero); font: 700 .68rem var(--font-numeric), ui-monospace, monospace; }
+.ce-live { display: flex; align-items: baseline; gap: 6px; font: 700 .95rem var(--font-numeric), ui-monospace, monospace; }
+.ce-live small { font: 600 .7rem var(--font-numeric), ui-monospace, monospace; }
+.ce-live.positive { color: var(--mv-up); }
+.ce-live.negative { color: var(--mv-down); }
+
+.ce-seg { display: flex; gap: 2px; padding: 3px; border-radius: 10px; background: rgba(30,34,32,.055); }
+.ce-seg button {
+  display: inline-flex; align-items: center; gap: 5px;
+  block-size: 24px; padding-inline: 9px;
+  border: 0; border-radius: 7px;
+  background: none; color: var(--mv-ink-2);
+  font: 600 .69rem var(--font-body), Arial, sans-serif;
+  cursor: pointer;
+  transition: background-color .13s, color .13s;
+}
+.ce-seg button:hover:not(:disabled) { color: var(--mv-ink); }
+.ce-seg button.active { color: white; background: var(--mv-hero); }
+.ce-seg button:disabled { opacity: .38; cursor: not-allowed; }
+.ce-i { inline-size: 13px; block-size: 13px; stroke: currentColor; fill: none; stroke-linejoin: round; }
+.ce-seg button:not(.active) rect { fill: none; }
+.ce-seg button.active rect { fill: currentColor; }
+
+.ce-select { position: relative; display: inline-flex; }
+.ce-select select {
+  appearance: none;
+  block-size: 30px; padding-inline: 10px 26px;
+  border: 1px solid var(--mv-line); border-radius: 10px;
+  background: var(--mv-well); color: var(--mv-ink-2);
+  font: 600 .69rem var(--font-body), Arial, sans-serif; cursor: pointer;
+}
+.ce-select select:hover { color: var(--mv-ink); border-color: var(--mv-line-strong); }
+.ce-select i { position: absolute; inset-inline-start: 9px; inset-block-start: 50%; transform: translateY(-50%); pointer-events: none; color: var(--mv-ink-3); font-size: .6rem; font-style: normal; }
+
+.ce-bar-end { display: flex; align-items: center; gap: 3px; margin-inline-start: auto; }
+
+/* ── Icon buttons + tooltips ────────────────────────────────────────────────
+   Every control carries a tooltip, because half of a drawing toolbar is icons
+   nobody has ever been taught. CSS-only: a JS tooltip that has to mount before
+   it can be read is slower than the pointer that summoned it. */
+.ce-icon {
+  position: relative;
+  display: grid; place-items: center;
+  inline-size: 30px; block-size: 30px;
+  border: 1px solid transparent; border-radius: 9px;
+  background: none; color: var(--mv-ink-2);
+  cursor: pointer;
+  transition: background-color .13s, color .13s, border-color .13s;
+}
+.ce-icon svg { inline-size: 17px; block-size: 17px; }
+.ce-icon:hover:not(:disabled) { color: var(--mv-ink); background: var(--mv-well); border-color: var(--mv-line); }
+.ce-icon.active { color: white; background: var(--mv-hero); border-color: transparent; }
+.ce-icon:disabled { opacity: .32; cursor: not-allowed; }
+.ce-icon:focus-visible { outline: 2px solid var(--mv-hero); outline-offset: 1px; }
+
+.ce-icon::after {
+  content: attr(data-tip);
+  position: absolute; z-index: 40;
+  padding: 4px 8px;
+  border-radius: 7px;
+  background: var(--mv-ink); color: var(--mv-panel-solid);
+  font: 600 .64rem/1.3 var(--font-body), Arial, sans-serif;
+  white-space: nowrap;
+  opacity: 0; pointer-events: none;
+  transition: opacity .11s .04s;
+}
+.ce-icon[data-side="block"]::after { inset-block-start: calc(100% + 6px); inset-inline-end: 0; }
+.ce-icon[data-side="inline"]::after { inset-inline-start: calc(100% + 7px); inset-block-start: 50%; transform: translateY(-50%); }
+.ce-icon:hover::after, .ce-icon:focus-visible::after { opacity: 1; }
+
+/* ── Export menu ────────────────────────────────────────────────────────── */
+.ce-export { position: relative; }
+.ce-menu {
+  position: absolute; z-index: 45;
+  inset-block-start: calc(100% + 6px); inset-inline-end: 0;
+  min-inline-size: 178px;
+  padding: 5px;
+  border: 1px solid var(--mv-line-strong); border-radius: 13px;
+  background: var(--mv-panel-solid);
+  box-shadow: 0 18px 44px rgba(30,34,32,.16);
+}
+.ce-menu button {
+  display: flex; align-items: center; justify-content: space-between; gap: 14px;
+  inline-size: 100%;
+  padding: 8px 10px;
+  border: 0; border-radius: 9px;
+  background: none; color: var(--mv-ink);
+  font: 600 .73rem var(--font-body), Arial, sans-serif;
+  cursor: pointer;
+}
+.ce-menu button:hover { background: var(--mv-well); color: var(--mv-hero); }
+.ce-menu small { color: var(--mv-ink-3); font: 500 .62rem var(--font-body), Arial, sans-serif; }
+
+/* ── Readout rail ───────────────────────────────────────────────────────────
+   Above the plot, full width, monospace. The alternative — a tooltip that
+   follows the pointer — covers the candles you are pointing at, which is the
+   one thing you were looking at when you reached for it. */
+.ce-readout {
+  display: flex; align-items: baseline; gap: 13px; flex-wrap: wrap;
+  padding: 7px 10px;
+  border: 1px solid var(--mv-line);
+  border-radius: 11px 11px 0 0;
+  border-block-end: 0;
+  background: var(--mv-well);
+  font-size: .7rem;
+  min-block-size: 31px;
+}
+.ce-read-date { color: var(--mv-ink-2); font-weight: 600; }
+.ce-read { display: inline-flex; align-items: baseline; gap: 4px; }
+.ce-read em { color: var(--mv-ink-3); font-style: normal; font-size: .64rem; font-weight: 600; }
+.ce-read bdi { color: var(--mv-ink-2); font: 600 .72rem var(--font-numeric), ui-monospace, monospace; }
+.ce-read.is-strong bdi { color: var(--mv-ink); font-size: .76rem; font-weight: 700; }
+.ce-read bdi.positive { color: var(--mv-up); }
+.ce-read bdi.negative { color: var(--mv-down); }
+.ce-read-chg { display: inline-flex; align-items: baseline; gap: 5px; font: 600 .72rem var(--font-numeric), ui-monospace, monospace; }
+.ce-read-chg.positive { color: var(--mv-up); }
+.ce-read-chg.negative { color: var(--mv-down); }
+.ce-read-hint { margin-inline-start: auto; color: var(--mv-ink-3); font-size: .64rem; }
+
+/* ── Stage ──────────────────────────────────────────────────────────────── */
+.ce-stage { position: relative; display: flex; gap: 0; }
+
+.ce-plot {
+  position: relative;
+  flex: 1; min-inline-size: 0;
+  block-size: 340px;
+  border: 1px solid var(--mv-line);
+  border-radius: 0 0 11px 11px;
+  overflow: hidden;
+  /* The wheel handler calls preventDefault, so the page never scrolls out
+     from under a zoom. touch-action keeps the browser from claiming the
+     gesture before the pinch handler sees it. */
+  touch-action: none;
+}
+.ce-plot canvas { display: block; inline-size: 100%; block-size: 100%; }
+
+/* Cursor language: crosshair where the chart can be read, grab where it can
+   be moved, and a precise crosshair while a drawing tool is armed. */
+.ce-plot[data-tool="pointer"] canvas { cursor: crosshair; }
+.ce-plot[data-tool="pointer"][data-dragging] canvas { cursor: grabbing; }
+.ce-plot:not([data-tool="pointer"]) canvas { cursor: crosshair; }
+
+.ce-note {
+  position: absolute; inset-block-end: 8px; inset-inline-start: 10px;
+  margin: 0; padding: 4px 9px;
+  border-radius: 7px;
+  background: var(--mv-panel-solid);
+  color: var(--mv-ink-3); font-size: .63rem;
+}
+.ce-empty {
+  position: absolute; inset: 0;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px;
+  text-align: center; padding: 20px;
+}
+.ce-empty strong { color: var(--mv-ink); font: 600 .86rem var(--font-body), Arial, sans-serif; }
+.ce-empty p { max-inline-size: 40ch; margin: 0; color: var(--mv-ink-3); font-size: .72rem; line-height: 1.6; }
+
+/* ── Drawing rail ───────────────────────────────────────────────────────────
+   A vertical rail on the reading edge, one column wide. It sits OUTSIDE the
+   plot rather than floating over it: a floating toolbar covers price action,
+   and price action near the left edge is exactly where trend lines start. */
+.ce-tools {
+  display: flex; flex-direction: column; gap: 2px;
+  padding: 5px;
+  border: 1px solid var(--mv-line);
+  border-inline-end: 0;
+  border-radius: 0 0 0 11px;
+  background: var(--mv-well);
+}
+.ce-tools hr { inline-size: 20px; block-size: 1px; margin: 3px auto; border: 0; background: var(--mv-line-strong); }
+
+/* ── Fullscreen ─────────────────────────────────────────────────────────────
+   A portal on <body>, so the floating sidebar and header are BEHIND it rather
+   than around it. It is a workspace, not an enlarged card: the drawing rail
+   appears, the identity block appears, and the plot takes the rest. */
+.ce-fullscreen {
+  position: fixed; inset: 0; z-index: 900;
+  padding: 14px;
+  padding-block-start: max(14px, env(safe-area-inset-top));
+  padding-block-end: max(14px, env(safe-area-inset-bottom));
+  background: var(--mv-panel-solid);
+}
+.ce-root.is-full { block-size: 100%; }
+.ce-root.is-full .ce-stage { flex: 1; min-block-size: 0; }
+.ce-root.is-full .ce-plot { block-size: 100%; }
+
+/* ── Mobile sheet ───────────────────────────────────────────────────────── */
+.ce-sheet-open { display: none; }
+.ce-scrim { position: fixed; inset: 0; z-index: 950; background: rgba(0,0,0,.45); }
+.ce-sheet {
+  position: fixed; z-index: 960;
+  inset-inline: 0; inset-block-end: 0;
+  padding: 14px 14px max(16px, env(safe-area-inset-bottom));
+  border-radius: 20px 20px 0 0;
+  background: var(--mv-panel-solid);
+  box-shadow: 0 -18px 50px rgba(0,0,0,.28);
+}
+.ce-sheet-head { display: flex; align-items: center; justify-content: space-between; margin-block-end: 12px; }
+.ce-sheet-head strong { color: var(--mv-ink); font: 700 .88rem var(--font-body), Arial, sans-serif; }
+.ce-sheet-head button { inline-size: 30px; block-size: 30px; border: 0; border-radius: 9px; background: var(--mv-well); color: var(--mv-ink-2); cursor: pointer; }
+.ce-sheet-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 7px; }
+.ce-sheet-grid button {
+  display: flex; flex-direction: column; align-items: center; gap: 5px;
+  /* 44px is the floor for a touch target; these are 62 tall by 4 across. */
+  padding: 11px 4px;
+  border: 1px solid var(--mv-line); border-radius: 13px;
+  background: var(--mv-well); color: var(--mv-ink-2);
+  font: 600 .61rem var(--font-body), Arial, sans-serif; cursor: pointer;
+}
+.ce-sheet-grid button svg { inline-size: 19px; block-size: 19px; stroke: currentColor; fill: none; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+.ce-sheet-grid button.active { color: white; background: var(--mv-hero); border-color: transparent; }
+.ce-sheet-actions { display: flex; gap: 7px; margin-block-start: 12px; }
+.ce-sheet-actions button {
+  flex: 1; block-size: 38px;
+  border: 1px solid var(--mv-line-strong); border-radius: 11px;
+  background: none; color: var(--mv-ink-2);
+  font: 600 .71rem var(--font-body), Arial, sans-serif; cursor: pointer;
+}
+.ce-sheet-actions button:disabled { opacity: .35; }
+
+/* ── Toast ──────────────────────────────────────────────────────────────────
+   Bottom-centre, brief, non-blocking. Never a modal: confirming a copy by
+   demanding a click is worse than not confirming it. */
+.ce-toast {
+  position: fixed; z-index: 980;
+  inset-block-end: max(22px, env(safe-area-inset-bottom));
+  inset-inline: 0; margin-inline: auto;
+  inline-size: fit-content; max-inline-size: calc(100% - 32px);
+  padding: 9px 16px;
+  border-radius: 12px;
+  background: var(--mv-ink); color: var(--mv-panel-solid);
+  font: 600 .74rem var(--font-body), Arial, sans-serif;
+  box-shadow: 0 14px 38px rgba(0,0,0,.28);
+  animation: ce-rise .16s cubic-bezier(.32,.72,0,1);
+}
+@keyframes ce-rise { from { opacity: 0; transform: translateY(7px); } }
+
+/* ── Dark ───────────────────────────────────────────────────────────────── */
+.iq-dark .ce-seg { background: rgba(255,255,255,.055); }
+.iq-dark .ce-ticker { background: rgba(99,154,226,.2); color: var(--mv-hero-bright); }
+.iq-dark .ce-menu { box-shadow: 0 20px 50px rgba(0,0,0,.55); }
+.iq-dark .ce-icon::after { background: #333; color: #f0efec; }
+.iq-dark .ce-toast { background: #2c2c2c; color: #f0efec; }
+.iq-dark .ce-fullscreen { background: #161616; }
+
+/* ── Responsive ─────────────────────────────────────────────────────────── */
+@media (max-width: 1180px) {
+  /* Range labels shorten before anything is dropped: six words is a lot of
+     bar, six abbreviations is not. */
+  .ce-ranges button { padding-inline: 7px; }
+}
+
+@media (max-width: 760px) {
+  .ce-bar { gap: 5px; }
+  .ce-seg button span { display: none; }
+  .ce-seg button:has(.ce-i) { padding-inline: 7px; }
+  .ce-ranges { inline-size: 100%; order: 3; overflow-x: auto; scrollbar-width: none; }
+  .ce-ranges::-webkit-scrollbar { display: none; }
+  .ce-ranges button { flex: 0 0 auto; }
+  .ce-ranges button span { display: inline; }
+  .ce-select { order: 2; }
+  .ce-bar-end { order: 2; }
+  .ce-readout { gap: 9px; font-size: .66rem; }
+  .ce-read-hint { display: none; }
+  /* The vertical rail becomes a sheet trigger. Showing eight drawing icons
+     beside a 320px plot is showing neither. */
+  .ce-tools { display: none; }
+  .ce-plot { block-size: 262px; border-radius: 0 0 11px 11px; }
+  .ce-sheet-open {
+    display: block; inline-size: 100%;
+    margin-block-start: 8px; padding: 9px;
+    border: 1px solid var(--mv-line-strong); border-radius: 11px;
+    background: var(--mv-well); color: var(--mv-ink-2);
+    font: 600 .72rem var(--font-body), Arial, sans-serif; cursor: pointer;
+  }
+  .ce-fullscreen { padding: 8px; }
+  .ce-root.is-full .ce-ident strong { max-inline-size: 12ch; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ce-toast { animation: none; }
+  .ce-icon, .ce-seg button { transition: none; }
+}
+
+
+/* ── ChartEngine · portable palette ─────────────────────────────────────────
+   The engine now runs on TWO different page systems: the redesigned
+   `.iq-page` routes, and the approved homepage, which is `.home-v2` and was
+   never part of that layer. Every `--mv-*` token it uses is declared under
+   `body:has(.iq-page)`, so on the homepage the whole chrome resolved to
+   nothing — the fullscreen workspace came up with a transparent background
+   and the floating shell showed straight through it.
+
+   Fixed by making the component carry its own palette rather than borrowing
+   the page's. Specificity is deliberate: `.ce-root.iq-dark` (0,2,0) beats
+   these defaults but loses to `body:has(.iq-page.iq-dark)` (0,2,1), so a
+   redesigned page still wins — and since the values are identical, that is a
+   no-op there and a fix everywhere else. */
+.ce-root, .ce-fullscreen {
+  --mv-hero: #3171c6;
+  --mv-hero-bright: #4a8ae0;
+  --mv-ink: #1e2220;
+  --mv-ink-2: #565c58;
+  --mv-ink-3: #868c88;
+  --mv-line: rgba(30,34,32,.09);
+  --mv-line-strong: rgba(30,34,32,.16);
+  --mv-panel: rgba(255,255,255,.72);
+  --mv-panel-solid: #fbfbfa;
+  --mv-well: rgba(255,255,255,.5);
+  --mv-shadow: 0 20px 54px rgba(38,43,39,.09), inset 0 1px rgba(255,255,255,.9);
+  --mv-up: #12805a;
+  --mv-down: #b5432f;
+}
+.ce-root.iq-dark, .ce-fullscreen:has(.iq-dark) {
+  --mv-hero-bright: #74a9ef;
+  --mv-ink: #f0efec;
+  --mv-ink-2: #b4b6b2;
+  --mv-ink-3: #8b8e8a;
+  --mv-line: rgba(240,239,236,.085);
+  --mv-line-strong: rgba(240,239,236,.16);
+  --mv-panel: rgba(35,35,35,.82);
+  --mv-panel-solid: #1f1f1f;
+  --mv-well: rgba(255,255,255,.04);
+  --mv-shadow: 0 24px 68px rgba(0,0,0,.36), inset 0 1px rgba(255,255,255,.055);
+  --mv-up: #35c98a;
+  --mv-down: #ee6a6f;
+}
+/* Opaque, and above the floating shell. A workspace you can see the sidebar
+   through is not a workspace. */
+.ce-fullscreen { z-index: 1200; background: var(--mv-panel-solid, #fbfbfa); }
+.ce-fullscreen:has(.iq-dark) { background: #161616; }
+.ce-scrim, .ce-sheet { z-index: 1250; }
+.ce-toast { z-index: 1300; }
+
+/* ════════════════════════════════════════════════════════════════════════════
+   Touch targets — vertical only, and deliberately not 44 in both axes.
+   ════════════════════════════════════════════════════════════════════════════
+
+   Measured on the rendered toolbar: the four drawing/export icons are 30x30
+   sitting 3px apart, and the range segments are 24px tall in a 2px-gap track
+   with the narrowest at 36px wide. Reaching 44px horizontally would mean hit
+   areas overlapping their neighbours, which makes the neighbour unreachable —
+   the outcome §24 of the brief forbids, and a worse result than a small target
+   that at least hits what the reader aimed at.
+
+   So the expansion is vertical, where the space is genuinely free: every
+   control clears 44px in height, and the widths stay as the approved design
+   drew them. The chart's full toolset is also reachable in fullscreen, where
+   the same controls are laid out with room, and every one of them is labelled
+   and keyboard-reachable in both places. */
+
+.ce-icon { position: relative; }
+.ce-icon::before {
+  content: ''; position: absolute;
+  inset-inline: 0; inset-block: -8px;
+}
+/* A <select> cannot carry a pseudo-element, so the control itself grows. */
+.ce-select select { min-block-size: 44px; }
+
+.ce-seg button { position: relative; }
+.ce-seg button::before {
+  content: ''; position: absolute;
+  inset-inline: -1px; inset-block: -11px;
+}
+
+/* Both rails become horizontal scrollers on a narrow screen, and a scroller
+   crops anything that leaves it, so there the controls carry real height. */
+@media (max-width: 900px) {
+  .ce-seg button, .ce-icon {
+    min-block-size: 44px; display: inline-flex; align-items: center; justify-content: center;
+  }
+  .ce-seg button::before, .ce-icon::before { content: none; }
+}

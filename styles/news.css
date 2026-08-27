@@ -1,0 +1,318 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   أخبار السوق — a DIRECT PORT of the approved reference news feed.
+   ═══════════════════════════════════════════════════════════════════════════
+
+   Source: `/Users/amed/iqwealth-design/app/globals.css` lines 10383–10587,
+   the route's own block, extracted by matching the block boundary rather than
+   retyped. The panel chrome, the page header, the segmented control and the
+   skeleton it also renders live in styles/panels.css, ported once.
+
+   ── The adaptations, and only these ───────────────────────────────────────
+     · `.news-v2` → `.nw-page`, matching the `.pl-page` rename.
+     · `.iq-light` / `.iq-dark` on the page root → base rules plus
+       `[data-theme='dark']` on <html>. One theme system, set pre-paint.
+     · `.mv-search` → `.nw-mv-search` and `.mv-select` → `.nw-mv-select`.
+       BOTH already exist in styles/system.css here with different
+       definitions, so porting them verbatim would have restyled every other
+       search field and select in the product. Same treatment the heatmap gave
+       `.hx-mv-search`.
+     · `--font-numeric` / `--font-body` gain this repo's fallback stacks.
+     · the design-mode state picker rule is dropped.
+
+   `.nw-*` was unused in this repo before this file.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   أخبار السوق — the market event log
+   ───────────────────────────────────────────────────────────────────────────
+   A feed, not a magazine. The live page renders 300px cards over 180px cover
+   images; this renders rows about 64px tall, so a screen holds a dozen items
+   instead of four, and the eye scans one column of time down the page.
+
+   Controls, chips and skeletons are the approved `.st-*` / `.mv-*` / `.pl-*`
+   vocabulary — a fourth page inventing a fourth search field is how a product
+   stops feeling like one product.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.nw-page {
+  inline-size: min(1180px, calc(100% - 48px));
+  margin: 0 auto;
+  padding: 22px 0 56px;
+  color: var(--mv-ink);
+}
+.nw-page { --mv-ink-3: #6e746f; }
+[data-theme='dark'] .nw-page { --mv-ink-3: #9ea29c; }
+
+.nw-head { display: flex; align-items: flex-end; gap: 20px; flex-wrap: wrap; padding: 0 2px 14px; }
+.nw-head .st-head-actions { margin-inline-start: auto; }
+
+/* ── Controls ─────────────────────────────────────────────────────────────
+   Type first (it is the strongest cut), then free text, then sector. */
+.nw-controls { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 10px; }
+.nw-kinds button { display: inline-flex; align-items: center; gap: 6px; }
+.nw-kind-n {
+  padding: 1px 6px; border-radius: 999px;
+  background: var(--mv-line); color: var(--mv-ink-3);
+  font: 600 .6rem var(--font-numeric), ui-monospace, monospace;
+}
+.st-switch button.active .nw-kind-n { background: rgba(255,255,255,.22); color: white; }
+.nw-search input { inline-size: 100%; }
+.nw-sector select { min-inline-size: 150px; }
+
+/* ── Status line · count + active filters ────────────────────────────────── */
+.nw-status {
+  display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+  min-block-size: 30px; margin-block-start: 12px;
+  font-size: .72rem; color: var(--mv-ink-2);
+}
+.nw-count bdi { color: var(--mv-ink); font: 700 .8rem var(--font-numeric), ui-monospace, monospace; }
+.nw-chip {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 3px 9px; border: 1px solid var(--mv-hero); border-radius: 999px;
+  background: rgba(49,113,198,.08); color: var(--mv-hero);
+  font: 600 .66rem var(--font-body), Arial, sans-serif; cursor: pointer;
+  transition: background-color .12s;
+}
+.nw-chip:hover { background: rgba(49,113,198,.16); }
+.nw-chip i { font-style: normal; font-size: .8rem; line-height: 1; }
+.nw-chip:focus-visible, .nw-reset:focus-visible { outline: 2px solid var(--mv-hero); outline-offset: 2px; }
+[data-theme='dark'] .nw-chip { border-color: var(--mv-hero-bright); color: var(--mv-hero-bright); background: rgba(90,160,232,.12); }
+.nw-reset {
+  border: 0; padding: 3px 4px; background: none;
+  color: var(--mv-ink-3); font: 600 .66rem var(--font-body), Arial, sans-serif;
+  cursor: pointer; text-decoration: underline; text-underline-offset: 3px;
+}
+.nw-reset:hover { color: var(--mv-ink); }
+.nw-reset-lg { margin-block-start: 10px; font-size: .72rem; }
+.nw-degraded { margin-inline-start: auto; color: var(--mv-ink-3); font-size: .66rem; }
+.nw-error { margin-block-start: 12px; }
+
+/* ── The feed ─────────────────────────────────────────────────────────────── */
+.nw-feed { margin-block-start: 14px; }
+.nw-group + .nw-group { margin-block-start: 6px; }
+/* Sticky day header: with ~46 filings in a window, the date a row belongs to
+   would otherwise scroll away from the row that needs it. */
+.nw-day {
+  position: sticky; inset-block-start: 0; z-index: 2;
+  margin: 0; padding: 9px 10px 7px;
+  background: var(--mv-panel-solid);
+  border-block-end: 1px solid var(--mv-line);
+  color: var(--mv-ink-2); font-size: .7rem; font-weight: 700;
+}
+.nw-rows { display: flex; flex-direction: column; margin: 0; padding: 0; list-style: none; }
+.nw-row { border-block-end: 1px solid var(--mv-line); }
+.nw-row:last-child { border-block-end: 0; }
+.nw-row a {
+  display: grid;
+  grid-template-columns: 18px 44px minmax(0, 1fr) 190px 12px;
+  align-items: start; gap: 12px;
+  padding: 11px 10px;
+  color: inherit; text-decoration: none;
+  transition: background-color .12s;
+}
+.nw-row a:hover { background: var(--mv-well); }
+.nw-row a:focus-visible { outline: 2px solid var(--mv-hero); outline-offset: -2px; border-radius: 8px; }
+
+/* The type mark is the fastest read on the row: a filing, a capital action and
+   an article must be distinguishable before any word is read. */
+.nw-mark {
+  display: grid; place-items: center;
+  inline-size: 18px; block-size: 18px; margin-block-start: 1px;
+  border-radius: 5px; font-size: .68rem; line-height: 1;
+}
+.nw-row.is-filing .nw-mark { background: rgba(49,113,198,.12); color: var(--mv-hero); }
+.nw-row.is-capital .nw-mark { background: rgba(160,120,40,.14); color: #8a6a1f; }
+.nw-row.is-article .nw-mark { background: var(--mv-well); color: var(--mv-ink-3); }
+[data-theme='dark'] .nw-row.is-filing .nw-mark { background: rgba(90,160,232,.16); color: var(--mv-hero-bright); }
+[data-theme='dark'] .nw-row.is-capital .nw-mark { background: rgba(214,178,90,.16); color: #d8b45e; }
+
+/* Timestamps stay legible — muted metadata that has to be squinted at is the
+   §12 failure, and on a feed the time is half the information. */
+.nw-time { color: var(--mv-ink-2); font: 600 .68rem var(--font-numeric), ui-monospace, monospace; padding-block-start: 2px; }
+
+.nw-body { display: flex; flex-direction: column; gap: 3px; min-inline-size: 0; }
+/* No tracking: this label is Arabic («إفصاحات» / «أخبار») and Arabic is a
+   joining script. Same correction as `.cd-cell-label`. */
+.nw-kind-label { color: var(--mv-ink-3); font-size: .61rem; font-weight: 600; }
+.nw-headline { color: var(--mv-ink); font: 600 .82rem/1.55 var(--font-body), Arial, sans-serif; }
+.nw-headline mark { background: rgba(49,113,198,.2); color: inherit; border-radius: 3px; padding: 0 2px; }
+[data-theme='dark'] .nw-headline mark { background: rgba(90,160,232,.28); }
+.nw-excerpt { color: var(--mv-ink-2); font-size: .71rem; line-height: 1.7; }
+.nw-meta { display: flex; align-items: center; gap: 7px; flex-wrap: wrap; margin-block-start: 2px; font-size: .65rem; color: var(--mv-ink-3); }
+.nw-source { color: var(--mv-ink-2); }
+.nw-sep { opacity: .5; }
+/* The document affordance: a filing announces that it is a PDF BEFORE the
+   click, which is the whole of §18. */
+.nw-doc { display: inline-flex; align-items: center; gap: 6px; color: var(--mv-ink-2); }
+.nw-doc i {
+  font-style: normal; font-size: .55rem; font-weight: 700; letter-spacing: .04em;
+  padding: 1px 5px; border-radius: 4px;
+  background: rgba(49,113,198,.12); color: var(--mv-hero);
+}
+[data-theme='dark'] .nw-doc i { background: rgba(90,160,232,.16); color: var(--mv-hero-bright); }
+.nw-doc small { color: var(--mv-ink-3); font: 600 .6rem var(--font-numeric), ui-monospace, monospace; }
+
+/* The matched field is marked wherever the hit landed — headline, company or
+   source — so a ticker search never returns rows with nothing highlighted. */
+.nw-co.is-hit .cd-ticker { background: rgba(49,113,198,.2); color: var(--mv-hero); border-color: transparent; }
+[data-theme='dark'] .nw-co.is-hit .cd-ticker { background: rgba(90,160,232,.26); color: var(--mv-hero-bright); }
+.nw-co-name mark, .nw-source mark { background: rgba(49,113,198,.2); color: inherit; border-radius: 3px; padding: 0 2px; }
+[data-theme='dark'] .nw-co-name mark, [data-theme='dark'] .nw-source mark { background: rgba(90,160,232,.28); }
+
+.nw-co { display: flex; flex-direction: column; align-items: flex-end; gap: 3px; min-inline-size: 0; padding-block-start: 1px; }
+.nw-co-name { color: var(--mv-ink-2); font-size: .71rem; text-align: end; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-inline-size: 100%; }
+.nw-co .cd-ticker { font-size: .58rem; padding: 1px 5px; }
+.nw-co-market span { color: var(--mv-ink-3); font-size: .68rem; }
+.nw-go { color: var(--mv-ink-3); font-size: .8rem; opacity: .4; transition: opacity .12s, color .12s; padding-block-start: 2px; }
+.nw-row a:hover .nw-go { opacity: 1; color: var(--mv-hero); }
+[data-theme='dark'] .nw-row a:hover .nw-go { color: var(--mv-hero-bright); }
+
+.nw-more {
+  display: block; inline-size: 100%; margin-block-start: 16px;
+  padding: 11px; border: 1px solid var(--mv-line); border-radius: 12px;
+  background: none; color: var(--mv-ink-2);
+  font: 600 .74rem var(--font-body), Arial, sans-serif; cursor: pointer;
+  transition: color .13s, border-color .13s, background-color .13s;
+}
+.nw-more bdi { margin-inline-start: 7px; color: var(--mv-ink-3); font-family: var(--font-numeric), ui-monospace, monospace; }
+.nw-more:hover { color: var(--mv-hero); border-color: var(--mv-hero); background: rgba(49,113,198,.05); }
+.nw-more:focus-visible { outline: 2px solid var(--mv-hero); outline-offset: 2px; }
+.nw-end { margin: 16px 0 0; text-align: center; color: var(--mv-ink-3); font-size: .68rem; }
+.nw-end bdi { font-family: var(--font-numeric), ui-monospace, monospace; font-weight: 600; }
+.nw-empty { margin-block-start: 14px; }
+
+.nw-day-skel { display: block; block-size: 30px; inline-size: 120px; border-radius: 8px; }
+.nw-row-skel { display: block; block-size: 58px; inline-size: 100%; margin-block-start: 8px; border-radius: 10px; }
+
+/* ── Responsive ───────────────────────────────────────────────────────────── */
+@media (max-width: 1180px) { .nw-page { inline-size: calc(100% - 34px); } }
+
+@media (max-width: 980px) {
+  .nw-controls { grid-template-columns: minmax(0, 1fr) auto; }
+  .nw-kinds { grid-column: 1 / -1; }
+}
+
+/* Tablet keeps the dense row; only the company column narrows. §33 of the
+   directory brief applies here too — a tablet is not an oversized phone. */
+@media (max-width: 860px) {
+  .nw-row a { grid-template-columns: 18px 40px minmax(0, 1fr) 130px 12px; gap: 10px; }
+}
+
+@media (max-width: 720px) {
+  .nw-page { inline-size: calc(100% - 20px); padding-block-start: 12px; }
+  .nw-controls { grid-template-columns: 1fr; }
+  .nw-sector select { inline-size: 100%; }
+  /* The company stays — on a feed, which company an item is about is not a
+     detail to drop (§11) — but the row must not become a card. Three tight
+     lines instead of a three-row grid: [mark · time] / [headline · meta] /
+     [company · open]. ~120px instead of 198px. §21 */
+  .nw-row a {
+    display: flex; flex-wrap: wrap; align-items: flex-start;
+    gap: 6px 8px; padding: 10px 8px;
+  }
+  .nw-mark { order: 1; }
+  .nw-time { order: 2; margin-inline-start: auto; padding-block-start: 0; }
+  .nw-body { order: 3; flex: 1 1 100%; }
+  .nw-co { order: 4; flex-direction: row; align-items: center; gap: 7px; padding-block-start: 0; }
+  .nw-co-name { text-align: start; max-inline-size: 62vw; }
+  .nw-go { order: 5; margin-inline-start: auto; opacity: .8; padding-block-start: 0; }
+  .nw-headline { font-size: .8rem; }
+  /* Two lines of excerpt is context; five is a paragraph in a feed. */
+  .nw-excerpt {
+    display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .nw-kinds { overflow-x: auto; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .nw-row a, .nw-chip, .nw-more, .nw-go { transition: none; }
+}
+/* ═══════════════════════════════════════════════════════════════════════════
+   Added here, not ported.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* The borrowed search and select, under this route's names. Copied from the
+   reference's `.mv-search` (6028–6055) and `.mv-select` (6058–6071) with only
+   the rename applied. */
+.nw-mv-search {
+  display: flex; align-items: center; gap: 7px;
+  flex: 1 1 210px; max-inline-size: 300px;
+  block-size: 34px;
+  padding-inline: 11px;
+  border: 1px solid var(--mv-line);
+  border-radius: 11px;
+  background: var(--mv-well);
+  transition: border-color .16s, box-shadow .16s, background-color .16s;
+}
+.nw-mv-search:focus-within {
+  border-color: rgba(49,113,198,.5);
+  background: rgba(255,255,255,.9);
+  box-shadow: 0 0 0 3px rgba(49,113,198,.13);
+}
+.nw-mv-search input {
+  flex: 1; min-inline-size: 0; border: 0; background: none;
+  color: var(--mv-ink); font: 500 .74rem var(--font-body), Arial, sans-serif; outline: none;
+}
+.nw-mv-search input::placeholder { color: var(--mv-ink-3); }
+
+.nw-mv-select { position: relative; display: flex; align-items: center; }
+.nw-mv-select select {
+  appearance: none;
+  block-size: 34px;
+  padding-inline: 30px 12px;
+  border: 1px solid var(--mv-line);
+  border-radius: 11px;
+  background: var(--mv-well);
+  color: var(--mv-ink-2);
+  font: 600 .72rem var(--font-body), Arial, sans-serif;
+  cursor: pointer;
+}
+.nw-mv-select select:focus-visible { outline: none; border-color: rgba(49,113,198,.5); box-shadow: 0 0 0 3px rgba(49,113,198,.13); }
+
+[data-theme='dark'] .nw-mv-search,
+[data-theme='dark'] .nw-mv-select select { border-color: rgba(255,255,255,.09); background: rgba(255,255,255,.04); }
+[data-theme='dark'] .nw-mv-search:focus-within { border-color: rgba(99,154,226,.5); background: rgba(49,113,198,.12); box-shadow: 0 0 0 3px rgba(49,113,198,.18); }
+[data-theme='dark'] .nw-mv-select select option { background: #232323; }
+
+/* The coverage line. It appears only when the reader selects إفصاحات — the
+   one state that genuinely depends on knowing how far the filing index
+   reaches — and is sized as the footnote it is, not as a warning. */
+.nw-coverage {
+  margin: 10px 0 0;
+  color: var(--mv-ink-3);
+  font-size: .67rem; line-height: 1.75;
+}
+.nw-coverage bdi { color: var(--mv-ink-2); font-weight: 700; }
+
+/* Touch targets, hit-tested outward from each control's centre. The search
+   field and the select are already 34px tall and grow; the row anchors and
+   the chips are the two that needed help. */
+.nw-mv-select select { min-block-size: 44px; }
+/* The field itself was 34px and the input inside it 18, so the tappable area
+   was the text run rather than the box the reader aims at. 46 rather than 44
+   because the 1px border on each side comes out of the child's stretch. */
+.nw-mv-search { min-block-size: 46px; }
+.nw-mv-search input { align-self: stretch; }
+.nw-more { min-block-size: 44px; }
+.nw-chip, .nw-reset { position: relative; }
+.nw-chip::before, .nw-reset::before {
+  content: ''; position: absolute;
+  inset-inline: 0; inset-block: -11px;
+}
+
+/* ── Foreign-language marker ──────────────────────────────────────────────
+   Only ever rendered on /en/news, beside an article whose body is Arabic.
+   Quiet by design: it is a fact about the item, not a warning about it. */
+.nw-lang {
+  display: inline-block;
+  margin-inline-start: 8px;
+  padding-inline: 6px;
+  border: 1px solid var(--mv-line, #d8d6d1);
+  border-radius: 5px;
+  color: var(--mv-ink3, #6e746f);
+  font-size: 0.68rem;
+  font-weight: 600;
+  vertical-align: middle;
+  white-space: nowrap;
+}

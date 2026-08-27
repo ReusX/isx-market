@@ -1,0 +1,328 @@
+/* ════════════════════════════════════════════════════════════════════════════
+   حسابي — a DIRECT PORT of the approved account page.
+   ════════════════════════════════════════════════════════════════════════════
+
+   Source: `/Users/amed/iqwealth-design/app/globals.css`, the route's own block,
+   extracted by matching the block boundary rather than retyped.
+
+   ── The adaptations, and only these ────────────────────────────────
+     · `.iq-dark` on the page root → `[data-theme='dark']` on <html>.
+     · `--font-numeric` / `--font-body` gain this repo's fallback stacks.
+     · the design-mode state picker rules are dropped.
+
+   `.ac-*` was unused in this repo before this file.
+   ════════════════════════════════════════════════════════════════════════════ */
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   حسابي — الملف الشخصي والإعدادات
+   ───────────────────────────────────────────────────────────────────────────
+   The last account surface before the auth screens, and deliberately the
+   smallest page in the product. The account layer supports six things; this
+   styles those six and nothing else.
+
+   It reuses the portfolio's shell verbatim — `.pf-head`, `.st-title`,
+   `.st-head-actions`, `.pf-private`, `.pf-signin`, `.mv-theme`
+   — because §26 is right that an account page which invents its own visual
+   language stops feeling like the same product. Only what is genuinely new
+   gets rules: the rail, the fields, and the choice controls.
+
+   Density rule: settings are read once and changed rarely, so this page is the
+   airiest in the app. Fields are separated by rules, not boxed. §22
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.ac-page {
+  inline-size: min(1000px, calc(100% - 48px));
+  margin: 0 auto;
+  padding: 22px 0 64px;
+  color: var(--mv-ink);
+}
+/* Two page-root token overrides removed. They were carried over from the
+   reference, where the theme is a class on the page (`.iq-light` / `.iq-dark`);
+   here it is `data-theme` on <html>, so `.ac-page.iq-light` and
+   `.ac-page[data-theme='dark']` matched nothing and never had. Re-pointing them
+   at <html> would CHANGE the page's dark colours, which this phase freezes —
+   so they go as dead selectors, not as a restyle. `/profile` takes the shared
+   token values like every other migrated route. */
+.ac-dot { opacity: .4; }
+
+/* ── Identity · a block, never a hero · §3 ───────────────────────────────── */
+.ac-identity {
+  display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
+  padding-block: 4px 18px; margin-block-end: 22px;
+  border-block-end: 1px solid var(--mv-line);
+}
+/* Initials, not an avatar upload — the product has no upload. §6 */
+.ac-mark {
+  inline-size: 48px; block-size: 48px; flex-shrink: 0;
+  display: grid; place-items: center; border-radius: 50%;
+  background: rgba(49,113,198,.1); color: var(--mv-hero);
+  font: 700 1.15rem var(--font-display);
+}
+[data-theme='dark'] .ac-mark { background: rgba(90,160,232,.14); color: var(--mv-hero-bright); }
+.ac-id-copy { display: flex; flex-direction: column; gap: 3px; min-inline-size: 0; }
+.ac-id-copy strong { font: 700 1rem var(--font-display); color: var(--mv-ink); }
+.ac-id-email { font: 500 .74rem var(--font-body), Arial, sans-serif; color: var(--mv-ink-2); }
+.ac-id-since { margin: 0; margin-inline-start: auto; font-size: .68rem; color: var(--mv-ink-3); }
+.ac-id-since bdi { font-family: var(--font-numeric), ui-monospace, monospace; font-weight: 600; }
+
+/* ── Body · rail + panel · §5 ────────────────────────────────────────────── */
+.ac-body { display: grid; grid-template-columns: 224px minmax(0, 1fr); gap: 34px; align-items: start; }
+
+.ac-rail { display: flex; flex-direction: column; gap: 2px; position: sticky; inset-block-start: 16px; }
+.ac-rail button {
+  display: flex; flex-direction: column; gap: 2px; align-items: flex-start;
+  inline-size: 100%; min-block-size: 52px; padding: 9px 12px;
+  border: 0; border-radius: 10px; background: none; cursor: pointer;
+  text-align: start; transition: background-color .13s;
+}
+.ac-rail button strong { font: 600 .82rem var(--font-body), Arial, sans-serif; color: var(--mv-ink-2); }
+.ac-rail button span { font-size: .66rem; color: var(--mv-ink-3); }
+.ac-rail button:hover { background: var(--mv-well); }
+.ac-rail button:focus-visible { outline: 2px solid var(--mv-hero); outline-offset: -2px; }
+.ac-rail button.is-on { background: rgba(49,113,198,.08); }
+.ac-rail button.is-on strong { color: var(--mv-hero); }
+[data-theme='dark'] .ac-rail button.is-on { background: rgba(90,160,232,.11); }
+[data-theme='dark'] .ac-rail button.is-on strong { color: var(--mv-hero-bright); }
+/* Sign-out is reachable without opening a section. §16 */
+.ac-rail-out {
+  margin-block-start: 10px !important; padding-block-start: 14px !important;
+  border-block-start: 1px solid var(--mv-line) !important; border-radius: 0 !important;
+  min-block-size: 44px !important;
+  font: 600 .78rem var(--font-body), Arial, sans-serif !important; color: var(--mv-ink-2) !important;
+}
+.ac-rail-out:hover { color: var(--mv-ink) !important; background: none !important; }
+
+/* The mobile list is built here and hidden on desktop, so there is one markup
+   tree rather than two that can drift apart. §24 */
+.ac-list { display: none; }
+
+/* A settings form has a reading measure. Left to fill the 1,000px column, the
+   «تعديل» button and the row counts ended up a screen away from the labels
+   they belong to, and every row read as two disconnected halves. */
+.ac-panel { min-inline-size: 0; max-inline-size: 620px; }
+.ac-back { display: none; }
+.ac-h2 { margin: 0 0 6px; font: 700 1rem var(--font-display); color: var(--mv-ink); }
+
+/* ── Fields · rules, not boxes · §22 ─────────────────────────────────────── */
+.ac-field { padding-block: 18px; border-block-end: 1px solid var(--mv-line); }
+.ac-field-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-block-end: 9px; }
+.ac-field-head label, .ac-label { font: 600 .74rem var(--font-body), Arial, sans-serif; color: var(--mv-ink-2); }
+
+.ac-static {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 14px; min-block-size: 44px;
+}
+.ac-static > span { font: 500 .86rem var(--font-body), Arial, sans-serif; color: var(--mv-ink); min-inline-size: 0; overflow-wrap: anywhere; }
+.ac-static code {
+  font: 700 .95rem var(--font-numeric), ui-monospace, monospace; color: var(--mv-ink);
+  padding: 7px 13px; border-radius: 9px; background: var(--mv-well);
+  letter-spacing: .06em;
+}
+.ac-static button {
+  flex-shrink: 0; min-block-size: 38px; padding-inline: 15px;
+  border: 1px solid var(--mv-line-strong); border-radius: 10px;
+  background: none; color: var(--mv-ink-2); cursor: pointer;
+  font: 600 .74rem var(--font-body), Arial, sans-serif;
+  transition: background-color .13s, color .13s, border-color .13s;
+}
+.ac-static button:hover:not(:disabled) { background: var(--mv-well); color: var(--mv-ink); border-color: var(--mv-hero); }
+.ac-static button:focus-visible { outline: 2px solid var(--mv-hero); outline-offset: 2px; }
+.ac-static button:disabled { opacity: .5; cursor: default; }
+/* A field that cannot be edited says so instead of offering a dead control. */
+.ac-static.is-locked > span { color: var(--mv-ink-2); }
+.ac-static.is-locked em { font-style: normal; font-size: .68rem; color: var(--mv-ink-3); }
+
+.ac-edit { display: flex; align-items: center; gap: 9px; flex-wrap: wrap; }
+.ac-edit input {
+  flex: 1; min-inline-size: 180px; min-block-size: 46px; padding-inline: 14px;
+  border: 1px solid var(--mv-line-strong); border-radius: 11px;
+  background: var(--mv-panel); color: var(--mv-ink);
+  font: 500 .92rem var(--font-body), Arial, sans-serif;
+}
+.ac-edit input:focus-visible { outline: 2px solid var(--mv-hero); outline-offset: 1px; border-color: var(--mv-hero); }
+.ac-edit input[aria-invalid="true"] { border-color: var(--mv-down); }
+.ac-save {
+  min-block-size: 46px; padding-inline: 20px;
+  border: 0; border-radius: 11px; background: var(--mv-hero); color: #fff;
+  cursor: pointer; font: 600 .78rem var(--font-body), Arial, sans-serif;
+}
+.ac-save:disabled { opacity: .45; cursor: default; }
+.ac-save:focus-visible { outline: 2px solid var(--mv-hero); outline-offset: 2px; }
+.ac-cancel {
+  min-block-size: 46px; padding-inline: 14px;
+  border: 0; border-radius: 11px; background: none; color: var(--mv-ink-3);
+  cursor: pointer; font: 600 .76rem var(--font-body), Arial, sans-serif;
+}
+.ac-cancel:hover { color: var(--mv-ink); }
+
+/* ── Feedback · at the field, not only in a toast · §7 §20 ───────────────── */
+.ac-hint { margin: 9px 0 0; font-size: .69rem; line-height: 1.75; color: var(--mv-ink-3); max-inline-size: 74ch; }
+.ac-err { margin: 9px 0 0; font-size: .71rem; line-height: 1.7; color: var(--mv-down); }
+.ac-ok {
+  display: flex; align-items: flex-start; gap: 7px;
+  margin: 9px 0 0; font-size: .71rem; line-height: 1.7; color: var(--mv-ink-2);
+}
+.ac-ok i { font-style: normal; color: var(--mv-up); }
+.ac-ok bdi { font-weight: 600; color: var(--mv-ink); }
+/* Restrained: a word beside the label, not a modal. §20 */
+.ac-saved { display: inline-flex; align-items: center; gap: 5px; font: 600 .69rem var(--font-body), Arial, sans-serif; color: var(--mv-up); }
+.ac-saved i { font-style: normal; }
+
+/* ── Choice controls · language and theme · §9 §10 ───────────────────────── */
+/* auto-fit, not a fixed pair: on tablet the shell's sidebar leaves the panel
+   under 300px, and two fixed columns squeezed the language cards until their
+   direction notes wrapped three lines. This adapts to the CONTAINER, so it is
+   right at every width without a breakpoint per surface. */
+.ac-choice { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 10px; }
+.ac-choice button {
+  display: flex; flex-direction: column; gap: 3px; align-items: flex-start;
+  min-block-size: 56px; padding: 11px 14px;
+  border: 1px solid var(--mv-line-strong); border-radius: 12px;
+  background: none; cursor: pointer; text-align: start;
+  transition: border-color .13s, background-color .13s;
+}
+.ac-choice button strong { font: 600 .84rem var(--font-body), Arial, sans-serif; color: var(--mv-ink); }
+.ac-choice button em { font-style: normal; font-size: .66rem; color: var(--mv-ink-3); }
+.ac-choice button:hover { border-color: var(--mv-ink-3); }
+.ac-choice button:focus-visible { outline: 2px solid var(--mv-hero); outline-offset: 2px; }
+.ac-choice button.is-on { border-color: var(--mv-hero); background: rgba(49,113,198,.06); }
+.ac-choice button.is-on strong { color: var(--mv-hero); }
+[data-theme='dark'] .ac-choice button.is-on { border-color: var(--mv-hero-bright); background: rgba(90,160,232,.09); }
+[data-theme='dark'] .ac-choice button.is-on strong { color: var(--mv-hero-bright); }
+.ac-choice.is-two button { flex-direction: row; align-items: center; gap: 11px; min-block-size: 52px; }
+/* A swatch, not a screenshot — §10 forbids half a screen of theme previews. */
+.ac-swatch {
+  inline-size: 26px; block-size: 26px; flex-shrink: 0; border-radius: 7px;
+  border: 1px solid var(--mv-line-strong);
+}
+.ac-swatch.is-light { background: linear-gradient(140deg, #fbfbfa 55%, #eceae5 55%); }
+.ac-swatch.is-dark { background: linear-gradient(140deg, #1f1f1f 55%, #121212 55%); }
+
+/* ── Account-owned data · references, not a dashboard · §13 ──────────────── */
+.ac-data { margin: 0; padding: 0; list-style: none; }
+.ac-data li { border-block-end: 1px solid var(--mv-line); }
+.ac-data a {
+  display: flex; align-items: center; gap: 14px; min-block-size: 58px;
+  color: inherit; text-decoration: none; padding-inline: 2px;
+  transition: background-color .12s;
+}
+.ac-data a:hover { background: var(--mv-well); }
+.ac-data a:focus-visible { outline: 2px solid var(--mv-hero); outline-offset: -2px; border-radius: 9px; }
+.ac-data span { display: flex; flex-direction: column; gap: 2px; flex: 1; min-inline-size: 0; }
+.ac-data strong { font: 600 .84rem var(--font-body), Arial, sans-serif; color: var(--mv-ink); }
+.ac-data em { font-style: normal; font-size: .68rem; color: var(--mv-ink-3); }
+.ac-data em bdi { font-family: var(--font-numeric), ui-monospace, monospace; font-weight: 600; }
+.ac-data > li bdi { font: 700 1.15rem var(--font-numeric), ui-monospace, monospace; color: var(--mv-ink); }
+.ac-data i { font-style: normal; color: var(--mv-ink-3); font-size: 1rem; }
+[dir="rtl"] .ac-data i { transform: scaleX(1); }
+.ac-ref { border-block-end: 0; }
+
+/* ── Absent capabilities · one honest line, never a fake row · §17 §30 ───── */
+.ac-absent {
+  display: flex; gap: 8px; margin: 22px 0 0; padding: 12px 14px;
+  border-radius: 11px; background: var(--mv-well);
+  font-size: .69rem; line-height: 1.8; color: var(--mv-ink-3);
+}
+.ac-absent i { font-style: normal; flex-shrink: 0; opacity: .8; }
+
+/* Sign-out is plain, not destructive: it deletes nothing, and §17 keeps red
+   for actions that do. */
+.ac-signout {
+  min-block-size: 46px; margin-block-start: 22px; padding-inline: 22px;
+  border: 1px solid var(--mv-line-strong); border-radius: 11px;
+  background: none; color: var(--mv-ink-2); cursor: pointer;
+  font: 600 .78rem var(--font-body), Arial, sans-serif;
+  transition: background-color .13s, color .13s;
+}
+.ac-signout:hover { background: var(--mv-well); color: var(--mv-ink); }
+.ac-signout:focus-visible { outline: 2px solid var(--mv-hero); outline-offset: 2px; }
+
+/* ── States ──────────────────────────────────────────────────────────────── */
+.ac-signin { margin-block-start: 26px; }
+.ac-partial {
+  display: flex; align-items: flex-start; gap: 9px;
+  padding: 12px 14px; margin-block-end: 20px;
+  border: 1px solid rgba(168,100,42,.3); border-radius: 12px;
+  background: rgba(168,100,42,.06);
+  font-size: .73rem; line-height: 1.65; color: var(--mv-ink-2);
+}
+.ac-partial i { font-style: normal; color: #a8642a; flex-shrink: 0; line-height: 1.7; }
+[data-theme='dark'] .ac-partial { border-color: rgba(224,164,95,.26); background: rgba(224,164,95,.07); }
+[data-theme='dark'] .ac-partial i { color: #e0a45f; }
+
+.ac-skel span {
+  display: block; border-radius: 9px;
+  background: linear-gradient(90deg, var(--mv-well), var(--mv-line), var(--mv-well));
+  background-size: 200% 100%; animation: ac-shimmer 1.5s linear infinite;
+}
+.ac-skel-id { display: flex; align-items: center; gap: 14px; inline-size: 100%; }
+.ac-skel-id span:first-child { inline-size: 48px; block-size: 48px; border-radius: 50%; flex-shrink: 0; }
+.ac-skel-id span:nth-child(2) { block-size: 18px; inline-size: 180px; }
+.ac-skel-id span:nth-child(3) { block-size: 14px; inline-size: 130px; margin-inline-start: auto; }
+.ac-skel-panel { display: flex; flex-direction: column; gap: 20px; }
+.ac-skel-panel span { block-size: 54px; }
+.ac-skel-panel span:first-child { block-size: 22px; inline-size: 34%; }
+@keyframes ac-shimmer { from { background-position: 200% 0; } to { background-position: -200% 0; } }
+
+/* ── Responsive ──────────────────────────────────────────────────────────── */
+@media (max-width: 1280px) { .ac-page { inline-size: calc(100% - 34px); } }
+
+/* Tablet keeps the split. §25 */
+@media (max-width: 900px) {
+  .ac-body { grid-template-columns: 190px minmax(0, 1fr); gap: 24px; }
+  .ac-rail button span { display: none; }
+  .ac-rail button { min-block-size: 44px; }
+}
+
+/* ═══ Mobile · a list that opens into a panel · §24 ═════════════════════════
+   Not the desktop rail squeezed sideways: the list IS the page until a section
+   is chosen, and the panel then owns the screen with a back affordance. */
+@media (max-width: 720px) {
+  .ac-page { inline-size: calc(100% - 20px); padding: 14px 0 56px; }
+  .ac-identity { gap: 12px; padding-block-end: 14px; margin-block-end: 16px; }
+  .ac-id-since { inline-size: 100%; margin-inline-start: 0; }
+
+  .ac-body { grid-template-columns: minmax(0, 1fr); gap: 0; }
+  .ac-rail { display: none; }
+
+  .ac-list { display: flex; flex-direction: column; }
+  .ac-list.is-hidden { display: none; }
+  .ac-list button {
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    inline-size: 100%; min-block-size: 62px; padding-inline: 2px;
+    border: 0; border-block-end: 1px solid var(--mv-line); background: none;
+    cursor: pointer; text-align: start; font: inherit;
+  }
+  .ac-list button span { display: flex; flex-direction: column; gap: 2px; }
+  .ac-list button strong { font: 600 .88rem var(--font-body), Arial, sans-serif; color: var(--mv-ink); }
+  .ac-list button em { font-style: normal; font-size: .69rem; color: var(--mv-ink-3); }
+  .ac-list button i { font-style: normal; color: var(--mv-ink-3); font-size: 1.1rem; }
+  .ac-list button:focus-visible { outline: 2px solid var(--mv-hero); outline-offset: -2px; }
+  .ac-list-out {
+    margin-block-start: 18px; border-block-end: 0 !important;
+    justify-content: center !important; min-block-size: 50px !important;
+    border: 1px solid var(--mv-line-strong) !important; border-radius: 11px !important;
+    font: 600 .8rem var(--font-body), Arial, sans-serif !important; color: var(--mv-ink-2) !important;
+  }
+
+  .ac-panel { display: none; }
+  .ac-panel.is-open { display: block; }
+  .ac-back {
+    display: inline-flex; align-items: center; gap: 6px;
+    min-block-size: 44px; margin-block-end: 4px; padding-inline: 2px;
+    border: 0; background: none; cursor: pointer;
+    font: 600 .76rem var(--font-body), Arial, sans-serif; color: var(--mv-hero);
+  }
+  [data-theme='dark'] .ac-back { color: var(--mv-hero-bright); }
+  .ac-back i { font-style: normal; font-size: 1rem; }
+
+  .ac-edit input { min-inline-size: 0; inline-size: 100%; }
+  .ac-edit .ac-save, .ac-edit .ac-cancel { flex: 1; }
+  .ac-static { flex-wrap: wrap; }
+  .ac-static button { min-block-size: 44px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ac-skel span { animation: none; }
+  .ac-rail button, .ac-choice button, .ac-static button, .ac-data a, .ac-signout { transition: none; }
+}

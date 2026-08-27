@@ -1,0 +1,416 @@
+/* ════════════════════════════════════════════════════════════════════════════
+   المحفظة — a DIRECT PORT of the approved portfolio page.
+   ════════════════════════════════════════════════════════════════════════════
+
+   Source: `/Users/amed/iqwealth-design/app/globals.css`, the route's own block,
+   extracted by matching the block boundary rather than retyped.
+
+   ── The adaptations, and only these ────────────────────────────────
+     · `.iq-dark` on the page root → `[data-theme='dark']` on <html>.
+     · `--font-numeric` / `--font-body` gain this repo's fallback stacks.
+     · the design-mode state picker rules are dropped.
+
+   `.pf-*` was unused in this repo before this file.
+   ════════════════════════════════════════════════════════════════════════════ */
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   المحفظة — the personal position workspace
+   ───────────────────────────────────────────────────────────────────────────
+   The first authenticated surface, and the first page about ONE PERSON'S
+   money rather than a market. It uses the same tokens and the same table
+   grammar deliberately — a second visual language would say "different
+   product" when the point is "same product, your data".
+
+   What carries the personal register instead: an ownership line in the header
+   (whose data, where it is stored, what it is priced from), a summary
+   composition rather than KPI cards, and destructive actions that name what
+   they destroy.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.pf-page {
+  inline-size: min(1420px, calc(100% - 48px));
+  margin: 0 auto;
+  padding: 22px 0 56px;
+  color: var(--mv-ink);
+}
+.pf-page.iq-light { --mv-ink-3: #6e746f; --mv-up: #0e7350; --mv-down: #a83926; }
+.pf-page[data-theme='dark']  { --mv-ink-3: #9ea29c; --mv-up: #40d795; --mv-down: #f4787d; }
+
+.pf-head { display: flex; align-items: flex-end; gap: 20px; flex-wrap: wrap; padding: 0 2px 14px; }
+.pf-head .st-head-actions { margin-inline-start: auto; }
+.pf-head .st-title p { display: flex; align-items: center; gap: 7px; flex-wrap: wrap; }
+.pf-dot { opacity: .45; }
+/* The ownership marker. Quiet, permanent, and the first thing in the line —
+   this page is private by default and says so without a banner. */
+.pf-private { display: inline-flex; align-items: center; gap: 5px; color: var(--mv-hero); font-weight: 600; }
+.pf-private i { font-style: normal; font-size: .6rem; }
+[data-theme='dark'] .pf-private { color: var(--mv-hero-bright); }
+
+.pf-add {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 8px 15px; border: 0; border-radius: 10px;
+  background: var(--mv-hero); color: white;
+  font: 600 .74rem var(--font-body), Arial, sans-serif; cursor: pointer;
+  transition: filter .13s;
+}
+.pf-add i { font-style: normal; font-size: .9rem; line-height: 1; }
+.pf-add:hover { filter: brightness(1.08); }
+.pf-add:focus-visible { outline: 2px solid var(--mv-hero); outline-offset: 2px; }
+[data-theme='dark'] .pf-add { background: var(--mv-hero-bright); color: #0d1116; }
+.pf-add-lg { margin-block-start: 14px; padding: 10px 18px; font-size: .78rem; }
+
+/* ── Sign-in offer · an invitation, never a wall ─────────────────────────── */
+.pf-signin {
+  display: flex; align-items: center; gap: 16px; flex-wrap: wrap;
+  margin-block-end: 14px; padding: 12px 16px;
+  border: 1px solid var(--mv-line); border-inline-start: 2px solid var(--mv-hero);
+  border-radius: 12px; background: var(--mv-well);
+}
+[data-theme='dark'] .pf-signin { border-inline-start-color: var(--mv-hero-bright); }
+.pf-signin strong { display: block; color: var(--mv-ink); font-size: .78rem; }
+.pf-signin p { margin: 3px 0 0; color: var(--mv-ink-2); font-size: .71rem; }
+.pf-signin-go {
+  margin-inline-start: auto; padding: 7px 14px;
+  border: 1px solid var(--mv-hero); border-radius: 9px;
+  color: var(--mv-hero); font: 600 .72rem var(--font-body), Arial, sans-serif; text-decoration: none;
+  transition: background-color .13s;
+}
+.pf-signin-go:hover { background: rgba(49,113,198,.08); }
+[data-theme='dark'] .pf-signin-go { border-color: var(--mv-hero-bright); color: var(--mv-hero-bright); }
+.pf-error { margin-block-end: 14px; }
+
+/* ── Summary · one composition · §6 ───────────────────────────────────────── */
+.pf-summary {
+  display: grid; grid-template-columns: minmax(0, auto) minmax(0, 1fr);
+  align-items: center; gap: 12px 34px;
+  padding: 15px 22px;
+  border: 1px solid var(--mv-line); border-radius: 16px;
+  background: var(--mv-panel); box-shadow: var(--mv-shadow);
+  backdrop-filter: blur(20px) saturate(120%);
+}
+.pf-total { padding-inline-end: 34px; border-inline-end: 1px solid var(--mv-line); }
+.pf-total strong { display: flex; align-items: baseline; gap: 6px; margin-block-start: 2px; font: 700 2.05rem var(--font-numeric), ui-monospace, monospace; letter-spacing: -.045em; color: var(--mv-ink); }
+.pf-total strong em { font: 600 .7rem var(--font-body), Arial, sans-serif; font-style: normal; color: var(--mv-ink-3); }
+.pf-total-sub { display: flex; align-items: baseline; gap: 7px; margin: 5px 0 0; color: var(--mv-ink-2); font-size: .7rem; }
+.pf-total-sub bdi { font: 700 .82rem var(--font-numeric), ui-monospace, monospace; }
+
+.pf-figs { display: flex; flex-wrap: wrap; gap: 10px 34px; margin: 0; }
+.pf-figs dt { display: inline-flex; align-items: center; gap: 4px; color: var(--mv-ink-3); font-size: .64rem; }
+.pf-figs dd { margin: 3px 0 0; color: var(--mv-ink); }
+.pf-figs dd bdi { font: 700 1.02rem var(--font-numeric), ui-monospace, monospace; }
+.pf-figs dd.positive bdi { color: var(--mv-up); }
+.pf-figs dd.negative bdi { color: var(--mv-down); }
+/* The exclusion notice sits ON the total it changes, not in a footnote. */
+.pf-excluded {
+  grid-column: 1 / -1; margin: 2px 0 0; padding-block-start: 10px;
+  border-block-start: 1px solid var(--mv-line);
+  color: var(--mv-ink-2); font-size: .69rem; line-height: 1.8;
+}
+.pf-excluded bdi { font-family: var(--font-numeric), ui-monospace, monospace; font-weight: 600; color: var(--mv-ink); }
+
+/* ── Empty · value in one line, then the action ──────────────────────────── */
+.pf-empty {
+  display: flex; flex-direction: column; align-items: center; text-align: center;
+  padding: 54px 24px;
+  border: 1px dashed var(--mv-line-strong); border-radius: 16px;
+  background: var(--mv-well);
+}
+/* `h1` joins `strong` here: the signed-out /profile screen is a whole page,
+   and a page whose only heading is a `<strong>` has no `h1` at all. Same
+   treatment, so the visual is unchanged. */
+.pf-empty strong,
+.pf-empty h1 { margin: 0; color: var(--mv-ink); font: 700 .95rem var(--font-body); }
+.pf-empty p { max-inline-size: 46ch; margin: 8px 0 0; color: var(--mv-ink-2); font-size: .75rem; line-height: 1.85; }
+.pf-empty-note { margin-block-start: 12px; color: var(--mv-ink-3); font-size: .66rem; }
+
+/* ── Panels ───────────────────────────────────────────────────────────────── */
+.pf-panel {
+  margin-block-start: 14px; padding: 15px 18px 17px;
+  border: 1px solid var(--mv-line); border-radius: 16px;
+  background: var(--mv-panel); box-shadow: var(--mv-shadow);
+}
+.pf-panel-head { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-block-end: 12px; }
+.pf-panel-head h2 { margin: 0; font-size: .9rem; letter-spacing: -.02em; color: var(--mv-ink); }
+.pf-filters { margin-inline-start: 0; }
+.pf-search { margin-inline-start: auto; min-inline-size: 210px; }
+
+/* ── Holdings table ───────────────────────────────────────────────────────── */
+.pf-scroll { max-block-size: none; }
+.pf-table { inline-size: 100%; }
+.pf-col-co { inline-size: auto; min-inline-size: 240px; }
+.pf-col-act { inline-size: 44px; }
+.pf-row { transition: background-color .12s; }
+.pf-row:hover { background: var(--mv-well); }
+.pf-row.is-open { background: var(--mv-well); }
+/* An unvalued row is dimmed but never hidden — it is still money the user put
+   in, and the reason it has no value is on the row. */
+.pf-row.is-unvalued .mv-identity-name { color: var(--mv-ink-2); }
+
+.pf-co { display: flex; align-items: center; gap: 8px; }
+.pf-expand {
+  inline-size: 20px; block-size: 20px; flex: 0 0 auto;
+  display: grid; place-items: center;
+  border: 1px solid var(--mv-line); border-radius: 6px;
+  background: none; color: var(--mv-ink-2); cursor: pointer;
+  font: 600 .8rem var(--font-numeric), ui-monospace, monospace; line-height: 1;
+  transition: color .12s, border-color .12s;
+}
+.pf-expand:hover { color: var(--mv-hero); border-color: var(--mv-hero); }
+.pf-expand:focus-visible { outline: 2px solid var(--mv-hero); outline-offset: 1px; }
+.pf-expand-spacer { inline-size: 20px; flex: 0 0 auto; }
+.pf-co-sub { display: flex; align-items: center; gap: 7px; flex-wrap: wrap; }
+.pf-sector { color: var(--mv-ink-3); font-size: .62rem; }
+.pf-lots-n { color: var(--mv-ink-3); font-size: .62rem; }
+.pf-lots-n bdi { font-family: var(--font-numeric), ui-monospace, monospace; font-weight: 600; }
+
+.pf-price { display: inline-flex; flex-direction: column; align-items: flex-end; gap: 1px; }
+.pf-price bdi { font: 600 .78rem var(--font-numeric), ui-monospace, monospace; color: var(--mv-ink); }
+.pf-price small { font: 600 .63rem var(--font-numeric), ui-monospace, monospace; color: var(--mv-ink-3); }
+.pf-price small.positive { color: var(--mv-up); }
+.pf-price small.negative { color: var(--mv-down); }
+/* A carried-forward price is not a fresh one, and the row says how old it is
+   rather than showing a 0.0% day change that implies a quiet session. */
+.pf-stale { color: var(--mv-ink-3) !important; }
+.pf-nodata { display: inline-flex; flex-direction: column; align-items: flex-end; gap: 1px; }
+.pf-nodata small { color: var(--mv-ink-3); font-size: .6rem; }
+
+.pf-pl { display: inline-flex; flex-direction: column; align-items: flex-end; gap: 1px; }
+.pf-pl bdi { font: 700 .78rem var(--font-numeric), ui-monospace, monospace; }
+.pf-pl small bdi { font: 600 .64rem var(--font-numeric), ui-monospace, monospace; }
+.pf-pl.positive bdi { color: var(--mv-up); }
+.pf-pl.negative bdi { color: var(--mv-down); }
+
+.pf-weight { display: inline-flex; flex-direction: column; align-items: flex-end; gap: 4px; }
+.pf-weight bdi { font: 600 .74rem var(--font-numeric), ui-monospace, monospace; color: var(--mv-ink); }
+.pf-weight-bar { inline-size: 62px; block-size: 4px; border-radius: 2px; background: var(--mv-well); overflow: hidden; }
+.pf-weight-bar i { display: block; block-size: 100%; border-radius: 2px; background: var(--mv-hero); }
+[data-theme='dark'] .pf-weight-bar { background: rgba(255,255,255,.08); }
+[data-theme='dark'] .pf-weight-bar i { background: var(--mv-hero-bright); }
+
+.st-sort.is-active { color: var(--mv-hero); }
+[data-theme='dark'] .st-sort.is-active { color: var(--mv-hero-bright); }
+
+/* ── Row actions ──────────────────────────────────────────────────────────── */
+.pf-menu-wrap { position: relative; }
+.pf-menu-btn {
+  inline-size: 28px; block-size: 28px; border: 0; border-radius: 8px;
+  background: none; color: var(--mv-ink-3); cursor: pointer;
+  font-size: .95rem; line-height: 1;
+  transition: color .12s, background-color .12s;
+}
+.pf-menu-btn:hover { color: var(--mv-ink); background: var(--mv-line); }
+.pf-menu-btn:focus-visible { outline: 2px solid var(--mv-hero); outline-offset: 1px; }
+.pf-menu {
+  position: absolute; inset-inline-start: 0; inset-block-start: calc(100% + 4px);
+  z-index: 20; min-inline-size: 190px;
+  display: flex; flex-direction: column;
+  padding: 5px; border: 1px solid var(--mv-line-strong); border-radius: 11px;
+  background: var(--mv-panel-solid);
+  box-shadow: 0 12px 30px -14px rgba(12,16,14,.5);
+}
+[data-theme='dark'] .pf-menu { background: #262626; border-color: rgba(240,239,236,.18); box-shadow: 0 14px 34px -12px rgba(0,0,0,.7); }
+.pf-menu button, .pf-menu a {
+  padding: 8px 10px; border: 0; border-radius: 7px;
+  background: none; color: var(--mv-ink-2);
+  font: 500 .72rem var(--font-body), Arial, sans-serif; text-align: start; text-decoration: none;
+  cursor: pointer; transition: background-color .1s, color .1s;
+}
+.pf-menu button:hover, .pf-menu a:hover { background: var(--mv-well); color: var(--mv-ink); }
+.pf-menu button:focus-visible, .pf-menu a:focus-visible { outline: 2px solid var(--mv-hero); outline-offset: -2px; }
+.pf-menu button:disabled { opacity: .4; cursor: default; }
+/* The destructive item is last, separated, and the only red thing in the menu. */
+.pf-menu .is-danger { margin-block-start: 4px; padding-block-start: 9px; border-block-start: 1px solid var(--mv-line); border-radius: 0 0 7px 7px; color: var(--mv-down); }
+.pf-menu .is-danger:hover { background: var(--mv-down-soft); color: var(--mv-down); }
+
+/* ── Purchase lots ────────────────────────────────────────────────────────── */
+.pf-lots-row td { padding: 0 !important; background: var(--mv-well); }
+.pf-lots { display: flex; flex-direction: column; margin: 0; padding: 6px 10px 10px; list-style: none; }
+.pf-lots li {
+  display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
+  padding: 7px 8px 7px 34px;
+  border-block-start: 1px solid var(--mv-line);
+  font-size: .69rem; color: var(--mv-ink-2);
+}
+.pf-lots li:first-child { border-block-start: 0; }
+.pf-lots bdi { font-family: var(--font-numeric), ui-monospace, monospace; font-weight: 600; color: var(--mv-ink); }
+.pf-lot-date { min-inline-size: 116px; color: var(--mv-ink-2); font-weight: 600; }
+.pf-lot-note { color: var(--mv-ink-3); font-style: italic; }
+.pf-lot-edit {
+  margin-inline-start: auto; border: 0; padding: 3px 8px; border-radius: 7px;
+  background: none; color: var(--mv-ink-3); font: 600 .65rem var(--font-body), Arial, sans-serif; cursor: pointer;
+}
+.pf-lot-edit:hover { color: var(--mv-hero); background: var(--mv-line); }
+.pf-lot-edit:focus-visible { outline: 2px solid var(--mv-hero); outline-offset: 1px; }
+
+/* ── Allocation ───────────────────────────────────────────────────────────── */
+.pf-alloc { display: flex; flex-direction: column; margin: 0; padding: 0; list-style: none; }
+.pf-alloc li { border-block-end: 1px solid var(--mv-line); }
+.pf-alloc li:last-child { border-block-end: 0; }
+.pf-alloc button {
+  display: grid; grid-template-columns: 132px minmax(0, 1fr) 60px 96px;
+  align-items: center; gap: 14px; inline-size: 100%;
+  padding: 9px 6px; border: 0; border-radius: 9px; background: none;
+  font: inherit; text-align: start; cursor: pointer;
+  transition: background-color .12s;
+}
+.pf-alloc li.is-on button { background: var(--mv-well); }
+.pf-alloc button:focus-visible { outline: 2px solid var(--mv-hero); outline-offset: -2px; }
+.pf-alloc-label { color: var(--mv-ink-2); font-size: .72rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pf-alloc-track { block-size: 10px; border-radius: 4px; background: var(--mv-well); overflow: hidden; }
+.pf-alloc-track i { display: block; block-size: 100%; border-radius: 4px; background: var(--mv-hero); }
+[data-theme='dark'] .pf-alloc-track { background: rgba(255,255,255,.07); }
+[data-theme='dark'] .pf-alloc-track i { background: var(--mv-hero-bright); }
+.pf-alloc-pct { text-align: end; color: var(--mv-ink); font: 700 .76rem var(--font-numeric), ui-monospace, monospace; }
+.pf-alloc-val { text-align: end; color: var(--mv-ink-2); font: 600 .72rem var(--font-numeric), ui-monospace, monospace; }
+
+/* ── Sheet · add / edit / confirm ─────────────────────────────────────────── */
+.pf-overlay {
+  position: fixed; inset: 0; z-index: 1300;
+  display: grid; place-items: center;
+  padding: 20px;
+  /* Flat scrim, never a backdrop-filter: a blurred full-viewport fixed layer
+     is the iOS compositing bug this project has already paid for once. */
+  background: rgba(12,16,14,.55);
+  animation: pl-fade .14s var(--mv-ease, ease-out);
+}
+.pf-sheet {
+  inline-size: min(560px, 100%); max-block-size: min(88vh, 720px);
+  display: flex; flex-direction: column;
+  border: 1px solid var(--mv-line-strong); border-radius: 18px;
+  background: var(--mv-panel-solid);
+  box-shadow: 0 30px 70px -30px rgba(12,16,14,.7);
+  overflow: hidden;
+}
+[data-theme='dark'] .pf-sheet { background: #1f1f1f; border-color: rgba(240,239,236,.16); }
+.pf-sheet > header { display: flex; align-items: center; gap: 12px; padding: 15px 18px; border-block-end: 1px solid var(--mv-line); }
+.pf-sheet > header h2 { margin: 0; font-size: .88rem; color: var(--mv-ink); }
+.pf-x {
+  margin-inline-start: auto; inline-size: 28px; block-size: 28px;
+  border: 0; border-radius: 8px; background: none;
+  color: var(--mv-ink-3); font-size: 1.1rem; line-height: 1; cursor: pointer;
+}
+.pf-x:hover { color: var(--mv-ink); background: var(--mv-line); }
+.pf-x:focus-visible { outline: 2px solid var(--mv-hero); outline-offset: 1px; }
+.pf-form { padding: 16px 18px; overflow-y: auto; }
+.pf-field { display: flex; flex-direction: column; gap: 5px; min-inline-size: 0; flex: 1 1 160px; }
+.pf-field > span { color: var(--mv-ink-2); font-size: .7rem; font-weight: 600; }
+.pf-field > span small { margin-inline-start: 4px; color: var(--mv-ink-3); font-weight: 500; font-size: .6rem; }
+.pf-field input, .pf-field select {
+  inline-size: 100%; padding: 9px 11px;
+  border: 1px solid var(--mv-line-strong); border-radius: 10px;
+  background: var(--mv-well); color: var(--mv-ink);
+  font: 500 .78rem var(--font-body), Arial, sans-serif;
+}
+.pf-field input[type="number"], .pf-field input[type="date"] { font-family: var(--font-numeric), ui-monospace, monospace; }
+.pf-field input:focus-visible, .pf-field select:focus-visible { outline: 2px solid var(--mv-hero); outline-offset: 1px; border-color: var(--mv-hero); }
+.pf-field input:disabled, .pf-field select:disabled { opacity: .55; }
+.pf-field-row { display: flex; gap: 12px; flex-wrap: wrap; margin-block-start: 12px; }
+.pf-more { margin-block-start: 14px; }
+.pf-more summary { color: var(--mv-ink-2); font-size: .71rem; font-weight: 600; cursor: pointer; padding: 4px 0; }
+.pf-more summary::marker { color: var(--mv-ink-3); }
+.pf-hint { margin: 9px 0 0; color: var(--mv-ink-3); font-size: .66rem; line-height: 1.75; }
+.pf-preview {
+  display: flex; align-items: baseline; gap: 7px; flex-wrap: wrap;
+  margin-block-start: 14px; padding: 10px 12px;
+  border-radius: 10px; background: var(--mv-well);
+  color: var(--mv-ink-2); font-size: .7rem;
+}
+.pf-preview bdi { color: var(--mv-ink); font: 700 .82rem var(--font-numeric), ui-monospace, monospace; }
+.pf-preview em { font-style: normal; color: var(--mv-ink-3); font-size: .62rem; }
+.pf-preview .positive { color: var(--mv-up); }
+.pf-preview .negative { color: var(--mv-down); }
+.pf-sheet > footer { display: flex; gap: 10px; justify-content: flex-end; padding: 13px 18px; border-block-start: 1px solid var(--mv-line); background: var(--mv-well); }
+.pf-cancel, .pf-save, .pf-danger {
+  padding: 9px 18px; border-radius: 10px; border: 1px solid transparent;
+  font: 600 .74rem var(--font-body), Arial, sans-serif; cursor: pointer;
+}
+.pf-cancel { border-color: var(--mv-line-strong); background: none; color: var(--mv-ink-2); }
+.pf-cancel:hover { color: var(--mv-ink); }
+.pf-save { background: var(--mv-hero); color: white; }
+.pf-save:hover:not(:disabled) { filter: brightness(1.08); }
+.pf-save:disabled { opacity: .45; cursor: default; }
+[data-theme='dark'] .pf-save { background: var(--mv-hero-bright); color: #0d1116; }
+/* Destructive confirm is the only filled red button in the product. */
+.pf-danger { background: var(--mv-down); color: white; }
+.pf-danger:hover { filter: brightness(1.06); }
+[data-theme='dark'] .pf-danger { color: #1a0f0f; }
+.pf-cancel:focus-visible, .pf-save:focus-visible, .pf-danger:focus-visible { outline: 2px solid var(--mv-hero); outline-offset: 2px; }
+.pf-confirm-body { margin: 0; color: var(--mv-ink); font-size: .78rem; line-height: 1.9; }
+.pf-confirm-body bdi { font-family: var(--font-numeric), ui-monospace, monospace; font-weight: 700; }
+.pf-confirm-note { margin: 10px 0 0; color: var(--mv-ink-2); font-size: .69rem; line-height: 1.8; }
+
+/* ── Responsive ───────────────────────────────────────────────────────────── */
+@media (max-width: 1280px) { .pf-page { inline-size: calc(100% - 34px); } }
+
+@media (max-width: 1080px) {
+  .pf-summary { grid-template-columns: 1fr; }
+  .pf-total { padding-inline-end: 0; padding-block-end: 12px; border-inline-end: 0; border-block-end: 1px solid var(--mv-line); }
+  .pf-search { margin-inline-start: 0; inline-size: 100%; }
+}
+
+/* Tablet keeps the real table — §37. Only the weight bar goes. */
+@media (max-width: 900px) {
+  .pf-weight-bar { display: none; }
+  .pf-alloc button { grid-template-columns: 100px minmax(0, 1fr) 52px 80px; gap: 10px; }
+}
+
+@media (max-width: 720px) {
+  .pf-page { inline-size: calc(100% - 20px); padding-block-start: 12px; }
+  .pf-summary { padding: 13px 15px; border-radius: 14px; }
+  .pf-total strong { font-size: 1.7rem; }
+  .pf-figs { gap: 10px 22px; }
+  .pf-panel { padding: 13px 12px 15px; border-radius: 14px; }
+  /* The table keeps its identity, value and P&L columns and scrolls for the
+     rest — turning each position into a card destroys the column scan that
+     makes a portfolio readable. §35 */
+  .pf-table { min-inline-size: 620px; }
+  /* See the watchlist note: `.mv-col-company` owns the pinning. */
+  .pf-col-co { min-inline-size: 180px; }
+  .pf-alloc button { grid-template-columns: 88px minmax(0, 1fr) 46px; gap: 9px; }
+  .pf-alloc-val { display: none; }
+  /* The sheet becomes a bottom sheet: thumb-reachable, safe-area aware. */
+  .pf-overlay { padding: 0; align-items: end; }
+  .pf-sheet {
+    inline-size: 100%; max-block-size: 92vh;
+    border-radius: 18px 18px 0 0;
+    padding-block-end: env(safe-area-inset-bottom, 0);
+  }
+  .pf-sheet > footer { position: sticky; inset-block-end: 0; }
+  .pf-cancel, .pf-save, .pf-danger { flex: 1; padding-block: 12px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pf-row, .pf-add, .pf-menu-btn, .pf-expand, .pf-alloc button, .pf-overlay { transition: none; animation: none; }
+}
+/* ── The portfolio's own search field ─────────────────────────────────────
+   Same reason as the watchlist's: the approved page writes `.mv-search`, which
+   this repo already defines differently in styles/system.css. */
+.pf-search {
+  display: flex; align-items: center; gap: 7px;
+  flex: 1 1 200px; max-inline-size: 280px;
+  min-block-size: 44px;
+  padding-inline: 11px;
+  border: 1px solid var(--mv-line); border-radius: 11px;
+  background: var(--mv-well);
+  transition: border-color .16s, box-shadow .16s;
+}
+.pf-search:focus-within { border-color: rgba(49,113,198,.5); box-shadow: 0 0 0 3px rgba(49,113,198,.13); }
+.pf-search input {
+  flex: 1; min-inline-size: 0; align-self: stretch; border: 0; background: none;
+  color: var(--mv-ink); font: 500 .74rem var(--font-body), Arial, sans-serif; outline: none;
+}
+.pf-search input::placeholder { color: var(--mv-ink-3); }
+[data-theme='dark'] .pf-search { border-color: rgba(255,255,255,.09); background: rgba(255,255,255,.04); }
+
+/* ── Touch targets, hit-tested outward from each control's centre ──────────
+   These sit in their own rows with nothing above or below to collide with, so
+   they carry a real height rather than a pseudo-element. Shared by the
+   watchlist, which reuses this page's header, sign-in offer and empty state. */
+.pf-add, .pf-add-lg, .pf-signin-go, .pf-cancel, .pf-save, .pf-delete,
+.pf-menu-btn, .pf-x, .pf-lot-edit {
+  min-block-size: 44px; box-sizing: border-box;
+}
+.pf-menu-btn, .pf-x { min-inline-size: 44px; }
+.pf-menu [role='menuitem'] { min-block-size: 44px; display: flex; align-items: center; }
+.pf-co { min-block-size: 44px; }
+.st-sort { min-block-size: 44px; }

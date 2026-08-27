@@ -1,0 +1,117 @@
+/* ════════════════════════════════════════════════════════════════════════════
+   /statistics/ownership · /statistics/shareholders
+   ════════════════════════════════════════════════════════════════════════════
+
+   These two routes had no approved donor — the design app's own freeze
+   documents mark both "designed as a shell only", and its files still carry
+   the baseline import's fictional rows on a CSS generation /statistics itself
+   abandoned. So they are built as SIBLINGS of the approved Statistics
+   workspace: they wear `.stw` and its head, rail, note, empty and skeleton
+   rules, and the `.mv-table` family for the board.
+
+   This file therefore holds only what /statistics has no equivalent of:
+   a back link, a search field, a percentage cell with a bar, the column
+   widths, and the coverage disclosure. Every value below is taken from an
+   existing rule in styles/statistics.css or styles/foreign-flow.css rather
+   than invented, so the pages read as one release with their siblings.
+   ════════════════════════════════════════════════════════════════════════════ */
+
+/* ── Back to الإحصائيات · the /statistics/foreign-flow link, same values ──── */
+.dep-back {
+  position: relative;
+  display: inline-flex; align-items: center; gap: 5px;
+  margin-block-end: 8px; padding: 4px 2px;
+  color: var(--mv-ink-3); font-size: .7rem; text-decoration: none;
+  transition: color .13s;
+}
+.dep-back:hover { color: var(--mv-hero); }
+.dep-back span { font-size: .8rem; }
+[data-theme='dark'] .dep-back:hover { color: var(--mv-hero-bright); }
+/* A 44px pointer target without a 44px box — the same technique the foreign
+   flow bar uses for its period buttons. */
+.dep-back::after {
+  content: '';
+  position: absolute; inset-inline: 0;
+  inset-block-start: 50%; transform: translateY(-50%);
+  block-size: max(100%, 44px);
+}
+
+/* ── Section head · title block on one side, search on the other ─────────── */
+.dep-work-head { align-items: flex-end; }
+.dep-work-head > div { min-inline-size: 0; }
+
+.dep-search label { display: block; }
+.dep-search input {
+  inline-size: min(280px, 100%); min-block-size: 44px;
+  padding-inline: 12px;
+  border: 1px solid var(--mv-line); border-radius: 10px;
+  background: var(--mv-panel); color: var(--mv-ink);
+  font: 500 .78rem var(--font-body), Arial, sans-serif;
+}
+.dep-search input::placeholder { color: var(--mv-ink-3); }
+.dep-search input:focus-visible { outline: 2px solid var(--mv-hero); outline-offset: 1px; border-color: var(--mv-hero); }
+/* Safari paints its own clear affordance on type="search"; it collides with
+   the rounded field and cannot be themed. */
+.dep-search input::-webkit-search-decoration,
+.dep-search input::-webkit-search-cancel-button { -webkit-appearance: none; appearance: none; }
+
+/* ── The board ───────────────────────────────────────────────────────────── */
+.dep-scroll { max-block-size: none; }
+.dep-table { min-inline-size: 720px; }
+/* Nothing on these pages is row-clickable — the link is in the company cell,
+   so the row must not advertise a click it does not have. */
+.dep-table tbody tr { cursor: default; }
+
+.dep-col-co { inline-size: auto; min-inline-size: 240px; }
+.dep-col-co a { display: flex; align-items: baseline; gap: 10px; min-inline-size: 0; color: inherit; text-decoration: none; }
+.dep-col-co strong {
+  font: 500 .78rem var(--font-body), Arial, sans-serif; color: var(--mv-ink);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.dep-col-co a:hover strong { color: var(--mv-hero); }
+.dep-col-co a:focus-visible { outline: 2px solid var(--mv-hero); outline-offset: 2px; border-radius: 6px; }
+[data-theme='dark'] .dep-col-co a:hover strong { color: var(--mv-hero-bright); }
+
+/* A shareholder name is a legal name in the source's own spelling and is often
+   long. It wraps rather than truncating: a clipped legal name is a wrong name. */
+.dep-col-holder { inline-size: auto; min-inline-size: 220px; }
+.dep-table tbody td.dep-col-holder { white-space: normal; }
+.dep-col-holder span {
+  display: block; max-inline-size: 42ch; text-align: start;
+  font: 500 .78rem/1.45 var(--font-body), Arial, sans-serif; color: var(--mv-ink);
+}
+.dep-col-holder bdi { unicode-bidi: isolate; }
+
+/* ── Percentage · the number carries it, the bar only reads it faster ────── */
+.dep-col-pct { inline-size: 152px; }
+.dep-pct { display: flex; flex-direction: column; align-items: flex-end; gap: 5px; }
+.iq-page .dep-pct bdi { font: 700 .8rem var(--font-numeric), ui-monospace, monospace; color: var(--mv-ink); }
+.dep-pct-track {
+  inline-size: 100%; block-size: 5px; border-radius: 3px;
+  background: var(--mv-well); overflow: hidden;
+}
+.dep-pct-track i { display: block; block-size: 100%; border-radius: 3px; background: var(--mv-hero); opacity: .55; }
+[data-theme='dark'] .dep-pct-track i { background: var(--mv-hero-bright); opacity: .5; }
+
+/* ── Source and coverage ─────────────────────────────────────────────────── */
+.dep-source { margin-block-start: 14px; }
+
+/* Coverage is product copy, not an error state: roughly half the company names
+   in each scanned report survive OCR in a form that can be PROVEN against the
+   register, and the page says so rather than quietly showing a shorter table. */
+.dep-coverage {
+  margin: 10px 0 0;
+  padding-inline-start: 12px;
+  border-inline-start: 2px solid var(--mv-line);
+  max-inline-size: 78ch;
+  font-size: .72rem; line-height: 1.65; color: var(--mv-ink-3);
+}
+.dep-coverage span { color: var(--mv-ink-2); }
+
+@media (max-width: 720px) {
+  .dep-work-head { align-items: stretch; }
+  .dep-search input { inline-size: 100%; }
+  .dep-col-holder span { max-inline-size: none; }
+  .dep-table { min-inline-size: 560px; }
+  .dep-col-pct { inline-size: 116px; }
+}

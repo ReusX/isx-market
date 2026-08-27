@@ -1,0 +1,304 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   IQWealth design tokens — the approved reference app, made real here.
+
+   Extracted 15 August 2026 from /Users/amed/iqwealth-design/app/globals.css.
+   Nothing here was invented, remembered, or taken from the archive: every
+   colour is a literal copy of an approved declaration, and every scale value
+   below is the DOMINANT observed value in the reference app, with its
+   observed frequency recorded beside it.
+
+   ── How this layer stays out of the way, and how it defends itself ────────
+   Everything is scoped to `.iq-page`. A route opts in by putting that class on
+   its root element; until it does, not one declaration here can reach it.
+
+   That handles one direction only, and it took a rendering bug to notice: it
+   stops this layer leaking OUT, and does nothing to stop the legacy stylesheet
+   leaking IN. Twenty-six legacy rules are bare element selectors — `table`,
+   `th`, `td`, `tbody tr`, `td::before` — and a bare element selector matches
+   inside `.iq-page` exactly as well as outside it. The containment block at
+   the foot of this file is the other half of the quarantine. See §7 of
+   PHASE0_VERIFICATION.md.
+
+   ── Theme ────────────────────────────────────────────────────────────────
+   The reference app carries the theme as a class on each page (`.iq-dark` /
+   `.iq-light`) because every page there has its own toggle. This application
+   already has ONE theme system: `data-theme` on <html>, set pre-paint by the
+   inline script in app/layout.tsx and persisted in localStorage. That system
+   wins — a second one would be two sources of truth for the same fact. So the
+   values are the reference app's; the selector is this app's.
+
+   ── What is NOT here ─────────────────────────────────────────────────────
+   The base layer (`--page`, `--surface`, `--ink`, `--border`, `--up`, `--down`
+   …) is NOT redeclared. It was diffed against the reference app and is
+   byte-identical on all 22 tokens in both themes — the reference app inherited
+   it from this repo unchanged. Redeclaring it would create two definitions of
+   one value for no gain.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ── Colour · light ─────────────────────────────────────────────────────── */
+[data-theme='light'] .iq-page,
+.iq-page {
+  --mv-hero: #3171c6;
+  --mv-hero-bright: #4a8ae0;
+  --mv-ink: #1e2220;
+  --mv-ink-2: #565c58;
+  --mv-ink-3: #868c88;
+  --mv-line: rgba(30, 34, 32, 0.09);
+  --mv-line-strong: rgba(30, 34, 32, 0.16);
+  --mv-panel: rgba(255, 255, 255, 0.72);
+  --mv-panel-solid: #fbfbfa;
+  --mv-well: rgba(255, 255, 255, 0.5);
+  --mv-shadow: 0 20px 54px rgba(38, 43, 39, 0.09), inset 0 1px rgba(255, 255, 255, 0.9);
+
+  /* Semantic market colours. Darkened from the homepage's card values, which
+     were tuned for white type on charcoal; on bone they have to carry 4.5:1
+     as body text rather than glow.
+
+     ⚠ CORRECTED from the reference app's #12805a, which measured 4.444:1 on
+     Cotton — six thousandths short of the 4.5:1 the comment above it sets as
+     its own goal. It passes on a panel (4.76:1) and fails only on the page
+     environment, which is why it was not caught by eye. One step down per
+     channel clears it at 4.505:1; the shift is far below the threshold of
+     perception. Recorded in PHASE0_VERIFICATION.md §6a. */
+  --mv-up: #117f59;
+  --mv-up-soft: rgba(18, 128, 90, 0.11);
+  --mv-down: #b5432f;
+  --mv-down-soft: rgba(181, 67, 47, 0.1);
+
+  /* Cotton. The approved light environment is a gradient, not a flat fill. */
+  --mv-env: radial-gradient(ellipse 42% 28% at 58% -4%, rgba(255, 255, 255, 0.96), transparent 72%),
+            radial-gradient(ellipse 28% 42% at 4% 48%, rgba(255, 255, 255, 0.58), transparent 75%),
+            linear-gradient(145deg, #e8e7e5, #f4f3f1 52%, #e5e4e2);
+}
+
+/* ── Colour · dark ──────────────────────────────────────────────────────── */
+[data-theme='dark'] .iq-page {
+  --mv-hero: #3171c6;
+  --mv-hero-bright: #74a9ef;
+  --mv-ink: #f0efec;
+  --mv-ink-2: #b4b6b2;
+  --mv-ink-3: #8b8e8a;
+  --mv-line: rgba(240, 239, 236, 0.085);
+  --mv-line-strong: rgba(240, 239, 236, 0.16);
+  --mv-panel: rgba(35, 35, 35, 0.82);
+  --mv-panel-solid: #1f1f1f;
+  --mv-well: rgba(255, 255, 255, 0.04);
+  --mv-shadow: 0 24px 68px rgba(0, 0, 0, 0.36), inset 0 1px rgba(255, 255, 255, 0.055);
+  --mv-up: #35c98a;
+  --mv-up-soft: rgba(53, 201, 138, 0.14);
+  --mv-down: #ee6a6f;
+  --mv-down-soft: rgba(238, 106, 111, 0.14);
+
+  /* Moonless Night. Neutral #161616, not the base layer's cooler #101114 —
+     the two are deliberately different and both are approved, for different
+     surfaces. */
+  --mv-env: radial-gradient(ellipse 45% 34% at 58% -5%, rgba(49, 113, 198, 0.23), transparent 70%),
+            radial-gradient(ellipse 30% 45% at 3% 55%, rgba(49, 113, 198, 0.1), transparent 74%),
+            #161616;
+}
+
+/* ── Scale ──────────────────────────────────────────────────────────────────
+   Theme-invariant, so declared once.
+
+   ⚠ Read this before using them. The reference app does NOT have a radius or
+   type scale: it has 48 distinct border-radius values and 122 distinct
+   font-sizes, because it was designed page by page and each page chose what it
+   needed. The values below are the DOMINANT ones, with observed counts, and
+   they exist so Phase 0.9 primitives have one place to agree.
+
+   They are a starting point for new components, NOT a mandate to snap existing
+   approved pages onto. Where a migrated page's approved design uses something
+   off-scale, the approved design wins and the exception gets recorded.
+   ───────────────────────────────────────────────────────────────────────── */
+.iq-page {
+  /* Radius — observed: 999px ×46 · 11px ×42 · 8px ×38 · 12px ×34 · 9px ×32 */
+  --mv-r-pill: 999px;
+  --mv-r-card: 12px;
+  --mv-r-control: 11px;
+  --mv-r-chip: 8px;
+  --mv-r-well: 9px;
+  --mv-r-panel: 16px;
+
+  /* Type — observed: .68rem ×57 · .72rem ×37 · .7rem ×29 · .8rem ×25.
+     This is a dense data UI; the base size is deliberately small. */
+  --mv-fs-micro: 0.62rem;
+  --mv-fs-caption: 0.66rem;
+  --mv-fs-label: 0.68rem;
+  --mv-fs-body: 0.72rem;
+  --mv-fs-lead: 0.8rem;
+  --mv-fs-title: 1rem;
+
+  /* Weight — observed: 600 ×67 · 700 ×54 · 500 ×52 · 400 ×7 */
+  --mv-fw-regular: 400;
+  --mv-fw-medium: 500;
+  --mv-fw-semibold: 600;
+  --mv-fw-bold: 700;
+
+  /* Line height — observed: 1.7 ×25 · 1.8 ×18 · 1 ×16 · 1.6 ×11 */
+  --mv-lh-flush: 1;
+  --mv-lh-tight: 1.35;
+  --mv-lh-body: 1.7;
+  --mv-lh-prose: 1.8;
+
+  /* Tracking. Negative only, and never applied to Arabic — see the guard at
+     the foot of this file. Observed: -.02em ×14 · -.045em ×8 · -.03em ×7 */
+  --mv-track-tight: -0.02em;
+  --mv-track-tighter: -0.03em;
+  --mv-track-display: -0.045em;
+
+  /* Control heights — observed: 44px ×15 · 40px ×10 · 46px ×10 · 42px ×9.
+     44px is the WCAG 2.2 target-size minimum and the dominant value, so it is
+     the default rather than a coincidence. */
+  --mv-control-h: 44px;
+  --mv-control-h-sm: 36px;
+  --mv-control-h-lg: 52px;
+  --mv-row-h: 42px;
+
+  /* Space — 4px base. */
+  --mv-sp-1: 4px;
+  --mv-sp-2: 8px;
+  --mv-sp-3: 12px;
+  --mv-sp-4: 16px;
+  --mv-sp-5: 20px;
+  --mv-sp-6: 24px;
+  --mv-sp-8: 32px;
+  --mv-sp-10: 40px;
+  --mv-sp-12: 48px;
+
+  /* Material — observed: blur(20px) saturate(120%) ×7, the clear dominant.
+     NOTE: never put this on a full-viewport fixed element with interactive
+     siblings painted after it. iOS WebKit composites such a layer above them
+     regardless of z-index; it has already cost this project a swallowed-tap
+     bug once. Scrims stay flat. */
+  --mv-blur: blur(20px) saturate(120%);
+  --mv-blur-strong: blur(28px) saturate(120%);
+
+  /* Motion — observed: .12s and .13s dominate, on colour properties only. */
+  --mv-dur-1: 0.12s;
+  --mv-dur-2: 0.18s;
+  --mv-dur-3: 0.26s;
+  --mv-ease: cubic-bezier(0.32, 0.72, 0, 1);
+
+  /* Focus. A ring, never a border swap — swapping a border moves layout by a
+     pixel and makes the whole page twitch on tab. */
+  --mv-focus: var(--mv-hero-bright);
+  --mv-focus-width: 2px;
+  --mv-focus-offset: 3px;
+}
+
+.iq-page :is(a, button, input, select, textarea, [tabindex]):focus-visible {
+  outline: var(--mv-focus-width) solid var(--mv-focus);
+  outline-offset: var(--mv-focus-offset);
+}
+
+/* Reduced motion, once and globally for the layer, so a new animation cannot
+   forget to opt in. */
+@media (prefers-reduced-motion: reduce) {
+  .iq-page,
+  .iq-page * {
+    --mv-dur-1: 0s;
+    --mv-dur-2: 0s;
+    --mv-dur-3: 0s;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ── Arabic never gets tracking ─────────────────────────────────────────────
+   Arabic is a joining script: positive letter-spacing pulls the connections
+   apart and makes text genuinely harder to read. The trap is that tracking
+   belongs on small upper-case labels — eyebrows, table headers, tab labels —
+   which is precisely the set of elements that get translated.
+
+   Scoped to `.iq-page` deliberately. A global `[dir=rtl] *` rule would also
+   hit the two places this repo legitimately tracks today — the chart watermark
+   and the mono status badge, both Latin — and restyling unmigrated routes is
+   exactly what this phase must not do. Repo-wide coverage is the CI check in
+   scripts/arabic-tracking.mjs, which knows about those exceptions.
+
+   Latin islands inside Arabic opt back in. Numerals and tickers already live
+   in `bdi` / `.numeric`, which set their own tracking. */
+.iq-page :lang(ar),
+.iq-page [dir='rtl'] {
+  letter-spacing: normal;
+}
+
+.iq-page .mv-track,
+.iq-page bdi,
+.iq-page .numeric,
+.iq-page [dir='ltr'] {
+  letter-spacing: revert-layer;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   Containment — the half of the quarantine that scoping alone does not buy.
+
+   `.iq-page` stops this layer's declarations from reaching un-migrated routes.
+   It does NOT stop the legacy stylesheet reaching IN, because 26 of its rules
+   are bare element selectors — `table`, `th`, `td`, `tbody tr`, `td::before` —
+   and a bare element selector matches inside `.iq-page` just as happily as
+   outside it.
+
+   This was not theory. The Phase 0.8 proof sheet rendered a 900px-wide table
+   inside a 498px panel, because `table { min-inline-size: 900px }` at
+   globals.css:4614 applies to every table in the application. Component CSS
+   written against the new tokens did not override it, because the component
+   set `inline-size`, and the legacy rule sets `min-inline-size` — a different
+   property, so nothing collided and nothing warned.
+
+   The rules below neutralise exactly those inherited impositions inside the
+   new layer, and nothing else. No `!important`: `.iq-page table` (0,1,1) beats
+   `table` (0,0,1) on specificity alone, which is the correct mechanism.
+
+   Every reset here is a legacy rule this layer takes responsibility for
+   instead. When the legacy stylesheet is finally deleted, this block goes with
+   it — they are the same debt viewed from two sides.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* Every rule below uses `.iq-page :where(…)`, which scores (0,1,0): enough to
+   beat a bare element selector like `table` (0,0,1), and NOT enough to beat a
+   component's own `.fd-table td` (0,1,1). That asymmetry is the whole point.
+
+   An earlier draft used `.iq-page :is(th, td)` instead. At (0,1,1) it tied or
+   beat the components it was supposed to be clearing the way for, and silently
+   repainted every semantic cell in the proof sheet back to --mv-ink. The table
+   still looked plausible, which is how that class of bug survives review.
+   Containment must sit BELOW component CSS, never above it. */
+
+/* globals.css:4614 — forces every table to 900px regardless of its container. */
+.iq-page :where(table) {
+  min-inline-size: 0;
+}
+
+/* globals.css:4620 — legacy cell padding, border, and the BASE-layer --ink,
+   which is not --mv-ink. A component that styles its cells overrides all of
+   this normally; a component that does not gets sane inherited defaults. */
+.iq-page :where(th, td) {
+  padding: 0;
+  border-block-end: 0;
+  color: inherit;
+  line-height: inherit;
+}
+
+/* globals.css:4643,4647 — a hover fill in the base layer's --page. */
+.iq-page :where(tbody tr) {
+  transition: none;
+}
+.iq-page :where(tbody tr:hover) {
+  background: none;
+}
+
+/* globals.css:5141 — the <=720px rule that restacks EVERY table into cards,
+   including ones designed to stay tables. Migrated pages own their own
+   responsive behaviour. */
+@media (max-width: 720px) {
+  .iq-page :where(table) { display: table; }
+  .iq-page :where(thead) { display: table-header-group; }
+  .iq-page :where(tbody) { display: table-row-group; }
+  .iq-page :where(tr) { display: table-row; }
+  .iq-page :where(th, td) { display: table-cell; }
+  /* globals.css:5173 — injects data-label text before every cell. */
+  .iq-page :where(td)::before { content: none; }
+}

@@ -83,15 +83,28 @@ export default function OGImage() {
 
         {/* Main headline */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+          {/*
+            Two element children in an explicit flex column, NOT text + <br/>.
+
+            Satori (which renders this image) refuses any <div> with more than
+            one child unless it declares `display`. "Iraq Stock", <br/> and
+            "Exchange" are three children, so this threw at render time and the
+            whole route returned nothing — every share card on the site was a
+            broken image, silently, because nothing fetches an OG image during
+            a normal page load or a build. Only a crawler or a link unfurler
+            ever requests it.
+          */}
           <div style={{
+            display: 'flex',
+            flexDirection: 'column',
             fontSize: 68,
             fontWeight: 900,
             color: '#ffffff',
             lineHeight: 1.05,
             letterSpacing: '-0.02em',
           }}>
-            Iraq Stock
-            <br />Exchange
+            <div>Iraq Stock</div>
+            <div>Exchange</div>
           </div>
           <div style={{
             fontSize: 26,

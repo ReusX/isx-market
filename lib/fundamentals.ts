@@ -1,3 +1,9 @@
+/**
+ * How a trailing P/E was derived. An ID rather than a phrase, so both
+ * languages can render it — see the note inside `fetchTtmPe`.
+ */
+export type PeBasis = { kind: 'ttm' } | { kind: 'fy'; year: number }
+
 import type { SupabaseClient } from '@supabase/supabase-js'
 
 export interface PeResult {
@@ -5,7 +11,8 @@ export interface PeResult {
   ttmNi: number      // IQD
   shares: number     // IQD (= number of shares at 1 IQD par)
   eps: number        // IQD per share
-  label: string      // e.g. "TTM (Q1 2026)"
+  /** How the figure was derived. An ID — the caller renders it. */
+  basis: PeBasis
 }
 
 /**
@@ -85,27 +92,35 @@ export async function fetchTtmPe(
     const ni_q1_25 = periods.q1_25?.ni
     const ni_ttm_annual = periods.a25?.ni ?? periods.q4_25?.ni
     let ni: number | null = null
-    let label = ''
+    /*
+     * ⚠ `basis` is an ID, not a label.
+     *
+     * This function is called from both locales. It used to bake the Arabic
+     * words into its result, which meant the English screener and statistics
+     * pages showed «TTM (آخر 12 شهراً)» beside an English P/E. The caller
+     * renders the id through its own dictionary.
+     */
+    let basis: PeBasis | null = null
     if (ni_q1_26 != null && ni_q1_25 != null && ni_ttm_annual != null) {
       const ttm = ni_q1_26 + ni_ttm_annual - ni_q1_25
-      if (ttm > 0) { ni = ttm; label = 'TTM (آخر 12 شهراً)' }
+      if (ttm > 0) { ni = ttm; basis = { kind: 'ttm' } }
     }
     // 2) Fallback: latest reported FULL-YEAR net income.
     if (ni == null) {
-      const annual: [number | undefined, string][] = [
-        [periods.a25?.ni, 'السنة المالية 2025'],
-        [periods.a24?.ni, 'السنة المالية 2024'],
-        [periods.a23?.ni, 'السنة المالية 2023'],
+      const annual: [number | undefined, number][] = [
+        [periods.a25?.ni, 2025],
+        [periods.a24?.ni, 2024],
+        [periods.a23?.ni, 2023],
       ]
       const hit = annual.find(([v]) => v != null && v > 0)
-      if (hit) { ni = hit[0]!; label = hit[1] }
+      if (hit) { ni = hit[0]!; basis = { kind: 'fy', year: hit[1] } }
     }
-    if (ni == null || ni <= 0) continue
+    if (ni == null || ni <= 0 || !basis) continue
 
     const eps = ni / shares
     if (eps <= 0) continue
 
-    result[ticker] = { pe: price / eps, ttmNi: ni, shares, eps, label }
+    result[ticker] = { pe: price / eps, ttmNi: ni, shares, eps, basis }
   }
 
   return result
