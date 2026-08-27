@@ -1,7 +1,26 @@
 // WordPress headless CMS integration
-// Primary WP URL · falls back to temp Hostinger URL until cms.iraqsm.com DNS propagates
-const WP = process.env.WP_API_URL
-  ?? 'https://paleturquoise-deer-610016.hostingersite.com'
+
+/**
+ * Where the CMS lives — and, in production, ONLY where it is configured to.
+ *
+ * This used to be `process.env.WP_API_URL ?? '<hostinger preview host>'`. The
+ * fallback was added while cms.iraqsm.com DNS propagated, and it quietly became
+ * a production dependency: with the variable unset, the live site would serve
+ * every article from a temporary preview host without anything saying so.
+ *
+ * Now the fallback is a LOCAL convenience only. In production the variable must
+ * be set; when it is not, this returns null and the callers below take the same
+ * unavailable path they already take for an outage — `ok: false` on the list,
+ * `null` on a single post — so /news degrades to the CMS-unavailable state
+ * instead of silently reading from the wrong origin, and nothing crashes.
+ */
+const DEV_FALLBACK_ORIGIN = 'https://paleturquoise-deer-610016.hostingersite.com'
+
+function cmsOrigin(): string | null {
+  const configured = process.env.WP_API_URL?.trim().replace(/\/$/, '')
+  if (configured) return configured
+  return process.env.NODE_ENV === 'production' ? null : DEV_FALLBACK_ORIGIN
+}
 
 export interface WPPost {
   id:             number
@@ -37,6 +56,8 @@ export async function getPosts(
   { page = 1, perPage = 12 }: { page?: number; perPage?: number } = {}
 ): Promise<{ posts: WPPost[]; total: number; totalPages: number; ok: boolean }> {
   const catId = CATEGORY_IDS[section]
+  const WP = cmsOrigin()
+  if (!WP) return { posts: [], total: 0, totalPages: 0, ok: false }
   try {
     const res = await fetch(
       `${WP}/wp-json/wp/v2/posts?categories=${catId}&page=${page}&per_page=${perPage}&_embed=1&_fields=${BASE_FIELDS}&orderby=date&order=desc`,
@@ -61,6 +82,8 @@ export async function getPosts(
 
 // ── Fetch single post by slug ─────────────────────────────────────────────────
 export async function getPost(slug: string): Promise<WPPost | null> {
+  const WP = cmsOrigin()
+  if (!WP) return null
   try {
     const res = await fetch(
       `${WP}/wp-json/wp/v2/posts?slug=${encodeURIComponent(slug)}&_embed=1`,

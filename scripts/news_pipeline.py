@@ -8,10 +8,13 @@ Sources:
   - Alsumaria  : Iraq economy news (filtered for market/banking/FX relevance)
   - ISC        : Official commission announcements (clean REST API)
 
-Setup:
-    export WP_URL=https://paleturquoise-deer-610016.hostingersite.com
-    export WP_USERNAME=your_wp_admin_username      # check WP Dashboard > Users
-    export WP_APP_PASSWORD="Xm8D QRNQ 8g01 WDJ7 UfbQ 6cw5"
+Setup — every value below is a PLACEHOLDER. Never commit a real one; this
+repository is public. Supply them from the environment, .env.local (git-ignored)
+or GitHub secrets.
+
+    export WP_URL=https://your-wordpress-host.example
+    export WP_USERNAME=your_wp_admin_username       # WP Dashboard > Users
+    export WP_APP_PASSWORD="xxxx xxxx xxxx xxxx xxxx xxxx"   # Users > Application Passwords
     export ANTHROPIC_API_KEY=sk-ant-...
     export NEXT_PUBLIC_SUPABASE_URL=...
     export SUPABASE_SERVICE_ROLE_KEY=...
