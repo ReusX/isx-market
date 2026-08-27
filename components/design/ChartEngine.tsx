@@ -203,7 +203,16 @@ const TIME_BAND_MOUSE = AXIS_H + 6;
  * tight one. 1 keeps the historic auto-fit exactly; >1 widens the range (the
  * series flattens), <1 narrows it (the series exaggerates).
  */
-type View = { start: number; count: number; yScale: number };
+/**
+ * `yOffset` is the vertical counterpart to `start`, in units of the auto-fit
+ * range so it stays meaningful when the data or the interval changes.
+ *
+ * Scaling without panning was a trap: `yScale` below 1 makes the series TALLER
+ * than the pane, and with the price window pinned to the auto-fit midpoint the
+ * overflow simply sat off-screen with no way to reach it. Horizontal drag
+ * worked, vertical did nothing, and the only escape was to zoom back out.
+ */
+type View = { start: number; count: number; yScale: number; yOffset: number };
 
 const nfP = new Intl.NumberFormat("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 3 });
 const nfI = new Intl.NumberFormat("en-US", { maximumFractionDigits: 0 });
@@ -263,7 +272,9 @@ function render(ctx: CanvasRenderingContext2D, W: number, H: number, o: RenderOp
   /* Same midpoint scaling as `geom()`. These two must agree exactly or a
      drawing lands at a different price than the candle under the finger. */
   {
-    const midP = (hi + lo) / 2, halfP = ((hi - lo) / 2) * (view.yScale || 1);
+    const span = hi - lo;
+    const midP = (hi + lo) / 2 + (view.yOffset || 0) * span;
+    const halfP = (span / 2) * (view.yScale || 1);
     lo = midP - halfP; hi = midP + halfP;
   }
   const yOf = (p: number) => plotTop + (1 - (p - lo) / (hi - lo)) * plotH;
@@ -699,7 +710,7 @@ export function ChartEngine({
   const [pendingId, setPendingId] = useState<string | null>(null);
   const [cursor, setCursor] = useState<{ x: number; y: number } | null>(null);
   const [hoverIdx, setHoverIdx] = useState<number | null>(null);
-  const [view, setView] = useState<View>({ start: 0, count: 60, yScale: 1 });
+  const [view, setView] = useState<View>({ start: 0, count: 60, yScale: 1, yOffset: 0 });
   const [toast, setToast] = useState<string | null>(null);
   const [exportOpen, setExportOpen] = useState(false);
   const [sheetOpen, setSheetOpen] = useState(false);
@@ -708,10 +719,12 @@ export function ChartEngine({
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const wrapRef = useRef<HTMLDivElement>(null);
   const sizeRef = useRef({ w: 0, h: 0 });
-  const dragRef = useRef<{ mode: "pan" | "draw" | "move" | "scaleY" | "scaleX"; x: number; y: number; start: number; id?: string; end?: "a" | "b"; base?: Drawing; yScale?: number; count?: number } | null>(null);
+  const dragRef = useRef<{ mode: "pan" | "draw" | "move" | "scaleY" | "scaleX"; x: number; y: number; start: number; id?: string; end?: "a" | "b"; base?: Drawing; yScale?: number; count?: number; yOffset?: number } | null>(null);
   /** A two-point drawing waiting for its second anchor. */
   const pendingRef = useRef<{ id: string; downX: number; downY: number; before: Drawing[] } | null>(null);
   const pinchRef = useRef<{ dist: number; count: number } | null>(null);
+  /** Last tap on the price axis, for the double-tap that restores auto-fit. */
+  const axisTapRef = useRef<{ t: number; y: number }>({ t: 0, y: 0 });
 
   const pal = theme === "dark" ? DARK : LIGHT;
 
@@ -734,7 +747,7 @@ export function ChartEngine({
 
   // A new dataset resets the window to "everything, right-aligned".
   useEffect(() => {
-    setView({ start: 0, count: Math.max(6, bars.length), yScale: 1 });
+    setView({ start: 0, count: Math.max(6, bars.length), yScale: 1, yOffset: 0 });
     setSelected(null);
   }, [bars.length, range, interval]);
 
@@ -830,9 +843,11 @@ export function ChartEngine({
     let hi = vis.length ? Math.max(...vis.map((b) => b.h)) : 1;
     const padP = (hi - lo) * 0.08 || hi * 0.04 || 1;
     lo -= padP; hi += padP;
-    /* Scale about the MIDPOINT, so compressing the range does not also drag
-       the series off the top or bottom of the pane. */
-    const midP = (hi + lo) / 2, halfP = ((hi - lo) / 2) * (view.yScale || 1);
+    /* Scale about the midpoint, then slide by the pan offset. Expressed in
+       units of the auto-fit span so the offset survives a data change. */
+    const span = hi - lo;
+    const midP = (hi + lo) / 2 + (view.yOffset || 0) * span;
+    const halfP = (span / 2) * (view.yScale || 1);
     lo = midP - halfP; hi = midP + halfP;
     return {
       plotW, plotTop, plotBottom, bw,
@@ -891,6 +906,16 @@ export function ChartEngine({
        simply had no branch for it. */
     if (x > g.plotW) {
       try { (e.target as Element).setPointerCapture?.(e.pointerId); } catch { /* not capturable */ }
+      /* Double-tap the axis to restore auto-fit. The toolbar's reset does it
+         too, but after scaling the price range the way back should be under the
+         finger that scaled it — otherwise a hard zoom feels like a dead end. */
+      const now = Date.now(), prev = axisTapRef.current;
+      if (now - prev.t < 320 && Math.abs(y - prev.y) < 24) {
+        axisTapRef.current = { t: 0, y: 0 };
+        setView((v) => ({ ...v, yScale: 1, yOffset: 0 }));
+        return;
+      }
+      axisTapRef.current = { t: now, y };
       dragRef.current = { mode: "scaleY", x, y, start: view.start, yScale: view.yScale };
       return;
     }
@@ -920,7 +945,7 @@ export function ChartEngine({
         return;
       }
       setSelected(null);
-      dragRef.current = { mode: "pan", x, y, start: view.start };
+      dragRef.current = { mode: "pan", x, y, start: view.start, yOffset: view.yOffset };
       return;
     }
 
@@ -1040,7 +1065,17 @@ export function ChartEngine({
     if (drag.mode === "pan") {
       const shift = (drag.x - x) / g.bw;
       const maxStart = Math.max(0, bars.length - view.count);
-      setView((v) => ({ ...v, start: Math.max(-v.count * 0.08, Math.min(maxStart + v.count * 0.08, drag.start + shift)) }));
+      /* Vertical too. The series follows the finger — drag down and the higher
+         prices above come into view — clamped to a few ranges either side so a
+         flick cannot strand the chart in empty space. */
+      const plotH = Math.max(1, g.plotBottom - g.plotTop);
+      const dy = ((y - drag.y) / plotH) * (view.yScale || 1);
+      const yOffset = Math.max(-3, Math.min(3, (drag.yOffset ?? 0) + dy));
+      setView((v) => ({
+        ...v,
+        start: Math.max(-v.count * 0.08, Math.min(maxStart + v.count * 0.08, drag.start + shift)),
+        yOffset,
+      }));
       return;
     }
     if (drag.mode === "draw") {
@@ -1136,7 +1171,7 @@ export function ChartEngine({
     if (activePointers.current.size < 2) pinchRef.current = null;
   }
 
-  const resetView = () => setView({ start: 0, count: Math.max(6, bars.length), yScale: 1 });
+  const resetView = () => setView({ start: 0, count: Math.max(6, bars.length), yScale: 1, yOffset: 0 });
 
   /** Arming any tool abandons a half-drawn object rather than leaving an
    *  orphaned zero-size shape behind — the failure mode this pass fixes. */
