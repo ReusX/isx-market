@@ -94,7 +94,7 @@ async function fetchText(url: string, timeout = 12000): Promise<string | null> {
 // Newest dollar-price article in a listing page. Handles both shapes we read:
 // absolute percent-encoded links (r.jina.ai markdown) and the relative, often
 // literally-Arabic hrefs in the site's own HTML.
-function pickDollarArticle(text: string): string | null {
+export function pickDollarArticle(text: string): string | null {
   let best: { id: number; url: string } | null = null
   for (const m of Array.from(text.matchAll(/(?:https:\/\/www\.alsumaria\.tv)?\/news\/economy\/(\d+)\/([^\s"'<>)]+)/g))) {
     const id = +m[1]
@@ -102,7 +102,17 @@ function pickDollarArticle(text: string): string | null {
     let slug = m[2]
     try { slug = decodeURIComponent(slug) } catch { /* already literal */ }
     // dollar price articles: title mentions الدولار + a market verb, but NOT gold/oil/other-commodity articles
-    if (/دولار/.test(slug) && /(إغلاق|التداولات|السوق|الأسواق|ارتفاع|تراجع|انخفاض|يستقر|قفزة|أسعار|الصرف)/.test(slug) && !/ذهب|نفط|بترول|غاز/.test(slug)) {
+    /* ⚠ Normalise the alef before testing, and accept VERB forms.
+       This filter silently froze the page for two days. The newest article was
+       «الدولار-يرتفع-من-جديد-الاسعار-تعود-الى-سابق-عهدها» and it matched
+       nothing: the list had the noun «ارتفاع» but the headline used the verb
+       «يرتفع», and it had «أسعار» with a hamza where the slug writes «الاسعار»
+       without one. Alsumaria's headline wording drifts by design — it is a
+       newsroom, not an API — so match on the SHAPE of a dollar-price story
+       rather than on a closed list of exact words. */
+    const norm = slug.replace(/[أإآٱ]/g, 'ا')
+    const aboutPrice = /(اغلاق|التداولات|السوق|الاسواق|ارتفاع|يرتفع|تراجع|يتراجع|انخفاض|ينخفض|يستقر|استقرار|صعود|يصعد|هبوط|يهبط|قفزة|اسعار|سعر|الصرف)/
+    if (/دولار/.test(norm) && aboutPrice.test(norm) && !/ذهب|نفط|بترول|غاز/.test(norm)) {
       if (!best || id > best.id) best = { id, url }
     }
   }
@@ -121,7 +131,7 @@ async function discoverDollarArticle(): Promise<string | null> {
   return (proxied && pickDollarArticle(proxied)) || null
 }
 
-function parseAlsumaria(raw: string, url: string): FxData | null {
+export function parseAlsumaria(raw: string, url: string): FxData | null {
   // Normalize both the direct HTML and the r.jina.ai markdown: strip tags, then
   // collapse markdown links `[text](url)` → text and drop bare URLs. Jina renders
   // "بغداد" as a link, which otherwise injects a long URL between the البيع label
@@ -130,6 +140,9 @@ function parseAlsumaria(raw: string, url: string): FxData | null {
     .replace(/<[^>]+>/g, ' ')
     .replace(/\[([^\]]*)\]\([^)]*\)/g, '$1')
     .replace(/https?:\/\/\S+/g, ' ')
+    // Same alef fold as the discovery filter, for the same reason: the source
+    // writes «أسعار» and «اسعار» interchangeably from one day to the next.
+    .replace(/[أإآٱ]/g, 'ا')
     .replace(/\s+/g, ' ')
   const n = (s: string) => parseInt(s.replace(/[,،]/g, ''), 10)
   // A parallel-market dollar outside this band is a misparse, not a rate.
@@ -146,15 +159,30 @@ function parseAlsumaria(raw: string, url: string): FxData | null {
   // and its nearest figure, and read the unit off the magnitude — six figures
   // is per 100 dollars, four is per one.
   const price = (label: string) => {
-    const tailed = t.match(new RegExp(label + String.raw`[\s\S]{0,90}?([\d,،]{5,7})\s*دينار\S*\s*(?:مقابل|لكل)\s*100\s*دولار`))
+    // «مقابل 100 دولار», «لكل 100 دولار» AND «مقابل كل 100 دولار» — the last
+    // of which the source used on 27 August and this pattern did not match.
+    const tailed = t.match(new RegExp(label + String.raw`[\s\S]{0,90}?([\d,،]{5,7})\s*دينار\S*\s*(?:مقابل\s*كل|مقابل|لكل)\s*100\s*دولار`))
     if (tailed) return sane(n(tailed[1]) / 100)
     const bare = t.match(new RegExp(label + String.raw`[\s\S]{0,90}?([\d,،]{4,7})\s*دينار`))
     if (!bare) return null
     const v = n(bare[1])
     return sane(v >= 10_000 ? v / 100 : v)
   }
-  const sell = price('(?:ال)?بيع')
+  let sell = price('(?:ال)?بيع')
   const buy  = price('(?:ال)?شراء')
+
+  /* Some days the sell side carries no label at all. On 27 August the article
+     read «وبلغت اسعار صرف الدولار … 155000 دينار مقابل كل 100 دولار. بينما سجل
+     سعر الشراء 154000 دينار» — the buy price is named, the sell price is just
+     "the dollar exchange rate". Reading that unlabelled figure as the sell
+     price is an inference, so it is GUARDED by the one invariant a currency
+     spread always satisfies: an exchange shop sells dearer than it buys. If
+     the figure is not above the buy price it is something else — a headline
+     number, a total, last week's rate — and is left null rather than guessed. */
+  if (sell == null && buy != null) {
+    const general = price('(?:اسعار|سعر)\\s*صرف\\s*الدولار')
+    if (general != null && general > buy) sell = general
+  }
   if (sell == null && buy == null) return null
   // JSON-LD only exists on the raw HTML; through the r.jina.ai reader the page
   // arrives as markdown, where the dateline is plain text ("2026-07-25 | 04:00").
