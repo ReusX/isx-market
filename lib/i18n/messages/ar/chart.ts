@@ -30,7 +30,6 @@ export const chart = {
     period: 'الفترة الزمنية',
     copyChart: 'نسخ صورة المخطط',
     downloadChart: 'تنزيل صورة المخطط',
-    fullChart: 'المخطط الكامل',
     plotLabel: 'رسم مؤشر ISX60',
     loadFailed: 'تعذّر تحميل بيانات المؤشر',
     loading: 'جاري تحميل السلسلة…',

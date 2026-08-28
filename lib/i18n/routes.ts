@@ -38,6 +38,7 @@ export const ROUTES: RouteEntry[] = [
   // ── Market & data ───────────────────────────────────────────────────────
   { pattern: '/',                          cls: 'mirror' },
   { pattern: '/market',                    cls: 'mirror' },
+  { pattern: '/companies',                 cls: 'mirror' },
   { pattern: '/screener',                  cls: 'mirror' },
   { pattern: '/heatmap',                   cls: 'mirror' },
   { pattern: '/pulse',                     cls: 'mirror' },
@@ -96,7 +97,13 @@ export const ROUTES: RouteEntry[] = [
        + 'worth translating; the locale a user came from is carried on the '
        + 'redirect target instead.',
   },
-  ...(['/companies', '/banks', '/charts', '/analysis', '/analysis/[sym]', '/research', '/research/[slug]', '/alerts']
+  /* `/companies` is NOT here. It is a real Arabic landing page — Google
+     indexes it as «الشركات المدرجة في بورصة العراق · 104 شركة حسب القطاع» —
+     and it is the only crawlable path to /c/[sym], because every price table
+     on the site fetches its rows in the browser. It is a `mirror` pair now,
+     so /en/companies gives the English company pages the crawlable parent
+     they never had. */
+  ...(['/banks', '/charts', '/analysis', '/analysis/[sym]', '/research', '/research/[slug]', '/alerts']
     .map((pattern): RouteEntry => ({
       pattern,
       cls: 'ar-only',

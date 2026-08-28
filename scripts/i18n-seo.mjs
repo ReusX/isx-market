@@ -10,22 +10,28 @@
  *
  * Run against the dev server or a `next start`:  node scripts/i18n-seo.mjs [origin]
  */
+import { readRegistry } from './lib/registry.mjs'
+
 const ORIGIN = process.argv[2] ?? process.env.I18N_ORIGIN ?? 'http://localhost:3000'
 const SITE = 'https://iraqsm.com'
 
-/** Routes that must carry a reciprocal pair. */
-const PAIRED = [
-  '/', '/market', '/screener', '/heatmap', '/pulse', '/statistics',
-  '/statistics/foreign-flow', '/statistics/ownership', '/statistics/shareholders',
-  '/fx', '/gold', '/oil', '/news', '/learn', '/learn/trading-from-zero',
-  '/about', '/contact', '/privacy', '/legal', '/c/BBOB', '/c/BBOB/financials',
-]
+/* ⚠ These three lists are READ FROM THE REGISTRY, not restated here.
 
-/** Mirrored for usability, never indexed and never paired. */
-const PRIVATE = ['/portfolio', '/watchlist', '/profile', '/login', '/signup', '/verify-email', '/forgot-password']
+   They used to be hardcoded, and `/companies` is why that had to change: it
+   was listed as Arabic-only, and when it became a real mirrored pair this gate
+   failed a page that was correct. The same drift in the other direction — a
+   route quietly losing its English half — would have passed silently, which is
+   the failure mode that actually costs something.
 
+   Dynamic patterns are given a concrete sample, because `/c/[sym]` cannot be
+   fetched. */
+const SAMPLE = { '/c/[sym]': '/c/BBOB', '/c/[sym]/financials': '/c/BBOB/financials' }
+const reg = readRegistry()
+const concrete = (r) => SAMPLE[r] ?? r
+const PAIRED = reg.paired.filter((r) => !r.includes('[') || SAMPLE[r]).map(concrete)
+const PRIVATE = reg.private.filter((r) => !r.includes('['))
 /** Arabic-only: must NOT resolve under /en. */
-const AR_ONLY = ['/companies', '/banks', '/charts', '/research', '/analysis', '/alerts']
+const AR_ONLY = reg.arOnly.filter((r) => !r.includes('['))
 
 const fails = []
 const fail = (m) => fails.push(m)
