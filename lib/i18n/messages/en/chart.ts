@@ -22,7 +22,6 @@ export const chart: typeof ar = {
     period: 'Time period',
     copyChart: 'Copy the chart image',
     downloadChart: 'Download the chart image',
-    fullChart: 'Full chart',
     plotLabel: 'ISX60 index plot',
     loadFailed: 'The index data couldn’t be loaded',
     loading: 'Loading the series…',

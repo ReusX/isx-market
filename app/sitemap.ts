@@ -26,6 +26,13 @@ async function allPosts(section: Section): Promise<{ slug: string; modified: str
   return out
 }
 
+/*
+ * ⚠ No `<priority>` and no `<changefreq>`. Google ignores both and has said so
+ * for years; all they did here was assert 304 confident-looking numbers that
+ * no crawler reads. `<lastmod>` stays, because Google DOES use it — which is
+ * exactly why it has to be honest, and why market pages carry the real ISX
+ * session date rather than the moment of the build.
+ */
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const now = new Date()
 
@@ -45,34 +52,34 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   // ── Public, indexable static pages ──
   const statics: MetadataRoute.Sitemap = [
-    { url: absUrl('/'),            lastModified: dataDate, changeFrequency: 'hourly',  priority: 1.0 },
-    { url: absUrl('/market'),     lastModified: dataDate, changeFrequency: 'hourly',  priority: 1.0 },
-    { url: absUrl('/charts'),     lastModified: dataDate, changeFrequency: 'daily',   priority: 0.9 },
-    { url: absUrl('/screener'),   lastModified: dataDate, changeFrequency: 'daily',   priority: 0.9 },
-    { url: absUrl('/heatmap'),    lastModified: dataDate, changeFrequency: 'daily',   priority: 0.9 },
-    { url: absUrl('/pulse'),      lastModified: dataDate, changeFrequency: 'daily',   priority: 0.9 },
-    { url: absUrl('/companies'),  lastModified: dataDate, changeFrequency: 'daily',   priority: 0.9 },
-    { url: absUrl('/news'),       lastModified: now, changeFrequency: 'hourly',  priority: 0.9 },
+    { url: absUrl('/'),            lastModified: dataDate },
+    { url: absUrl('/market'),     lastModified: dataDate },
+    { url: absUrl('/charts'),     lastModified: dataDate },
+    { url: absUrl('/screener'),   lastModified: dataDate },
+    { url: absUrl('/heatmap'),    lastModified: dataDate },
+    { url: absUrl('/pulse'),      lastModified: dataDate },
+    { url: absUrl('/companies'),  lastModified: dataDate },
+    { url: absUrl('/news'),       lastModified: now },
     // Rates tools — high-traffic SEO landing pages
-    { url: absUrl('/gold'),       lastModified: now, changeFrequency: 'hourly',  priority: 0.9 },
-    { url: absUrl('/oil'),        lastModified: now, changeFrequency: 'hourly',  priority: 0.9 },
-    { url: absUrl('/fx'),         lastModified: now, changeFrequency: 'daily',   priority: 0.8 },
+    { url: absUrl('/gold'),       lastModified: now },
+    { url: absUrl('/oil'),        lastModified: now },
+    { url: absUrl('/fx'),         lastModified: now },
     // Statistics hub + dedicated panels
-    { url: absUrl('/statistics'),              lastModified: dataDate, changeFrequency: 'weekly', priority: 0.8 },
-    { url: absUrl('/statistics/foreign-flow'), lastModified: dataDate, changeFrequency: 'weekly', priority: 0.7 },
-    { url: absUrl('/statistics/ownership'),    lastModified: dataDate, changeFrequency: 'weekly', priority: 0.7 },
-    { url: absUrl('/statistics/shareholders'), lastModified: dataDate, changeFrequency: 'weekly', priority: 0.7 },
+    { url: absUrl('/statistics'),              lastModified: dataDate },
+    { url: absUrl('/statistics/foreign-flow'), lastModified: dataDate },
+    { url: absUrl('/statistics/ownership'),    lastModified: dataDate },
+    { url: absUrl('/statistics/shareholders'), lastModified: dataDate },
     // Content hubs
-    { url: absUrl('/research'),   lastModified: now, changeFrequency: 'daily',   priority: 0.8 },
-    { url: absUrl('/analysis'),   lastModified: now, changeFrequency: 'daily',   priority: 0.8 },
-    { url: absUrl('/learn'),      lastModified: now, changeFrequency: 'weekly',  priority: 0.8 },
-    { url: absUrl('/learn/trading-from-zero'), lastModified: staticDate, changeFrequency: 'monthly', priority: 0.7 },
-    { url: absUrl('/banks'),      lastModified: staticDate, changeFrequency: 'monthly', priority: 0.7 },
+    { url: absUrl('/research'),   lastModified: now },
+    { url: absUrl('/analysis'),   lastModified: now },
+    { url: absUrl('/learn'),      lastModified: now },
+    { url: absUrl('/learn/trading-from-zero'), lastModified: staticDate },
+    { url: absUrl('/banks'),      lastModified: staticDate },
     // Info / legal
-    { url: absUrl('/about'),      lastModified: staticDate, changeFrequency: 'monthly', priority: 0.5 },
-    { url: absUrl('/contact'),    lastModified: staticDate, changeFrequency: 'monthly', priority: 0.4 },
-    { url: absUrl('/privacy'),    lastModified: staticDate, changeFrequency: 'yearly',  priority: 0.3 },
-    { url: absUrl('/legal'),      lastModified: staticDate, changeFrequency: 'yearly',  priority: 0.3 },
+    { url: absUrl('/about'),      lastModified: staticDate },
+    { url: absUrl('/contact'),    lastModified: staticDate },
+    { url: absUrl('/privacy'),    lastModified: staticDate },
+    { url: absUrl('/legal'),      lastModified: staticDate },
   ]
 
   // ── Per-company pages (server-rendered SEO content + live price) ──
@@ -81,24 +88,20 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const companies: MetadataRoute.Sitemap = (companiesData as { sym: string }[]).map(c => ({
     url:             absUrl(`/c/${c.sym}`),
     lastModified:    dataDate,
-    changeFrequency: 'hourly' as const,
-    priority:        0.8,
   }))
 
   // ── CMS articles (news / research / learn) ──
   const [news, research, learn] = await Promise.all([
     allPosts('news'), allPosts('research'), allPosts('learn'),
   ])
-  const article = (section: string, p: { slug: string; modified: string }, priority: number): MetadataRoute.Sitemap[number] => ({
+  const article = (section: string, p: { slug: string; modified: string }): MetadataRoute.Sitemap[number] => ({
     url:             absUrl(`/${section}/${p.slug}`),
     lastModified:    p.modified ? new Date(p.modified) : now,
-    changeFrequency: 'weekly',
-    priority,
   })
   const articles: MetadataRoute.Sitemap = [
-    ...news.map(p => article('news', p, 0.7)),
-    ...research.map(p => article('research', p, 0.7)),
-    ...learn.map(p => article('learn', p, 0.6)),
+    ...news.map(p => article('news', p)),
+    ...research.map(p => article('research', p)),
+    ...learn.map(p => article('learn', p)),
   ]
 
   const arabic = [...statics, ...companies, ...articles]

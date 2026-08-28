@@ -1,6 +1,31 @@
 import type { company as ar } from '../ar/company'
 
 export const company: typeof ar = {
+  /* ── /companies · the directory ────────────────────────────────────────
+     The only path a crawler can walk to the company pages: every price table
+     on the site fetches its rows in the browser, so this server-rendered
+     index is where /c/[sym] is actually discoverable. */
+  directory: {
+    eyebrow: 'Company directory',
+    h1: (n: string) => `Iraq Stock Exchange Listed Companies · ${n} companies by sector`,
+    standfirst: (n: string) => `All ${n} companies listed on the Iraq Stock Exchange (ISX), grouped by sector with the last traded price and market capitalisation.`,
+    indexTitle: 'Every listed company, by sector',
+    loading: 'Loading…',
+    count: (n: string) => `${n} companies`,
+    searchPlaceholder: 'Search a company or ticker…',
+    searchLabel: 'Search companies',
+    colCompany: 'Company',
+    colLast: 'Last Price',
+    colChange: 'Change',
+    colVolume: 'Volume',
+    colMcap: 'Market Cap',
+    staleNote: (days: string) => `Shares with no trade for more than ${days} days. The price shown is the last actual trade, on its own date — not a current quote — which is why no market capitalisation is computed for them.`,
+    loadFailed: 'Company data could not be loaded',
+    loadFailedHint: 'Please refresh the page.',
+    noMatch: 'No matching companies',
+    noMatchHint: 'Try another sector, or clear the search.',
+  },
+
   tabs: {
     overview:     'Overview',
     chart:        'Price',

@@ -2,7 +2,6 @@
 
 import { type PointerEvent, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useLocale } from '@/context/LocaleContext'
-import Link from 'next/link'
 
 export type IndexRow = { date: string; isx60: number }
 
@@ -357,7 +356,11 @@ export default function IndexChart({
           <button type="button" className="chart-tool-btn" onClick={download} aria-label={ix.downloadChart} title={ix.downloadChartTitle}>
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11" /><path d="M7 11l5 5 5-5" /><path d="M5 20h14" /></svg>
           </button>
-          <Link className="chart-tool-link" href={L('/charts')}>{ix.fullChart}</Link>
+          {/* The «Full chart» link is GONE. Same defect as the company
+              breadcrumb — `/charts` is `ar-only`, so on /en it resolved to
+              /en/charts and 404'd — and the same redundancy: this component
+              only renders INSIDE the expanded full-chart panel, so the link
+              invited the reader to open what they already had open. */}
         </div>
       </div>
 
