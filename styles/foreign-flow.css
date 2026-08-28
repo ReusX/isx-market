@@ -81,24 +81,6 @@
   backdrop-filter: blur(20px) saturate(120%);
 }
 
-.ffw-hero-card > .ffw-st-chip { align-self: flex-start; margin-block-end: 3px; }
-
-.ffw-hero-card > strong {
-  display: flex; align-items: baseline; gap: 6px; margin-block-start: 4px;
-  font: 700 1.9rem var(--font-numeric), ui-monospace, monospace; letter-spacing: -.045em;
-  color: var(--mv-ink); direction: ltr;
-}
-
-.ffw-hero-card > strong.positive { color: var(--mv-up); }
-
-.ffw-hero-card > strong.negative { color: var(--mv-down); }
-
-.ffw-hero-card > strong em { font: 600 .66rem var(--font-body), Arial, sans-serif; font-style: normal; color: var(--mv-ink-3); }
-
-.ffw-hero-card > p { margin: 0; color: var(--mv-ink-2); font-size: .72rem; line-height: 1.7; }
-
-.ffw-hero-card > p bdi { font: 600 .76rem var(--font-numeric), ui-monospace, monospace; color: var(--mv-ink); }
-
 .ffw-hero-figs { display: flex; gap: 24px; flex-wrap: wrap; margin: 12px 0 0; padding-block-start: 11px; border-block-start: 1px solid var(--mv-line); }
 
 .ffw-hero-figs dt { display: inline-flex; align-items: center; gap: 4px; color: var(--mv-ink-3); font-size: .63rem; }
@@ -283,15 +265,6 @@
 
 .ffw-sec-share { text-align: end; color: var(--mv-ink-2); font: 600 .72rem var(--font-numeric), ui-monospace, monospace; }
 
-.ffw-own-note {
-  margin: 0 0 14px; padding: 10px 13px;
-  border: 1px solid var(--mv-line); border-inline-start: 2px solid var(--mv-hero);
-  border-radius: 10px; background: var(--mv-well);
-  color: var(--mv-ink-2); font-size: .71rem; line-height: 1.8;
-}
-
-[data-theme='dark'] .ffw-own-note { border-inline-start-color: var(--mv-hero-bright); }
-
 .ffw-own { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: end; gap: 16px 30px; margin-block-end: 14px; }
 
 .ffw-own-lead strong { display: block; margin: 3px 0 0; font: 700 1.7rem var(--font-numeric), ui-monospace, monospace; letter-spacing: -.04em; color: var(--mv-ink); }
@@ -451,12 +424,7 @@
 
 .ffw-st-chart { display: flex; flex-direction: column; gap: 10px; }
 
-.ffw-st-chart-bar {
-  display: flex; align-items: center; justify-content: space-between;
-  gap: 14px; flex-wrap: wrap;
-}
-
-.ffw-st-chart-read { flex: 1; min-inline-size: 0; }
+.ffw-st-chart-read { min-inline-size: 0; }
 
 .ffw-st-chart-actions { display: flex; align-items: center; gap: 7px; }
 
@@ -643,6 +611,150 @@
 
 @keyframes ffw-shimmer { from { background-position: 200% 0; } to { background-position: -200% 0; } }
 
+/* ═══════════════════════════════════════════════════════════════════════════
+   REFINEMENT PASS · hierarchy over prose
+   ───────────────────────────────────────────────────────────────────────────
+   Nothing below changes a number. It changes what the eye reaches first: the
+   primary figure gets its own line and more air, the metadata that used to sit
+   on rows of its own is paired onto one, the caveats that used to run as
+   paragraphs are a source line plus a disclosure, and the export controls stop
+   competing with the mode toggle by dropping their labels.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ── Vertical rhythm · 14 → 18 ─────────────────────────────────────────── */
+
+.ffw-st-head { padding-block-end: 18px; }
+
+.ffw-st-title p { max-inline-size: 62ch; }
+
+.ffw-hero { gap: 18px; }
+
+.ffw-chart-panel, .ffw-own-panel, .ffw-holders-panel { margin-block-start: 18px; }
+
+.ffw-grid, .ffw-st-grid-2 { gap: 18px; margin-block-start: 18px; }
+
+.ffw-cd-panel { padding: 18px 20px; }
+
+.ffw-cd-panel-head { margin-block-end: 14px; }
+
+.ffw-hero-card { padding: 17px 20px 19px; }
+
+/* ── Hero card · metadata on one line, the number on its own ───────────── */
+
+.ffw-hero-top {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 10px; margin-block-end: 2px;
+}
+
+.ffw-hero-top .ffw-st-chip { flex: none; }
+
+.ffw-hero-value {
+  display: flex; align-items: baseline; flex-wrap: wrap;
+  gap: 4px 12px; margin-block: 12px 2px;
+}
+
+.ffw-hero-value > strong {
+  display: flex; align-items: baseline; gap: 6px;
+  font: 700 2.05rem var(--font-numeric), ui-monospace, monospace; letter-spacing: -.045em;
+  color: var(--mv-ink); direction: ltr;
+}
+
+.ffw-hero-value > strong.positive { color: var(--mv-up); }
+
+.ffw-hero-value > strong.negative { color: var(--mv-down); }
+
+.ffw-hero-value > strong em {
+  font: 600 .66rem var(--font-body), Arial, sans-serif; font-style: normal;
+  color: var(--mv-ink-3);
+}
+
+/* Deliberately not tinted. The figure is the only coloured thing in the card,
+   which is what makes the colour mean something. */
+.ffw-hero-dir { color: var(--mv-ink-2); font: 600 .73rem var(--font-body), Arial, sans-serif; }
+
+/* ── Micro-metrics · a grid, so cells align instead of drifting ────────── */
+
+.ffw-hero-figs {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(104px, 1fr));
+  gap: 13px 20px; margin: 16px 0 0;
+  padding-block-start: 13px; border-block-start: 1px solid var(--mv-line);
+}
+
+/* ── Buy / sell · the share travels with its own side ──────────────────── */
+
+.ffw-balance { margin-block-start: 15px; }
+
+.ffw-balance-labels { align-items: flex-end; margin-block-end: 7px; }
+
+.ffw-balance-labels small { display: inline-flex; align-items: baseline; gap: 5px; }
+
+.ffw-balance-labels small bdi {
+  font: 600 .61rem var(--font-numeric), ui-monospace, monospace;
+  color: var(--mv-ink-3);
+}
+
+.ffw-balance-zero { color: var(--mv-ink-3); font-size: .66rem; }
+
+/* ── Panel head · toggle then export, both at the end ──────────────────── */
+
+.ffw-panel-tools { display: flex; align-items: center; gap: 8px; margin-inline-start: auto; }
+
+.ffw-panel-tools .ffw-st-switch { margin-inline-start: 0; }
+
+.ffw-st-chart-actions .ffw-icon-btn {
+  display: grid; place-items: center;
+  inline-size: 32px; block-size: 32px; padding: 0;
+  border-radius: 9px; color: var(--mv-ink-3);
+}
+
+.ffw-st-chart-actions .ffw-icon-btn:hover { color: var(--mv-ink); background: var(--mv-well); }
+
+/* ── Footnote · one visible line, the rest one click away ──────────────── */
+
+.ffw-note { margin-block-start: 14px; padding-block-start: 11px; border-block-start: 1px solid var(--mv-line); }
+
+.ffw-note-src { margin: 0; color: var(--mv-ink-3); font-size: .66rem; line-height: 1.65; }
+
+.ffw-note-more { margin-block-start: 4px; }
+
+.ffw-note-more > summary {
+  display: inline-flex; align-items: center; gap: 7px;
+  inline-size: fit-content; min-block-size: 30px;
+  color: var(--mv-ink-2); font: 600 .66rem var(--font-body), Arial, sans-serif;
+  cursor: pointer; list-style: none;
+  transition: color .13s;
+}
+
+.ffw-note-more > summary::-webkit-details-marker { display: none; }
+
+.ffw-note-more > summary::after {
+  content: '';
+  inline-size: 5px; block-size: 5px;
+  border-inline-end: 1.5px solid currentColor; border-block-end: 1.5px solid currentColor;
+  transform: rotate(45deg) translateY(-1px);
+  transition: transform .15s;
+}
+
+.ffw-note-more[open] > summary::after { transform: rotate(225deg) translateY(1px); }
+
+.ffw-note-more > summary:hover { color: var(--mv-ink); }
+
+.ffw-note-more > summary:focus-visible { outline: 2px solid var(--mv-hero); outline-offset: 3px; border-radius: 5px; }
+
+.ffw-note-more ul { display: flex; flex-direction: column; gap: 6px; margin: 6px 0 3px; padding: 0; list-style: none; }
+
+.ffw-note-more li {
+  position: relative; max-inline-size: 78ch; padding-inline-start: 14px;
+  color: var(--mv-ink-3); font-size: .66rem; line-height: 1.7;
+}
+
+.ffw-note-more li::before {
+  content: '';
+  position: absolute; inset-inline-start: 3px; inset-block-start: .62em;
+  inline-size: 4px; block-size: 4px; border-radius: 50%;
+  background: var(--mv-line-strong);
+}
+
 /* ── Touch targets ────────────────────────────────────────────────────────
    §16 / §23. The visible pill stays exactly the reference's size; the hit
    area is a transparent pseudo-element centred on it. Nothing moves, and a
@@ -743,3 +855,29 @@
    Buying them a 44px hit area would add 24px to both hero cards and put this
    page's summary geometry out of step with the approved design, to serve an
    affordance that gates nothing. */
+
+/* ── Refinement pass · narrow widths ──────────────────────────────────────
+   Tested at 375 / 390 / 430. The head's tool cluster is the one thing that
+   cannot stay end-aligned: a toggle plus two icon buttons is wider than the
+   space left beside a heading on a 375px screen, so it takes its own row
+   rather than pushing the panel into horizontal overflow. */
+
+@media (max-width: 720px) {
+  .ffw-cd-panel { padding: 15px 15px; }
+  .ffw-hero-card { padding: 15px 16px 17px; }
+  .ffw-hero-value > strong { font-size: 1.62rem; }
+  /* Two fixed columns rather than auto-fit. The period card carries four
+     cells, and auto-fit gave it three plus an orphan; 2x2 is the only tidy
+     arrangement of four at this width. */
+  .ffw-hero-figs { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 13px 16px; }
+  .ffw-panel-tools { inline-size: 100%; margin-inline-start: 0; flex-wrap: wrap; }
+  /* The toggle hugs its two labels. Stretching it to fill the row painted a
+     wide empty track beside them, which read as a broken control. */
+  .ffw-panel-tools .ffw-st-switch { flex: 0 1 auto; min-inline-size: 0; }
+  .ffw-st-chart-actions { margin-inline-start: auto; }
+  .ffw-note-more > summary { min-block-size: 44px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ffw-note-more > summary, .ffw-note-more > summary::after, .ffw-icon-btn { transition: none; }
+}

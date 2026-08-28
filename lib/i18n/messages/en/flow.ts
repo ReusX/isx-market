@@ -1,130 +1,162 @@
 import type { flow as ar } from '../ar/flow'
 
+/**
+ * English counterpart. Same discipline as the Arabic module: the main reading
+ * path is labels and numbers, and every caveat lives in a `*Points`
+ * disclosure or a `*Help` tooltip. This is not a translation of the Arabic
+ * phrasing — it is the same meaning written the way an English financial
+ * product writes it.
+ */
 export const flow: typeof ar = {
+  /* ── Page frame ──────────────────────────────────────────────────────── */
   title: 'Foreign Investor Flow',
-  sessionsInPeriod: (n: string) => `${n} sessions in the period`,
-  lastObserved: (d: string) => `last observed session ${d}`,
+  standfirst: 'Buying and selling by non-Iraqi investors',
+  breadcrumb: 'Market Statistics',
+  periodGroup: 'Period',
+  heroLabel: 'Flow summary',
 
   loadFailed: 'Couldn’t load the foreign-flow data',
+  failedNote: 'The figures arrive with the daily trading bulletin. Try reloading,',
   backTo: 'or go back to',
   statistics: 'Market Statistics',
 
+  /* ── Hero · session ──────────────────────────────────────────────────── */
   lastSessionChip: 'Last observed session',
   iqd: 'IQD',
   netBuy: 'Net foreign buying',
   netSell: 'Net foreign selling',
   balanced: 'Balanced flow',
-  foreignTrades: 'Foreign trades',
-  companiesActive: 'Companies with foreign activity',
+  foreignTrades: 'Trades',
+  companiesActive: 'Active companies',
 
-  periodChip: (label: string) => `Selected period · ${label}`,
+  /* ── Hero · period ───────────────────────────────────────────────────── */
+  periodChip: (label: string) => `Period · ${label}`,
   periodOnly: 'Selected period',
-  cumulativeLine: (dir: string, counted: string, buy: string, sell: string, missing: string) =>
-    `Cumulative net ${dir} across ${counted} observed sessions · ${buy} buying sessions against ${sell} selling sessions`
-    + (missing ? ` · ${missing} sessions with no data, not counted` : ''),
-  buying: 'buying',
-  selling: 'selling',
+  buying: 'Buying',
+  selling: 'Selling',
+  buyContinuity: 'Buying continuity',
   buySessionsHelp: 'Buying sessions divided by observed sessions',
+  buySessionsHelpLong: 'Sessions whose net flow was positive, divided by the sessions where flow was actually observed — not by every session in the period.',
+  sellSessions: 'Selling sessions',
+  grossActivity: 'Gross activity',
   grossHelp: 'Total foreign buying plus selling over the period',
+  grossHelpLong: 'Buying plus selling, not the net. Large activity with a small net means foreign investors trading with each other.',
+  missingSessions: 'No data',
+  missingHelp: 'Sessions with no published foreign figures. Excluded from every ratio on this page, and never counted as zero.',
 
-  netByPeriod: 'Net flow by period',
-  cumulativeBalance: 'Cumulative balance over the period',
-  netEach: 'Net per period',
+  measuredZero: 'Observed zero — not missing data.',
+  sellBar: (v: string, pct: string) => `Selling ${v} dinars, ${pct} percent`,
+  buyBar: (v: string, pct: string) => `Buying ${v} dinars, ${pct} percent`,
+
+  /* ── Chart ───────────────────────────────────────────────────────────── */
+  netByPeriod: 'Net flow',
+  cumulativeBalance: 'Cumulative balance',
+  netEach: 'Per period',
   cumulative: 'Cumulative',
-  netNote: 'Separate columns from a shared zero line — each column is what happened in that period alone. They are not joined by a line, because a line would imply values between periods that were never observed.',
-  cumNote: 'A continuous line, because a cumulative balance is a continuous quantity: net flow summed from the start of the SELECTED period — not from the start of the record.',
-
-  companyActivity: 'Company activity',
-  noCompanies: 'No companies with foreign activity on this side',
-  noCompaniesNote: 'Try the other side, or a longer period.',
-  companyHint: 'Hover a company for its figures · clicking opens its page',
-
-  capitalSpread: 'Where foreign capital sits',
-  bySector: 'by sector',
-  noSectorActivity: 'No foreign activity in this period',
-  noSectorNote: 'Try a longer period.',
-  sectorHint: 'Hover or click a sector for its figures',
-
-  ownership: 'Foreign ownership',
-  monthlySnapshot: (m: string) => `Monthly snapshot · ${m}`,
-  fullOwnership: 'Full ownership structure',
-  majorShareholders: 'Major shareholders',
-  ownershipFailed: 'Couldn’t load the ownership data',
-  ownershipFailedNote: 'The flow and activity figures above are current and complete — ownership is a separate monthly table.',
-  foreignShare: 'Foreign share of deposited shares',
-  shareUnavailable: 'Share unavailable',
-  sharePct: (p: string) => `${p} percent foreign ownership`,
-  companiesWithForeign: 'Companies with foreign ownership',
-  ofInReport: (n: string) => `of ${n} in the month’s report`,
-  foreignHolders: 'Foreign holders',
-  highestForeign: 'Highest foreign ownership',
-
-  measuredZero: 'No foreign activity — buying and selling were both zero, which is not the same as missing data.',
-  ofActivity: 'of activity',
-  ofForeignActivity: 'of foreign activity',
-  net: 'Net',
-  trades: 'Trades',
-  companies: 'Companies',
-  buyOf:  (v: string, pct: string) => `${v} buying · ${pct} of activity`,
-  sellOf: (v: string, pct: string) => `${v} selling · ${pct} of activity`,
-  bothOf: (b: string, s: string) => `${b} buying · ${s} selling`,
-
-  yearOf:  (y: string) => `${y}`,
-  weekOf:  (from: string, to: string, y: string) => `Week of ${from} — ${to} ${y}`,
-  observed: 'Observed',
-  cumulativeBalanceRead: 'Cumulative balance',
-  periodNet: 'Period net',
-  sessions: 'Sessions',
-  noData: 'No data',
-  hintNet: 'Hover or tap a column to read its buying, selling and net',
-  hintCum: 'Hover or tap to read the cumulative balance at that date',
-  copyImage: 'Copy Image',
+  viewGroup: 'View type',
+  hintNet: 'Hover or tap a column for its detail',
+  hintCum: 'Hover or tap a point to read the balance',
+  copyImage: 'Copy image',
   downloadPng: 'Download PNG',
   copied: 'Image copied',
   downloaded: 'Downloaded',
   copyFailed: 'Copy failed · use download',
   chartNetLabel: (n: string) => `Net foreign flow across ${n} periods`,
   chartCumLabel: (n: string) => `Cumulative foreign-flow balance across ${n} periods`,
+  chartSource: (from: string, to: string) => `Source: daily trading bulletin · ${from} — ${to}`,
+  howChart: 'How to read this chart',
+  chartNetPoints: [
+    'Each column is that period’s net alone — columns are never joined by a line.',
+    'The zero line separates net buying from net selling.',
+    'Unobserved sessions are left blank, never drawn as zero.',
+  ],
+  chartCumPoints: [
+    'The line is net flow summed from the start of the selected period — not from the start of the record.',
+    'The zero line separates a positive balance from a negative one.',
+    'Unobserved sessions add nothing and are never counted as zero.',
+  ],
 
-  breadcrumb: 'Market Statistics',
-  standfirst: 'Buying and selling by non-Iraqi investors, per company, from the daily trading bulletin',
-  periodGroup: 'Period',
-  failedNote: 'Foreign-flow figures are published with the daily trading bulletin. Try reloading,',
-  heroLabel: 'Flow summary',
-  buyContinuity: 'Buying continuity',
-  buySessionsHelpLong: 'The number of sessions whose net flow was positive, divided by the sessions where flow was ACTUALLY observed — not by every session in the period. The percentage and both counts are shown together.',
-  grossActivity: 'Gross activity',
-  grossHelpLong: 'Foreign buying plus selling over the period — the gross, not the net. Large activity with a small net means foreign investors trading with each other.',
-  viewGroup: 'View type',
+  /* ── Chart readout ───────────────────────────────────────────────────── */
+  yearOf: (y: string) => `${y}`,
+  weekOf: (from: string, to: string, y: string) => `Week of ${from} — ${to} ${y}`,
+  observed: 'Observed',
+  cumulativeBalanceRead: 'Cumulative balance',
+  periodNet: 'Period net',
+  sessions: 'Sessions',
+  noData: 'No data',
+  net: 'Net',
+  trades: 'Trades',
+  companies: 'Companies',
+  ofActivity: 'of activity',
+  ofForeignActivity: 'of foreign activity',
+
+  /* ── Companies ───────────────────────────────────────────────────────── */
+  companyActivity: 'Company activity',
   rankGroup: 'Company ranking',
-  sourceLine: (from: string, to: string) =>
-    ` Source: foreign_flow_company_daily · ${from} — ${to}. Sessions with no observation are neither plotted nor counted as zero.`,
-  companyFoot: (ranked: string, total: string) =>
-    `${ranked} companies on this side, of ${total} with foreign activity in the period. Companies with no activity on this side are absent from the ranking and do not appear as zero. The company rows sum to the period total above, in dinars — rows and total come from the same table. This is trading activity and does not imply a change in ownership.`,
-  sectorFoot: 'The bar measures gross activity (buying + selling); the coloured figure is the net. A sector with heavy activity and a net near zero means foreign investors trading with each other, not entering or leaving. Sectors are aggregated from the same company rows, not from the monthly table.',
-  ownershipNote: 'Ownership is not flow. The figures above measure what foreign investors TRADED over the period; these measure what they actually HOLD of the deposited shares on a single date. A month of heavy buying may not move ownership at all if it happened between foreign investors.',
-  sharesSplit: (foreign: string, iraqi: string) => `${foreign} foreign-held shares against ${iraqi} Iraqi-held`,
-  ownershipSource: (month: string) =>
-    `Source: ownership_monthly · ${month}. Updated monthly with the official report, so it does NOT follow the period selected at the top of the page. The percentage = foreign shares ÷ (foreign + Iraqi shares), summed across the month's companies. Company names in this table are extracted from a scanned report and matched against the canonical register when displayed.`,
-  sellBar: (v: string, pct: string) => `Selling ${v} dinars, ${pct} percent`,
-  buyBar:  (v: string, pct: string) => `Buying ${v} dinars, ${pct} percent`,
-  unclassified: 'Unclassified',
-
+  companyHint: 'Hover a company for its figures',
+  noCompanies: 'No companies on this side',
+  noCompaniesNote: 'Try the other side, or a longer period.',
+  companyScope: (ranked: string, total: string) => `${ranked} of ${total} companies with foreign activity in the period`,
+  howCompanies: 'How to read these figures',
+  companyPoints: [
+    'The company rows sum to the period total above — same table, same dinars.',
+    'A company with no activity on this side is absent from the ranking, not shown as zero.',
+    'This is trading activity, not a change in ownership.',
+  ],
   companyRowLabel: (name: string, buy: string, sell: string, net: string) =>
     `${name}: buying ${buy}, selling ${sell}, net ${net}`,
+
+  /* ── Sectors ─────────────────────────────────────────────────────────── */
+  capitalSpread: 'Where foreign capital sits',
+  bySector: 'By sector',
+  sectorHint: 'Hover a sector for its figures',
+  noSectorActivity: 'No foreign activity in this period',
+  noSectorNote: 'Try a longer period.',
+  sectorScope: 'Aggregated from the same company rows',
+  howSectors: 'How to read these figures',
+  sectorPoints: [
+    'The bar is gross activity (buying + selling); the coloured figure is the net.',
+    'Heavy activity with a net near zero means foreign investors trading with each other.',
+  ],
   sectorRowLabel: (label: string, gross: string, net: string) =>
     `${label}: activity ${gross}, net ${net}`,
+  unclassified: 'Unclassified',
 
+  /* ── Ownership · a different quantity ────────────────────────────────── */
+  ownership: 'Foreign ownership',
+  ownershipSub: 'What foreign investors hold — not what they traded',
+  monthlySnapshot: (m: string) => `Monthly snapshot · ${m}`,
+  fullOwnership: 'Ownership structure',
+  majorShareholders: 'Major shareholders',
+  ownershipFailed: 'Couldn’t load the ownership data',
+  ownershipFailedNote: 'The flow figures above are complete — ownership is a separate monthly table.',
+  foreignShare: 'Foreign share of deposited shares',
+  shareUnavailable: 'Share unavailable',
+  sharePct: (p: string) => `${p} percent foreign ownership`,
+  companiesWithForeign: 'Companies with foreign ownership',
+  ofInReport: (n: string) => `of ${n}`,
+  foreignHolders: 'Foreign holders',
+  highestForeign: 'Highest share',
+  sharesSplit: (foreign: string, iraqi: string) => `${foreign} foreign-held · ${iraqi} Iraqi-held`,
+  ownSource: (month: string) => `Source: monthly ownership report · ${month}`,
+  howOwnership: 'How to read these figures',
+  ownPoints: [
+    'A monthly snapshot, so it does not follow the period selected above.',
+    'Share = foreign shares ÷ all deposited shares across the month’s companies.',
+    'Names are extracted from a scanned report and matched to the canonical register when displayed.',
+  ],
+
+  /* ── Grain and ranking ───────────────────────────────────────────────── */
   grain: {
-    session: 'Daily · one column per session',
-    week:    'Weekly · one column per week',
-    month:   'Monthly · one column per month',
-    year:    'Yearly · one column per year',
+    session: 'One column per session',
+    week: 'One column per week',
+    month: 'One column per month',
+    year: 'One column per year',
   },
   rank: {
-    netIn:  'Largest net buying',
+    netIn: 'Largest net buying',
     netOut: 'Largest net selling',
-    buy:    'Largest buying',
-    sell:   'Largest selling',
+    buy: 'Largest buying',
+    sell: 'Largest selling',
   },
 }

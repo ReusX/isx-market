@@ -5,7 +5,7 @@ import { localeDateOrDash } from '@/lib/date'
 import { useLocale } from '@/context/LocaleContext'
 import type { Locale } from '@/lib/i18n/locale'
 import Link from 'next/link'
-import { FlowChart, bucketTitle, type FlowMode } from './FlowChart'
+import { FlowChart, bucketTitle, type FlowMode, type FlowChartApi } from './FlowChart'
 import {
   PERIODS, iqd, iqdFull, nf0, shortY, monthLabel,
   type PeriodId,
@@ -65,8 +65,6 @@ type Ownership = {
   top: { name: string; pct: number }[]
 }
 
-const SECTOR_LABEL = new Map(SECTORS.filter((s) => s.id !== 'all').map((s) => [s.id, s.arFull]))
-
 export function ForeignFlow() {
   const { t: T, locale, href: L } = useLocale()
   const ff = T.flow
@@ -79,6 +77,10 @@ export function ForeignFlow() {
   const [sector, setSector] = useState<string | null>(null)
   const [row, setRow] = useState<string | null>(null)
   const [theme, setTheme] = useState<'light' | 'dark'>('light')
+  /* The chart owns the canvas, so it owns the export; the panel head owns the
+     buttons. This ref is the seam between them. */
+  const chartApi = useRef<FlowChartApi | null>(null)
+  const [chartMsg, setChartMsg] = useState<string | null>(null)
 
   const [loaded, setLoaded] = useState<Loaded | null>(null)
   const [loading, setLoading] = useState(true)
@@ -158,6 +160,14 @@ export function ForeignFlow() {
   /* 20 of the 104 curated rows carry an empty `ar`; `companyName` falls back to
      the English name before it falls back to the ticker, which is what the
      market board and the screener already do. */
+  /* Sector names were pinned to `arFull`, so the English page printed
+     «المصارف» and «الاتصالات» inside an otherwise English panel. The curated
+     list carries `enFull` for every sector; it was simply never read. */
+  const sectorLabels = useMemo(
+    () => new Map(SECTORS.filter((s) => s.id !== 'all')
+      .map((s) => [s.id, locale === 'ar' ? s.arFull : s.enFull])),
+    [locale])
+
   const roster = useMemo<Roster>(
     () => new Map(meta.map((m) => [m.sym, { name: companyName(m, m.sym, locale), sec: m.sec, logo: m.logo }])),
     [meta, locale])
@@ -208,7 +218,7 @@ export function ForeignFlow() {
     () => (loaded && t ? companyFlows(loaded.rows, t.from, t.to, roster) : []),
     [loaded, t, roster])
   const ranked = useMemo(() => rankCompanies(companies, view), [companies, view])
-  const sectors = useMemo(() => sectorFlows(companies, SECTOR_LABEL, ff.unclassified), [companies, ff])
+  const sectors = useMemo(() => sectorFlows(companies, sectorLabels, ff.unclassified), [companies, sectorLabels, ff])
   const sectorMax = Math.max(...sectors.map((s) => s.buy + s.sell), 1)
   const top10 = ranked.slice(0, 10)
   const rowMax = Math.max(...top10.map((c) => Math.abs(viewValue(c, view))), 1)
@@ -224,14 +234,14 @@ export function ForeignFlow() {
         <span className="dir-go" aria-hidden="true">›</span> {ff.breadcrumb}
       </Link>
 
+      {/* The subtitle used to carry the session count and the last observed
+          date as well. Both are printed by the two hero cards immediately
+          below, each against its own dates — so the header was repeating them,
+          and the repetition is what turned it into a paragraph. */}
       <header className="ffw-st-head ffw-head">
         <div className="ffw-st-title">
           <h1>{ff.title}</h1>
-          <p>
-            {ff.standfirst}
-            {t ? <> · {ff.sessionsInPeriod(nf0.format(t.sessions))}</> : null}
-            {latest ? <> · {ff.lastObserved(localeDateOrDash(latest.date, locale))}</> : null}
-          </p>
+          <p>{ff.standfirst}</p>
         </div>
         <div className="ffw-st-period" role="group" aria-label={ff.periodGroup}>
           {PERIODS.map((p) => (
@@ -254,15 +264,24 @@ export function ForeignFlow() {
           {/* ── Hero · the session and the period, never mixed ──────────── */}
           <section className="ffw-hero" aria-label={ff.heroLabel}>
             <article className="ffw-hero-card">
-              <span className="ffw-st-chip ffw-st-chip-session">{ff.lastSessionChip}</span>
-              <span className="ffw-cd-cell-label">{latest ? localeDateOrDash(latest.date, locale) : '—'}</span>
+              {/* Chip and date share one line: they are both metadata about the
+                  same thing, and stacking them cost a whole row above the
+                  number that the card actually exists to show. */}
+              <div className="ffw-hero-top">
+                <span className="ffw-st-chip ffw-st-chip-session">{ff.lastSessionChip}</span>
+                <span className="ffw-cd-cell-label">{latest ? localeDateOrDash(latest.date, locale) : '—'}</span>
+              </div>
               {loading || !latest ? <Skel h={104} /> : (
                 <>
-                  <strong className={cls(latest.net)}>
-                    <bdi>{sign(latest.net)}{iqd(Math.abs(latest.net))}</bdi>
-                    <em>{ff.iqd}</em>
-                  </strong>
-                  <p>{latest.net > 0 ? ff.netBuy : latest.net < 0 ? ff.netSell : ff.balanced}</p>
+                  <div className="ffw-hero-value">
+                    <strong className={cls(latest.net)}>
+                      <bdi>{sign(latest.net)}{iqd(Math.abs(latest.net))}</bdi>
+                      <em>{ff.iqd}</em>
+                    </strong>
+                    <span className="ffw-hero-dir">
+                      {latest.net > 0 ? ff.netBuy : latest.net < 0 ? ff.netSell : ff.balanced}
+                    </span>
+                  </div>
                   <Balance buy={latest.buy} sell={latest.sell} />
                   <dl className="ffw-hero-figs">
                     <div><dt>{ff.foreignTrades}</dt><dd><bdi>{nf0.format(latest.trades)}</bdi></dd></div>
@@ -273,48 +292,53 @@ export function ForeignFlow() {
             </article>
 
             <article className="ffw-hero-card is-period">
-              <span className="ffw-st-chip ffw-st-chip-period">{ff.periodChip(periodLabel)}</span>
-              <span className="ffw-cd-cell-label">
-                {t ? <>{shortY(t.from, locale)} — {shortY(t.to, locale)}</> : '—'}
-              </span>
+              <div className="ffw-hero-top">
+                <span className="ffw-st-chip ffw-st-chip-period">{ff.periodChip(periodLabel)}</span>
+                <span className="ffw-cd-cell-label">
+                  {t ? <>{shortY(t.from, locale)} — {shortY(t.to, locale)}</> : '—'}
+                </span>
+              </div>
               {loading || !t ? <Skel h={104} /> : (
                 <>
-                  <strong className={cls(t.net)}>
-                    <bdi>{sign(t.net)}{iqd(Math.abs(t.net))}</bdi>
-                    <em>{ff.iqd}</em>
-                  </strong>
-                  {/* Persistence, not a sentiment score: two counts and the
-                      arithmetic that produced them. */}
-                  <p>
-                    {ff.cumulativeLine(
-                      t.net >= 0 ? ff.buying : ff.selling,
-                      nf0.format(t.counted), String(t.buySessions), String(t.sellSessions),
-                      t.missing > 0 ? String(t.missing) : '',
-                    )}
-                  </p>
+                  <div className="ffw-hero-value">
+                    <strong className={cls(t.net)}>
+                      <bdi>{sign(t.net)}{iqd(Math.abs(t.net))}</bdi>
+                      <em>{ff.iqd}</em>
+                    </strong>
+                    <span className="ffw-hero-dir">
+                      {t.net > 0 ? ff.netBuy : t.net < 0 ? ff.netSell : ff.balanced}
+                    </span>
+                  </div>
                   <Balance buy={t.buy} sell={t.sell} />
+                  {/* The sentence that used to run under this number — observed
+                      sessions, buying against selling, sessions with no data —
+                      is the same four counts, one per cell. Nothing was
+                      dropped; it stopped being prose. */}
                   <dl className="ffw-hero-figs">
                     <div>
-                      <dt>
-                        {ff.buyContinuity}
-                        <i className="ffw-fn-help" tabIndex={0} role="note"
-                          data-help={ff.buySessionsHelpLong}
-                          aria-label={ff.buySessionsHelp}>{locale === 'ar' ? '؟' : '?'}</i>
-                      </dt>
+                      <dt>{ff.buyContinuity}<Help text={ff.buySessionsHelpLong} label={ff.buySessionsHelp} /></dt>
                       <dd>
                         <bdi>{t.counted ? `${((t.buySessions / t.counted) * 100).toFixed(0)}%` : '—'}</bdi>
                         <small>{t.buySessions}/{t.counted}</small>
                       </dd>
                     </div>
                     <div>
-                      <dt>
-                        {ff.grossActivity}
-                        <i className="ffw-fn-help" tabIndex={0} role="note"
-                          data-help={ff.grossHelpLong}
-                          aria-label={ff.grossHelp}>{locale === 'ar' ? '؟' : '?'}</i>
-                      </dt>
+                      <dt>{ff.sellSessions}</dt>
+                      <dd><bdi>{nf0.format(t.sellSessions)}</bdi></dd>
+                    </div>
+                    <div>
+                      <dt>{ff.grossActivity}<Help text={ff.grossHelpLong} label={ff.grossHelp} /></dt>
                       <dd><bdi>{iqd(t.gross)}</bdi><small>{ff.iqd}</small></dd>
                     </div>
+                    {/* Only when there ARE unobserved sessions. A zero here
+                        would read as «none missing» on a page whose whole
+                        discipline is that absent is not zero. */}
+                    {t.missing > 0 ? (
+                      <div>
+                        <dt>{ff.missingSessions}<Help text={ff.missingHelp} label={ff.missingSessions} /></dt>
+                        <dd><bdi>{nf0.format(t.missing)}</bdi></dd>
+                      </div>
+                    ) : null}
                   </dl>
                 </>
               )}
@@ -326,23 +350,37 @@ export function ForeignFlow() {
             <div className="ffw-cd-panel-head">
               <h2>{mode === 'net' ? ff.netByPeriod : ff.cumulativeBalance}</h2>
               <span className="ffw-cd-panel-note">{ff.grain[grain]}</span>
-              <div className="ffw-st-switch" role="group" aria-label={ff.viewGroup}>
-                <button type="button" className={mode === 'net' ? 'active' : ''}
-                  aria-pressed={mode === 'net'} onClick={() => setMode('net')}>{ff.netEach}</button>
-                <button type="button" className={mode === 'cum' ? 'active' : ''}
-                  aria-pressed={mode === 'cum'} onClick={() => setMode('cum')}>{ff.cumulative}</button>
+              {/* Mode first, export second, both pushed to the end of the head.
+                  The export pair is icon-only: it is a utility, and two more
+                  text pills beside the toggle read as four equal choices. */}
+              <div className="ffw-panel-tools">
+                <div className="ffw-st-switch" role="group" aria-label={ff.viewGroup}>
+                  <button type="button" className={mode === 'net' ? 'active' : ''}
+                    aria-pressed={mode === 'net'} onClick={() => setMode('net')}>{ff.netEach}</button>
+                  <button type="button" className={mode === 'cum' ? 'active' : ''}
+                    aria-pressed={mode === 'cum'} onClick={() => setMode('cum')}>{ff.cumulative}</button>
+                </div>
+                <div className="ffw-st-chart-actions">
+                  {chartMsg ? <span className="ffw-st-copied" role="status">{chartMsg}</span> : null}
+                  <button type="button" className="ffw-icon-btn" title={ff.copyImage} aria-label={ff.copyImage}
+                    onClick={() => void chartApi.current?.export('copy')}>
+                    <CopyIcon />
+                  </button>
+                  <button type="button" className="ffw-icon-btn" title={ff.downloadPng} aria-label={ff.downloadPng}
+                    onClick={() => void chartApi.current?.export('download')}>
+                    <DownloadIcon />
+                  </button>
+                </div>
               </div>
             </div>
-            {loading || !t ? <Skel h={236} /> : (
+            {loading || !t ? <Skel h={288} /> : (
               <>
                 <FlowChart key={`${period}-${mode}`} buckets={buckets} mode={mode}
-                  grain={grain} theme={theme} height={236} />
-                <p className="ffw-st-foot">
-                  {mode === 'net'
-                    ? ff.netNote
-                    : ff.cumNote}
-                  {ff.sourceLine(shortY(t.from, locale), shortY(t.to, locale))}
-                </p>
+                  grain={grain} theme={theme} height={288}
+                  apiRef={chartApi} onStatus={setChartMsg} />
+                <Note source={ff.chartSource(shortY(t.from, locale), shortY(t.to, locale))}
+                  summary={ff.howChart}
+                  points={mode === 'net' ? ff.chartNetPoints : ff.chartCumPoints} />
               </>
             )}
           </section>
@@ -378,9 +416,8 @@ export function ForeignFlow() {
                         onEnter={() => setRow(c.ticker)} onLeave={() => setRow(null)} />
                     ))}
                   </ul>
-                  <p className="ffw-st-foot">
-                    {ff.companyFoot(String(ranked.length), String(companies.length))}
-                  </p>
+                  <Note source={ff.companyScope(String(ranked.length), String(companies.length))}
+                    summary={ff.howCompanies} points={ff.companyPoints} />
                 </>
               )}
             </section>
@@ -409,9 +446,7 @@ export function ForeignFlow() {
                         onEnter={() => setSector(s.id)} onLeave={() => setSector(null)} />
                     ))}
                   </ul>
-                  <p className="ffw-st-foot">
-                    {ff.sectorFoot}
-                  </p>
+                  <Note source={ff.sectorScope} summary={ff.howSectors} points={ff.sectorPoints} />
                 </>
               )}
             </section>
@@ -421,6 +456,11 @@ export function ForeignFlow() {
           <section className="ffw-cd-panel ffw-own-panel">
             <div className="ffw-cd-panel-head">
               <h2>{ff.ownership}</h2>
+              {/* Flow and holdings are different quantities. That used to be a
+                  three-sentence paragraph inside the panel; it is the panel's
+                  own sub-label now, where it is read before the numbers rather
+                  than after them. */}
+              <span className="ffw-cd-panel-note">{ff.ownershipSub}</span>
               {own ? <span className="ffw-st-chip ffw-st-chip-snap">{ff.monthlySnapshot(monthLabel(own.month, locale))}</span> : null}
               <Link className="ffw-st-link" href={L('/statistics/ownership')}>{ff.fullOwnership} <i className="dir-go" aria-hidden="true">←</i></Link>
               <Link className="ffw-st-link" href={L('/statistics/shareholders')}>{ff.majorShareholders} <i className="dir-go" aria-hidden="true">←</i></Link>
@@ -435,10 +475,6 @@ export function ForeignFlow() {
               </div>
             ) : !own ? <Skel h={200} /> : (
               <>
-                {/* The sentence that keeps the page honest. */}
-                <p className="ffw-own-note">
-                  {ff.ownershipNote}
-                </p>
                 <div className="ffw-own">
                   <div className="ffw-own-lead">
                     <span className="ffw-cd-cell-label">{ff.foreignShare}</span>
@@ -482,9 +518,8 @@ export function ForeignFlow() {
                     </li>
                   ))}
                 </ul>
-                <p className="ffw-st-foot">
-                  {ff.ownershipSource(monthLabel(own.month, locale))}
-                </p>
+                <Note source={ff.ownSource(monthLabel(own.month, locale))}
+                  summary={ff.howOwnership} points={ff.ownPoints} />
               </>
             )}
           </section>
@@ -507,7 +542,7 @@ export function ForeignFlow() {
  *  across the measured track: whichever side is under 44px is clamped up to
  *  44, and the other yields exactly that much. They abut, never overlap. */
 function Balance({ buy, sell }: { buy: number; sell: number }) {
-  const { t: T, locale } = useLocale()
+  const { t: T } = useLocale()
   const ff = T.flow
   const total = buy + sell
   const [on, setOn] = useState<'buy' | 'sell' | null>(null)
@@ -531,7 +566,7 @@ function Balance({ buy, sell }: { buy: number; sell: number }) {
           <span className="buy"><small>{ff.buying}</small><strong><bdi>0</bdi></strong></span>
         </div>
         <div className="ffw-balance-track" />
-        <p>{ff.measuredZero}</p>
+        <p className="ffw-balance-zero">{ff.measuredZero}</p>
       </div>
     )
   }
@@ -539,9 +574,19 @@ function Balance({ buy, sell }: { buy: number; sell: number }) {
   const [sellTarget, buyTarget] = tileTargets(trackW, ss, bs)
   return (
     <div className={`ffw-balance${on ? ` is-${on}` : ''}`}>
+      {/* The share sits with the side it describes, which retires the standing
+          «20.7% شراء · 79.3% بيع» line under the bar. The exact, unrounded
+          figure is on the value's `title` and in each segment's aria-label, so
+          nothing that line carried was lost. */}
       <div className="ffw-balance-labels">
-        <span className="sell"><small>{ff.selling}</small><strong><bdi>{iqd(sell)}</bdi></strong></span>
-        <span className="buy"><small>{ff.buying}</small><strong><bdi>{iqd(buy)}</bdi></strong></span>
+        <span className="sell">
+          <small>{ff.selling} <bdi>{ss.toFixed(1)}%</bdi></small>
+          <strong title={iqdFull(sell)}><bdi>{iqd(sell)}</bdi></strong>
+        </span>
+        <span className="buy">
+          <small>{ff.buying} <bdi>{bs.toFixed(1)}%</bdi></small>
+          <strong title={iqdFull(buy)}><bdi>{iqd(buy)}</bdi></strong>
+        </span>
       </div>
       <div className="ffw-balance-track" ref={trackRef}>
         <button type="button" className="sell"
@@ -555,14 +600,63 @@ function Balance({ buy, sell }: { buy: number; sell: number }) {
           onPointerEnter={() => setOn('buy')} onPointerLeave={() => setOn(null)}
           onFocus={() => setOn('buy')} onBlur={() => setOn(null)} />
       </div>
-      <p aria-live="polite">
-        {on === 'buy' ? <>{ff.buyOf(iqdFull(buy), `${bs.toFixed(1)}%`)}</>
-          : on === 'sell' ? <>{ff.sellOf(iqdFull(sell), `${ss.toFixed(1)}%`)}</>
-            : <>{ff.bothOf(`${bs.toFixed(1)}%`, `${ss.toFixed(1)}%`)}</>}
-      </p>
     </div>
   )
 }
+
+/** Source line, then the nuance behind a disclosure. Every panel on this page
+ *  ends the same way, so the reader learns the pattern once.
+ *
+ *  What used to sit here was a paragraph: four or five full sentences of
+ *  method, reconciliation and caveat, set in the smallest type on the page and
+ *  running the full width of the panel. It was the densest thing in the
+ *  viewport and the least likely to be read. Same words, same guarantees —
+ *  one line visible, the rest one click away. */
+function Note({ source, summary, points }: {
+  source: string; summary: string; points: readonly string[]
+}) {
+  return (
+    <div className="ffw-note">
+      <p className="ffw-note-src">{source}</p>
+      <details className="ffw-note-more">
+        <summary>{summary}</summary>
+        <ul>{points.map((p) => <li key={p}>{p}</li>)}</ul>
+      </details>
+    </div>
+  )
+}
+
+/** The `?` beside a metric label. `data-help` is the tooltip; `aria-label` is
+ *  the short form, because a tooltip a screen reader cannot open is not a
+ *  place to keep a definition. */
+function Help({ text, label }: { text: string; label: string }) {
+  const { locale } = useLocale()
+  return (
+    <i className="ffw-fn-help" tabIndex={0} role="note" data-help={text} aria-label={label}>
+      {locale === 'ar' ? '؟' : '?'}
+    </i>
+  )
+}
+
+/* Two 14px strokes. Icon-only because the label is on `title` and
+   `aria-label`, and because a chart's export controls are a convention the
+   reader already knows. */
+const CopyIcon = () => (
+  <svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor"
+    strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <rect x="5.5" y="5.5" width="8" height="8" rx="1.6" />
+    <path d="M10.5 3.2a1.7 1.7 0 0 0-1.7-1.7H4.2a2.7 2.7 0 0 0-2.7 2.7v4.6c0 .94.76 1.7 1.7 1.7" />
+  </svg>
+)
+
+const DownloadIcon = () => (
+  <svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor"
+    strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <path d="M8 1.8v8.4" />
+    <path d="M4.8 7.4 8 10.6l3.2-3.2" />
+    <path d="M2.2 11.4v1.3a1.5 1.5 0 0 0 1.5 1.5h8.6a1.5 1.5 0 0 0 1.5-1.5v-1.3" />
+  </svg>
+)
 
 function CompanyRead({ c }: { c?: CompanyFlow }) {
   const { t: T, locale } = useLocale()
