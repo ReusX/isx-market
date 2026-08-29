@@ -1,6 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useRef, useState } from 'react'
+import type { MutableRefObject } from 'react'
 import { useLocale } from '@/context/LocaleContext'
 import { localeDateOrDash } from '@/lib/date'
 import type { Messages } from '@/lib/i18n'
@@ -268,8 +269,22 @@ function roundRect(ctx: CanvasRenderingContext2D, x: number, y: number, w: numbe
   ctx.closePath()
 }
 
-export function FlowChart({ buckets, mode, grain, theme, height = 236 }: {
+/**
+ * The export handle the panel head drives.
+ *
+ * The Copy / Download buttons used to sit inside this component's own toolbar,
+ * beside the hover readout, where three groups of controls competed with the
+ * chart for the eye. They now live in the panel head with the mode toggle, so
+ * the chart's own row carries the readout and nothing else. The export itself
+ * still belongs here — it needs the canvas, the palette and the buckets — so
+ * the component publishes it rather than the parent reimplementing it.
+ */
+export type FlowChartApi = { export: (kind: 'download' | 'copy') => Promise<void> }
+
+export function FlowChart({ buckets, mode, grain, theme, height = 236, apiRef, onStatus }: {
   buckets: FlowBucket[]; mode: FlowMode; grain: FlowGrain; theme: Theme; height?: number
+  apiRef?: MutableRefObject<FlowChartApi | null>
+  onStatus?: (msg: string | null) => void
 }) {
   const { t: T, locale } = useLocale()
   const f = T.flow
@@ -277,7 +292,6 @@ export function FlowChart({ buckets, mode, grain, theme, height = 236 }: {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const sizeRef = useRef({ w: 0, h: 0 })
   const [hover, setHover] = useState<number | null>(null)
-  const [msg, setMsg] = useState<string | null>(null)
   const pal = PALETTE[theme]
 
   const paint = useCallback(() => {
@@ -341,7 +355,7 @@ export function FlowChart({ buckets, mode, grain, theme, height = 236 }: {
       a.href = off.toDataURL('image/png')
       a.download = `iraqsm-foreign-${mode}-${buckets[buckets.length - 1]?.key ?? 'chart'}.png`
       a.click()
-      setMsg(f.downloaded)
+      onStatus?.(f.downloaded)
     } else {
       try {
         const blob: Blob = await new Promise((res, rej) =>
@@ -350,69 +364,74 @@ export function FlowChart({ buckets, mode, grain, theme, height = 236 }: {
           navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]),
           new Promise((_, rej) => setTimeout(() => rej(new Error('timeout')), 2500)),
         ])
-        setMsg(f.copied)
+        onStatus?.(f.copied)
       } catch {
-        setMsg(f.copyFailed)
+        onStatus?.(f.copyFailed)
       }
     }
-    setTimeout(() => setMsg(null), 2400)
+    setTimeout(() => onStatus?.(null), 2400)
   }
+
+  /* Published through a ref rather than passed down, so re-creating
+     `exportPng` on every render never re-renders the panel head. */
+  const exportRef = useRef(exportPng)
+  exportRef.current = exportPng
+  useEffect(() => {
+    if (!apiRef) return
+    apiRef.current = { export: (kind) => exportRef.current(kind) }
+    return () => { apiRef.current = null }
+  }, [apiRef])
 
   const active = hover != null ? buckets[hover] : null
 
   return (
     <div className="ffw-st-chart">
-      <div className="ffw-st-chart-bar">
-        <div className="ffw-pl-readout ffw-st-chart-read" aria-live="polite">
-          {active ? (
-            <>
-              <span className="ffw-pl-readout-name">{bucketTitle(active, grain, f, locale)}</span>
-              {active.n === 0 ? (
-                <span className="ffw-pl-read"><em>{f.observed}</em><bdi>—</bdi></span>
-              ) : mode === 'net' ? (
-                <>
-                  <span className="ffw-pl-read"><em>{f.buying}</em><bdi className="positive">{iqdFull(active.buy)}</bdi></span>
-                  <span className="ffw-pl-read"><em>{f.selling}</em><bdi className="negative">{iqdFull(active.sell)}</bdi></span>
-                  <span className="ffw-pl-read"><em>{f.net}</em>
-                    <bdi className={signClass(active.net)}>
-                      {sign(active.net)}{iqdFull(Math.abs(active.net ?? 0))}
-                    </bdi>
-                  </span>
-                </>
-              ) : (
-                <>
-                  <span className="ffw-pl-read"><em>{f.cumulativeBalanceRead}</em>
-                    <bdi className={signClass(active.cum)}>
-                      {sign(active.cum)}{iqdFull(Math.abs(active.cum ?? 0))}
-                    </bdi>
-                  </span>
-                  <span className="ffw-pl-read"><em>{f.periodNet}</em>
-                    <bdi className={signClass(active.net)}>
-                      {sign(active.net)}{iqd(Math.abs(active.net ?? 0))}
-                    </bdi>
-                  </span>
-                </>
-              )}
-              {grain !== 'session' ? (
-                <span className="ffw-pl-read"><em>{f.sessions}</em><bdi>{active.n}</bdi></span>
-              ) : null}
-              {active.missing > 0 ? (
-                <span className="ffw-pl-read"><em>{f.noData}</em><bdi>{active.missing}</bdi></span>
-              ) : null}
-            </>
-          ) : (
-            <span className="ffw-pl-readout-hint">
-              {mode === 'net'
-                ? f.hintNet
-                : f.hintCum}
-            </span>
-          )}
-        </div>
-        <div className="ffw-st-chart-actions">
-          {msg ? <span className="ffw-st-copied" role="status">{msg}</span> : null}
-          <button type="button" onClick={() => exportPng('copy')}>{f.copyImage}</button>
-          <button type="button" onClick={() => exportPng('download')}>{f.downloadPng}</button>
-        </div>
+      {/* One row, one job: the readout. Copy / Download moved to the panel
+          head so the chart is the only thing asking for attention here. */}
+      <div className="ffw-pl-readout ffw-st-chart-read" aria-live="polite">
+        {active ? (
+          <>
+            <span className="ffw-pl-readout-name">{bucketTitle(active, grain, f, locale)}</span>
+            {active.n === 0 ? (
+              <span className="ffw-pl-read"><em>{f.observed}</em><bdi>—</bdi></span>
+            ) : mode === 'net' ? (
+              <>
+                <span className="ffw-pl-read"><em>{f.buying}</em><bdi className="positive">{iqdFull(active.buy)}</bdi></span>
+                <span className="ffw-pl-read"><em>{f.selling}</em><bdi className="negative">{iqdFull(active.sell)}</bdi></span>
+                <span className="ffw-pl-read"><em>{f.net}</em>
+                  <bdi className={signClass(active.net)}>
+                    {sign(active.net)}{iqdFull(Math.abs(active.net ?? 0))}
+                  </bdi>
+                </span>
+              </>
+            ) : (
+              <>
+                <span className="ffw-pl-read"><em>{f.cumulativeBalanceRead}</em>
+                  <bdi className={signClass(active.cum)}>
+                    {sign(active.cum)}{iqdFull(Math.abs(active.cum ?? 0))}
+                  </bdi>
+                </span>
+                <span className="ffw-pl-read"><em>{f.periodNet}</em>
+                  <bdi className={signClass(active.net)}>
+                    {sign(active.net)}{iqd(Math.abs(active.net ?? 0))}
+                  </bdi>
+                </span>
+              </>
+            )}
+            {grain !== 'session' ? (
+              <span className="ffw-pl-read"><em>{f.sessions}</em><bdi>{active.n}</bdi></span>
+            ) : null}
+            {active.missing > 0 ? (
+              <span className="ffw-pl-read"><em>{f.noData}</em><bdi>{active.missing}</bdi></span>
+            ) : null}
+          </>
+        ) : (
+          <span className="ffw-pl-readout-hint">
+            {mode === 'net'
+              ? f.hintNet
+              : f.hintCum}
+          </span>
+        )}
       </div>
 
       <div className="ffw-st-chart-plot" ref={wrapRef} style={{ blockSize: `${height}px` }}

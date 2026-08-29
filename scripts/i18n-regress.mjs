@@ -31,9 +31,34 @@ for (const l of ['ar', 'en']) {
 const pl = execSync('cat lib/pulse.ts').toString()
 ok('verdict returns an id, not prose', /id: 'broadSupported'/.test(pl) && !/headline:/.test(pl))
 
-// Foreign flow keeps zero / gap apart.
-const ff = execSync('cat lib/i18n/messages/en/flow.ts').toString()
-ok('measured zero ≠ missing data', /not the same as missing data/.test(ff))
+/* Foreign flow keeps zero / gap apart.
+
+   This used to grep the English file for one exact sentence, so the August
+   2026 copy pass turned it red on a page whose guarantee was untouched — and,
+   worse, it would have stayed GREEN on a rewrite that kept the sentence while
+   dropping the behaviour. It now asserts the distinction in three places that
+   a copy edit cannot fake:
+
+     · both locales say, in the measured-zero string, BOTH that the value is a
+       zero and that it is not missing data;
+     · the period card prints its no-data count only when there IS one, so a
+       page with full coverage never shows «no data: 0»;
+     · unobserved buckets are excluded from the chart rather than drawn flat. */
+const ffEn = execSync('cat lib/i18n/messages/en/flow.ts').toString()
+const ffAr = execSync('cat lib/i18n/messages/ar/flow.ts').toString()
+const ffUi = execSync('cat components/routes/ForeignFlow.tsx').toString()
+const zeroEn = /measuredZero:\s*'([^']+)'/.exec(ffEn)?.[1] ?? ''
+const zeroAr = /measuredZero:\s*'([^']+)'/.exec(ffAr)?.[1] ?? ''
+ok('measured zero ≠ missing data (en)', /zero/i.test(zeroEn) && /not missing data|not the same as missing/i.test(zeroEn))
+ok('measured zero ≠ missing data (ar)', /صفر/.test(zeroAr) && /لا غياب بيانات/.test(zeroAr))
+ok('no-data count is conditional, never a printed zero', /t\.missing > 0 \?/.test(ffUi))
+const ffLib = execSync('cat lib/foreignFlow.ts').toString()
+/* `isCounted` is the denominator rule itself: a `missing` session is the one
+   kind that never counts. If this predicate stops excluding it, every ratio on
+   the page silently starts treating a gap as a zero. */
+ok('unobserved sessions stay out of the denominator',
+  /isCounted\s*=\s*\(s: FlowSession\) => s\.kind !== 'missing'/.test(ffLib)
+  && /counted = rows\.filter\(isCounted\)/.test(ffLib))
 
 // Statistics canvas transplant + axis fix survive.
 const css = execSync('cat styles/statistics.css').toString()
