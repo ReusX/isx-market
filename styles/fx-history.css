@@ -1,0 +1,164 @@
+/* ── /fx · the dinar over time ─────────────────────────────────────────────
+   Uses the `--mv-*` token layer, so the panel inherits both themes from
+   `iq-page` exactly as the Statistics and Foreign Flow surfaces do. Nothing
+   here defines a colour outside the token set. */
+
+.fxh {
+  margin-block-start: 18px;
+  padding: 18px 20px;
+  border: 1px solid var(--mv-line);
+  border-radius: 18px;
+  background: var(--mv-panel-solid);
+  box-shadow: var(--mv-shadow);
+}
+
+.fxh-head {
+  display: flex; align-items: baseline; gap: 12px 16px; flex-wrap: wrap;
+  margin-block-end: 14px;
+}
+
+.fxh-head h2 {
+  margin: 0; font-size: .95rem; letter-spacing: -.02em; color: var(--mv-ink);
+}
+
+.fxh-periods {
+  display: flex; gap: 2px; margin-inline-start: auto;
+  padding: 8.5px 3px; border-radius: 11px;
+  background: rgba(30, 34, 32, .055);
+  overflow-x: auto; scrollbar-width: none;
+}
+
+.fxh-periods::-webkit-scrollbar { display: none; }
+
+[data-theme='dark'] .fxh-periods { background: rgba(255, 255, 255, .05); }
+
+.fxh-periods button {
+  position: relative; flex: 0 0 auto;
+  padding: 5px 12px; border: 0; border-radius: 8px;
+  background: none; color: var(--mv-ink-2);
+  font: 600 .69rem var(--font-body), Arial, sans-serif; cursor: pointer;
+  transition: color .13s, background-color .13s;
+}
+
+/* The visible pill keeps its size; a transparent pseudo-element carries the
+   44px target, the same treatment the rest of the product uses. */
+.fxh-periods button::after {
+  content: '';
+  position: absolute; inset-inline: 0;
+  inset-block-start: 50%; transform: translateY(-50%);
+  block-size: max(100%, 44px);
+}
+
+.fxh-periods button:hover { color: var(--mv-ink); background: var(--mv-line); }
+
+.fxh-periods button.active,
+.fxh-periods button.active:hover { color: #fff; background: var(--mv-hero); }
+
+.fxh-periods button:focus-visible { outline: 2px solid var(--mv-hero); outline-offset: 2px; }
+
+/* ── chart ───────────────────────────────────────────────────────────── */
+
+.fxh-chart { position: relative; }
+
+.fxh-chart svg {
+  display: block; inline-size: 100%; block-size: 260px;
+  overflow: visible;
+}
+
+.fxh-grid { stroke: var(--mv-line); stroke-width: 1; }
+
+.fxh-line { fill: none; stroke-width: 1.75; stroke-linejoin: round; stroke-linecap: round; }
+
+.fxh-line.par { stroke: var(--mv-hero); }
+
+.fxh-line.off { stroke: var(--mv-ink-3); stroke-width: 1.4; }
+
+/* Imported history is drawn dashed. We were given those years by the Central
+   Bank; we did not watch them, and a solid line would say we did. */
+.fxh-line.imported { stroke-dasharray: 5 4; }
+
+.fxh-axis {
+  position: absolute; inset-block: 0; inset-inline-end: 0;
+  display: flex; flex-direction: column; justify-content: space-between;
+  padding-block: 2px; pointer-events: none;
+}
+
+.fxh-axis span {
+  padding-inline: 5px; border-radius: 4px;
+  background: var(--mv-panel-solid);
+  color: var(--mv-ink-3);
+  font: 600 .62rem var(--font-numeric), ui-monospace, monospace;
+}
+
+/* ── legend ──────────────────────────────────────────────────────────── */
+
+.fxh-legend {
+  display: flex; gap: 8px 18px; flex-wrap: wrap;
+  margin-block-start: 12px;
+}
+
+.fxh-key {
+  display: inline-flex; align-items: center; gap: 7px;
+  color: var(--mv-ink-2); font-size: .68rem;
+}
+
+.fxh-key i {
+  inline-size: 16px; block-size: 0;
+  border-block-start: 2px solid currentColor;
+}
+
+.fxh-key i.par { color: var(--mv-hero); }
+
+.fxh-key i.off { color: var(--mv-ink-3); }
+
+.fxh-key i.imp { color: var(--mv-ink-3); border-block-start-style: dashed; }
+
+/* ── statistics ──────────────────────────────────────────────────────── */
+
+.fxh-stats {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(108px, 1fr));
+  gap: 14px 20px; margin: 16px 0 0;
+  padding-block-start: 14px; border-block-start: 1px solid var(--mv-line);
+}
+
+.fxh-stats dt { color: var(--mv-ink-3); font-size: .63rem; }
+
+.fxh-stats dd {
+  display: flex; align-items: baseline; gap: 7px; margin: 3px 0 0;
+  color: var(--mv-ink); font: 700 .95rem var(--font-numeric), ui-monospace, monospace;
+}
+
+.fxh-stats dd.up { color: var(--mv-up); }
+
+.fxh-stats dd.down { color: var(--mv-down); }
+
+.fxh-stats dd small {
+  color: var(--mv-ink-3); font: 600 .64rem var(--font-numeric), ui-monospace, monospace;
+}
+
+/* ── footnote ────────────────────────────────────────────────────────── */
+
+.fxh-note,
+.fxh-empty {
+  margin: 12px 0 0; color: var(--mv-ink-3);
+  font-size: .66rem; line-height: 1.75; max-inline-size: 78ch;
+}
+
+.fxh-empty { margin: 0; }
+
+@media (max-width: 720px) {
+  .fxh { padding: 15px 15px; border-radius: 16px; }
+  .fxh-chart svg { block-size: 210px; }
+  .fxh-periods { inline-size: 100%; margin-inline-start: 0; }
+  .fxh-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fxh-periods button { transition: none; }
+}
+
+/* A single observation is a fact, not yet a line — SVG paints nothing for a
+   path that is only a moveto, so a lone point is drawn as a dot. */
+.fxh-dot.par { fill: var(--mv-hero); }
+
+.fxh-dot.off { fill: var(--mv-ink-3); }

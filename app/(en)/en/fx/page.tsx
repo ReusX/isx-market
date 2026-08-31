@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import { describeFxRateEn, getFx } from '@/lib/fxCopy'
 import FxSurface from '@/components/routes/FxPage'
 import { absUrl, seoAlternates } from '@/lib/seo'
+import { fxSeries } from '@/lib/fxHistory'
 
 export const revalidate = 10800
 export const dynamic = 'force-static'
@@ -55,6 +56,15 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function Page() {
+  /* The two series are read here, on the server, so the page stays static and
+     the client never learns the anon key. `official` reaches back to 2003
+     because the Central Bank publishes it; `parallel` starts where this
+     product began recording, which is what the panel's legend says. */
+  const [parallel, official] = await Promise.all([
+    fxSeries('parallel'),
+    fxSeries('official_cbi'),
+  ])
+
   const fx = await getFx()
-  return <FxSurface fx={fx} />
+  return <FxSurface fx={fx} parallel={parallel} official={official} />
 }

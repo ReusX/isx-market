@@ -38,6 +38,26 @@ export const rates: typeof ar = {
     dollars: 'Dollars',
     dinars: 'Dinars',
     marketUnavailable: ' · the market rate is unavailable',
+
+    /* ── History · added with the observation spine, Aug 2026 ─────────── */
+    historyTitle: 'The dinar over time',
+    periodGroup: 'Period',
+    period: { '1M': '1M', '3M': '3M', '6M': '6M', '1Y': '1Y', '5Y': '5Y', MAX: 'Max' },
+    chartLabel: 'US dollar against the Iraqi dinar over time',
+    legendParallel: 'Parallel market',
+    legendOfficial: 'Official rate',
+    legendImported: 'History published by the CBI',
+    changeToday: 'Change today',
+    change7d: '7-day change',
+    change30d: '30-day change',
+    periodHigh: 'Period high',
+    periodLow: 'Period low',
+    notEnough: 'Two observations are needed to show a change',
+    noHistory: 'No record for this period yet.',
+    spanNote: (from: string, to: string) => `Showing ${from} — ${to}.`,
+    recordedNote: (n: string) =>
+      `${n} ${n === '1' ? 'day' : 'days'} of parallel-market readings, recorded here since collection began. The dashed official line is history published by the Central Bank, not something we observed.`,
+    parallelPending: 'The parallel-market record starts at the first reading kept and lengthens daily. The dashed line is official history published by the Central Bank.',
   },
   gold: {
     pageTitle: 'Gold prices',

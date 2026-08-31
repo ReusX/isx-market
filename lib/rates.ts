@@ -73,6 +73,11 @@ export interface FxData {
   sourceUrl: string
   fetchedAt: string
   stale?: boolean         // served from cache · the source could not be read
+  /* Evidence, for the observation record. A URL is not durable — the page at
+     that address can be edited — so the sentence actually parsed travels with
+     the numbers and is fingerprinted on the way into fx_observations. */
+  excerpt?: string | null
+  publishedAt?: string | null   // the source's own timestamp, where it states one
 }
 
 const jina = (url: string) => 'https://r.jina.ai/' + url
@@ -158,13 +163,15 @@ export function parseAlsumaria(raw: string, url: string): FxData | null {
   // 150,000 ديناراً." That silently left `buy` null. So fall back to the label
   // and its nearest figure, and read the unit off the magnitude — six figures
   // is per 100 dollars, four is per one.
+  const seen: string[] = []
   const price = (label: string) => {
     // «مقابل 100 دولار», «لكل 100 دولار» AND «مقابل كل 100 دولار» — the last
     // of which the source used on 27 August and this pattern did not match.
     const tailed = t.match(new RegExp(label + String.raw`[\s\S]{0,90}?([\d,،]{5,7})\s*دينار\S*\s*(?:مقابل\s*كل|مقابل|لكل)\s*100\s*دولار`))
-    if (tailed) return sane(n(tailed[1]) / 100)
+    if (tailed) { seen.push(tailed[0].trim()); return sane(n(tailed[1]) / 100) }
     const bare = t.match(new RegExp(label + String.raw`[\s\S]{0,90}?([\d,،]{4,7})\s*دينار`))
     if (!bare) return null
+    seen.push(bare[0].trim())
     const v = n(bare[1])
     return sane(v >= 10_000 ? v / 100 : v)
   }
@@ -189,7 +196,13 @@ export function parseAlsumaria(raw: string, url: string): FxData | null {
   const date = raw.match(/"datePublished":\s*"([^"]+)"/)?.[1]?.slice(0, 10)
     ?? raw.match(/\b(20\d{2}-\d{2}-\d{2})\b/)?.[1]
     ?? null
-  return { buy, sell, change: null, date, source: 'alsumaria.tv', sourceUrl: url, fetchedAt: new Date().toISOString() }
+  const publishedAt = raw.match(/"datePublished":\s*"([^"]+)"/)?.[1] ?? null
+  return {
+    buy, sell, change: null, date, source: 'alsumaria.tv', sourceUrl: url,
+    fetchedAt: new Date().toISOString(),
+    excerpt: seen.length ? seen.join(' · ').slice(0, 600) : null,
+    publishedAt,
+  }
 }
 
 async function tryFetch(url: string, parse: (raw: string, url: string) => FxData | null): Promise<FxData | null> {
@@ -220,6 +233,33 @@ async function writeFxCache(fx: FxData): Promise<void> {
   } catch { /* best-effort */ }
 }
 
+/**
+ * Append the quote to the historical record.
+ *
+ * Separate from `writeFxCache` on purpose, and the two must not be conflated:
+ * the cache is one row overwritten forever so a rate can still be served when
+ * the source is down; `fx_observations` is the archive and is never rewritten.
+ * Losing the archive write is survivable, so this never throws — the reason is
+ * returned and the cron logs it.
+ */
+async function archive(fx: FxData): Promise<void> {
+  try {
+    const [{ recordParallel }, { alsumariaEvent }] = await Promise.all([
+      import('@/lib/fxRecord'),
+      import('@/lib/fxSeries'),
+    ])
+    await recordParallel({
+      buy: fx.buy,
+      sell: fx.sell,
+      date: fx.date ?? '',
+      sourceUrl: fx.sourceUrl,
+      excerpt: fx.excerpt ?? null,
+      publishedAt: fx.publishedAt ?? null,
+      event: alsumariaEvent(fx.sourceUrl),
+    })
+  } catch { /* the archive is an enhancement; serving the rate is not */ }
+}
+
 export async function fetchFx(): Promise<FxData | null> {
   const article = await discoverDollarArticle()
   if (article) {
@@ -227,9 +267,9 @@ export async function fetchFx(): Promise<FxData | null> {
     // URL, so re-encoding turned every %D8 into %25D8 and the article 404'd —
     // which is how this page came to serve a month-old rate from cache.
     const direct = await tryFetch(article, parseAlsumaria)
-    if (direct) { await writeFxCache(direct); return direct }
+    if (direct) { await writeFxCache(direct); await archive(direct); return direct }
     const viaProxy = await tryFetch(jina(article), (raw) => parseAlsumaria(raw, article))
-    if (viaProxy) { await writeFxCache(viaProxy); return viaProxy }
+    if (viaProxy) { await writeFxCache(viaProxy); await archive(viaProxy); return viaProxy }
   }
   // Alsumaria unavailable · serve the last known rate, but say so. Serving a
   // month-old dollar rate as if it were today's is worse than showing nothing.

@@ -60,6 +60,42 @@ ok('unobserved sessions stay out of the denominator',
   /isCounted\s*=\s*\(s: FlowSession\) => s\.kind !== 'missing'/.test(ffLib)
   && /counted = rows\.filter\(isCounted\)/.test(ffLib))
 
+/* ── FX observation spine (Batch 1, Aug 2026) ──────────────────────────────
+
+   Four invariants, each pinned because it already failed once during the
+   build and each failure was silent:
+
+     · the dataset event key must be DAY-scoped. It was year-scoped, and since
+       the official rate is flat for years the dedupe key collapsed every day
+       of 2014 onto one row — 5,497 days became 267 and the importer reported
+       the rest as "already held";
+     · record() must distinguish inserted / duplicate / error. With a boolean
+       it reported «0 new, 5497 already held» for a run that wrote nothing at
+       all because it had no credentials;
+     · history reads must paginate. PostgREST caps at 1,000 rows regardless of
+       `limit`, so one request returned 2003–2023 and looked complete;
+     · the official rate must be the CBI's published figure, not the effective
+       bank rate wearing its label. */
+const fxSeries = execSync('cat lib/fxSeries.ts').toString()
+const fxRecord = execSync('cat lib/fxRecord.ts').toString()
+const fxHist = execSync('cat lib/fxHistory.ts').toString()
+const fxOff = execSync('cat lib/fxOfficial.ts').toString()
+
+ok('dataset event key is day-scoped, not year-scoped',
+  /cbiXlsxEvent = \(day: string\)/.test(fxSeries) && /cbi-xlsx:\$\{day\}/.test(fxSeries))
+ok('record() separates duplicate from error',
+  /'inserted' \| 'duplicate' \| 'error'/.test(fxRecord)
+  && /'inserted' : 'duplicate'/.test(fxRecord)
+  && /outcome: 'error'/.test(fxRecord))
+ok('history reads page past the 1,000-row cap',
+  /async function qAll/.test(fxHist) && /rows\.length < 1000/.test(fxHist))
+ok('official rate is the CBI-published figure',
+  /CBI_OFFICIAL_RATE = 1310/.test(fxOff))
+ok('the three rate concepts stay separate',
+  ['official_cbi', 'official_statutory', 'effective_bank'].every(k => fxSeries.includes(k)))
+ok('spread is defined against the CBI rate alone',
+  /SPREAD_DENOMINATOR: FxSeries = 'official_cbi'/.test(fxSeries))
+
 // Statistics canvas transplant + axis fix survive.
 const css = execSync('cat styles/statistics.css').toString()
 ok('statistics axis fix intact', /--stw-plot-h/.test(css) && /\.stw-axis-y/.test(css))

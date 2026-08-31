@@ -5,11 +5,13 @@ import { useLocale } from '@/context/LocaleContext'
 import { localeDate } from '@/lib/date'
 import { useApp } from '@/context/AppContext'
 import {
-  ToolHead, MetaLine, Disclosure, NoHistoryNote, Unavailable, PartialNotice,
+  ToolHead, MetaLine, Disclosure, Unavailable, PartialNotice,
 } from '@/components/design/ToolChrome'
 import { DitherArt } from '@/components/design/DitherArt'
 import { SOURCES, nf0, nf2, signed, signedPct, NA, type Freshness } from '@/lib/marketTools'
 import { CBI_OFFICIAL_RATE, CBI_RATE_CONFIRMED } from '@/lib/fxOfficial'
+import { FxHistory } from './FxHistory'
+import type { FxDay } from '@/lib/fxHistory'
 import type { FxData } from '@/lib/rates'
 import '@/styles/market-tools.css'
 import '@/styles/panels.css'
@@ -30,10 +32,15 @@ import '@/styles/panels.css'
  *   · freshness           the source's own observation date, and `stale` when
  *                         the scrape fell back to the cached row
  *
- * NOT here, because nothing stores it: a daily change, a high/low, an intraday
- * move, and a trend. The source publishes one closing price per day and this
- * product keeps no previous reading, so there is no yesterday to subtract. The
- * disclosure says exactly that rather than leaving a blank space.
+ * ── What changed on 31 August 2026 ───────────────────────────────────────
+ * This file used to say a daily change was impossible here, because the
+ * product kept no previous reading: every rate went into one row of
+ * `rates_cache` and was destroyed by the next fetch. `fx_observations` keeps
+ * them now, so change, high/low and a real chart live in <FxHistory> below.
+ *
+ * The official rate also stopped being an assertion. It was the constant 1,320
+ * printed under «السعر الرسمي»; the Central Bank publishes 1,310, and the two
+ * are different figures with different meanings. See lib/fxSeries.ts.
  */
 
 type RateId = 'market' | 'official'
@@ -57,7 +64,10 @@ function spread(sell: number | null, buy: number | null) {
   return { abs, pct: (abs / sell) * 100 }
 }
 
-export default function FxPage({ fx }: { fx: FxData | null }) {
+export default function FxPage(
+  { fx, parallel = [], official = [] }:
+  { fx: FxData | null; parallel?: FxDay[]; official?: FxDay[] },
+) {
   const { t: T, locale } = useLocale()
   const rt = T.rates
   const { theme } = useApp()
@@ -210,6 +220,10 @@ export default function FxPage({ fx }: { fx: FxData | null }) {
         </p>
       </section>
 
+      {/* History. Everything in here was impossible until the observation
+          spine existed — the product had no yesterday to compare against. */}
+      <FxHistory parallel={parallel} official={official} />
+
       <div className="mt-more">
         <Disclosure label={rt.fx.whyTwo}>
           <p>
@@ -227,10 +241,6 @@ export default function FxPage({ fx }: { fx: FxData | null }) {
           <p>
             {rt.fx.sourceNote(SOURCES.fx.host, localeDate(CBI_RATE_CONFIRMED, locale))}
           </p>
-          <p>
-            {rt.fx.noDailyChange}
-          </p>
-          <NoHistoryNote />
         </Disclosure>
       </div>
     </main>
