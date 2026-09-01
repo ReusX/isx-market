@@ -73,6 +73,11 @@ export interface FxData {
   sourceUrl: string
   fetchedAt: string
   stale?: boolean         // served from cache · the source could not be read
+  /* Evidence, for the observation record. A URL is not durable — the page at
+     that address can be edited — so the sentence actually parsed travels with
+     the numbers and is fingerprinted on the way into fx_observations. */
+  excerpt?: string | null
+  publishedAt?: string | null   // the source's own timestamp, where it states one
 }
 
 const jina = (url: string) => 'https://r.jina.ai/' + url
@@ -158,13 +163,15 @@ export function parseAlsumaria(raw: string, url: string): FxData | null {
   // 150,000 ديناراً." That silently left `buy` null. So fall back to the label
   // and its nearest figure, and read the unit off the magnitude — six figures
   // is per 100 dollars, four is per one.
+  const seen: string[] = []
   const price = (label: string) => {
     // «مقابل 100 دولار», «لكل 100 دولار» AND «مقابل كل 100 دولار» — the last
     // of which the source used on 27 August and this pattern did not match.
     const tailed = t.match(new RegExp(label + String.raw`[\s\S]{0,90}?([\d,،]{5,7})\s*دينار\S*\s*(?:مقابل\s*كل|مقابل|لكل)\s*100\s*دولار`))
-    if (tailed) return sane(n(tailed[1]) / 100)
+    if (tailed) { seen.push(tailed[0].trim()); return sane(n(tailed[1]) / 100) }
     const bare = t.match(new RegExp(label + String.raw`[\s\S]{0,90}?([\d,،]{4,7})\s*دينار`))
     if (!bare) return null
+    seen.push(bare[0].trim())
     const v = n(bare[1])
     return sane(v >= 10_000 ? v / 100 : v)
   }
@@ -189,7 +196,13 @@ export function parseAlsumaria(raw: string, url: string): FxData | null {
   const date = raw.match(/"datePublished":\s*"([^"]+)"/)?.[1]?.slice(0, 10)
     ?? raw.match(/\b(20\d{2}-\d{2}-\d{2})\b/)?.[1]
     ?? null
-  return { buy, sell, change: null, date, source: 'alsumaria.tv', sourceUrl: url, fetchedAt: new Date().toISOString() }
+  const publishedAt = raw.match(/"datePublished":\s*"([^"]+)"/)?.[1] ?? null
+  return {
+    buy, sell, change: null, date, source: 'alsumaria.tv', sourceUrl: url,
+    fetchedAt: new Date().toISOString(),
+    excerpt: seen.length ? seen.join(' · ').slice(0, 600) : null,
+    publishedAt,
+  }
 }
 
 async function tryFetch(url: string, parse: (raw: string, url: string) => FxData | null): Promise<FxData | null> {
@@ -197,6 +210,18 @@ async function tryFetch(url: string, parse: (raw: string, url: string) => FxData
   return raw ? parse(raw, url) : null
 }
 
+/* ── Who writes what ──────────────────────────────────────────────────────
+   `fetchFx` serves a rate and keeps the fallback fresh. It does NOT write
+   history.
+
+   It used to: an `archive()` call appended an observation on every ISR
+   revalidation. Dedupe made that safe, but it put a service-role write inside
+   the page-rendering path for no coverage gain — /fx is `force-static` with a
+   3-hour revalidate, and scripts/fx-record.ts already runs five times through
+   the trading day on a deterministic schedule. Ingestion belongs to the job;
+   presentation reads. `writeFxCache` stays here because the cache IS
+   presentation resilience — it is what the page serves when the source is
+   down, and it is one row, not a record. */
 const CACHE_KEY = 'fx'
 
 async function readFxCache(): Promise<FxData | null> {

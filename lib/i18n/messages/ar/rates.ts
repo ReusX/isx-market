@@ -46,6 +46,28 @@ export const rates = {
     dollars: 'دولار',
     dinars: 'دينار',
     marketUnavailable: ' · سعر السوق غير متاح',
+
+    /* ── History · added with the observation spine, Aug 2026 ─────────── */
+    historyTitle: 'الدولار عبر الزمن',
+    periodGroup: 'المدة',
+    period: { '1M': 'شهر', '3M': '3 أشهر', '6M': '6 أشهر', '1Y': 'سنة', '5Y': '5 سنوات', MAX: 'الكل' },
+    chartLabel: 'سعر الدولار مقابل الدينار عبر الزمن',
+    legendParallel: 'السوق الموازية',
+    legendOfficial: 'السعر الرسمي',
+    legendImported: 'تاريخ مستورد من البنك المركزي',
+    changeToday: 'تغيّر اليوم',
+    change7d: 'تغيّر 7 أيام',
+    change30d: 'تغيّر 30 يوماً',
+    periodHigh: 'أعلى سعر',
+    periodLow: 'أدنى سعر',
+    notEnough: 'يلزم رصدان لحساب التغيّر',
+    noHistory: 'لا يوجد سجل لهذه المدة بعد.',
+    spanNote: (from: string, to: string) => `المعروض ${from} — ${to}.`,
+    /* The count follows the noun rather than leading it: Arabic agreement
+       for «يوم» differs at 1, 3–10 and 11+, and «1 يوماً» is wrong. This
+       construction is correct for every value. */
+    recordedNote: (n: string) => `أيام السوق الموازية المسجّلة هنا: ${n}. خط السعر الرسمي المتقطّع تاريخ منشور من البنك المركزي، لا رصد من عندنا.`,
+    parallelPending: 'سجل السوق الموازية يبدأ من أول رصد محفوظ، ويطول مع كل يوم. الخط المتقطّع تاريخ رسمي منشور من البنك المركزي.',
   },
   gold: {
     pageTitle: 'سعر الذهب',

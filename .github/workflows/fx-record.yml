@@ -1,0 +1,51 @@
+name: FX Record
+
+# Appends USD/IQD observations to `fx_observations`.
+#
+# Every dollar rate this site displayed before 31 August 2026 was written into
+# a single row of `rates_cache` and destroyed by the next fetch. The official
+# rate is backfillable from the Central Bank's own workbooks; the parallel
+# market is not. This job is where that history now comes from, so a gap in its
+# schedule is a gap in the record that cannot be filled in later.
+#
+# Running it often is safe. Every write goes through the database's
+# `dedupe_key`, so re-reading an unchanged article inserts nothing and polling
+# the CBI table collapses to one row a day. The cadence is chosen for how
+# quickly a change should show up, not for how much history it produces.
+
+on:
+  schedule:
+    # 08:00, 11:00, 14:00, 17:00 and 20:00 Baghdad (UTC+3, no DST) — through
+    # the trading day, with a close-of-day reading after the exchanges settle.
+    - cron: '0 5,8,11,14,17 * * *'
+  workflow_dispatch:
+
+concurrency:
+  group: fx-record
+  cancel-in-progress: false   # never cancel a write; let a slow run finish
+
+jobs:
+  record:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci --no-audit --no-fund
+
+      - name: Record observations
+        env:
+          # Two, not three. The anon key belongs to the READ layer
+          # (lib/fxHistory.ts, lib/freshness.ts); the ingester writes straight
+          # to PostgREST with the service-role key and needs nothing else.
+          # Verified by running the job with the anon key unset.
+          NEXT_PUBLIC_SUPABASE_URL:  ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        run: npx tsx scripts/fx-record.ts
+
