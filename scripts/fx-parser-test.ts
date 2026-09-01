@@ -27,6 +27,14 @@ const HEADLINES = [
   ['/news/economy/574000/ارتفاع-اسعار-الذهب-في-الاسواق-العراقية', false, 'gold, not the dollar'],
   ['/news/economy/574001/اسعار-النفط-ترتفع-عالميا-والدولار-يتراجع', false, 'oil story, excluded'],
   ['/news/economy/574002/مباحثات-اقتصادية-بين-العراق-والاردن', false, 'not about the dollar'],
+  /* 1 September 2026: the picker chose this, because the slug carries both
+     «دولارا» and «أسعار». Brent crude at $97 a BARREL is not an exchange
+     rate. No wrong figure reached the page — the body had no buy/sell pair —
+     but the job spent the day on the wrong story and recorded nothing. */
+  ['/news/economy/574801/أسعار-خام-برنت-تكسر-حاجز-الـ97-دولارا-للمرة-الأولى-منذ-تموز', false, 'Brent crude priced in dollars, not a rate'],
+  ['/news/economy/574700/524-مليون-دولار-فاتورة-البطاطا-العراقية-الاستيراد-يكشف-فجوة-الإنتاج', false, 'a sum of money, not a rate'],
+  ['/news/economy/574812/ارتفاع-يطرأ-على-الدولار-الأسعار-تلامس-الـ155-الفا', true, 'real rate story from the sitemap'],
+  ['/news/economy/574644/لا-تغير-في-الدولار-اليكم-الأسعار', true, 'no-change wording still a rate story'],
 ] as const
 
 const BODIES = [

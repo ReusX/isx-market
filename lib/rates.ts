@@ -117,7 +117,15 @@ export function pickDollarArticle(text: string): string | null {
        rather than on a closed list of exact words. */
     const norm = slug.replace(/[أإآٱ]/g, 'ا')
     const aboutPrice = /(اغلاق|التداولات|السوق|الاسواق|ارتفاع|يرتفع|تراجع|يتراجع|انخفاض|ينخفض|يستقر|استقرار|صعود|يصعد|هبوط|يهبط|قفزة|اسعار|سعر|الصرف)/
-    if (/دولار/.test(norm) && aboutPrice.test(norm) && !/ذهب|نفط|بترول|غاز/.test(norm)) {
+    /* Not every «دولار» headline is a rate headline. On 1 September this
+       picked «أسعار خام برنت تكسر حاجز الـ97 دولارا» — Brent crude at $97 a
+       BARREL — because the slug carries both «دولارا» and «أسعار». The parse
+       then found no buy/sell pair and returned null, so no wrong rate was
+       published, but the picker had already spent the day on the wrong story.
+       Commodities and money-amount stories («524 مليون دولار فاتورة البطاطا»)
+       are named out. */
+    const notARate = /ذهب|نفط|بترول|غاز|برنت|خام|اوبك|مليون|مليار|يورو|بيتكوين|رقمي/
+    if (/دولار/.test(norm) && aboutPrice.test(norm) && !notARate.test(norm)) {
       if (!best || id > best.id) best = { id, url }
     }
   }
@@ -128,12 +136,23 @@ export function pickDollarArticle(text: string): string | null {
 // directly; r.jina.ai is only the fallback for when that stops being true.
 // (The reader is also rate-limited — it answers 403 often enough that it
 // cannot be the primary path.)
+const ALS_SITEMAP = 'https://www.alsumaria.tv/sitemap.xml'
+
 async function discoverDollarArticle(): Promise<string | null> {
   const direct = await fetchText(ALS_LIST)
   const fromDirect = direct && pickDollarArticle(direct)
   if (fromDirect) return fromDirect
   const proxied = await fetchText(jina(ALS_LIST))
-  return (proxied && pickDollarArticle(proxied)) || null
+  const fromProxy = proxied && pickDollarArticle(proxied)
+  if (fromProxy) return fromProxy
+  /* The listing went client-rendered on 1 September 2026: 1.17 MB of HTML
+     carrying exactly one article id, so discovery found nothing and the
+     scheduled job recorded nothing. The sitemap is still static XML and still
+     lists ~126 economy articles with their ids, which is all the picker needs.
+     Kept as the third path rather than the first because the listing is
+     ordered by recency and the sitemap is not. */
+  const sitemap = await fetchText(ALS_SITEMAP)
+  return (sitemap && pickDollarArticle(sitemap)) || null
 }
 
 export function parseAlsumaria(raw: string, url: string): FxData | null {
