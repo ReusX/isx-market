@@ -41,7 +41,12 @@ jobs:
 
       - name: Record observations
         env:
+          # Two, not three. The anon key is only used by the READ layer
+          # (lib/fxHistory.ts, lib/freshness.ts) and by `createClient()`, which
+          # needs a Next request context this job does not have. The ingester
+          # writes through `createAdminClient()`, which reads the URL and the
+          # service-role key and nothing else. Verified by running the job with
+          # the anon key unset.
           NEXT_PUBLIC_SUPABASE_URL:  ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
-          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
         run: npx tsx scripts/fx-record.ts

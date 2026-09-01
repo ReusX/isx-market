@@ -96,6 +96,16 @@ ok('the three rate concepts stay separate',
 ok('spread is defined against the CBI rate alone',
   /SPREAD_DENOMINATOR: FxSeries = 'official_cbi'/.test(fxSeries))
 
+/* The workbook is parsed by openpyxl, never by regular expressions over the
+   sheet XML. The hand-rolled reader emitted 2,083 fewer days than the file
+   holds and 1,996 dates the file does not contain — while every value it did
+   emit matched exactly, which is why it survived a first review. */
+const cbiImport = execSync('cat scripts/import-cbi-history.ts').toString()
+ok('CBI workbook is parsed by openpyxl, not by regex',
+  /cbi_history\.py/.test(cbiImport) && !/JSZip|sharedStrings/.test(cbiImport))
+ok('the python parser confirms the day from column A',
+  /data\[0\] != day/.test(execSync('cat scripts/cbi_history.py').toString()))
+
 // Statistics canvas transplant + axis fix survive.
 const css = execSync('cat styles/statistics.css').toString()
 ok('statistics axis fix intact', /--stw-plot-h/.test(css) && /\.stw-axis-y/.test(css))

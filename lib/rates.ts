@@ -210,6 +210,18 @@ async function tryFetch(url: string, parse: (raw: string, url: string) => FxData
   return raw ? parse(raw, url) : null
 }
 
+/* ── Who writes what ──────────────────────────────────────────────────────
+   `fetchFx` serves a rate and keeps the fallback fresh. It does NOT write
+   history.
+
+   It used to: an `archive()` call appended an observation on every ISR
+   revalidation. Dedupe made that safe, but it put a service-role write inside
+   the page-rendering path for no coverage gain — /fx is `force-static` with a
+   3-hour revalidate, and scripts/fx-record.ts already runs five times through
+   the trading day on a deterministic schedule. Ingestion belongs to the job;
+   presentation reads. `writeFxCache` stays here because the cache IS
+   presentation resilience — it is what the page serves when the source is
+   down, and it is one row, not a record. */
 const CACHE_KEY = 'fx'
 
 async function readFxCache(): Promise<FxData | null> {
@@ -233,33 +245,6 @@ async function writeFxCache(fx: FxData): Promise<void> {
   } catch { /* best-effort */ }
 }
 
-/**
- * Append the quote to the historical record.
- *
- * Separate from `writeFxCache` on purpose, and the two must not be conflated:
- * the cache is one row overwritten forever so a rate can still be served when
- * the source is down; `fx_observations` is the archive and is never rewritten.
- * Losing the archive write is survivable, so this never throws — the reason is
- * returned and the cron logs it.
- */
-async function archive(fx: FxData): Promise<void> {
-  try {
-    const [{ recordParallel }, { alsumariaEvent }] = await Promise.all([
-      import('@/lib/fxRecord'),
-      import('@/lib/fxSeries'),
-    ])
-    await recordParallel({
-      buy: fx.buy,
-      sell: fx.sell,
-      date: fx.date ?? '',
-      sourceUrl: fx.sourceUrl,
-      excerpt: fx.excerpt ?? null,
-      publishedAt: fx.publishedAt ?? null,
-      event: alsumariaEvent(fx.sourceUrl),
-    })
-  } catch { /* the archive is an enhancement; serving the rate is not */ }
-}
-
 export async function fetchFx(): Promise<FxData | null> {
   const article = await discoverDollarArticle()
   if (article) {
@@ -267,9 +252,9 @@ export async function fetchFx(): Promise<FxData | null> {
     // URL, so re-encoding turned every %D8 into %25D8 and the article 404'd —
     // which is how this page came to serve a month-old rate from cache.
     const direct = await tryFetch(article, parseAlsumaria)
-    if (direct) { await writeFxCache(direct); await archive(direct); return direct }
+    if (direct) { await writeFxCache(direct); return direct }
     const viaProxy = await tryFetch(jina(article), (raw) => parseAlsumaria(raw, article))
-    if (viaProxy) { await writeFxCache(viaProxy); await archive(viaProxy); return viaProxy }
+    if (viaProxy) { await writeFxCache(viaProxy); return viaProxy }
   }
   // Alsumaria unavailable · serve the last known rate, but say so. Serving a
   // month-old dollar rate as if it were today's is worse than showing nothing.
