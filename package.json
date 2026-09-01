@@ -18,7 +18,9 @@
     "audit:depository": "npx tsx scripts/depository-audit.ts",
     "check:secrets": "node scripts/secret-scan.mjs --self-test && node scripts/secret-scan.mjs",
     "check:fx": "npx tsx scripts/fx-parser-test.ts",
-    "check:fx-writes": "npx tsx scripts/fx-verify.ts"
+    "check:fx-writes": "npx tsx scripts/fx-verify.ts",
+    "check:banking": "npx tsx scripts/banking-gates.ts",
+    "seed:banks": "npx tsx scripts/seed-banks.ts"
   },
   "dependencies": {
     "@capacitor/app": "^6.0.2",
