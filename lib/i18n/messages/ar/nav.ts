@@ -30,6 +30,7 @@ export const nav = {
   heatmap:   'خريطة السوق',
   pulse:     'نبض السوق',
   news:      'الأخبار',
+  banks:     'المصارف',
   portfolio: 'المحفظة',
   watchlist: 'قائمة المتابعة',
   fx:        'الدولار في العراق',

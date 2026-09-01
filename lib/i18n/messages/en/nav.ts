@@ -17,6 +17,7 @@ export const nav: typeof ar = {
   heatmap:   'Market Map',
   pulse:     'Market Pulse',
   news:      'News',
+  banks:     'Banks',
   portfolio: 'Portfolio',
   watchlist: 'Watchlist',
   fx:        'USD/IQD',

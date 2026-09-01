@@ -46,6 +46,10 @@ export const ROUTES: RouteEntry[] = [
   { pattern: '/statistics/foreign-flow',   cls: 'mirror' },
   { pattern: '/statistics/ownership',      cls: 'mirror' },
   { pattern: '/statistics/shareholders',   cls: 'mirror' },
+  /* Left the Arabic-only set when the legacy page was replaced: /banks is now
+     a real bilingual research surface, and each profile has an English twin. */
+  { pattern: '/banks',                     cls: 'mirror' },
+  { pattern: '/banks/[slug]',              cls: 'mirror' },
   { pattern: '/c/[sym]',                   cls: 'mirror' },
   { pattern: '/c/[sym]/financials',        cls: 'mirror' },
 
@@ -103,7 +107,7 @@ export const ROUTES: RouteEntry[] = [
      on the site fetches its rows in the browser. It is a `mirror` pair now,
      so /en/companies gives the English company pages the crawlable parent
      they never had. */
-  ...(['/banks', '/charts', '/analysis', '/analysis/[sym]', '/research', '/research/[slug]', '/alerts']
+  ...(['/charts', '/analysis', '/analysis/[sym]', '/research', '/research/[slug]', '/alerts']
     .map((pattern): RouteEntry => ({
       pattern,
       cls: 'ar-only',

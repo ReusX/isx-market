@@ -1,5 +1,6 @@
 import { MetadataRoute } from 'next'
 import companiesData from '@/public/data/companies.json'
+import { listBanks, listProducts, isSubstantive } from '@/lib/banks'
 import { getPosts, type Section } from '@/lib/cms'
 import { getLastSessionDate } from '@/lib/freshness'
 import { absUrl } from '@/lib/seo'
@@ -104,7 +105,19 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     ...learn.map(p => article('learn', p)),
   ]
 
-  const arabic = [...statics, ...companies, ...articles]
+  /* Bank profiles are indexed on SUBSTANCE, not on existence. A page that can
+     only say "this bank exists and here is its website" is a thin page, and
+     seven of them would drag the hub down with them. `isSubstantive` requires
+     at least one published, sourced product term. */
+  const [allBanks, allProducts] = await Promise.all([listBanks(), listProducts()])
+  const banks: MetadataRoute.Sitemap = [
+    { url: absUrl('/banks'), lastModified: dataDate },
+    ...allBanks
+      .filter((b) => isSubstantive(b, allProducts.filter((p) => p.bank_slug === b.slug)))
+      .map((b) => ({ url: absUrl(`/banks/${b.slug}`), lastModified: dataDate })),
+  ]
+
+  const arabic = [...statics, ...companies, ...articles, ...banks]
 
   /*
    * ── The English half ────────────────────────────────────────────────────
@@ -116,8 +129,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
    *
    *   · `/news/[slug]` and `/learn/[slug]` are `ar-only`, so no English
    *     article URL is minted for content that has no English translation.
-   *   · `/research`, `/analysis`, `/banks`, `/charts`, `/companies` and
-   *     `/alerts` are `ar-only` — compatibility routes open under the
+   *   · `/research`, `/analysis`, `/charts` and `/alerts` are `ar-only` —
+   *     compatibility routes open under the
    *     retirement matrix. They keep their Arabic entry and gain no English
    *     twin, because minting one creates a second URL to retire.
    *   · `/portfolio`, `/watchlist`, `/profile` and the auth family are

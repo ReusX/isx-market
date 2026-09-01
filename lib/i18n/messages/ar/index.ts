@@ -19,6 +19,7 @@ import { rates } from './rates'
 import { personal } from './personal'
 import { ownership } from './ownership'
 import { chart } from './chart'
+import { banks } from './banks'
 
 /**
  * The Arabic dictionary — and, because `en` is typed as `typeof ar`, the
@@ -30,4 +31,4 @@ import { chart } from './chart'
  * key removed here but left in `en` fails too, so the dictionaries cannot
  * drift apart in either direction.
  */
-export const ar = { nav, shell, system, glossary, info, data, home, market, screener, heatmap, pulse, statistics, flow, company, financials, news, learn, rates, personal, ownership, chart }
+export const ar = { nav, shell, system, glossary, info, data, home, market, screener, heatmap, pulse, statistics, flow, company, financials, news, learn, rates, personal, ownership, chart, banks }

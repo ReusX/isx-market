@@ -12,11 +12,11 @@ import { listBanks, listProducts, listServices, bankFinancials, coverageOf } fro
 export const revalidate = 3600
 
 export const metadata: Metadata = {
-  alternates: seoAlternates('/banks'),
-  openGraph: { url: absUrl('/banks'), images: [{ url: '/opengraph-image', width: 1200, height: 630 }] },
-  title: 'المصارف العراقية · بورصة العراق',
+  alternates: seoAlternates('/banks', 'en'),
+  openGraph: { url: absUrl('/banks', 'en'), images: [{ url: '/opengraph-image', width: 1200, height: 630 }] },
+  title: 'Iraqi Banks · Iraq Stock Exchange',
   description:
-    'دليل المصارف العراقية: النوع والملكية والإدراج، وما ينشره كل مصرف فعلاً عن ودائعه وقروضه — مع المصدر وتاريخ التحقق.',
+    'A directory of Iraqi banks: type, ownership and listing, and what each bank actually publishes about its deposits and loans — with the source and the date it was checked.',
 }
 
 export default async function Page() {

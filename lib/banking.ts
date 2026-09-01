@@ -86,6 +86,9 @@ export interface FactSeed {
   state: FactState
   num?: number
   text?: string
+  /** Our rendering of `text` for the English page. The Arabic stays the
+   *  evidence; this is a translation and is not itself sourced. */
+  textEn?: string
   bool?: boolean
   /** Conditions that qualify this value. Absent means it applies always. */
   when?: readonly Condition[]

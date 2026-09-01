@@ -476,3 +476,29 @@ where s.is_stale
 order by days_overdue desc;
 
 grant select on public.bank_facts_stale to anon, authenticated;
+/* A text-valued fact is the bank's own wording, which is Arabic. Keeping only
+   that put an untranslated Iraqi banking sentence on the English page. The
+   source wording stays in `value_text` — it is the evidence — and
+   `value_text_en` carries our rendering of it, so the English page reads and
+   the provenance is still the bank's. */
+alter table public.product_facts add column if not exists value_text_en text;
+
+drop view if exists public.product_facts_current cascade;
+create view public.product_facts_current as
+select
+  f.id, f.product_id, f.field_key, f.value_num, f.value_text, f.value_text_en, f.value_bool,
+  coalesce(f.unit, p.unit) as unit,
+  f.state, f.condition_hash,
+  (f.condition_hash <> '') as is_conditional,
+  f.source_id, s.key as source_key, s.name_ar as source_name_ar, s.name_en as source_name_en,
+  f.source_url, f.source_excerpt, f.source_page, f.effective_date, f.verified_at, f.note,
+  p.fact_class, p.max_age_days, p.label_ar, p.label_en,
+  (f.verified_at + p.max_age_days) as stale_after,
+  (f.state = 'KNOWN' and f.verified_at is not null
+     and (f.verified_at + p.max_age_days) < current_date) as is_stale
+from public.product_facts f
+join public.fact_policy p on p.field_key = f.field_key
+left join public.data_sources s on s.id = f.source_id
+where f.superseded_at is null;
+
+grant select on public.product_facts_current to anon, authenticated;

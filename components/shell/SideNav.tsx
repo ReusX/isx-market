@@ -30,6 +30,8 @@ const PATHS: Record<NavIcon, string> = {
   gold: 'M4 18h16 M6 18V9l6-4 6 4v9',
   oil: 'M7 21V9l5-6 5 6v12 M10 13h4',
   learn: 'M3 7l9-4 9 4-9 4z M7 11v5c0 1.5 2.5 3 5 3s5-1.5 5-3v-5',
+  /* A classical facade: pediment, columns, plinth. */
+  bank: 'M3 9l9-5 9 5H3z M5 9v9 M9.5 9v9 M14.5 9v9 M19 9v9 M3 21h18',
 }
 
 function NavIconGlyph({ icon }: { icon: NavIcon }) {

@@ -114,6 +114,7 @@ function factRow(productId: number, f: FactSeed, src: Map<string, number>): Row 
     field_key: f.key,
     value_num: f.num ?? null,
     value_text: f.text ?? null,
+    value_text_en: f.textEn ?? null,
     value_bool: f.bool ?? null,
     state: f.state,
     condition_hash: conditionHash(f.when),
@@ -131,7 +132,7 @@ function factRow(productId: number, f: FactSeed, src: Map<string, number>): Row 
 
 /** Same value, same state, same conditions → nothing to do. */
 function unchanged(live: Row, next: Row): boolean {
-  const keys = ['value_num', 'value_text', 'value_bool', 'state', 'source_id', 'source_url']
+  const keys = ['value_num', 'value_text', 'value_text_en', 'value_bool', 'state', 'source_id', 'source_url']
   return keys.every((k) => String(live[k] ?? '') === String(next[k] ?? ''))
 }
 
@@ -216,7 +217,14 @@ async function main() {
          old rows stayed live and the product carried both models at once. A
          declarative seed has to retire what it stops declaring. */
       const declared = new Set(p.facts.map((f) => `${f.key}|${conditionHash(f.when)}`))
-      const liveAll = await rest<Row[]>(`product_facts?select=id,field_key,condition_hash&product_id=eq.${prod.id}&superseded_at=is.null`)
+      /* Every live fact for this product, fetched once. The per-fact lookup
+         used to filter on `condition_hash=eq.` in the URL, which does not match
+         an EMPTY string in PostgREST — so unconditional facts always looked
+         absent, the loader reported them as new when it had in fact superseded
+         one, and its own counts could not be trusted. Matching in JS removes
+         the encoding question and a request per fact. */
+      const liveAll = await rest<Row[]>(`product_facts?select=*&product_id=eq.${prod.id}&superseded_at=is.null`)
+      const liveByKey = new Map(liveAll.map((r) => [`${r.field_key}|${r.condition_hash}`, r]))
       for (const row of liveAll) {
         if (declared.has(`${row.field_key}|${row.condition_hash}`)) continue
         await rest(`product_facts?id=eq.${row.id}`, { method: 'PATCH', body: JSON.stringify({ superseded_at: new Date().toISOString() }) })
@@ -225,14 +233,10 @@ async function main() {
 
       for (const f of p.facts) {
         const next = factRow(prod.id, f, src)
-        const hash = String(next.condition_hash)
-        const live = await rest<Row[]>(
-          `product_facts?select=*&product_id=eq.${prod.id}&field_key=eq.${f.key}` +
-          `&condition_hash=eq.${encodeURIComponent(hash)}&superseded_at=is.null`,
-        )
-        if (live[0] && unchanged(live[0], next)) { held++; continue }
-        if (live[0]) {
-          await rest(`product_facts?id=eq.${live[0].id}`, { method: 'PATCH', body: JSON.stringify({ superseded_at: new Date().toISOString() }) })
+        const live = liveByKey.get(`${f.key}|${String(next.condition_hash)}`)
+        if (live && unchanged(live, next)) { held++; continue }
+        if (live) {
+          await rest(`product_facts?id=eq.${live.id}`, { method: 'PATCH', body: JSON.stringify({ superseded_at: new Date().toISOString() }) })
           superseded++
         }
         const [row] = await rest<{ id: number }[]>('product_facts', {

@@ -1,0 +1,159 @@
+/**
+ * /banks and /banks/[slug].
+ *
+ * ── The state vocabulary is the product ───────────────────────────────────
+ * Most fields on most Iraqi banks are not published. Rendering all of them as
+ * «—» would say the same thing about four different situations, so each has
+ * its own words: the bank publishes it, the bank does not publish it, we could
+ * not read the source, or nobody has looked. The page is only trustworthy if
+ * those stay apart.
+ */
+export const banks = {
+  title: 'المصارف العراقية',
+  standfirst: 'ما نعرفه فعلاً عن كل مصرف، ومن أين عرفناه',
+  breadcrumb: 'المصارف',
+
+  /* Sector overview */
+  totalBanks: 'مصارف في قاعدة البيانات',
+  listedBanks: 'مدرجة في البورصة',
+  withProducts: 'تنشر شروط منتجاتها',
+  islamicBanks: 'مصارف إسلامية',
+
+  /* Table */
+  colBank: 'المصرف',
+  colType: 'النوع',
+  colListed: 'الإدراج',
+  colAssets: 'الموجودات',
+  colDeposits: 'ودائع العملاء',
+  colProducts: 'المنتجات المنشورة',
+  colCoverage: 'ما نشرَه المصرف',
+  listed: 'مدرج',
+  notListed: 'غير مدرج',
+
+  type: {
+    commercial: 'تجاري',
+    islamic: 'إسلامي',
+    investment: 'استثماري',
+    specialised: 'متخصص',
+    central: 'مركزي',
+  },
+  ownership: { state: 'حكومي', private: 'خاص', mixed: 'مختلط', foreign: 'أجنبي' },
+
+  /* Coverage — a description of what was found, never a score */
+  coverage: {
+    rich: 'شروط منشورة بالتفصيل',
+    partial: 'شروط منشورة جزئياً',
+    'named-only': 'منتجات مسمّاة بلا أرقام',
+    none: 'لا منتجات منشورة',
+    unreachable: 'تعذّر الوصول إلى المصدر',
+  },
+  coverageNote: 'يصف هذا العمود ما ينشره المصرف علناً، لا جودته. مصرفٌ لا ينشر شروطه ليس بالضرورة مصرفاً أسوأ.',
+
+  /* Filters */
+  filterAll: 'الكل',
+  filterListed: 'مدرجة',
+  filterState: 'حكومية',
+  filterPrivate: 'خاصة',
+  filterIslamic: 'إسلامية',
+  filterGroup: 'تصفية',
+
+  /* Profile */
+  identity: 'التعريف',
+  founded: 'التأسيس',
+  hq: 'المقر',
+  /* The city is stored once, in Arabic, because that is how the banks write
+     it. The English page needs a name too, so it is translated here rather
+     than duplicated into a second database column. */
+  city: { 'بغداد': 'بغداد', 'أربيل': 'أربيل', 'البصرة': 'البصرة' } as Record<string, string>,
+  website: 'الموقع',
+  swift: 'سويفت',
+  licence: 'مرخّص من البنك المركزي',
+  tickerLabel: 'رمز السهم',
+  viewCompany: 'صفحة السهم والبيانات المالية',
+
+  financials: 'لمحة مالية',
+  financialsNote: (year: string, period: string) => `من إفصاحات البورصة · ${year} ${period}`,
+  fin: {
+    total_assets: 'إجمالي الموجودات',
+    customer_deposits: 'ودائع العملاء',
+    total_equity: 'حقوق الملكية',
+    net_income: 'صافي الدخل',
+    paid_capital: 'رأس المال المدفوع',
+    capital_adequacy_ratio: 'كفاية رأس المال',
+    lcr: 'نسبة تغطية السيولة',
+  },
+
+  services: 'الخدمات',
+  service: {
+    atm: 'صراف آلي',
+    mobile_banking: 'تطبيق الهاتف',
+    internet_banking: 'الخدمات عبر الإنترنت',
+    cards: 'البطاقات',
+    usd_account: 'حساب بالدولار',
+    international_transfer: 'حوالات خارجية',
+    salary_domiciliation: 'توطين الراتب',
+  },
+  available: 'متوفّرة',
+  unavailable: 'غير متوفّرة',
+  unchecked: 'لم يُتحقق',
+
+  deposits: 'الودائع والتوفير',
+  loans: 'القروض والتمويل',
+  noProducts: 'لا منتجات منشورة',
+
+  /* The four states, in the reader's words */
+  notPublished: 'لم ينشر المصرف هذه المعلومة',
+  notPublishedShort: 'غير منشور',
+  sourceUnavailable: 'تعذّر التحقق من المصدر',
+  notChecked: 'لم يُتحقق بعد',
+  notApplicable: 'لا ينطبق',
+
+  rate: 'النسبة',
+  rateRange: (from: string, to: string) => `${from}% – ${to}%`,
+  rateBasis: { reducing: 'بالقسط المتناقص', flat: 'بالقسط الثابت' },
+  amount: 'المبلغ',
+  term: 'المدة',
+  months: (n: string) => `${n} شهراً`,
+  years: (n: string) => `${n} سنة`,
+  conditionsApply: 'بشروط',
+  conditionsHeading: 'الشروط',
+  showConditions: 'عرض الشروط',
+  dependsOn: 'تختلف حسب الشروط أدناه',
+
+  condField: {
+    salary: 'الراتب',
+    salary_domiciled: 'الراتب موطَّن لدى المصرف',
+    employment_type: 'نوع الوظيفة',
+    employment_months: 'مدة الخدمة',
+    age: 'العمر',
+    has_guarantor: 'كفيل',
+    has_collateral: 'ضمان',
+    collateral_type: 'نوع الضمان',
+    purpose: 'الغرض',
+    deposit_amount: 'مبلغ الوديعة',
+    term_months: 'المدة',
+  },
+  condOp: { eq: '=', ne: '≠', gt: '>', gte: '≥', lt: '<', lte: '≤', in: 'من', not_in: 'ليس من' },
+  /* A negated boolean needs its own words. «≠ الراتب موطَّن لدى المصرف» is not
+     Arabic; «الراتب غير موطَّن لدى المصرف» is what the condition actually says. */
+  condFieldNo: {
+    salary_domiciled: 'الراتب غير موطَّن لدى المصرف',
+    has_guarantor: 'بدون كفيل',
+    has_collateral: 'بدون ضمان',
+  } as Record<string, string>,
+  condValue: {
+    true: 'نعم', false: 'لا',
+    government: 'حكومي', private: 'خاص', mixed: 'مختلط', self_employed: 'عمل حر', retired: 'متقاعد',
+    vehicle_lien: 'حجز السيارة', property: 'عقار', gold: 'ذهب', deposit: 'وديعة', mastercard: 'ماستر كارد',
+    purchase: 'شراء', build: 'بناء', renovate: 'ترميم', land: 'أرض', vehicle: 'سيارة', business: 'مشروع', personal: 'شخصي',
+  },
+
+  sources: 'المصادر والتحقق',
+  verifiedOn: (d: string) => `تُحقق في ${d}`,
+  sourceIs: 'المصدر',
+  couldNotVerify: 'ما تعذّر التحقق منه',
+  unreachableNote: 'موقع المصرف غير متاح من خارج العراق، فلا توجد شروط منتجات موثّقة هنا. غياب المعلومة هنا لا يعني غيابها لدى المصرف.',
+  methodology: 'كل رقم على هذه الصفحة مأخوذ من مصدر المصرف نفسه، مع تاريخ التحقق. ما لا ينشره المصرف يُذكر كذلك صراحةً بدل تركه فارغاً.',
+  notFound: 'لا يوجد مصرف بهذا الاسم',
+  backToBanks: 'كل المصارف',
+}

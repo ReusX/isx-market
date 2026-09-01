@@ -43,7 +43,7 @@
 
 export type NavIcon =
   | 'home' | 'chart' | 'filter' | 'grid' | 'stats' | 'pulse' | 'news'
-  | 'briefcase' | 'watchlist' | 'exchange' | 'gold' | 'oil' | 'learn'
+  | 'briefcase' | 'watchlist' | 'exchange' | 'gold' | 'oil' | 'learn' | 'bank'
 
 /** Group ids. The visible heading for each is `t.nav.groups[id]`. */
 export type NavGroup = 'market' | 'personal' | 'tools' | 'learn'
@@ -51,7 +51,7 @@ export type NavGroup = 'market' | 'personal' | 'tools' | 'learn'
 /** Item ids. Each is a key of `t.nav`. */
 export type NavId =
   | 'home' | 'market' | 'screener' | 'stats' | 'heatmap' | 'pulse' | 'news'
-  | 'portfolio' | 'watchlist' | 'fx' | 'gold' | 'oil' | 'learn'
+  | 'portfolio' | 'watchlist' | 'fx' | 'gold' | 'oil' | 'learn' | 'banks'
 
 export type NavigationItem = {
   id: NavId
@@ -73,6 +73,7 @@ export const navigationItems: NavigationItem[] = [
   { id: 'heatmap',   href: '/heatmap',    icon: 'grid',      group: 'market' },
   { id: 'pulse',     href: '/pulse',      icon: 'pulse',     group: 'market' },
   { id: 'news',      href: '/news',       icon: 'news',      group: 'market' },
+  { id: 'banks',     href: '/banks',      icon: 'bank',      group: 'market' },
 
   { id: 'portfolio', href: '/portfolio',  icon: 'briefcase', group: 'personal', personal: true },
   { id: 'watchlist', href: '/watchlist',  icon: 'watchlist', group: 'personal', personal: true },
