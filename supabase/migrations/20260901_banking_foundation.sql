@@ -53,6 +53,20 @@ create table if not exists public.banks (
   licence_verified_at date,
 
   is_active     boolean not null default true,
+
+  /* How far the research on this bank actually got.
+     `researched`         we read the bank's own published material
+     `source_unreachable` the bank's site does not resolve or serves nothing
+                          from where we run — Rasheed and TBI both do this
+     `not_researched`     nobody has looked yet
+     Without this, a bank with no products looks identical whether we checked
+     and found nothing published or never checked at all, and the page would
+     say the same thing about both. */
+  research_state text not null default 'not_researched'
+    check (research_state in ('researched','source_unreachable','not_researched')),
+  research_note  text,
+  research_checked_at date,
+
   created_at    timestamptz not null default now(),
   updated_at    timestamptz not null default now()
 );
@@ -134,7 +148,12 @@ insert into public.condition_field (field_key, value_type, unit, allowed, label_
   ('has_collateral',    'boolean',null,  null, 'وجود ضمان','Has collateral'),
   ('collateral_type',   'text',  null,   array['vehicle_lien','property','gold','deposit','mastercard'], 'نوع الضمان','Collateral type'),
   ('purpose',           'text',  null,   array['purchase','build','renovate','land','vehicle','business','personal'], 'الغرض','Purpose'),
-  ('deposit_amount',    'number','iqd',  null, 'مبلغ الوديعة','Deposit amount')
+  ('deposit_amount',    'number','iqd',  null, 'مبلغ الوديعة','Deposit amount'),
+  /* Added after the pilot: Rafidain's deposit rates differ by TERM first and
+     amount second. Without this the tiers could only be expressed on the
+     amount, which implied a six-month deposit of 60 million pays the two-year
+     rate — something the bank does not say. */
+  ('term_months',       'number','months',null,'مدة المنتج','Product term')
 on conflict (field_key) do nothing;
 
 create table if not exists public.condition_operator (
@@ -185,10 +204,16 @@ create table if not exists public.product_facts (
   value_bool     boolean,
   unit           text,
 
-  /* Four states, and the distinction the brief insists on: a missing row means
-     nobody looked; UNKNOWN means we looked and the bank does not publish it.
-     Collapsing those loses the more useful of the two facts. */
-  state          text not null check (state in ('KNOWN','UNKNOWN','NOT_APPLICABLE','UNVERIFIED')),
+  /* Five states, and the distinctions matter more than the values.
+       KNOWN               published, recorded, sourced
+       UNKNOWN             we read the bank's page and it does not publish this
+       SOURCE_UNAVAILABLE  we tried and could not read the source
+       NOT_APPLICABLE      the field has no meaning for this product
+       UNVERIFIED          recorded but not yet checked
+     A missing row is a sixth thing: nobody looked. UNKNOWN was carrying two of
+     these at once, which would have let the page tell a reader "the bank does
+     not publish its rate" when the truth was "we could not open the site". */
+  state          text not null check (state in ('KNOWN','UNKNOWN','NOT_APPLICABLE','UNVERIFIED','SOURCE_UNAVAILABLE')),
 
   /* Conditions that qualify this value. `condition_hash` is the canonical
      fingerprint of the attached condition set — '' when unconditional — and is
@@ -312,13 +337,9 @@ where f.superseded_at is null;
 comment on view public.product_facts_current is
   'Live facts only. Superseded rows are unreachable from here by construction.';
 
-/* The ergonomic surface. Unconditional values are pivoted into typed columns
-   so a query reads `max_amount >= 30000000` rather than pivoting EAV rows.
-   ⚠ Only unconditional facts are pivoted. A conditional maximum flattened into
-   this column would be wrong for most readers — «up to 65M» next to «up to
-   25M» is a false comparison when the first depends on a vehicle lien. Those
-   products expose `has_conditions`, and the caller joins the condition rows. */
-create or replace view public.bank_products_current as
+
+drop view if exists public.bank_products_current;
+create view public.bank_products_current as
 select
   pr.id, pr.bank_id, b.slug as bank_slug, b.name_ar as bank_name_ar, b.name_en as bank_name_en,
   b.bank_type, b.ownership, b.ticker,
@@ -334,6 +355,16 @@ select
   bool_or(f.value_bool) filter (where f.field_key = 'salary_domiciliation_required' and f.state='KNOWN' and f.condition_hash='') as salary_domiciliation_required,
   bool_or(f.value_bool) filter (where f.field_key = 'guarantor_required'  and f.state='KNOWN' and f.condition_hash='') as guarantor_required,
   bool_or(f.value_bool) filter (where f.field_key = 'collateral_required' and f.state='KNOWN' and f.condition_hash='') as collateral_required,
+
+  /* Across ALL known values of the key, conditional or not. `*_from` / `*_to`
+     is the band a reader would actually be quoted; the scalars above stay the
+     unconditional case so nothing silently merges the two. */
+  min(f.value_num) filter (where f.field_key = 'rate'       and f.state='KNOWN') as rate_from,
+  max(f.value_num) filter (where f.field_key = 'rate'       and f.state='KNOWN') as rate_to,
+  min(f.value_num) filter (where f.field_key = 'max_amount' and f.state='KNOWN') as max_amount_from,
+  max(f.value_num) filter (where f.field_key = 'max_amount' and f.state='KNOWN') as max_amount_to,
+  count(*) filter (where f.field_key = 'rate' and f.state='KNOWN' and f.condition_hash <> '') as conditional_rates,
+
   bool_or(f.is_conditional)                                   as has_conditions,
   count(*) filter (where f.state = 'KNOWN')                   as known_facts,
   count(*) filter (where f.state = 'UNKNOWN')                 as unknown_facts,
@@ -347,7 +378,9 @@ group by pr.id, b.slug, b.name_ar, b.name_en, b.bank_type, b.ownership, b.ticker
 comment on view public.bank_products_current is
   'Typed, one row per product. Only UNCONDITIONAL known values are pivoted; `has_conditions` tells the caller a flat comparison would mislead.';
 
-create or replace view public.bank_services_current as
+drop view if exists public.bank_facts_stale;
+drop view if exists public.bank_services_current;
+create view public.bank_services_current as
 select bs.bank_id, b.slug as bank_slug, bs.service_key, bs.availability,
        bs.source_id, bs.source_url, bs.verified_at
 from public.bank_services bs
@@ -355,7 +388,7 @@ join public.banks b on b.id = bs.bank_id
 where bs.superseded_at is null;
 
 /* The stale report, as a query rather than a screen. */
-create or replace view public.bank_facts_stale as
+create view public.bank_facts_stale as
 select b.slug as bank_slug, pr.slug as product_slug, f.field_key,
        f.fact_class, f.verified_at, f.stale_after,
        (current_date - f.stale_after) as days_overdue
@@ -395,57 +428,51 @@ grant select on
   public.product_facts_current, public.bank_products_current, public.bank_services_current,
   public.bank_facts_stale
 to anon, authenticated;
--- ── Vocabulary gap found by real data ──────────────────────────────────────
--- Rafidain's deposit rates differ by TERM first and amount second (6 months at
--- 4%, two years at 5% under 50 million and 6% above). The condition vocabulary
--- had no term field, so the tiers could only be expressed on the amount, which
--- says something the bank does not.
-insert into public.condition_field (field_key, value_type, unit, allowed, label_ar, label_en)
-values ('term_months','number','months',null,'مدة المنتج','Product term')
+-- Services and identity get freshness too, from the SAME table, so the policy
+-- is defined once and joined rather than restated in a loader or a component.
+insert into public.fact_policy (field_key, value_type, unit, fact_class, max_age_days, label_ar, label_en) values
+  ('svc:atm',                    'boolean',null,'slow',    90,'صراف آلي','ATM'),
+  ('svc:mobile_banking',         'boolean',null,'slow',    90,'تطبيق الهاتف','Mobile banking'),
+  ('svc:internet_banking',       'boolean',null,'slow',    90,'الخدمات المصرفية عبر الإنترنت','Internet banking'),
+  ('svc:cards',                  'boolean',null,'slow',    90,'البطاقات','Cards'),
+  ('svc:usd_account',            'boolean',null,'slow',    90,'حساب بالدولار','USD account'),
+  ('svc:international_transfer', 'boolean',null,'slow',    90,'الحوالات الخارجية','International transfers'),
+  ('svc:salary_domiciliation',   'boolean',null,'slow',    90,'توطين الراتب','Salary domiciliation'),
+  ('id:founded',                 'number', null,'identity',3650,'سنة التأسيس','Founded'),
+  ('id:hq_city',                 'text',   null,'identity',3650,'المقر','Headquarters'),
+  ('id:swift',                   'text',   null,'identity',3650,'سويفت','SWIFT / BIC')
 on conflict (field_key) do nothing;
 
--- ── Conditional values must still be comparable ───────────────────────────
--- The pivot deliberately reads only UNCONDITIONAL facts, because «up to 65M»
--- next to «up to 25M» is a false comparison when the first needs a vehicle
--- lien. But a product whose rate is ONLY ever conditional then had a null rate
--- and dropped out of "sort deposits by rate" entirely — the deposit paying
--- 4–6% became invisible. So conditional values are exposed as a RANGE beside
--- the scalar, never merged into it.
-drop view if exists public.bank_products_current;
-create view public.bank_products_current as
-select
-  pr.id, pr.bank_id, b.slug as bank_slug, b.name_ar as bank_name_ar, b.name_en as bank_name_en,
-  b.bank_type, b.ownership, b.ticker,
-  pr.slug, pr.kind, pr.name_ar, pr.name_en, pr.currency, pr.financing_type, pr.is_active,
-  max(f.value_num) filter (where f.field_key = 'rate'            and f.state='KNOWN' and f.condition_hash='') as rate,
-  max(f.value_text) filter (where f.field_key = 'rate_basis'     and f.state='KNOWN' and f.condition_hash='') as rate_basis,
-  max(f.value_num) filter (where f.field_key = 'min_amount'      and f.state='KNOWN' and f.condition_hash='') as min_amount,
-  max(f.value_num) filter (where f.field_key = 'max_amount'      and f.state='KNOWN' and f.condition_hash='') as max_amount,
-  max(f.value_num) filter (where f.field_key = 'min_salary'      and f.state='KNOWN' and f.condition_hash='') as min_salary,
-  max(f.value_num) filter (where f.field_key = 'min_term_months' and f.state='KNOWN' and f.condition_hash='') as min_term_months,
-  max(f.value_num) filter (where f.field_key = 'max_term_months' and f.state='KNOWN' and f.condition_hash='') as max_term_months,
-  max(f.value_num) filter (where f.field_key = 'term_months'     and f.state='KNOWN' and f.condition_hash='') as term_months,
-  bool_or(f.value_bool) filter (where f.field_key = 'salary_domiciliation_required' and f.state='KNOWN' and f.condition_hash='') as salary_domiciliation_required,
-  bool_or(f.value_bool) filter (where f.field_key = 'guarantor_required'  and f.state='KNOWN' and f.condition_hash='') as guarantor_required,
-  bool_or(f.value_bool) filter (where f.field_key = 'collateral_required' and f.state='KNOWN' and f.condition_hash='') as collateral_required,
+drop view if exists public.bank_facts_stale;
+drop view if exists public.bank_services_current;
+create view public.bank_services_current as
+select bs.bank_id, b.slug as bank_slug, bs.service_key, bs.availability,
+       bs.source_id, bs.source_url, bs.source_excerpt, bs.verified_at,
+       p.fact_class, p.max_age_days, p.label_ar, p.label_en,
+       (bs.verified_at + p.max_age_days) as stale_after,
+       (bs.availability <> 'unknown' and bs.verified_at is not null
+          and (bs.verified_at + p.max_age_days) < current_date) as is_stale
+from public.bank_services bs
+join public.banks b on b.id = bs.bank_id
+left join public.fact_policy p on p.field_key = 'svc:' || bs.service_key
+where bs.superseded_at is null;
 
-  /* Across ALL known values of the key, conditional or not. `*_from` / `*_to`
-     is the band a reader would actually be quoted; the scalars above stay the
-     unconditional case so nothing silently merges the two. */
-  min(f.value_num) filter (where f.field_key = 'rate'       and f.state='KNOWN') as rate_from,
-  max(f.value_num) filter (where f.field_key = 'rate'       and f.state='KNOWN') as rate_to,
-  min(f.value_num) filter (where f.field_key = 'max_amount' and f.state='KNOWN') as max_amount_from,
-  max(f.value_num) filter (where f.field_key = 'max_amount' and f.state='KNOWN') as max_amount_to,
-  count(*) filter (where f.field_key = 'rate' and f.state='KNOWN' and f.condition_hash <> '') as conditional_rates,
+grant select on public.bank_services_current to anon, authenticated;
 
-  bool_or(f.is_conditional)                                   as has_conditions,
-  count(*) filter (where f.state = 'KNOWN')                   as known_facts,
-  count(*) filter (where f.state = 'UNKNOWN')                 as unknown_facts,
-  count(*) filter (where f.is_stale)                          as stale_facts,
-  max(f.verified_at)                                          as last_verified
-from public.bank_products pr
+-- The stale report covers services as well as product facts.
+create view public.bank_facts_stale as
+select b.slug as bank_slug, pr.slug as product_slug, f.field_key,
+       f.fact_class, f.verified_at, f.stale_after,
+       (current_date - f.stale_after) as days_overdue
+from public.product_facts_current f
+join public.bank_products pr on pr.id = f.product_id
 join public.banks b on b.id = pr.bank_id
-left join public.product_facts_current f on f.product_id = pr.id
-group by pr.id, b.slug, b.name_ar, b.name_en, b.bank_type, b.ownership, b.ticker;
+where f.is_stale
+union all
+select s.bank_slug, null, 'svc:' || s.service_key, s.fact_class, s.verified_at, s.stale_after,
+       (current_date - s.stale_after)
+from public.bank_services_current s
+where s.is_stale
+order by days_overdue desc;
 
-grant select on public.bank_products_current to anon, authenticated;
+grant select on public.bank_facts_stale to anon, authenticated;

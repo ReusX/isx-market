@@ -107,7 +107,7 @@ async function main() {
   await fetch(`${U}/rest/v1/product_facts?id=eq.${tmp.id}`, { method: 'DELETE', headers: H })
 
   // ── integrity of what is actually stored ────────────────────────────────
-  const cur = await get<any[]>('product_facts_current?select=state,source_id,verified_at,field_key,is_stale,stale_after&limit=1000')
+  const cur = await get<any[]>('product_facts_current?select=state,source_id,source_url,verified_at,field_key,is_stale,stale_after&limit=1000')
   ok('no KNOWN fact in the current view lacks provenance',
     cur.every((f) => f.state !== 'KNOWN' || (f.source_id && f.verified_at)))
   ok('every current fact has a freshness horizon',
@@ -140,6 +140,35 @@ async function main() {
     conditionHash([{ field: 'age', op: 'lte', value: 60 }, { field: 'salary', op: 'gt', value: 1 }]))
   ok('every state in the seed is a known state',
     seedFacts.every((f) => (FACT_STATES as readonly string[]).includes(f.state)))
+
+  // ── UNKNOWN must be a claim about a source, not an empty field ──────────
+  const unknowns = cur.filter((f: any) => f.state === 'UNKNOWN')
+  ok('every UNKNOWN names the page that was checked and when',
+    unknowns.every((f: any) => f.source_url && f.verified_at),
+    `${unknowns.length} UNKNOWN facts`)
+
+  const banksAll = await get<any[]>('banks?select=slug,research_state,research_note,website')
+  ok('every bank declares how far research got',
+    banksAll.every((b) => ['researched', 'source_unreachable', 'not_researched'].includes(b.research_state)))
+  /* A bank we could not reach must not also be claiming a reachable website —
+     that is the combination that would let the page imply we read it. */
+  ok('an unreachable bank carries no website and says why',
+    banksAll.filter((b) => b.research_state === 'source_unreachable').every((b) => !b.website && b.research_note))
+
+  /* The source registry must not point at a domain someone parked.
+     iraqiislamicbank.com looked exactly like the Iraqi Islamic Bank and is a
+     domain-sale page; had it been cited, every fact under it would have been
+     sourced to an advert. */
+  const sources = await get<any[]>('data_sources?select=key,url')
+  const parked: string[] = []
+  for (const s of sources.filter((x) => x.url)) {
+    try {
+      const r = await fetch(s.url, { headers: { 'User-Agent': 'Mozilla/5.0 (compatible; IraqSM/1.0)' }, signal: AbortSignal.timeout(15_000) })
+      const t = (await r.text()).slice(0, 60_000)
+      if (/spaceship\.com|domain (is )?for sale|buy this domain|parked/i.test(t)) parked.push(s.key)
+    } catch { /* unreachable is not the same as parked; §5 covers that */ }
+  }
+  ok('no source in the registry is a parked domain', parked.length === 0, parked.join(', '))
 
   // ── the stale report answers ────────────────────────────────────────────
   const stale = await get<any[]>('bank_facts_stale?select=bank_slug,field_key,days_overdue&limit=20')

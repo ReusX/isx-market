@@ -10,18 +10,22 @@
  * the database is the authority.
  *
  * ── The four states, and the one distinction that matters ────────────────
- *   KNOWN           the bank publishes it and we recorded it, with a source
- *   UNKNOWN         we looked and the bank does not publish it
- *   NOT_APPLICABLE  the field has no meaning for this product
- *   UNVERIFIED      recorded but not yet checked against a source
+ *   KNOWN               published, recorded, with a source and a quote
+ *   UNKNOWN             we read the bank's page and it does not publish this —
+ *                       so it carries the page we read and the date we read it
+ *   SOURCE_UNAVAILABLE  we tried and could not read the source
+ *   NOT_APPLICABLE      the field has no meaning for this product
+ *   UNVERIFIED          recorded but not yet checked
  *
- * A missing row means nobody ever looked. That is NOT the same as UNKNOWN, and
- * collapsing them throws away the more useful of the two facts: "Bank of
- * Baghdad does not publish its personal-loan rate" is a finding about the
- * Iraqi market. "We never checked" is a finding about us.
+ * A missing row is a sixth thing: nobody looked. These are kept apart because
+ * they say completely different things to a reader. "Bank of Baghdad does not
+ * publish its loan rate" is a finding about the Iraqi market; "we could not
+ * open the site" is a finding about the source; "we never checked" is a
+ * finding about us. An UNKNOWN with no source URL is indistinguishable from a
+ * forgotten field, which is why `checkFact` demands one.
  */
 
-export const FACT_STATES = ['KNOWN', 'UNKNOWN', 'NOT_APPLICABLE', 'UNVERIFIED'] as const
+export const FACT_STATES = ['KNOWN', 'UNKNOWN', 'NOT_APPLICABLE', 'UNVERIFIED', 'SOURCE_UNAVAILABLE'] as const
 export type FactState = (typeof FACT_STATES)[number]
 
 export const PRODUCT_KINDS = [
@@ -118,6 +122,12 @@ export interface BankSeed {
   swift?: string
   /** The bridge to the curated company roster. Null for non-listed banks. */
   ticker?: string | null
+  /* How far research on this bank actually got. A bank with no products looks
+     identical whether we checked and found nothing published or never looked;
+     this is what tells them apart. */
+  researchState: 'researched' | 'source_unreachable' | 'not_researched'
+  researchNote?: string
+  researchCheckedAt?: string
   cbiLicensed?: boolean
   licenceSourceKey?: string
   licenceVerifiedAt?: string
@@ -184,6 +194,14 @@ export function checkFact(f: FactSeed): string[] {
     if (!f.verifiedAt) out.push(`${f.key}: KNOWN without a verified date`)
   } else if (hasValue) {
     out.push(`${f.key}: ${f.state} must not carry a value`)
+  }
+  /* UNKNOWN is a claim about the SOURCE — "we read this page and the term is
+     not on it" — so it has to name the page and the date. Without that it is
+     just an empty field wearing a state. */
+  if (f.state === 'UNKNOWN') {
+    if (!f.sourceKey) out.push(`${f.key}: UNKNOWN without the source that was checked`)
+    if (!f.sourceUrl) out.push(`${f.key}: UNKNOWN without the URL that was checked`)
+    if (!f.verifiedAt) out.push(`${f.key}: UNKNOWN without the date it was checked`)
   }
   for (const c of f.when ?? []) out.push(...checkCondition(c).map((m) => `${f.key}: ${m}`))
   return out
