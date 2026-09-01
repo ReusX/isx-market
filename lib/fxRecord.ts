@@ -50,17 +50,63 @@ export function fingerprint(text: string): string {
   return ((h1 >>> 0).toString(16).padStart(8, '0') + (h2 >>> 0).toString(16).padStart(8, '0'))
 }
 
-let sourceIds: Map<string, number> | null = null
-
-async function sourceId(sb: SbAdmin, key: string): Promise<number | null> {
-  if (!sourceIds) {
-    const { data } = await sb.from('data_sources').select('id,key')
-    sourceIds = new Map(((data as { id: number; key: string }[]) ?? []).map((r) => [r.key, r.id]))
-  }
-  return sourceIds.get(key) ?? null
+/**
+ * Plain PostgREST rather than the Supabase client.
+ *
+ * `createAdminClient()` builds a `@supabase/ssr` client, which carries the
+ * Realtime transport. On Node 20 that throws "Node.js 20 detected without
+ * native WebSocket support" — so every write from the GitHub Action failed
+ * while the job still exited 0. This layer needs one authenticated POST; a
+ * `fetch` has no runtime coupling to argue with, and it is how the rest of the
+ * server-side data layer already talks to the database (lib/freshness.ts,
+ * lib/fxHistory.ts).
+ */
+const REST = () => {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY
+  if (!url || !key) return null
+  return { url, headers: { apikey: key, Authorization: `Bearer ${key}`, 'Content-Type': 'application/json' } }
 }
 
-type SbAdmin = ReturnType<typeof import('@/lib/supabase/server')['createAdminClient']>
+let sourceIds: Map<string, number> | null = null
+
+async function sourceIdMap(): Promise<Map<string, number>> {
+  if (sourceIds) return sourceIds
+  const r = REST()
+  if (!r) return new Map()
+  const res = await fetch(`${r.url}/rest/v1/data_sources?select=id,key`, { headers: r.headers })
+  if (!res.ok) return new Map()
+  const rows = (await res.json()) as { id: number; key: string }[]
+  sourceIds = new Map(rows.map((x) => [x.key, x.id]))
+  return sourceIds
+}
+
+/** POST rows with ON CONFLICT DO NOTHING on the dedupe key. */
+async function insert(payload: Record<string, unknown>[]): Promise<{ ok: boolean; created: number; reason?: string }> {
+  const r = REST()
+  if (!r) return { ok: false, created: 0, reason: 'NEXT_PUBLIC_SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY is not set' }
+  const res = await fetch(`${r.url}/rest/v1/fx_observations?on_conflict=dedupe_key`, {
+    method: 'POST',
+    headers: { ...r.headers, Prefer: 'resolution=ignore-duplicates,return=representation' },
+    body: JSON.stringify(payload),
+  })
+  if (!res.ok) return { ok: false, created: 0, reason: `${res.status} ${(await res.text()).slice(0, 160)}` }
+  /* `ignore-duplicates` returns the inserted rows and nothing for conflicts,
+     which is reliable for a single row. Bulk callers count the table instead —
+     see recordMany. */
+  const body = (await res.json().catch(() => [])) as unknown[]
+  return { ok: true, created: Array.isArray(body) ? body.length : 0 }
+}
+
+function payloadOf(o: FxObservation, sid: number) {
+  return {
+    series: o.series, location: o.location, buy: o.buy, sell: o.sell,
+    observed_at: o.observedAt, observed_date: o.observedDate, origin: o.origin,
+    source_id: sid, source_url: o.sourceUrl ?? null, source_event: o.sourceEvent,
+    source_ts: o.sourceTs ?? null, raw_excerpt: o.rawExcerpt ?? null,
+    content_hash: o.rawExcerpt ? fingerprint(o.rawExcerpt) : null,
+  }
+}
 
 /**
  * Append one observation. Returns whether a row was actually created.
@@ -71,40 +117,11 @@ type SbAdmin = ReturnType<typeof import('@/lib/supabase/server')['createAdminCli
  */
 export async function record(obs: FxObservation): Promise<RecordResult> {
   try {
-    const { createAdminClient } = await import('@/lib/supabase/server')
-    const sb = createAdminClient()
-    const sid = await sourceId(sb, obs.sourceKey)
+    const sid = (await sourceIdMap()).get(obs.sourceKey)
     if (!sid) return { outcome: 'error', inserted: false, reason: `unknown source '${obs.sourceKey}'` }
-
-    /* `ignore-duplicates` on the dedupe key turns the expected repeat into a
-       no-op rather than a 409 the caller has to interpret. */
-    const { data, error } = await sb
-      .from('fx_observations')
-      .upsert(
-        {
-          series: obs.series,
-          location: obs.location,
-          buy: obs.buy,
-          sell: obs.sell,
-          observed_at: obs.observedAt,
-          observed_date: obs.observedDate,
-          origin: obs.origin,
-          source_id: sid,
-          source_url: obs.sourceUrl ?? null,
-          source_event: obs.sourceEvent,
-          source_ts: obs.sourceTs ?? null,
-          raw_excerpt: obs.rawExcerpt ?? null,
-          content_hash: obs.rawExcerpt ? fingerprint(obs.rawExcerpt) : null,
-        },
-        { onConflict: 'dedupe_key', ignoreDuplicates: true },
-      )
-      .select('id')
-
-    if (error) return { outcome: 'error', inserted: false, reason: error.message }
-    /* With `ignoreDuplicates`, PostgREST returns the row on a real insert and
-       nothing on a conflict — so an empty result here means the observation was
-       already held, not that the write failed. Errors were caught above. */
-    const inserted = (data?.length ?? 0) > 0
+    const r = await insert([payloadOf(obs, sid)])
+    if (!r.ok) return { outcome: 'error', inserted: false, reason: r.reason }
+    const inserted = r.created > 0
     return { outcome: inserted ? 'inserted' : 'duplicate', inserted }
   } catch (e) {
     return { outcome: 'error', inserted: false, reason: e instanceof Error ? e.message : 'unknown' }
@@ -125,43 +142,28 @@ export async function recordMany(
 ): Promise<{ attempted: number; failed: number; reasons: string[] }> {
   const out = { attempted: 0, failed: 0, reasons: [] as string[] }
   if (!rows.length) return out
-  try {
-    const { createAdminClient } = await import('@/lib/supabase/server')
-    const sb = createAdminClient()
-    for (let i = 0; i < rows.length; i += chunk) {
-      const slice = rows.slice(i, i + chunk)
-      const ids = await Promise.all(slice.map((o) => sourceId(sb, o.sourceKey)))
-      const payload = slice.map((o, k) => ({
-        series: o.series, location: o.location, buy: o.buy, sell: o.sell,
-        observed_at: o.observedAt, observed_date: o.observedDate, origin: o.origin,
-        source_id: ids[k], source_url: o.sourceUrl ?? null, source_event: o.sourceEvent,
-        source_ts: o.sourceTs ?? null, raw_excerpt: o.rawExcerpt ?? null,
-        content_hash: o.rawExcerpt ? fingerprint(o.rawExcerpt) : null,
-      }))
-      if (payload.some((p) => !p.source_id)) {
-        out.failed += slice.length
-        out.reasons.push('unknown source key in batch')
-        continue
-      }
-      const { data, error } = await sb
-        .from('fx_observations')
-        .upsert(payload, { onConflict: 'dedupe_key', ignoreDuplicates: true })
-        .select('id')
-      if (error) {
-        out.failed += slice.length
-        if (!out.reasons.includes(error.message)) out.reasons.push(error.message)
-        continue
-      }
-      /* `ignoreDuplicates` makes PostgREST return an empty representation
-         even for rows it did insert, so `data.length` cannot be trusted here.
-         The caller counts the table before and after instead — the database is
-         the only witness that cannot be wrong about what it stored. */
-      void data
-      out.attempted += slice.length
+  const ids = await sourceIdMap()
+  for (let i = 0; i < rows.length; i += chunk) {
+    const slice = rows.slice(i, i + chunk)
+    const payload: Record<string, unknown>[] = []
+    let bad = false
+    for (const o of slice) {
+      const sid = ids.get(o.sourceKey)
+      if (!sid) { bad = true; break }
+      payload.push(payloadOf(o, sid))
     }
-  } catch (e) {
-    out.failed += rows.length
-    out.reasons.push(e instanceof Error ? e.message : 'unknown')
+    if (bad) {
+      out.failed += slice.length
+      if (!out.reasons.includes('unknown source key in batch')) out.reasons.push('unknown source key in batch')
+      continue
+    }
+    const r = await insert(payload)
+    if (!r.ok) {
+      out.failed += slice.length
+      if (r.reason && !out.reasons.includes(r.reason)) out.reasons.push(r.reason)
+      continue
+    }
+    out.attempted += slice.length
   }
   return out
 }

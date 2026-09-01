@@ -15,9 +15,12 @@
  * change, not for how much history it creates — running it more often cannot
  * inflate the record.
  *
- * The job prints what it did and exits 0 unless BOTH sources fail. One source
- * being down is a bad afternoon, not a broken pipeline, and failing the
- * workflow for it would train everyone to ignore the red.
+ * ── What makes it fail ────────────────────────────────────────────────────
+ * A source being unreachable is a bad afternoon; both being unreachable, or
+ * ANY write erroring, is a broken pipeline. The distinction matters because
+ * the first version exited 0 while every write in GitHub Actions failed —
+ * `createAdminClient()` needs a WebSocket that Node 20 does not have, so the
+ * run was green and the table was empty. A write error now fails the job.
  */
 
 import { fetchFx } from '../lib/rates'
@@ -26,6 +29,9 @@ import { record } from '../lib/fxRecord'
 import { baghdadDate, cbiWebEvent, alsumariaEvent } from '../lib/fxSeries'
 
 const line = (ok: boolean, msg: string) => console.log(`${ok ? '✓' : '·'} ${msg}`)
+
+/** Set when any write reports `error` — as opposed to a legitimate duplicate. */
+let writeError: string | null = null
 
 async function parallel(): Promise<boolean> {
   const fx = await fetchFx()
@@ -49,7 +55,9 @@ async function parallel(): Promise<boolean> {
     sourceTs: fx.publishedAt ?? null,
     rawExcerpt: fx.excerpt ?? null,
   })
-  line(r.inserted, `parallel: ${fx.buy} / ${fx.sell} on ${fx.date} — ${r.inserted ? 'recorded' : r.reason ?? 'already held'}`)
+  if (r.outcome === 'error') writeError = r.reason ?? 'unknown'
+  line(r.inserted, `parallel: ${fx.buy} / ${fx.sell} on ${fx.date} — ${
+    r.outcome === 'inserted' ? 'recorded' : r.outcome === 'duplicate' ? 'already held' : `WRITE FAILED · ${r.reason}`}`)
   return true
 }
 
@@ -75,7 +83,9 @@ async function official(): Promise<boolean> {
     sourceEvent: cbiWebEvent(day),
     rawExcerpt: quote.excerpt,
   })
-  line(r.inserted, `official: ${quote.rate} — ${r.inserted ? 'recorded' : r.reason ?? 'already held today'}`)
+  if (r.outcome === 'error') writeError = r.reason ?? 'unknown'
+  line(r.inserted, `official: ${quote.rate} — ${
+    r.outcome === 'inserted' ? 'recorded' : r.outcome === 'duplicate' ? 'already held today' : `WRITE FAILED · ${r.reason}`}`)
   return true
 }
 
@@ -83,8 +93,12 @@ async function official(): Promise<boolean> {
    where top-level await is a syntax error. */
 async function main() {
   const [p, o] = await Promise.all([parallel(), official()])
+  if (writeError) {
+    console.error(`✗ the database write failed: ${writeError}`)
+    process.exit(1)
+  }
   if (!p && !o) {
-    console.error('✗ both sources failed')
+    console.error('✗ both sources unreachable')
     process.exit(1)
   }
 }
