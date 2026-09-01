@@ -14,6 +14,12 @@ name: FX Record
 # quickly a change should show up, not for how much history it produces.
 
 on:
+  # TEMPORARY — proves this workflow in the real Actions environment before the
+  # branch is merged. `workflow_dispatch` only registers from the default
+  # branch, so a branch-scoped push trigger is the only way to exercise it
+  # pre-merge. Removed once verified.
+  push:
+    branches: [feat/fx-observation-spine]
   schedule:
     # 08:00, 11:00, 14:00, 17:00 and 20:00 Baghdad (UTC+3, no DST) — through
     # the trading day, with a close-of-day reading after the exchanges settle.
@@ -50,3 +56,11 @@ jobs:
           NEXT_PUBLIC_SUPABASE_URL:  ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
         run: npx tsx scripts/fx-record.ts
+
+      # TEMPORARY — proves insert / skip / correction / error against the real
+      # database from inside Actions. Removed with the push trigger above.
+      - name: Verify write path
+        env:
+          NEXT_PUBLIC_SUPABASE_URL:  ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        run: npx tsx scripts/fx-verify.ts
