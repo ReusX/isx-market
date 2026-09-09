@@ -5,3 +5,12 @@ _archive/
 *.pdf
 *.xls
 *.xlsx
+
+# Local build outputs. A .vercelignore replaces .gitignore for uploads, so
+# without these the CLI ships .next-check — the scratch dist the build:log
+# gate writes — and Vercel then typechecks ITS generated route types. That is
+# how a deploy of main came to fail on app/(ar)/banks types from a branch.
+.next/
+.next-check/
+.next-build.log
+node_modules/
