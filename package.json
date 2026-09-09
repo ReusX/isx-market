@@ -20,6 +20,8 @@
     "check:fx": "npx tsx scripts/fx-parser-test.ts",
     "check:fx-writes": "npx tsx scripts/fx-verify.ts",
     "check:banking": "npx tsx scripts/banking-gates.ts",
+    "check:charts": "node scripts/chart-freshness.mjs --self-test && node scripts/chart-freshness.mjs",
+    "check:charts:static": "node scripts/chart-freshness.mjs --self-test && node scripts/chart-freshness.mjs --static-only",
     "seed:banks": "npx tsx scripts/seed-banks.ts"
   },
   "dependencies": {
