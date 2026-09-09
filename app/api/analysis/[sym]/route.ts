@@ -5,9 +5,16 @@ import path from 'path'
 
 export const maxDuration = 60
 
+/* Same reason as /api/chart: supabase-js reads go through `fetch`, which a
+   route handler caches indefinitely unless told otherwise. Here it would also
+   cost money — a cached miss makes POST regenerate an analysis the table
+   already holds. */
+export const dynamic = 'force-dynamic'
+
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_ROLE_KEY!,
+  { global: { fetch: (url, init) => fetch(url, { ...init, cache: 'no-store' }) } },
 )
 
 const CACHE_TTL_MS = 7 * 24 * 60 * 60 * 1000

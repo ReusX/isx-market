@@ -1,9 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 
+/* The route is served from the CDN for a minute at a time (see the response
+   headers below); what it must NOT do is answer from Next's data cache. An
+   unqualified `fetch` inside a route handler is cached indefinitely, and
+   supabase-js goes through that fetch — so the series froze on the day of the
+   last deploy while the header, which reads the same table from the browser,
+   kept moving. `force-dynamic` plus `no-store` is the same pair
+   /api/cron/daily-prices already uses. */
+export const dynamic = 'force-dynamic'
+
 const sb = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_ROLE_KEY!,
+  { global: { fetch: (url, init) => fetch(url, { ...init, cache: 'no-store' }) } },
 )
 
 // Fetch all daily_prices for a ticker with pagination to bypass the 1000-row default.
