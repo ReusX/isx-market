@@ -123,6 +123,10 @@ export function BankProfile({ bank, products, facts, conditions, services, finan
         </section>
       ) : null}
 
+      {/* Never a bare heading: an empty list here used to be the only visible
+          symptom of a failed query, and it read as "this bank has no
+          services" rather than "we asked wrong". */}
+      {services.length ? (
       <section className="bk-panel">
         <h2>{c.services}</h2>
         <ul className="bk-services">
@@ -138,6 +142,7 @@ export function BankProfile({ bank, products, facts, conditions, services, finan
           ))}
         </ul>
       </section>
+      ) : null}
 
       {deposits.length ? (
         <section className="bk-panel">

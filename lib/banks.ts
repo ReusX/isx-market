@@ -23,9 +23,18 @@ async function q<T>(path: string, revalidate = 3600): Promise<T[]> {
       headers: { apikey: ANON, Authorization: `Bearer ${ANON}` },
       next: { revalidate },
     })
-    if (!res.ok) return []
+    /* An empty array degrades gracefully — a panel simply does not render —
+       which is exactly why a broken query has to be LOUD. Selecting a column
+       the view does not have returns 400, and for a while that silently
+       emptied the services panel on every bank: a heading with nothing under
+       it, indistinguishable from a bank we know nothing about. */
+    if (!res.ok) {
+      console.error(`[banks] ${res.status} on ${path.split('?')[0]} — ${(await res.text()).slice(0, 200)}`)
+      return []
+    }
     return (await res.json()) as T[]
-  } catch {
+  } catch (e) {
+    console.error(`[banks] request failed on ${path.split('?')[0]}`, e)
     return []
   }
 }
@@ -117,7 +126,6 @@ export interface ServiceRow {
   availability: Availability
   source_url: string | null
   verified_at: string | null
-  is_stale: boolean | null
 }
 
 const BANK_COLS =
@@ -135,20 +143,45 @@ export const listProducts = (slug?: string) =>
     `bank_products_current?select=*${slug ? `&bank_slug=eq.${slug}` : ''}&is_active=is.true&order=kind.asc`,
   )
 
+/* No `is_stale` here: bank_services_current does not expose one. The svc:*
+   rows in fact_policy say what the freshness horizon for a service SHOULD be,
+   but the view never joined them, so asking for the column 400'd the whole
+   query and the panel came back empty. Services render without an age until
+   the view carries one. */
 export const listServices = (slug?: string) =>
   q<ServiceRow>(
-    `bank_services_current?select=bank_slug,service_key,availability,source_url,verified_at,is_stale` +
+    `bank_services_current?select=bank_slug,service_key,availability,source_url,verified_at` +
     `${slug ? `&bank_slug=eq.${slug}` : ''}`,
   )
+
+const FACT_COLS =
+  'id,product_id,field_key,value_num,value_text,value_text_en,value_bool,unit,state,' +
+  'is_conditional,source_key,source_url,source_excerpt,verified_at,label_ar,label_en,is_stale,note'
 
 export async function productDetail(productIds: number[]) {
   if (!productIds.length) return { facts: [] as FactRow[], conditions: [] as ConditionRow[] }
   const inList = `(${productIds.join(',')})`
-  const facts = await q<FactRow>(
-    `product_facts_current?select=id,product_id,field_key,value_num,value_text,value_text_en,value_bool,unit,state,` +
-    `is_conditional,source_key,source_url,source_excerpt,verified_at,label_ar,label_en,is_stale,note` +
-    `&product_id=in.${inList}&order=field_key.asc`,
-  )
+  const url = (cols: string) =>
+    `product_facts_current?select=${cols}&product_id=in.${inList}&order=field_key.asc`
+
+  let facts = await q<FactRow>(url(FACT_COLS))
+  /* A database that predates the English-rendering column rejects the whole
+     select, and PostgREST rejects it as a unit — one unknown column and every
+     fact, every condition and every source line disappears from the page while
+     the product headline, which comes from a different view, keeps rendering.
+     That is a page that looks finished and says nothing. Until the view is
+     rebuilt, fall back and let the English page show the bank's Arabic wording
+     for free-prose facts, which is a smaller wrong than showing nothing. */
+  if (!facts.length) {
+    const degraded = await q<FactRow>(url(FACT_COLS.replace(',value_text_en', '')))
+    if (degraded.length) {
+      console.warn(
+        '[banks] product_facts_current has no value_text_en — serving without it. ' +
+        'Apply the value_text_en block of supabase/migrations/20260901_banking_foundation.sql.',
+      )
+      facts = degraded
+    }
+  }
   const ids = facts.filter((f) => f.is_conditional).map((f) => f.id)
   const conditions = ids.length
     ? await q<ConditionRow>(
