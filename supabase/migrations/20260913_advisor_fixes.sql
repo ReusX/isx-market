@@ -63,3 +63,23 @@ alter view public.latest_trade            set (security_invoker = on);
  * grant is intentional. Revoking it would break those pages and protect
  * nothing.
  */
+
+/* ── Performance, not security ──────────────────────────────────────────────
+ *
+ * The advisor's "unindexed foreign keys" on our own tables. A foreign key
+ * with no index makes the referenced row's delete scan the child table, and
+ * makes joins in that direction sequential. All three point at data_sources —
+ * the provenance join every bank fact and every FX observation goes through.
+ *
+ * Only OUR tables are touched here. chat_messages and penalty_shots carry the
+ * same warning and belong to the other application in this project; its
+ * indexes are its own call.
+ */
+create index if not exists banks_licence_source
+  on public.banks (licence_source_id);
+create index if not exists product_facts_source
+  on public.product_facts (source_id);
+create index if not exists bank_services_source
+  on public.bank_services (source_id);
+create index if not exists fx_observations_source
+  on public.fx_observations (source_id);
