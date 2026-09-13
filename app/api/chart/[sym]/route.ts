@@ -38,7 +38,15 @@ export async function GET(req: NextRequest, { params }: { params: { sym: string 
     offset += PAGE
   }
 
+  /* The CDN may hold this for a minute; the BROWSER may not hold it at all.
+     `public` with no max-age lets a browser cache heuristically, which is how
+     a returning reader could keep an old series after the CDN had a new one.
+     s-maxage + stale-while-revalidate bound the lag behind a new session at
+     three minutes. */
   return NextResponse.json(all, {
-    headers: { 'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=300' },
+    headers: {
+      'Cache-Control':
+        'public, max-age=0, must-revalidate, s-maxage=60, stale-while-revalidate=120',
+    },
   })
 }

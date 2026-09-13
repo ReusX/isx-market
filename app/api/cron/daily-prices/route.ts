@@ -16,9 +16,14 @@ const UA = { 'User-Agent': 'Mozilla/5.0 (iraqsm.com daily cron)' }
 const DAYS_BACK = 7
 const CODE_RE = /^[A-Z]{3,5}$/
 
+/* The reads matter as much as the writes here: line ~282 asks the table which
+   sessions it already holds, and that answer decides which workbooks get
+   ingested. Served from Next's data cache it would be a week-old answer, and
+   the job would skip sessions it does not actually have. */
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_ROLE_KEY!,
+  { global: { fetch: (url, init) => fetch(url, { ...init, cache: 'no-store' }) } },
 )
 
 function ddmmyyyy(d: Date): string {
