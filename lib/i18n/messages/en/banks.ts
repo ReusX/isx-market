@@ -38,6 +38,10 @@ export const banks: typeof ar = {
   },
   coverageNote: 'This column describes what the bank publishes, not how good it is. A bank that publishes little is not thereby a worse bank.',
 
+  searchPlaceholder: 'Search a bank',
+  noMatch: 'No bank matches that',
+  productsLabel: 'Products',
+  glance: 'What this bank publishes',
   filterAll: 'All',
   filterListed: 'Listed',
   filterState: 'State',

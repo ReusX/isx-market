@@ -3,7 +3,9 @@
 import Link from 'next/link'
 import { useLocale } from '@/context/LocaleContext'
 import { localeDate } from '@/lib/date'
-import { CoverageChip, iqd } from './BanksHub'
+import { CoverageChip, iqd, headlineTerms, initials } from './BanksHub'
+import { CompanyLogo } from '@/components/CompanyLogo'
+import companiesData from '@/public/data/companies.json'
 import type {
   Bank, ProductRow, ServiceRow, FactRow, ConditionRow, BankFinancials, Coverage,
 } from '@/lib/banks'
@@ -54,22 +56,54 @@ export function BankProfile({ bank, products, facts, conditions, services, finan
   const loans = products.filter((p) => !p.kind.startsWith('deposit') && p.kind !== 'account_current')
   const byProduct = (id: number) => facts.filter((f) => f.product_id === id)
 
+  const art = bank.ticker
+    ? (companiesData as { sym: string; logo?: string; color?: string }[]).find((x) => x.sym === bank.ticker)
+    : undefined
+  const glance = headlineTerms(products, locale).slice(0, 4)
+
   return (
     <main className="iq-page bk-page">
       <Link className="bk-back" href={L('/banks')}>
         <span className="dir-go" aria-hidden="true">›</span> {c.backToBanks}
       </Link>
 
-      <header className="bk-profile-head">
-        <div>
+      <header className="bk-hero-card">
+        <CompanyLogo
+          className="bk-mark" sym={bank.ticker ?? initials(bank.name_en)}
+          logo={art?.logo} color={art?.color ?? 'var(--mv-hero)'} letters={bank.ticker ? 2 : 3}
+        />
+        <div className="bk-hero-main">
           <h1>{name}</h1>
-          <p className="bk-sub">
-            {c.type[bank.bank_type]} · {c.ownership[bank.ownership]}
-            {city ? <> · {city}</> : null}
+          <p className="bk-meta">
+            <span>{c.type[bank.bank_type]} · {c.ownership[bank.ownership]}{city ? ` · ${city}` : ''}</span>
+            <CoverageChip coverage={coverage} />
           </p>
+          {/* The two things a reader clicks next, as buttons rather than as
+              rows in a definition list six sections down the page. */}
+          <div className="bk-hero-links">
+            {bank.website ? (
+              <a className="bk-pill" href={bank.website} target="_blank" rel="noopener noreferrer">
+                {bank.website.replace(/^https?:\/\/(www\.)?/, '')}
+              </a>
+            ) : null}
+            {bank.ticker ? (
+              <Link className="bk-pill" href={L(`/c/${bank.ticker}`)}>
+                <bdi>{bank.ticker}</bdi> · {c.viewCompany}
+              </Link>
+            ) : null}
+          </div>
         </div>
-        <CoverageChip coverage={coverage} />
       </header>
+
+      {/* The answer first: every published headline rate, before any
+          explanation of where it came from. */}
+      {glance.length ? (
+        <dl className="bk-glance">
+          {glance.map((g) => (
+            <div key={g.key}><dt>{g.label}</dt><dd><bdi>{g.value}</bdi></dd></div>
+          ))}
+        </dl>
+      ) : null}
 
       {/* A bank we could not reach says so once, at the top, rather than
           letting every empty section imply the bank offers nothing. */}
@@ -77,40 +111,26 @@ export function BankProfile({ bank, products, facts, conditions, services, finan
         <p className="bk-unreachable">{c.unreachableNote}</p>
       ) : null}
 
-      <section className="bk-panel">
+      <section className="bk-section">
         <h2>{c.identity}</h2>
-        <dl className="bk-identity">
+        <dl className="bk-dl">
           {bank.founded ? <div><dt>{c.founded}</dt><dd><bdi>{bank.founded}</bdi></dd></div> : null}
-          {city ? <div><dt>{c.hq}</dt><dd>{city}</dd></div> : null}
+          {city ? <div><dt>{c.hq}</dt><dd className="txt">{city}</dd></div> : null}
           {bank.swift ? <div><dt>{c.swift}</dt><dd><bdi>{bank.swift}</bdi></dd></div> : null}
           {bank.cbi_licensed ? <div><dt>{c.licence}</dt><dd>✓</dd></div> : null}
-          {bank.ticker ? (
-            <div>
-              <dt>{c.tickerLabel}</dt>
-              <dd><Link className="bk-link" href={L(`/c/${bank.ticker}`)}><bdi>{bank.ticker}</bdi></Link></dd>
-            </div>
-          ) : null}
-          {bank.website ? (
-            <div>
-              <dt>{c.website}</dt>
-              <dd><a className="bk-link" href={bank.website} target="_blank" rel="noopener noreferrer">
-                {bank.website.replace(/^https?:\/\/(www\.)?/, '')}
-              </a></dd>
-            </div>
-          ) : null}
         </dl>
       </section>
 
       {financials ? (
-        <section className="bk-panel">
-          <div className="bk-panel-head">
+        <section className="bk-section">
+          <div className="bk-section-head">
             <h2>{c.financials}</h2>
-            <span className="bk-panel-note">{c.financialsNote(String(financials.fiscalYear), financials.period)}</span>
-            <Link className="bk-link bk-panel-link" href={L(`/c/${bank.ticker}/financials`)}>
+            <span className="bk-section-note">{c.financialsNote(String(financials.fiscalYear), financials.period)}</span>
+            <Link className="bk-link bk-section-link" href={L(`/c/${bank.ticker}/financials`)}>
               {c.viewCompany} <i className="dir-go" aria-hidden="true">←</i>
             </Link>
           </div>
-          <dl className="bk-fin">
+          <dl className="bk-dl">
             {FIN_ORDER.filter((k) => financials.values[k] != null).map((k) => (
               <div key={k}>
                 <dt>{c.fin[k]}</dt>
@@ -127,17 +147,24 @@ export function BankProfile({ bank, products, facts, conditions, services, finan
           symptom of a failed query, and it read as "this bank has no
           services" rather than "we asked wrong". */}
       {services.length ? (
-      <section className="bk-panel">
+      <section className="bk-section">
         <h2>{c.services}</h2>
         <ul className="bk-services">
           {services.map((s) => (
-            <li key={s.service_key} className={`is-${s.availability}`}>
+            <li key={s.service_key} className={`is-${s.availability}`}
+              title={s.availability === 'available' ? c.available
+                : s.availability === 'unavailable' ? c.unavailable : c.unchecked}>
+              {/* The glyph carries the state and the title carries the word,
+                  so a screen reader is not left with a tick. */}
+              <span className="bk-svc-icon" aria-hidden="true">
+                {s.availability === 'available' ? '✓' : s.availability === 'unavailable' ? '✗' : '?'}
+              </span>
               <span>{c.service[s.service_key as keyof typeof c.service] ?? s.service_key}</span>
-              <em>
+              <span className="sr-only">
                 {s.availability === 'available' ? c.available
                   : s.availability === 'unavailable' ? c.unavailable
                     : c.unchecked}
-              </em>
+              </span>
             </li>
           ))}
         </ul>
@@ -145,24 +172,28 @@ export function BankProfile({ bank, products, facts, conditions, services, finan
       ) : null}
 
       {deposits.length ? (
-        <section className="bk-panel">
+        <section className="bk-section">
           <h2>{c.deposits}</h2>
-          {deposits.map((p) => <Product key={p.id} p={p} facts={byProduct(p.id)} conditions={conditions} />)}
+          <div className="bk-products">
+            {deposits.map((p) => <Product key={p.id} p={p} facts={byProduct(p.id)} conditions={conditions} />)}
+          </div>
         </section>
       ) : null}
 
       {loans.length ? (
-        <section className="bk-panel">
+        <section className="bk-section">
           <h2>{c.loans}</h2>
-          {loans.map((p) => <Product key={p.id} p={p} facts={byProduct(p.id)} conditions={conditions} />)}
+          <div className="bk-products">
+            {loans.map((p) => <Product key={p.id} p={p} facts={byProduct(p.id)} conditions={conditions} />)}
+          </div>
         </section>
       ) : null}
 
       {!products.length && bank.research_state !== 'source_unreachable' ? (
-        <section className="bk-panel"><p className="bk-na">{c.noProducts}</p></section>
+        <section className="bk-section"><p className="bk-empty">{c.noProducts}</p></section>
       ) : null}
 
-      <section className="bk-panel bk-sources">
+      <section className="bk-section bk-sources">
         <h2>{c.sources}</h2>
         <p>{c.methodology}</p>
         <ul>
@@ -239,8 +270,8 @@ function Product({ p, facts, conditions }: { p: ProductRow; facts: FactRow[]; co
       )}
 
       {conditional.length ? (
-        <details className="bk-conditions">
-          <summary>{c.showConditions}</summary>
+        <div className="bk-conds">
+          <h4>{c.conditionsHeading}</h4>
           <ul>
             {conditional.map((f) => (
               <li key={f.id}>
@@ -255,7 +286,7 @@ function Product({ p, facts, conditions }: { p: ProductRow; facts: FactRow[]; co
               </li>
             ))}
           </ul>
-        </details>
+        </div>
       ) : null}
 
       {p.last_verified ? (
@@ -293,13 +324,21 @@ function FactValue({ f }: { f: FactRow }) {
 function describe(x: ConditionRow, c: any): string {
   const field = c.condField[x.field_key] ?? x.field_key
   const op = c.condOp[x.op] ?? x.op
+  /* A number means nothing without its unit. «المدة = 6» was the months of a
+     term deposit rendered as a bare 6, next to «الراتب ≥ 500K» where the
+     compact-dinar form is right. The unit belongs to the FIELD. */
+  const num = (n: number) =>
+    x.field_key === 'term_months' || x.field_key === 'employment_months'
+      ? (n % 12 === 0 && n >= 12 ? c.years(String(n / 12)) : c.months(String(n)))
+      : x.field_key === 'age' ? String(n)
+        : iqd(n)
   const raw = x.value_set
     ? x.value_set.map((v) => c.condValue[v] ?? v).join(' / ')
     : x.value_bool != null
       ? c.condValue[String(x.value_bool)]
       : x.value_text != null
         ? (c.condValue[x.value_text] ?? x.value_text)
-        : x.value_num != null ? iqd(x.value_num) : ''
+        : x.value_num != null ? num(x.value_num) : ''
   /* A boolean condition reads better as a statement than as «= yes». */
   if (x.value_bool === true && x.op === 'eq') return field
   /* A negated boolean gets its own phrasing rather than an operator glyph:

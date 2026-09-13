@@ -50,6 +50,10 @@ export const banks = {
   coverageNote: 'يصف هذا العمود ما ينشره المصرف علناً، لا جودته. مصرفٌ لا ينشر شروطه ليس بالضرورة مصرفاً أسوأ.',
 
   /* Filters */
+  searchPlaceholder: 'ابحث عن مصرف',
+  noMatch: 'لا يوجد مصرف مطابق',
+  productsLabel: 'المنتجات',
+  glance: 'أبرز ما ينشره المصرف',
   filterAll: 'الكل',
   filterListed: 'مدرجة',
   filterState: 'حكومية',
