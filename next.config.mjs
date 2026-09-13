@@ -63,6 +63,29 @@ const nextConfig = {
           { key: 'Cache-Control', value: 'public, max-age=1800, stale-while-revalidate=3600' },
         ],
       },
+      /*
+       * Baseline response headers. Vercel already sends HSTS; these are the
+       * ones it does not.
+       *
+       * `frame-ancestors 'none'` rather than a full CSP: this site has a login,
+       * a portfolio and a watchlist, so being framed is a clickjacking route,
+       * but a script-src policy on a Next app with inline bootstrapping needs
+       * nonces to avoid breaking the page, and a CSP that has to be loosened
+       * later is worse than one added deliberately. Capacitor loads the app
+       * from its own bundle, not by framing this origin, so nothing in the
+       * mobile builds depends on being embedded.
+       */
+      {
+        source: '/:path*',
+        headers: [
+          { key: 'X-Content-Type-Options', value: 'nosniff' },
+          { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
+          { key: 'Content-Security-Policy', value: "frame-ancestors 'none'" },
+          { key: 'X-Frame-Options', value: 'DENY' },
+          { key: 'Permissions-Policy', value: 'camera=(), microphone=(), geolocation=(), payment=(), usb=()' },
+          { key: 'Cross-Origin-Opener-Policy', value: 'same-origin' },
+        ],
+      },
     ]
   },
 }

@@ -363,6 +363,24 @@ function allowRequest(req: NextRequest): boolean {
   return true
 }
 
+/**
+ * True when the request was started from a page on this deployment — the site
+ * itself, a Vercel preview of it, or a dev server. The Capacitor apps load
+ * https://iraqsm.com rather than a local bundle, so they send that origin too.
+ */
+function sameOrigin(req: NextRequest): boolean {
+  const host = req.headers.get('host')
+  const from = req.headers.get('origin') ?? req.headers.get('referer')
+  if (!host || !from) return false
+  try {
+    const u = new URL(from)
+    if (u.host === host) return true
+    return process.env.NODE_ENV !== 'production' && u.hostname === 'localhost'
+  } catch {
+    return false
+  }
+}
+
 // ── POST: generate + cache ────────────────────────────────────────────────────
 export async function POST(
   req: NextRequest,
@@ -379,6 +397,17 @@ export async function POST(
 
   if (!allowRequest(req)) {
     return NextResponse.json({ error: 'Rate limited' }, { status: 429 })
+  }
+
+  /* Generation costs money — filings are downloaded and two paid inferences
+     run — and this endpoint is public and unauthenticated by design, because
+     the button that calls it is on a public page. The cache above bounds spend
+     per symbol; this bounds who can start the spend to a reader on our own
+     pages. It is not authentication: an Origin header can be forged by a
+     script. It stops the cheap version (a loop over every ticker from
+     somewhere else) without putting the feature behind a login. */
+  if (!sameOrigin(req)) {
+    return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
   }
 
   try {
