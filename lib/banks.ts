@@ -40,6 +40,8 @@ async function q<T>(path: string, revalidate = 3600): Promise<T[]> {
 }
 
 export type ResearchState = 'researched' | 'source_unreachable' | 'not_researched'
+/** What the institution is doing — the CBI directory's annotation, not ours. */
+export type OperatingStatus = 'operating' | 'establishment' | 'guardianship' | 'liquidation'
 export type Availability = 'available' | 'unavailable' | 'unknown'
 
 export interface Bank {
@@ -58,6 +60,12 @@ export interface Bank {
   research_state: ResearchState
   research_note: string | null
   research_checked_at: string | null
+  /* Four independent dimensions; see the 20260914 migration. A bank can be
+     operating and USD-restricted, and twenty-five of them are. */
+  operating_status: OperatingStatus
+  usd_restricted: boolean | null
+  status_note_ar: string | null
+  status_note_en: string | null
   is_active: boolean
 }
 
@@ -108,6 +116,7 @@ export interface FactRow {
   label_en: string
   is_stale: boolean
   note: string | null
+  note_en: string | null
 }
 
 export interface ConditionRow {
@@ -130,7 +139,8 @@ export interface ServiceRow {
 
 const BANK_COLS =
   'id,slug,name_ar,name_en,bank_type,ownership,founded,hq_city,website,swift,ticker,' +
-  'cbi_licensed,research_state,research_note,research_checked_at,is_active'
+  'cbi_licensed,research_state,research_note,research_checked_at,is_active,' +
+  'operating_status,usd_restricted,status_note_ar,status_note_en'
 
 export const listBanks = () =>
   q<Bank>(`banks?select=${BANK_COLS}&is_active=is.true&order=name_en.asc`)
@@ -239,6 +249,14 @@ export async function bankFinancials(tickers: string[]): Promise<Map<string, Ban
 
 export type Coverage = 'rich' | 'partial' | 'named-only' | 'none' | 'unreachable'
 
+/** Product categories a bank publishes, for the hub's summary column. */
+export function categoriesOf(products: ProductRow[]): ('deposits' | 'loans')[] {
+  const out: ('deposits' | 'loans')[] = []
+  if (products.some((p) => p.kind.startsWith('deposit') || p.kind === 'account_current')) out.push('deposits')
+  if (products.some((p) => !p.kind.startsWith('deposit') && p.kind !== 'account_current')) out.push('loans')
+  return out
+}
+
 /**
  * How much a bank actually publishes.
  *
@@ -256,8 +274,48 @@ export function coverageOf(bank: Bank, products: ProductRow[]): Coverage {
   return known >= 8 ? 'rich' : 'partial'
 }
 
-/** A profile earns indexing when it says something a reader could not guess. */
-export function isSubstantive(bank: Bank, products: ProductRow[]): boolean {
-  const cov = coverageOf(bank, products)
-  return cov === 'rich' || cov === 'partial'
+/**
+ * Whether a profile earns a place in the index.
+ *
+ * Deliberately not "the bank exists". Of the 79 directory entries, most carry
+ * a name, a class and nothing a reader could not get from the CBI's own list,
+ * and asking Google to index 79 near-identical pages to find the twenty that
+ * say something is how a site teaches a crawler to ignore it.
+ *
+ * Two ways to earn it, and both are about VERIFIED content on the page:
+ *   · a product with at least two published, sourced terms, or
+ *   · a listed bank whose financial snapshot renders, plus at least three
+ *     services confirmed against the bank's own material.
+ *
+ * A bank in liquidation or under guardianship is never indexed: the profile
+ * exists so the status is findable on the site, not so it competes for
+ * searches about a bank a reader cannot open an account with.
+ */
+export function indexability(
+  bank: Bank,
+  products: ProductRow[],
+  services: ServiceRow[] = [],
+  hasFinancials = false,
+): { indexable: boolean; reason: string } {
+  if (bank.operating_status === 'liquidation') return { indexable: false, reason: 'in liquidation' }
+  if (bank.operating_status === 'guardianship') return { indexable: false, reason: 'under guardianship' }
+  if (bank.operating_status === 'establishment') return { indexable: false, reason: 'has not commenced business' }
+  if (bank.research_state === 'source_unreachable') return { indexable: false, reason: 'source unreachable' }
+
+  const substantive = products.filter((p) => p.known_facts >= 2)
+  if (substantive.length) {
+    return { indexable: true, reason: `${substantive.length} product(s) with published terms` }
+  }
+  const verified = services.filter((s) => s.availability === 'available').length
+  if (bank.ticker && hasFinancials && verified >= 3) {
+    return { indexable: true, reason: `listed with financials and ${verified} verified services` }
+  }
+  return { indexable: false, reason: 'no published product terms' }
+}
+
+/** Kept for the sitemap's call site; `indexability` carries the reasoning. */
+export function isSubstantive(
+  bank: Bank, products: ProductRow[], services: ServiceRow[] = [], hasFinancials = false,
+): boolean {
+  return indexability(bank, products, services, hasFinancials).indexable
 }

@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { useLocale } from '@/context/LocaleContext'
 import { localeDate } from '@/lib/date'
-import { CoverageChip, iqd, headlineTerms, initials } from './BanksHub'
+import { CoverageChip, iqd } from './BanksHub'
 import { CompanyLogo } from '@/components/CompanyLogo'
 import companiesData from '@/public/data/companies.json'
 import type {
@@ -14,22 +14,30 @@ import '@/styles/banks.css'
 /**
  * /banks/[slug].
  *
- * ── The unknown states are the hard part ──────────────────────────────────
- * Four different situations would all render as «—» if we let them:
+ * ── The hierarchy is fixed, and it is not the order the data arrives in ───
+ *   identity and a factual sentence  →  financial snapshot, where the exchange
+ *   supports one  →  services we verified  →  deposits  →  financing  →  a
+ *   compact source list.
  *
- *   the bank publishes it                → the value
- *   the bank does not publish it         → «لم ينشر المصرف هذه المعلومة»
- *   we could not read the source         → «تعذّر التحقق من المصدر»
- *   nobody has looked                    → the row is simply absent
+ * ── One rate per product ─────────────────────────────────────────────────
+ * A tiered deposit grid has nine rows and publishing all of them is a wall of
+ * percentages nobody reads. The seed selects ONE scenario — the ordinary
+ * retail one — and carries its conditions with it; the other tiers stay in the
+ * research record and are described in a sentence. The number on screen is
+ * never a "rate for the bank": it belongs to a product, a currency, a tenor
+ * and a set of conditions, all of which are shown next to it.
  *
- * They are kept apart because a reader who sees a dash concludes the product
- * has no such term, which for most Iraqi banks is not what we found.
+ * ── Four kinds of absence ────────────────────────────────────────────────
+ *   the bank publishes it            → the value
+ *   the bank does not publish it     → «لم ينشر المصرف هذه المعلومة»
+ *   only a cached copy could be read → «تعذّر التحقق من المصدر»
+ *   nobody has looked                → the row is simply absent
  *
- * ── Financials are read, never copied ────────────────────────────────────
- * A listed bank's figures come from the same `financial_facts` rows
- * /c/[sym]/financials renders. This page shows a snapshot and links out; it is
- * not a second copy of the statements, and it is not a replacement for the
- * company page.
+ * ── Status is not coverage ───────────────────────────────────────────────
+ * Liquidation, guardianship, USD restriction and "we could not read the site"
+ * are four independent facts. A bank in liquidation with a published rate card
+ * shows both, because the rate card being published does not make the bank
+ * open.
  */
 
 interface Props {
@@ -55,11 +63,11 @@ export function BankProfile({ bank, products, facts, conditions, services, finan
   const deposits = products.filter((p) => p.kind.startsWith('deposit') || p.kind === 'account_current')
   const loans = products.filter((p) => !p.kind.startsWith('deposit') && p.kind !== 'account_current')
   const byProduct = (id: number) => facts.filter((f) => f.product_id === id)
-
   const art = bank.ticker
     ? (companiesData as { sym: string; logo?: string; color?: string }[]).find((x) => x.sym === bank.ticker)
     : undefined
-  const glance = headlineTerms(products, locale).slice(0, 4)
+  const verified = services.filter((s) => s.availability === 'available')
+  const sources = Array.from(new Set(facts.map((f) => f.source_url).filter(Boolean))) as string[]
 
   return (
     <main className="iq-page bk-page">
@@ -67,19 +75,23 @@ export function BankProfile({ bank, products, facts, conditions, services, finan
         <span className="dir-go" aria-hidden="true">›</span> {c.backToBanks}
       </Link>
 
+      {/* ── identity ─────────────────────────────────────────────────────── */}
       <header className="bk-hero-card">
-        <CompanyLogo
-          className="bk-mark" sym={bank.ticker ?? initials(bank.name_en)}
-          logo={art?.logo} color={art?.color ?? 'var(--mv-hero)'} letters={bank.ticker ? 2 : 3}
-        />
+        {/* Latin initials for an unlisted bank: «مص» — the first two letters
+            of «مصرف» — is the same monogram for every Iraqi bank. */}
+        <CompanyLogo className="bk-mark" sym={bank.ticker ?? initials(bank.name_en)}
+          logo={art?.logo} color={art?.color ?? 'var(--mv-hero)'} letters={bank.ticker ? 2 : 3} />
         <div className="bk-hero-main">
           <h1>{name}</h1>
           <p className="bk-meta">
             <span>{c.type[bank.bank_type]} · {c.ownership[bank.ownership]}{city ? ` · ${city}` : ''}</span>
+            {bank.operating_status !== 'operating'
+              ? <span className={`bk-flag is-${bank.operating_status}`}>{c.status[bank.operating_status]}</span>
+              : null}
+            {bank.usd_restricted ? <span className="bk-flag is-usd">{c.usdRestricted}</span> : null}
             <CoverageChip coverage={coverage} />
           </p>
-          {/* The two things a reader clicks next, as buttons rather than as
-              rows in a definition list six sections down the page. */}
+          <p className="bk-intro">{intro(bank, c, city)}</p>
           <div className="bk-hero-links">
             {bank.website ? (
               <a className="bk-pill" href={bank.website} target="_blank" rel="noopener noreferrer">
@@ -88,39 +100,28 @@ export function BankProfile({ bank, products, facts, conditions, services, finan
             ) : null}
             {bank.ticker ? (
               <Link className="bk-pill" href={L(`/c/${bank.ticker}`)}>
-                <bdi>{bank.ticker}</bdi> · {c.viewCompany}
+                <bdi>{bank.ticker}</bdi> · {c.linkedCompany}
               </Link>
             ) : null}
+            {bank.swift ? <span className="bk-pill is-static">SWIFT <bdi>{bank.swift}</bdi></span> : null}
           </div>
         </div>
       </header>
 
-      {/* The answer first: every published headline rate, before any
-          explanation of where it came from. */}
-      {glance.length ? (
-        <dl className="bk-glance">
-          {glance.map((g) => (
-            <div key={g.key}><dt>{g.label}</dt><dd><bdi>{g.value}</bdi></dd></div>
-          ))}
-        </dl>
+      {/* A status notice earns the top of the page: it changes what every
+          number below it means. */}
+      {bank.operating_status !== 'operating' ? (
+        <p className={`bk-notice is-${bank.operating_status}`}>{c.statusNote[bank.operating_status]}</p>
       ) : null}
-
-      {/* A bank we could not reach says so once, at the top, rather than
-          letting every empty section imply the bank offers nothing. */}
+      {bank.usd_restricted ? <p className="bk-notice is-usd">{c.usdRestrictedNote}</p> : null}
       {bank.research_state === 'source_unreachable' ? (
-        <p className="bk-unreachable">{c.unreachableNote}</p>
+        <p className="bk-notice is-unreachable">{c.unreachableNote}</p>
+      ) : null}
+      {bank.research_state === 'not_researched' ? (
+        <p className="bk-notice">{c.notResearchedNote}</p>
       ) : null}
 
-      <section className="bk-section">
-        <h2>{c.identity}</h2>
-        <dl className="bk-dl">
-          {bank.founded ? <div><dt>{c.founded}</dt><dd><bdi>{bank.founded}</bdi></dd></div> : null}
-          {city ? <div><dt>{c.hq}</dt><dd className="txt">{city}</dd></div> : null}
-          {bank.swift ? <div><dt>{c.swift}</dt><dd><bdi>{bank.swift}</bdi></dd></div> : null}
-          {bank.cbi_licensed ? <div><dt>{c.licence}</dt><dd>✓</dd></div> : null}
-        </dl>
-      </section>
-
+      {/* ── financial snapshot, read from the exchange ───────────────────── */}
       {financials ? (
         <section className="bk-section">
           <div className="bk-section-head">
@@ -143,37 +144,30 @@ export function BankProfile({ bank, products, facts, conditions, services, finan
         </section>
       ) : null}
 
-      {/* Never a bare heading: an empty list here used to be the only visible
-          symptom of a failed query, and it read as "this bank has no
-          services" rather than "we asked wrong". */}
-      {services.length ? (
-      <section className="bk-section">
-        <h2>{c.services}</h2>
-        <ul className="bk-services">
-          {services.map((s) => (
-            <li key={s.service_key} className={`is-${s.availability}`}
-              title={s.availability === 'available' ? c.available
-                : s.availability === 'unavailable' ? c.unavailable : c.unchecked}>
-              {/* The glyph carries the state and the title carries the word,
-                  so a screen reader is not left with a tick. */}
-              <span className="bk-svc-icon" aria-hidden="true">
-                {s.availability === 'available' ? '✓' : s.availability === 'unavailable' ? '✗' : '?'}
-              </span>
-              <span>{c.service[s.service_key as keyof typeof c.service] ?? s.service_key}</span>
-              <span className="sr-only">
-                {s.availability === 'available' ? c.available
-                  : s.availability === 'unavailable' ? c.unavailable
-                    : c.unchecked}
-              </span>
-            </li>
-          ))}
-        </ul>
-      </section>
+      {/* ── services · only what a source confirmed ──────────────────────── */}
+      {verified.length ? (
+        <section className="bk-section">
+          <h2>{c.services}</h2>
+          <ul className="bk-services">
+            {verified.map((s) => (
+              <li key={s.service_key} className="is-available">
+                <span className="bk-svc-icon" aria-hidden="true">✓</span>
+                <span>{c.service[s.service_key as keyof typeof c.service] ?? s.service_key}</span>
+              </li>
+            ))}
+          </ul>
+          {/* A published USD account is not permission to move dollars. */}
+          {bank.usd_restricted && verified.some((s) => s.service_key === 'usd_account')
+            ? <p className="bk-section-foot">{c.usdRestrictedNote}</p> : null}
+        </section>
       ) : null}
 
       {deposits.length ? (
-        <section className="bk-section">
-          <h2>{c.deposits}</h2>
+        <section className="bk-section" id="deposits">
+          <div className="bk-section-head">
+            <h2>{c.deposits}</h2>
+            <span className="bk-section-note">{c.ratePickedNote}</span>
+          </div>
           <div className="bk-products">
             {deposits.map((p) => <Product key={p.id} p={p} facts={byProduct(p.id)} conditions={conditions} />)}
           </div>
@@ -181,36 +175,67 @@ export function BankProfile({ bank, products, facts, conditions, services, finan
       ) : null}
 
       {loans.length ? (
-        <section className="bk-section">
-          <h2>{c.loans}</h2>
+        <section className="bk-section" id="loans">
+          <div className="bk-section-head">
+            <h2>{c.loans}</h2>
+            {!deposits.length ? <span className="bk-section-note">{c.ratePickedNote}</span> : null}
+          </div>
           <div className="bk-products">
             {loans.map((p) => <Product key={p.id} p={p} facts={byProduct(p.id)} conditions={conditions} />)}
           </div>
         </section>
       ) : null}
 
-      {!products.length && bank.research_state !== 'source_unreachable' ? (
+      {!products.length && bank.research_state === 'researched' ? (
         <section className="bk-section"><p className="bk-empty">{c.noProducts}</p></section>
       ) : null}
 
-      <section className="bk-section bk-sources">
-        <h2>{c.sources}</h2>
-        <p>{c.methodology}</p>
-        <ul>
-          {Array.from(new Set(facts.map((f) => f.source_url).filter(Boolean))).slice(0, 6).map((u) => (
-            <li key={u as string}>
-              <a className="bk-link" href={u as string} target="_blank" rel="noopener noreferrer">
-                {(u as string).replace(/^https?:\/\/(www\.)?/, '').slice(0, 62)}
-              </a>
-            </li>
-          ))}
-        </ul>
-        {bank.research_checked_at ? (
-          <p className="bk-verified">{c.verifiedOn(localeDate(bank.research_checked_at, locale))}</p>
-        ) : null}
-      </section>
+      {/* ── sources · compact, and collapsed when there are many ─────────── */}
+      {sources.length ? (
+        <section className="bk-section bk-sources">
+          <details>
+            <summary>{c.sources} <bdi>· {c.sourceCount(String(sources.length))}</bdi></summary>
+            <p>{c.methodology}</p>
+            <ul>
+              {sources.slice(0, 10).map((u) => (
+                <li key={u}>
+                  <a className="bk-link" href={u} target="_blank" rel="noopener noreferrer">
+                    {u.replace(/^https?:\/\/(www\.)?/, '').slice(0, 72)}
+                  </a>
+                </li>
+              ))}
+            </ul>
+            {bank.research_checked_at ? (
+              <p className="bk-verified">{c.verifiedOn(localeDate(bank.research_checked_at, locale))}</p>
+            ) : null}
+          </details>
+        </section>
+      ) : null}
     </main>
   )
+}
+
+/** Initials for a bank with no ticker — Rafidain, Rasheed, TBI. */
+function initials(en: string): string {
+  return en.replace(/\b(bank|of|for|the|and)\b/gi, ' ').trim().slice(0, 3).toUpperCase() || 'BK'
+}
+
+/**
+ * The factual sentence under the name.
+ *
+ * Assembled from typed fields and dictionary fragments, never written per
+ * bank: seventy-nine hand-written introductions would be seventy-nine chances
+ * to say something the data does not support, and a generated paragraph of
+ * adjectives is worse than no paragraph. Everything in it appears elsewhere on
+ * the page.
+ */
+function intro(bank: Bank, c: any, city: string | null): string {
+  const parts = [c.introKind(c.typeAdj[bank.bank_type], c.ownershipAdj[bank.ownership])]
+  if (city) parts.push(c.introCity(city))
+  if (bank.founded) parts.push(c.introFounded(String(bank.founded)))
+  if (bank.ticker) parts.push(c.introListed(bank.ticker))
+  if (bank.cbi_licensed) parts.push(c.introLicensed)
+  return `${parts.join(c.introJoin)}.`
 }
 
 /* ── One product ──────────────────────────────────────────────────────────── */
@@ -219,84 +244,82 @@ function Product({ p, facts, conditions }: { p: ProductRow; facts: FactRow[]; co
   const { t: T, locale } = useLocale()
   const c = T.banks
   const name = locale === 'ar' ? p.name_ar : p.name_en
-  const unconditional = facts.filter((f) => !f.is_conditional)
-  const conditional = facts.filter((f) => f.is_conditional)
-  const checkedFields = unconditional.filter((f) => f.state === 'UNKNOWN')
-  const allUnpublished = facts.length > 0 && facts.every((f) => f.state !== 'KNOWN') && checkedFields.length > 1
+  /* The selected scenario is the single rate fact the seed declares, whether
+     or not it carries conditions. Its conditions ARE the scenario — currency,
+     tenor, tier — so they are rendered with it rather than in a separate
+     block. */
+  const rateFact = facts.find((f) => f.field_key === 'rate')
+  const basis = facts.find((f) => f.field_key === 'rate_basis')
+  const detail = facts.filter((f) => !['rate', 'rate_basis'].includes(f.field_key))
+  const scenario = rateFact ? conditions.filter((x) => x.fact_id === rateFact.id) : []
+  const unpublished = detail.filter((f) => f.state === 'UNKNOWN')
+  const allUnpublished = facts.length > 0 && facts.every((f) => f.state !== 'KNOWN')
 
   return (
     <article className="bk-product">
       <div className="bk-product-head">
         <h3>{name}</h3>
+        {p.currency && p.currency !== 'IQD' ? <span className="bk-tag"><bdi>{p.currency}</bdi></span> : null}
         {p.financing_type === 'islamic' ? <span className="bk-tag">{c.type.islamic}</span> : null}
-        {p.has_conditions ? <span className="bk-tag bk-tag-cond">{c.conditionsApply}</span> : null}
       </div>
 
-      {/* The headline. A rate that exists only under conditions is shown as a
-          RANGE and labelled — never flattened into a single number, because
-          «5%» would be wrong for most of the people reading it. */}
       <div className="bk-headline">
-        {p.rate != null ? (
-          <strong><bdi>{p.rate}%</bdi></strong>
-        ) : p.rate_from != null && p.rate_to != null ? (
+        {rateFact?.state === 'KNOWN' && rateFact.value_num != null ? (
           <>
-            <strong><bdi>{p.rate_from === p.rate_to ? `${p.rate_from}%` : c.rateRange(String(p.rate_from), String(p.rate_to))}</bdi></strong>
-            <small>{c.dependsOn}</small>
+            <strong><bdi>{rateFact.value_num}%</bdi></strong>
+            {basis?.state === 'KNOWN' && basis.value_text
+              ? <em>{c.rateBasis[basis.value_text as keyof typeof c.rateBasis] ?? basis.value_text}</em>
+              : basis?.state === 'UNKNOWN' ? <em className="bk-na">{c.rateBasis.unstated}</em> : null}
           </>
         ) : (
-          <span className="bk-na">{c.notPublishedShort}</span>
+          <span className="bk-na">
+            {rateFact?.state === 'SOURCE_UNAVAILABLE' ? c.sourceUnavailable : c.noRatePublished}
+          </span>
         )}
-        {p.rate_basis ? <em>{c.rateBasis[p.rate_basis as 'reducing' | 'flat'] ?? p.rate_basis}</em> : null}
       </div>
 
-      {/* A product where NOTHING is published — Bank of Baghdad names a gold
-          loan and gives no terms at all — was rendering five identical rows of
-          «the bank does not publish this». Same truth, said once, with the
-          fields we checked named so the reader can see it was not laziness. */}
-      {allUnpublished ? (
+      {/* The conditions that make the number true. Never optional: 4.25% for
+          twelve months is a different offer from 4.25% for one. */}
+      {scenario.length ? (
+        <p className="bk-scenario">
+          {scenario.map((x, i) => <span key={i}>{describe(x, c)}</span>)}
+        </p>
+      ) : null}
+
+      {/* What else the selected rate does not say. */}
+      {noteOf(rateFact, locale) ? <p className="bk-rate-note">{noteOf(rateFact, locale)}</p> : null}
+
+      {allUnpublished && unpublished.length > 1 ? (
         <p className="bk-allunknown">
           {c.notPublished}
-          <span> · {checkedFields.map((f) => (locale === 'ar' ? f.label_ar : f.label_en)).join('، ')}</span>
+          <span>· {unpublished.map((f) => (locale === 'ar' ? f.label_ar : f.label_en)).join('، ')}</span>
         </p>
-      ) : (
+      ) : detail.length ? (
         <dl className="bk-facts">
-          {unconditional.filter((f) => f.field_key !== 'rate' && f.field_key !== 'rate_basis').map((f) => (
+          {detail.map((f) => (
             <div key={f.id}>
               <dt>{locale === 'ar' ? f.label_ar : f.label_en}</dt>
               <dd><FactValue f={f} /></dd>
+              {f.state === 'KNOWN' && noteOf(f, locale) ? <p className="bk-fact-note">{noteOf(f, locale)}</p> : null}
             </div>
           ))}
         </dl>
-      )}
-
-      {conditional.length ? (
-        <div className="bk-conds">
-          <h4>{c.conditionsHeading}</h4>
-          <ul>
-            {conditional.map((f) => (
-              <li key={f.id}>
-                <span className="bk-cond-value">
-                  {locale === 'ar' ? f.label_ar : f.label_en}: <FactValue f={f} />
-                </span>
-                <span className="bk-cond-when">
-                  {conditions.filter((x) => x.fact_id === f.id).map((x, i) => (
-                    <span key={i}>{describe(x, c)}</span>
-                  ))}
-                </span>
-              </li>
-            ))}
-          </ul>
-        </div>
       ) : null}
 
       {p.last_verified ? (
-        <p className="bk-verified">{c.verifiedOn(localeDate(p.last_verified, locale))}</p>
+        <p className="bk-verified">{c.verifiedShort(localeDate(p.last_verified, locale))}</p>
       ) : null}
     </article>
   )
 }
 
-/** The four states, each in its own words. */
+/** A note is copy: Arabic in `note`, our English rendering in `note_en`. */
+function noteOf(f: FactRow | undefined, locale: 'ar' | 'en'): string | null {
+  if (!f) return null
+  return (locale === 'ar' ? f.note : (f.note_en ?? f.note)) ?? null
+}
+
+/** The states, each in its own words. */
 function FactValue({ f }: { f: FactRow }) {
   const { t: T, locale } = useLocale()
   const c = T.banks
@@ -306,27 +329,23 @@ function FactValue({ f }: { f: FactRow }) {
   if (f.state === 'UNVERIFIED') return <span className="bk-na">{c.notChecked}</span>
   if (f.value_bool != null) return <bdi>{f.value_bool ? '✓' : '✗'}</bdi>
   if (f.value_text != null) {
-    const k = f.value_text as 'reducing' | 'flat'
+    const k = f.value_text as keyof typeof c.rateBasis
     if (c.rateBasis[k]) return <bdi>{c.rateBasis[k]}</bdi>
     /* Free prose: the bank's own Arabic is the evidence, our English is the
        rendering. Showing the Arabic to an English reader was a real leak. */
-    const shown = locale === 'ar' ? f.value_text : (f.value_text_en ?? f.value_text)
-    return <span>{shown}</span>
+    return <span>{locale === 'ar' ? f.value_text : (f.value_text_en ?? f.value_text)}</span>
   }
   if (f.value_num == null) return <span className="bk-na">—</span>
   if (f.unit === 'percent') return <bdi>{f.value_num}%</bdi>
-  if (f.unit === 'months') return <bdi>{f.value_num % 12 === 0 ? c.years(String(f.value_num / 12)) : c.months(String(f.value_num))}</bdi>
-  if (f.unit === 'iqd') return <bdi>{iqd(f.value_num)}</bdi>
+  if (f.unit === 'months') return <bdi>{f.value_num % 12 === 0 && f.value_num >= 12 ? c.years(String(f.value_num / 12)) : c.months(String(f.value_num))}</bdi>
+  if (f.unit === 'iqd' || f.unit === 'usd') return <bdi>{iqd(f.value_num, f.unit)}</bdi>
   return <bdi>{f.value_num}</bdi>
 }
 
-/** «الراتب ≥ 500,000» — the rule, in the reader's language. */
+/** «لمدة 12 شهراً» · «الراتب ≥ 500,000» — the rule, in the reader's language. */
 function describe(x: ConditionRow, c: any): string {
   const field = c.condField[x.field_key] ?? x.field_key
   const op = c.condOp[x.op] ?? x.op
-  /* A number means nothing without its unit. «المدة = 6» was the months of a
-     term deposit rendered as a bare 6, next to «الراتب ≥ 500K» where the
-     compact-dinar form is right. The unit belongs to the FIELD. */
   const num = (n: number) =>
     x.field_key === 'term_months' || x.field_key === 'employment_months'
       ? (n % 12 === 0 && n >= 12 ? c.years(String(n / 12)) : c.months(String(n)))
@@ -339,10 +358,9 @@ function describe(x: ConditionRow, c: any): string {
       : x.value_text != null
         ? (c.condValue[x.value_text] ?? x.value_text)
         : x.value_num != null ? num(x.value_num) : ''
-  /* A boolean condition reads better as a statement than as «= yes». */
   if (x.value_bool === true && x.op === 'eq') return field
-  /* A negated boolean gets its own phrasing rather than an operator glyph:
-     «≠ الراتب موطَّن لدى المصرف» is not a sentence in either language. */
   if (x.value_bool === false && x.op === 'eq') return c.condFieldNo[x.field_key] ?? `${c.condOp.ne} ${field}`
+  /* An equality on a tenor reads as a scenario, not as an algebraic claim. */
+  if (x.field_key === 'term_months' && x.op === 'eq') return `${field}: ${raw}`
   return `${field} ${op} ${raw}`
 }

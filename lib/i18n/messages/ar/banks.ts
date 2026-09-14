@@ -38,6 +38,8 @@ export const banks = {
     central: 'مركزي',
   },
   ownership: { state: 'حكومي', private: 'خاص', mixed: 'مختلط', foreign: 'أجنبي' },
+  ownershipAdj: { state: 'حكومي', private: 'خاص', mixed: 'مختلط', foreign: 'فرع أجنبي' },
+  typeAdj: { commercial: 'تجاري', islamic: 'إسلامي', investment: 'استثماري', specialised: 'متخصص', central: 'مركزي' },
 
   /* Coverage — a description of what was found, never a score */
   coverage: {
@@ -54,6 +56,50 @@ export const banks = {
   noMatch: 'لا يوجد مصرف مطابق',
   productsLabel: 'المنتجات',
   glance: 'أبرز ما ينشره المصرف',
+
+  // hub · counts that are deliberately different from one another
+  entriesLabel: 'مصرفاً في دليل البنك المركزي',
+  operatingLabel: 'قيد العمل',
+  publishingLabel: 'تنشر شروط منتجاتها',
+  countsNote: 'دليل البنك المركزي يضم 79 قيداً، وهو ليس عدد المصارف العاملة: بعضها تحت التصفية أو الوصاية أو لم يبدأ العمل بعد.',
+
+  // hub table
+  colStatus: 'الحالة',
+  colCategories: 'المنتجات المنشورة',
+  colServices: 'الخدمات',
+  colUpdated: 'آخر تحقق',
+  catDeposits: 'ودائع',
+  catLoans: 'قروض وتمويل',
+  filterForeign: 'فروع أجنبية',
+  filterPublishing: 'تنشر شروطاً',
+  showingOf: (n: string, total: string) => `${n} من ${total}`,
+
+  // status · four independent dimensions
+  status: {
+    operating: 'قيد العمل',
+    establishment: 'تحت التأسيس',
+    guardianship: 'تحت الوصاية',
+    liquidation: 'تحت التصفية',
+  },
+  statusNote: {
+    establishment: 'قيد في دليل البنك المركزي لم يبدأ أعماله بعد.',
+    guardianship: 'مصرف تحت الوصاية أو الحجز القضائي حسب دليل البنك المركزي. قد لا تكون المنتجات المنشورة متاحة فعلياً.',
+    liquidation: 'مصرف تحت التصفية حسب دليل البنك المركزي، ولا يُعدّ مصرفاً يمكن فتح حساب لديه.',
+  },
+  usdRestricted: 'قيود على التعامل بالدولار',
+  usdRestrictedNote: 'مقيَّد التعامل بالدولار الأمريكي حسب القيود المنشورة. وجود حساب بالدولار لا يعني إمكانية إجراء كل التحويلات الدولارية.',
+
+  // profile
+  intro: 'نبذة',
+  aboutBank: 'عن المصرف',
+  headlineOne: 'سعر واحد مختار',
+  otherTermsDiffer: 'شروط أخرى بأسعار مختلفة',
+  ratePickedNote: 'يُعرض سعر واحد لكل منتج: السيناريو الاعتيادي للأفراد كما نشره المصرف، مع شروطه.',
+  noRatePublished: 'لم ينشر المصرف سعراً يمكن عرضه',
+  verifiedShort: (d: string) => `تحقق ${d}`,
+  sourceCount: (n: string) => `${n} مصادر`,
+  linkedCompany: 'صفحة الشركة في البورصة',
+  notResearchedNote: 'لم يُجرَ بحث منشور لهذا المصرف بعد؛ الصفحة تعرض قيد الدليل فقط.',
   filterAll: 'الكل',
   filterListed: 'مدرجة',
   filterState: 'حكومية',
@@ -114,7 +160,18 @@ export const banks = {
 
   rate: 'النسبة',
   rateRange: (from: string, to: string) => `${from}% – ${to}%`,
-  rateBasis: { reducing: 'بالقسط المتناقص', flat: 'بالقسط الثابت' },
+  /* Basis is part of the number. «8%» on a declining balance and «8%» flat
+     are different prices, and an unstated basis must not be relabelled. */
+  rateBasis: {
+    reducing: 'بالقسط المتناقص',
+    flat: 'بالقسط الثابت',
+    annual: 'سنوياً',
+    annual_from: 'سنوياً كحد أدنى معلن',
+    declining: 'على الرصيد المتناقص',
+    expected: 'ربح متوقع غير مضمون',
+    total_margin: 'هامش ربح إجمالي للعقد',
+    unstated: 'لم يحدد المصرف أساس الاحتساب',
+  },
   amount: 'المبلغ',
   term: 'المدة',
   months: (n: string) => `${n} شهراً`,
@@ -158,6 +215,41 @@ export const banks = {
   couldNotVerify: 'ما تعذّر التحقق منه',
   unreachableNote: 'موقع المصرف غير متاح من خارج العراق، فلا توجد شروط منتجات موثّقة هنا. غياب المعلومة هنا لا يعني غيابها لدى المصرف.',
   methodology: 'كل رقم على هذه الصفحة مأخوذ من مصدر المصرف نفسه، مع تاريخ التحقق. ما لا ينشره المصرف يُذكر كذلك صراحةً بدل تركه فارغاً.',
+
+  /* ── SEO copy ──────────────────────────────────────────────────────────
+     Titles and descriptions are generated for 79 pages, so the sentence
+     shapes live here as functions rather than as string concatenation in
+     lib/bankSeo.ts — where they were, and where the i18n gate correctly
+     refused them. No rate ever appears in a title or a description: a rate in
+     a snippet is a promise to keep it current, and nothing reverifies 79
+     banks on Google's crawl schedule. */
+  seo: {
+    titleLiquidation: (n: string) => `${n} · مصرف تحت التصفية`,
+    titleGuardianship: (n: string) => `${n} · مصرف تحت الوصاية`,
+    titleBoth: (n: string) => `${n} · الودائع والقروض وشروطها`,
+    titleDeposits: (n: string) => `${n} · الودائع وشروطها`,
+    titleLoans: (n: string) => `${n} · القروض والتمويل وشروطها`,
+    titleProfile: (n: string) => `${n} · بيانات المصرف وخدماته`,
+    descKind: (type: string, own: string) => `مصرف ${type} ${own}`,
+    descCity: (city: string) => `في ${city}`,
+    descListed: (ticker: string) => `مدرج في بورصة العراق برمز ${ticker}`,
+    descHead: (name: string, bits: string) => `${name}: ${bits}.`,
+    descLiquidation: (head: string) => `${head} مدرج في دليل البنك المركزي تحت التصفية.`,
+    descGuardianship: (head: string) => `${head} مصرف تحت الوصاية حسب دليل البنك المركزي.`,
+    descTerms: (head: string, products: string, services: string) =>
+      `${head} ${products}${services} — مع المصدر وتاريخ التحقق.`,
+    descProducts: (n: string) => (n === '1' ? 'منتج واحد بشروط منشورة' : `${n} منتجات بشروط منشورة`),
+    descServices: (n: string) => ` و${n} خدمات موثّقة`,
+    descNoTerms: (head: string) => `${head} لا ينشر المصرف شروط منتجاته علناً؛ الصفحة تعرض ما تم التحقق منه فقط.`,
+    join: '، ',
+  },
+  /* The factual sentence under the name, assembled from typed fields. */
+  introKind: (type: string, own: string) => `مصرف ${type} ${own}`,
+  introCity: (city: string) => `ومقره ${city}`,
+  introFounded: (year: string) => `تأسس عام ${year}`,
+  introListed: (ticker: string) => `ومدرج في بورصة العراق برمز ${ticker}`,
+  introLicensed: 'ومرخّص من البنك المركزي العراقي',
+  introJoin: '، ',
   notFound: 'لا يوجد مصرف بهذا الاسم',
   backToBanks: 'كل المصارف',
 }

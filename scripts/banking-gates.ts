@@ -151,9 +151,54 @@ async function main() {
   ok('every bank declares how far research got',
     banksAll.every((b) => ['researched', 'source_unreachable', 'not_researched'].includes(b.research_state)))
   /* A bank we could not reach must not also be claiming a reachable website —
-     that is the combination that would let the page imply we read it. */
-  ok('an unreachable bank carries no website and says why',
-    banksAll.filter((b) => b.research_state === 'source_unreachable').every((b) => !b.website && b.research_note))
+     that is the combination that would let the page imply we read it.
+     The REASON no longer has to be a per-bank note: `source_unreachable`
+     renders the explanation from the dictionary, so eleven identical rows of
+     boilerplate in the database would add nothing. What must hold is that such
+     a bank offers no website and cannot be published as a researched profile. */
+  const unreachable = banksAll.filter((b) => b.research_state === 'source_unreachable')
+  ok('an unreachable bank carries no website',
+    unreachable.every((b) => !b.website),
+    `${unreachable.length} unreachable`)
+
+  // ── the new status dimensions ───────────────────────────────────────────
+  const statuses = await get<any[]>('banks?select=slug,operating_status,usd_restricted,ticker')
+  ok('every bank carries a known operating status',
+    statuses.every((b) => ['operating', 'establishment', 'guardianship', 'liquidation'].includes(b.operating_status)))
+  /* `false` would be a claim that a bank is NOT restricted, and the absence of
+     a directory annotation does not establish that. Only true or null. */
+  ok('usd_restricted is true or unknown, never a bare false',
+    statuses.every((b) => b.usd_restricted === true || b.usd_restricted === null),
+    `${statuses.filter((b) => b.usd_restricted).length} restricted`)
+
+  // ── one headline rate per product ───────────────────────────────────────
+  /* The rule the whole curation layer exists to enforce: a product shows ONE
+     selected scenario. Two KNOWN rate facts on one product would put a range
+     or a wall of tiers back on the page. */
+  const rates = await get<any[]>(
+    'product_facts_current?select=product_id,field_key,state,value_num&field_key=eq.rate&state=eq.KNOWN&limit=1000')
+  const perProduct = new Map<number, number>()
+  for (const r of rates) perProduct.set(r.product_id, (perProduct.get(r.product_id) ?? 0) + 1)
+  const multi = Array.from(perProduct.entries()).filter(([, n]) => n > 1)
+  ok('no product publishes more than one rate',
+    multi.length === 0,
+    multi.length ? `product ids ${multi.map(([id, n]) => `${id}×${n}`).join(', ')}` : `${rates.length} published rates`)
+
+  /* A percentage without a basis is not a price. Either the bank states the
+     basis (KNOWN) or the page says it does not (UNKNOWN) — never absent. */
+  const allCur = await get<any[]>('product_facts_current?select=product_id,field_key,state&limit=2000')
+  const basisOf = new Map<number, string>()
+  for (const f of allCur) if (f.field_key === 'rate_basis') basisOf.set(f.product_id, f.state)
+  const ratedProducts = rates.filter((r) => (r.value_num ?? 0) > 0).map((r) => r.product_id)
+  ok('every published rate above zero says what it is calculated on',
+    ratedProducts.every((id) => basisOf.has(id)),
+    ratedProducts.filter((id) => !basisOf.has(id)).join(', '))
+
+  // ── notes are copy, so they are bilingual ───────────────────────────────
+  const noted = await get<any[]>('product_facts_current?select=id,note,note_en&note=not.is.null&limit=1000')
+  ok('every fact note has an English rendering',
+    noted.every((f) => f.note_en),
+    `${noted.length} notes, ${noted.filter((f) => !f.note_en).length} untranslated`)
 
   /* The source registry must not point at a domain someone parked.
      iraqiislamicbank.com looked exactly like the Iraqi Islamic Bank and is a

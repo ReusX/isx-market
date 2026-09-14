@@ -1,6 +1,6 @@
 import { MetadataRoute } from 'next'
 import companiesData from '@/public/data/companies.json'
-import { listBanks, listProducts, isSubstantive } from '@/lib/banks'
+import { listBanks, listProducts, listServices, bankFinancials, indexability } from '@/lib/banks'
 import { getPosts, type Section } from '@/lib/cms'
 import { getLastSessionDate } from '@/lib/freshness'
 import { absUrl } from '@/lib/seo'
@@ -105,15 +105,25 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     ...learn.map(p => article('learn', p)),
   ]
 
-  /* Bank profiles are indexed on SUBSTANCE, not on existence. A page that can
-     only say "this bank exists and here is its website" is a thin page, and
-     seven of them would drag the hub down with them. `isSubstantive` requires
-     at least one published, sourced product term. */
-  const [allBanks, allProducts] = await Promise.all([listBanks(), listProducts()])
+  /* Bank profiles are indexed on SUBSTANCE, not on existence.
+     79 directory entries have a prepared page; the sitemap carries the ones
+     that say something verified — a product with published terms, or a listed
+     bank with financials and confirmed services. A bank in liquidation or
+     under guardianship is never listed: the page exists so the status is
+     findable on the site, not so it competes for searches about a bank a
+     reader cannot bank with. `indexability()` is the same call the page's
+     robots meta makes, so the two cannot disagree. */
+  const [allBanks, allProducts, allServices] = await Promise.all([listBanks(), listProducts(), listServices()])
+  const fin = await bankFinancials(allBanks.map((b) => b.ticker).filter(Boolean) as string[])
   const banks: MetadataRoute.Sitemap = [
     { url: absUrl('/banks'), lastModified: dataDate },
     ...allBanks
-      .filter((b) => isSubstantive(b, allProducts.filter((p) => p.bank_slug === b.slug)))
+      .filter((b) => indexability(
+        b,
+        allProducts.filter((p) => p.bank_slug === b.slug),
+        allServices.filter((s) => s.bank_slug === b.slug),
+        Boolean(b.ticker && fin.get(b.ticker)),
+      ).indexable)
       .map((b) => ({ url: absUrl(`/banks/${b.slug}`), lastModified: dataDate })),
   ]
 

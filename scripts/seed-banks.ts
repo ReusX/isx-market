@@ -1,5 +1,5 @@
 /**
- * Load the pilot bank seed.
+ * Load the bank seed: 79 reconciled CBI-directory entries.
  *
  *   npx tsx scripts/seed-banks.ts [--check]
  *
@@ -17,8 +17,10 @@
  * a file and a field name instead of a constraint violation.
  */
 
-import { PILOT_BANKS, BANK_SOURCES } from './data/banks-pilot'
-import { checkFact, conditionHash, type BankSeed, type FactSeed } from '../lib/banking'
+import { BANK_SOURCES } from './data/banks-pilot'
+import { ALL_BANKS, PRODUCT_SOURCES } from './data/banks-all'
+import { checkFact, conditionHash, type BankIdentity, type FactSeed } from '../lib/banking'
+import RESEARCH from './data/research/iraq-bank-research.json'
 
 const CHECK = process.argv.includes('--check')
 const URL_BASE = process.env.NEXT_PUBLIC_SUPABASE_URL
@@ -42,7 +44,7 @@ async function rest<T = unknown>(path: string, init?: RequestInit): Promise<T> {
 
 /* ── Validation ─────────────────────────────────────────────────────────── */
 
-function validate(banks: readonly BankSeed[]): string[] {
+function validate(banks: readonly BankIdentity[]): string[] {
   const problems: string[] = []
   const slugs = new Set<string>()
   const tickers = new Set<string>()
@@ -53,7 +55,6 @@ function validate(banks: readonly BankSeed[]): string[] {
       if (tickers.has(b.ticker)) problems.push(`duplicate ticker '${b.ticker}'`)
       tickers.add(b.ticker)
     }
-    if (!b.pilotReason) problems.push(`${b.slug}: no pilotReason — say what edge case it tests`)
     const pslugs = new Set<string>()
     for (const p of b.products ?? []) {
       if (pslugs.has(p.slug)) problems.push(`${b.slug}: duplicate product slug '${p.slug}'`)
@@ -76,7 +77,7 @@ function validate(banks: readonly BankSeed[]): string[] {
 
 /* ── Ticker linkage against the curated roster ──────────────────────────── */
 
-async function checkTickers(banks: readonly BankSeed[]): Promise<string[]> {
+async function checkTickers(banks: readonly BankIdentity[]): Promise<string[]> {
   const fs = await import('node:fs')
   const roster = JSON.parse(fs.readFileSync('public/data/companies.json', 'utf8')) as { sym: string; sec?: string }[]
   const known = new Map(roster.map((c) => [c.sym, c.sec]))
@@ -93,7 +94,39 @@ async function checkTickers(banks: readonly BankSeed[]): Promise<string[]> {
 
 type Row = Record<string, unknown>
 
+/**
+ * Every source the seed can cite, registered once.
+ *
+ * The research handoff carries 115 sources; only the ones a published fact
+ * actually cites are registered, so `data_sources` stays a registry of things
+ * this site stands behind rather than a copy of a research bibliography.
+ */
 async function sourceIds(): Promise<Map<string, number>> {
+  const cited = new Set<string>()
+  for (const b of ALL_BANKS) {
+    if (b.licenceSourceKey) cited.add(b.licenceSourceKey)
+    for (const svc of b.services ?? []) if (svc.sourceKey) cited.add(svc.sourceKey)
+    for (const p of b.products ?? []) for (const f of p.facts) if (f.sourceKey) cited.add(f.sourceKey)
+  }
+  const research = RESEARCH as {
+    sources: { id: number; title: string; url: string; kind: string; observed_at: string; note?: string }[]
+  }
+  for (const r of research.sources) {
+    const key = `research-${r.id}`
+    if (!cited.has(key)) continue
+    await rest('data_sources?on_conflict=key', {
+      method: 'POST',
+      headers: { Prefer: 'resolution=merge-duplicates' },
+      body: JSON.stringify({
+        key, name_ar: r.title, name_en: r.title, url: r.url,
+        /* An indexed or secondary source is registered as what it is. A cached
+           copy of a bank's own page is not the bank's own page. */
+        kind: /OFFICIAL$/.test(r.kind) ? 'official' : r.kind.includes('INDEXED') ? 'official' : 'secondary',
+        reliability: r.kind === 'OFFICIAL' ? 'high' : 'medium',
+        notes: r.note || null,
+      }),
+    })
+  }
   for (const s of BANK_SOURCES) {
     await rest('data_sources?on_conflict=key', {
       method: 'POST',
@@ -113,6 +146,7 @@ function factRow(productId: number, f: FactSeed, src: Map<string, number>): Row 
     product_id: productId,
     field_key: f.key,
     value_num: f.num ?? null,
+    unit: f.unit ?? null,
     value_text: f.text ?? null,
     value_text_en: f.textEn ?? null,
     value_bool: f.bool ?? null,
@@ -126,27 +160,31 @@ function factRow(productId: number, f: FactSeed, src: Map<string, number>): Row 
     verified_at: f.verifiedAt ?? null,
     verified_by: f.verifiedAt ? 'seed' : null,
     note: f.note ?? null,
+    note_en: f.noteEn ?? null,
     retrieved_at: new Date().toISOString(),
   }
 }
 
 /** Same value, same state, same conditions → nothing to do. */
 function unchanged(live: Row, next: Row): boolean {
-  const keys = ['value_num', 'value_text', 'value_text_en', 'value_bool', 'state', 'source_id', 'source_url']
+  const keys = ['value_num', 'unit', 'value_text', 'value_text_en', 'value_bool', 'state', 'source_id', 'source_url', 'note', 'note_en']
   return keys.every((k) => String(live[k] ?? '') === String(next[k] ?? ''))
 }
 
 async function main() {
-  const problems = [...validate(PILOT_BANKS), ...(await checkTickers(PILOT_BANKS))]
+  const problems = [...validate(ALL_BANKS), ...(await checkTickers(ALL_BANKS))]
   if (problems.length) {
     console.error(`✗ ${problems.length} seed problem(s)`)
     problems.forEach((p) => console.error('  ·', p))
     process.exit(1)
   }
-  const facts = PILOT_BANKS.flatMap((b) => (b.products ?? []).flatMap((p) => p.facts))
+  const facts = ALL_BANKS.flatMap((b) => (b.products ?? []).flatMap((p) => p.facts))
   console.log(
-    `✓ seed valid — ${PILOT_BANKS.length} banks, ` +
-    `${PILOT_BANKS.reduce((n, b) => n + (b.products?.length ?? 0), 0)} products, ` +
+    `✓ seed valid — ${ALL_BANKS.length} banks ` +
+    `(${ALL_BANKS.filter((b) => b.ticker).length} listed, ` +
+    `${ALL_BANKS.filter((b) => b.products?.length).length} with products: ` +
+    `${PRODUCT_SOURCES.pilot.length} read by hand, ${PRODUCT_SOURCES.curated.length} curated from research), ` +
+    `${ALL_BANKS.reduce((n, b) => n + (b.products?.length ?? 0), 0)} products, ` +
     `${facts.length} facts (${facts.filter((f) => f.state === 'KNOWN').length} known, ` +
     `${facts.filter((f) => f.state === 'UNKNOWN').length} unknown), ` +
     `${facts.filter((f) => f.when?.length).length} conditional`,
@@ -157,7 +195,7 @@ async function main() {
   const src = await sourceIds()
   let inserted = 0, superseded = 0, held = 0, retired = 0
 
-  for (const b of PILOT_BANKS) {
+  for (const b of ALL_BANKS) {
     await rest('banks?on_conflict=slug', {
       method: 'POST',
       headers: { Prefer: 'resolution=merge-duplicates' },
@@ -169,6 +207,10 @@ async function main() {
         website: b.website ?? null, swift: b.swift ?? null,
         ticker: b.ticker ?? null,
         research_state: b.researchState,
+        operating_status: b.operatingStatus ?? 'operating',
+        usd_restricted: b.usdRestricted ?? null,
+        status_note_ar: b.statusNoteAr ?? null,
+        status_note_en: b.statusNoteEn ?? null,
         research_note: b.researchNote ?? null,
         research_checked_at: b.researchCheckedAt ?? null,
         cbi_licensed: b.cbiLicensed ?? null,

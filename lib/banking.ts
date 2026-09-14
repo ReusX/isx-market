@@ -52,6 +52,12 @@ export const FACT_KEYS = [
   'max_instalment_pct_of_income', 'early_repayment', 'eligibility_note',
   'required_documents', 'application_method',
   'term_months', 'early_break_penalty',
+  /* What makes a deposit headline meaningful: First Iraqi Bank publishes 9%
+     at maturity and 8.5% monthly for the same twelve months. */
+  'payout',
+  /* What a percentage hides. A housing product with no return and a one-off
+     5% administrative fee is not free, and the fee is not interest. */
+  'total_cost_note',
 ] as const
 export type FactKey = (typeof FACT_KEYS)[number]
 
@@ -81,10 +87,18 @@ export interface Condition {
   noteAr?: string
 }
 
+/** Units a fact may override its policy default with. A minimum deposit of
+ *  20,000 on a USD product is not 20,000 dinars. */
+export const FACT_UNITS = ['iqd', 'usd', 'percent', 'months', 'years'] as const
+export type FactUnit = (typeof FACT_UNITS)[number]
+
 export interface FactSeed {
   key: FactKey
   state: FactState
   num?: number
+  /** Overrides the unit `fact_policy` gives this key. Needed wherever a
+   *  foreign-currency product publishes an amount. */
+  unit?: FactUnit
   text?: string
   /** Our rendering of `text` for the English page. The Arabic stays the
    *  evidence; this is a translation and is not itself sourced. */
@@ -98,7 +112,10 @@ export interface FactSeed {
   page?: number
   verifiedAt?: string
   effectiveDate?: string
+  /** Arabic — the qualifier a reader sees on the Arabic page. */
   note?: string
+  /** Our English rendering of `note`. */
+  noteEn?: string
 }
 
 export interface ProductSeed {
@@ -111,29 +128,41 @@ export interface ProductSeed {
   facts: readonly FactSeed[]
 }
 
-export interface BankSeed {
+/**
+ * Durable identity of a bank, independent of whether we have any commercial
+ * terms for it. Every CBI-directory entry gets one of these; only some get
+ * products.
+ */
+export interface BankIdentity {
   slug: string
   nameAr: string
   nameEn: string
-  shortAr?: string
-  shortEn?: string
+  shortAr?: string | null
+  shortEn?: string | null
   bankType: 'commercial' | 'islamic' | 'investment' | 'specialised' | 'central'
   ownership: 'state' | 'private' | 'mixed' | 'foreign'
-  founded?: number
-  hqCity?: string
+  founded?: number | null
+  hqCity?: string | null
   website?: string | null
-  swift?: string
+  swift?: string | null
   /** The bridge to the curated company roster. Null for non-listed banks. */
   ticker?: string | null
+  /** The CBI directory's own annotation. Absent means operating. */
+  operatingStatus?: 'operating' | 'establishment' | 'guardianship' | 'liquidation'
+  /** A published restriction on USD dealing. `null` is "no annotation found",
+   *  which is NOT the same as unrestricted. */
+  usdRestricted?: boolean | null
+  statusNoteAr?: string | null
+  statusNoteEn?: string | null
   /* How far research on this bank actually got. A bank with no products looks
      identical whether we checked and found nothing published or never looked;
      this is what tells them apart. */
   researchState: 'researched' | 'source_unreachable' | 'not_researched'
-  researchNote?: string
-  researchCheckedAt?: string
-  cbiLicensed?: boolean
-  licenceSourceKey?: string
-  licenceVerifiedAt?: string
+  researchNote?: string | null
+  researchCheckedAt?: string | null
+  cbiLicensed?: boolean | null
+  licenceSourceKey?: string | null
+  licenceVerifiedAt?: string | null
   services?: readonly {
     key: ServiceKey
     availability: Availability
@@ -144,6 +173,20 @@ export interface BankSeed {
     note?: string
   }[]
   products?: readonly ProductSeed[]
+}
+
+/**
+ * What the institution is doing, and whether it may deal in dollars. Four
+ * independent dimensions — see the 20260914 migration: a bank can be fully
+ * operating and USD-restricted, and most of the restricted ones are.
+ */
+export type OperatingStatus = 'operating' | 'establishment' | 'guardianship' | 'liquidation'
+
+/** A directory entry reconciled from research: identity and status, no products. */
+export type RosterBank = BankIdentity
+
+/** A bank in the hand-written pilot set, which also says what it tests. */
+export interface BankSeed extends BankIdentity {
   /** Why this bank is in the pilot — which edge case it exercises. */
   pilotReason: string
 }

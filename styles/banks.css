@@ -92,105 +92,111 @@
 
 .bk-filters button:focus-visible { outline: 2px solid var(--mv-hero); outline-offset: 2px; }
 
-/* ── the card grid ─────────────────────────────────────────────────────── */
+/* ── the table ─────────────────────────────────────────────────────────────
+   Seventy-nine rows that a reader compares down a column. Type is a step up
+   from the first version — 0.82rem, not 0.7 — and the row height is a real
+   touch target. */
 
-.bk-grid {
-  display: grid; gap: 14px;
-  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+.bk-count { margin-inline-start: auto; color: var(--mv-ink-3); font-size: .78rem; white-space: nowrap; }
+
+.bk-table-wrap {
+  overflow-x: auto;
+  border: 1px solid var(--mv-line); border-radius: var(--mv-r-panel);
+  background: var(--mv-panel-solid); box-shadow: var(--mv-shadow);
 }
 
-.bk-card {
-  display: flex; flex-direction: column; gap: 14px;
-  padding: 18px; border: 1px solid var(--mv-line);
-  border-radius: var(--mv-r-panel); background: var(--mv-panel-solid);
-  box-shadow: var(--mv-shadow);
-  transition: border-color .15s, transform .15s;
+.bk-table { inline-size: 100%; border-collapse: collapse; font-size: .82rem; min-inline-size: 940px; }
+
+.bk-table th, .bk-table td {
+  text-align: start; padding: 12px 14px;
+  border-block-end: 1px solid var(--mv-line); vertical-align: middle;
 }
 
-.bk-card:hover { border-color: var(--mv-line-strong); transform: translateY(-2px); }
-
-.bk-card:focus-within { border-color: var(--mv-hero); }
-
-.bk-card-top { display: flex; align-items: flex-start; gap: 13px; }
-
-.bk-mark {
-  flex: 0 0 auto; inline-size: 46px; block-size: 46px;
-  border-radius: 13px; overflow: hidden;
-  display: grid; place-items: center;
-  color: #fff; font: 700 1.05rem var(--font-body), Arial, sans-serif;
+.bk-table thead th {
+  position: sticky; inset-block-start: 0; z-index: 1;
+  color: var(--mv-ink-2); font: 600 .74rem var(--font-body), Arial, sans-serif;
+  /* No tracking and no uppercase: these headers are Arabic in the Arabic
+     locale, and Arabic is a joining script — positive letter-spacing pulls the
+     letters apart, and there is no uppercase to transform to. */
+  background: var(--mv-panel-solid); white-space: nowrap;
+  box-shadow: inset 0 -1px var(--mv-line);
 }
 
-.bk-mark.co-logo.has-image { background: #fff; border: 1px solid var(--mv-line); }
+.bk-table tbody tr:last-child th, .bk-table tbody tr:last-child td { border-block-end: 0; }
 
-.bk-mark .co-logo-img { inline-size: 100%; block-size: 100%; object-fit: contain; padding: 5px; }
+.bk-table tbody tr:hover { background: var(--mv-well); }
 
-.bk-card-id { min-inline-size: 0; flex: 1 1 auto; }
+.bk-table tbody th { font-weight: 600; }
 
-.bk-card-id h2 { margin: 0; font-size: 1rem; letter-spacing: var(--mv-track-tight); line-height: 1.3; }
+.bk-row-name { display: flex; align-items: center; gap: 9px; min-inline-size: 0; }
 
-.bk-card-id h2 a { color: var(--mv-ink); text-decoration: none; }
+.bk-row-mark {
+  flex: 0 0 auto; inline-size: 26px; block-size: 26px; border-radius: 7px;
+  display: grid; place-items: center; overflow: hidden;
+  color: #fff; font: 700 .62rem var(--font-body), Arial, sans-serif;
+}
 
-/* The whole card is the hit area — the heading link stretches over it, so a
-   thumb anywhere on the card opens the bank. */
-.bk-card-id h2 a::after { content: ''; position: absolute; inset: 0; border-radius: inherit; }
+.bk-row-mark.co-logo.has-image { background: #fff; border: 1px solid var(--mv-line); }
 
-.bk-card { position: relative; }
+.bk-row-mark .co-logo-img { inline-size: 100%; block-size: 100%; object-fit: contain; padding: 3px; }
 
-.bk-card-id h2 a:hover { color: var(--mv-hero); }
+.bk-table tbody th a { color: var(--mv-ink); text-decoration: none; }
 
-.bk-meta { margin: 5px 0 0; display: flex; align-items: center; gap: 7px; flex-wrap: wrap; color: var(--mv-ink-2); font-size: .78rem; }
+.bk-table tbody th a:hover { color: var(--mv-hero); text-decoration: underline; }
+
+.bk-table .num { text-align: end; font-family: var(--font-numeric), ui-monospace, monospace; font-variant-numeric: tabular-nums; }
 
 .bk-ticker {
-  padding: 2px 7px; border-radius: 6px;
+  padding: 2px 6px; border-radius: 5px;
   background: rgba(49, 113, 198, .1); color: var(--mv-hero);
-  font: 700 .7rem var(--font-numeric), ui-monospace, monospace;
+  font: 700 .66rem var(--font-numeric), ui-monospace, monospace;
 }
 
 [data-theme='dark'] .bk-ticker { background: rgba(99, 154, 226, .18); color: var(--mv-hero-bright); }
 
-/* ── what the bank actually gives you ──────────────────────────────────── */
+.bk-type { display: block; color: var(--mv-ink); }
 
-.bk-terms { display: flex; flex-direction: column; gap: 1px; }
+.bk-table td small { display: block; color: var(--mv-ink-3); font-size: .72rem; }
 
-.bk-term {
-  display: flex; align-items: baseline; justify-content: space-between; gap: 12px;
-  padding-block: 8px; border-block-end: 1px solid var(--mv-line);
+.bk-dim { color: var(--mv-ink-3); }
+
+.bk-cats { display: flex; gap: 5px; flex-wrap: wrap; }
+
+.bk-cats em {
+  font-style: normal; padding: 2px 8px; border-radius: var(--mv-r-pill);
+  border: 1px solid var(--mv-line); background: var(--mv-well);
+  color: var(--mv-ink-2); font-size: .72rem; white-space: nowrap;
 }
 
-.bk-term:last-child { border-block-end: 0; }
+.bk-svc-count { color: var(--mv-ink); font: 600 .82rem var(--font-numeric), ui-monospace, monospace; }
 
-.bk-term span { color: var(--mv-ink-2); font-size: .82rem; min-inline-size: 0; }
+/* ── status · never styled like a rating ───────────────────────────────── */
 
-.bk-term strong {
-  color: var(--mv-ink); white-space: nowrap;
-  font: 700 1.05rem var(--font-numeric), ui-monospace, monospace;
-  letter-spacing: var(--mv-track-tight);
+.bk-flag {
+  display: inline-block; padding: 2px 8px; border-radius: var(--mv-r-pill);
+  font: 600 .72rem var(--font-body), Arial, sans-serif; white-space: nowrap;
+  border: 1px solid var(--mv-line-strong); color: var(--mv-ink-2); background: var(--mv-well);
 }
 
-.bk-term em { font-style: normal; font-size: .72rem; color: var(--mv-ink-3); font-weight: 500; }
-
-/* An absence, with its reason. Never styled like a value. */
-.bk-empty {
-  display: flex; align-items: center; gap: 8px;
-  padding: 12px 13px; border-radius: var(--mv-r-well);
-  background: var(--mv-well); border: 1px dashed var(--mv-line-strong);
-  color: var(--mv-ink-2); font-size: .8rem; line-height: 1.5;
+.bk-flag.is-liquidation, .bk-flag.is-guardianship {
+  color: var(--mv-down); border-color: color-mix(in srgb, var(--mv-down) 30%, transparent); background: var(--mv-down-soft);
 }
 
-.bk-empty.is-unreachable { color: var(--mv-down); border-color: color-mix(in srgb, var(--mv-down) 30%, transparent); background: var(--mv-down-soft); }
+.bk-flag.is-usd, .bk-flag-usd { color: var(--mv-ink-3); font-weight: 500; }
 
-.bk-card-foot {
-  display: flex; align-items: center; justify-content: space-between; gap: 10px;
-  flex-wrap: wrap; margin-block-start: auto; padding-block-start: 13px;
-  border-block-start: 1px solid var(--mv-line);
-  color: var(--mv-ink-3); font-size: .74rem;
+.bk-flag-usd { display: block; margin-block-start: 4px; font-size: .7rem; }
+
+.bk-notice {
+  margin: 14px 0 0; padding: 12px 15px; max-width: 82ch;
+  border: 1px solid var(--mv-line-strong); border-inline-start: 3px solid var(--mv-ink-3);
+  border-radius: var(--mv-r-card); background: var(--mv-well);
+  color: var(--mv-ink-2); font-size: .82rem; line-height: 1.7;
 }
 
-.bk-figs { display: flex; gap: 14px; flex-wrap: wrap; }
-
-.bk-figs b {
-  display: block; color: var(--mv-ink);
-  font: 600 .84rem var(--font-numeric), ui-monospace, monospace;
+.bk-notice.is-liquidation, .bk-notice.is-guardianship, .bk-notice.is-unreachable {
+  border-inline-start-color: var(--mv-down);
+  border-color: color-mix(in srgb, var(--mv-down) 22%, transparent);
+  background: var(--mv-down-soft);
 }
 
 /* ── coverage · a description, deliberately not a rating ───────────────── */
@@ -432,3 +438,56 @@
   .bk-card, .bk-filters button { transition: none; }
   .bk-card:hover { transform: none; }
 }
+
+/* ── profile · the factual sentence, the scenario, the notes ───────────── */
+
+.bk-intro { margin: 10px 0 0; max-width: 72ch; color: var(--mv-ink-2); font-size: .85rem; line-height: 1.65; }
+
+.bk-pill.is-static { color: var(--mv-ink-2); cursor: default; }
+
+.bk-pill.is-static:hover { border-color: var(--mv-line-strong); color: var(--mv-ink-2); }
+
+/* The conditions that make the headline true. Directly under the number,
+   because a rate without its tenor is not an offer. */
+.bk-scenario { display: flex; gap: 6px; flex-wrap: wrap; margin: 10px 0 0; }
+
+.bk-scenario span {
+  padding: 3px 9px; border-radius: var(--mv-r-pill);
+  border: 1px solid var(--mv-line-strong); background: var(--mv-well);
+  color: var(--mv-ink); font-size: .75rem;
+}
+
+.bk-rate-note { margin: 10px 0 0; max-width: 62ch; color: var(--mv-ink-3); font-size: .76rem; line-height: 1.6; }
+
+.bk-fact-note { margin: 3px 0 0; color: var(--mv-ink-3); font-size: .72rem; line-height: 1.55; }
+
+.bk-section-foot { margin: 11px 0 0; max-width: 76ch; color: var(--mv-ink-3); font-size: .76rem; line-height: 1.6; }
+
+.bk-note-tight { margin-block-start: 12px; }
+
+/* ── sources · collapsed by default ────────────────────────────────────── */
+
+.bk-sources details {
+  border: 1px solid var(--mv-line); border-radius: var(--mv-r-card);
+  background: var(--mv-panel-solid); padding: 0 16px;
+}
+
+.bk-sources summary {
+  display: flex; align-items: center; gap: 8px; min-block-size: 46px;
+  color: var(--mv-ink); font: 600 .85rem var(--font-body), Arial, sans-serif;
+  cursor: pointer; list-style: none;
+}
+
+.bk-sources summary::-webkit-details-marker { display: none; }
+
+.bk-sources summary::after {
+  content: ''; inline-size: 5px; block-size: 5px;
+  border-inline-end: 1.5px solid var(--mv-ink-3); border-block-end: 1.5px solid var(--mv-ink-3);
+  transform: rotate(45deg) translateY(-1px); transition: transform .15s;
+}
+
+.bk-sources details[open] summary::after { transform: rotate(225deg) translateY(1px); }
+
+.bk-sources details[open] { padding-block-end: 16px; }
+
+@media (prefers-reduced-motion: reduce) { .bk-sources summary::after { transition: none; } }
