@@ -491,3 +491,13 @@
 .bk-sources details[open] { padding-block-end: 16px; }
 
 @media (prefers-reduced-motion: reduce) { .bk-sources summary::after { transition: none; } }
+
+/* A figure the source published a year or more ago: kept, dated, and never
+   styled like a live rate. */
+.bk-dated {
+  margin: 10px 0 0; padding: 9px 12px; max-width: 62ch;
+  border: 1px dashed var(--mv-line-strong); border-radius: var(--mv-r-well);
+  background: var(--mv-well); color: var(--mv-ink-2); font-size: .78rem; line-height: 1.6;
+}
+
+.bk-facts dt small { display: block; margin-block-start: 2px; color: var(--mv-ink-3); font-size: .7rem; font-weight: 400; }

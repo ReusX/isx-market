@@ -160,7 +160,9 @@ export function BanksHub({ rows }: { rows: HubBank[] }) {
                   <td>
                     {bank.operating_status === 'operating'
                       ? <span className="bk-dim">{c.status.operating}</span>
-                      : <span className={`bk-flag is-${bank.operating_status}`}>{c.status[bank.operating_status]}</span>}
+                      : <span className={`bk-flag is-${bank.operating_status}`}>
+                          {(locale === 'ar' ? bank.status_note_ar : bank.status_note_en) ?? c.status[bank.operating_status]}
+                        </span>}
                     {bank.usd_restricted ? <small className="bk-flag-usd">{c.usdRestricted}</small> : null}
                   </td>
                   {/* Financial columns exist only for listed banks, and are read

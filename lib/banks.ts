@@ -117,6 +117,9 @@ export interface FactRow {
   is_stale: boolean
   note: string | null
   note_en: string | null
+  /** When the SOURCE published this figure, where the source says. Distinct
+   *  from `verified_at`, which is when we read it. */
+  effective_date: string | null
 }
 
 export interface ConditionRow {
@@ -164,9 +167,28 @@ export const listServices = (slug?: string) =>
     `${slug ? `&bank_slug=eq.${slug}` : ''}`,
   )
 
-const FACT_COLS =
-  'id,product_id,field_key,value_num,value_text,value_text_en,value_bool,unit,state,' +
-  'is_conditional,source_key,source_url,source_excerpt,verified_at,label_ar,label_en,is_stale,note'
+/**
+ * The columns `productDetail` asks for, as a map the compiler checks.
+ *
+ * This was a hand-typed string, and it silently fell behind FactRow twice:
+ * `note_en` was added to the type, the view and the seed but never to the
+ * select — so every English page fell back to the Arabic note — and
+ * `effective_date` the same way, which quietly re-promoted a 2023 rate to the
+ * headline. PostgREST rejects a select naming an unknown column, so the loud
+ * failure is easy; it is the SILENT omission that needs a type.
+ *
+ * `Record<keyof FactRow, true>` requires an entry for every field on the type,
+ * so adding one to FactRow without adding it here is a compile error.
+ */
+const FACT_COL_MAP: Record<keyof FactRow, true> = {
+  id: true, product_id: true, field_key: true,
+  value_num: true, value_text: true, value_text_en: true, value_bool: true,
+  unit: true, state: true, is_conditional: true,
+  source_key: true, source_url: true, source_excerpt: true,
+  verified_at: true, effective_date: true,
+  label_ar: true, label_en: true, is_stale: true, note: true, note_en: true,
+}
+const FACT_COLS = Object.keys(FACT_COL_MAP).join(',')
 
 export async function productDetail(productIds: number[]) {
   if (!productIds.length) return { facts: [] as FactRow[], conditions: [] as ConditionRow[] }
@@ -248,6 +270,28 @@ export async function bankFinancials(tickers: string[]): Promise<Map<string, Ban
 /* ── Coverage · a count, not a score ────────────────────────────────────── */
 
 export type Coverage = 'rich' | 'partial' | 'named-only' | 'none' | 'unreachable'
+
+/**
+ * Whether a published figure may stand as a CURRENT headline.
+ *
+ * `verified_at` says when we read the page; `effective_date` says when the
+ * source published the figure. Those are not the same claim, and conflating
+ * them is how a three-year-old rate ends up looking like today's offer:
+ * Rafidain's savings, deposit, housing, car and advance pages all still
+ * resolve, and every one of them is stamped 2023.
+ *
+ * So a dated figure older than a year is shown WITH its date, in the detail
+ * list, and never as the headline. An undated figure on a bank's live page is
+ * still headline-eligible — that is the bank's current published statement,
+ * and the verification date is what qualifies it.
+ */
+export const HEADLINE_MAX_AGE_DAYS = 365
+
+export function isCurrentEnough(f: { effective_date: string | null }, today = new Date()): boolean {
+  if (!f.effective_date) return true
+  const age = (today.getTime() - Date.parse(f.effective_date)) / 86_400_000
+  return Number.isFinite(age) ? age <= HEADLINE_MAX_AGE_DAYS : true
+}
 
 /** Product categories a bank publishes, for the hub's summary column. */
 export function categoriesOf(products: ProductRow[]): ('deposits' | 'loans')[] {

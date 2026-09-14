@@ -144,7 +144,15 @@ function ownership(b) {
   return 'private'
 }
 
-/** The CBI directory's own annotation, never our inference. */
+/**
+ * The directory's own annotation, never our inference.
+ *
+ * `operating` here means EXACTLY "the CBI directory carries no restriction
+ * annotation against this entry". It is not a finding that the bank is open,
+ * and the labels say so — see banks.status in the dictionaries. Calling 64
+ * entries "operating" because nothing was written next to them would be our
+ * inference dressed as the directory's.
+ */
 function operatingStatus(note) {
   const n = note ?? ''
   if (/liquidation/i.test(n)) return 'liquidation'
@@ -162,6 +170,21 @@ const RESEARCH_STATE = {
    something a reader needs. These are dropped from the public note; the status
    dimensions carry what matters. */
 const HOUSEKEEPING = /^(No special annotation|CBI gives|CBI directory lists|CBI provides|CBI email|CBI contact|CBI now classifies|Directory contact|CBI [A-Za-z]+\/)/i
+
+/**
+ * Guardianship and judicial custody are different legal states, and the
+ * directory distinguishes them. `operating_status` carries the class the two
+ * share; this carries the term the source actually used, so the page can print
+ * «حجز قضائي» for the banks where that is what was written.
+ */
+function statusTerm(note) {
+  const n = note ?? ''
+  if (/judicial custody/i.test(n)) return { ar: 'حجز قضائي', en: 'Judicial custody' }
+  if (/guardianship/i.test(n)) return { ar: 'وصاية', en: 'Guardianship' }
+  if (/liquidation/i.test(n)) return { ar: 'تصفية', en: 'Liquidation' }
+  if (/under establishment|has not commenced/i.test(n)) return { ar: 'تحت التأسيس', en: 'Under establishment' }
+  return null
+}
 
 function publicNote(b) {
   const n = (b.regulatory_note ?? '').trim()
@@ -217,6 +240,7 @@ function main() {
     const note = publicNote(b)
     const withheld = TICKER_WITHHELD[b.slug]
     const nm = names(b, rosterBySym)
+    const term = statusTerm(b.regulatory_note)
     const founded = foundedYear(b.identity?.founded)
     out.push(`  {
     slug: ${q(canon(b.slug))},
@@ -227,7 +251,9 @@ function main() {
     ${founded ? `founded: ${founded},\n    ` : ''}hqCity: ${q(city(b.hq))},
     ${b.identity?.swift ? `swift: ${q(b.identity.swift)},\n    ` : ''}ticker: ${q(TICKERS[b.slug] ?? null)},
     operatingStatus: ${q(status)},
-    usdRestricted: ${/USD restriction/i.test(b.regulatory_note ?? '') ? 'true' : 'null'},
+    statusNoteAr: ${q(term?.ar ?? null)},
+    statusNoteEn: ${q(term?.en ?? null)},
+    usdRestricted: ${/USD restriction|Reuters restriction/i.test(b.regulatory_note ?? '') ? 'true' : 'null'},
     researchState: ${q(state)},
     researchNote: ${q(withheld ? (note ? `${note}. ${withheld}` : withheld) : note)},
     researchCheckedAt: ${q(b.observed_at)},

@@ -121,7 +121,11 @@ async function sourceIds(): Promise<Map<string, number>> {
         key, name_ar: r.title, name_en: r.title, url: r.url,
         /* An indexed or secondary source is registered as what it is. A cached
            copy of a bank's own page is not the bank's own page. */
-        kind: /OFFICIAL$/.test(r.kind) ? 'official' : r.kind.includes('INDEXED') ? 'official' : 'secondary',
+        /* OFFICIAL and OFFICIAL_INDEXED are the bank's own words, cached or
+           not. SECONDARY_INDEXED is still somebody else's report — this test
+           used to check for INDEXED first and filed a TV station's article as
+           official. */
+        kind: r.kind.startsWith('OFFICIAL') ? 'official' : 'secondary',
         reliability: r.kind === 'OFFICIAL' ? 'high' : 'medium',
         notes: r.note || null,
       }),
@@ -193,7 +197,7 @@ async function main() {
   if (!URL_BASE || !KEY) { console.error('✗ NEXT_PUBLIC_SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY not set'); process.exit(1) }
 
   const src = await sourceIds()
-  let inserted = 0, superseded = 0, held = 0, retired = 0
+  let inserted = 0, superseded = 0, held = 0, retired = 0, retiredProducts = 0, revived = 0
 
   for (const b of ALL_BANKS) {
     await rest('banks?on_conflict=slug', {
@@ -237,6 +241,24 @@ async function main() {
       }
       await rest('bank_services', { method: 'POST', body: JSON.stringify(next) })
       inserted++
+    }
+
+    /* Retire products the seed no longer declares.
+       Facts were already declarative — an undeclared fact is superseded — but
+       PRODUCTS were not, so removing one from the seed left it live forever.
+       The Rafidain renovation loan was added on secondary evidence, reversed
+       when that evidence turned out to be an indexed 403, and stayed on the
+       page regardless. `is_active = false` is what the read layer filters on. */
+    const declaredProducts = new Set((b.products ?? []).map((p) => p.slug))
+    const liveProducts = await rest<Row[]>(`bank_products?select=id,slug,is_active&bank_id=eq.${bank.id}`)
+    for (const row of liveProducts) {
+      const shouldBeActive = declaredProducts.has(row.slug as string)
+      if (Boolean(row.is_active) === shouldBeActive) continue
+      await rest(`bank_products?id=eq.${row.id}`, {
+        method: 'PATCH', body: JSON.stringify({ is_active: shouldBeActive }),
+      })
+      if (shouldBeActive) revived++
+      else retiredProducts++
     }
 
     for (const p of b.products ?? []) {
@@ -301,7 +323,9 @@ async function main() {
       }
     }
   }
-  console.log(`✓ seeded — ${inserted} new, ${superseded} superseded, ${retired} retired, ${held} unchanged`)
+  console.log(
+    `✓ seeded — ${inserted} new, ${superseded} superseded, ${retired} facts retired, ` +
+    `${retiredProducts} products retired, ${revived} revived, ${held} unchanged`)
 }
 
 main().catch((e) => { console.error('✗', e instanceof Error ? e.message : e); process.exit(1) })

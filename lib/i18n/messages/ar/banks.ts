@@ -59,9 +59,9 @@ export const banks = {
 
   // hub · counts that are deliberately different from one another
   entriesLabel: 'مصرفاً في دليل البنك المركزي',
-  operatingLabel: 'قيد العمل',
+  operatingLabel: 'بلا ملاحظة في الدليل',
   publishingLabel: 'تنشر شروط منتجاتها',
-  countsNote: 'دليل البنك المركزي يضم 79 قيداً، وهو ليس عدد المصارف العاملة: بعضها تحت التصفية أو الوصاية أو لم يبدأ العمل بعد.',
+  countsNote: 'دليل البنك المركزي يضم 79 قيداً، وهو ليس عدد المصارف العاملة: منها ما هو تحت التصفية أو الوصاية أو لم يبدأ العمل. و«بلا ملاحظة في الدليل» تعني أن الدليل لا يسجل قيداً على المصرف، لا أننا تحققنا من أنه يعمل.',
 
   // hub table
   colStatus: 'الحالة',
@@ -75,16 +75,19 @@ export const banks = {
   showingOf: (n: string, total: string) => `${n} من ${total}`,
 
   // status · four independent dimensions
+  /* The directory's own annotation. `operating` means only that the CBI
+     directory carries NO restriction annotation against the entry — not that
+     we verified the bank is open for business. */
   status: {
-    operating: 'قيد العمل',
+    operating: 'لا ملاحظة في الدليل',
     establishment: 'تحت التأسيس',
     guardianship: 'تحت الوصاية',
     liquidation: 'تحت التصفية',
   },
   statusNote: {
     establishment: 'قيد في دليل البنك المركزي لم يبدأ أعماله بعد.',
-    guardianship: 'مصرف تحت الوصاية أو الحجز القضائي حسب دليل البنك المركزي. قد لا تكون المنتجات المنشورة متاحة فعلياً.',
-    liquidation: 'مصرف تحت التصفية حسب دليل البنك المركزي، ولا يُعدّ مصرفاً يمكن فتح حساب لديه.',
+    guardianship: 'مدرج في دليل البنك المركزي تحت وصاية أو حجز قضائي. لم نتحقق من توفر المنتجات المنشورة فعلياً.',
+    liquidation: 'مدرج في دليل البنك المركزي تحت التصفية. لم نتحقق من نطاق الخدمات المتاحة حالياً.',
   },
   usdRestricted: 'قيود على التعامل بالدولار',
   usdRestrictedNote: 'مقيَّد التعامل بالدولار الأمريكي حسب القيود المنشورة. وجود حساب بالدولار لا يعني إمكانية إجراء كل التحويلات الدولارية.',
@@ -95,9 +98,11 @@ export const banks = {
   headlineOne: 'سعر واحد مختار',
   otherTermsDiffer: 'شروط أخرى بأسعار مختلفة',
   ratePickedNote: 'يُعرض سعر واحد لكل منتج: السيناريو الاعتيادي للأفراد كما نشره المصرف، مع شروطه.',
+  noCurrentRate: 'لا توجد نسبة حالية منشورة',
+  datedRate: (rate: string, date: string) => `المصرف ينشر ${rate}% على صفحة صادرة في ${date}، ولم يُعد تأكيدها بعد ذلك.`,
   noRatePublished: 'لم ينشر المصرف سعراً يمكن عرضه',
   verifiedShort: (d: string) => `تحقق ${d}`,
-  sourceCount: (n: string) => `${n} مصادر`,
+  sourceCount: (n: string) => (n === '1' ? 'مصدر واحد' : n === '2' ? 'مصدران' : Number(n) <= 10 ? `${n} مصادر` : `${n} مصدراً`),
   linkedCompany: 'صفحة الشركة في البورصة',
   notResearchedNote: 'لم يُجرَ بحث منشور لهذا المصرف بعد؛ الصفحة تعرض قيد الدليل فقط.',
   filterAll: 'الكل',
@@ -175,7 +180,14 @@ export const banks = {
   amount: 'المبلغ',
   term: 'المدة',
   months: (n: string) => `${n} شهراً`,
-  years: (n: string) => `${n} سنة`,
+  /* Arabic number agreement: one → سنة واحدة, two → سنتان, 3–10 → سنوات,
+     eleven and above → سنة. «15 سنوات» is not Arabic. */
+  years: (n: string) => {
+    const v = Number(n)
+    if (v === 1) return 'سنة واحدة'
+    if (v === 2) return 'سنتان'
+    return v >= 3 && v <= 10 ? `${n} سنوات` : `${n} سنة`
+  },
   conditionsApply: 'بشروط',
   conditionsHeading: 'الشروط',
   showConditions: 'عرض الشروط',

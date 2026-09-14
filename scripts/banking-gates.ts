@@ -17,6 +17,7 @@ import {
   FACT_KEYS, FACT_STATES, CONDITION_FIELDS, CONDITION_OPS, conditionHash,
 } from '../lib/banking'
 import { PILOT_BANKS } from './data/banks-pilot'
+import { isCurrentEnough } from '../lib/banks'
 
 const U = process.env.NEXT_PUBLIC_SUPABASE_URL
 const K = process.env.SUPABASE_SERVICE_ROLE_KEY
@@ -193,6 +194,42 @@ async function main() {
   ok('every published rate above zero says what it is calculated on',
     ratedProducts.every((id) => basisOf.has(id)),
     ratedProducts.filter((id) => !basisOf.has(id)).join(', '))
+
+  // ── age, and the difference between reading and publishing ──────────────
+  /* `verified_at` is when we read the page; `effective_date` is when the
+     source published the figure. Every Rafidain rate sits on a page stamped
+     2023, and reading it in 2026 does not make it current — so a dated figure
+     older than a year must carry the note that explains its demotion. */
+  const YEAR_MS = 365 * 86_400_000
+  const datedRates = (await get<any[]>(
+    'product_facts_current?select=id,field_key,state,effective_date,note,note_en&field_key=eq.rate&state=eq.KNOWN&effective_date=not.is.null&limit=500'))
+  const aged = datedRates.filter((f) => Date.now() - Date.parse(f.effective_date) > YEAR_MS)
+  /* Asserted through the SAME predicate the profile and the JSON-LD use, so a
+     parse or timezone bug that quietly made a 2023 date "current" would fail
+     here rather than on the page. A note is not required: the date itself is
+     what the page prints. */
+  ok('no rate over a year old can be presented as current',
+    aged.every((f) => !isCurrentEnough(f)) && datedRates.filter((f) => !aged.includes(f)).every((f) => isCurrentEnough(f)),
+    `${aged.length} of ${datedRates.length} dated rates are over a year old and demoted`)
+
+  /* A secondary source is allowed — a March 2026 press report beats a 2023
+     official page — but only with the date and the attribution attached. */
+  const secondary = await get<any[]>('data_sources?select=id,key&kind=eq.secondary')
+  const secIds = new Set(secondary.map((r) => r.id))
+  const secRates = (await get<any[]>(
+    'product_facts_current?select=id,source_id,field_key,state,effective_date,note,note_en&field_key=eq.rate&state=eq.KNOWN&limit=500'))
+    .filter((f) => secIds.has(f.source_id))
+  ok('every rate from a secondary source is dated and attributed',
+    secRates.every((f) => f.effective_date && f.note && f.note_en),
+    `${secRates.length} secondary-sourced rates`)
+
+  /* UNKNOWN is a finding about the source: "we read this page and the term is
+     not on it". A fee we never looked for is UNVERIFIED, and it has to say so
+     rather than leaving a reader to read "not checked" as "none". */
+  const unver = await get<any[]>('product_facts_current?select=field_key,state,note,note_en&state=eq.UNVERIFIED&limit=500')
+  ok('every unverified fact says what was not verified',
+    unver.every((f) => f.note && f.note_en),
+    `${unver.length} unverified facts`)
 
   // ── notes are copy, so they are bilingual ───────────────────────────────
   const noted = await get<any[]>('product_facts_current?select=id,note,note_en&note=not.is.null&limit=1000')

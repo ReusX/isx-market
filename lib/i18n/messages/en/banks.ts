@@ -48,9 +48,9 @@ export const banks: typeof ar = {
   glance: 'What this bank publishes',
 
   entriesLabel: 'banks in the CBI directory',
-  operatingLabel: 'operating',
+  operatingLabel: 'no directory annotation',
   publishingLabel: 'publish product terms',
-  countsNote: 'The CBI directory holds 79 entries, which is not a count of working banks: some are in liquidation or under guardianship, and one has not commenced business.',
+  countsNote: 'The CBI directory holds 79 entries, which is not a count of working banks: some are in liquidation or under guardianship, and one has not commenced business. “No directory annotation” means the directory records no restriction against the bank — not that we verified it is operating.',
 
   colStatus: 'Status',
   colCategories: 'Published products',
@@ -62,16 +62,19 @@ export const banks: typeof ar = {
   filterPublishing: 'Publishes terms',
   showingOf: (n: string, total: string) => `${n} of ${total}`,
 
+  /* The directory's own annotation. `operating` means only that the CBI
+     directory carries NO restriction annotation against the entry — not that
+     we verified the bank is open for business. */
   status: {
-    operating: 'Operating',
+    operating: 'No directory annotation',
     establishment: 'Under establishment',
     guardianship: 'Under guardianship',
     liquidation: 'In liquidation',
   },
   statusNote: {
     establishment: 'A CBI directory entry that has not commenced business.',
-    guardianship: 'Under guardianship or judicial custody per the CBI directory. Published products may not actually be available.',
-    liquidation: 'In liquidation per the CBI directory, and not a bank at which an account can be opened.',
+    guardianship: 'Listed in the CBI directory under guardianship or judicial custody. We have not verified whether the published products are actually available.',
+    liquidation: 'Listed in the CBI directory as in liquidation. We have not verified what services remain available.',
   },
   usdRestricted: 'USD dealing restricted',
   usdRestrictedNote: 'Restricted in dealing in US dollars under published restrictions. A published USD account does not mean every dollar transaction is possible.',
@@ -81,9 +84,11 @@ export const banks: typeof ar = {
   headlineOne: 'One selected rate',
   otherTermsDiffer: 'Other terms carry different rates',
   ratePickedNote: 'One rate is shown per product: the ordinary retail scenario as the bank publishes it, with its conditions.',
+  noCurrentRate: 'No current rate published',
+  datedRate: (rate: string, date: string) => `The bank publishes ${rate}% on a page dated ${date}, not reconfirmed since.`,
   noRatePublished: 'The bank publishes no rate that can be shown',
   verifiedShort: (d: string) => `checked ${d}`,
-  sourceCount: (n: string) => `${n} sources`,
+  sourceCount: (n: string) => (n === '1' ? '1 source' : `${n} sources`),
   linkedCompany: 'Exchange listing page',
   notResearchedNote: 'No published research has been done for this bank yet; the page shows the directory entry only.',
   filterAll: 'All',
@@ -153,8 +158,8 @@ export const banks: typeof ar = {
   },
   amount: 'Amount',
   term: 'Term',
-  months: (n: string) => `${n} months`,
-  years: (n: string) => `${n} years`,
+  months: (n: string) => (n === '1' ? '1 month' : `${n} months`),
+  years: (n: string) => (n === '1' ? '1 year' : `${n} years`),
   conditionsApply: 'Conditional',
   conditionsHeading: 'Conditions',
   showConditions: 'Show conditions',

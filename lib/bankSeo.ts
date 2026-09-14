@@ -22,6 +22,7 @@
  *     no other; a withheld page emits none at all.
  */
 
+import { isCurrentEnough } from '@/lib/banks'
 import type { Bank, ProductRow, FactRow, ServiceRow } from '@/lib/banks'
 import { absUrl } from '@/lib/seo'
 import { messages } from '@/lib/i18n'
@@ -104,7 +105,10 @@ export function bankJsonLd({ bank, products, facts, indexable }: BankSeoInput, l
 
   const offers = products
     .map((p) => {
-      const rate = facts.find((f) => f.product_id === p.id && f.field_key === 'rate' && f.state === 'KNOWN')
+      /* Only a rate the page actually headlines. A figure demoted for age is
+         not offered to Google as an interest rate either. */
+      const rate = facts.find((f) =>
+        f.product_id === p.id && f.field_key === 'rate' && f.state === 'KNOWN' && isCurrentEnough(f))
       if (!rate?.value_num) return null
       return {
         '@type': 'FinancialProduct',

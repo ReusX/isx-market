@@ -6,6 +6,7 @@ import { localeDate } from '@/lib/date'
 import { CoverageChip, iqd } from './BanksHub'
 import { CompanyLogo } from '@/components/CompanyLogo'
 import companiesData from '@/public/data/companies.json'
+import { isCurrentEnough } from '@/lib/banks'
 import type {
   Bank, ProductRow, ServiceRow, FactRow, ConditionRow, BankFinancials, Coverage,
 } from '@/lib/banks'
@@ -85,9 +86,14 @@ export function BankProfile({ bank, products, facts, conditions, services, finan
           <h1>{name}</h1>
           <p className="bk-meta">
             <span>{c.type[bank.bank_type]} · {c.ownership[bank.ownership]}{city ? ` · ${city}` : ''}</span>
-            {bank.operating_status !== 'operating'
-              ? <span className={`bk-flag is-${bank.operating_status}`}>{c.status[bank.operating_status]}</span>
-              : null}
+            {/* Guardianship and judicial custody are different legal states
+                and the directory distinguishes them, so the page prints the
+                term the source used rather than one label for both. */}
+            {bank.operating_status !== 'operating' ? (
+              <span className={`bk-flag is-${bank.operating_status}`}>
+                {(locale === 'ar' ? bank.status_note_ar : bank.status_note_en) ?? c.status[bank.operating_status]}
+              </span>
+            ) : null}
             {bank.usd_restricted ? <span className="bk-flag is-usd">{c.usdRestricted}</span> : null}
             <CoverageChip coverage={coverage} />
           </p>
@@ -250,8 +256,13 @@ function Product({ p, facts, conditions }: { p: ProductRow; facts: FactRow[]; co
      block. */
   const rateFact = facts.find((f) => f.field_key === 'rate')
   const basis = facts.find((f) => f.field_key === 'rate_basis')
+  /* A figure the source published more than a year ago keeps its place on the
+     page and loses the headline: it is shown in the detail list with the date
+     it was published, so it reads as a dated figure rather than an offer. */
+  const headline = rateFact && rateFact.state === 'KNOWN' && isCurrentEnough(rateFact) ? rateFact : null
+  const dated = rateFact && rateFact.state === 'KNOWN' && !headline ? rateFact : null
   const detail = facts.filter((f) => !['rate', 'rate_basis'].includes(f.field_key))
-  const scenario = rateFact ? conditions.filter((x) => x.fact_id === rateFact.id) : []
+  const scenario = headline ? conditions.filter((x) => x.fact_id === headline.id) : []
   const unpublished = detail.filter((f) => f.state === 'UNKNOWN')
   const allUnpublished = facts.length > 0 && facts.every((f) => f.state !== 'KNOWN')
 
@@ -264,19 +275,28 @@ function Product({ p, facts, conditions }: { p: ProductRow; facts: FactRow[]; co
       </div>
 
       <div className="bk-headline">
-        {rateFact?.state === 'KNOWN' && rateFact.value_num != null ? (
+        {headline?.value_num != null ? (
           <>
-            <strong><bdi>{rateFact.value_num}%</bdi></strong>
+            <strong><bdi>{headline.value_num}%</bdi></strong>
             {basis?.state === 'KNOWN' && basis.value_text
               ? <em>{c.rateBasis[basis.value_text as keyof typeof c.rateBasis] ?? basis.value_text}</em>
               : basis?.state === 'UNKNOWN' ? <em className="bk-na">{c.rateBasis.unstated}</em> : null}
           </>
         ) : (
           <span className="bk-na">
-            {rateFact?.state === 'SOURCE_UNAVAILABLE' ? c.sourceUnavailable : c.noRatePublished}
+            {rateFact?.state === 'SOURCE_UNAVAILABLE' ? c.sourceUnavailable
+              : rateFact?.state === 'UNVERIFIED' ? c.notChecked
+                : dated ? c.noCurrentRate : c.noRatePublished}
           </span>
         )}
       </div>
+
+      {/* The dated figure, said once, with the date that demoted it. */}
+      {dated?.value_num != null ? (
+        <p className="bk-dated">
+          {c.datedRate(String(dated.value_num), localeDate(dated.effective_date!, locale))}
+        </p>
+      ) : null}
 
       {/* The conditions that make the number true. Never optional: 4.25% for
           twelve months is a different offer from 4.25% for one. */}
@@ -298,7 +318,15 @@ function Product({ p, facts, conditions }: { p: ProductRow; facts: FactRow[]; co
         <dl className="bk-facts">
           {detail.map((f) => (
             <div key={f.id}>
-              <dt>{locale === 'ar' ? f.label_ar : f.label_en}</dt>
+              {/* A conditional fact carries its condition in the label. Three
+                  rows all labelled «أعلى مبلغ» with different numbers is not a
+                  product summary, it is a puzzle. */}
+              <dt>
+                {locale === 'ar' ? f.label_ar : f.label_en}
+                {f.is_conditional ? (
+                  <small> · {conditions.filter((x) => x.fact_id === f.id).map((x) => describe(x, c)).join(' · ')}</small>
+                ) : null}
+              </dt>
               <dd><FactValue f={f} /></dd>
               {f.state === 'KNOWN' && noteOf(f, locale) ? <p className="bk-fact-note">{noteOf(f, locale)}</p> : null}
             </div>
