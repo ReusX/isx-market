@@ -107,6 +107,7 @@ export const market: typeof ar = {
       d30:      '30 days',
       volume:   'Volume',
       shares:   'Shares',
+      mcap:     'Market cap',
       untraded: 'Did not trade this session',
       streak:   (n: number) => `No trade for ${n} sessions`,
       showAll:  (n: string) => `Show all companies (${n})`,

@@ -261,13 +261,13 @@ export function MarketPage() {
 
           <div className="id-table-scroll">
             <table className="id-table id-num iqm-table" aria-label={p.board.title}>
-              <colgroup><col /><col className="iqm-c-price" /><col className="iqm-c-chg" /><col className="iqm-c-chg iqm-hide-sm" /><col className="iqm-c-chg iqm-hide-sm" /><col className="iqm-c-val iqm-hide-sm" /><col className="iqm-c-val iqm-hide-md" /></colgroup>
+              <colgroup><col /><col className="iqm-c-price" /><col className="iqm-c-chg" /><col className="iqm-c-chg iqm-hide-sm" /><col className="iqm-c-chg iqm-hide-sm" /><col className="iqm-c-val iqm-hide-sm" /><col className="iqm-c-val iqm-hide-sm" /><col className="iqm-c-val iqm-hide-md" /></colgroup>
               <thead>
                 <tr>
                   {([
                     ['name', m.colCompany, ''], ['price', p.board.price, 'is-end'], ['d1', p.board.d1, 'is-end'],
                     ['d7', p.board.d7, 'is-end iqm-hide-sm'], ['d30', p.board.d30, 'is-end iqm-hide-sm'],
-                    ['volume', p.board.volume, 'is-end iqm-hide-sm'], ['shares', p.board.shares, 'is-end iqm-hide-md'],
+                    ['volume', p.board.volume, 'is-end iqm-hide-sm'], ['mcap', p.board.mcap, 'is-end iqm-hide-sm'], ['shares', p.board.shares, 'is-end iqm-hide-md'],
                   ] as [SortKey, string, string][]).map(([key, label, cls]) => {
                     const on = sort.key === key
                     return (
@@ -309,6 +309,7 @@ export function MarketPage() {
                         </>
                       )}
                       <td className="is-end iqm-hide-sm">{c.stale ? '—' : compact(c.shares_traded, u)}</td>
+                      <td className="is-end iqm-hide-sm">{liveMcap(c) ? compact(liveMcap(c), u) : '—'}</td>
                       <td className="is-end iqm-hide-md">{c.shares ? compact(c.shares, u) : '—'}</td>
                     </tr>
                   )
