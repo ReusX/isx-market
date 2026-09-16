@@ -71,3 +71,24 @@
 .iqf a:hover { color: var(--ink); }
 .iqf-note { max-width: 64ch; margin: 24px 0; }
 .iqf-small { font-size: 13px; color: var(--muted); }
+
+/* ── Door rail · the sidebar inside a door ──────────────────────────────── */
+.iq-door { display: grid; grid-template-columns: 220px minmax(0, 1fr); gap: 40px; align-items: start; }
+.iqr { position: sticky; top: 88px; }
+.iqr-door { display: flex; align-items: center; gap: 8px; margin: 8px 0 16px; padding-inline-start: 18px; font-size: 13px; color: var(--secondary); }
+.iqr-door svg { color: var(--nav-active); }
+.iqr-list { display: flex; flex-direction: column; gap: 4px; }
+.iqr-item {
+  display: flex; align-items: center; min-height: 44px; padding: 0 18px; border-radius: var(--r-pill);
+  color: var(--ink); font-size: 15px; font-weight: 400; text-decoration: none;
+}
+.iqr-item:hover { background: var(--surface-2); }
+.iqr-item[aria-current='page'] { background: var(--primary-bg); color: var(--primary-ink); font-weight: 500; }
+@media (max-width: 960px) {
+  .iq-door { grid-template-columns: 1fr; gap: 20px; }
+  .iqr { position: static; }
+  .iqr-door { display: none; }
+  .iqr-list { flex-direction: row; flex-wrap: wrap; gap: 8px; }
+  .iqr-item { min-height: 40px; padding: 0 16px; border: 1px solid var(--border); background: var(--surface); font-size: 14px; }
+  .iqr-item[aria-current='page'] { border-color: var(--primary-bg); }
+}

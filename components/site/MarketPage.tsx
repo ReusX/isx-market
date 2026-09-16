@@ -6,6 +6,7 @@ import { fetchLive, fetchCompanyMeta, mergeCompanies, companyName, SECTORS } fro
 import { sessionDate, type IndexRow } from '@/lib/homeData'
 import { useLocale } from '@/context/LocaleContext'
 import { SiteShell } from './SiteShell'
+import { DoorRail } from './DoorRail'
 import '@/styles/markets.css'
 import type { Company } from '@/types'
 
@@ -16,7 +17,7 @@ import type { Company } from '@/types'
  *
  *   1. The session in four figures — ISX60, traded value, volume, breadth —
  *      on a navy block, so the page opens on what the market did.
- *   2. The door's rail: the pages that belong to الأسواق, as pills.
+ *   2. The door's rail: the pages that belong to الأسواق, as a sidebar.
  *   3. The board: every listed company, one row each — name, last price, the
  *      change as a chip, traded value — most active first, with one search
  *      field and the sector pills. A row is a link to the company page.
@@ -107,7 +108,9 @@ export function MarketPage() {
 
   return (
     <SiteShell>
-      <main className="iqm id-full">
+      <main className="iqm id-full iq-door">
+        <DoorRail door="markets" items={RAIL.map((r) => ({ label: p.rail[r.key], route: r.route }))} />
+        <div className="iqm-body">
         <header className="iqm-head">
           <p className="id-eyebrow">{p.eyebrow}</p>
           <h1 className="id-h1">{m.title}</h1>
@@ -131,12 +134,6 @@ export function MarketPage() {
             <div><small>{m.trades}</small><strong>{index?.latest.total_trades != null ? int.format(index.latest.total_trades) : '—'}</strong></div>
           </div>
         </section>
-
-        <nav className="id-pills iqm-rail" aria-label={p.eyebrow}>
-          {RAIL.map((r) => (
-            <Link key={r.key} href={L(r.route)} className="id-pill" aria-current={r.key === 'market' ? 'page' : undefined}>{p.rail[r.key]}</Link>
-          ))}
-        </nav>
 
         <section className="iqm-board" aria-label={m.tableLabel}>
           <div className="iqm-controls">
@@ -185,6 +182,7 @@ export function MarketPage() {
           ) : null}
           {rows.length ? <p className="id-cap iqm-count">{p.showing(int.format(rows.length))}</p> : null}
         </section>
+        </div>
       </main>
     </SiteShell>
   )

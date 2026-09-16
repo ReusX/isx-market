@@ -17,7 +17,7 @@
   .iqm-figures > div:nth-child(odd) { border: 0; padding-inline-start: 0; }
 }
 
-.iqm-rail { margin: 28px 0 40px; }
+.iqm-session { margin-bottom: 40px; }
 
 .iqm-controls { display: flex; gap: 16px; align-items: center; flex-wrap: wrap; margin-bottom: 20px; }
 .iqm-controls .id-input { max-width: 340px; }
