@@ -196,12 +196,16 @@ export const rates: typeof ar = {
       rateUsed: 'Rate used',
       swap: 'Swap direction',
       about: {
-        title: 'About these figures',
-        body: [
-          'The dollar has two rates in Iraq and neither stands in for the other: an official rate set by the Central Bank, used in the currency window and in official banking and import transactions, and the parallel-market rate at which exchange shops and individuals actually deal in Baghdad and the provinces, normally higher. The difference is the exchange-rate gap.',
-          'The market rate shown is a published Baghdad closing rate per 100 dollars — a reference, not an execution price: it moves during the day, differs between provinces, and every shop has its own spread. The official rate is not read from a market; it is a policy rate, and the date it was last confirmed is stated.',
+        title: 'USD to IQD · Iraqi Dinar exchange rate today',
+        body: (v: { market: string; official: string }) => [
+          `The Iraqi dinar to dollar exchange rate is quoted two ways. The official Central Bank of Iraq rate is fixed at ${v.official} IQD per US dollar and applies to the currency auction and official banking and import transactions. The parallel (market) rate${v.market !== '—' ? ` — currently around ${v.market} IQD per dollar —` : ''} is the rate actually dealt at exchange shops in Baghdad and the provinces, and it normally trades above the official one. Use the live USD/IQD currency converter above to price any amount in either direction.`,
           'The dinar-to-dollar rate is shown both ways: how many dinars one dollar buys, and how many dollars a dinar amount is worth. The converter uses the rate you choose and adds no dealer commission.',
+          'The market rate shown is a published Baghdad closing rate per 100 dollars — a reference, not an execution price: it moves during the day, differs between provinces, and every shop has its own spread. The official rate is not read from a market; it is a policy rate, and the date it was last confirmed is stated.',
         ],
+      },
+      enBlock: {
+        title: 'USD to IQD · Iraqi Dinar exchange rate today',
+        body: (v: { market: string; official: string }) => `The official rate is ${v.official} IQD per dollar; the parallel-market rate is ${v.market}.`,
       },
       faqTitle: 'Questions about the dollar rate in Iraq',
     },
@@ -227,11 +231,11 @@ export const rates: typeof ar = {
       published: 'The ounce as the source publishes it',
       publishedNote: 'The source does not say from whose side it reads «buy» and «sell», and the two differ little; both are shown as published.',
       about: {
-        title: 'About these figures',
+        title: 'Gold price in Iraq today in Iraqi dinars',
         body: [
-          'Prices are a local Iraqi list published daily, not a world ounce price converted into dinars. The source publishes the gram price per karat in dinars and dollars; it is re-read every three hours and the list\'s date is stated.',
-          'The unit most used in Iraqi markets is the mithqal, 4.608 grams, and the karat most traded is 21. 24K is pure gold and the dearest; 18K the cheapest. Prices move daily with world gold markets and the dollar rate.',
-          'The dollar figures in the list are the source\'s own, converted at close to the official rate rather than the parallel market; someone holding dollars and buying locally effectively pays more than the dollar column suggests.',
+          'The gold price in Iraq follows the world ounce price in US dollars multiplied by the dinar\'s exchange rate against the dollar. The unit most used in Iraqi markets is the mithqal (4.608 grams) and the karat most traded is 21. Prices move daily with world gold markets and the dollar rate.',
+          'This page gives today\'s gold price in Iraq per gram and per mithqal for each karat (24, 21 and 18) in Iraqi dinars and US dollars, with a calculator that turns any weight into its current value.',
+          'The prices shown are a local Iraqi list published daily, not a converted world ounce price: the source publishes the gram price per karat in dinars and dollars, it is re-read every three hours and the list\'s date is stated. The dollar figures are the source\'s own, converted at close to the official rate rather than the parallel market; someone holding dollars and buying locally effectively pays more than the dollar column suggests.',
         ],
       },
       faqTitle: 'Questions about the gold price in Iraq',
@@ -283,7 +287,7 @@ export const rates: typeof ar = {
       ],
     },
     oil: {
-      title: 'Oil price today',
+      title: 'Oil price today in Iraq',
       basrah: 'Basrah crude',
       basrahNote: 'Basrah Heavy and Basrah Medium are Iraq\'s two main export grades. The figures are published price assessments, not official selling prices.',
       perBarrel: 'dollars per barrel',
@@ -298,10 +302,11 @@ export const rates: typeof ar = {
       colWhen: 'Observed',
       iraq: 'Iraq',
       about: {
-        title: 'About these figures',
+        title: 'Oil price today in Iraq in dollars and Iraqi dinars',
         body: [
-          'Prices come from oilprice.com\'s tables, in dollars per barrel, for the main world and regional grades: Brent, WTI, the OPEC basket, Dubai, and Iraq\'s two export grades, Basrah Heavy and Basrah Medium. The dinar equivalent uses the parallel-market rate shown on the dollar page.',
-          'Oil funds most of Iraq\'s budget, so the barrel price bears directly on government spending and the dinar. Prices are not compared with the budget\'s assumed oil price: the product stores neither that figure nor export volumes, and a comparison without a real number is not a comparison.',
+          'This page gives the barrel price of the main world and regional grades: Brent, West Texas Intermediate (WTI), the OPEC basket and Dubai crude, plus Iraq\'s two main export grades, Basrah Heavy and Basrah Medium. Prices are in US dollars per barrel with their Iraqi dinar equivalent at the current exchange rate.',
+          'Oil is the backbone of Iraq\'s economy and the source of most budget revenue, so the daily barrel price and the Basrah and Brent quotes matter to investor and citizen alike. Prices move with world supply and demand, OPEC+ decisions and geopolitics.',
+          'Prices come from oilprice.com\'s tables; the dinar equivalent uses the parallel-market rate shown on the dollar page. The Basrah figures are published assessments, not official selling prices, and prices are not compared with the budget\'s assumed oil price: the product stores neither that figure nor export volumes, and a comparison without a real number is not a comparison.',
         ],
       },
       faqTitle: 'Questions about the oil price',

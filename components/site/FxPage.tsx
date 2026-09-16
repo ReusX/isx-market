@@ -40,6 +40,7 @@ export function FxPage({ fx, parallel, official, faq }: { fx: FxData | null; par
   const officialLatest = official.length ? official[official.length - 1] : null
   const officialRate = officialLatest?.close ?? CBI_OFFICIAL_RATE
   const officialDate = officialLatest?.date ?? CBI_RATE_CONFIRMED
+  const figures = { market: market == null ? '—' : nf0.format(market), official: nf0.format(officialRate) }
   const gap = market != null ? { abs: market - officialRate, pct: ((market - officialRate) / officialRate) * 100 } : null
 
   const ranges: ChartRange[] = [
@@ -136,7 +137,16 @@ export function FxPage({ fx, parallel, official, faq }: { fx: FxData | null; par
             </section>
           ) : null}
 
-          <AboutSection title={P.about.title} body={P.about.body} />
+          {/* The English paragraph on the ARABIC page is deliberate: the
+              queries «usd to iqd» and «iraqi dinar to dollar» land here, and
+              a snippet is the wrong place to buy that coverage. */}
+          {locale === 'ar' ? (
+            <section className="id-read eco-en" dir="ltr" aria-label={P.enBlock.title}>
+              <h2 className="id-h3">{P.enBlock.title}</h2>
+              <p className="id-body">{P.enBlock.body(figures)}</p>
+            </section>
+          ) : null}
+          <AboutSection title={P.about.title} body={P.about.body(figures)} />
         </div>
       </main>
     </SiteShell>

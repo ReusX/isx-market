@@ -54,3 +54,7 @@
 .eco-q summary::after { content: '+'; color: var(--muted); }
 .eco-q[open] summary::after { content: '−'; }
 .eco-q p { margin: 0 0 14px; }
+
+/* The English block on the Arabic dollar page. */
+.eco-en { margin: 8px 0 8px; text-align: left; }
+.eco-en .id-h3 { margin-bottom: 8px; }

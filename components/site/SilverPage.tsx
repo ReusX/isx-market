@@ -55,13 +55,13 @@ export function SilverPage({ silver, fx }: { silver: SilverData | null; fx: FxDa
             {!silver ? <p className="id-note">{R.tools.unavailable}</p> : (
               <>
                 <p className="eco-lead id-num">
-                  <strong><bdi>${silver.ounceUsd == null ? '—' : nf2.format(silver.ounceUsd)}</bdi></strong>
-                  <span className="eco-unit">{P.perOunce} · {P.ounce}</span>
-                  {silver.ounceChange != null ? <span className={`id-chg ${silver.ounceChange > 0 ? 'is-up' : silver.ounceChange < 0 ? 'is-down' : 'is-flat'}`}><bdi>{silver.ounceChange > 0 ? '+' : ''}{nf2.format(silver.ounceChange)}</bdi></span> : null}
+                  <strong><bdi>{iqd(silver.ounceUsd)}</bdi></strong>
+                  <span className="eco-unit">{G.iqd} · {P.ounce}{silver.ounceUsd != null ? ` · $${nf2.format(silver.ounceUsd)}` : ''}</span>
+                  {silver.ounceChange != null ? <span className={`id-chg ${silver.ounceChange > 0 ? 'is-up' : silver.ounceChange < 0 ? 'is-down' : 'is-flat'}`}><bdi>{silver.ounceChange > 0 ? '+' : ''}{nf2.format(silver.ounceChange)} $</bdi></span> : null}
                 </p>
                 <p className="id-cap eco-when">{silver.date ? R.tools.observedOn(localeDate(silver.date, locale)) : R.tools.noObserved}</p>
                 <div className="id-stats id-num eco-stats">
-                  <div className="id-stat"><small>{P.ounceIqd}</small><b><bdi>{iqd(silver.ounceUsd)}</bdi></b><span className="id-cap">{G.atMarketRate}</span></div>
+                  <div className="id-stat"><small>{P.ounce} · $</small><b><bdi>${silver.ounceUsd == null ? '—' : nf2.format(silver.ounceUsd)}</bdi></b><span className="id-cap">{P.perOunce}</span></div>
                   <div className="id-stat"><small>{P.gram999}</small><b><bdi>{iqd(g999?.usd)}</bdi></b><span className="id-cap">${g999 ? nf2.format(g999.usd) : '—'}</span></div>
                   <div className="id-stat"><small>{P.gram925}</small><b><bdi>{iqd(g925?.usd)}</bdi></b><span className="id-cap">${g925 ? nf2.format(g925.usd) : '—'}</span></div>
                   <div className="id-stat"><small>{G.mithqal} · 999</small><b><bdi>{g999 ? iqd(g999.usd * MITHQAL_G) : '—'}</bdi></b><span className="id-cap">{G.iqd}</span></div>
