@@ -114,6 +114,7 @@ export const market: typeof ar = {
       showLess: 'Show less',
       sortNote: 'Sorted by volume',
     },
+    vsAvg:     (pct: string) => `${pct} vs 20-session average`.trim(),
     breadth:   { label: 'Company moves', up: 'advancing', down: 'declining', flat: (n: string) => `${n} unchanged` },
     untraded:  'Not traded',
     noChange:  'No change',

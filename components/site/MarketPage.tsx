@@ -78,6 +78,9 @@ export function MarketPage() {
   const [companies, setCompanies] = useState<Company[]>([])
   const [session, setSession] = useState<string | null>(null)
   const [index, setIndex] = useState<{ latest: IndexRow; prev: IndexRow | null } | null>(null)
+  /* The last 21 sessions' totals: the latest, and the twenty before it that
+     give each figure its «عن متوسط 20 جلسة» context. */
+  const [recent, setRecent] = useState<IndexRow[]>([])
   const [series, setSeries] = useState<IndexSeries>({ isx60: [], rsisx: [] })
   const [flowRows, setFlowRows] = useState<FlowRow[]>([])
   const [failed, setFailed] = useState(false)
@@ -124,6 +127,7 @@ export function MarketPage() {
           if (!alive || !rows.length) return
           setSeries((s) => ({ ...s, isx60: rows.map((r) => ({ date: r.date, isx60: r.isx60 })) }))
           setIndex({ latest: rows[rows.length - 1], prev: rows[rows.length - 2] ?? null })
+          setRecent(rows.slice(-21))
         })(),
         /* Price history for the 7- and 30-day columns: 45 calendar days of
            closes for every ticker, paged under PostgREST's 1000-row cap. */
@@ -169,6 +173,17 @@ export function MarketPage() {
     for (const r of h) { if (r.date <= cutoff) base = r.close; else break }
     return base ? ((c.close - base) / base) * 100 : null
   }
+
+  /* Each session figure against the mean of the twenty sessions before it. */
+  const vsAvg = (key: 'total_value' | 'total_volume' | 'total_trades'): number | null => {
+    if (recent.length < 6) return null
+    const prev = recent.slice(0, -1).map((r) => r[key]).filter((v): v is number => v != null && v > 0)
+    const now = recent[recent.length - 1][key]
+    if (!prev.length || now == null) return null
+    return (now / (prev.reduce((a, b) => a + b, 0) / prev.length) - 1) * 100
+  }
+  const Delta = ({ v }: { v: number | null }) => v == null ? null
+    : <em className={`iqm-delta ${v > 0 ? 'is-up' : v < 0 ? 'is-down' : ''}`.trim()}><bdi className="iqm-pct">{v > 0 ? '+' : ''}{Math.round(v)}%</bdi> {p.vsAvg('').trim()}</em>
 
   /* Breadth, from the companies that TRADED this session only. A company
      carried forward without a trade is neither unchanged nor anything else
@@ -226,8 +241,12 @@ export function MarketPage() {
         <section className="iqm-session id-block is-navy id-num" aria-label={m.summaryLabel}>
           <div className="iqm-session-head">
             <span>{session ? p.sessionOf(sessionDate(session, locale)) : ' '}</span>
-            {index?.latest.traded_companies != null && index.latest.listed_companies != null
-              ? <span>{p.tradedOf(String(index.latest.traded_companies), String(index.latest.listed_companies))}</span> : null}
+            {index?.latest.traded_companies != null && index.latest.listed_companies != null ? (
+              <span className="iqm-part">
+                {p.tradedOf(String(index.latest.traded_companies), String(index.latest.listed_companies))}
+                <span className="iqm-part-bar" aria-hidden="true"><i style={{ width: `${(index.latest.traded_companies / index.latest.listed_companies) * 100}%` }} /></span>
+              </span>
+            ) : null}
           </div>
           <div className="iqm-figures">
             <div className="iqm-breadth">
@@ -237,11 +256,17 @@ export function MarketPage() {
                 <span className="iqm-dot">·</span>
                 <span className="is-down">{int.format(breadth.down)}</span> {p.breadth.down}
               </strong>
+              {/* The mood as a bar: mint / grey / coral, to scale. */}
+              {breadth.up + breadth.down + breadth.flat > 0 ? (
+                <span className="iqm-bar" aria-hidden="true">
+                  <i className="is-up" style={{ flex: breadth.up }} /><i className="is-flat" style={{ flex: breadth.flat }} /><i className="is-down" style={{ flex: breadth.down }} />
+                </span>
+              ) : null}
               <em>{p.breadth.flat(int.format(breadth.flat))}</em>
             </div>
-            <div><small>{m.tradedValue}</small><strong>{compact(index?.latest.total_value, u)}</strong><em>{u.iqd}</em></div>
-            <div><small>{m.volume}</small><strong>{compact(index?.latest.total_volume, u)}</strong><em>{u.shares}</em></div>
-            <div><small>{m.trades}</small><strong>{index?.latest.total_trades != null ? int.format(index.latest.total_trades) : '—'}</strong></div>
+            <div><small>{m.tradedValue}</small><strong>{compact(index?.latest.total_value, u)}</strong><em>{u.iqd}</em><Delta v={vsAvg('total_value')} /></div>
+            <div><small>{m.volume}</small><strong>{compact(index?.latest.total_volume, u)}</strong><em>{u.shares}</em><Delta v={vsAvg('total_volume')} /></div>
+            <div><small>{m.trades}</small><strong>{index?.latest.total_trades != null ? int.format(index.latest.total_trades) : '—'}</strong><Delta v={vsAvg('total_trades')} /></div>
           </div>
         </section>
 

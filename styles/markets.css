@@ -16,6 +16,14 @@
 .iqm-breadth .is-up { color: var(--up); } .iqm-breadth .is-down { color: var(--down); }
 .iqm-breadth .iqm-dot { margin: 0 8px; opacity: .5; }
 .iqm-breadth em { color: var(--muted); opacity: 1; }
+.iqm-bar { display: flex; gap: 2px; height: 5px; margin: 12px 0 8px; max-width: 220px; }
+.iqm-bar i { display: block; border-radius: 3px; min-width: 3px; }
+.iqm-bar .is-up { background: var(--up); } .iqm-bar .is-flat { background: var(--muted); opacity: .45; } .iqm-bar .is-down { background: var(--down); }
+.iqm-delta { display: block; font-style: normal; font-size: 12px; margin-top: 6px; color: var(--muted); opacity: 1; }
+.iqm-delta.is-up { color: var(--up); } .iqm-delta.is-down { color: var(--down); }
+.iqm-part { display: inline-flex; flex-direction: column; gap: 6px; align-items: flex-end; }
+.iqm-part-bar { display: block; width: 160px; height: 4px; border-radius: 2px; background: var(--border); overflow: hidden; }
+.iqm-part-bar i { display: block; height: 100%; background: var(--nav-active); border-radius: 2px; }
 @media (max-width: 760px) {
   .iqm-session { padding: 20px; }
   .iqm-figures { grid-template-columns: 1fr 1fr; }

@@ -127,6 +127,7 @@ export const market = {
       showLess: 'عرض أقل',
       sortNote: 'مرتّبة حسب حجم التداول',
     },
+    vsAvg:     (pct: string) => `${pct} عن متوسط 20 جلسة`.trim(),
     breadth:   { label: 'حركة الشركات', up: 'صاعدة', down: 'منخفضة', flat: (n: string) => `${n} بلا تغيير` },
     untraded:  'لم تُتداول',
     noChange:  'بلا تغيّر',
