@@ -1,0 +1,152 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   IQWealth identity · the component vocabulary (September 2026)
+
+   Reference: docs/design/direction.html — the approved mockup. Every rule
+   here is a piece of that page, so a rebuilt route is assembled from these
+   classes rather than styled from scratch. Tokens live in app/globals.css.
+
+   The rules of the identity, so they do not have to be rediscovered:
+     · Cream page, navy ink. Blue is a BLOCK (hero, primary button), never a
+       text colour and never more than one block per screen.
+     · One typeface, three weights: 200–300 for display, 400 for body, 500 for
+       controls only. Nothing bold. No positive letter-spacing on Arabic.
+     · Pills (54px) for controls; 32px radius on big blocks; 16px on panels;
+       8px on chips. Hairline borders at 14% navy. No shadows.
+     · Rising/falling: moss and sand chips when there is room for a ground;
+       --up / --down as text when there is not.
+     · One row, one fact. Detail goes behind a click.
+     · Figures are always tabular.
+
+   Naming: `.id-*`. Layout classes stay in the route's own stylesheet.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ── Base ───────────────────────────────────────────────────────────────── */
+html { background: var(--page); color: var(--ink); }
+body {
+  font-family: var(--font-sans), system-ui, -apple-system, 'Segoe UI', Arial, sans-serif;
+  font-weight: 400;
+  -webkit-font-smoothing: antialiased;
+}
+.id-num, .id-table, .id-price, .id-stat { font-variant-numeric: tabular-nums lining-nums; }
+
+/* ── Container ──────────────────────────────────────────────────────────── */
+.id-wrap { max-width: 1180px; margin-inline: auto; padding-inline: 24px; }
+@media (max-width: 760px) { .id-wrap { padding-inline: 16px; } }
+
+/* ── Type scale ─────────────────────────────────────────────────────────── */
+.id-display { font-size: clamp(40px, 6.4vw, 84px); font-weight: 200; line-height: 1.02; letter-spacing: 0; text-wrap: balance; margin: 0; }
+.id-h1      { font-size: clamp(30px, 4vw, 44px);   font-weight: 300; line-height: 1.08; letter-spacing: 0; text-wrap: balance; margin: 0; }
+.id-h2      { font-size: clamp(24px, 3vw, 32px);   font-weight: 300; line-height: 1.15; letter-spacing: 0; text-wrap: balance; margin: 0; }
+.id-h3      { font-size: 20px;                     font-weight: 400; line-height: 1.3;  margin: 0; }
+.id-lede    { font-size: 17px; line-height: 1.55; color: var(--secondary); max-width: 52ch; margin: 14px 0 0; }
+.id-body    { font-size: 16px; line-height: 1.55; max-width: 65ch; }
+.id-cap     { font-size: 12px; line-height: 1.4;  color: var(--muted); }
+.id-eyebrow { font-size: 13px; font-weight: 400; color: var(--secondary); margin: 0 0 12px; }
+.id-rule    { height: 1px; width: 56px; background: var(--ink); margin: 0 0 28px; }
+
+/* ── Blocks ─────────────────────────────────────────────────────────────── */
+.id-block { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-lg); padding: 40px; }
+.id-block.is-blue { background: var(--blue); color: var(--white); border-color: transparent; }
+.id-block.is-navy { background: var(--navy); color: var(--white); border-color: transparent; }
+.id-panel { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-md); padding: 20px; }
+.id-well  { background: var(--surface-2); border-radius: var(--r-md); padding: 20px; }
+@media (max-width: 760px) { .id-block { padding: 24px 20px; border-radius: 24px; } }
+
+/* ── Controls ───────────────────────────────────────────────────────────── */
+.id-btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  min-height: 44px; padding: 10px 22px; border-radius: var(--r-pill);
+  border: 1px solid var(--border); background: var(--surface); color: var(--ink);
+  font: inherit; font-size: 14px; font-weight: 500; line-height: 1; cursor: pointer;
+  text-decoration: none; white-space: nowrap;
+}
+.id-btn:hover { border-color: var(--ink); }
+.id-btn.is-primary { background: var(--navy); color: var(--white); border-color: var(--navy); }
+.id-btn.is-primary:hover { background: #00184a; }
+.id-btn.is-blue { background: var(--blue); color: var(--white); border-color: var(--blue); }
+.id-btn.is-blue:hover { background: var(--blue-deep); }
+.id-btn.is-sm { min-height: 36px; padding: 6px 16px; font-size: 13px; }
+/* On a blue or navy block, the outline button borrows the white hairline. */
+.is-blue .id-btn, .is-navy .id-btn { background: transparent; color: var(--white); border-color: var(--white-22); }
+.is-blue .id-btn.is-light, .is-navy .id-btn.is-light { background: var(--white); color: var(--navy); border-color: var(--white); }
+
+.id-pills { display: flex; gap: 8px; flex-wrap: wrap; }
+.id-pill {
+  display: inline-flex; align-items: center; min-height: 36px; padding: 6px 16px;
+  border-radius: var(--r-pill); border: 1px solid var(--border); background: var(--surface);
+  color: var(--ink); font: inherit; font-size: 13px; font-weight: 500; line-height: 1;
+  cursor: pointer; text-decoration: none;
+}
+.id-pill:hover { border-color: var(--ink); }
+.id-pill.is-on, .id-pill[aria-current], .id-pill[aria-pressed='true'] { background: var(--navy); color: var(--white); border-color: var(--navy); }
+
+.id-input {
+  min-height: 44px; padding: 10px 18px; border-radius: var(--r-pill);
+  border: 1px solid var(--border); background: var(--surface); color: var(--ink);
+  font: inherit; font-size: 15px; width: 100%;
+}
+.id-input::placeholder { color: var(--muted); }
+.id-input:focus { outline: none; border-color: var(--ink); }
+
+.id-go { width: 36px; height: 36px; border-radius: 50%; border: 1px solid var(--border); display: inline-grid; place-items: center; color: var(--ink); text-decoration: none; }
+.id-go:hover { border-color: var(--ink); }
+
+/* ── Change chips ───────────────────────────────────────────────────────── */
+.id-chg {
+  display: inline-block; min-width: 74px; text-align: center; padding: 5px 10px;
+  border-radius: var(--r-pill); font-size: 13px; font-weight: 500; line-height: 1.3;
+  font-variant-numeric: tabular-nums;
+}
+.id-chg.is-up   { background: var(--moss); color: var(--moss-ink); }
+.id-chg.is-down { background: var(--sand); color: var(--sand-ink); }
+.id-chg.is-flat { background: var(--surface-2); color: var(--secondary); }
+.id-up   { color: var(--up); }
+.id-down { color: var(--down); }
+
+/* ── Table · one row, one fact ──────────────────────────────────────────── */
+.id-table { width: 100%; border-collapse: collapse; font-size: 15px; }
+.id-table th {
+  font-weight: 400; font-size: 12px; color: var(--secondary); text-align: start;
+  padding: 0 0 12px; border-bottom: 1px solid var(--ink);
+}
+.id-table td { padding: 18px 0; border-bottom: 1px solid var(--border); vertical-align: middle; }
+.id-table .is-end { text-align: end; }
+.id-table .id-name { font-weight: 500; }
+.id-table .id-sub  { display: block; font-size: 12px; color: var(--muted); font-weight: 400; }
+.id-table tbody tr:hover td { background: var(--surface-2); }
+.id-table-scroll { overflow-x: auto; }
+
+/* ── Stat cells (facts under a hero) ────────────────────────────────────── */
+.id-stats { display: grid; grid-template-columns: repeat(4, 1fr); border-top: 1px solid var(--border); }
+.id-stat  { padding: 20px 0 0 18px; border-inline-start: 1px solid var(--border); padding-inline-start: 18px; }
+.id-stat:first-child { border: 0; padding-inline-start: 0; }
+.id-stat small { display: block; font-size: 12px; color: var(--secondary); }
+.id-stat b { display: block; font-weight: 300; font-size: 22px; margin-top: 6px; }
+@media (max-width: 760px) {
+  .id-stats { grid-template-columns: 1fr 1fr; row-gap: 20px; }
+  .id-stat:nth-child(odd) { border: 0; padding-inline-start: 0; }
+}
+
+/* ── Price hero ─────────────────────────────────────────────────────────── */
+.id-price strong { display: block; font-weight: 200; font-size: clamp(44px, 6vw, 72px); line-height: 1; }
+.id-price small  { display: block; font-size: 12px; color: var(--muted); margin-top: 6px; }
+
+/* ── Index tiles on a blue block ────────────────────────────────────────── */
+.id-tiles { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; background: var(--white-22); border: 1px solid var(--white-22); border-radius: var(--r-md); overflow: hidden; }
+.id-tiles > div { background: var(--blue); padding: 18px 18px 16px; }
+.id-tiles small  { display: block; font-size: 12px; opacity: .75; margin-bottom: 8px; }
+.id-tiles strong { display: block; font-weight: 300; font-size: 30px; line-height: 1; }
+.id-tiles em     { font-style: normal; font-size: 13px; display: block; margin-top: 8px; }
+.id-tiles em.is-up   { color: #bff5d9; }
+.id-tiles em.is-down { color: #ffd0c6; }
+@media (max-width: 760px) { .id-tiles { grid-template-columns: 1fr; } }
+
+/* ── Notices ────────────────────────────────────────────────────────────── */
+.id-note { border: 1px solid var(--border); border-radius: var(--r-md); padding: 14px 18px; font-size: 14px; color: var(--secondary); }
+.id-note.is-blue { border-color: rgba(20, 107, 253, .3); background: rgba(20, 107, 253, .06); color: var(--ink); }
+
+/* ── Focus ──────────────────────────────────────────────────────────────── */
+:is(a, button, input, select, textarea, [tabindex]):focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; }
+
+/* ── Motion ─────────────────────────────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; } }

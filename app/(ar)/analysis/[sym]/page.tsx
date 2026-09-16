@@ -184,8 +184,8 @@ export default function AnalysisPage({ params }: { params: { sym: string } }) {
   const up       = pct >= 0
   const verdict  = content?.verdict ? getVerdict(content.verdict) : null
 
-  // Thmanyah font for this page regardless of language toggle
-  const thmanyah = "'ThmanyahSans', sans-serif"
+  // The identity's one face, whichever language the page renders in
+  const thmanyah = 'var(--font-sans), sans-serif'
 
   return (
     <div style={{ maxWidth: 900, margin: '0 auto', padding: '28px 24px 80px', fontFamily: thmanyah }}>

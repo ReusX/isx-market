@@ -1,0 +1,220 @@
+<title>IQWealth Direction</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Readex+Pro:wght@200;300;400;500&display=swap">
+<style>
+:root{
+  --cream:#fffbf7; --navy:#002664; --blue:#146bfd; --blue-deep:#0f56d1; --white:#fff;
+  --ink-60:rgba(0,38,100,.62); --ink-40:rgba(0,38,100,.42); --line:rgba(0,38,100,.14); --line-w:rgba(255,255,255,.22);
+  --up:#1e9a6a; --down:#c9422d; --sand:#f3dec5; --moss:#e1efac;
+  --r-pill:54px; --r-lg:32px; --r-md:16px; --r-sm:8px;
+  --font:'Readex Pro',system-ui,-apple-system,'Segoe UI',Arial,sans-serif;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--cream);color:var(--navy);font-family:var(--font);font-weight:300;font-size:16px;line-height:1.55;direction:rtl;padding-inline:0;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1180px;margin-inline:auto;padding-inline:24px}
+h1,h2,h3{font-weight:300;margin:0;text-wrap:balance;line-height:1.08;letter-spacing:0}
+.num{font-variant-numeric:tabular-nums lining-nums}
+a{color:inherit;text-decoration:none}
+
+/* meta strip */
+.meta{background:var(--navy);color:#fff;font-size:12px;padding-block:8px}
+.meta .wrap{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;opacity:.85}
+.meta b{font-weight:400;opacity:1}
+
+/* nav */
+.nav{position:sticky;top:0;z-index:5;padding-block:16px;background:linear-gradient(var(--cream) 70%,transparent)}
+.nav .wrap{display:flex;align-items:center;justify-content:space-between;gap:16px}
+.logo{display:inline-flex;align-items:center;gap:10px;padding:12px 22px 12px 18px;border-radius:var(--r-pill);background:var(--blue);color:#fff;font-weight:400;font-size:20px}
+.logo svg{width:22px;height:22px}
+.links{display:flex;gap:8px;flex-wrap:wrap}
+.links a{padding:10px 18px;border-radius:var(--r-pill);border:1px solid var(--line);font-size:14px;font-weight:400;background:var(--white)}
+.links a.on{background:var(--navy);color:#fff;border-color:var(--navy)}
+@media(max-width:760px){.links{display:none}}
+
+/* hero */
+.hero{margin:12px 0 0;background:var(--blue);color:#fff;border-radius:var(--r-lg);padding:64px 40px 48px}
+.hero-grid{display:grid;grid-template-columns:1.1fr 1fr;gap:48px;align-items:end}
+.hero h1{font-size:clamp(40px,6.4vw,84px);font-weight:200;line-height:1.02}
+.hero p{max-width:34ch;font-size:19px;margin:0;opacity:.92}
+.hero .cta{display:flex;gap:10px;margin-top:28px;flex-wrap:wrap}
+.btn{display:inline-block;padding:12px 22px;border-radius:var(--r-pill);font-size:14px;font-weight:400;border:1px solid var(--line-w)}
+.btn.solid{background:var(--white);color:var(--navy);border-color:var(--white)}
+.hero .idx{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--line-w);border:1px solid var(--line-w);border-radius:var(--r-md);overflow:hidden}
+.hero .idx div{background:var(--blue);padding:18px 18px 16px}
+.hero .idx small{display:block;font-size:12px;opacity:.75;margin-bottom:8px}
+.hero .idx strong{display:block;font-weight:300;font-size:30px;line-height:1}
+.hero .idx em{font-style:normal;font-size:13px;display:block;margin-top:8px}
+.hero .idx em.up{color:#bff5d9}.hero .idx em.dn{color:#ffd0c6}
+@media(max-width:760px){.hero{padding:40px 22px 28px}.hero-grid{grid-template-columns:1fr;gap:28px}.hero .idx{grid-template-columns:1fr}}
+
+/* sections */
+section{padding-block:72px}
+.eyebrow{font-size:13px;font-weight:400;color:var(--ink-60);margin-bottom:12px}
+.rule{height:1px;background:var(--navy);width:56px;margin-bottom:28px}
+h2{font-size:clamp(30px,4vw,44px)}
+.lede{max-width:52ch;color:var(--ink-60);font-size:17px;margin:14px 0 0}
+
+/* market table */
+.tbl{width:100%;border-collapse:collapse;margin-top:40px;font-size:15px}
+.tbl th{font-weight:400;font-size:12px;color:var(--ink-60);text-align:start;padding:0 0 12px;border-bottom:1px solid var(--navy)}
+.tbl td{padding:18px 0;border-bottom:1px solid var(--line);vertical-align:middle}
+.tbl td.r{text-align:left}
+.tbl .name{font-weight:400}
+.tbl .tick{display:block;font-size:12px;color:var(--ink-40)}
+.chg{display:inline-block;min-width:74px;text-align:center;padding:5px 10px;border-radius:var(--r-pill);font-size:13px;font-weight:400}
+.chg.up{background:var(--moss);color:#273d12}.chg.dn{background:var(--sand);color:#654516}
+.spark{width:110px;height:28px;display:block}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:64px}
+@media(max-width:760px){.two{grid-template-columns:1fr;gap:40px}.tbl .spark,.tbl th:nth-child(3),.tbl td:nth-child(3){display:none}}
+
+/* company */
+.co{background:var(--white);border:1px solid var(--line);border-radius:var(--r-lg);padding:40px}
+.co-head{display:grid;grid-template-columns:1fr auto;gap:32px;align-items:end}
+.co h3{font-size:clamp(28px,3.6vw,40px);font-weight:300}
+.co .sub{color:var(--ink-60);font-size:14px;margin-top:8px}
+.price{text-align:left}
+.price strong{display:block;font-weight:200;font-size:clamp(44px,6vw,72px);line-height:1;letter-spacing:-.01em}
+.price small{display:block;font-size:12px;color:var(--ink-40);margin-top:6px}
+.facts{display:grid;grid-template-columns:repeat(4,1fr);gap:0;margin-top:36px;border-top:1px solid var(--line)}
+.facts div{padding:20px 0 0;border-inline-start:1px solid var(--line);padding-inline-start:18px}
+.facts div:first-child{border:0;padding-inline-start:0}
+.facts small{display:block;font-size:12px;color:var(--ink-60)}
+.facts b{display:block;font-weight:300;font-size:22px;margin-top:6px}
+.chart{margin-top:36px;height:220px;border-radius:var(--r-md);background:linear-gradient(180deg,rgba(20,107,253,.06),transparent);position:relative;overflow:hidden}
+.chart svg{width:100%;height:100%;display:block}
+.tabs{display:flex;gap:8px;margin-top:28px;flex-wrap:wrap}
+.tabs a{padding:8px 16px;border-radius:var(--r-pill);border:1px solid var(--line);font-size:13px;font-weight:400}
+.tabs a.on{background:var(--navy);color:#fff;border-color:var(--navy)}
+@media(max-width:760px){.co{padding:24px}.co-head{grid-template-columns:1fr}.price{text-align:start}.facts{grid-template-columns:1fr 1fr;row-gap:20px}.facts div:nth-child(3){border:0;padding-inline-start:0}}
+
+/* banks */
+.bank{display:grid;grid-template-columns:1.4fr .8fr 1.2fr .8fr auto;gap:16px;align-items:center;padding:20px 0;border-bottom:1px solid var(--line);font-size:15px}
+.bank:first-of-type{border-top:1px solid var(--navy)}
+.bank .name{font-weight:400}
+.bank .score{display:inline-flex;align-items:baseline;gap:4px;font-size:22px;font-weight:300}
+.bank .score i{font-style:normal;font-size:12px;color:var(--ink-40)}
+.bank .rate{font-size:22px;font-weight:300}.bank .rate i{font-style:normal;font-size:12px;color:var(--ink-60);margin-inline-start:4px}
+.bank .go{width:36px;height:36px;border-radius:50%;border:1px solid var(--line);display:grid;place-items:center;font-weight:400}
+.bank .muted{color:var(--ink-40)}
+@media(max-width:760px){.bank{grid-template-columns:1fr auto auto;font-size:14px}.bank .prod,.bank .go{display:none}}
+
+/* identity block */
+.id{background:var(--navy);color:#fff;border-radius:var(--r-lg);padding:48px 40px}
+.id h2{color:#fff;font-size:34px}
+.sw{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-top:32px}
+.sw div{border-radius:var(--r-md);padding:16px 14px 14px;min-height:96px;display:flex;flex-direction:column;justify-content:flex-end;font-size:12px;border:1px solid var(--line-w)}
+.sw b{display:block;font-weight:400;font-size:13px}.sw code{font-family:ui-monospace,monospace;font-size:11px;opacity:.75}
+.type{margin-top:40px;display:grid;grid-template-columns:1fr 1fr;gap:32px;align-items:start}
+.type p{margin:0 0 14px}
+.type .h{font-size:44px;font-weight:200;line-height:1}
+.type .b{font-size:16px;opacity:.9;max-width:38ch}
+.type .cap{font-size:12px;opacity:.6}
+.type ul{margin:0;padding:0;list-style:none;font-size:14px;line-height:1.9}
+.type li b{font-weight:400}
+@media(max-width:760px){.id{padding:28px 22px}.type{grid-template-columns:1fr}}
+footer{padding:48px 0 64px;font-size:13px;color:var(--ink-60);display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px}
+</style>
+
+<div class="meta"><div class="wrap"><span>بورصة العراق · جلسة الثلاثاء ١٦ أيلول ٢٠٢٦ · <b>مغلقة</b></span><span class="num">USD/IQD <b>١٣٢٫٥٠٠</b> · ذهب ٢١ <b>٥٩٧٬٠٠٠</b> · برنت <b>٧٣٫٤٠</b></span></div></div>
+
+<nav class="nav"><div class="wrap">
+  <a class="logo" href="#"><svg viewBox="0 0 96 96" aria-hidden="true"><path fill-rule="evenodd" fill="#fff" d="M 48.00 11.00 L 53.47 34.79 L 74.16 21.84 L 61.21 42.53 L 85.00 48.00 L 61.21 53.47 L 74.16 74.16 L 53.47 61.21 L 48.00 85.00 L 42.53 61.21 L 21.84 74.16 L 34.79 53.47 L 11.00 48.00 L 34.79 42.53 L 21.84 21.84 L 42.53 34.79 Z M 39.00 48.00 a 9 9 0 1 0 18 0 a 9 9 0 1 0 -18 0 Z"/></svg>IQWealth</a>
+  <div class="links"><a class="on" href="#">السوق</a><a href="#">الشركات</a><a href="#">المصارف</a><a href="#">الإحصاءات</a><a href="#">تعلّم</a><a href="#">English</a></div>
+</div></nav>
+
+<div class="wrap">
+<div class="hero">
+  <div class="hero-grid">
+    <div>
+      <h1>سوق العراق،<br>بوضوح.</h1>
+      <p style="margin-top:24px">أسعار بورصة العراق، بيانات الشركات، ونسب المصارف — في مكان واحد، وبلغة يفهمها الجميع.</p>
+      <div class="cta"><a class="btn solid" href="#">تصفّح الشركات</a><a class="btn" href="#">قارن المصارف</a></div>
+    </div>
+    <div class="idx num">
+      <div><small>مؤشر ISX60</small><strong>١٬٠٤٢٫٨</strong><em class="up">▲ ٠٫٦٪</em></div>
+      <div><small>قيمة التداول</small><strong>٣٫٨</strong><em>مليار دينار</em></div>
+      <div><small>الأسهم المتداولة</small><strong>٢٫١</strong><em>مليار سهم</em></div>
+    </div>
+  </div>
+</div>
+</div>
+
+<section><div class="wrap">
+  <div class="rule"></div>
+  <div class="two">
+    <div>
+      <h2>الأكثر ارتفاعاً</h2>
+      <table class="tbl num">
+        <tr><th>الشركة</th><th>السعر</th><th></th><th style="text-align:left">التغيّر</th></tr>
+        <tr><td><span class="name">مصرف بغداد</span><span class="tick">BBOB</span></td><td>٢٫٤٠</td><td><svg class="spark" viewBox="0 0 110 28"><polyline fill="none" stroke="#1e9a6a" stroke-width="1.5" points="0,22 15,20 30,21 45,15 60,16 75,10 90,9 110,4"/></svg></td><td class="r"><span class="chg up">▲ ٤٫٣٪</span></td></tr>
+        <tr><td><span class="name">آسياسيل</span><span class="tick">TASC</span></td><td>٩٫٥٠</td><td><svg class="spark" viewBox="0 0 110 28"><polyline fill="none" stroke="#1e9a6a" stroke-width="1.5" points="0,18 15,19 30,14 45,15 60,12 75,11 90,8 110,6"/></svg></td><td class="r"><span class="chg up">▲ ٢٫٧٪</span></td></tr>
+        <tr><td><span class="name">بغداد للمشروبات الغازية</span><span class="tick">IBSD</span></td><td>٤٫٩٠</td><td><svg class="spark" viewBox="0 0 110 28"><polyline fill="none" stroke="#1e9a6a" stroke-width="1.5" points="0,20 15,17 30,18 45,14 60,15 75,12 90,11 110,9"/></svg></td><td class="r"><span class="chg up">▲ ١٫٩٪</span></td></tr>
+      </table>
+    </div>
+    <div>
+      <h2>الأكثر انخفاضاً</h2>
+      <table class="tbl num">
+        <tr><th>الشركة</th><th>السعر</th><th></th><th style="text-align:left">التغيّر</th></tr>
+        <tr><td><span class="name">المنصور للصناعات الدوائية</span><span class="tick">IMAP</span></td><td>٣٫٢٠</td><td><svg class="spark" viewBox="0 0 110 28"><polyline fill="none" stroke="#c9422d" stroke-width="1.5" points="0,6 15,8 30,7 45,12 60,11 75,16 90,18 110,22"/></svg></td><td class="r"><span class="chg dn">▼ ٣٫١٪</span></td></tr>
+        <tr><td><span class="name">فندق بابل</span><span class="tick">HBAY</span></td><td>١٤٠٫٠٠</td><td><svg class="spark" viewBox="0 0 110 28"><polyline fill="none" stroke="#c9422d" stroke-width="1.5" points="0,8 15,9 30,12 45,10 60,15 75,14 90,19 110,21"/></svg></td><td class="r"><span class="chg dn">▼ ٢٫٠٪</span></td></tr>
+        <tr><td><span class="name">مصرف الائتمان العراقي</span><span class="tick">BROI</span></td><td>٠٫٤٠</td><td><svg class="spark" viewBox="0 0 110 28"><polyline fill="none" stroke="#c9422d" stroke-width="1.5" points="0,10 15,10 30,13 45,12 60,16 75,17 90,20 110,22"/></svg></td><td class="r"><span class="chg dn">▼ ١٫٢٪</span></td></tr>
+      </table>
+    </div>
+  </div>
+</div></section>
+
+<section style="padding-top:0"><div class="wrap">
+  <p class="eyebrow">صفحة شركة</p>
+  <div class="co">
+    <div class="co-head">
+      <div><h3>مصرف بغداد</h3><p class="sub num">BBOB · القطاع المصرفي · مدرج منذ ٢٠٠٤</p></div>
+      <div class="price num"><strong>٢٫٤٠</strong><small>دينار · <span class="chg up" style="min-width:auto">▲ ٠٫١٠ (٤٫٣٪)</span> · آخر تداول اليوم</small></div>
+    </div>
+    <div class="chart"><svg viewBox="0 0 1000 220" preserveAspectRatio="none"><defs><linearGradient id="g" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#146bfd" stop-opacity=".22"/><stop offset="1" stop-color="#146bfd" stop-opacity="0"/></linearGradient></defs><path fill="url(#g)" d="M0,170 L60,160 120,165 180,140 240,150 300,120 360,125 420,100 480,110 540,95 600,80 660,90 720,70 780,75 840,55 900,60 960,40 1000,44 L1000,220 L0,220 Z"/><polyline fill="none" stroke="#146bfd" stroke-width="2" points="0,170 60,160 120,165 180,140 240,150 300,120 360,125 420,100 480,110 540,95 600,80 660,90 720,70 780,75 840,55 900,60 960,40 1000,44"/><circle cx="1000" cy="44" r="5" fill="#146bfd"/></svg></div>
+    <div class="tabs num"><a href="#">١ش</a><a href="#">٣ش</a><a class="on" href="#">سنة</a><a href="#">٥ سنوات</a><a href="#">الكل</a></div>
+    <div class="facts num">
+      <div><small>القيمة السوقية</small><b>٦٠٠ مليار</b></div>
+      <div><small>مكرر الربحية</small><b>٨٫٤</b></div>
+      <div><small>الأجانب هذا الشهر</small><b style="color:var(--up)">+٤٫١ مليار</b></div>
+      <div><small>أعلى/أدنى ٥٢ أسبوع</small><b>٢٫٦٠ / ١٫٦٥</b></div>
+    </div>
+  </div>
+</div></section>
+
+<section style="padding-top:0"><div class="wrap">
+  <div class="rule"></div>
+  <h2>المصارف</h2>
+  <p class="lede">تقييم مستقل لكل مصرف عراقي، ونسبة واحدة واضحة لكل منتج. بدون تفاصيل لا تحتاجها.</p>
+  <div style="margin-top:36px" class="num">
+    <div class="bank"><span class="name">مصرف العراق الأول</span><span class="score">٨٫٤<i>/١٠</i></span><span class="prod">حساب توفير</span><span class="rate">٧٪<i>سنوياً</i></span><a class="go" href="#">←</a></div>
+    <div class="bank"><span class="name">المصرف الأهلي العراقي</span><span class="score">٧٫٩<i>/١٠</i></span><span class="prod">وديعة ثابتة</span><span class="rate">٦٫٥٪<i>سنوياً</i></span><a class="go" href="#">←</a></div>
+    <div class="bank"><span class="name">مصرف الرافدين</span><span class="score">٦٫٨<i>/١٠</i></span><span class="prod">سلفة الموظفين</span><span class="rate">٥٪<i>ثابتة</i></span><a class="go" href="#">←</a></div>
+    <div class="bank"><span class="name">مصرف الطيف الإسلامي</span><span class="score muted">غير مقيّم</span><span class="prod muted">—</span><span class="rate muted" style="font-size:15px">بلا نسبة معلنة</span><a class="go" href="#">←</a></div>
+  </div>
+</div></section>
+
+<section style="padding-top:0"><div class="wrap"><div class="id">
+  <h2>الهوية</h2>
+  <div class="sw">
+    <div style="background:#fffbf7;color:#002664;border-color:transparent"><b>الورقة</b><code>#FFFBF7</code></div>
+    <div style="background:#002664"><b>الحبر</b><code>#002664</code></div>
+    <div style="background:#146bfd"><b>الأزرق</b><code>#146BFD</code></div>
+    <div style="background:#e1efac;color:#273d12;border-color:transparent"><b>صعود</b><code>#E1EFAC · #1E9A6A</code></div>
+    <div style="background:#f3dec5;color:#654516;border-color:transparent"><b>هبوط</b><code>#F3DEC5 · #C9422D</code></div>
+  </div>
+  <div class="type">
+    <div>
+      <p class="h">Readex Pro ٢٠٠</p>
+      <p class="b">خط واحد للعربية والإنجليزية والأرقام. وزن خفيف للعناوين الكبيرة، عادي للجسم، متوسط للأزرار فقط.</p>
+      <p class="cap">أرقام جدولية دائماً · لا تباعد حروف في العربية · لا خط أسود</p>
+    </div>
+    <ul>
+      <li><b>الشكل:</b> زوايا ٣٢ على الكتل الكبيرة، حبوب (pill) للأزرار والروابط.</li>
+      <li><b>الحدود:</b> خطوط شعرية بلون الحبر ١٤٪. لا ظلال.</li>
+      <li><b>الأزرق:</b> كتلة واحدة في الصفحة — البطل أو الدعوة. ليس لوناً للنص.</li>
+      <li><b>الحالة:</b> صعود/هبوط بلون فاتح على خلفية، لا أحمر/أخضر صارخ.</li>
+      <li><b>الكثافة:</b> صف واحد = معلومة واحدة. الباقي خلف نقرة.</li>
+    </ul>
+  </div>
+</div></div></section>
+
+<footer class="wrap"><span>IQWealth · بيانات بورصة العراق للجميع</span><span>البيانات من هيئة الأوراق المالية · تأخير ١٥ دقيقة</span></footer>

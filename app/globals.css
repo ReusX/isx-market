@@ -1,158 +1,94 @@
 @import '../styles/design-tokens.css';
 @import '../styles/system.css';
 @import '../styles/shell.css';
+@import '../styles/identity.css';
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* ── Thmanyah Sans (UI font) ── */
-@font-face { font-family: 'ThmanyahSans'; src: url('/fonts/thmanyahsans-Light.woff2')   format('woff2'); font-weight: 300; font-style: normal; font-display: optional; }
-@font-face { font-family: 'ThmanyahSans'; src: url('/fonts/thmanyahsans-Regular.woff2') format('woff2'); font-weight: 400; font-style: normal; font-display: optional; }
-@font-face { font-family: 'ThmanyahSans'; src: url('/fonts/thmanyahsans-Medium.woff2')  format('woff2'); font-weight: 500; font-style: normal; font-display: optional; }
-@font-face { font-family: 'ThmanyahSans'; src: url('/fonts/thmanyahsans-Bold.woff2')    format('woff2'); font-weight: 700; font-style: normal; font-display: optional; }
-@font-face { font-family: 'ThmanyahSans'; src: url('/fonts/thmanyahsans-Black.woff2')   format('woff2'); font-weight: 900; font-style: normal; font-display: optional; }
+/* ══ Identity · base tokens ═══════════════════════════════════════════════
+   The IQWealth identity (September 2026): cream page, navy ink, one electric
+   blue used as a block and never as text, pastel moss/sand for rising and
+   falling, hairline borders, no shadows, one typeface at light weights.
 
-/* ── Thmanyah Serif Text (article body) ── */
-@font-face { font-family: 'ThmanyahSerifText'; src: url('/fonts/thmanyahseriftext-Light.woff2')   format('woff2'); font-weight: 300; font-style: normal; font-display: optional; }
-@font-face { font-family: 'ThmanyahSerifText'; src: url('/fonts/thmanyahseriftext-Regular.woff2') format('woff2'); font-weight: 400; font-style: normal; font-display: optional; }
-@font-face { font-family: 'ThmanyahSerifText'; src: url('/fonts/thmanyahseriftext-Medium.woff2')  format('woff2'); font-weight: 500; font-style: normal; font-display: optional; }
-@font-face { font-family: 'ThmanyahSerifText'; src: url('/fonts/thmanyahseriftext-Bold.woff2')    format('woff2'); font-weight: 700; font-style: normal; font-display: optional; }
-@font-face { font-family: 'ThmanyahSerifText'; src: url('/fonts/thmanyahseriftext-Black.woff2')   format('woff2'); font-weight: 900; font-style: normal; font-display: optional; }
+   This is the ONLY palette. The site is light-only by decision — the identity
+   is the cream and the navy, and a dark variant of it would be a different
+   site — so there is no `prefers-color-scheme` block and no `[data-theme]`
+   block. The attribute still exists on <html> (always "light") only because
+   un-rebuilt stylesheets key on it; it goes when the last one does.
 
-/* ── Thmanyah Serif Display (headings) ── */
-@font-face { font-family: 'ThmanyahSerifDisplay'; src: url('/fonts/thmanyahserifdisplay-Light.woff2')   format('woff2'); font-weight: 300; font-style: normal; font-display: optional; }
-@font-face { font-family: 'ThmanyahSerifDisplay'; src: url('/fonts/thmanyahserifdisplay-Regular.woff2') format('woff2'); font-weight: 400; font-style: normal; font-display: optional; }
-@font-face { font-family: 'ThmanyahSerifDisplay'; src: url('/fonts/thmanyahserifdisplay-Medium.woff2')  format('woff2'); font-weight: 500; font-style: normal; font-display: optional; }
-@font-face { font-family: 'ThmanyahSerifDisplay'; src: url('/fonts/thmanyahserifdisplay-Bold.woff2')    format('woff2'); font-weight: 700; font-style: normal; font-display: optional; }
-@font-face { font-family: 'ThmanyahSerifDisplay'; src: url('/fonts/thmanyahserifdisplay-Black.woff2')   format('woff2'); font-weight: 900; font-style: normal; font-display: optional; }
-
-/* ══ Live-only tokens the design system does not define ═══════════════════ */
-:root {
-  --font-en:         'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-  --font-ar:         'ThmanyahSans', sans-serif;
-  --font-ar-serif:   'ThmanyahSerifText', serif;
-  --font-ar-display: 'ThmanyahSerifDisplay', serif;
-
-  --gold:      #E0A93B;
-  --gold-deep: #C08A1B;
-  --gold-grad: linear-gradient(135deg,#F2D58A 0%,#E0A93B 45%,#A8741B 100%);
-  --purple:    #7C5CE0;
-
-  --nav-h: 48px;
-  --r-sm: 8px; --r-md: 10px; --r-lg: 14px; --r-xl: 18px; --r-pill: 999px;
-  --shadow-sm:  0 1px 2px rgba(0,0,0,0.35);
-  --shadow-md:  0 8px 24px rgba(0,0,0,0.40);
-  --shadow-pop: 0 12px 40px rgba(0,0,0,0.55);
-}
-
-/* ══ Design system tokens (ported from the IQWealth design package) ═════ */
+   Names are the ones every existing stylesheet already reads (`--page`,
+   `--ink`, `--border`, `--up` …) so the whole site moves to the new palette
+   at once, and each page-by-page rebuild then replaces its layout, not its
+   colours. The vocabulary for NEW work is in styles/identity.css. */
 :root {
   color-scheme: light;
-  --page: #f3f3f1;
-  --surface: #ffffff;
-  --surface-2: #f7f7f5;
-  --surface-popover: #ffffff;
-  --ink: #1b1c1f;
-  --secondary: #6b6d74;
-  --muted: #8a8c91;
-  --accent: #4a4d57;
-  --bg-accent: #e4f3eb;
-  --text-accent: #23724a;
-  --nav-active: #2479c9;
-  --nav-active-bg: #e7f1fb;
-  --hero-number: #4a4d57;
-  --up: #2f8f5b;
-  --down: #b5482f;
-  --border: #e2e2df;
-  --orbit-a: #e7e7e4;
-  --orbit-b: #ededea;
-  --star-a: #e7e7e4;
-  --star-b: #ededea;
-  --shadow-popover: 0 18px 48px rgba(27, 28, 31, 0.16);
-}
 
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme]) {
-    color-scheme: dark;
-    --page: #101114;
-    --surface: #17181c;
-    --surface-2: #1d1f24;
-    --surface-popover: #1d1f24;
-    --ink: #ecedef;
-    --secondary: #9a9ca3;
-    --muted: #6b6d74;
-    --accent: #d5d8de;
-    --bg-accent: #203c2f;
-    --text-accent: #77c79b;
-    --nav-active: #4da3ff;
-    --nav-active-bg: #1d3045;
-    --hero-number: #d9dce2;
-    --up: #4fb37f;
-    --down: #d9553f;
-    --border: #24262b;
-    --orbit-a: #22242a;
-    --orbit-b: #1c1e23;
-    --star-a: #4a4d57;
-    --star-b: #3a3d45;
-    --shadow-popover: 0 18px 48px rgba(0, 0, 0, 0.42);
-  }
-}
+  /* ── Identity primitives ── */
+  --cream:      #fffbf7;
+  --navy:       #002664;
+  --blue:       #146bfd;
+  --blue-deep:  #0f56d1;
+  --white:      #ffffff;
+  --moss:       #e1efac;  /* rising · chip ground */
+  --moss-ink:   #273d12;  /* rising · chip text */
+  --sand:       #f3dec5;  /* falling · chip ground */
+  --sand-ink:   #654516;  /* falling · chip text */
+  --ink-60:     rgba(0, 38, 100, 0.64);  /* 4.5:1 on cream; 0.62 measured 4.41 */
+  --ink-40:     rgba(0, 38, 100, 0.42);
+  --ink-14:     rgba(0, 38, 100, 0.14);
+  --ink-08:     rgba(0, 38, 100, 0.08);
+  --white-22:   rgba(255, 255, 255, 0.22);
+  --white-60:   rgba(255, 255, 255, 0.60);
 
-:root[data-theme="dark"] {
-  color-scheme: dark;
-  --page: #101114;
-  --surface: #17181c;
-  --surface-2: #1d1f24;
-  --surface-popover: #1d1f24;
-  --ink: #ecedef;
-  --secondary: #9a9ca3;
-  --muted: #6b6d74;
-  --accent: #d5d8de;
-  --bg-accent: #203c2f;
-  --text-accent: #77c79b;
-  --nav-active: #4da3ff;
-  --nav-active-bg: #1d3045;
-  --hero-number: #d9dce2;
-  --up: #4fb37f;
-  --down: #d9553f;
-  --border: #24262b;
-  --orbit-a: #22242a;
-  --orbit-b: #1c1e23;
-  --star-a: #4a4d57;
-  --star-b: #3a3d45;
-  --shadow-popover: 0 18px 48px rgba(0, 0, 0, 0.42);
-}
+  /* ── Base roles (read by every stylesheet) ── */
+  --page:            var(--cream);
+  --surface:         var(--white);
+  --surface-2:       #fbf6ef;
+  --surface-popover: var(--white);
+  --ink:             var(--navy);
+  --secondary:       var(--ink-60);
+  --muted:           var(--ink-40);
+  --accent:          var(--navy);
+  --bg-accent:       var(--moss);
+  --text-accent:     var(--moss-ink);
+  --nav-active:      var(--blue);
+  --nav-active-bg:   rgba(20, 107, 253, 0.10);
+  --hero-number:     var(--navy);
+  /* Rising/falling as TEXT need 4.5:1 on cream; the pastel chips carry the
+     colour where there is room for a ground behind it. */
+  --up:              #157a52;
+  --down:            #c0392b;
+  --border:          var(--ink-14);
+  --orbit-a:         var(--ink-08);
+  --orbit-b:         var(--ink-14);
+  --star-a:          var(--ink-08);
+  --star-b:          var(--ink-14);
+  --shadow-popover:  0 0 0 1px var(--ink-14);
 
-:root[data-theme="light"] {
-  color-scheme: light;
-  --page: #f3f3f1;
-  --surface: #ffffff;
-  --surface-2: #f7f7f5;
-  --surface-popover: #ffffff;
-  --ink: #1b1c1f;
-  --secondary: #6b6d74;
-  --muted: #8a8c91;
-  --accent: #4a4d57;
-  --bg-accent: #e4f3eb;
-  --text-accent: #23724a;
-  --nav-active: #2479c9;
-  --nav-active-bg: #e7f1fb;
-  --hero-number: #4a4d57;
-  --up: #2f8f5b;
-  --down: #b5482f;
-  --border: #e2e2df;
-  --orbit-a: #e7e7e4;
-  --orbit-b: #ededea;
-  --star-a: #e7e7e4;
-  --star-b: #ededea;
-  --shadow-popover: 0 18px 48px rgba(27, 28, 31, 0.16);
-}
+  /* ── Type ── */
+  --font-body:       var(--font-sans);
+  --font-display:    var(--font-sans);
+  --font-numeric:    var(--font-sans);
+  --font-en:         var(--font-sans);
+  --font-ar:         var(--font-sans);
+  --font-ar-serif:   var(--font-sans);
+  --font-ar-display: var(--font-sans);
 
-:root {
-  --surface-1: var(--surface);
-  --text-primary: var(--ink);
-  --text-secondary: var(--secondary);
-  --text-muted: var(--muted);
+  /* ── Shape · pills for controls, 32 for blocks, 16 for panels, 8 for chips ── */
+  --nav-h: 56px;
+  --r-sm: 8px; --r-md: 16px; --r-lg: 32px; --r-xl: 32px; --r-pill: 54px;
+  /* No shadows in this identity. Legacy rules that reach for one get a
+     hairline instead, so elevation never reappears by accident. */
+  --shadow-sm:  0 0 0 1px var(--ink-08);
+  --shadow-md:  0 0 0 1px var(--ink-14);
+  --shadow-pop: 0 0 0 1px var(--ink-14);
+
+  /* Gold survives for the /gold page's own metal, nothing else. */
+  --gold:      #c08a1b;
+  --gold-deep: #9a6d12;
+  --gold-grad: linear-gradient(135deg, #e6c27a 0%, #c08a1b 55%, #9a6d12 100%);
+  --purple:    var(--blue);
 }
 
 /* ══ Legacy token bridge ══════════════════════════════════════════════════
@@ -162,9 +98,7 @@
    tokens are already theme-aware). Delete a line here once the last consumer
    of that token has been converted to the design components. */
 :root {
-  /* Font roles come from next/font (IBM Plex Sans Arabic / Noto Kufi Arabic /
-     Roboto Mono), set on <html>. Map the legacy --font-mono onto the design's
-     numeric face so pre-redesign inline styles render the same digits. */
+  /* One face everywhere; figures align through tabular-nums, not a mono. */
   --font-mono: var(--font-numeric);
 
   /* surfaces */

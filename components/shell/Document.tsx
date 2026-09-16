@@ -1,4 +1,4 @@
-import { IBM_Plex_Sans_Arabic, Noto_Kufi_Arabic, Roboto_Mono } from 'next/font/google'
+import { Readex_Pro } from 'next/font/google'
 import { AppProvider } from '@/context/AppContext'
 import { LocaleProvider } from '@/context/LocaleContext'
 import AppFrame from '@/components/shell/AppFrame'
@@ -17,38 +17,23 @@ import { dirOf, langOf, type Locale } from '@/lib/i18n/locale'
  * without `headers()`, and `headers()` opts every route into dynamic
  * rendering — it would have taken all 49 statically-prerendered routes with
  * it. So the app has TWO root layouts, `app/(ar)` and `app/(en)`, and they
- * both render this. The fonts, the theme bootstrap and the JSON-LD graph are
- * defined once, here, rather than kept in sync by hand in two files.
+ * both render this. The font and the JSON-LD graph are defined once, here, rather than kept in sync by hand in two files.
  *
- * ── The typefaces ─────────────────────────────────────────────────────────
- * Both languages load the same three faces, deliberately. IBM Plex Sans Arabic
- * and Noto Kufi Arabic both carry full Latin sets, so the English side keeps
- * the product's actual voice instead of falling back to a system stack that
- * would make /en look like a different site. Roboto Mono keeps every figure
- * identical across languages, which matters more here than anywhere: the same
- * price has to look like the same price.
+ * ── The typeface ──────────────────────────────────────────────────────────
+ * One face for both languages, all three roles. Readex Pro carries Arabic,
+ * Latin and figures in a single geometric grotesk with a 160–700 weight axis,
+ * which is what the identity asks for: light display type, regular body,
+ * medium only on controls, and no bold anywhere. The three CSS variables are
+ * kept — every stylesheet reads `--font-body`, `--font-display` or
+ * `--font-numeric` — but they now resolve to the same family, and figures
+ * line up through `font-variant-numeric: tabular-nums` rather than a
+ * monospace face.
  */
-const plexArabic = IBM_Plex_Sans_Arabic({
+const readex = Readex_Pro({
   subsets: ['arabic', 'latin'],
-  weight: ['400', '500', '600', '700'],
-  variable: '--font-body',
-  display: 'swap',
-})
-
-const kufiArabic = Noto_Kufi_Arabic({
-  subsets: ['arabic', 'latin'],
-  // 400 is here for the homepage H1. The approved reference sets it at weight
-  // 400 in Noto Kufi; without the face loaded the browser rounds up to 500 and
-  // the page's largest word renders heavier than the design.
-  weight: ['400', '500', '600', '700'],
-  variable: '--font-display',
-  display: 'swap',
-})
-
-const robotoMono = Roboto_Mono({
-  subsets: ['latin'],
-  weight: ['500', '600', '700'],
-  variable: '--font-numeric',
+  weight: 'variable',
+  axes: ['HEXP'],
+  variable: '--font-sans',
   display: 'swap',
 })
 
@@ -128,15 +113,12 @@ export function Document({ locale, children }: { locale: Locale; children: React
     <html
       lang={langOf(locale)}
       dir={dirOf(locale)}
-      data-theme="dark"
-      className={`${plexArabic.variable} ${kufiArabic.variable} ${robotoMono.variable}`}
-      suppressHydrationWarning
+      /* The identity is light-only: cream page, navy ink. There is no theme
+         to bootstrap any more, and the attribute stays only because the
+         stylesheets still key on it during the page-by-page rebuild. */
+      data-theme="light"
+      className={readex.variable}
     >
-      <head>
-        <script
-          dangerouslySetInnerHTML={{ __html: `(function(){try{var t=localStorage.getItem('theme')||'dark';document.documentElement.setAttribute('data-theme',t);}catch(e){}})();` }}
-        />
-      </head>
       <body>
         <script
           type="application/ld+json"

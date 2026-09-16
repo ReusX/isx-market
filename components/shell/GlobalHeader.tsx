@@ -22,7 +22,7 @@ export function GlobalHeader({
   onMenu: () => void
   onSearchOpen: () => void
 }) {
-  const { theme, toggleTheme, user, openAuth } = useApp()
+  const { user, openAuth } = useApp()
   const { t, href: L } = useLocale()
 
   /**
@@ -64,18 +64,9 @@ export function GlobalHeader({
       </button>
 
       <div className="gh-actions">
-        {/* Beside the theme toggle and the account control, which is where the
-            brief puts it: the global-preference cluster, not a settings page. */}
+        {/* Beside the account control, which is where the brief puts it: the
+            global-preference cluster, not a settings page. */}
         <LanguageSwitch />
-
-        <button
-          type="button"
-          className="gh-theme"
-          onClick={toggleTheme}
-          aria-label={theme === 'dark' ? t.shell.toLight : t.shell.toDark}
-        >
-          <span aria-hidden="true">{theme === 'dark' ? '☀' : '☾'}</span>
-        </button>
 
         {user ? (
           <Link href={L('/profile')} className="gh-account" aria-label={t.shell.account}>

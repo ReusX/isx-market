@@ -35,66 +35,38 @@
    one value for no gain.
    ═══════════════════════════════════════════════════════════════════════════ */
 
-/* ── Colour · light ─────────────────────────────────────────────────────── */
+/* ── Colour ─────────────────────────────────────────────────────────────────
+   Repointed to the September 2026 identity (cream / navy / electric blue).
+   The `[data-theme='dark']` block is kept with IDENTICAL values, on purpose:
+   the site is light-only now, and the parity gate below still asserts both
+   blocks declare the same set — so a token added to one and not the other
+   is still caught, and a stale data-theme can never paint a second palette. */
 [data-theme='light'] .iq-page,
-.iq-page {
-  --mv-hero: #3171c6;
-  --mv-hero-bright: #4a8ae0;
-  --mv-ink: #1e2220;
-  --mv-ink-2: #565c58;
-  --mv-ink-3: #868c88;
-  --mv-line: rgba(30, 34, 32, 0.09);
-  --mv-line-strong: rgba(30, 34, 32, 0.16);
-  --mv-panel: rgba(255, 255, 255, 0.72);
-  --mv-panel-solid: #fbfbfa;
-  --mv-well: rgba(255, 255, 255, 0.5);
-  --mv-shadow: 0 20px 54px rgba(38, 43, 39, 0.09), inset 0 1px rgba(255, 255, 255, 0.9);
-
-  /* Semantic market colours. Darkened from the homepage's card values, which
-     were tuned for white type on charcoal; on bone they have to carry 4.5:1
-     as body text rather than glow.
-
-     ⚠ CORRECTED from the reference app's #12805a, which measured 4.444:1 on
-     Cotton — six thousandths short of the 4.5:1 the comment above it sets as
-     its own goal. It passes on a panel (4.76:1) and fails only on the page
-     environment, which is why it was not caught by eye. One step down per
-     channel clears it at 4.505:1; the shift is far below the threshold of
-     perception. Recorded in PHASE0_VERIFICATION.md §6a. */
-  --mv-up: #117f59;
-  --mv-up-soft: rgba(18, 128, 90, 0.11);
-  --mv-down: #b5432f;
-  --mv-down-soft: rgba(181, 67, 47, 0.1);
-
-  /* Cotton. The approved light environment is a gradient, not a flat fill. */
-  --mv-env: radial-gradient(ellipse 42% 28% at 58% -4%, rgba(255, 255, 255, 0.96), transparent 72%),
-            radial-gradient(ellipse 28% 42% at 4% 48%, rgba(255, 255, 255, 0.58), transparent 75%),
-            linear-gradient(145deg, #e8e7e5, #f4f3f1 52%, #e5e4e2);
-}
-
-/* ── Colour · dark ──────────────────────────────────────────────────────── */
+.iq-page,
 [data-theme='dark'] .iq-page {
-  --mv-hero: #3171c6;
-  --mv-hero-bright: #74a9ef;
-  --mv-ink: #f0efec;
-  --mv-ink-2: #b4b6b2;
-  --mv-ink-3: #8b8e8a;
-  --mv-line: rgba(240, 239, 236, 0.085);
-  --mv-line-strong: rgba(240, 239, 236, 0.16);
-  --mv-panel: rgba(35, 35, 35, 0.82);
-  --mv-panel-solid: #1f1f1f;
-  --mv-well: rgba(255, 255, 255, 0.04);
-  --mv-shadow: 0 24px 68px rgba(0, 0, 0, 0.36), inset 0 1px rgba(255, 255, 255, 0.055);
-  --mv-up: #35c98a;
-  --mv-up-soft: rgba(53, 201, 138, 0.14);
-  --mv-down: #ee6a6f;
-  --mv-down-soft: rgba(238, 106, 111, 0.14);
+  --mv-hero: #146bfd;
+  --mv-hero-bright: #0f56d1;
+  --mv-ink: #002664;
+  --mv-ink-2: rgba(0, 38, 100, 0.64);  /* 0.62 measured 4.41:1 on cream; 0.64 clears 4.5 */
+  --mv-ink-3: rgba(0, 38, 100, 0.52);
+  --mv-line: rgba(0, 38, 100, 0.14);
+  --mv-line-strong: rgba(0, 38, 100, 0.28);
+  --mv-panel: #ffffff;
+  --mv-panel-solid: #ffffff;
+  --mv-well: #fbf6ef;
+  /* No shadows in this identity: elevation is a hairline. */
+  --mv-shadow: 0 0 0 1px rgba(0, 38, 100, 0.14);
 
-  /* Moonless Night. Neutral #161616, not the base layer's cooler #101114 —
-     the two are deliberately different and both are approved, for different
-     surfaces. */
-  --mv-env: radial-gradient(ellipse 45% 34% at 58% -5%, rgba(49, 113, 198, 0.23), transparent 70%),
-            radial-gradient(ellipse 30% 45% at 3% 55%, rgba(49, 113, 198, 0.1), transparent 74%),
-            #161616;
+  /* Rising and falling as text, 4.5:1 on cream and on white. The pastel
+     chips (--moss / --sand in globals.css) carry the colour where a ground
+     is available. */
+  --mv-up: #157a52;
+  --mv-up-soft: #e1efac;
+  --mv-down: #c0392b;
+  --mv-down-soft: #f3dec5;
+
+  /* Flat cream. The environment is no longer a gradient. */
+  --mv-env: #fffbf7;
 }
 
 /* ── Scale ──────────────────────────────────────────────────────────────────

@@ -37,7 +37,7 @@ const BASE = 'app/globals.css'
 
 /** Reference-app constants that must not drift silently. Brand identity only. */
 const PINNED = {
-  '--mv-hero': '#3171c6', // Electric Blue, both themes
+  '--mv-hero': '#146bfd', // Electric Blue · the identity's one accent
 }
 
 /** Declarations inside the rule whose selector list contains `needle`. */
