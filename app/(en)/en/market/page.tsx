@@ -1,10 +1,11 @@
-import { permanentRedirect } from 'next/navigation'
+import { MarketPage } from '@/components/site/MarketPage'
 
 /**
- * The market lives at the root now — the URL that carries the site's
- * authority — and this address folds into it with a 308, so its history and
- * links consolidate there instead of competing.
+ * /market · the full board — every listed company, every column. Its title
+ * («اسعار الاسهم العراقية · جميع شركات بورصة العراق») is the site's #1
+ * result for the prices query; the root is the market OVERVIEW and links
+ * here for the complete table. Two pages, two intents, on purpose.
  */
 export default function Page() {
-  permanentRedirect('/en')
+  return <MarketPage variant="full" />
 }

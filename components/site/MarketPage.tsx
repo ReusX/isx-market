@@ -18,9 +18,9 @@ import type { Company } from '@/types'
 /**
  * The market · the root of the site, and the الأسواق door.
  *
- * It lives at `/` (the URL that carries the site's authority); `/market`
- * redirects here. With `welcome`, the globe card sits above the content
- * for first-time visitors.
+ * The overview lives at `/` (the URL that carries the site's authority)
+ * and the full board at `/market`, which is the site's top result for the
+ * prices query and keeps its own title. Same component, two variants.
  *
  * Top to bottom:
  *
@@ -70,11 +70,17 @@ function Pct({ v }: { v: number }) {
 }
 
 const RAIL = [
-  { key: 'market', route: '/' }, { key: 'companies', route: '/companies' }, { key: 'screener', route: '/screener' },
+  { key: 'market', route: '/' }, { key: 'board', route: '/market' }, { key: 'companies', route: '/companies' }, { key: 'screener', route: '/screener' },
   { key: 'heatmap', route: '/heatmap' }, { key: 'statistics', route: '/statistics' }, { key: 'pulse', route: '/pulse' },
 ] as const
 
-export function MarketPage({ welcome = false }: { welcome?: boolean }) {
+/**
+ * `root`: the overview — welcome card for first visits, thirty rows, and a
+ * link to /market for the rest. `full`: /market — every company, every
+ * column, no card.
+ */
+export function MarketPage({ variant = 'root' }: { variant?: 'root' | 'full' }) {
+  const full = variant === 'full'
   const { t, locale, href: L } = useLocale()
   const m = t.market
   const p = m.page
@@ -93,7 +99,6 @@ export function MarketPage({ welcome = false }: { welcome?: boolean }) {
   const [loading, setLoading] = useState(true)
   const [q, setQ] = useState('')
   const [sector, setSector] = useState('all')
-  const [showAll, setShowAll] = useState(false)
   /* Column sort. Default is session volume, descending — the busiest
      companies first, the untraded ones last; a click on a header
      sorts by that column, a second click flips it. Untraded companies
@@ -227,11 +232,11 @@ export function MarketPage({ welcome = false }: { welcome?: boolean }) {
       })
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [companies, q, sector, sort, hist, session, locale])
-  const rows = showAll || q.trim() ? filtered : filtered.slice(0, 20)
+  const rows = full || q.trim() ? filtered : filtered.slice(0, 30)
 
   return (
     <SiteShell>
-      {welcome ? <WelcomeCard /> : null}
+      {full ? null : <WelcomeCard />}
       <main className="iqm id-full iq-door" id="market">
         <DoorRail door="markets" items={RAIL.map((r) => ({ label: p.rail[r.key], route: r.route }))} />
         <div className="iqm-body">
@@ -350,9 +355,11 @@ export function MarketPage({ welcome = false }: { welcome?: boolean }) {
               </tbody>
             </table>
           </div>
-          {filtered.length > 20 && !q.trim() ? (
+          {!full && filtered.length > 30 && !q.trim() ? (
             <div className="iqm-more">
-              <button type="button" className="id-btn" onClick={() => setShowAll((v) => !v)}>{showAll ? p.board.showLess : p.board.showAll(int.format(filtered.length))}</button>
+              {/* The rest lives on /market — a page, not a toggle, so the full
+                  table has its own URL and its own ranking. */}
+              <Link href={L('/market')} className="id-btn">{p.board.showAll(int.format(filtered.length))} →</Link>
             </div>
           ) : null}
           {!loading && !rows.length && !failed ? (

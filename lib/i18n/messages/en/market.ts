@@ -97,7 +97,7 @@ export const market: typeof ar = {
     index:     'ISX60 index',
     tradedOf:  (n: string, total: string) => `${n} of ${total} companies traded`,
     sessionOf: (date: string) => `Session of ${date}`,
-    rail: { market: 'Market', companies: 'Companies', screener: 'Screener', heatmap: 'Heatmap', statistics: 'Statistics', pulse: 'Pulse' },
+    rail: { market: 'Market', board: 'Companies table', companies: 'Companies', screener: 'Screener', heatmap: 'Heatmap', statistics: 'Statistics', pulse: 'Pulse' },
     showing:   (n: string) => `${n} companies`,
     board: {
       title:    'Companies',
@@ -111,7 +111,6 @@ export const market: typeof ar = {
       untraded: 'Did not trade this session',
       streak:   (n: number) => `No trade for ${n} sessions`,
       showAll:  (n: string) => `Show all companies (${n})`,
-      showLess: 'Show less',
       sortNote: 'Sorted by volume',
     },
     vsAvg:     (pct: string) => `${pct} vs 20-session average`.trim(),
