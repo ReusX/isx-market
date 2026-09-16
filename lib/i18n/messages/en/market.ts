@@ -193,6 +193,7 @@ export const market: typeof ar = {
       label:   'ISX60 index chart',
       empty:   'Index data is unavailable.',
       full:    'View full chart',
+      exitFull: 'Close full chart',
     },
     flow: {
       title:   'Foreign investor flow',

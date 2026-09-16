@@ -56,7 +56,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const statics: MetadataRoute.Sitemap = [
     { url: absUrl('/'),            lastModified: dataDate },
     { url: absUrl('/market'),     lastModified: dataDate },
-    { url: absUrl('/charts'),     lastModified: dataDate },
     { url: absUrl('/screener'),   lastModified: dataDate },
     { url: absUrl('/heatmap'),    lastModified: dataDate },
     { url: absUrl('/pulse'),      lastModified: dataDate },
@@ -141,7 +140,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
    *
    *   · `/news/[slug]` and `/learn/[slug]` are `ar-only`, so no English
    *     article URL is minted for content that has no English translation.
-   *   · `/research`, `/analysis`, `/charts` and `/alerts` are `ar-only` —
+   *   · `/research`, `/analysis` and `/alerts` are `ar-only` —
    *     compatibility routes open under the
    *     retirement matrix. They keep their Arabic entry and gain no English
    *     twin, because minting one creates a second URL to retire.

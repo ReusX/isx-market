@@ -1,7 +1,6 @@
 'use client'
 
 import { useEffect, useMemo, useRef, useState } from 'react'
-import Link from 'next/link'
 import { useLocale } from '@/context/LocaleContext'
 import { shortDate } from '@/lib/date'
 
@@ -28,10 +27,9 @@ type Range = 'm1' | 'm3' | 'y1' | 'y3' | 'all'
    70.49, 1 Mar 2015 at 870.66. */
 export const ISX60_SINCE = '2015-03-01'
 
-/* The full-chart page exists in Arabic only; the English side gets no link
-   rather than a 404. Resolved per locale so the static link gate, which
-   reads shared components for literal routes, sees the guard. */
-const FULL_CHART: Record<string, string | null> = { ar: '/charts', en: null }
+/* «View full chart» expands THIS chart to the viewport. The standalone
+   /charts page was removed (it 301s to `/`): the index chart lives on the
+   homepage and a second URL for the same line was a second page to keep. */
 /* Calendar days back from the LAST session in the series, not from today:
    a range is measured against the market's own clock. */
 const DAYS: Record<Range, number> = { m1: 31, m3: 92, y1: 366, y3: 3 * 366, all: Infinity }
@@ -69,7 +67,7 @@ function dateLabels(pts: IndexPoint[], range: Range, fmt: (d: string, long: bool
 }
 
 export function IndexChart({ series: all }: { series: IndexSeries }) {
-  const { t, locale, href: L } = useLocale()
+  const { t, locale } = useLocale()
   const c = t.market.page.chart
   const [range, setRange] = useState<Range>('y1')
   /* Which index. ISX60 is the exchange's own; RSISX (in dinar) is Rabee
@@ -84,6 +82,13 @@ export function IndexChart({ series: all }: { series: IndexSeries }) {
      crosshair drifts off the line, text widens. */
   const plotRef = useRef<HTMLDivElement>(null)
   const [[W, H], setSize] = useState<[number, number]>([800, 300])
+  const [full, setFull] = useState(false)
+  useEffect(() => {
+    if (!full) return
+    const key = (e: KeyboardEvent) => { if (e.key === 'Escape') setFull(false) }
+    document.addEventListener('keydown', key)
+    return () => document.removeEventListener('keydown', key)
+  }, [full])
   /* Observe the plot BOX, which is always mounted — the SVG itself only
      exists once data has arrived, and an observer attached before that
      watched nothing, leaving the viewBox at its default and the pointer
@@ -142,7 +147,7 @@ export function IndexChart({ series: all }: { series: IndexSeries }) {
   const pct = geo && shown ? ((shown.isx60 - geo.first) / geo.first) * 100 : 0
 
   return (
-    <section className="ix id-panel" aria-label={c.label}>
+    <section className={`ix id-panel ${full ? 'is-full' : ''}`.trim()} aria-label={c.label}>
       <header className="ix-head">
         <div className="ix-lead">
           <div className="id-pills ix-which" role="group" aria-label={c.which}>
@@ -204,7 +209,9 @@ export function IndexChart({ series: all }: { series: IndexSeries }) {
       ) : <p className="id-note">{c.empty}</p>}
       </div>
       <footer className="ix-foot">
-        {FULL_CHART[locale] ? <Link href={L(FULL_CHART[locale]!)} className="id-btn is-sm">{c.full} →</Link> : null}
+        <button type="button" className="id-btn is-sm" aria-pressed={full} onClick={() => setFull((f) => !f)}>
+          {full ? c.exitFull : c.full}
+        </button>
       </footer>
     </section>
   )

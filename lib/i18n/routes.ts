@@ -107,7 +107,7 @@ export const ROUTES: RouteEntry[] = [
      on the site fetches its rows in the browser. It is a `mirror` pair now,
      so /en/companies gives the English company pages the crawlable parent
      they never had. */
-  ...(['/charts', '/analysis', '/analysis/[sym]', '/research', '/research/[slug]', '/alerts']
+  ...(['/analysis', '/analysis/[sym]', '/research', '/research/[slug]', '/alerts']
     .map((pattern): RouteEntry => ({
       pattern,
       cls: 'ar-only',

@@ -50,6 +50,9 @@ const nextConfig = {
       // Delisted/invalid tickers Google discovered from an old source —
       // not in companies.json or price data. Send them to the company
       // list instead of returning a 404.
+      /* /charts retired: the index chart lives on the homepage and expands in
+         place. Permanent, so the old URL keeps whatever it earned. */
+      { source: '/charts', destination: '/', permanent: true },
       { source: '/c/MTMT', destination: '/companies', permanent: true },
       { source: '/c/MTRA', destination: '/companies', permanent: true },
     ]
