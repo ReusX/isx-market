@@ -39,6 +39,7 @@ const LATIN_ONLY = [
   ['.fr-mark', 'the IRAQSM.COM watermark in the flow panel — a Latin domain name'],
   ['.cmp-mark', 'the IRAQSM.COM watermark inside the company price chart — a Latin domain name'],
   ['.fin-mark', 'the IRAQSM.COM watermark over the financials trend — a Latin domain name'],
+  ['.lch-mark', 'the IRAQSM.COM watermark inside the series chart — a Latin domain name'],
   ['bdi', 'bidi-isolated numerals; already pinned to the numeric font'],
   ['.numeric', 'the numeric/tabular class'],
   ['.mv-track', 'the design layer\'s explicit opt-in'],

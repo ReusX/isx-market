@@ -1,0 +1,56 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   The economy door — /fx /gold /oil (and the pages that join them).
+   Layout only; vocabulary is identity.css. Prefix `eco-`.
+
+   Each page is one number in display weight, then its facts as a stat row,
+   then one panel per surface (chart, table, converter), then the questions
+   and the note. Information surfaces run full width.
+   ═══════════════════════════════════════════════════════════════════════════ */
+.eco { padding-block: 24px 0; }
+.eco-body { min-width: 0; }
+.eco-head { margin-bottom: 24px; }
+.eco-lead { display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap; margin: 14px 0 0; }
+.eco-lead strong { font-weight: 200; font-size: clamp(44px, 6vw, 72px); line-height: 1; }
+.eco-unit { font-size: 15px; color: var(--muted); }
+.eco-when { margin: 10px 0 0; }
+.eco-stats { margin-top: 18px; }
+.eco-stats.is-5 { grid-template-columns: repeat(5, 1fr); }
+.eco-stats .id-stat .id-cap { display: block; margin-top: 6px; }
+@media (max-width: 760px) { .eco-stats.is-5 { grid-template-columns: 1fr 1fr; } }
+
+.eco-panel { padding: 20px; margin-bottom: 20px; }
+.eco-panel > .id-h3, .eco-panel > .iqp { margin-bottom: 14px; }
+.eco-panel > .id-cap { margin: 12px 0 0; }
+.eco-panel .eco-stats { margin-top: 14px; }
+
+/* ── Tables: the lead rows (Iraq's grades, the 21K row) are ruled ───────── */
+.eco-table td { padding: 13px 0; font-size: 14px; }
+.eco-table th + th, .eco-table td + td { padding-inline-start: 16px; }
+.eco-table tr.is-lead td { border-bottom-color: var(--ink); }
+
+/* ── Converter / calculator ─────────────────────────────────────────────── */
+.eco-conv { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); gap: 16px; align-items: end; }
+.eco-conv-in { display: grid; gap: 6px; }
+.eco-conv-in .id-input { width: 100%; font-size: 22px; font-weight: 300; }
+.eco-swap { align-self: end; margin-bottom: 4px; }
+.eco-conv-out { margin: 0; display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+.eco-conv-out strong { font-weight: 200; font-size: clamp(30px, 4vw, 44px); line-height: 1; }
+.eco-conv-rate { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-top: 16px; }
+.eco-calc { display: grid; grid-template-columns: 160px auto auto minmax(0, 1fr); gap: 16px 24px; align-items: end; }
+.eco-calc > label, .eco-calc > div { display: grid; gap: 6px; }
+.eco-calc .id-input { width: 100%; font-size: 22px; font-weight: 300; }
+@media (max-width: 900px) {
+  .eco-conv { grid-template-columns: 1fr; }
+  .eco-swap { justify-self: start; }
+  .eco-calc { grid-template-columns: 1fr; }
+}
+
+/* ── Questions: native <details>; the answers stay in the markup ────────── */
+.eco-faq { margin: 8px 0 24px; max-width: 72ch; }
+.eco-faq > .id-h3 { margin-bottom: 8px; }
+.eco-q { border-top: 1px solid var(--border); }
+.eco-q summary { cursor: pointer; padding: 12px 0; font-size: 15px; font-weight: 500; list-style: none; display: flex; justify-content: space-between; gap: 12px; }
+.eco-q summary::-webkit-details-marker { display: none; }
+.eco-q summary::after { content: '+'; color: var(--muted); }
+.eco-q[open] summary::after { content: '−'; }
+.eco-q p { margin: 0 0 14px; }

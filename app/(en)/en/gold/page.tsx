@@ -1,5 +1,5 @@
 import { fetchGold, fetchFx } from '@/lib/rates'
-import GoldPage from '@/components/routes/GoldPage'
+import { GoldPage } from '@/components/site/GoldPage'
 
 // Re-scrape at most every 3h (lib sets the data-cache TTL); the page itself
 // is statically regenerated on this interval.

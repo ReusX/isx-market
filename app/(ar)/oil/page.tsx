@@ -1,5 +1,5 @@
 import { fetchOil, fetchFx } from '@/lib/rates'
-import OilPage from '@/components/routes/OilPage'
+import { OilPage } from '@/components/site/OilPage'
 
 // Re-scrape at most every 3h (lib sets the data-cache TTL); the page itself
 // is statically regenerated on this interval.

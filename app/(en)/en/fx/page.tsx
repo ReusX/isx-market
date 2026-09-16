@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import { describeFxRateEn, getFx } from '@/lib/fxCopy'
-import FxSurface from '@/components/routes/FxPage'
+import { FxPage as FxSurface } from '@/components/site/FxPage'
 import { absUrl, seoAlternates } from '@/lib/seo'
 import { fxSeries } from '@/lib/fxHistory'
 
@@ -66,5 +66,5 @@ export default async function Page() {
   ])
 
   const fx = await getFx()
-  return <FxSurface fx={fx} parallel={parallel} official={official} />
+  return <FxSurface fx={fx} parallel={parallel} official={official} faq={[]} />
 }
