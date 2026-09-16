@@ -151,7 +151,7 @@ export const home = {
         name: 'الأسواق',
         lede: 'كل ما يتداول في بورصة العراق: الأسعار، الشركات، المؤشر، الإحصاءات، ومحفظتك.',
         links: {
-          market: 'السوق', companies: 'الشركات', screener: 'رادار الأسهم', heatmap: 'خريطة السوق',
+          market: 'السوق', companies: 'دليل الشركات', screener: 'رادار الأسهم', heatmap: 'خريطة السوق',
           statistics: 'الإحصاءات', pulse: 'نبض السوق', portfolio: 'المحفظة', watchlist: 'قائمة المتابعة', alerts: 'التنبيهات',
         },
       },

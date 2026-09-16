@@ -110,7 +110,7 @@ export const market = {
     index:     'مؤشر ISX60',
     tradedOf:  (n: string, total: string) => `${n} من أصل ${total} تم تداولها`,
     sessionOf: (date: string) => `جلسة ${date}`,
-    rail: { market: 'السوق', board: 'جدول الشركات', companies: 'الشركات', screener: 'رادار الأسهم', heatmap: 'خريطة السوق', statistics: 'الإحصاءات', pulse: 'نبض السوق' },
+    rail: { market: 'السوق', board: 'جدول الشركات', companies: 'دليل الشركات', screener: 'رادار الأسهم', heatmap: 'خريطة السوق', statistics: 'الإحصاءات', pulse: 'نبض السوق' },
     showing:   (n: string) => `${n} شركة`,
     /** /market · the full board. */
     full: {
