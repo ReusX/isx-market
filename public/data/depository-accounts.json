@@ -1,0 +1,148 @@
+[
+{
+"ym": "2025-01",
+"new": null,
+"total": {
+"company_iraqi": 432,
+"company_foreign": 94,
+"government_iraqi": 26,
+"government_foreign": 0,
+"natural_iraqi": 54076,
+"natural_foreign": 1516,
+"fund_iraqi": 0,
+"fund_foreign": 35
+}
+},
+{
+"ym": "2025-02",
+"new": null,
+"total": {
+"company_iraqi": 439,
+"company_foreign": 94,
+"government_iraqi": 26,
+"government_foreign": 0,
+"natural_iraqi": 54319,
+"natural_foreign": 1527,
+"fund_iraqi": 0,
+"fund_foreign": 35
+}
+},
+{
+"ym": "2025-04",
+"new": null,
+"total": {
+"company_iraqi": 444,
+"company_foreign": 94,
+"government_iraqi": 26,
+"government_foreign": 0,
+"natural_iraqi": 54716,
+"natural_foreign": 1533,
+"fund_iraqi": 0,
+"fund_foreign": 35
+}
+},
+{
+"ym": "2025-06",
+"new": null,
+"total": {
+"company_iraqi": 447,
+"company_foreign": 94,
+"government_iraqi": 26,
+"government_foreign": 0,
+"natural_iraqi": 55092,
+"natural_foreign": 1545,
+"fund_iraqi": 0,
+"fund_foreign": 35
+}
+},
+{
+"ym": "2025-11",
+"new": {
+"natural_iraqi": 578,
+"natural_foreign": 4,
+"legal_iraqi": 1,
+"legal_foreign": 2
+},
+"total": null
+},
+{
+"ym": "2025-12",
+"new": {
+"natural_iraqi": 592,
+"natural_foreign": 5,
+"legal_iraqi": 5,
+"legal_foreign": 0
+},
+"total": null
+},
+{
+"ym": "2026-01",
+"new": {
+"natural_iraqi": 620,
+"natural_foreign": 1,
+"legal_iraqi": 7,
+"legal_foreign": 1
+},
+"total": null
+},
+{
+"ym": "2026-02",
+"new": {
+"natural_iraqi": 596,
+"natural_foreign": 3,
+"legal_iraqi": 3,
+"legal_foreign": 0
+},
+"total": null
+},
+{
+"ym": "2026-03",
+"new": {
+"natural_iraqi": 474,
+"natural_foreign": 2,
+"legal_iraqi": 2,
+"legal_foreign": 0
+},
+"total": null
+},
+{
+"ym": "2026-04",
+"new": {
+"natural_iraqi": 691,
+"natural_foreign": 20,
+"legal_iraqi": 5,
+"legal_foreign": 0
+},
+"total": null
+},
+{
+"ym": "2026-05",
+"new": {
+"natural_iraqi": 597,
+"natural_foreign": 3,
+"legal_iraqi": 5,
+"legal_foreign": 0
+},
+"total": null
+},
+{
+"ym": "2026-06",
+"new": {
+"natural_iraqi": 804,
+"natural_foreign": 2,
+"legal_iraqi": 3,
+"legal_foreign": 0
+},
+"total": null
+},
+{
+"ym": "2026-07",
+"new": {
+"natural_iraqi": 760,
+"natural_foreign": 6,
+"legal_iraqi": 2,
+"legal_foreign": 0
+},
+"total": null
+}
+]

@@ -66,7 +66,7 @@ Order is by traffic and by what other pages borrow from. Shell first because eve
 | 7 | `/screener` («رادار الأسهم») | NEW `site/ScreenerPage` (`styles/screener-page.css`, prefix `scr-`): presets write visible condition chips; filters in the URL; preset URLs carry titles + self canonicals; board-style sortable results; builder behind a disclosure; CSV; server-rendered ISR 5 min. `lib/screener` logic unchanged | old `Screener`/`screener.css` unused, delete in sweep | ☑ 2026-09-16 |
 | 8 | `/heatmap` | NEW `site/HeatmapPage` (`styles/heatmap-page.css`, prefix `hm2-`): the map is the page — period pills + one seven-step scale (mint/coral, hatched = no reading), size by cap or 20-session value, sector zoom, instant hover label, click → floating detail card; server-rendered summary line. `lib/heatmap` unchanged | old `Heatmap`/`heatmap.css` unused, delete in sweep | ☑ 2026-09-16 |
 | 9 | `/statistics` hub | NEW `site/StatisticsPage` (`styles/statistics-page.css`, prefix `stx-`): activity bar chart (session/week/month, 3 measures, vs previous period), sector share bars, foreign-flow and ownership doors, about text; server-rendered ISR 15 min; sub-nav pills to the three sub-pages | old `routes/Statistics`/`statistics.css` unused, delete in sweep | ☑ 2026-09-16 |
-| 9a | `/statistics/foreign-flow` | `routes/ForeignFlow` → rebuild next | `foreign-flow.css` | ☐ |
+| 9a | `/statistics/foreign-flow` | NEW `site/ForeignFlowPage` (`styles/flow-page.css`, prefix `ffl-`): tab «من يتداول» — net-flow chart (sqrt bars + cumulative line, timeframes), most bought/sold, Iraqis-vs-foreigners ring with buy/sell; tab «من يدخل السوق» — depository accounts by type × nationality from `public/data/depository-accounts.json` (parser `scripts/parse_depository_accounts.py`). Daily totals feed: cron now writes `foreign_flow_daily`; `scripts/backfill-foreign-daily.ts` filled the gap | old `routes/ForeignFlow`/`foreign-flow.css` unused, delete in sweep | ☑ 2026-09-16 |
 | 9b | `/statistics/ownership` | `routes/OwnershipPage` `depositoryUi` | `depository.css` `data-table.css` | ☐ |
 | 9c | `/statistics/shareholders` | `routes/ShareholdersPage` | — | ☐ |
 | 10 | `/banks`, `/banks/[slug]` | `routes/BanksHub` `BankProfile` | `banks.css` | ☐ |
@@ -82,9 +82,21 @@ Order is by traffic and by what other pages borrow from. Shell first because eve
 
 Every English route (`/en/...`) shares the component with its Arabic twin, so a row is done for both languages at once.
 
+## HANDOFF · 2026-09-16 (session moved to another account)
+
+**State:** branch `redesign/latitude`, all work committed, NOT deployed. Dev server: `preview_start` name `isx-dev` (port 3300). Gates: `check:tokens`, `check:i18n` (needs `I18N_ORIGIN=http://localhost:3300`), `check:routes` — run them in the background; they take 3–4 min.
+
+**Last thing done:** `/statistics/foreign-flow` rebuilt (row 9a). Its final gate run was still in progress at handoff — re-run `check:i18n` first; if it flags anything it will be a string in `lib/i18n/messages/*/flow.ts`.
+
+**Next:** row 9b `/statistics/ownership` (هيكل الملكية), then 9c `/statistics/shareholders` (كبار المساهمين), then `/pulse` (row 12). Same recipe as every row above. When 9b and 9c are done, move `/statistics` from `AppFrame.REBUILT_EXACT` to `REBUILT` so the whole section is on the new shell.
+
+**Small open items:** old `/companies` layout still wraps the directory (harmless; sweep); `/screener` search keywords keep the old spelling «مستكشف» on purpose; 124 older monthly PDFs unreadable by the accounts parser (different layouts / scans).
+
+**Names & rules the user locked:** see the identity table above and memory `iqwealth-redesign-vocab` ("the board" = جدول الشركات, «رادار الأسهم», «دليل الشركات», palettes, fill rules).
+
 ## Follow-ups (data, not design)
 
-- **Individuals vs institutions** (holder counts per company: `depository_monthly.individual_*` / `entity_*`) — the table exists but the monthly-PDF parser never filled it (foreign columns null in all 903 rows, Iraqi counts implausible). Fix the parser, re-parse the archived PDFs, validate a few companies by hand, backfill; then a fourth panel on هيكل الملكية. No public source splits *trading* by investor type — only ownership.
+- **Individuals vs institutions** — RESOLVED as «من يدخل السوق» on the foreign-flow page. Finding: `depository_monthly` was Table 28 (shares *deposited in the month*, correct as parsed, just misnamed); the real type split is Table 29 (accounts opened in the month, 2025-11 →) and Table 45 (accounts held at month end, older reports). No public source splits *trading* by investor type. Remaining: parse the 124 older reports (other layouts / scans).
 
 ## Log
 

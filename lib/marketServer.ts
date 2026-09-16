@@ -3,6 +3,7 @@ import { createClient } from '@supabase/supabase-js'
 import { fetchLiveWith, mergeCompanies } from '@/lib/market'
 import companiesData from '@/public/data/companies.json'
 import iscTiers from '@/public/data/isc-tiers.json'
+import depositoryAccounts from '@/public/data/depository-accounts.json'
 import type { Company, CompanyMeta } from '@/types'
 import type { IndexRow } from '@/lib/homeData'
 import type { Metric } from '@/lib/screener'
@@ -202,6 +203,52 @@ export const loadStatistics = cache(async (): Promise<StatisticsInitial> => {
         const cur = rows.filter((r) => r.year === y && r.month === m)
         out.ownership = { month: `${y}-${String(m).padStart(2, '0')}`, iraqi: cur.reduce((a, r) => a + (r.iraqi_shares ?? 0), 0), foreign: cur.reduce((a, r) => a + (r.foreign_shares ?? 0), 0) }
       }),
+  ])
+  return out
+})
+
+/**
+ * The foreign-flow page on the server: session totals per side (two years),
+ * the sessions' total traded value for the share, the last forty sessions
+ * of per-company rows for the most-bought/sold lists, and the new-account
+ * series from the monthly reports (a committed JSON, parsed from the PDFs).
+ */
+export type FlowInitial = {
+  daily: { date: string; side: string; value: number; trades: number }[]
+  sessionValue: { date: string; value: number }[]
+  companies: { date: string; ticker: string; side: string; value: number }[]
+  accounts: {
+    ym: string
+    /** Accounts opened in the month (Table 29, 2025-11 →). */
+    new: { natural_iraqi: number; natural_foreign: number; legal_iraqi: number; legal_foreign: number } | null
+    /** Accounts held at month end (Table 45, older reports). */
+    total: Record<string, number> | null
+  }[]
+}
+
+export const loadForeignFlow = cache(async (): Promise<FlowInitial> => {
+  const sb = client()
+  const since = new Date(Date.now() - 2 * 366 * 86400_000).toISOString().slice(0, 10)
+  const out: FlowInitial = { daily: [], sessionValue: [], companies: [], accounts: depositoryAccounts as unknown as FlowInitial['accounts'] }
+  await Promise.allSettled([
+    sb.from('foreign_flow_daily').select('date,side,value,trades').gte('date', since).order('date').limit(1000)
+      .then(({ data }) => { out.daily = ((data ?? []) as { date: string; side: string; value: number | null; trades: number | null }[]).map((r) => ({ date: r.date, side: r.side, value: Number(r.value ?? 0), trades: r.trades ?? 0 })) }),
+    sb.from('daily_index').select('date,total_value').gte('date', since).gt('total_value', 0).order('date').limit(1000)
+      .then(({ data }) => { out.sessionValue = ((data ?? []) as { date: string; total_value: number }[]).map((r) => ({ date: r.date, value: Number(r.total_value) })) }),
+    (async () => {
+      const { data: dates } = await sb.from('foreign_flow_company_daily').select('date').order('date', { ascending: false }).limit(1)
+      const last = dates?.[0]?.date as string | undefined
+      if (!last) return
+      const from = new Date(new Date(last).getTime() - 70 * 86400_000).toISOString().slice(0, 10)
+      const rows: FlowInitial['companies'] = []
+      for (let f = 0; ; f += 1000) {
+        const { data, error } = await sb.from('foreign_flow_company_daily').select('date,ticker,side,value').gte('date', from).order('date').range(f, f + 999)
+        if (error || !data?.length) break
+        for (const r of data as { date: string; ticker: string; side: string; value: number | null }[]) rows.push({ date: r.date, ticker: r.ticker, side: r.side, value: Number(r.value ?? 0) })
+        if (data.length < 1000) break
+      }
+      out.companies = rows
+    })(),
   ])
   return out
 })

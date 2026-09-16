@@ -311,6 +311,19 @@ export async function GET(req: NextRequest) {
           const { error: e3 } = await supabase
             .from('foreign_flow_company_daily').upsert(frows, { onConflict: 'date,ticker,side' })
           if (e3) throw new Error(e3.message)
+          // Session totals per side → foreign_flow_daily, so the totals table
+          // stays current every day rather than waiting for the monthly load
+          // (which had left it a month behind). PostgREST refuses aggregates,
+          // so the sum happens here, once, at write time.
+          const totals = new Map<string, { date: string; year: number; month: number; side: string; trades: number; volume: number; value: number }>()
+          for (const r of frows) {
+            const t = totals.get(r.side) ?? { date: file.isoDate, year: Number(file.isoDate.slice(0, 4)), month: Number(file.isoDate.slice(5, 7)), side: r.side, trades: 0, volume: 0, value: 0 }
+            t.trades += r.trades ?? 0; t.volume += r.volume ?? 0; t.value += r.value ?? 0
+            totals.set(r.side, t)
+          }
+          const { error: e4 } = await supabase
+            .from('foreign_flow_daily').upsert(Array.from(totals.values()), { onConflict: 'date,side' })
+          if (e4) throw new Error(e4.message)
         }
         // session index/totals → daily_index (keeps the ISX60 series current)
         const idx = parseIndexSheet(wb, file.isoDate)
