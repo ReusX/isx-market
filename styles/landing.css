@@ -29,31 +29,41 @@
 }
 [dir='ltr'] .ld-logo { padding: 0 18px 0 22px; }
 .ld-links, .ld-tools { display: flex; gap: 8px; align-items: center; }
+/* Solid white pills with navy text and an icon: they have to read as
+   controls against the blue, not dissolve into it. */
 .ld-pill {
-  display: inline-flex; align-items: center; min-height: 44px; padding: 0 18px;
-  border-radius: var(--r-pill); background: var(--white-22); color: var(--white);
+  display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 18px 0 16px;
+  border-radius: var(--r-pill); background: var(--white); color: var(--navy);
   font-size: 14px; font-weight: 500; text-decoration: none; white-space: nowrap;
+  transition: background .15s, transform .15s;
 }
-.ld-pill:hover { background: rgba(255, 255, 255, .34); }
+[dir='ltr'] .ld-pill { padding: 0 16px 0 18px; }
+.ld-pill:hover { background: #eef4ff; transform: translateY(-1px); }
+.ld-pill svg { color: var(--blue); }
+.ld-pill.is-navy { background: var(--navy); color: var(--white); }
+.ld-pill.is-navy svg { color: var(--white); }
+.ld-pill.is-navy:hover { background: #00184a; }
 /* The shared language switch (.gh-lang, styled for the old header) drawn as
    one of these pills. */
 .ld-tools .gh-lang {
-  color: var(--white); background: var(--white-22); border: 0; border-radius: var(--r-pill);
+  color: var(--navy); background: var(--white); border: 0; border-radius: var(--r-pill);
   min-height: 44px; padding: 0 18px; font: inherit; font-size: 14px; font-weight: 500; text-decoration: none;
   display: inline-flex; align-items: center; opacity: 1;
 }
-.ld-tools .gh-lang:hover { background: rgba(255, 255, 255, .34); }
+.ld-tools .gh-lang:hover { background: #eef4ff; }
 @media (max-width: 900px) { .ld-links { display: none; } }
 @media (max-width: 480px) { .ld-logo span { display: none; } .ld-logo { padding: 0 14px; } }
 
-/* Title bottom-start, intro bottom-end — the two corners the globe leaves free. */
+/* Title at the start, sitting a little above the fold's foot; intro in the
+   far corner at the very bottom — the two places the globe leaves free, and
+   the title higher than the copy, as in the reference. */
 .ld-hero-body {
-  margin-top: auto; padding-top: 48vh;
+  margin-top: auto; padding-top: 40vh;
   display: grid; grid-template-columns: 1fr 1fr; gap: 32px; align-items: end;
 }
 .ld-title {
-  font-size: clamp(44px, 7.2vw, 96px); font-weight: 200; line-height: 1.02;
-  letter-spacing: 0; margin: 0; text-wrap: balance;
+  font-size: clamp(44px, 6.8vw, 92px); font-weight: 300; line-height: 1.05; color: var(--white);
+  letter-spacing: 0; margin: 0 0 clamp(40px, 14vh, 160px); text-wrap: balance;
 }
 .ld-intro { max-width: 46ch; justify-self: end; font-size: clamp(15px, 1.4vw, 18px); line-height: 1.55; }
 .ld-intro p { margin: 0 0 12px; }
@@ -65,7 +75,8 @@
 }
 @media (max-width: 760px) {
   .ld-hero { margin: 6px; border-radius: 18px; min-height: calc(100svh - 12px); }
-  .ld-hero-body { grid-template-columns: 1fr; padding-top: 40vh; gap: 20px; }
+  .ld-hero-body { grid-template-columns: 1fr; padding-top: 36vh; gap: 20px; }
+  .ld-title { margin-bottom: 24px; }
   .ld-intro { justify-self: start; }
 }
 

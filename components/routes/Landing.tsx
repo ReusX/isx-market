@@ -52,6 +52,23 @@ const DOORS: Door[] = [
   ] },
 ]
 
+/* Line icons, 20px, stroke-only, one per door and one per tool. Inline so
+   the pills carry no extra request and take the pill's own colour. */
+const ICON: Record<string, React.ReactNode> = {
+  markets: <path d="M3 17l5-6 4 4 5-7 4 3" />,
+  banking: <><path d="M3 10h18M5 10v8M9 10v8M15 10v8M19 10v8M3 18h18" /><path d="M12 3l9 7H3z" /></>,
+  economy: <><circle cx="12" cy="12" r="9" /><path d="M3 12h18M12 3c3 3 3 15 0 18M12 3c-3 3-3 15 0 18" /></>,
+  learn: <><path d="M4 5h6a3 3 0 0 1 3 3v12a2 2 0 0 0-2-2H4z" /><path d="M20 5h-6a3 3 0 0 0-3 3v12a2 2 0 0 1 2-2h7z" /></>,
+  login: <><circle cx="12" cy="8" r="4" /><path d="M4 21a8 8 0 0 1 16 0" /></>,
+}
+function Icon({ name }: { name: keyof typeof ICON }) {
+  return (
+    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      {ICON[name]}
+    </svg>
+  )
+}
+
 export function Landing({ locale }: { locale: Locale }) {
   const t = messages(locale)
   const c = t.home.landing
@@ -71,12 +88,12 @@ export function Landing({ locale }: { locale: Locale }) {
             </Link>
             <nav className="ld-links" aria-label={c.scroll}>
               {DOORS.map((d) => (
-                <a key={d.id} href={`#${d.id}`} className="ld-pill">{c.doors[d.id].name}</a>
+                <a key={d.id} href={`#${d.id}`} className="ld-pill"><Icon name={d.id} />{c.doors[d.id].name}</a>
               ))}
             </nav>
             <div className="ld-tools">
               <LanguageSwitch />
-              <Link href={L('/login')} className="ld-pill">{t.shell.signIn}</Link>
+              <Link href={L('/login')} className="ld-pill is-navy"><Icon name="login" />{t.shell.signIn}</Link>
             </div>
           </header>
 
@@ -84,7 +101,6 @@ export function Landing({ locale }: { locale: Locale }) {
             <h1 className="ld-title">{titleA}<br />{titleB}</h1>
             <div className="ld-intro">
               <p>{c.intro}</p>
-              <p>{c.intro2}</p>
               <Link href={L('/market')} className="ld-cta">{c.explore}</Link>
             </div>
           </div>

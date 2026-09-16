@@ -121,9 +121,8 @@ export const home: typeof ar = {
       + 'a snapshot of the register, not an official ranking. Companies with no price or no share count are excluded, not counted as zero.',
   },
   landing: {
-    title:    'Iraq\u2019s market,\nmade clear.',
-    intro:    'Iraq Stock Exchange prices, company data, bank rates, and the dollar, oil and gold \u2014 in one place, in plain language.',
-    intro2:   'Official data, updated every session.',
+    title:    'The Iraqi economy,\nin one place',
+    intro:    'The Iraqi stock market, company data, bank information, the dollar and gold prices and more \u2014 in one place, in plain language.',
     explore:  'Start with the market',
     scroll:   'Sections',
     soon:     'Soon',
