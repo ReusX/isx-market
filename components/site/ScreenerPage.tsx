@@ -89,7 +89,7 @@ function writeUrl(s: { ranges: Ranges; period: PeriodId; sector: string; q: stri
   window.history.replaceState(null, '', `${window.location.pathname}${qs ? `?${qs}` : ''}`)
 }
 
-export function ScreenerPage({ initial }: { initial: ScreenerInitial }) {
+export function ScreenerPage({ initial, marketSession }: { initial: ScreenerInitial; marketSession: string | null }) {
   const { t, locale, href: L } = useLocale()
   const s = t.screener
   const pg = s.page
@@ -117,6 +117,11 @@ export function ScreenerPage({ initial }: { initial: ScreenerInitial }) {
     return { ...r, pe: pe != null && pe > 0 ? pe : null }
   }), [initial, metaBySym, ar])
   const peCount = useMemo(() => all.filter((r) => r.pe != null).length, [all])
+  /* The session the measures were computed on: the newest last_date in the
+     view. If the board has a newer session, the view is lagging and the
+     page says so rather than letting a stale figure pass as current. */
+  const metricsDate = useMemo(() => all.reduce<string | null>((m, r) => (r.last_date && (!m || r.last_date > m) ? r.last_date : m), null), [all])
+  const lagging = Boolean(metricsDate && marketSession && marketSession > metricsDate)
   const sectors = useMemo(() => Array.from(new Set(all.map((r) => r.sector))).sort(), [all])
 
   const rows = useMemo(() => {
@@ -142,7 +147,7 @@ export function ScreenerPage({ initial }: { initial: ScreenerInitial }) {
   const preset = activePreset(ranges)
   const activeIds = (Object.keys(ranges) as MetricId[]).filter((id) => rangeIsSet(ranges[id]))
   const invalid = activeIds.filter((id) => rangeInvalid(ranges[id]))
-  const applyPreset = (id: PresetId) => { setRanges(presetRanges(id) ?? {}); if (id === 'gainers' || id === 'losers') setSortKey('change'); if (id === 'liquid') setSortKey('liquidity'); if (id === 'cheap') { setSortKey('pe'); setSortDir('asc') } if (id === 'fbuy' || id === 'fsell') setSortKey('foreign'); if (id === 'nearhigh') setSortKey('band') }
+  const applyPreset = (id: PresetId) => { setRanges(presetRanges(id) ?? {}); if (id === 'gainers' || id === 'losers') setSortKey('change'); if (id === 'liquid') setSortKey('liquidity'); if (id === 'cheap') { setSortKey('pe'); setSortDir('asc') } if (id === 'fbuy' || id === 'fsell') setSortKey('foreign'); if (id === 'nearhigh') setSortKey('band'); if (id === 'nearlow') { setSortKey('band'); setSortDir('asc') } if (id === 'largest') setSortKey('mcap'); if (id === 'monthup') { setPeriod('1m'); setSortKey('change') } }
   const setBound = (id: MetricId, side: 'min' | 'max', raw: string) => {
     const m = metricDef(id)
     const v = raw === '' ? null : Number(raw) * m.scale
@@ -186,6 +191,11 @@ export function ScreenerPage({ initial }: { initial: ScreenerInitial }) {
               {preset ? (ar ? PRESETS.find((p) => p.id === preset)!.hintAr : PRESETS.find((p) => p.id === preset)!.hintEn) : s.filters}
               {' · '}{pg.coverage(int.format(peCount), int.format(all.length))}
             </p>
+            {metricsDate ? (
+              <p className={`id-cap scr-asof ${lagging ? 'is-lagging' : ''}`.trim()}>
+                {lagging ? pg.lagging(shortDate(metricsDate, locale), shortDate(marketSession!, locale)) : pg.asOf(shortDate(metricsDate, locale))}
+              </p>
+            ) : null}
           </section>
 
           {/* Active conditions, as chips you can remove; the builder edits them. */}

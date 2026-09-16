@@ -8,7 +8,7 @@
  *
  * ── Renames in this pass, and why ─────────────────────────────────────────
  *   حركة السوق      → السوق          the page is the market, not one aspect of it
- *   فارز الأسهم     → مستكشف الأسهم   «فارز» reads as a machine part; you explore
+ *   فارز الأسهم     → رادار الأسهم   «فارز» reads as a machine part; you explore
  *   الإحصائيات      → إحصاءات السوق   says whose statistics
  *   أخبار السوق     → الأخبار         the section is the news
  *   محفظتي          → المحفظة         the product does not need to say «my» twice
@@ -25,7 +25,7 @@
 export const nav = {
   home:      'الرئيسية',
   market:    'السوق',
-  screener:  'مستكشف الأسهم',
+  screener:  'رادار الأسهم',
   stats:     'إحصاءات السوق',
   heatmap:   'خريطة السوق',
   pulse:     'نبض السوق',

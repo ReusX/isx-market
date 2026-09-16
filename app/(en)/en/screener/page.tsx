@@ -20,5 +20,6 @@ export async function generateMetadata({ searchParams }: { searchParams: Promise
 }
 
 export default async function Page() {
-  return <ScreenerPage initial={await loadScreener()} />
+  const initial = await loadScreener()
+  return <ScreenerPage initial={initial} marketSession={initial.marketSession} />
 }

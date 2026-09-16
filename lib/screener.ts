@@ -178,6 +178,9 @@ export const PRESETS = [
   { id: 'fbuy', ar: 'شراء أجنبي', en: 'Foreign Buying', hintAr: 'صافي شراء أجنبي خلال 30 يوماً', hintEn: 'Net foreign buying over 30 days' },
   { id: 'fsell', ar: 'بيع أجنبي', en: 'Foreign Selling', hintAr: 'صافي بيع أجنبي خلال 30 يوماً', hintEn: 'Net foreign selling over 30 days' },
   { id: 'nearhigh', ar: 'قرب القمة', en: 'Near 52-Week High', hintAr: 'ضمن 5٪ من أعلى سعر في 52 أسبوعاً', hintEn: 'Within 5% of the 52-week high' },
+  { id: 'nearlow', ar: 'قرب القاع', en: 'Near 52-Week Low', hintAr: 'ضمن 5٪ من أدنى سعر في 52 أسبوعاً', hintEn: 'Within 5% of the 52-week low' },
+  { id: 'largest', ar: 'الأكبر قيمة', en: 'Largest', hintAr: 'قيمة سوقية فوق 500 مليار دينار', hintEn: 'Market cap above 500 billion IQD' },
+  { id: 'monthup', ar: 'صعود الشهر', en: 'Up This Month', hintAr: 'ارتفع أكثر من 5٪ خلال شهر', hintEn: 'Up more than 5% over a month' },
 ] as const
 export type PresetId = (typeof PRESETS)[number]['id']
 
@@ -192,6 +195,9 @@ export function presetRanges(id: PresetId): Ranges | null {
     case 'fbuy': return { foreign: { min: 1, max: null } }
     case 'fsell': return { foreign: { min: null, max: -1 } }
     case 'nearhigh': return { band: { min: 95, max: null } }
+    case 'nearlow': return { band: { min: null, max: 5 } }
+    case 'largest': return { mcap: { min: 5e11, max: null } }
+    case 'monthup': return { change: { min: 5, max: null } }
   }
 }
 
@@ -211,6 +217,9 @@ export function activePreset(ranges: Ranges): PresetId | null {
   if (k === 'foreign' && r.min === 1 && r.max === null) return 'fbuy'
   if (k === 'foreign' && r.max === -1 && r.min === null) return 'fsell'
   if (k === 'band' && r.min === 95 && r.max === null) return 'nearhigh'
+  if (k === 'band' && r.max === 5 && r.min === null) return 'nearlow'
+  if (k === 'mcap' && r.min === 5e11 && r.max === null) return 'largest'
+  if (k === 'change' && r.min === 5 && r.max === null) return 'monthup'
   return null
 }
 

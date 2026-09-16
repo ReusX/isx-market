@@ -138,12 +138,16 @@ export const loadDirectory = cache(async (locale: 'ar' | 'en'): Promise<{ sessio
  * identity file, and trailing P/E where financials exist. P/E is allowed to
  * fail on its own — losing it must not lose the other six measures.
  */
-export type ScreenerInitial = { metrics: Metric[]; meta: CompanyMeta[]; pe: Record<string, number>; peFailed: boolean }
+export type ScreenerInitial = { metrics: Metric[]; meta: CompanyMeta[]; pe: Record<string, number>; peFailed: boolean; marketSession: string | null }
 
 export const loadScreener = cache(async (): Promise<ScreenerInitial> => {
   const sb = client()
-  const { data } = await sb.from('company_metrics').select('*')
+  const [{ data }, latest] = await Promise.all([
+    sb.from('company_metrics').select('*'),
+    sb.from('daily_prices').select('date').order('date', { ascending: false }).limit(1),
+  ])
   const metrics = (data ?? []) as Metric[]
+  const marketSession = (latest.data?.[0]?.date as string | undefined) ?? null
   let pe: Record<string, number> = {}, peFailed = false
   try {
     const { fetchTtmPe } = await import('@/lib/fundamentals')
@@ -152,5 +156,5 @@ export const loadScreener = cache(async (): Promise<ScreenerInitial> => {
     const res = await fetchTtmPe(sb, prices)
     pe = Object.fromEntries(Object.entries(res).map(([t, v]) => [t, v.pe]))
   } catch { peFailed = true }
-  return { metrics, meta: companiesData as CompanyMeta[], pe, peFailed }
+  return { metrics, meta: companiesData as CompanyMeta[], pe, peFailed, marketSession }
 })

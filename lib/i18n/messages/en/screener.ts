@@ -86,6 +86,8 @@ export const screener: typeof ar = {
     presets:  'Presets',
     coverage: (n: string, total: string) => `P/E available for ${n} of ${total} companies`,
     showSuspended: 'Show suspended',
+    asOf:     (d: string) => `Measures as of the session of ${d}`,
+    lagging:  (d: string, m: string) => `Measures as of ${d} while the latest session is ${m} \u2014 refreshing soon.`,
     csv:      'Download CSV',
     share:    'Copy link to this screen',
     copied:   'Link copied',
@@ -98,6 +100,9 @@ export const screener: typeof ar = {
       fbuy:     'Stocks foreign investors are buying on the Iraq Stock Exchange',
       fsell:    'Stocks foreign investors are selling on the Iraq Stock Exchange',
       nearhigh: 'Iraqi stocks near their 52-week high',
+      nearlow:  'Iraqi stocks near their 52-week low',
+      largest:  'Largest companies on the Iraq Stock Exchange by market cap',
+      monthup:  'Iraqi stocks up this month',
     } as Record<string, string>,
     about: {
       title: 'How the screener works',
