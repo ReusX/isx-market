@@ -12,6 +12,10 @@
 .iqm-figures strong { display: block; font-weight: 300; font-size: clamp(26px, 3vw, 36px); line-height: 1; }
 .iqm-figures em { font-style: normal; font-size: 12px; opacity: .7; display: block; margin-top: 8px; }
 .iqm-figures .id-chg { margin-top: 8px; }
+.iqm-breadth strong { font-size: clamp(20px, 2.2vw, 26px); white-space: nowrap; }
+.iqm-breadth .is-up { color: var(--up); } .iqm-breadth .is-down { color: var(--down); }
+.iqm-breadth .iqm-dot { margin: 0 8px; opacity: .5; }
+.iqm-breadth em { color: var(--muted); opacity: 1; }
 @media (max-width: 760px) {
   .iqm-session { padding: 20px; }
   .iqm-figures { grid-template-columns: 1fr 1fr; }
@@ -47,7 +51,8 @@
 /* The watermark sits inside the plot, in the emptier half, bold and plain. */
 .ix-mark { fill: var(--ink); opacity: .16; font-weight: 600; font-size: 30px; letter-spacing: .08em; text-anchor: middle; dominant-baseline: middle; }
 @media (max-width: 640px) { .ix-head { grid-template-columns: 1fr; } .ix-ranges { justify-content: flex-start; } }
-.ix-title { margin-bottom: 6px; }
+.ix-which { margin-bottom: 10px; }
+.id-pill:disabled { opacity: .4; cursor: default; }
 .ix-value { display: flex; align-items: baseline; gap: 12px; margin: 0; flex-wrap: wrap; }
 .ix-value strong { font-weight: 300; font-size: clamp(28px, 3vw, 40px); line-height: 1; }
 .ix-svg { width: 100%; height: 300px; display: block; touch-action: none; }

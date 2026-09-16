@@ -16,6 +16,8 @@ import { shortDate } from '@/lib/date'
  * fill under the line is a faint blue wash; the line itself is the ink.
  */
 export type IndexPoint = { date: string; isx60: number }
+export type Series = 'isx60' | 'rsisx'
+export type IndexSeries = Record<Series, IndexPoint[]>
 type Range = 'm1' | 'm3' | 'y1' | 'y3' | 'all'
 
 /* The ISX60 in its current form starts on 1 March 2015. Before that the
@@ -66,10 +68,14 @@ function dateLabels(pts: IndexPoint[], range: Range, fmt: (d: string, long: bool
   return out
 }
 
-export function IndexChart({ series }: { series: IndexPoint[] }) {
+export function IndexChart({ series: all }: { series: IndexSeries }) {
   const { t, locale, href: L } = useLocale()
   const c = t.market.page.chart
   const [range, setRange] = useState<Range>('y1')
+  /* Which index. ISX60 is the exchange's own; RSISX (in dinar) is Rabee
+     Securities'. */
+  const [which, setWhich] = useState<Series>('isx60')
+  const series = all[which]
   const [hover, setHover] = useState<number | null>(null)
   const svgRef = useRef<SVGSVGElement>(null)
   /* The SVG is drawn at the panel's real pixel width — its viewBox follows
@@ -94,8 +100,8 @@ export function IndexChart({ series }: { series: IndexPoint[] }) {
     if (!series.length) return []
     const last = new Date(series[series.length - 1].date).getTime()
     const since = last - DAYS[range] * 86400_000
-    return series.filter((p) => p.date >= ISX60_SINCE && new Date(p.date).getTime() >= since)
-  }, [series, range])
+    return series.filter((p) => (which !== 'isx60' || p.date >= ISX60_SINCE) && new Date(p.date).getTime() >= since)
+  }, [series, range, which])
 
   const geo = useMemo(() => {
     if (pts.length < 2) return null
@@ -139,7 +145,12 @@ export function IndexChart({ series }: { series: IndexPoint[] }) {
     <section className="ix id-panel" aria-label={c.label}>
       <header className="ix-head">
         <div className="ix-lead">
-          <h2 className="id-h3 ix-title">{c.title}</h2>
+          <div className="id-pills ix-which" role="group" aria-label={c.which}>
+            {(['isx60', 'rsisx'] as Series[]).map((k) => (
+              <button key={k} type="button" className="id-pill is-sm" aria-pressed={which === k} disabled={!all[k].length}
+                onClick={() => { setWhich(k); setHover(null) }}>{c.series[k]}</button>
+            ))}
+          </div>
           <p className="ix-value id-num">
             <strong>{shown ? nf.format(shown.isx60) : '—'}</strong>
             {shown ? <span className={`id-chg ${pct > 0 ? 'is-up' : pct < 0 ? 'is-down' : 'is-flat'}`}>{pct > 0 ? '▲' : pct < 0 ? '▼' : ''} {Math.abs(pct).toFixed(2)}%</span> : null}

@@ -99,6 +99,7 @@ export const market: typeof ar = {
     sessionOf: (date: string) => `Session of ${date}`,
     rail: { market: 'Market', companies: 'Companies', screener: 'Screener', heatmap: 'Heatmap', statistics: 'Statistics', pulse: 'Pulse' },
     showing:   (n: string) => `${n} companies`,
+    breadth:   { label: 'Company moves', up: 'advancing', down: 'declining', flat: (n: string) => `${n} unchanged` },
     untraded:  'Not traded',
     noChange:  'No change',
     emptyTitle: 'No results',
@@ -106,6 +107,8 @@ export const market: typeof ar = {
     loadFailed: 'The market could not be loaded. Try again shortly.',
     chart: {
       title:   'ISX60 index',
+      which:   'Index',
+      series:  { isx60: 'ISX60', rsisx: 'RSISX' },
       ranges:  { m1: '1M', m3: '3M', y1: '1Y', y3: '3Y', all: 'All' },
       high:    'High',
       low:     'Low',

@@ -9,6 +9,7 @@
   "/api/analysis/[sym]": "ƒ",
   "/api/chart/[sym]": "ƒ",
   "/api/cron/daily-prices": "ƒ",
+  "/api/index/rsisx": "ƒ",
   "/api/wp-publish": "ƒ",
   "/auth/callback": "○",
   "/auth/reset": "○",

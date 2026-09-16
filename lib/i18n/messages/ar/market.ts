@@ -112,6 +112,7 @@ export const market = {
     sessionOf: (date: string) => `جلسة ${date}`,
     rail: { market: 'السوق', companies: 'الشركات', screener: 'مستكشف الأسهم', heatmap: 'خريطة السوق', statistics: 'الإحصاءات', pulse: 'نبض السوق' },
     showing:   (n: string) => `${n} شركة`,
+    breadth:   { label: 'حركة الشركات', up: 'صاعدة', down: 'منخفضة', flat: (n: string) => `${n} بلا تغيير` },
     untraded:  'لم تُتداول',
     noChange:  'بلا تغيّر',
     emptyTitle: 'لا نتائج',
@@ -120,7 +121,9 @@ export const market = {
     /** The two openers: the ISX60 chart and the foreign-flow ring. */
     chart: {
       title:   'مؤشر ISX60',
-      ranges:  { m1: 'شهر', m3: '٣ أشهر', y1: 'سنة', y3: '٣ سنوات', all: 'الكل' },
+      which:   'المؤشر',
+      series:  { isx60: 'ISX60', rsisx: 'RSISX' },
+      ranges:  { m1: 'شهر', m3: '3 أشهر', y1: 'سنة', y3: '3 سنوات', all: 'الكل' },
       high:    'الأعلى',
       low:     'الأدنى',
       since:   (d: string) => `منذ ${d}`,
@@ -136,7 +139,7 @@ export const market = {
       netBuy:  'صافي شراء',
       netSell: 'صافي بيع',
       even:    'متوازن',
-      periods: { session: 'الجلسة', month: 'آخر ٢٠ جلسة' },
+      periods: { session: 'الجلسة', month: 'آخر 20 جلسة' },
       label:   (buy: string, sell: string) => `شراء أجنبي ${buy}، بيع أجنبي ${sell}`,
       empty:   'لا تتوفر بيانات تدفق أجنبي.',
       full:    'إحصاءات التدفق الأجنبي كاملة',

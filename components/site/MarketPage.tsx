@@ -7,7 +7,7 @@ import { sessionDate, type IndexRow } from '@/lib/homeData'
 import { useLocale } from '@/context/LocaleContext'
 import { SiteShell } from './SiteShell'
 import { DoorRail } from './DoorRail'
-import { IndexChart, type IndexPoint } from './IndexChart'
+import { IndexChart, type IndexPoint, type IndexSeries } from './IndexChart'
 import { FlowRing, type FlowRow } from './FlowRing'
 import '@/styles/markets.css'
 import type { Company } from '@/types'
@@ -67,7 +67,7 @@ export function MarketPage() {
   const [companies, setCompanies] = useState<Company[]>([])
   const [session, setSession] = useState<string | null>(null)
   const [index, setIndex] = useState<{ latest: IndexRow; prev: IndexRow | null } | null>(null)
-  const [series, setSeries] = useState<IndexPoint[]>([])
+  const [series, setSeries] = useState<IndexSeries>({ isx60: [], rsisx: [] })
   const [flowRows, setFlowRows] = useState<FlowRow[]>([])
   const [failed, setFailed] = useState(false)
   const [loading, setLoading] = useState(true)
@@ -100,9 +100,14 @@ export function MarketPage() {
             if (data.length < 1000) break
           }
           if (!alive || !rows.length) return
-          setSeries(rows.map((r) => ({ date: r.date, isx60: r.isx60 })))
+          setSeries((s) => ({ ...s, isx60: rows.map((r) => ({ date: r.date, isx60: r.isx60 })) }))
           setIndex({ latest: rows[rows.length - 1], prev: rows[rows.length - 2] ?? null })
         })(),
+        /* RSISX through our own proxy (Rabee's API refuses direct calls). */
+        fetch('/api/index/rsisx').then((r) => (r.ok ? r.json() : [])).then((rows: { date: string; iqd: number; usd: number }[]) => {
+          if (!alive || !Array.isArray(rows) || !rows.length) return
+          setSeries((s) => ({ ...s, rsisx: rows.map((r) => ({ date: r.date, isx60: r.iqd })) }))
+        }).catch(() => {}),
         sb.from('foreign_flow_company_daily')
           .select('date,side,value').order('date', { ascending: false }).limit(1200)
           .then(({ data }) => { if (alive && data) setFlowRows(data as FlowRow[]) }),
@@ -122,7 +127,13 @@ export function MarketPage() {
       .sort((a, b) => Number(Boolean(a.stale)) - Number(Boolean(b.stale)) || (b.vol || 0) - (a.vol || 0))
   }, [companies, q, sector])
 
-  const idxPct = index?.prev ? ((index.latest.isx60 - index.prev.isx60) / index.prev.isx60) * 100 : 0
+  /* Breadth, from the companies that TRADED this session only. A company
+     carried forward without a trade is neither unchanged nor anything else
+     — it is absent from these counts. */
+  const breadth = useMemo(() => {
+    const traded = companies.filter((c) => !c.stale)
+    return { up: traded.filter((c) => c.pct > 0).length, down: traded.filter((c) => c.pct < 0).length, flat: traded.filter((c) => c.pct === 0).length }
+  }, [companies])
 
   return (
     <SiteShell>
@@ -146,10 +157,14 @@ export function MarketPage() {
               ? <span>{p.tradedOf(String(index.latest.traded_companies), String(index.latest.listed_companies))}</span> : null}
           </div>
           <div className="iqm-figures">
-            <div>
-              <small>{p.index}</small>
-              <strong>{index ? price.format(index.latest.isx60) : '—'}</strong>
-              {index?.prev ? <Change pct={idxPct} untraded={p.untraded} noChange={p.noChange} /> : null}
+            <div className="iqm-breadth">
+              <small>{p.breadth.label}</small>
+              <strong>
+                <span className="is-up">{int.format(breadth.up)}</span> {p.breadth.up}
+                <span className="iqm-dot">·</span>
+                <span className="is-down">{int.format(breadth.down)}</span> {p.breadth.down}
+              </strong>
+              <em>{p.breadth.flat(int.format(breadth.flat))}</em>
             </div>
             <div><small>{m.tradedValue}</small><strong>{compact(index?.latest.total_value, u)}</strong><em>{u.iqd}</em></div>
             <div><small>{m.volume}</small><strong>{compact(index?.latest.total_volume, u)}</strong><em>{u.shares}</em></div>
