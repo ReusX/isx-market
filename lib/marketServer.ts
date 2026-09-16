@@ -409,3 +409,152 @@ export const loadShareholders = cache(async (locale: 'ar' | 'en'): Promise<Holde
     }
   } catch { return empty }
 })
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   /pulse · نبض السوق — the session model, on the server
+
+   The page was entirely client-fetched: a crawler received the module
+   headings and not one of the numbers under them, and every visitor paged
+   Supabase directly. The model itself (lib/pulse.ts) is unchanged — its
+   formulas, thresholds and four-state breadth are the product's own and are
+   reused verbatim. Only the fetching moves here.
+
+   ⚠ Two rules from lib/pulse.ts that this loader must not quietly break:
+
+     · `noPrior` is a real fourth state. A company that traded today but had
+       no comparable close in the previous session is NOT flat. It is counted
+       live for the current session, and left `null` — "this source cannot
+       say" — for history, which comes from `breadth_daily` and has nowhere
+       to put it.
+     · A company whose sector is unknown is left OUT of the sector view
+       rather than filed under a guess.
+
+   Sector ids and company names are returned raw, not labelled: the old page
+   called `sectorLabel(key, 'ar')` with the locale hard-coded, so the English
+   page printed Arabic sector names. The component labels them instead.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+export type PulseInitial = {
+  live: PulseSession | null
+  prev: PulseSession | null
+  history: PulseSession[]
+  sectors: PulseSector[]
+  byValue: { symbol: string; ar: string | null; en: string | null; value: number; pct: number | null }[]
+  /** The bulletin's traded count vs the rows we hold, when they disagree. */
+  tradedGap: { index: number; rows: number } | null
+  failed: boolean
+}
+
+type PulseSession = import('@/lib/pulse').Session
+type PulseSector = Omit<import('@/lib/pulse').SectorBreadth, 'label'>
+
+export const loadPulse = cache(async (): Promise<PulseInitial> => {
+  const empty: PulseInitial = { live: null, prev: null, history: [], sectors: [], byValue: [], tradedGap: null, failed: true }
+  try {
+    const { countLive, pctVsPrev } = await import('@/lib/pulse')
+    const sb = client()
+
+    /* The canonical session is `daily_index`'s newest row — the same session
+       the root, /market and /heatmap resolve. */
+    const { data: idxData } = await sb.from('daily_index')
+      .select('date,total_volume,total_value,total_trades,traded_companies,listed_companies')
+      .order('date', { ascending: false }).limit(260)
+    const idx = (idxData ?? []) as { date: string; total_volume: number | null; total_value: number | null; total_trades: number | null; traded_companies: number | null; listed_companies: number | null }[]
+    if (!idx.length) return empty
+
+    const latestDate = idx[0].date
+    const prevDate = idx[1]?.date ?? null
+
+    const [bRes, pRes, mRes] = await Promise.all([
+      sb.from('breadth_daily').select('date,advancers,decliners,unchanged,up_volume,down_volume,new_highs,new_lows,traded')
+        .order('date', { ascending: false }).limit(260),
+      sb.from('daily_prices').select('date,ticker,close,volume,value')
+        .in('date', prevDate ? [latestDate, prevDate] : [latestDate]).limit(2000),
+      sb.from('company_metrics').select('ticker,sector'),
+    ])
+    type BRow = { date: string; advancers: number; decliners: number; unchanged: number; up_volume: number; down_volume: number; new_highs: number | null; new_lows: number | null; traded: number }
+    const breadth = (bRes.data ?? []) as BRow[]
+    const prices = (pRes.data ?? []) as { date: string; ticker: string; close: number | null; volume: number | null; value: number | null }[]
+    const metrics = (mRes.data ?? []) as { ticker: string; sector: string | null }[]
+
+    const todayRows = prices.filter((r) => r.date === latestDate)
+    if (!todayRows.length) return empty
+
+    const prevCloses = new Map<string, number>()
+    for (const r of prices) if (r.date === prevDate && r.close != null && r.close > 0) prevCloses.set(r.ticker, r.close)
+
+    const counted = countLive(todayRows, prevCloses)
+    const bByDate = new Map(breadth.map((r) => [r.date, r]))
+    const idxByDate = new Map(idx.map((r) => [r.date, r]))
+    const bToday = bByDate.get(latestDate) ?? null
+
+    const live: PulseSession = {
+      date: latestDate,
+      advancers: counted.advancers, decliners: counted.decliners,
+      unchanged: counted.unchanged, noPrior: counted.noPrior,
+      upVolume: counted.upVolume, downVolume: counted.downVolume,
+      /* The official bulletin's own figures — not derivable from two sessions
+         of prices, so absent rather than guessed. */
+      newHighs: bToday?.new_highs ?? null, newLows: bToday?.new_lows ?? null,
+      traded: todayRows.length, listed: idx[0].listed_companies,
+      totalValue: idx[0].total_value, totalVolume: idx[0].total_volume, totalTrades: idx[0].total_trades,
+    }
+
+    /* History keeps `breadth_daily`: the only source reaching back to 2010.
+       Its three-state definition is why `noPrior` is null here. */
+    const history: PulseSession[] = breadth.slice().reverse().map((r) => {
+      const i = idxByDate.get(r.date)
+      return {
+        date: r.date, advancers: r.advancers, decliners: r.decliners, unchanged: r.unchanged, noPrior: null,
+        upVolume: r.up_volume, downVolume: r.down_volume, newHighs: r.new_highs, newLows: r.new_lows,
+        traded: r.traded, listed: i?.listed_companies ?? null,
+        totalValue: i?.total_value ?? null, totalVolume: i?.total_volume ?? null, totalTrades: i?.total_trades ?? null,
+      }
+    })
+
+    const prevIdx = prevDate ? idxByDate.get(prevDate) : null
+    const prevB = prevDate ? bByDate.get(prevDate) : null
+    const prev: PulseSession | null = prevDate && prevIdx ? {
+      date: prevDate,
+      advancers: prevB?.advancers ?? 0, decliners: prevB?.decliners ?? 0, unchanged: prevB?.unchanged ?? 0, noPrior: null,
+      upVolume: prevB?.up_volume ?? 0, downVolume: prevB?.down_volume ?? 0,
+      newHighs: prevB?.new_highs ?? null, newLows: prevB?.new_lows ?? null,
+      traded: prevIdx.traded_companies ?? prevB?.traded ?? 0, listed: prevIdx.listed_companies,
+      totalValue: prevIdx.total_value, totalVolume: prevIdx.total_volume, totalTrades: prevIdx.total_trades,
+    } : null
+
+    /* A company whose sector is unknown is left out rather than guessed. */
+    const secOf = new Map(metrics.map((m) => [m.ticker, m.sector]))
+    const buckets = new Map<string, PulseSector>()
+    for (const r of todayRows) {
+      const key = secOf.get(r.ticker)
+      if (!key) continue
+      let b = buckets.get(key)
+      if (!b) { b = { id: key, up: 0, down: 0, flat: 0, noPrior: 0, measured: 0, traded: 0 }; buckets.set(key, b) }
+      b.traded++
+      const d = counted.dir.get(r.ticker)
+      if (d === 'up') { b.up++; b.measured++ }
+      else if (d === 'down') { b.down++; b.measured++ }
+      else if (d === 'flat') { b.flat++; b.measured++ }
+      else b.noPrior++
+    }
+    const sectors = Array.from(buckets.values()).sort((a, b) => b.traded - a.traded)
+
+    const meta = new Map((companiesData as CompanyMeta[]).map((m) => [m.sym, m]))
+    const byValue = todayRows
+      .filter((r) => (r.value ?? 0) > 0)
+      .map((r) => {
+        const m = meta.get(r.ticker)
+        return { symbol: r.ticker, ar: m?.ar || null, en: m?.en || null, value: r.value as number, pct: pctVsPrev(r.close, prevCloses.get(r.ticker)) }
+      })
+      .sort((a, b) => b.value - a.value)
+      .slice(0, 40)
+
+    const idxTraded = idx[0].traded_companies
+    return {
+      live, prev, history, sectors, byValue,
+      tradedGap: idxTraded != null && idxTraded !== todayRows.length ? { index: idxTraded, rows: todayRows.length } : null,
+      failed: false,
+    }
+  } catch { return empty }
+})

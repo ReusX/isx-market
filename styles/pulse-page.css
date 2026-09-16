@@ -1,0 +1,106 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   /pulse · نبض السوق — layout only; vocabulary is identity.css.
+
+   Designed fresh for this identity, not ported. The old page was a grid of
+   panels with the verdict in a thin strip above them; here the verdict IS
+   the page and everything under it is the evidence for it. The four
+   comparisons collapse into one table because each was already two numbers
+   compared — which is exactly what «one row, one fact» is for.
+   ═══════════════════════════════════════════════════════════════════════════ */
+.plz { padding-block: 24px 0; }
+.plz-body { min-width: 0; }
+
+/* ── The reading: the page's thesis, in display weight ──────────────────── */
+.plz-lead { padding: 32px 24px; margin-bottom: 20px; }
+.plz-verdict {
+  margin: 10px 0 0; font-weight: 200; line-height: 1.05; letter-spacing: 0;
+  font-size: clamp(38px, 5.6vw, 68px); text-wrap: balance;
+}
+.plz-lead.is-up .plz-verdict { color: var(--up); }
+.plz-lead.is-down .plz-verdict { color: var(--down); }
+.plz-qual { margin: 10px 0 0; font-size: 17px; color: var(--secondary); max-width: 52ch; }
+.plz-because { margin: 14px 0 0; font-size: 15px; color: var(--muted); }
+.plz-rule { margin-top: 18px; }
+.plz-rule > summary {
+  cursor: pointer; font-size: 13px; font-weight: 500; color: var(--secondary);
+  list-style: none; display: inline-flex; align-items: center; gap: 8px;
+  border: 1px solid var(--border); border-radius: var(--r-pill); padding: 7px 16px;
+}
+.plz-rule > summary::-webkit-details-marker { display: none; }
+.plz-rule > summary:hover { border-color: var(--ink); color: var(--ink); }
+.plz-rule p { margin: 14px 0 0; font-size: 15px; line-height: 1.6; color: var(--secondary); max-width: 68ch; }
+
+/* ── Readings table ─────────────────────────────────────────────────────── */
+.plz-panel { padding: 20px; margin-bottom: 20px; }
+.plz-panel > .id-cap { margin: 4px 0 16px; }
+.plz-scroll { overflow-x: auto; }
+.plz-table { min-width: 640px; table-layout: fixed; }
+.plz-table th + th, .plz-table td + td { padding-inline-start: 20px; }
+.plz-table td { padding: 16px 0; }
+.plz-col-name { width: 120px; }
+.plz-col-share { width: 200px; }
+.plz-side { display: block; }
+.plz-side b { font-weight: 400; }
+.plz-share { display: flex; align-items: center; gap: 12px; justify-content: flex-end; }
+.plz-share bdi { flex: 0 0 auto; min-width: 52px; text-align: end; }
+.plz-track { display: block; flex: 1 1 auto; max-width: 120px; height: 8px; border-radius: 4px; background: var(--surface-2); overflow: hidden; }
+.plz-track i { display: block; height: 100%; border-radius: 4px; }
+.plz-track i.is-up { background: var(--moss-ink); opacity: .85; }
+.plz-track i.is-down { background: var(--sand-ink); opacity: .85; }
+.plz-track i.is-neutral { background: var(--nav-active); opacity: .8; }
+
+/* ── History ────────────────────────────────────────────────────────────── */
+.plz-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; flex-wrap: wrap; }
+.plz-head .id-cap { margin: 4px 0 0; max-width: 62ch; }
+/* The readout above the chart: says something before you touch it, and
+   tracks the hovered session once you do. */
+.plz-readout { display: flex; align-items: baseline; gap: 12px; margin: 16px 0 0; flex-wrap: wrap; }
+.plz-readout strong { font-weight: 300; font-size: clamp(26px, 3vw, 36px); line-height: 1; }
+.plz-hl { fill: var(--surface-2); }
+.plz-bar.is-on { opacity: 1; }
+.plz-cum { fill: none; stroke: var(--ink); stroke-width: 1.4; opacity: .75; }
+.plz-cum-dot { fill: var(--ink); stroke: var(--surface); stroke-width: 2; }
+.plz-legend { display: flex; align-items: baseline; gap: 8px; margin: 12px 0 0; max-width: 78ch; }
+.plz-swatch { flex: 0 0 auto; width: 16px; height: 0; border-top: 1.4px solid var(--ink); opacity: .75; transform: translateY(-4px); }
+
+.plz-chart { width: 100%; height: auto; display: block; margin-top: 16px; min-height: 200px; }
+.plz-zero { stroke: var(--border); stroke-width: 1; }
+.plz-bar { opacity: .75; }
+.plz-bar.is-up { fill: var(--moss-ink); }
+.plz-bar.is-down { fill: var(--sand-ink); }
+.plz-tick { fill: var(--muted); font-size: 11px; dominant-baseline: middle; }
+[dir='rtl'] .plz-chart text { direction: ltr; }
+
+/* ── Sectors ────────────────────────────────────────────────────────────── */
+.plz-sec-table { min-width: 620px; }
+.plz-sec-bar { display: flex; gap: 2px; height: 8px; border-radius: 4px; overflow: hidden; min-width: 90px; }
+.plz-sec-bar i { display: block; }
+.plz-sec-bar .is-up { background: var(--moss-ink); opacity: .85; }
+.plz-sec-bar .is-down { background: var(--sand-ink); opacity: .85; }
+.plz-sec-bar .is-flat { background: var(--surface-2); }
+.plz-sec-bar .is-none { background: var(--border); }
+
+.plz-note { margin: 14px 0 0; }
+
+/* ── Phone: the readings stop being a table ─────────────────────────────
+   Four columns inside 400px left every cell too narrow to read, and a
+   horizontal scroll on the page's key evidence is the wrong trade. Each
+   reading becomes a block instead: name, the two numbers, then the share.
+   The sector table below keeps its scroll container — it is a six-column
+   numeric grid, which is what an overflow-x container is for. */
+@media (max-width: 720px) {
+  .plz-table { min-width: 0; table-layout: auto; display: block; }
+  .plz-table thead { display: none; }
+  .plz-table tbody, .plz-table tr { display: block; }
+  .plz-table tr { padding: 16px 0; border-bottom: 1px solid var(--border); }
+  .plz-table tr:last-child { border-bottom: 0; }
+  .plz-table tbody tr:hover td { background: none; }
+  .plz-table td { display: block; padding: 0; border: 0; }
+  .plz-table td + td { padding-inline-start: 0; padding-top: 4px; }
+  .plz-table .plz-col-name, .plz-table .plz-col-share { width: auto; }
+  .plz-table .plz-col-name .id-name { font-size: 13px; color: var(--secondary); }
+  .plz-table .is-end { text-align: start; }
+  .plz-share { justify-content: flex-start; margin-top: 10px; }
+  .plz-share bdi { min-width: 0; text-align: start; }
+  .plz-track { max-width: 160px; }
+}

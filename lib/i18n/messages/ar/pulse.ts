@@ -162,4 +162,62 @@ export const pulse = {
         `تُصنّف الجلسة متوازنة عندما تبقى حصة الشركات الصاعدة بين ${weak} و${broad} من القابلة للقياس، فلا تتحقّق شروط الاتساع الإيجابي ولا السلبي.`,
     },
   },
+
+  /* ── The rebuilt page (redesign) ──────────────────────────────────────
+     Designed fresh for the new identity. The MODEL is lib/pulse.ts and the
+     verdict copy above is reused verbatim — both are the product's own
+     thinking and neither is design. What is new is the composition: the
+     verdict is the page's lead rather than a strip above a grid of panels,
+     and the four comparisons become one table, because every one of them is
+     already «two numbers compared» — which is what «one row, one fact» is
+     for. */
+  page: {
+    eyebrow: 'الأسواق',
+    lede: 'المؤشر يقول إلى أين تحرّك السوق. هذه الصفحة تقول إن كانت الحركة حقيقية: كم شركة شاركت فيها، وأين ذهب حجم التداول، وعلى كم سهم تقف الجلسة.',
+    session: (date: string) => `جلسة ${date}`,
+    because: (co: string, vol: string) => `${co} من الشركات صاعدة · ${vol} من حجم التداول عليها`,
+    showRule: 'كيف وصلنا إلى هذه الخلاصة',
+    noSession: 'لا تتوفر بيانات جلسة صالحة.',
+
+    readings: 'قراءات الجلسة',
+    cols: { reading: 'القراءة', pair: 'المقارنة', share: 'الحصة' },
+    breadth: 'الاتساع',
+    breadthA: (n: string) => `${n} صاعدة`,
+    breadthB: (n: string) => `${n} هابطة`,
+    liquidity: 'السيولة',
+    liquidityA: (v: string) => `${v} على الأسهم الصاعدة`,
+    liquidityB: (v: string) => `${v} على الأسهم الهابطة`,
+    participation: 'المشاركة',
+    participationA: (n: string) => `${n} شركة تداولت`,
+    participationB: (n: string) => `من ${n} شركة مدرجة`,
+    concentration: 'التركّز',
+    concentrationA: (v: string) => `${v} في أكبر 5 شركات`,
+    concentrationB: (v: string) => `من ${v} قيمة الجلسة`,
+    flatNote: (n: string) => `${n} ثابتة`,
+    noPriorNote: (n: string) => `${n} بلا قياس`,
+    noPriorWhy: 'شركة تداولت اليوم ولم تتداول في الجلسة السابقة لا يمكن قياس اتجاهها، فلا نحسبها ثابتة ولا ندخلها في مقام أي نسبة هنا.',
+
+    history: 'الاتساع عبر الجلسات',
+    historyNote: 'الصاعدة ناقص الهابطة في كل جلسة، والخط التراكمي يجمعها منذ بداية المدة. المصدر هنا جدول الاتساع اليومي، وهو يقارن كل شركة بإغلاقها السابق هي لا بالجلسة السابقة.',
+    timeframe: 'المدة',
+    adLine: 'الخط التراكمي',
+    adLineNote: 'مجموع صافي الاتساع منذ بداية المدة المختارة. صعوده يعني أن السوق يتّسع جلسة بعد جلسة، وهبوطه يعني العكس — حتى لو كان المؤشر يقول غير ذلك.',
+    latest: 'آخر جلسة',
+
+    sectors: 'اتساع القطاعات',
+    sectorsNote: 'داخل كل قطاع: كم من شركاته صعدت وكم هبطت. الشركة التي لا يُعرف قطاعها تُترك خارج الجدول ولا تُخمّن.',
+    sectorCols: { sector: 'القطاع', up: 'صاعدة', down: 'هابطة', flat: 'ثابتة', none: 'بلا قياس', traded: 'تداولت' },
+
+    gap: (index: string, rows: string) => `نشرة البورصة تذكر ${index} شركة متداولة، ولدينا ${rows} صفاً لهذه الجلسة.`,
+
+    about: {
+      title: 'عن هذه الأرقام',
+      body: [
+        'المؤشر رقم واحد، ويمكن أن يرتفع لأن سهماً كبيراً واحداً ارتفع بينما هبط معظم السوق. هذه الصفحة تفكّك ذلك: تقيس كم شركة تحرّكت في كل اتجاه، وكم من حجم التداول وقف خلف كل اتجاه، وكم شركة شاركت أصلاً.',
+        'القاعدة في كل سطر أن يكون رقمين مقارنين لا رقماً واحداً معروضاً. «صعدت ثماني شركات» لا تعني شيئاً وحدها؛ «ثماني شركات صعدت مقابل ثلاثين هبطت» تعني جلسة ضعيفة.',
+        'الشركة التي تداولت اليوم ولم تتداول في الجلسة السابقة لا يمكن قياس اتجاهها، فلا نحسبها ثابتة. تظهر في خانة «بلا قياس» وتخرج من مقام كل نسبة على هذه الصفحة — لأن غياب القياس ليس صفراً.',
+        'لا تعرض الصفحة مساهمة كل سهم في حركة المؤشر: ذلك يتطلب أوزان مكوّنات المؤشر، ولا نملكها. الرقم الذي لا يمكن حسابه لا يُعرض ولا يُلمّح إليه.',
+      ],
+    },
+  },
 }

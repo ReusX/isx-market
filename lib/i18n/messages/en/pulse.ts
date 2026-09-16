@@ -150,4 +150,55 @@ export const pulse: typeof ar = {
         `A session is called balanced when the share of advancing companies stays between ${weak} and ${broad} of the comparable set, so neither the positive nor the negative breadth condition is met.`,
     },
   },
+
+  /* ── The rebuilt page (redesign) ── see the Arabic file for the rules. */
+  page: {
+    eyebrow: 'Markets',
+    lede: 'The index tells you which way the market moved. This page tells you whether the move was real: how many companies took part, where the volume went, and how few stocks the session rests on.',
+    session: (date: string) => `Session of ${date}`,
+    because: (co: string, vol: string) => `${co} of companies rose \u00b7 ${vol} of the volume was on them`,
+    showRule: 'How we reached this reading',
+    noSession: 'No valid session data is available.',
+
+    readings: 'Session readings',
+    cols: { reading: 'Reading', pair: 'Compared', share: 'Share' },
+    breadth: 'Breadth',
+    breadthA: (n: string) => `${n} rose`,
+    breadthB: (n: string) => `${n} fell`,
+    liquidity: 'Liquidity',
+    liquidityA: (v: string) => `${v} on rising shares`,
+    liquidityB: (v: string) => `${v} on falling shares`,
+    participation: 'Participation',
+    participationA: (n: string) => `${n} companies traded`,
+    participationB: (n: string) => `of ${n} listed`,
+    concentration: 'Concentration',
+    concentrationA: (v: string) => `${v} in the 5 biggest`,
+    concentrationB: (v: string) => `of ${v} traded`,
+    flatNote: (n: string) => `${n} flat`,
+    noPriorNote: (n: string) => `${n} unmeasured`,
+    noPriorWhy: 'A company that traded today but not in the previous session has no measurable direction, so it is not counted as flat and never enters a denominator here.',
+
+    history: 'Breadth across sessions',
+    historyNote: 'Risers minus fallers each session, with the cumulative line summing them from the start of the period. The source here is the daily breadth table, which compares each company with its own previous close rather than with the previous session.',
+    timeframe: 'Period',
+    adLine: 'Cumulative line',
+    adLineNote: 'Net breadth summed from the start of the selected period. Rising means the market is broadening session after session; falling means the opposite \u2014 even when the index says otherwise.',
+    latest: 'Latest session',
+
+    sectors: 'Breadth by sector',
+    sectorsNote: 'Within each sector: how many of its companies rose and how many fell. A company whose sector is unknown is left out of the table rather than filed under a guess.',
+    sectorCols: { sector: 'Sector', up: 'Rose', down: 'Fell', flat: 'Flat', none: 'Unmeasured', traded: 'Traded' },
+
+    gap: (index: string, rows: string) => `The exchange bulletin reports ${index} companies traded; we hold ${rows} rows for this session.`,
+
+    about: {
+      title: 'About these figures',
+      body: [
+        'The index is one number, and it can rise because a single large stock rose while most of the market fell. This page takes that apart: how many companies moved each way, how much volume stood behind each direction, and how many companies took part at all.',
+        'The rule on every line is two numbers compared, not one number displayed. \u201cEight companies rose\u201d means nothing on its own; \u201ceight rose against thirty that fell\u201d means a weak session.',
+        'A company that traded today but not in the previous session has no measurable direction, so it is not counted as flat. It appears under \u201cunmeasured\u201d and is excluded from every denominator on this page \u2014 because a missing measurement is not a zero.',
+        'The page does not show each stock\u2019s contribution to the index move: that needs the index constituent weights, which this product does not hold. A number that cannot be computed is neither shown nor implied.',
+      ],
+    },
+  },
 }

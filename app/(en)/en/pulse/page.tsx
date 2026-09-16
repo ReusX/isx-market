@@ -1,7 +1,8 @@
-import { Pulse } from '@/components/routes/Pulse'
+import { PulsePage } from '@/components/site/PulsePage'
+import { loadPulse } from '@/lib/marketServer'
 
-export const revalidate = 300
+export const revalidate = 900
 
-export default function Page() {
-  return <Pulse />
+export default async function Page() {
+  return <PulsePage initial={await loadPulse()} />
 }

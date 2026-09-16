@@ -52,8 +52,3 @@
 .hm2-foot { display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap; margin-top: 12px; }
 .hm2-foot .id-pills { align-items: center; gap: 8px; }
 .hm2-export { order: -1; }
-.hm2-about { margin-top: 40px; padding-inline: 0; margin-inline: 0; }
-.hm2-about summary { cursor: pointer; list-style: none; }
-.hm2-about summary::before { content: '▾ '; color: var(--muted); }
-.hm2-about[open] summary::before { content: '▴ '; }
-.hm2-about .id-body { color: var(--secondary); margin: 0 0 12px; }

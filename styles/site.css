@@ -168,3 +168,20 @@
   visibility: hidden; opacity: 0; transition: opacity .14s ease;
 }
 .iqp.is-open .iqp-note { visibility: visible; opacity: 1; }
+
+/* ── About · the methodology block, collapsed ────────────────────────────
+   Native <details>: the prose stays in the markup when closed, so it is
+   still the page's text for a crawler. See components/site/AboutSection.tsx. */
+.iqa { margin-top: 48px; padding-inline: 0; margin-inline: 0; border-top: 1px solid var(--border); }
+.iqa-sum {
+  cursor: pointer; list-style: none; display: flex; align-items: center; justify-content: space-between;
+  gap: 16px; padding: 22px 0 0; color: var(--ink);
+}
+.iqa-sum::-webkit-details-marker { display: none; }
+.iqa-sum .id-h2 { font-size: clamp(20px, 2.2vw, 26px); }
+.iqa-sum:hover { color: var(--secondary); }
+.iqa-chev { flex: 0 0 auto; color: var(--muted); transition: transform .18s ease; }
+.iqa[open] .iqa-chev { transform: rotate(180deg); }
+.iqa-body { padding-top: 6px; }
+.iqa-body .id-body { color: var(--secondary); margin: 0 0 14px; }
+.iqa-body .id-body:last-child { margin-bottom: 0; }

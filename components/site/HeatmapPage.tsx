@@ -5,6 +5,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { useLocale } from '@/context/LocaleContext'
 import { SiteShell } from './SiteShell'
 import { DoorRail } from './DoorRail'
+import { AboutSection } from './AboutSection'
 import { PageTitle } from './PageTitle'
 import {
   PERIODS, bandOf, bandLabel, capFor, pctText, sectorNodes, squarify, universe, matchesQuery,
@@ -271,10 +272,7 @@ export function HeatmapPage({ initial }: { initial: ScreenerInitial }) {
             <p className="id-cap">{pg.excluded(int.format(uni.excludedNoCap.length + uni.excludedStale.length + uni.excludedUnknownAge.length))}</p>
           </div>
 
-          <details className="hm2-about id-read">
-            <summary className="id-h3">{pg.about.title}</summary>
-            {pg.about.body.map((tx, i) => <p key={i} className="id-body">{tx}</p>)}
-          </details>
+          <AboutSection title={pg.about.title} body={pg.about.body} />
         </div>
       </main>
     </SiteShell>

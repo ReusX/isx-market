@@ -5,6 +5,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { useLocale } from '@/context/LocaleContext'
 import { SiteShell } from './SiteShell'
 import { DoorRail } from './DoorRail'
+import { AboutSection } from './AboutSection'
 import { PageTitle } from './PageTitle'
 import type { FlowInitial } from '@/lib/marketServer'
 import { monthLabel } from '@/lib/statistics'
@@ -300,10 +301,7 @@ export function ForeignFlowPage({ initial }: { initial: FlowInitial }) {
               <p className="id-cap ffl-caveat">{pg.accounts.caveat}</p>
           </div>
 
-          <section className="stx-about id-read" aria-label={pg.about.title}>
-            <h2 className="id-h2">{pg.about.title}</h2>
-            {pg.about.body.map((tx, i) => <p key={i} className="id-body">{tx}</p>)}
-          </section>
+          <AboutSection title={pg.about.title} body={pg.about.body} />
         </div>
       </main>
     </SiteShell>

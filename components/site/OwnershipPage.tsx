@@ -5,6 +5,7 @@ import { useMemo, useState } from 'react'
 import { useLocale } from '@/context/LocaleContext'
 import { SiteShell } from './SiteShell'
 import { DoorRail } from './DoorRail'
+import { AboutSection } from './AboutSection'
 import { PageTitle } from './PageTitle'
 import type { OwnershipInitial } from '@/lib/marketServer'
 import { monthLabel } from '@/lib/statistics'
@@ -179,10 +180,7 @@ export function OwnershipPage({ initial }: { initial: OwnershipInitial }) {
             </>
           )}
 
-          <section className="stx-about id-read" aria-label={O.about.title}>
-            <h2 className="id-h2">{O.about.title}</h2>
-            {O.about.body.map((tx, i) => <p key={i} className="id-body">{tx}</p>)}
-          </section>
+          <AboutSection title={O.about.title} body={O.about.body} />
         </div>
       </main>
     </SiteShell>

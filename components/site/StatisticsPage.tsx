@@ -5,6 +5,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { useLocale } from '@/context/LocaleContext'
 import { SiteShell } from './SiteShell'
 import { DoorRail } from './DoorRail'
+import { AboutSection } from './AboutSection'
 import { PageTitle } from './PageTitle'
 import {
   PERIODS, METRICS, SECTOR_LABELS, bucketize, grainFor, totalsFor, windowFor, normalizeSectors, bucketLabel, monthLabel,
@@ -217,10 +218,7 @@ export function StatisticsPage({ initial }: { initial: StatisticsInitial }) {
             </div>
           </div>
 
-          <section className="stx-about id-read" aria-label={pg.about.title}>
-            <h2 className="id-h2">{pg.about.title}</h2>
-            {pg.about.body.map((tx, i) => <p key={i} className="id-body">{tx}</p>)}
-          </section>
+          <AboutSection title={pg.about.title} body={pg.about.body} />
         </div>
       </main>
     </SiteShell>
