@@ -28,11 +28,25 @@
 .iqm-controls .id-input { max-width: 340px; }
 .iqm-co { display: block; color: inherit; text-decoration: none; }
 .iqm-table { table-layout: fixed; }
-.iqm-c-price { width: 120px; } .iqm-c-chg { width: 150px; } .iqm-c-val { width: 160px; }
-.iqm-table td { padding-block: 14px; }
+.iqm-c-price { width: 130px; } .iqm-c-chg { width: 120px; } .iqm-c-val { width: 130px; }
+.iqm-table td.iqm-untraded { overflow: visible; }
+.iqm-table td { padding-block: 12px; }
 .iqm-table td:first-child { overflow: hidden; }
+.iqm-co { display: flex; align-items: center; gap: 12px; min-width: 0; }
+.iqm-logo { width: 36px; height: 36px; border-radius: 10px; flex: 0 0 36px; display: inline-grid; place-items: center; font-size: 13px; font-weight: 500; color: #fff; overflow: hidden; }
+.iqm-logo.has-image { background: #fff; }
+.iqm-logo .co-logo-img { width: 100%; height: 100%; object-fit: contain; }
+.iqm-co-text { min-width: 0; }
 .iqm-table .id-name { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-@media (max-width: 760px) { .iqm-c-price { width: 84px; } .iqm-c-chg { width: 110px; } }
+/* Signed percentages keep their sign in front whatever the page direction. */
+.iqm-pct { direction: ltr; unicode-bidi: isolate; display: inline-block; }
+/* The price is the row's headline. */
+.iqm-price { font-size: 18px; font-weight: 400; }
+.iqm-table tr.is-untraded .iqm-price { color: var(--muted); }
+.iqm-untraded-chip { display: inline-block; white-space: nowrap; padding: 5px 12px; border-radius: var(--r-pill); background: var(--sand); color: var(--sand-ink); font-size: 12px; font-weight: 500; }
+.iqm-more { display: flex; justify-content: center; padding: 20px 0 4px; }
+@media (max-width: 1100px) { .iqm-hide-md { display: none; } }
+@media (max-width: 760px) { .iqm-hide-sm { display: none; } .iqm-c-price { width: 90px; } .iqm-c-chg { width: 110px; } .iqm-price { font-size: 16px; } }
 .iqm-empty { text-align: center; padding: 56px 0; }
 .iqm-count { margin: 16px 0 0; }
 @media (max-width: 760px) { .iqm-hide-sm { display: none; } }

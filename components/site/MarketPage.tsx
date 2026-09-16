@@ -2,7 +2,8 @@
 
 import Link from 'next/link'
 import { useEffect, useMemo, useState } from 'react'
-import { fetchLive, fetchCompanyMeta, mergeCompanies, companyName, SECTORS } from '@/lib/market'
+import { fetchLive, fetchCompanyMeta, mergeCompanies, companyName, liveMcap, SECTORS } from '@/lib/market'
+import { CompanyLogo } from '@/components/CompanyLogo'
 import { sessionDate, type IndexRow } from '@/lib/homeData'
 import { useLocale } from '@/context/LocaleContext'
 import { SiteShell } from './SiteShell'
@@ -21,9 +22,13 @@ import type { Company } from '@/types'
  *   1. The session in four figures — ISX60, traded value, volume, breadth —
  *      on a data block.
  *   2. The door's rail: the pages that belong to الأسواق, as a sidebar.
- *   3. The board: every listed company, one row each — name, last price, the
- *      change as a chip, traded value — most active first, with one search
- *      field and the sector pills. A row is a link to the company page.
+ *   3. The board (public name: جدول الشركات): every listed company, one row
+ *      each — logo and name, the price large, then 24h / 7-day / 30-day
+ *      change, session volume and shares outstanding — biggest market cap
+ *      first, twenty rows then «عرض الكل». A company that did not trade says
+ *      so in place of its change, with a streak when it has been more than
+ *      one session. One search field and the sector pills. A row links to
+ *      the company page.
  *
  * An information surface, so it runs full width (.id-full); only the lede
  * caps its own line length.
@@ -52,6 +57,12 @@ function Change({ pct, stale, untraded, noChange }: { pct: number; stale?: boole
   return <span className={`id-chg ${up ? 'is-up' : 'is-down'}`}>{up ? '▲' : '▼'} {Math.abs(pct).toFixed(2)}%</span>
 }
 
+/* A percentage as coloured text: mint up, coral down, muted flat. */
+function Pct({ v }: { v: number }) {
+  const cls = v > 0 ? 'id-up' : v < 0 ? 'id-down' : 'id-cap'
+  return <bdi className={`iqm-pct ${cls}`}>{v > 0 ? '+' : ''}{v.toFixed(2)}%</bdi>
+}
+
 const RAIL = [
   { key: 'market', route: '/market' }, { key: 'companies', route: '/companies' }, { key: 'screener', route: '/screener' },
   { key: 'heatmap', route: '/heatmap' }, { key: 'statistics', route: '/statistics' }, { key: 'pulse', route: '/pulse' },
@@ -73,6 +84,9 @@ export function MarketPage() {
   const [loading, setLoading] = useState(true)
   const [q, setQ] = useState('')
   const [sector, setSector] = useState('all')
+  const [showAll, setShowAll] = useState(false)
+  /* Closes per ticker for the last ~45 days, for the 7- and 30-day changes. */
+  const [hist, setHist] = useState<Record<string, { date: string; close: number }[]>>({})
 
   useEffect(() => {
     let alive = true
@@ -103,6 +117,21 @@ export function MarketPage() {
           setSeries((s) => ({ ...s, isx60: rows.map((r) => ({ date: r.date, isx60: r.isx60 })) }))
           setIndex({ latest: rows[rows.length - 1], prev: rows[rows.length - 2] ?? null })
         })(),
+        /* Price history for the 7- and 30-day columns: 45 calendar days of
+           closes for every ticker, paged under PostgREST's 1000-row cap. */
+        (async () => {
+          const since = new Date(Date.now() - 45 * 86400_000).toISOString().slice(0, 10)
+          const by: Record<string, { date: string; close: number }[]> = {}
+          for (let from = 0; ; from += 1000) {
+            const { data, error } = await sb.from('daily_prices').select('ticker,date,close').gte('date', since).order('date').range(from, from + 999)
+            if (error || !data?.length) break
+            for (const r of data as { ticker: string; date: string; close: number | null }[]) {
+              if (r.close != null && r.close > 0) (by[r.ticker] ??= []).push({ date: r.date, close: r.close })
+            }
+            if (data.length < 1000) break
+          }
+          if (alive) setHist(by)
+        })(),
         /* RSISX through our own proxy (Rabee's API refuses direct calls). */
         fetch('/api/index/rsisx').then((r) => (r.ok ? r.json() : [])).then((rows: { date: string; iqd: number; usd: number }[]) => {
           if (!alive || !Array.isArray(rows) || !rows.length) return
@@ -117,15 +146,30 @@ export function MarketPage() {
     return () => { alive = false }
   }, [])
 
-  const rows = useMemo(() => {
+  const filtered = useMemo(() => {
     const needle = q.trim().toLowerCase()
     return companies
       .filter((c) => sector === 'all' || c.sec === sector)
       .filter((c) => !needle || c.sym.toLowerCase().includes(needle) || c.ar.includes(q.trim()) || c.en.toLowerCase().includes(needle))
-      /* Traded companies first, most active at the top; the carried-forward
-         rows follow, so «لم تُتداول» never outranks a real session. */
-      .sort((a, b) => Number(Boolean(a.stale)) - Number(Boolean(b.stale)) || (b.vol || 0) - (a.vol || 0))
+      /* Biggest market cap first — price × shares, live. */
+      .sort((a, b) => liveMcap(b) - liveMcap(a))
   }, [companies, q, sector])
+  const rows = showAll || q.trim() ? filtered : filtered.slice(0, 20)
+
+  /* Sessions the market has held, newest last — for the untraded streak. */
+  const sessions = useMemo(() => series.isx60.map((p) => p.date), [series.isx60])
+  const streakOf = (c: Company) => (c.lastTrade ? sessions.filter((d) => d > c.lastTrade!).length : sessions.length)
+
+  /* Change over N calendar days: against the last close on or before
+     session − N days. Null when there is no such close. */
+  const changeOver = (c: Company, days: number): number | null => {
+    const h = hist[c.sym]
+    if (!h?.length || !session) return null
+    const cutoff = new Date(new Date(session).getTime() - days * 86400_000).toISOString().slice(0, 10)
+    let base: number | null = null
+    for (const r of h) { if (r.date <= cutoff) base = r.close; else break }
+    return base ? ((c.close - base) / base) * 100 : null
+  }
 
   /* Breadth, from the companies that TRADED this session only. A company
      carried forward without a trade is neither unchanged nor anything else
@@ -188,39 +232,64 @@ export function MarketPage() {
           {failed ? <p className="id-note">{p.loadFailed}</p> : null}
 
           <div className="id-table-scroll">
-            <table className="id-table id-num iqm-table">
-              {/* Defined columns: the company takes what is left; the
-                  figures sit in fixed tracks, so nothing floats apart. */}
-              <colgroup><col /><col className="iqm-c-price" /><col className="iqm-c-chg" /><col className="iqm-c-val" /></colgroup>
+            <table className="id-table id-num iqm-table" aria-label={p.board.title}>
+              <colgroup><col /><col className="iqm-c-price" /><col className="iqm-c-chg" /><col className="iqm-c-chg iqm-hide-sm" /><col className="iqm-c-chg iqm-hide-sm" /><col className="iqm-c-val iqm-hide-sm" /><col className="iqm-c-val iqm-hide-md" /></colgroup>
               <thead>
                 <tr>
                   <th>{m.colCompany}</th>
-                  <th className="is-end">{m.colPrice}</th>
-                  <th className="is-end">{m.colChange}</th>
-                  <th className="is-end iqm-hide-sm">{m.colValue}</th>
+                  <th className="is-end">{p.board.price}</th>
+                  <th className="is-end">{p.board.d1}</th>
+                  <th className="is-end iqm-hide-sm">{p.board.d7}</th>
+                  <th className="is-end iqm-hide-sm">{p.board.d30}</th>
+                  <th className="is-end iqm-hide-sm">{p.board.volume}</th>
+                  <th className="is-end iqm-hide-md">{p.board.shares}</th>
                 </tr>
               </thead>
               <tbody>
-                {rows.map((c) => (
-                  <tr key={c.sym}>
-                    <td>
-                      <Link href={L(`/c/${c.sym}`)} className="iqm-co">
-                        <span className="id-name">{companyName(c, locale)}</span>
-                        <span className="id-sub">{c.sym} · {SECTORS.find((s) => s.id === c.sec)?.[ar ? 'ar' : 'en'] ?? c.sec}</span>
-                      </Link>
-                    </td>
-                    <td className="is-end">{c.close ? price.format(c.close) : '—'}</td>
-                    <td className="is-end"><Change pct={c.pct} stale={c.stale} untraded={p.untraded} noChange={p.noChange} /></td>
-                    <td className="is-end iqm-hide-sm">{c.stale ? '—' : compact(c.vol, u)}</td>
-                  </tr>
-                ))}
+                {rows.map((c) => {
+                  const streak = c.stale ? streakOf(c) : 0
+                  const d7 = c.stale ? null : changeOver(c, 7), d30 = c.stale ? null : changeOver(c, 30)
+                  return (
+                    <tr key={c.sym} className={c.stale ? 'is-untraded' : undefined}>
+                      <td>
+                        <Link href={L(`/c/${c.sym}`)} className="iqm-co">
+                          <CompanyLogo sym={c.sym} logo={c.logo} color={c.color} className="iqm-logo" />
+                          <span className="iqm-co-text">
+                            <span className="id-name">{companyName(c, locale)}</span>
+                            <span className="id-sub">{c.sym} · {SECTORS.find((s) => s.id === c.sec)?.[ar ? 'ar' : 'en'] ?? c.sec}</span>
+                          </span>
+                        </Link>
+                      </td>
+                      <td className="is-end iqm-price">{c.close ? price.format(c.close) : '—'}</td>
+                      {c.stale ? (
+                        <>
+                          <td className="is-end iqm-untraded"><span className="iqm-untraded-chip">{streak > 1 ? p.board.streak(streak) : p.board.untraded}</span></td>
+                          <td className="iqm-hide-sm" /><td className="iqm-hide-sm" />
+                        </>
+                      ) : (
+                        <>
+                          <td className="is-end"><Change pct={c.pct} untraded={p.untraded} noChange={p.noChange} /></td>
+                          <td className="is-end iqm-hide-sm">{d7 == null ? <span className="id-cap">—</span> : <Pct v={d7} />}</td>
+                          <td className="is-end iqm-hide-sm">{d30 == null ? <span className="id-cap">—</span> : <Pct v={d30} />}</td>
+                        </>
+                      )}
+                      <td className="is-end iqm-hide-sm">{c.stale ? '—' : compact(c.shares_traded, u)}</td>
+                      <td className="is-end iqm-hide-md">{c.shares ? compact(c.shares, u) : '—'}</td>
+                    </tr>
+                  )
+                })}
               </tbody>
             </table>
           </div>
+          {filtered.length > 20 && !q.trim() ? (
+            <div className="iqm-more">
+              <button type="button" className="id-btn" onClick={() => setShowAll((v) => !v)}>{showAll ? p.board.showLess : p.board.showAll(int.format(filtered.length))}</button>
+            </div>
+          ) : null}
           {!loading && !rows.length && !failed ? (
             <div className="iqm-empty"><p className="id-h3">{p.emptyTitle}</p><p className="id-cap">{p.emptyNote}</p></div>
           ) : null}
-          {rows.length ? <p className="id-cap iqm-count">{p.showing(int.format(rows.length))}</p> : null}
+          {rows.length ? <p className="id-cap iqm-count">{p.showing(int.format(filtered.length))} · {p.board.sortNote}</p> : null}
         </section>
         </div>
       </main>
