@@ -17,6 +17,19 @@ import { shortDate } from '@/lib/date'
  */
 export type IndexPoint = { date: string; isx60: number }
 type Range = 'm1' | 'm3' | 'y1' | 'y3' | 'all'
+
+/* The ISX60 in its current form starts on 1 March 2015. Before that the
+   table holds the exchange's OLD price index (base 100, ~70–100), which was
+   retired and replaced; the two are not one series and chaining them draws
+   a ×12 "jump" that never happened. الكل therefore begins where the
+   present index does. Verified in daily_index: 26 Feb 2015 closed at
+   70.49, 1 Mar 2015 at 870.66. */
+export const ISX60_SINCE = '2015-03-01'
+
+/* The full-chart page exists in Arabic only; the English side gets no link
+   rather than a 404. Resolved per locale so the static link gate, which
+   reads shared components for literal routes, sees the guard. */
+const FULL_CHART: Record<string, string | null> = { ar: '/charts', en: null }
 /* Calendar days back from the LAST session in the series, not from today:
    a range is measured against the market's own clock. */
 const DAYS: Record<Range, number> = { m1: 31, m3: 92, y1: 366, y3: 3 * 366, all: Infinity }
@@ -81,7 +94,7 @@ export function IndexChart({ series }: { series: IndexPoint[] }) {
     if (!series.length) return []
     const last = new Date(series[series.length - 1].date).getTime()
     const since = last - DAYS[range] * 86400_000
-    return series.filter((p) => new Date(p.date).getTime() >= since)
+    return series.filter((p) => p.date >= ISX60_SINCE && new Date(p.date).getTime() >= since)
   }, [series, range])
 
   const geo = useMemo(() => {
@@ -179,12 +192,9 @@ export function IndexChart({ series }: { series: IndexPoint[] }) {
         </svg>
       ) : <p className="id-note">{c.empty}</p>}
       </div>
-      {/* /charts exists in Arabic only for now; no link to a 404. */}
-      {locale === 'ar' ? (
-        <footer className="ix-foot">
-          <Link href={L('/charts')} className="id-btn is-sm">{c.full} →</Link>
-        </footer>
-      ) : null}
+      <footer className="ix-foot">
+        {FULL_CHART[locale] ? <Link href={L(FULL_CHART[locale]!)} className="id-btn is-sm">{c.full} →</Link> : null}
+      </footer>
     </section>
   )
 }

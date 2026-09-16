@@ -43,7 +43,7 @@
 .ix-when { margin: 4px 0 0; min-height: 1.4em; }
 .ix-ranges { justify-content: flex-end; }
 .ix-plot { position: relative; }
-.ix-foot { display: flex; justify-content: flex-end; padding-top: 10px; }
+.ix-foot { display: flex; justify-content: flex-end; align-items: center; gap: 12px; padding-top: 10px; }
 /* The watermark sits inside the plot, in the emptier half, bold and plain. */
 .ix-mark { fill: var(--ink); opacity: .16; font-weight: 600; font-size: 30px; letter-spacing: .08em; text-anchor: middle; dominant-baseline: middle; }
 @media (max-width: 640px) { .ix-head { grid-template-columns: 1fr; } .ix-ranges { justify-content: flex-start; } }
@@ -67,7 +67,7 @@
 .fr { padding: 20px; display: flex; flex-direction: column; }
 .fr-foot { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding-top: 14px; }
 /* The watermark takes the empty end of the foot, opposite the button. */
-.fr-mark { font-weight: 600; font-size: 22px; letter-spacing: .08em; direction: ltr; color: var(--ink); opacity: .18; user-select: none; }
+.fr-mark { font-weight: 700; font-size: 24px; letter-spacing: .08em; direction: ltr; color: var(--ink); opacity: .3; user-select: none; }
 .fr-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; flex-wrap: wrap; margin-bottom: 8px; }
 .fr-body { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 20px; align-items: center; flex: 1; }
 .fr-ring { width: 180px; height: 180px; overflow: visible; }
