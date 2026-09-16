@@ -340,6 +340,12 @@ export function indexability(
   products: ProductRow[],
   services: ServiceRow[] = [],
   hasFinancials = false,
+  /* The editorial package's substance, when it has any: a selected product
+     with a written summary and at least two answered questions is content a
+     reader could not get from the directory. Its `index_recommendation` is
+     advice and is NOT read here — this predicate is the one authority, for
+     robots, for the sitemap and for structured data alike. */
+  editorial: { products: unknown[]; faqs: unknown[] } | null = null,
 ): { indexable: boolean; reason: string } {
   if (bank.operating_status === 'liquidation') return { indexable: false, reason: 'in liquidation' }
   if (bank.operating_status === 'guardianship') return { indexable: false, reason: 'under guardianship' }
@@ -354,12 +360,16 @@ export function indexability(
   if (bank.ticker && hasFinancials && verified >= 3) {
     return { indexable: true, reason: `listed with financials and ${verified} verified services` }
   }
+  if (editorial && editorial.products.length >= 1 && editorial.faqs.length >= 2) {
+    return { indexable: true, reason: `${editorial.products.length} reviewed product(s) and ${editorial.faqs.length} FAQs` }
+  }
   return { indexable: false, reason: 'no published product terms' }
 }
 
 /** Kept for the sitemap's call site; `indexability` carries the reasoning. */
 export function isSubstantive(
   bank: Bank, products: ProductRow[], services: ServiceRow[] = [], hasFinancials = false,
+  editorial: { products: unknown[]; faqs: unknown[] } | null = null,
 ): boolean {
-  return indexability(bank, products, services, hasFinancials).indexable
+  return indexability(bank, products, services, hasFinancials, editorial).indexable
 }

@@ -24,6 +24,7 @@
 
 import { isCurrentEnough } from '@/lib/banks'
 import type { Bank, ProductRow, FactRow, ServiceRow } from '@/lib/banks'
+import type { EditorialProfile } from '@/lib/bankEditorial'
 import { absUrl } from '@/lib/seo'
 import { messages } from '@/lib/i18n'
 import type { Locale } from '@/lib/i18n/locale'
@@ -34,6 +35,9 @@ export interface BankSeoInput {
   facts: FactRow[]
   services: ServiceRow[]
   indexable: boolean
+  /** The editorial package, whose Arabic title and description are written
+   *  per bank and used verbatim. English keeps the generated sentence. */
+  editorial?: EditorialProfile | null
 }
 
 /* hq_city is stored in Arabic — the bank's own spelling of its city — so the
@@ -46,8 +50,11 @@ export function cityOf(bank: Bank, locale: Locale): string | null {
 }
 
 /** «مصرف بغداد · الودائع والقروض وشروطها» — the name, then what is on the page. */
-export function bankTitle({ bank, products }: BankSeoInput, locale: Locale): string {
+export function bankTitle({ bank, products, editorial }: BankSeoInput, locale: Locale): string {
   const t = messages(locale).banks
+  /* The package wrote a distinct Arabic title for every bank — a sentence
+     about the bank, not a template — and carries no rate in any of them. */
+  if (locale === 'ar' && editorial?.seo.title) return editorial.seo.title
   const name = locale === 'ar' ? bank.name_ar : bank.name_en
   const deposits = products.some((p) => p.kind.startsWith('deposit') && p.known_facts > 0)
   const loans = products.some((p) => !p.kind.startsWith('deposit') && p.known_facts > 0)
@@ -64,8 +71,9 @@ export function bankTitle({ bank, products }: BankSeoInput, locale: Locale): str
  * The description names what the page can be held to: the classification, the
  * listing, and how many products carry published terms.
  */
-export function bankDescription({ bank, products, services }: BankSeoInput, locale: Locale): string {
+export function bankDescription({ bank, products, services, editorial }: BankSeoInput, locale: Locale): string {
   const t = messages(locale).banks
+  if (locale === 'ar' && editorial?.seo.description) return editorial.seo.description
   const name = locale === 'ar' ? bank.name_ar : bank.name_en
   const withTerms = products.filter((p) => p.known_facts > 0).length
   const verified = services.filter((s) => s.availability === 'available').length
@@ -97,24 +105,40 @@ export function bankDescription({ bank, products, services }: BankSeoInput, loca
  * not — and a page withheld from the index emits nothing, because structured
  * data on a noindex page is a request to be treated as a result.
  */
-export function bankJsonLd({ bank, products, facts, indexable }: BankSeoInput, locale: Locale): object | null {
+/* Bases under which a percentage may be called an interest rate in markup.
+   Expected profit is not interest; "from" is a floor, not a rate; an unstated
+   basis is not a number Google should compare across banks. */
+const INTEREST_BASES = new Set(['annual', 'annual_declining', 'flat'])
+
+export function bankJsonLd({ bank, products, facts, indexable, editorial }: BankSeoInput, locale: Locale): object | null {
   if (!indexable) return null
   const name = locale === 'ar' ? bank.name_ar : bank.name_en
   const url = absUrl(`/banks/${bank.slug}`, locale)
   const city = cityOf(bank, locale)
 
+  /* When the package selected products, those and only those are on the
+     page, so those and only those may be described. No AggregateRating is
+     emitted anywhere: the editorial scores are desk-research judgments, not
+     votes, and would be a lie in that vocabulary. */
+  const selected = editorial ? new Set(editorial.products.map((x) => x.slug)) : null
+  const editorialRate = (slug: string) => editorial?.products.find((x) => x.slug === slug)?.rate ?? null
+
   const offers = products
+    .filter((p) => !selected || selected.has(p.slug))
     .map((p) => {
+      const er = editorialRate(p.slug)
       /* Only a rate the page actually headlines. A figure demoted for age is
          not offered to Google as an interest rate either. */
       const rate = facts.find((f) =>
         f.product_id === p.id && f.field_key === 'rate' && f.state === 'KNOWN' && isCurrentEnough(f))
-      if (!rate?.value_num) return null
+      const value = er ? er.value : rate?.value_num
+      const asInterest = er ? INTEREST_BASES.has(er.basis) : Boolean(rate?.value_num)
+      if (value == null) return null
       return {
         '@type': 'FinancialProduct',
         name: locale === 'ar' ? p.name_ar : p.name_en,
         category: p.kind.startsWith('deposit') ? 'Deposit' : 'Loan',
-        interestRate: { '@type': 'QuantitativeValue', value: rate.value_num, unitText: 'PERCENT' },
+        ...(asInterest && value > 0 ? { interestRate: { '@type': 'QuantitativeValue', value, unitText: 'PERCENT' } } : {}),
         ...(p.currency ? { currenciesAccepted: p.currency } : {}),
       }
     })

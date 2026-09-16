@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import { absUrl, seoAlternates } from '@/lib/seo'
 import { BanksHub, type HubBank } from '@/components/routes/BanksHub'
 import { listBanks, listProducts, listServices, bankFinancials, coverageOf } from '@/lib/banks'
+import { editorialFor } from '@/lib/bankEditorial'
 
 /**
  * This replaces a legacy page that was Arabic-only, absent from navigation,
@@ -29,6 +30,7 @@ export default async function Page() {
       services: services.filter((x) => x.bank_slug === bank.slug),
       coverage: coverageOf(bank, p),
       financials: bank.ticker ? fin.get(bank.ticker) : undefined,
+      editorial: editorialFor(bank.slug),
     }
   })
   return <BanksHub rows={rows} />

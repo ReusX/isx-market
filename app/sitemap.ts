@@ -1,6 +1,7 @@
 import { MetadataRoute } from 'next'
 import companiesData from '@/public/data/companies.json'
 import { listBanks, listProducts, listServices, bankFinancials, indexability } from '@/lib/banks'
+import { editorialFor } from '@/lib/bankEditorial'
 import { getPosts, type Section } from '@/lib/cms'
 import { getLastSessionDate } from '@/lib/freshness'
 import { absUrl } from '@/lib/seo'
@@ -123,6 +124,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         allProducts.filter((p) => p.bank_slug === b.slug),
         allServices.filter((s) => s.bank_slug === b.slug),
         Boolean(b.ticker && fin.get(b.ticker)),
+        editorialFor(b.slug),
       ).indexable)
       .map((b) => ({ url: absUrl(`/banks/${b.slug}`), lastModified: dataDate })),
   ]

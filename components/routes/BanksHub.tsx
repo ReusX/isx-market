@@ -5,9 +5,11 @@ import Link from 'next/link'
 import { useLocale } from '@/context/LocaleContext'
 import { CompanyLogo } from '@/components/CompanyLogo'
 import companiesData from '@/public/data/companies.json'
-import { localeDate } from '@/lib/date'
 import { categoriesOf } from '@/lib/banks'
 import type { Bank, ProductRow, ServiceRow, BankFinancials, Coverage } from '@/lib/banks'
+import {
+  editorialCoverage, headlineProduct, ratedCategoryCount, storeRatingText, type EditorialProfile,
+} from '@/lib/bankEditorial'
 import '@/styles/banks.css'
 
 /**
@@ -31,9 +33,11 @@ export interface HubBank {
   services: ServiceRow[]
   coverage: Coverage
   financials?: BankFinancials
+  editorial: EditorialProfile | null
 }
 
-type Filter = 'all' | 'listed' | 'state' | 'islamic' | 'foreign' | 'publishing'
+type Filter = 'all' | 'listed' | 'state' | 'islamic' | 'foreign' | 'publishing' | 'rated'
+const COV_RANK = { overall: 0, partial: 1, products: 2, limited: 3 } as const
 
 const LOGOS = new Map(
   (companiesData as { sym: string; logo?: string; color?: string }[]).map((c) => [c.sym, c]),
@@ -45,7 +49,8 @@ export function BanksHub({ rows }: { rows: HubBank[] }) {
   const [filter, setFilter] = useState<Filter>('all')
   const [query, setQuery] = useState('')
 
-  const publishes = (r: HubBank) => r.products.some((p) => p.known_facts > 0)
+  const publishes = (r: HubBank) => Boolean(r.editorial?.products.length) || r.products.some((p) => p.known_facts > 0)
+  const rated = (r: HubBank) => Boolean(r.editorial) && ratedCategoryCount(r.editorial!) > 0
 
   const shown = useMemo(() => {
     const q = query.trim().toLowerCase()
@@ -57,13 +62,16 @@ export function BanksHub({ rows }: { rows: HubBank[] }) {
         if (filter === 'islamic') return r.bank.bank_type === 'islamic'
         if (filter === 'foreign') return r.bank.ownership === 'foreign'
         if (filter === 'publishing') return publishes(r)
+        if (filter === 'rated') return rated(r)
         return r.bank.ownership === filter
       })
-      /* Banks that publish something first, then listed banks, then the rest
-         alphabetically. Not a ranking of banks — the note says so — but a
-         table whose first forty rows are all «—» buries its own content. */
+      /* Most-researched first — an overall figure, then partial scores, then
+         reviewed products, then directory-only — then listed, then name. Not
+         a ranking of banks: the note under the table says so, and the two
+         overall figures are never compared across the sector. A table whose
+         first forty rows say «أدلة محدودة» would bury its own content. */
       .sort((a, b) =>
-        Number(publishes(b)) - Number(publishes(a)) ||
+        COV_RANK[editorialCoverage(a.editorial)] - COV_RANK[editorialCoverage(b.editorial)] ||
         Number(Boolean(b.bank.ticker)) - Number(Boolean(a.bank.ticker)) ||
         (locale === 'ar'
           ? a.bank.name_ar.localeCompare(b.bank.name_ar, 'ar')
@@ -80,6 +88,7 @@ export function BanksHub({ rows }: { rows: HubBank[] }) {
   const FILTERS: { id: Filter; label: string }[] = [
     { id: 'all', label: c.filterAll },
     { id: 'publishing', label: c.filterPublishing },
+    { id: 'rated', label: c.filterRated },
     { id: 'listed', label: c.filterListed },
     { id: 'state', label: c.filterState },
     { id: 'islamic', label: c.filterIslamic },
@@ -123,26 +132,23 @@ export function BanksHub({ rows }: { rows: HubBank[] }) {
           <thead>
             <tr>
               <th scope="col">{c.colBank}</th>
-              <th scope="col">{c.colType}</th>
               <th scope="col">{c.colStatus}</th>
-              <th scope="col" className="num">{c.colAssets}</th>
-              <th scope="col" className="num">{c.colDeposits}</th>
-              <th scope="col">{c.colCategories}</th>
-              <th scope="col">{c.colServices}</th>
-              <th scope="col">{c.colUpdated}</th>
+              <th scope="col" className="bk-col-suits">{c.ed.colSuits}</th>
+              <th scope="col">{c.ed.colDigital}</th>
+              <th scope="col">{c.ed.colPick}</th>
+              <th scope="col">{c.ed.colCoverage}</th>
             </tr>
           </thead>
           <tbody>
-            {shown.map(({ bank, products, services, financials }) => {
+            {shown.map(({ bank, products, editorial: ed }) => {
               const art = bank.ticker ? LOGOS.get(bank.ticker) : undefined
               const cats = categoriesOf(products)
-              const verified = services.filter((s) => s.availability === 'available')
-              const checked = products.reduce<string | null>(
-                (d, p) => (p.last_verified && (!d || p.last_verified > d) ? p.last_verified : d),
-                bank.research_checked_at,
-              )
+              const cov = editorialCoverage(ed)
+              const mobile = ed?.ratings.categories.mobile
+              const pick = headlineProduct(ed)
+              const pickRow = pick ? products.find((p) => p.slug === pick.slug) : null
               return (
-                <tr key={bank.slug}>
+                <tr key={bank.slug} className={`is-cov-${cov}`}>
                   <th scope="row">
                     <span className="bk-row-name">
                       <CompanyLogo className="bk-row-mark" sym={bank.ticker ?? bank.name_en.slice(0, 2)}
@@ -152,11 +158,8 @@ export function BanksHub({ rows }: { rows: HubBank[] }) {
                       </Link>
                       {bank.ticker ? <bdi className="bk-ticker">{bank.ticker}</bdi> : null}
                     </span>
+                    <small className="bk-row-type">{c.type[bank.bank_type]} · {c.ownership[bank.ownership]}</small>
                   </th>
-                  <td>
-                    <span className="bk-type">{c.type[bank.bank_type]}</span>
-                    <small>{c.ownership[bank.ownership]}</small>
-                  </td>
                   <td>
                     {bank.operating_status === 'operating'
                       ? <span className="bk-dim">{c.status.operating}</span>
@@ -165,30 +168,46 @@ export function BanksHub({ rows }: { rows: HubBank[] }) {
                         </span>}
                     {bank.usd_restricted ? <small className="bk-flag-usd">{c.usdRestricted}</small> : null}
                   </td>
-                  {/* Financial columns exist only for listed banks, and are read
-                      from the exchange disclosures — never stored on the bank. */}
-                  <td className="num">{financials?.values.total_assets != null
-                    ? <bdi>{iqd(financials.values.total_assets)}</bdi>
-                    : <span className="bk-na">{bank.ticker ? '—' : c.notListed}</span>}</td>
-                  <td className="num">{financials?.values.customer_deposits != null
-                    ? <bdi>{iqd(financials.values.customer_deposits)}</bdi>
-                    : <span className="bk-na">{bank.ticker ? '—' : c.notListed}</span>}</td>
+                  {/* The package's one sentence on who the bank suits. Arabic
+                      only; the English table shows what is published instead. */}
+                  <td className="bk-col-suits">
+                    {locale === 'ar' && ed
+                      ? <span className="bk-suits">{ed.suitableFor}</span>
+                      : cats.length
+                        ? <span className="bk-cats">{cats.map((k) => <em key={k}>{k === 'deposits' ? c.catDeposits : c.catLoans}</em>)}</span>
+                        : <span className="bk-na">—</span>}
+                  </td>
                   <td>
-                    {cats.length ? (
-                      <span className="bk-cats">
-                        {cats.map((k) => <em key={k}>{k === 'deposits' ? c.catDeposits : c.catLoans}</em>)}
+                    {mobile && mobile.score !== null ? (
+                      <span className="bk-digital">
+                        <bdi><b>{mobile.score}</b>/5</bdi>
+                        {ed?.app && storeRatingText(ed.app)
+                          ? <small><bdi>{storeRatingText(ed.app)}</bdi> {ed.app.title.includes('Google') ? 'Play' : 'App Store'}</small>
+                          : null}
                       </span>
-                    ) : <span className="bk-na">—</span>}
+                    ) : ed?.app ? (
+                      <span className="bk-digital is-unrated">
+                        <em>{c.ed.notRated}</em>
+                        <small>{c.ed.appLink}</small>
+                      </span>
+                    ) : <span className="bk-na">{ed ? c.ed.notRated : '—'}</span>}
                   </td>
                   <td>
-                    {verified.length
-                      ? <bdi className="bk-svc-count">{verified.length}</bdi>
-                      : <span className="bk-na">—</span>}
+                    {pick ? (
+                      <span className="bk-pick-cell">
+                        <span>{locale === 'ar' ? pick.name : (pickRow?.name_en ?? pick.name)}</span>
+                        {pick.rate
+                          ? <b><bdi>{pick.rate.value}%</bdi> <small>{c.ed.basis[pick.rate.basis]}</small></b>
+                          : <small className="bk-na">{c.ed.noRateSelected}</small>}
+                      </span>
+                    ) : <span className="bk-na">{c.ed.noPick}</span>}
                   </td>
                   <td>
-                    {checked
-                      ? <bdi className="bk-dim">{localeDate(checked, locale)}</bdi>
-                      : <span className="bk-na">—</span>}
+                    <span className={`bk-cov-word is-${cov}`}>{c.ed.coverage[cov]}</span>
+                    <small className="bk-dim">
+                      {cov === 'partial' && ed ? c.ed.coverageHint.partial(String(ratedCategoryCount(ed)))
+                        : cov === 'partial' ? '' : c.ed.coverageHint[cov]}
+                    </small>
                   </td>
                 </tr>
               )

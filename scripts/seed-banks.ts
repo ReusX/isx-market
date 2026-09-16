@@ -20,7 +20,9 @@
 import { BANK_SOURCES } from './data/banks-pilot'
 import { ALL_BANKS, PRODUCT_SOURCES } from './data/banks-all'
 import { checkFact, conditionHash, type BankIdentity, type FactSeed } from '../lib/banking'
-import RESEARCH from './data/research/iraq-bank-research.json'
+/* The editorial package's registry is a strict superset of the earlier
+   dossier's — ids 1–115 identical, 116–147 added — so it is the one read. */
+import RESEARCH from './data/research/iraqsm-bank-profiles-ar.json'
 
 const CHECK = process.argv.includes('--check')
 const URL_BASE = process.env.NEXT_PUBLIC_SUPABASE_URL
@@ -109,7 +111,7 @@ async function sourceIds(): Promise<Map<string, number>> {
     for (const p of b.products ?? []) for (const f of p.facts) if (f.sourceKey) cited.add(f.sourceKey)
   }
   const research = RESEARCH as {
-    sources: { id: number; title: string; url: string; kind: string; observed_at: string; note?: string }[]
+    sources: { id: number; title: string; url: string; kind: string; observed_at: string; note?: string | null }[]
   }
   for (const r of research.sources) {
     const key = `research-${r.id}`

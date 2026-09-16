@@ -22,6 +22,8 @@
     "check:banking": "npx tsx scripts/banking-gates.ts",
     "check:charts": "node scripts/chart-freshness.mjs --self-test && node scripts/chart-freshness.mjs",
     "check:db-perms": "node scripts/db-permissions.mjs",
+    "import:editorial": "node scripts/import-bank-editorial.mjs",
+    "check:editorial": "node scripts/import-bank-editorial.mjs --check && node scripts/import-bank-editorial.mjs && git diff --quiet -- content/banks/profiles.ar.json",
     "check:charts:static": "node scripts/chart-freshness.mjs --self-test && node scripts/chart-freshness.mjs --static-only",
     "seed:banks": "npx tsx scripts/seed-banks.ts"
   },

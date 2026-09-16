@@ -9,6 +9,8 @@ import {
   getBank, listBanks, listProducts, listServices, productDetail, bankFinancials,
   coverageOf, indexability,
 } from '@/lib/banks'
+import { editorialFor, canonicalSlug } from '@/lib/bankEditorial'
+import { permanentRedirect } from 'next/navigation'
 
 export const revalidate = 3600
 export const dynamicParams = true
@@ -29,11 +31,12 @@ async function load(slug: string) {
   const [products, services] = await Promise.all([listProducts(slug), listServices(slug)])
   const { facts, conditions } = await productDetail(products.map((p) => p.id))
   const fin = bank.ticker ? (await bankFinancials([bank.ticker])).get(bank.ticker) ?? null : null
+  const editorial = editorialFor(bank.slug)
   const input: BankSeoInput = {
-    bank, products, facts, services,
-    indexable: indexability(bank, products, services, Boolean(fin)).indexable,
+    bank, products, facts, services, editorial,
+    indexable: indexability(bank, products, services, Boolean(fin), editorial).indexable,
   }
-  return { input, conditions, fin }
+  return { input, conditions, fin, editorial }
 }
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
@@ -55,9 +58,14 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 
 export default async function Page({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
+  /* The package's research slugs — ashur-international-bank, cihan-islamic-
+     bank, al-mansour-bank-for-investment, trade-bank-of-iraq — are aliases of
+     live banks, and resolve to them rather than duplicating the page. */
+  const canonical = canonicalSlug(slug)
+  if (canonical !== slug) permanentRedirect(`/en/banks/${canonical}`)
   const loaded = await load(slug)
   if (!loaded) notFound()
-  const { input, conditions, fin } = loaded
+  const { input, conditions, fin, editorial } = loaded
   const { bank, products, facts, services } = input
   const ld = bankJsonLd(input, 'en')
   const t = messages('en').banks
@@ -76,6 +84,7 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
       <BankProfile
         bank={bank} products={products} facts={facts} conditions={conditions}
         services={services} financials={fin} coverage={coverageOf(bank, products)}
+        editorial={editorial}
       />
     </>
   )

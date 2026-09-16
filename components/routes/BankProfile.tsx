@@ -10,15 +10,38 @@ import { isCurrentEnough } from '@/lib/banks'
 import type {
   Bank, ProductRow, ServiceRow, FactRow, ConditionRow, BankFinancials, Coverage,
 } from '@/lib/banks'
+import {
+  CATEGORY_KEYS, editorialCoverage, ratedCategoryCount, storeRatingText, METHODOLOGY_AR,
+  type EditorialProfile, type EditorialProduct, type CategoryKey,
+} from '@/lib/bankEditorial'
 import '@/styles/banks.css'
 
 /**
  * /banks/[slug].
  *
- * ── The hierarchy is fixed, and it is not the order the data arrives in ───
- *   identity and a factual sentence  →  financial snapshot, where the exchange
- *   supports one  →  services we verified  →  deposits  →  financing  →  a
- *   compact source list.
+ * ── The hierarchy is fixed, and it is the order a customer asks in ───────
+ *   who is this bank, in one sentence  →  suits / watch out / how sure we are
+ *   →  the editorial rating, each score with its sentence  →  the one or two
+ *   products that matter, one rate each  →  the fees that matter  →  what the
+ *   bank offers against what users report  →  two or three questions  →  the
+ *   links you actually need, and the sources behind a small toggle.
+ *
+ *   The financial snapshot stays a join to the company record and sits low:
+ *   this page is for someone choosing where to keep a salary, not an
+ *   investor, and /c/[sym] is one link away.
+ *
+ * ── Two layers, kept apart ───────────────────────────────────────────────
+ *   FACTS  from the fact tables: state, source, condition hash, freshness.
+ *   COPY   from content/banks/profiles.ar.json: the verdict, the ratings, the
+ *          FAQs. Desk-research judgments, said to be so every time.
+ *   A product on this page is the join of the two: the package's name and
+ *   summary and its ONE selected rate, with the sourced facts behind a
+ *   disclosure. A rating never becomes a fact, and a fact never gets a score.
+ *
+ * ── «غير مقيّم» is not 0/5 ───────────────────────────────────────────────
+ *   Support was not scored for any bank — the complaints available do not
+ *   measure how problems end. So the overall figure, where one exists, covers
+ *   80% of the weights and says so beside the number, on every viewport.
  *
  * ── One rate per product ─────────────────────────────────────────────────
  * A tiered deposit grid has nine rows and publishing all of them is a wall of
@@ -49,6 +72,9 @@ interface Props {
   services: ServiceRow[]
   financials: BankFinancials | null
   coverage: Coverage
+  /** The editorial layer, when the package wrote one. All 79 have one today;
+   *  the page still renders without it. */
+  editorial: EditorialProfile | null
 }
 
 const FIN_ORDER = [
@@ -56,19 +82,21 @@ const FIN_ORDER = [
   'net_income', 'paid_capital', 'capital_adequacy_ratio', 'lcr',
 ] as const
 
-export function BankProfile({ bank, products, facts, conditions, services, financials, coverage }: Props) {
+export function BankProfile({ bank, products, facts, conditions, services, financials, coverage, editorial: ed }: Props) {
   const { t: T, locale, href: L } = useLocale()
   const c = T.banks
-  const name = locale === 'ar' ? bank.name_ar : bank.name_en
+  const e = c.ed
+  const ar = locale === 'ar'
+  const name = ar ? bank.name_ar : bank.name_en
   const city = bank.hq_city ? (c.city[bank.hq_city] ?? bank.hq_city) : null
-  const deposits = products.filter((p) => p.kind.startsWith('deposit') || p.kind === 'account_current')
-  const loans = products.filter((p) => !p.kind.startsWith('deposit') && p.kind !== 'account_current')
   const byProduct = (id: number) => facts.filter((f) => f.product_id === id)
   const art = bank.ticker
     ? (companiesData as { sym: string; logo?: string; color?: string }[]).find((x) => x.sym === bank.ticker)
     : undefined
-  const verified = services.filter((s) => s.availability === 'available')
-  const sources = Array.from(new Set(facts.map((f) => f.source_url).filter(Boolean))) as string[]
+  const covKind = editorialCoverage(ed)
+  const rated = ed ? ratedCategoryCount(ed) : 0
+  const available = services.filter((s) => s.availability === 'available')
+  const productRows = new Map(products.map((p) => [p.slug, p]))
 
   return (
     <main className="iq-page bk-page">
@@ -76,28 +104,22 @@ export function BankProfile({ bank, products, facts, conditions, services, finan
         <span className="dir-go" aria-hidden="true">›</span> {c.backToBanks}
       </Link>
 
-      {/* ── identity ─────────────────────────────────────────────────────── */}
+      {/* ── Identity, and the sentence that answers "who is this" ─────── */}
       <header className="bk-hero-card">
-        {/* Latin initials for an unlisted bank: «مص» — the first two letters
-            of «مصرف» — is the same monogram for every Iraqi bank. */}
         <CompanyLogo className="bk-mark" sym={bank.ticker ?? initials(bank.name_en)}
           logo={art?.logo} color={art?.color ?? 'var(--mv-hero)'} letters={bank.ticker ? 2 : 3} />
         <div className="bk-hero-main">
-          <h1>{name}</h1>
+          <h1>{ar && ed ? ed.h1 : name}</h1>
           <p className="bk-meta">
             <span>{c.type[bank.bank_type]} · {c.ownership[bank.ownership]}{city ? ` · ${city}` : ''}</span>
-            {/* Guardianship and judicial custody are different legal states
-                and the directory distinguishes them, so the page prints the
-                term the source used rather than one label for both. */}
             {bank.operating_status !== 'operating' ? (
               <span className={`bk-flag is-${bank.operating_status}`}>
-                {(locale === 'ar' ? bank.status_note_ar : bank.status_note_en) ?? c.status[bank.operating_status]}
+                {(ar ? bank.status_note_ar : bank.status_note_en) ?? c.status[bank.operating_status]}
               </span>
             ) : null}
             {bank.usd_restricted ? <span className="bk-flag is-usd">{c.usdRestricted}</span> : null}
-            <CoverageChip coverage={coverage} />
           </p>
-          <p className="bk-intro">{intro(bank, c, city)}</p>
+          <p className="bk-intro">{ar && ed ? ed.intro : intro(bank, c, city)}</p>
           <div className="bk-hero-links">
             {bank.website ? (
               <a className="bk-pill" href={bank.website} target="_blank" rel="noopener noreferrer">
@@ -109,13 +131,13 @@ export function BankProfile({ bank, products, facts, conditions, services, finan
                 <bdi>{bank.ticker}</bdi> · {c.linkedCompany}
               </Link>
             ) : null}
-            {bank.swift ? <span className="bk-pill is-static">SWIFT <bdi>{bank.swift}</bdi></span> : null}
+            {ed?.app ? (
+              <a className="bk-pill" href={ed.app.url} target="_blank" rel="noopener noreferrer">{e.appLink}</a>
+            ) : null}
           </div>
         </div>
       </header>
 
-      {/* A status notice earns the top of the page: it changes what every
-          number below it means. */}
       {bank.operating_status !== 'operating' ? (
         <p className={`bk-notice is-${bank.operating_status}`}>{c.statusNote[bank.operating_status]}</p>
       ) : null}
@@ -123,11 +145,138 @@ export function BankProfile({ bank, products, facts, conditions, services, finan
       {bank.research_state === 'source_unreachable' ? (
         <p className="bk-notice is-unreachable">{c.unreachableNote}</p>
       ) : null}
-      {bank.research_state === 'not_researched' ? (
-        <p className="bk-notice">{c.notResearchedNote}</p>
+
+      {/* ── The verdict: suits, watch out, and how sure we are ─────────── */}
+      {ed ? (
+        <section className="bk-verdict" aria-label={e.verdict}>
+          {ar ? (
+            <>
+              <div className="bk-verdict-cell">
+                <h2>{e.suitableFor}</h2>
+                <p>{ed.suitableFor}</p>
+              </div>
+              <div className="bk-verdict-cell is-warn">
+                <h2>{e.watchOut}</h2>
+                <p>{ed.watchOut}</p>
+              </div>
+            </>
+          ) : (
+            <div className="bk-verdict-cell">
+              <h2>{e.verdict}</h2>
+              <p>{e.arabicOnly} <Link className="bk-link" href={`/banks/${bank.slug}`} lang="ar">{e.arabicLink}</Link></p>
+            </div>
+          )}
+          <div className="bk-verdict-cell is-conf">
+            <h2>{e.confidenceLabel}</h2>
+            <p>
+              <strong className={`bk-cov-word is-${covKind}`}>{e.coverage[covKind]}</strong>
+              <span className="bk-cov-hint">
+                {covKind === 'partial' ? e.coverageHint.partial(String(rated)) : e.coverageHint[covKind as 'overall' | 'products' | 'limited']}
+                {/* The package's overall-level confidence is meaningful only
+                    beside an overall figure; on its own it just repeats
+                    «أدلة محدودة» in other words. */}
+                {ed.ratings.overall !== null && ed.ratings.confidence ? ` · ${e.confidence[ed.ratings.confidence]}` : ''}
+              </span>
+            </p>
+          </div>
+        </section>
       ) : null}
 
-      {/* ── financial snapshot, read from the exchange ───────────────────── */}
+      {/* ── Ratings: every score with its sentence, every null as words ── */}
+      {ed ? <Ratings ed={ed} rated={rated} /> : null}
+
+      {/* ── Products: the package's selection, one rate each ───────────── */}
+      {ed?.products.length ? (
+        <section className="bk-section" id="products">
+          <div className="bk-section-head">
+            <h2>{e.products}</h2>
+            <span className="bk-section-note">{e.productsNote}</span>
+          </div>
+          <div className="bk-picks">
+            {ed.products.map((p) => {
+              const row = productRows.get(p.slug)
+              return (
+                <Pick key={p.slug} p={p} row={row ?? null}
+                  facts={row ? byProduct(row.id) : []} conditions={conditions} />
+              )
+            })}
+          </div>
+        </section>
+      ) : !ed && products.length ? (
+        <section className="bk-section">
+          <h2>{c.deposits} · {c.loans}</h2>
+          <div className="bk-products">
+            {products.map((p) => <Product key={p.id} p={p} facts={byProduct(p.id)} conditions={conditions} />)}
+          </div>
+        </section>
+      ) : null}
+
+      {/* ── Fees: compact, and never confused with interest ────────────── */}
+      {ar && ed?.fees ? (
+        <section className="bk-section">
+          <div className="bk-section-head">
+            <h2>{e.fees}</h2>
+            <span className="bk-section-note">{e.feesNote}</span>
+          </div>
+          <p className="bk-fees">{ed.fees}</p>
+        </section>
+      ) : null}
+
+      {/* ── Official capability on one side, reported experience on the other */}
+      {(available.length || ed) ? (
+        <section className="bk-section">
+          <h2>{e.experience}</h2>
+          <div className="bk-xp">
+            <div className="bk-xp-col">
+              <h3>{e.official}</h3>
+              {available.length ? (
+                <ul className="bk-services">
+                  {available.map((s) => (
+                    <li key={s.service_key} className="is-available" title={c.available}>
+                      <span className="bk-svc-icon" aria-hidden="true">✓</span>
+                      <span>{c.service[s.service_key as keyof typeof c.service] ?? s.service_key}</span>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="bk-empty-line">{e.noVerifiedServices}</p>
+              )}
+              {available.some((s) => s.service_key === 'usd_account') && bank.usd_restricted
+                ? <p className="bk-section-foot">{c.usdRestrictedNote}</p> : null}
+            </div>
+            <div className="bk-xp-col">
+              <h3>{e.reported}</h3>
+              {ed?.app && storeRatingText(ed.app) ? (
+                <p className="bk-store">
+                  <strong><bdi>{storeRatingText(ed.app)}</bdi></strong>
+                  <span> {e.storeRating(ed.app.title.includes('Google') ? 'Google Play' : 'App Store')}
+                    {ed.app.storefront && ed.app.storefront !== 'as retrieved' ? ` · ${e.storefront(ed.app.storefront)}` : ''}</span>
+                </p>
+              ) : null}
+              {ar && ed ? <p className="bk-prose">{ed.experience}</p> : null}
+              {!ar && ed?.app?.summary ? <p className="bk-prose">{e.arabicOnly}</p> : null}
+              {ed?.app ? <p className="bk-section-foot">{e.reportedNote}</p> : null}
+            </div>
+          </div>
+        </section>
+      ) : null}
+
+      {/* ── Two or three questions, answered, visible ──────────────────── */}
+      {ar && ed?.faqs.length ? (
+        <section className="bk-section" id="faq">
+          <h2>{e.faqs}</h2>
+          <dl className="bk-faq">
+            {ed.faqs.map((f, i) => (
+              <div key={i}>
+                <dt>{f.q}</dt>
+                <dd>{f.a}</dd>
+              </div>
+            ))}
+          </dl>
+        </section>
+      ) : null}
+
+      {/* ── The join to the company record, kept compact and low ───────── */}
       {financials ? (
         <section className="bk-section">
           <div className="bk-section-head">
@@ -137,8 +286,8 @@ export function BankProfile({ bank, products, facts, conditions, services, finan
               {c.viewCompany} <i className="dir-go" aria-hidden="true">←</i>
             </Link>
           </div>
-          <dl className="bk-dl">
-            {FIN_ORDER.filter((k) => financials.values[k] != null).map((k) => (
+          <dl className="bk-dl is-compact">
+            {FIN_ORDER.filter((k) => financials.values[k] != null).slice(0, 4).map((k) => (
               <div key={k}>
                 <dt>{c.fin[k]}</dt>
                 <dd><bdi>{k.endsWith('ratio') || k === 'lcr'
@@ -150,75 +299,182 @@ export function BankProfile({ bank, products, facts, conditions, services, finan
         </section>
       ) : null}
 
-      {/* ── services · only what a source confirmed ──────────────────────── */}
-      {verified.length ? (
-        <section className="bk-section">
-          <h2>{c.services}</h2>
-          <ul className="bk-services">
-            {verified.map((s) => (
-              <li key={s.service_key} className="is-available">
-                <span className="bk-svc-icon" aria-hidden="true">✓</span>
-                <span>{c.service[s.service_key as keyof typeof c.service] ?? s.service_key}</span>
+      {/* ── Links you need, sources behind a toggle ────────────────────── */}
+      <section className="bk-section bk-sources">
+        {ed?.links.length ? (
+          <>
+            <h2>{e.links}</h2>
+            <div className="bk-hero-links">
+              {ed.links.map((l, i) => (
+                <a key={i} className="bk-pill" href={l.url} target="_blank" rel="noopener noreferrer">{ar ? l.label : l.url.replace(/^https?:\/\/(www\.)?/, '').slice(0, 40)}</a>
+              ))}
+            </div>
+          </>
+        ) : null}
+        <details className="bk-details">
+          <summary>{e.sourcesToggle(String(sourceList(ed, facts).length))}</summary>
+          <ul>
+            {sourceList(ed, facts).map((u) => (
+              <li key={u.url}>
+                <a className="bk-link" href={u.url} target="_blank" rel="noopener noreferrer">{u.title ?? u.url.replace(/^https?:\/\/(www\.)?/, '').slice(0, 70)}</a>
+                {u.date ? <small> · {u.date}</small> : null}
               </li>
             ))}
           </ul>
-          {/* A published USD account is not permission to move dollars. */}
-          {bank.usd_restricted && verified.some((s) => s.service_key === 'usd_account')
-            ? <p className="bk-section-foot">{c.usdRestrictedNote}</p> : null}
-        </section>
-      ) : null}
-
-      {deposits.length ? (
-        <section className="bk-section" id="deposits">
-          <div className="bk-section-head">
-            <h2>{c.deposits}</h2>
-            <span className="bk-section-note">{c.ratePickedNote}</span>
-          </div>
-          <div className="bk-products">
-            {deposits.map((p) => <Product key={p.id} p={p} facts={byProduct(p.id)} conditions={conditions} />)}
-          </div>
-        </section>
-      ) : null}
-
-      {loans.length ? (
-        <section className="bk-section" id="loans">
-          <div className="bk-section-head">
-            <h2>{c.loans}</h2>
-            {!deposits.length ? <span className="bk-section-note">{c.ratePickedNote}</span> : null}
-          </div>
-          <div className="bk-products">
-            {loans.map((p) => <Product key={p.id} p={p} facts={byProduct(p.id)} conditions={conditions} />)}
-          </div>
-        </section>
-      ) : null}
-
-      {!products.length && bank.research_state === 'researched' ? (
-        <section className="bk-section"><p className="bk-empty">{c.noProducts}</p></section>
-      ) : null}
-
-      {/* ── sources · compact, and collapsed when there are many ─────────── */}
-      {sources.length ? (
-        <section className="bk-section bk-sources">
-          <details>
-            <summary>{c.sources} <bdi>· {c.sourceCount(String(sources.length))}</bdi></summary>
-            <p>{c.methodology}</p>
-            <ul>
-              {sources.slice(0, 10).map((u) => (
-                <li key={u}>
-                  <a className="bk-link" href={u} target="_blank" rel="noopener noreferrer">
-                    {u.replace(/^https?:\/\/(www\.)?/, '').slice(0, 72)}
-                  </a>
-                </li>
-              ))}
-            </ul>
-            {bank.research_checked_at ? (
-              <p className="bk-verified">{c.verifiedOn(localeDate(bank.research_checked_at, locale))}</p>
-            ) : null}
-          </details>
-        </section>
-      ) : null}
+          <p className="bk-verified">
+            {c.methodology}
+            {bank.research_checked_at ? ` ${c.verifiedOn(localeDate(bank.research_checked_at, locale))}.` : ''}
+          </p>
+        </details>
+        {ed ? <p className="bk-editorial-notice">{e.editorialNotice}</p> : null}
+      </section>
     </main>
   )
+}
+
+/* ── The rating table ──────────────────────────────────────────────────── */
+
+function Ratings({ ed, rated }: { ed: EditorialProfile; rated: number }) {
+  const { t: T, locale } = useLocale()
+  const e = T.banks.ed
+  const ar = locale === 'ar'
+  const r = ed.ratings
+  return (
+    <section className="bk-section" id="rating">
+      <div className="bk-section-head">
+        <h2>{e.ratings}</h2>
+        <span className="bk-section-note">{e.ratingsWhat}</span>
+      </div>
+
+      {rated === 0 ? (
+        <p className="bk-empty-line">{e.notRated} — {e.notRatedHint}</p>
+      ) : (
+        <div className="bk-rating">
+          {/* The overall never travels without its coverage and confidence,
+              and there is no mobile variant that drops them. */}
+          {r.overall !== null ? (
+            <div className="bk-overall">
+              <strong><bdi>{r.overall}</bdi><small>/{r.outOf}</small></strong>
+              <div>
+                <b>{ar ? r.label : e.coverage.overall}</b>
+                <span>
+                  {r.coveredWeight ? e.overallCovers(String(r.coveredWeight)) : ''}
+                  {r.confidence ? ` · ${e.confidence[r.confidence]}` : ''}
+                </span>
+              </div>
+            </div>
+          ) : null}
+
+          <table className="bk-rating-table">
+            <tbody>
+              {CATEGORY_KEYS.map((k: CategoryKey) => {
+                const cat = r.categories[k]
+                if (!cat) return null
+                const scored = cat.score !== null
+                return (
+                  <tr key={k} className={scored ? '' : 'is-unrated'}>
+                    <th scope="row">
+                      {e.category[k]}
+                      <small>{e.weight(String(cat.weight))}</small>
+                    </th>
+                    <td className="bk-score">
+                      {scored ? (
+                        <>
+                          <bdi><b>{cat.score}</b>/{cat.outOf}</bdi>
+                          <span className="bk-bar" aria-hidden="true">
+                            {[1, 2, 3, 4, 5].map((n) => (
+                              <i key={n} className={n <= Math.floor(cat.score!) ? 'on' : n - 0.5 === cat.score ? 'half' : ''} />
+                            ))}
+                          </span>
+                        </>
+                      ) : (
+                        <em>{e.notRated}</em>
+                      )}
+                    </td>
+                    <td className="bk-why">
+                      {ar ? cat.rationale : (scored ? '' : e.notRatedHint)}
+                      <small>{e.confidence[cat.confidence]}</small>
+                    </td>
+                  </tr>
+                )
+              })}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      {ar ? (
+        <details className="bk-details">
+          <summary>{e.methodology}</summary>
+          {METHODOLOGY_AR.split('\n').map((para, i) => <p key={i} className="bk-prose">{para}</p>)}
+        </details>
+      ) : null}
+    </section>
+  )
+}
+
+/* ── One selected product: the copy, the one rate, the facts behind it ── */
+
+function Pick({ p, row, facts, conditions }: {
+  p: EditorialProduct; row: ProductRow | null; facts: FactRow[]; conditions: ConditionRow[]
+}) {
+  const { t: T, locale } = useLocale()
+  const c = T.banks
+  const e = c.ed
+  const ar = locale === 'ar'
+  const rateFact = facts.find((f) => f.field_key === 'rate')
+  const detail = facts.filter((f) => !['rate', 'rate_basis'].includes(f.field_key))
+  const scenario = rateFact ? conditions.filter((x) => x.fact_id === rateFact.id) : []
+  return (
+    <article className="bk-pick">
+      <div className="bk-pick-main">
+        <h3>{ar ? p.name : (row ? row.name_en : p.name)}</h3>
+        {ar ? <p className="bk-prose">{p.summary}</p> : null}
+      </div>
+      <div className="bk-pick-rate">
+        {p.rate ? (
+          <>
+            <strong><bdi>{p.rate.value}%</bdi></strong>
+            <em>{e.basis[p.rate.basis]}</em>
+            {ar ? <span className="bk-scenario-line">{p.rate.scenario}</span>
+              : scenario.length ? <span className="bk-scenario-line">{scenario.map((x) => describe(x, c)).join(' · ')}</span> : null}
+            <small>{e.notReconfirmed}</small>
+          </>
+        ) : (
+          <span className="bk-na">{e.noRateSelected}</span>
+        )}
+      </div>
+      {detail.length ? (
+        <details className="bk-details bk-pick-details">
+          <summary>{e.detailsToggle}</summary>
+          <dl className="bk-facts">
+            {detail.map((f) => (
+              <div key={f.id}>
+                <dt>
+                  {ar ? f.label_ar : f.label_en}
+                  {f.is_conditional ? (
+                    <small> · {conditions.filter((x) => x.fact_id === f.id).map((x) => describe(x, c)).join(' · ')}</small>
+                  ) : null}
+                </dt>
+                <dd><FactValue f={f} /></dd>
+                {f.state === 'KNOWN' && noteOf(f, locale) ? <p className="bk-fact-note">{noteOf(f, locale)}</p> : null}
+              </div>
+            ))}
+          </dl>
+          {row?.last_verified ? <p className="bk-verified">{c.verifiedShort(localeDate(row.last_verified, locale))}</p> : null}
+        </details>
+      ) : null}
+    </article>
+  )
+}
+
+/** The sources actually cited on this page, deduplicated, package first. */
+function sourceList(ed: EditorialProfile | null, facts: FactRow[]): { url: string; title: string | null; date: string | null }[] {
+  const seen = new Set<string>()
+  const out: { url: string; title: string | null; date: string | null }[] = []
+  for (const s of ed?.sources ?? []) if (!seen.has(s.url)) { seen.add(s.url); out.push({ url: s.url, title: s.title, date: s.date }) }
+  for (const f of facts) if (f.source_url && !seen.has(f.source_url)) { seen.add(f.source_url); out.push({ url: f.source_url, title: null, date: null }) }
+  return out.slice(0, 12)
 }
 
 /** Initials for a bank with no ticker — Rafidain, Rasheed, TBI. */
