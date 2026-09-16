@@ -86,7 +86,7 @@ Every English route (`/en/...`) shares the component with its Arabic twin, so a 
 
 **State:** branch `redesign/latitude`, all work committed, NOT deployed. Dev server: `preview_start` name `isx-dev` (port 3300). Gates: `check:tokens`, `check:i18n` (needs `I18N_ORIGIN=http://localhost:3300`), `check:routes` — run them in the background; they take 3–4 min.
 
-**Last thing done:** `/statistics/foreign-flow` rebuilt (row 9a). Its final gate run was still in progress at handoff — re-run `check:i18n` first; if it flags anything it will be a string in `lib/i18n/messages/*/flow.ts`.
+**Last thing done:** `/statistics/foreign-flow` rebuilt (row 9a). All gates green at handoff (tokens, i18n, 85 routes).
 
 **Next:** row 9b `/statistics/ownership` (هيكل الملكية), then 9c `/statistics/shareholders` (كبار المساهمين), then `/pulse` (row 12). Same recipe as every row above. When 9b and 9c are done, move `/statistics` from `AppFrame.REBUILT_EXACT` to `REBUILT` so the whole section is on the new shell.
 
