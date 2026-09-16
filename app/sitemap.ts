@@ -76,7 +76,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: absUrl('/analysis'),   lastModified: now },
     { url: absUrl('/learn'),      lastModified: now },
     { url: absUrl('/learn/trading-from-zero'), lastModified: staticDate },
-    { url: absUrl('/banks'),      lastModified: staticDate },
+    /* /banks is listed with the bank block below, dated by the data. */
     // Info / legal
     { url: absUrl('/about'),      lastModified: staticDate },
     { url: absUrl('/contact'),    lastModified: staticDate },
