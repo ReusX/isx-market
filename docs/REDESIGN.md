@@ -8,18 +8,18 @@ open it in a browser — it is the answer to "what should this look like".
 
 | | Value | Rule |
 |---|---|---|
-| Page | `--cream #FFFBF7` | The ground. Flat, no gradient. |
-| Ink | `--navy #002664` | All text. Secondary at 64 %, muted at 42 %. |
+| Page | light `#F5F2EC` (paper) · dark `#0F1218` (graphite, blue hint) | The ground. Flat, no gradient. Dark is a NEUTRAL near-black, never a coloured ground. |
+| Ink | light `#1A2035` · dark `#E7E7E2` | Softened navy by day, warm off-white by night — never pure white on dark. Secondary ≈ 65 %, muted ≈ 45 %. |
 | Accent | `--blue #146BFD` | A **block** (hero, one primary button). Never text. One per screen. |
-| Rising | `--moss #E1EFAC` chip / `--up #157A52` text | Chip when there is a ground; text when not. |
-| Falling | `--sand #F3DEC5` chip / `--down #C0392B` text | Same. |
+| Rising | light chip `#DCECD8`/`#1F6B45` · dark `#8FD3A8` at 14 % | Chip when there is a ground; text when not. |
+| Falling | light chip `#F4DCD0`/`#A4402F` · dark `#F0A08E` at 14 % | Same. |
 | Border | navy 14 % | Hairlines. **No shadows anywhere.** |
 | Type | Readex Pro, one face | 200–300 display · 400 body · 500 controls. Nothing bold. No positive tracking on Arabic. Figures tabular. |
 | Shape | 54 px pills · 32 px blocks · 16 px panels · 8 px chips | |
 | Density | one row = one fact | Detail goes behind a click. Prefer a table to cards. |
 | Shell | page shell ≤ 1920px = 260px section rail + 32px gap + flexible main (`min-width: 0`) | Top nav = product navigation (the four doors). The rail = navigation within the active section only; never repeated in the content. < 1280px: rail becomes one scrollable row above the content; < 720px: out of flow, opened via «القسم». Tables use defined column tracks, never space-between. |
 | Width | **full width for information surfaces; constrained width for reading** | `.id-full` for tables/boards/dashboards (edge to edge, nav gutters) · `.id-wrap` 1180px for hubs and mixed pages · `.id-read` 72ch for articles, guides, legal, prose. |
-| Theme | light + dark | Dark is the same identity turned over: deep-navy page `#06173A`, cream ink, same blue block, same pills, no shadows. Style through ROLE tokens (`--page`, `--ink`, `--border`, `--primary-bg`, `--moss`…), never primitives. `data-theme` is always stamped (stored choice, else OS). |
+| Theme | light + dark | Light = «ورق ناعم» (L2), dark = «غرافيت بلمحة زرقاء». Same blue hero, same pills, no shadows. Style through ROLE tokens (`--page`, `--ink`, `--border`, `--primary-bg`, `--moss`…), never primitives. `data-theme` is always stamped (stored choice, else OS). |
 
 Tokens: `app/globals.css` (base) · `styles/design-tokens.css` (`--mv-*`, same palette).
 Vocabulary: `styles/identity.css` (`.id-*` classes — build from these).
