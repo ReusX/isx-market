@@ -1,0 +1,28 @@
+/* /market · layout only; vocabulary in styles/identity.css. */
+.iqm { padding-block: 24px 0; }
+.iqm-head { margin-bottom: 28px; }
+
+.iqm-session { padding: 28px 32px 32px; }
+.iqm-session-head { display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; font-size: 13px; opacity: .8; margin-bottom: 20px; }
+.iqm-figures { display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; }
+.iqm-figures > div { border-inline-start: 1px solid var(--white-22); padding-inline-start: 18px; }
+.iqm-figures > div:first-child { border: 0; padding-inline-start: 0; }
+.iqm-figures small { display: block; font-size: 12px; opacity: .75; margin-bottom: 8px; }
+.iqm-figures strong { display: block; font-weight: 300; font-size: clamp(26px, 3vw, 36px); line-height: 1; }
+.iqm-figures em { font-style: normal; font-size: 12px; opacity: .7; display: block; margin-top: 8px; }
+.iqm-figures .id-chg { margin-top: 8px; }
+@media (max-width: 760px) {
+  .iqm-session { padding: 20px; }
+  .iqm-figures { grid-template-columns: 1fr 1fr; }
+  .iqm-figures > div:nth-child(odd) { border: 0; padding-inline-start: 0; }
+}
+
+.iqm-rail { margin: 28px 0 40px; }
+
+.iqm-controls { display: flex; gap: 16px; align-items: center; flex-wrap: wrap; margin-bottom: 20px; }
+.iqm-controls .id-input { max-width: 340px; }
+.iqm-co { display: block; color: inherit; text-decoration: none; }
+.iqm-table td { padding-block: 14px; }
+.iqm-empty { text-align: center; padding: 56px 0; }
+.iqm-count { margin: 16px 0 0; }
+@media (max-width: 760px) { .iqm-hide-sm { display: none; } }

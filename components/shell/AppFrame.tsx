@@ -68,6 +68,14 @@ const BARE_ROUTES = [
  */
 const BARE_EXACT = ['/']
 
+/**
+ * Routes rebuilt on the new site shell (components/site/SiteShell). They
+ * carry their own navigation and foot, so the old frame steps aside. This
+ * list is the migration ledger: a route is added here the day it is rebuilt,
+ * and the frame is deleted the day the list covers everything.
+ */
+const REBUILT = ['/market']
+
 export default function AppFrame({ children }: { children: ReactNode }) {
   const pathname = usePathname() ?? '/'
   const { user } = useApp()
@@ -80,7 +88,9 @@ export default function AppFrame({ children }: { children: ReactNode }) {
    * route test in the shell goes through `splitLocale` for this reason.
    */
   const { route } = splitLocale(pathname)
-  const bare = BARE_EXACT.includes(route) || BARE_ROUTES.some((r) => route === r || route.startsWith(`${r}/`))
+  const bare = BARE_EXACT.includes(route)
+    || REBUILT.some((r) => route === r || route.startsWith(`${r}/`))
+    || BARE_ROUTES.some((r) => route === r || route.startsWith(`${r}/`))
 
   const [collapsed, setCollapsed] = useState(false)
   const [navOpen, setNavOpen] = useState(false)

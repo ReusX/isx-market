@@ -21,6 +21,7 @@ import { personal } from './personal'
 import { ownership } from './ownership'
 import { chart } from './chart'
 import { banks } from './banks'
+import { site } from './site'
 
 /** The English dictionary. Typed against Arabic — see `../ar/index.ts`. */
-export const en: typeof ar = { nav, shell, system, glossary, info, data, home, market, screener, heatmap, pulse, statistics, flow, company, financials, news, learn, rates, personal, ownership, chart, banks }
+export const en: typeof ar = { nav, shell, system, glossary, info, data, home, market, screener, heatmap, pulse, statistics, flow, company, financials, news, learn, rates, personal, ownership, chart, banks, site }

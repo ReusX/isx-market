@@ -39,15 +39,23 @@ Gates: `npm run check:tokens` (parity · contrast · Arabic tracking) must pass 
 - [x] `styles/identity.css` vocabulary
 - [x] Mockup kept at `docs/design/direction.html`
 
+## How a page is rebuilt (the recipe)
+
+1. Write a NEW component under `components/site/` — never edit or import the old route component. Data libs (`lib/*`) are fine to reuse; nothing under `components/routes|shell|design|company` is.
+2. Wrap it in `<SiteShell>`; assemble from `.id-*` (identity.css) plus a small `styles/<page>.css` with a fresh prefix (check it is unused: `grep -ho "\.PREFIX-[a-z]*" styles/*.css`). Class names already taken by old stylesheets include `sn-`, `sf-`, `mk-`, `gh-`, `hm-`, `mt-`, `cd-`, `st-`.
+3. Strings go in the dictionaries (`lib/i18n/messages/{ar,en}`); the i18n gate rejects Arabic literals in components.
+4. Point the route (`app/(ar)/…/page.tsx` and `app/(en)/en/…/page.tsx`) at the new component; add the route to `AppFrame.REBUILT` so the old frame steps aside.
+5. Gates: `check:tokens`, `check:i18n` (dev server on 3300), `check:routes`; phone width; both themes. Tick the row here.
+
 ## Pages — one by one
 
 Order is by traffic and by what other pages borrow from. Shell first because every page wears it.
 
 | # | Route(s) | Component(s) | Stylesheet(s) to replace | Status |
 |---|---|---|---|---|
-| 1 | shell (header, nav, mobile nav, footer, search) | `shell/GlobalHeader` `SideNav` `MobileNav` `SiteFooter` `GlobalSearch` `AppFrame` | `shell.css` (30 dark rules) | ☐ |
+| 1 | shell (nav, mobile menu, foot) | NEW `site/SiteNav` `SiteFoot` `SiteShell` (`styles/site.css`) — rebuilt pages wear this; old `shell/*` + `shell.css` are deleted when `AppFrame.REBUILT` covers every route | — | ☑ 2026-09-16 (search not yet rebuilt) |
 | 2 | `/` | `routes/Landing` (+ `home/Globe`) | `landing.css` · old `HomePage`/`home.css` kept only until /market reuses its modules | ☑ 2026-09-16 |
-| 3 | `/market` | `routes/MarketBoard` | `market.css` | ☐ |
+| 3 | `/market` | NEW `site/MarketPage` (`styles/markets.css`): session block, door rail, board (search + sector pills + one-row-one-fact table) | old `MarketBoard`/`market.css` unused, delete in sweep | ☑ 2026-09-16 foundation |
 | 4 | `/c/[sym]` | `routes/CompanyDetail` `company/CompanyProfile` `company/CompanyChart` | `company.css` `chart-engine.css` `panels.css` | ☐ |
 | 5 | `/c/[sym]/financials` | `routes/CompanyFinancials` | `financials.css` | ☐ |
 | 6 | `/companies` | `routes/CompaniesPage` | in `globals.css` (companies directory blocks) | ☐ |
@@ -70,5 +78,6 @@ Every English route (`/en/...`) shares the component with its Arabic twin, so a 
 ## Log
 
 - 2026-09-16 · Foundation landed on branch `redesign/latitude`.
+- 2026-09-16 · New site shell (`components/site/*`) and `/market` foundation on it; `AppFrame.REBUILT` is the migration ledger.
 - 2026-09-16 · Dark mode added as role-token overrides (globals.css + design-tokens.css); un-rebuilt pages still show their OLD charcoal dark rules until their row is done.
 - 2026-09-16 · Homepage: full-viewport blue opener with the character Earth faced at Iraq (canvas; `lib/landmask.ts`), Iraq's cells lit, ISX60/USD·IQD/oil/gold pinned over Iraq and sector clusters of real tickers pinned round the globe, one lit at a time and the four doors — الأسواق · البنوك والتمويل · الاقتصاد العراقي · تعلّم. Renders bare (no sidebar). Pages that do not exist yet (deposits, loans, cards, CBI, budget) show «قريباً».

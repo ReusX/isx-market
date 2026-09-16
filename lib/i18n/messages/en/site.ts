@@ -1,0 +1,14 @@
+export const site = {
+  brandHome: 'IQWealth · Home',
+  menu:      'Menu',
+  close:     'Close',
+  signIn:    'Sign in',
+  account:   'My account',
+  footNote:  'Iraq Stock Exchange and Central Bank of Iraq data, updated after every session. For information, not for trading.',
+  legal:     'Legal notice',
+  privacy:   'Privacy',
+  about:     'About',
+  contact:   'Contact',
+  rights:    (year: string) => `© ${year} IQWealth`,
+  units:     { bn: 'B', mn: 'M', k: 'K', iqd: 'IQD', shares: 'shares' },
+}

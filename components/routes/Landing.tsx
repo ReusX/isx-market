@@ -1,12 +1,11 @@
 import Link from 'next/link'
 import { Globe } from '@/components/home/Globe'
-import { StarMark } from '@/components/brand/StarMark'
-import { LanguageSwitch } from '@/components/shell/LanguageSwitch'
-import { ThemeToggle } from '@/components/shell/ThemeToggle'
+import { SiteNav } from '@/components/site/SiteNav'
 import { SiteFooter } from '@/components/shell/SiteFooter'
 import { messages } from '@/lib/i18n'
 import { localePath } from '@/lib/i18n/paths'
 import type { Locale } from '@/lib/i18n/locale'
+import '@/styles/site.css'
 import '@/styles/landing.css'
 
 /**
@@ -54,23 +53,6 @@ const DOORS: Door[] = [
   ] },
 ]
 
-/* Line icons, 20px, stroke-only, one per door and one per tool. Inline so
-   the pills carry no extra request and take the pill's own colour. */
-const ICON: Record<string, React.ReactNode> = {
-  markets: <path d="M3 17l5-6 4 4 5-7 4 3" />,
-  banking: <><path d="M3 10h18M5 10v8M9 10v8M15 10v8M19 10v8M3 18h18" /><path d="M12 3l9 7H3z" /></>,
-  economy: <><circle cx="12" cy="12" r="9" /><path d="M3 12h18M12 3c3 3 3 15 0 18M12 3c-3 3-3 15 0 18" /></>,
-  learn: <><path d="M4 5h6a3 3 0 0 1 3 3v12a2 2 0 0 0-2-2H4z" /><path d="M20 5h-6a3 3 0 0 0-3 3v12a2 2 0 0 1 2-2h7z" /></>,
-  login: <><circle cx="12" cy="8" r="4" /><path d="M4 21a8 8 0 0 1 16 0" /></>,
-}
-function Icon({ name }: { name: keyof typeof ICON }) {
-  return (
-    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      {ICON[name]}
-    </svg>
-  )
-}
-
 /* Real ISX symbols by sector, as listed in public/data/companies.json; the
    sector names come from the dictionary in the same order. */
 const SECTORS: string[][] = [
@@ -84,6 +66,7 @@ const SECTORS: string[][] = [
   ['VKHF', 'VMES', 'VWIF', 'VAMF', 'VZAF', 'VBAT'],
 ]
 
+
 export function Landing({ locale }: { locale: Locale }) {
   const t = messages(locale)
   const c = t.home.landing
@@ -96,22 +79,7 @@ export function Landing({ locale }: { locale: Locale }) {
         <section className="ld-hero">
           <Globe className="ld-globe" labels={{ anchors: c.globe.anchors, sectors: SECTORS.map((s, i) => ({ name: c.globe.sectors[i], syms: s })) }} />
 
-          <header className="ld-nav">
-            <Link href={L('/')} className="ld-logo" aria-label={t.shell.brandHome}>
-              <StarMark size={22} color="#fff" />
-              <span>IQWealth</span>
-            </Link>
-            <nav className="ld-links" aria-label={c.scroll}>
-              {DOORS.map((d) => (
-                <a key={d.id} href={`#${d.id}`} className="ld-pill"><Icon name={d.id} />{c.doors[d.id].name}</a>
-              ))}
-            </nav>
-            <div className="ld-tools">
-              <LanguageSwitch />
-              <ThemeToggle className="ld-pill is-icon" />
-              <Link href={L('/login')} className="ld-pill is-navy"><Icon name="login" />{t.shell.signIn}</Link>
-            </div>
-          </header>
+          <SiteNav on="hero" />
 
           {/* One RTL content group: headline, copy, action — start side. */}
           <div className="ld-hero-body">

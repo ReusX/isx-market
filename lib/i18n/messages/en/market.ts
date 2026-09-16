@@ -91,4 +91,18 @@ export const market: typeof ar = {
     watchlist: 'Watchlist',
     reset:  'Clear all filters',
   },
+  page: {
+    eyebrow:   'Markets',
+    lede:      'Every company listed on the Iraq Stock Exchange: last price, change and traded value — one session, most active first.',
+    index:     'ISX60 index',
+    tradedOf:  (n: string, total: string) => `${n} of ${total} companies traded`,
+    sessionOf: (date: string) => `Session of ${date}`,
+    rail: { market: 'Market', companies: 'Companies', screener: 'Screener', heatmap: 'Heatmap', statistics: 'Statistics', pulse: 'Pulse' },
+    showing:   (n: string) => `${n} companies`,
+    untraded:  'Not traded',
+    noChange:  'No change',
+    emptyTitle: 'No results',
+    emptyNote:  'Try another name or clear the filter.',
+    loadFailed: 'The market could not be loaded. Try again shortly.',
+  },
 }

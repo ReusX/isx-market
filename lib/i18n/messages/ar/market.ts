@@ -103,4 +103,19 @@ export const market = {
     watchlist: 'قائمة المتابعة',
     reset:  'مسح جميع الفلاتر',
   },
+  /** The rebuilt /market (redesign). */
+  page: {
+    eyebrow:   'الأسواق',
+    lede:      'كل شركة مدرجة في بورصة العراق: آخر سعر، التغيّر، وقيمة التداول — لجلسة واحدة، مرتّبة حسب الأنشط.',
+    index:     'مؤشر ISX60',
+    tradedOf:  (n: string, total: string) => `${n} من ${total} شركة تداولت`,
+    sessionOf: (date: string) => `جلسة ${date}`,
+    rail: { market: 'السوق', companies: 'الشركات', screener: 'مستكشف الأسهم', heatmap: 'خريطة السوق', statistics: 'الإحصاءات', pulse: 'نبض السوق' },
+    showing:   (n: string) => `${n} شركة`,
+    untraded:  'لم تُتداول',
+    noChange:  'بلا تغيّر',
+    emptyTitle: 'لا نتائج',
+    emptyNote:  'جرّب اسماً آخر أو أزل التصفية.',
+    loadFailed: 'تعذّر تحميل السوق. حاول مرة أخرى بعد قليل.',
+  },
 }

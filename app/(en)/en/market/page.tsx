@@ -1,5 +1,5 @@
-import { MarketBoard } from '@/components/routes/MarketBoard'
+import { MarketPage } from '@/components/site/MarketPage'
 
 export default function Page() {
-  return <MarketBoard />
+  return <MarketPage />
 }
