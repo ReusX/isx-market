@@ -100,6 +100,7 @@ export function BanksHub({ rows }: { rows: HubBank[] }) {
       <header className="bk-hero">
         <h1>{c.title}</h1>
         <p>{c.standfirst}</p>
+        <p className="bk-notice is-beta" role="note">{c.betaNotice}</p>
       </header>
 
       <div className="bk-controls">

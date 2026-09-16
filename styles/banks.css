@@ -905,3 +905,9 @@
   .bk-cell-rating { flex-direction: column; align-items: flex-start; gap: 0; }
   .bk-cell-rating small { font-size: .66rem; }
 }
+
+/* The section is live before it is finished, and says so. */
+.bk-notice.is-beta {
+  margin: 16px 0 0; border-inline-start-color: var(--mv-hero);
+  background: color-mix(in srgb, var(--mv-hero) 7%, transparent); color: var(--mv-ink);
+}

@@ -2,6 +2,7 @@ import type { banks as ar } from '../ar/banks'
 
 export const banks: typeof ar = {
   title: 'Iraqi Banks',
+  betaNotice: 'This page is under research and development. The information is still being reviewed and updated, and may be incomplete.',
   standfirst: 'What each bank actually publishes, and our rating where the information exists.',
   breadcrumb: 'Banks',
 
