@@ -15,19 +15,40 @@ import { shortDate } from '@/lib/date'
  * fill under the line is a faint blue wash; the line itself is the ink.
  */
 export type IndexPoint = { date: string; isx60: number }
-type Range = 'm1' | 'm3' | 'y1' | 'all'
-const DAYS: Record<Range, number> = { m1: 31, m3: 92, y1: 366, all: 1e9 }
+type Range = 'm1' | 'm3' | 'y1' | 'y3'
+/* Calendar days back from the LAST session in the series, not from today:
+   a range is measured against the market's own clock. */
+const DAYS: Record<Range, number> = { m1: 31, m3: 92, y1: 366, y3: 3 * 366 }
 
 const W = 800, H = 300, PT = 18, PB = 28, PL = 8, PR = 64
 const nf = new Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
 
-function niceTicks(lo: number, hi: number, n = 3): number[] {
+/* Value gridlines: a round step that yields three to five lines inside the
+   plotted range, whatever the range's span. */
+function niceTicks(lo: number, hi: number): number[] {
   const span = hi - lo || 1
-  const raw = span / n
-  const mag = Math.pow(10, Math.floor(Math.log10(raw)))
-  const step = [1, 2, 2.5, 5, 10].map((m) => m * mag).find((s) => s >= raw) ?? raw
-  const out: number[] = []
-  for (let v = Math.ceil(lo / step) * step; v <= hi; v += step) out.push(+v.toFixed(6))
+  const mag = Math.pow(10, Math.floor(Math.log10(span / 4)))
+  for (const m of [1, 2, 2.5, 5, 10, 20, 25, 50]) {
+    const step = m * mag
+    const first = Math.ceil(lo / step) * step
+    const n = Math.floor((hi - first) / step) + 1
+    if (n >= 3 && n <= 5) return Array.from({ length: n }, (_, i) => +(first + i * step).toFixed(6))
+  }
+  const step = span / 4
+  return [1, 2, 3].map((i) => +(lo + i * step).toFixed(2))
+}
+
+/* Date labels: about six, evenly spaced through the plotted points, each
+   the real date of the point it sits under — day and month for short
+   ranges, month and year for long ones. */
+function dateLabels(pts: IndexPoint[], range: Range, fmt: (d: string, long: boolean) => string) {
+  const n = Math.min(6, pts.length)
+  const long = range === 'y1' || range === 'y3'
+  const out: { i: number; label: string }[] = []
+  for (let k = 0; k < n; k++) {
+    const i = Math.round((k / (n - 1)) * (pts.length - 1))
+    if (!out.some((o) => o.i === i)) out.push({ i, label: fmt(pts[i].date, long) })
+  }
   return out
 }
 
@@ -56,13 +77,11 @@ export function IndexChart({ series }: { series: IndexPoint[] }) {
     const line = pts.map((p, i) => `${i ? 'L' : 'M'}${x(i).toFixed(1)},${y(p.isx60).toFixed(1)}`).join(' ')
     const area = `${line} L${x(pts.length - 1).toFixed(1)},${(H - PB).toFixed(1)} L${x(0).toFixed(1)},${(H - PB).toFixed(1)} Z`
     const iHi = vals.indexOf(hi), iLo = vals.indexOf(lo)
-    /* Month labels: the first point of each month, thinned so they never collide. */
-    const months: { i: number; label: string }[] = []
-    let lastM = ''
-    pts.forEach((p, i) => { const m = p.date.slice(0, 7); if (m !== lastM) { months.push({ i, label: shortDate(p.date, locale) }); lastM = m } })
-    const every = Math.ceil(months.length / 6)
-    return { x, y, line, area, lo, hi, iHi, iLo, ticks: niceTicks(y0, y1), months: months.filter((_, k) => k % every === 0), first: pts[0].isx60 }
-  }, [pts, locale])
+    const fmt = (d: string, long: boolean) => long
+      ? new Date(d).toLocaleDateString(locale === 'ar' ? 'ar-u-nu-latn' : 'en-GB', { month: 'short', year: '2-digit' })
+      : shortDate(d, locale)
+    return { x, y, line, area, lo, hi, iHi, iLo, ticks: niceTicks(y0, y1), months: dateLabels(pts, range, fmt), first: pts[0].isx60 }
+  }, [pts, locale, range])
 
   const onMove = (e: React.PointerEvent<SVGSVGElement>) => {
     if (!geo || !svgRef.current) return
@@ -88,7 +107,7 @@ export function IndexChart({ series }: { series: IndexPoint[] }) {
           </p>
         </div>
         <div className="id-pills" role="group">
-          {(['m1', 'm3', 'y1', 'all'] as Range[]).map((r) => (
+          {(['m1', 'm3', 'y1', 'y3'] as Range[]).map((r) => (
             <button key={r} type="button" className="id-pill is-sm" aria-pressed={range === r} onClick={() => { setRange(r); setHover(null) }}>{c.ranges[r]}</button>
           ))}
         </div>
@@ -118,7 +137,7 @@ export function IndexChart({ series }: { series: IndexPoint[] }) {
               <text x={geo.x(m.i)} y={geo.y(m.v) + (m.up ? -9 : 16)} className="ix-marklabel">{m.k} {nf.format(m.v)}</text>
             </g>
           ))}
-          {geo.months.map((m) => <text key={m.i} x={geo.x(m.i)} y={H - 8} className="ix-month">{m.label}</text>)}
+          {geo.months.map((m, k) => <text key={m.i} x={geo.x(m.i)} y={H - 8} className="ix-month" style={{ textAnchor: k === 0 ? 'start' : k === geo.months.length - 1 ? 'end' : 'middle' }}>{m.label}</text>)}
           {hover != null ? (
             <g>
               <line x1={geo.x(hover)} x2={geo.x(hover)} y1={PT} y2={H - PB} className="ix-cross" />

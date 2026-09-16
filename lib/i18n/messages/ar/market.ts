@@ -120,7 +120,7 @@ export const market = {
     /** The two openers: the ISX60 chart and the foreign-flow ring. */
     chart: {
       title:   'مؤشر ISX60',
-      ranges:  { m1: 'شهر', m3: '٣ أشهر', y1: 'سنة', all: 'الكل' },
+      ranges:  { m1: 'شهر', m3: '٣ أشهر', y1: 'سنة', y3: '٣ سنوات' },
       high:    'الأعلى',
       low:     'الأدنى',
       since:   (d: string) => `منذ ${d}`,

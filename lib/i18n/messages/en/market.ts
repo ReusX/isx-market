@@ -106,7 +106,7 @@ export const market: typeof ar = {
     loadFailed: 'The market could not be loaded. Try again shortly.',
     chart: {
       title:   'ISX60 index',
-      ranges:  { m1: '1M', m3: '3M', y1: '1Y', all: 'All' },
+      ranges:  { m1: '1M', m3: '3M', y1: '1Y', y3: '3Y' },
       high:    'High',
       low:     'Low',
       since:   (d: string) => `since ${d}`,
