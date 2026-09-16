@@ -282,6 +282,19 @@ export function PriceChart({ bars, label, sym }: { bars: Bar[]; label: string; s
     return m
   }, [bars])
 
+  /* Window-level gesture listeners — see «Gestures» below. Declared here,
+     above the early return, because they are hooks. */
+  const winRefs = useRef<{ move: (e: PointerEvent) => void; up: (e: PointerEvent) => void } | null>(null)
+  const detachWindow = useCallback(() => {
+    const w = winRefs.current
+    if (!w) return
+    window.removeEventListener('pointermove', w.move)
+    window.removeEventListener('pointerup', w.up)
+    window.removeEventListener('pointercancel', w.up)
+    winRefs.current = null
+  }, [])
+  useEffect(() => detachWindow, [detachWindow])
+
   if (len < 2) return <p className="id-note">{C.noSeries}</p>
 
   /* ── Geometry ─────────────────────────────────────────────────────────── */
@@ -430,15 +443,6 @@ export function PriceChart({ bars, label, sym }: { bars: Bar[]; label: string; s
      the element: a fast drag leaves the plot, and pointer capture is not
      something every browser honours on an inline SVG. The listeners live
      only for the gesture. */
-  const winRefs = useRef<{ move: (e: PointerEvent) => void; up: (e: PointerEvent) => void } | null>(null)
-  const detachWindow = () => {
-    const w = winRefs.current
-    if (!w) return
-    window.removeEventListener('pointermove', w.move)
-    window.removeEventListener('pointerup', w.up)
-    window.removeEventListener('pointercancel', w.up)
-    winRefs.current = null
-  }
   const attachWindow = () => {
     if (winRefs.current) return
     const move = (e: PointerEvent) => onMove(e)
@@ -534,7 +538,6 @@ export function PriceChart({ bars, label, sym }: { bars: Bar[]; label: string; s
     setGrabbing(false)
     detachWindow()
   }
-  useEffect(() => detachWindow, [])   // eslint-disable-line react-hooks/exhaustive-deps
 
   function onDouble(e: React.MouseEvent<SVGSVGElement>) {
     const { px, py } = svgPos(e)
