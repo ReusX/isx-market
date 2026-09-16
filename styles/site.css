@@ -84,7 +84,11 @@
    table scrolls inside it instead of stretching the page). */
 :root { --iqn-h: 76px; }
 .iq-door {
-  max-width: 1920px; margin-inline: auto;
+  /* width: 100% matters: inside the site's column flexbox, margin-inline:
+     auto alone makes the grid shrink-wrap its content, so a page whose
+     content is narrower than the viewport (the heatmap) pulled the rail
+     inward with it. */
+  width: 100%; max-width: 1920px; margin-inline: auto;
   display: grid; grid-template-columns: 260px minmax(0, 1fr); gap: 32px; align-items: start;
 }
 .iq-door > .iqm-body, .iq-door > .iq-main { min-width: 0; }

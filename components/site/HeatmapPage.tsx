@@ -12,7 +12,8 @@ import {
 import { periodChange, toRow, sectorLabel } from '@/lib/screener'
 import { CompanyLogo } from '@/components/CompanyLogo'
 import type { ScreenerInitial } from '@/lib/marketServer'
-import { shortDate } from '@/lib/date'
+import { shortDate, localeDate } from '@/lib/date'
+import { downloadImage, copyImage } from '@/lib/watermark'
 import '@/styles/markets.css'
 import '@/styles/heatmap-page.css'
 
@@ -44,6 +45,24 @@ export function HeatmapPage({ initial }: { initial: ScreenerInitial }) {
 
   const [period, setPeriod] = useState<PeriodId>('1d')
   const [sizeBy, setSizeBy] = useState<'cap' | 'value'>('cap')
+  const [ready, setReady] = useState(false)
+  const [msg, setMsg] = useState<string | null>(null)
+  /* The view lives in the URL (?period=1m&size=value) so a shared link opens
+     on the same picture. */
+  useEffect(() => {
+    const sp = new URLSearchParams(window.location.search)
+    const pp = sp.get('period'); if (pp && PERIODS.some((x) => x.id === pp)) setPeriod(pp as PeriodId)
+    if (sp.get('size') === 'value') setSizeBy('value')
+    setReady(true)
+  }, [])
+  useEffect(() => {
+    if (!ready) return
+    const sp = new URLSearchParams()
+    if (period !== '1d') sp.set('period', period)
+    if (sizeBy === 'value') sp.set('size', 'value')
+    const qs = sp.toString()
+    window.history.replaceState(null, '', `${window.location.pathname}${qs ? `?${qs}` : ''}`)
+  }, [period, sizeBy, ready])
   const q = ''
   const [band, setBand] = useState<Band | null>(null)
   const [selected, setSelected] = useState<string | null>(null)
@@ -91,6 +110,64 @@ export function HeatmapPage({ initial }: { initial: ScreenerInitial }) {
   }, [uni.rows, period])
 
   const sel = selected ? uni.rows.find((r) => r.ticker === selected) ?? null : null
+
+  /* The map as a PNG: the same boxes redrawn on a canvas at 2× in the current
+     theme's colours, with a title, the session, the scale and IRAQSM.COM —
+     so what gets shared carries where it came from. */
+  const latestDate = useMemo(() => uni.rows.reduce<string | null>((m, r) => (r.last_date && (!m || r.last_date > m) ? r.last_date : m), null), [uni.rows])
+  const render = async (): Promise<Blob | null> => {
+    const el = boxRef.current
+    if (!el) return null
+    const css = getComputedStyle(el)
+    const colour = (cls: string) => { const probe = document.createElement('span'); probe.className = cls; probe.style.display = 'none'; el.appendChild(probe); const c = getComputedStyle(probe); const out = { bg: c.backgroundColor, fg: c.color }; probe.remove(); return out }
+    const bands = new Map<string, { bg: string; fg: string }>()
+    for (const b of [-3, -2, -1, 0, 1, 2, 3]) bands.set(`b${b}`, colour(`is-b${b}`))
+    const none = colour('is-none')
+    const ink = css.color, page = getComputedStyle(document.body).backgroundColor, panel = css.backgroundColor, muted = getComputedStyle(document.body).getPropertyValue('--muted') || ink
+    const S = 2, PAD = 40, TOP = 96, BOT = 64
+    const c = document.createElement('canvas'); c.width = (W + PAD * 2) * S; c.height = (H + TOP + BOT) * S
+    const g = c.getContext('2d')!; g.scale(S, S)
+    const font = getComputedStyle(document.body).fontFamily
+    g.fillStyle = page; g.fillRect(0, 0, W + PAD * 2, H + TOP + BOT)
+    g.fillStyle = ink; g.textBaseline = 'middle'; g.direction = ar ? 'rtl' : 'ltr'; g.textAlign = ar ? 'right' : 'left'
+    const sx = ar ? W + PAD : PAD
+    g.font = `500 26px ${font}`; g.fillText(pg.imageTitle(periodLabel), sx, 36)
+    g.font = `400 14px ${font}`; g.fillStyle = muted; g.fillText(pg.summary(int.format(summary.up), int.format(summary.down), int.format(summary.flat), int.format(summary.none), periodLabel), sx, 68)
+    g.save(); g.translate(PAD, TOP)
+    g.fillStyle = panel; g.fillRect(0, 0, W, H)
+    const rr = (x: number, y: number, w: number, h: number, r: number) => { g.beginPath(); g.roundRect(x, y, w, h, r); }
+    for (const { sector: sc, box, tiles } of layout) {
+      g.fillStyle = page; rr(box.x, box.y, box.w, box.h, 8); g.fill()
+      g.fillStyle = ink; g.font = `500 13px ${font}`; g.textAlign = ar ? 'right' : 'left'
+      g.fillText(`${sc.label} ${pctText(sc.pct)}`, ar ? box.x + box.w - 8 : box.x + 8, box.y + 13)
+      for (const { item: r, box: tb } of tiles) {
+        const p = periodChange(r, period); const b = bandOf(p, cap)
+        const col = b == null ? none : bands.get(`b${b}`)!
+        g.fillStyle = col.bg; rr(tb.x, tb.y, tb.w, tb.h, 6); g.fill()
+        if (b == null) { g.strokeStyle = muted; g.lineWidth = 1; for (let d = -tb.h; d < tb.w; d += 10) { g.beginPath(); g.moveTo(tb.x + d, tb.y + tb.h); g.lineTo(tb.x + d + tb.h, tb.y); g.stroke() } }
+        if (tb.w > 40 && tb.h > 22) { g.fillStyle = col.fg === 'rgba(0, 0, 0, 0)' ? ink : col.fg; g.font = `500 12px ${font}`; g.textAlign = 'left'; g.direction = 'ltr'; g.fillText(r.ticker, tb.x + 7, tb.y + 12) }
+        if (tb.w > 72 && tb.h > 40) { g.font = `400 13px ${font}`; g.textAlign = 'left'; g.fillText(pctText(p), tb.x + 7, tb.y + tb.h - 12) }
+      }
+    }
+    g.restore()
+    /* Foot: the session and the encoding on one side, the mark on the other. */
+    g.direction = ar ? 'rtl' : 'ltr'; g.textAlign = ar ? 'right' : 'left'; g.fillStyle = muted; g.font = `400 13px ${font}`
+    g.fillText(pg.imageFoot(latestDate ? localeDate(latestDate, locale) : ''), sx, H + TOP + 32)
+    g.direction = 'ltr'; g.textAlign = ar ? 'left' : 'right'; g.fillStyle = ink; g.font = `700 22px ${font}`
+    g.fillText('IRAQSM.COM', ar ? PAD : W + PAD, H + TOP + 32)
+    return new Promise((res) => c.toBlob((b) => res(b), 'image/png'))
+  }
+  const flash = (m: string) => { setMsg(m); setTimeout(() => setMsg(null), 2000) }
+  const fileName = () => `iraqsm-heatmap-${latestDate ?? 'latest'}-${period}.png`
+  const onDownload = async () => { const b = await render(); if (!b) return; const url = URL.createObjectURL(b); downloadImage(url, fileName()); setTimeout(() => URL.revokeObjectURL(url), 5000) }
+  const onCopy = async () => { const b = await render(); if (!b) return; flash((await copyImage(b)) ? pg.copied : pg.copyUnsupported) }
+  const onShare = async () => {
+    const b = await render(); if (!b) return
+    const file = new File([b], fileName(), { type: 'image/png' })
+    const nav = navigator as Navigator & { canShare?: (d: ShareData) => boolean }
+    if (nav.share && (!nav.canShare || nav.canShare({ files: [file] }))) { try { await nav.share({ files: [file], title: pg.imageTitle(periodLabel), url: window.location.href }) } catch {} }
+    else onDownload()
+  }
   const lit = (r: MapRow) => (!q || matchesQuery(r, q)) && (band == null || bandOf(periodChange(r, period), cap) === band)
 
   return (
@@ -179,6 +256,12 @@ export function HeatmapPage({ initial }: { initial: ScreenerInitial }) {
           </div>
 
           <div className="hm2-foot">
+            <div className="id-pills hm2-export">
+              <button type="button" className="id-btn is-sm" onClick={onShare}>{pg.share}</button>
+              <button type="button" className="id-pill is-sm" onClick={onCopy}>{pg.copy}</button>
+              <button type="button" className="id-pill is-sm" onClick={onDownload}>{pg.download}</button>
+              {msg ? <span className="id-cap" role="status">{msg}</span> : null}
+            </div>
             <div className="id-pills" role="group" aria-label={pg.sizeBy}>
               <span className="id-cap">{pg.sizeBy}</span>
               <button type="button" className="id-pill is-sm" aria-pressed={sizeBy === 'cap'} onClick={() => setSizeBy('cap')}>{pg.sizeCap}</button>

@@ -75,6 +75,13 @@ export const heatmap: typeof ar = {
       `Over ${period}: ${up} up \u00b7 ${down} down \u00b7 ${flat} flat \u00b7 ${none} no reading`,
     excluded: (n: string) => `${n} companies are off the map: no market cap, or suspended for more than 60 days.`,
     pick:    'Click any square to see its details here.',
+    download: 'Download image',
+    copy:     'Copy image',
+    share:    'Share',
+    copied:   'Copied',
+    copyUnsupported: 'Copy is not supported here \u00b7 use download',
+    imageTitle: (period: string) => `Market map \u00b7 ${period} change`,
+    imageFoot: (date: string) => `Iraq Stock Exchange \u00b7 session of ${date} \u00b7 size = market cap \u00b7 colour = change`,
     about: {
       title: 'How to read the map',
       body: [
