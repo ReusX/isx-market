@@ -126,6 +126,10 @@ export const home: typeof ar = {
     explore:  'Explore the market',
     scroll:   'Sections',
     soon:     'Soon',
+    globe: {
+      anchors: ['ISX60', 'USD / IQD', 'Oil', 'Gold'],
+      sectors: ['Banks', 'Telecom', 'Industry', 'Hotels & tourism', 'Agriculture', 'Insurance', 'Services', 'Investment'],
+    },
     doors: {
       markets: {
         name: 'Markets',

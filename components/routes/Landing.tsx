@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { Constellation } from '@/components/home/Constellation'
+import { Globe } from '@/components/home/Globe'
 import { StarMark } from '@/components/brand/StarMark'
 import { LanguageSwitch } from '@/components/shell/LanguageSwitch'
 import { SiteFooter } from '@/components/shell/SiteFooter'
@@ -70,6 +70,19 @@ function Icon({ name }: { name: keyof typeof ICON }) {
   )
 }
 
+/* Real ISX symbols by sector, as listed in public/data/companies.json; the
+   sector names come from the dictionary in the same order. */
+const SECTORS: string[][] = [
+  ['BBOB', 'BNOI', 'BIME', 'BMFI', 'BKUI', 'BASH', 'BIBI', 'BGUC', 'BROI', 'BMNS', 'BCIH', 'BJAB'],
+  ['TASC', 'TZNI'],
+  ['IBSD', 'IMAP', 'IITC', 'IKLV', 'INCP', 'IMOS', 'IIDP', 'IFCM'],
+  ['HBAY', 'HMAN', 'HISH', 'HPAL', 'HNTI', 'HBAG', 'HSAD'],
+  ['AIRP', 'AMEF', 'AIPM', 'AMAP', 'AISP'],
+  ['NAME', 'NGIR', 'NAHF', 'NDSA', 'NHAM'],
+  ['SBPT', 'SMOF', 'SILT', 'SKTA', 'SMRI', 'SIGT'],
+  ['VKHF', 'VMES', 'VWIF', 'VAMF', 'VZAF', 'VBAT'],
+]
+
 export function Landing({ locale }: { locale: Locale }) {
   const t = messages(locale)
   const c = t.home.landing
@@ -80,7 +93,7 @@ export function Landing({ locale }: { locale: Locale }) {
     <>
       <main className="ld">
         <section className="ld-hero">
-          <Constellation className="ld-globe" />
+          <Globe className="ld-globe" labels={{ anchors: c.globe.anchors, sectors: SECTORS.map((s, i) => ({ name: c.globe.sectors[i], syms: s })) }} />
 
           <header className="ld-nav">
             <Link href={L('/')} className="ld-logo" aria-label={t.shell.brandHome}>

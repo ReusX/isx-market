@@ -140,6 +140,12 @@ export const home = {
     explore:  'استكشف السوق',
     scroll:   'الأقسام',
     soon:     'قريباً',
+    /** Labels pinned to the globe: the four anchors, then the eight sectors
+     *  in the order of Landing.SECTORS. */
+    globe: {
+      anchors: ['ISX60', 'USD / IQD', 'النفط', 'الذهب'],
+      sectors: ['المصارف', 'الاتصالات', 'الصناعة', 'الفنادق والسياحة', 'الزراعة', 'التأمين', 'الخدمات', 'الاستثمار'],
+    },
     doors: {
       markets: {
         name: 'الأسواق',
