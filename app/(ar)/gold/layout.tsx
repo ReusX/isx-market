@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import { absUrl, seoAlternates } from '@/lib/seo'
+import { messages } from '@/lib/i18n'
 
 export const metadata: Metadata = {
   title: { absolute: 'سعر الذهب اليوم في العراق · مثقال وغرام عيار 21 و24' },
@@ -53,48 +54,9 @@ const faqSchema = {
     },
     {
       '@type': 'FAQPage',
-      mainEntity: [
-        {
-          '@type': 'Question',
-          name: 'What is the gold price in Iraq today?',
-          acceptedAnswer: {
-            '@type': 'Answer',
-            text: 'The gold price in Iraq today is calculated from the international spot price (USD per troy ounce) converted to Iraqi Dinar at the current IQD/USD exchange rate. The most traded karat in Iraq is 21K (عيار 21). Check iraqsm.com/gold for the live rate.',
-          },
-        },
-        {
-          '@type': 'Question',
-          name: 'What is a mithqal of gold in Iraq?',
-          acceptedAnswer: {
-            '@type': 'Answer',
-            text: 'A mithqal (مثقال) is the traditional unit of weight used in Iraqi gold markets, equal to 4.608 grams. The price of one mithqal of 21K gold (سعر مثقال الذهب عيار 21) is the most commonly quoted gold price in Iraqi souks and jewellery markets.',
-          },
-        },
-        {
-          '@type': 'Question',
-          name: 'What is the gold price in Iraqi Dinar (IQD)?',
-          acceptedAnswer: {
-            '@type': 'Answer',
-            text: 'The gold price in Iraqi Dinar tracks the international USD spot price converted at the current IQD/USD exchange rate. One gram of 21K gold in Iraq typically ranges between roughly 140,000 and 180,000 IQD (around 650,000–830,000 IQD per mithqal of 4.608 g) depending on the current global spot price.',
-          },
-        },
-        {
-          '@type': 'Question',
-          name: 'سعر مثقال الذهب عيار 21 في العراق اليوم؟',
-          acceptedAnswer: {
-            '@type': 'Answer',
-            text: 'سعر مثقال الذهب عيار 21 في العراق يُحسب بضرب السعر العالمي للذهب بالدولار في سعر صرف الدينار العراقي الحالي. المثقال يساوي 4.608 غرام. يتغيّر السعر يومياً تبعاً لأسواق السلع العالمية.',
-          },
-        },
-        {
-          '@type': 'Question',
-          name: 'سعر غرام الذهب في العراق اليوم؟',
-          acceptedAnswer: {
-            '@type': 'Answer',
-            text: 'سعر غرام الذهب في العراق اليوم يتحدد حسب العيار: عيار 24 (ذهب خالص) هو الأعلى سعراً، يليه عيار 21 الأكثر تداولاً في الأسواق العراقية، ثم عيار 18. يمكن حساب السعر الدقيق بالدينار العراقي عبر حاسبة الذهب في iraqsm.com/gold.',
-          },
-        },
-      ],
+      /* The same array the page renders — markup that disagrees with the
+         visible copy is worse than none. */
+      mainEntity: messages('ar').rates.page.gold.faq.map((f) => ({ '@type': 'Question', name: f.q, acceptedAnswer: { '@type': 'Answer', text: f.a } })),
     },
   ],
 }

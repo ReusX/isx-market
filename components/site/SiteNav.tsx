@@ -23,7 +23,7 @@ import { splitLocale } from '@/lib/i18n/paths'
 export const DOORS = [
   { id: 'markets', route: '/',        owns: ['/', '/market', '/companies', '/c/', '/screener', '/heatmap', '/statistics', '/pulse', '/portfolio', '/watchlist', '/alerts', '/analysis'] },
   { id: 'banking', route: '/banks',   owns: ['/banks'] },
-  { id: 'economy', route: '/fx',      owns: ['/fx', '/gold', '/oil'] },
+  { id: 'economy', route: '/fx',      owns: ['/fx', '/gold', '/oil', '/silver', '/currencies', '/cbi-window'] },
   { id: 'learn',   route: '/learn',   owns: ['/learn', '/news', '/research'] },
 ] as const
 

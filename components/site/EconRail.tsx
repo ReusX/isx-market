@@ -11,7 +11,7 @@ const ITEMS = [
   { key: 'fx', route: '/fx' },
   { key: 'currencies', route: '/currencies', soon: true },
   { key: 'gold', route: '/gold' },
-  { key: 'silver', route: '/silver', soon: true },
+  { key: 'silver', route: '/silver' },
   { key: 'oil', route: '/oil' },
   { key: 'window', route: '/cbi-window', soon: true },
   { key: 'inflation', route: '/inflation', soon: true },

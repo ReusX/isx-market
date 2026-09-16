@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import { absUrl, seoAlternates } from '@/lib/seo'
+import { messages } from '@/lib/i18n'
 
 export const metadata: Metadata = {
   title: { absolute: 'سعر النفط اليوم · برميل برنت وخام البصرة بالدينار' },
@@ -46,40 +47,9 @@ const faqSchema = {
     },
     {
       '@type': 'FAQPage',
-      mainEntity: [
-        {
-          '@type': 'Question',
-          name: 'What is the oil price today?',
-          acceptedAnswer: {
-            '@type': 'Answer',
-            text: 'The live oil price today is shown per barrel in USD and Iraqi Dinar for the main benchmarks — Brent, WTI (West Texas Intermediate), the OPEC basket — and for Iraq’s own export grades, Basrah Heavy and Basrah Medium. Prices update daily on iraqsm.com/oil.',
-          },
-        },
-        {
-          '@type': 'Question',
-          name: 'What is the price of Iraqi Basrah crude oil?',
-          acceptedAnswer: {
-            '@type': 'Answer',
-            text: 'Basrah Heavy and Basrah Medium are Iraq’s main export crude grades, priced relative to global benchmarks. Their live USD-per-barrel price (and the Iraqi Dinar equivalent at the current exchange rate) is listed at the top of iraqsm.com/oil.',
-          },
-        },
-        {
-          '@type': 'Question',
-          name: 'كم سعر برميل النفط اليوم؟',
-          acceptedAnswer: {
-            '@type': 'Answer',
-            text: 'يظهر سعر برميل النفط اليوم بالدولار الأمريكي وبالدينار العراقي لأهم الخامات: برنت، غرب تكساس WTI، سلة أوبك، إضافة إلى خام البصرة العراقي الثقيل والمتوسط. تُحدَّث الأسعار يومياً في iraqsm.com/oil.',
-          },
-        },
-        {
-          '@type': 'Question',
-          name: 'كم سعر نفط البصرة العراقي اليوم؟',
-          acceptedAnswer: {
-            '@type': 'Answer',
-            text: 'خام البصرة الثقيل والبصرة المتوسط هما خاما التصدير الرئيسيان للعراق، ويُسعَّران مقارنة بالمؤشرات العالمية. يمكنك متابعة سعر البرميل بالدولار وما يعادله بالدينار العراقي في أعلى صفحة النفط على iraqsm.com/oil.',
-          },
-        },
-      ],
+      /* The same array the page renders — markup that disagrees with the
+         visible copy is worse than none. */
+      mainEntity: messages('ar').rates.page.oil.faq.map((f) => ({ '@type': 'Question', name: f.q, acceptedAnswer: { '@type': 'Answer', text: f.a } })),
     },
   ],
 }

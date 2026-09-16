@@ -344,3 +344,82 @@ export async function fetchOil(): Promise<OilData | null> {
     return null
   }
 }
+
+// ── Silver ──────────────────────────────────────────────────────────────────
+// The same list site as gold publishes silver on its own page — in DOLLARS
+// only (the dinar column is printed as 0.00), so the page converts at the
+// parallel rate and says so. Three tables: gram by purity, bullion buy and
+// bullion resale by size, plus ten previous ounce closes.
+export interface SilverData {
+  date: string | null
+  ounceUsd: number | null
+  ounceChange: number | null
+  /** Gram price by purity (999, 958, 925, 900, 880, 800), USD. */
+  grams: { purity: number; usd: number }[]
+  /** Bullion, USD: the source's «buy new» and «resale» per size in grams. */
+  bars: { grams: number; buyUsd: number | null; sellUsd: number | null }[]
+  /** Previous ounce closes, oldest first, USD. */
+  history: { date: string; usd: number }[]
+  source: string
+  sourceUrl: string
+  fetchedAt: string
+}
+
+const SILVER_URL = 'https://iraqgoldprice.com/silverprice/'
+
+export async function fetchSilver(): Promise<SilverData | null> {
+  try {
+    const res = await fetch(SILVER_URL, { headers: UA, next: { revalidate: REVALIDATE }, signal: AbortSignal.timeout(9000) })
+    if (!res.ok) return null
+    const t = strip(await res.text())
+
+    const head = t.match(/سعر\s*أونصة\s*الفضة\s*([\d.,]+)\s*دولار/)
+    const ounceUsd = head ? floatNum(head[1]) : null
+    /* «هبوط -6.20 $» / «ارتفاع 1.10 $» right after the ounce. */
+    const chg = t.match(/أونصة\s*الفضة\s*[\d.,]+\s*دولار\s*(ارتفاع|صعود|هبوط|انخفاض)?\s*([-+]?[\d.,]+)\s*\$/)
+    const ounceChange = chg ? (() => { const v = floatNum(chg[2]); return v == null ? null : (/هبوط|انخفاض/.test(chg[1] ?? '') ? -Math.abs(v) : v) })() : null
+
+    const grams: SilverData['grams'] = []
+    const gRe = /جرام\s*الفضة\s*عيار\s*(\d{3})\s*[\d.,]+\s+([\d.,]+)/g
+    let m: RegExpExecArray | null
+    while ((m = gRe.exec(t))) if (!grams.some((g) => g.purity === +m![1])) grams.push({ purity: +m[1], usd: floatNum(m[2]) ?? 0 })
+    const loose = t.match(/فضة\s*عيار\s*(\d{3})\s*[\d.,]+\s+([\d.,]+)/g) ?? []
+    for (const s of loose) { const mm = s.match(/(\d{3})\s*[\d.,]+\s+([\d.,]+)/); if (mm && !grams.some((g) => g.purity === +mm[1])) grams.push({ purity: +mm[1], usd: floatNum(mm[2]) ?? 0 }) }
+    grams.sort((a, b) => b.purity - a.purity)
+
+    /* Bullion: the «buy new» block comes first, «resale» second. */
+    const block = (label: string) => {
+      const i = t.indexOf(label)
+      if (i < 0) return ''
+      const j = t.indexOf('يتم تحديث', i)
+      return t.slice(i, j > 0 ? j : i + 1200)
+    }
+    const sizes = (s: string) => {
+      const out = new Map<number, number>()
+      const re = /سبيكة\s*الفضة\s*(\d+)\s*(جرام|كيلو)\s*[\d.,]+\s+([\d.,]+)/g
+      let x: RegExpExecArray | null
+      while ((x = re.exec(s))) out.set(+x[1] * (x[2] === 'كيلو' ? 1000 : 1), floatNum(x[3]) ?? 0)
+      return out
+    }
+    const buy = sizes(block('سبائك الفضة شراء جديد'))
+    const sell = sizes(block('سبائك الفضة اعادة بيع'))
+    const bars = Array.from(new Set(Array.from(buy.keys()).concat(Array.from(sell.keys())))).sort((a, b) => a - b)
+      .map((g) => ({ grams: g, buyUsd: buy.get(g) ?? null, sellUsd: sell.get(g) ?? null }))
+
+    const history: SilverData['history'] = []
+    const hRe = /([\d.,]+)\s*\((\d{4})\/(\d{2})\/(\d{2})\)/g
+    const hi = t.indexOf('الايام السابقة')
+    if (hi > 0) { const seg = t.slice(hi, hi + 800); while ((m = hRe.exec(seg))) history.push({ date: `${m[2]}-${m[3]}-${m[4]}`, usd: floatNum(m[1]) ?? 0 }) }
+    history.sort((a, b) => a.date.localeCompare(b.date))
+
+    const date = t.match(/أسعار الفضة اليوم في العراق\s*(\d{4})\/(\d{2})\/(\d{2})/)
+    if (ounceUsd == null && !grams.length) return null
+    return {
+      date: date ? `${date[1]}-${date[2]}-${date[3]}` : null,
+      ounceUsd, ounceChange, grams, bars, history,
+      source: 'iraqgoldprice.com', sourceUrl: SILVER_URL, fetchedAt: new Date().toISOString(),
+    }
+  } catch {
+    return null
+  }
+}

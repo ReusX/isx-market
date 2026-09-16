@@ -63,7 +63,6 @@ export function OilPage({ oil, fx }: { oil: OilData | null; fx: FxData | null })
                     <span className={`id-chg ${iraq[0].pct > 0 ? 'is-up' : iraq[0].pct < 0 ? 'is-down' : 'is-flat'}`}><bdi>{iraq[0].pct > 0 ? '+' : ''}{iraq[0].pct.toFixed(2)}%</bdi></span>
                   </p>
                 ) : null}
-                <p className="id-cap eco-when">{oil?.source ? `${R.page.source}: ${oil.source}` : ''}</p>
                 <div className="id-stats id-num eco-stats">
                   {iraq.map((b) => (
                     <div className="id-stat" key={b.key}><small>{nameOf(b)}</small><b><bdi>${nf2.format(b.usd)}</bdi></b><span className="id-cap">{market ? `${nf0.format(b.usd * market)} ${P.iqdPerBarrel}` : R.oil.noRate}</span></div>

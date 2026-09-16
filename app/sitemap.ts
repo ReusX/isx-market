@@ -63,6 +63,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: absUrl('/news'),       lastModified: now },
     // Rates tools — high-traffic SEO landing pages
     { url: absUrl('/gold'),       lastModified: now },
+    { url: absUrl('/silver'),     lastModified: dataDate },
     { url: absUrl('/oil'),        lastModified: now },
     { url: absUrl('/fx'),         lastModified: now },
     // Statistics hub + dedicated panels

@@ -56,7 +56,6 @@ export function GoldPage({ gold, fx }: { gold: GoldData | null; fx: FxData | nul
                 </p>
                 <p className="id-cap eco-when">
                   {gold?.date ? R.tools.observedOn(localeDate(gold.date.replace(/\//g, '-'), locale)) : R.tools.noObserved}
-                  {gold?.source ? ` · ${R.page.source}: ${gold.source}` : ''}
                 </p>
                 <div className="id-stats id-num eco-stats">
                   <div className="id-stat"><small>{P.gram21}</small><b><bdi>{nf0.format(k21.iqd)}</bdi></b></div>

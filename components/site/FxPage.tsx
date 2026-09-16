@@ -78,7 +78,6 @@ export function FxPage({ fx, parallel, official, faq }: { fx: FxData | null; par
             </p>
             <p className="id-cap eco-when">
               {fx?.stale ? `${C.staleNotice} · ` : ''}{fx?.date ? R.tools.observedOn(localeDate(fx.date, locale)) : R.tools.noObserved}
-              {fx?.source ? ` · ${R.page.source}: ${fx.source}` : ''}
             </p>
             <div className="id-stats id-num eco-stats">
               <div className="id-stat"><small>{C.buy}</small><b><bdi>{fx?.buy == null ? '—' : nf0.format(fx.buy)}</bdi></b></div>
