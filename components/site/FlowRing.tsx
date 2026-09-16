@@ -60,7 +60,14 @@ export function FlowRing({ rows, session, compact }: { rows: FlowRow[]; session:
   const buyLen = drawn ? Math.max(0, flow.buyShare * C - gap) : 0
   const sellLen = drawn ? Math.max(0, flow.sellShare * C - gap) : 0
   const mood = Math.abs(flow.buyShare - 0.5) < 0.03 ? 'even' : flow.net > 0 ? 'buy' : 'sell'
-  const maxSide = Math.max(1, ...days.map((d) => Math.max(d.buy, d.sell)))
+  /* Bar heights on a log scale, floored at 100k IQD. Foreign flow spans
+     four orders of magnitude within a month (a 10k day next to a 12bn day),
+     and on a linear scale nineteen sessions collapse into a hairline under
+     one. Log keeps every session legible and the heavy one still tallest;
+     the caption says so, and the tooltip and ring carry exact figures. */
+  const maxSide = Math.max(1e6, ...days.map((d) => Math.max(d.buy, d.sell)))
+  const FLOOR = 5 // log10(100k)
+  const bar = (v: number) => v > 0 ? `${Math.max(6, Math.min(100, ((Math.log10(Math.max(v, 1e5)) - FLOOR) / (Math.log10(maxSide) - FLOOR)) * 100))}%` : '0'
   const shownDate = peek ?? (period === 'session' ? (days.find((d) => d.date === session)?.date ?? days[days.length - 1].date) : null)
 
   return (
@@ -100,8 +107,8 @@ export function FlowRing({ rows, session, compact }: { rows: FlowRow[]; session:
               <button type="button" key={d.date} className={`fr-bar ${d.date === shownDate ? 'is-on' : ''}`.trim()}
                 onPointerEnter={() => setPeek(d.date)} onFocus={() => setPeek(d.date)} onBlur={() => setPeek(null)}
                 aria-label={`${shortDate(d.date, locale)} · ${c.buy} ${compact(d.buy)} · ${c.sell} ${compact(d.sell)}`}>
-                <i className="is-buy" style={{ height: `${(d.buy / maxSide) * 100}%` }} />
-                <i className="is-sell" style={{ height: `${(d.sell / maxSide) * 100}%` }} />
+                <i className="is-buy" style={{ height: bar(d.buy) }} />
+                <i className="is-sell" style={{ height: bar(d.sell) }} />
               </button>
             ))}
           </div>

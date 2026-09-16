@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useLocale } from '@/context/LocaleContext'
 import { shortDate } from '@/lib/date'
 
@@ -20,7 +20,7 @@ type Range = 'm1' | 'm3' | 'y1' | 'y3' | 'all'
    a range is measured against the market's own clock. */
 const DAYS: Record<Range, number> = { m1: 31, m3: 92, y1: 366, y3: 3 * 366, all: Infinity }
 
-const W = 800, H = 300, PT = 18, PB = 28, PL = 8, PR = 64
+const PT = 18, PB = 28, PL = 8, PR = 64
 const nf = new Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
 
 /* Value gridlines: a round step that yields three to five lines inside the
@@ -58,6 +58,18 @@ export function IndexChart({ series }: { series: IndexPoint[] }) {
   const [range, setRange] = useState<Range>('y1')
   const [hover, setHover] = useState<number | null>(null)
   const svgRef = useRef<SVGSVGElement>(null)
+  /* The SVG is drawn at the panel's real pixel width — its viewBox follows
+     the container — instead of being stretched to fit. Stretching a fixed
+     viewBox distorts everything drawn in it: circles become ellipses, the
+     crosshair drifts off the line, text widens. */
+  const [[W, H], setSize] = useState<[number, number]>([800, 300])
+  useEffect(() => {
+    const el = svgRef.current
+    if (!el) return
+    const ro = new ResizeObserver(([e]) => { const w = Math.round(e.contentRect.width), h = Math.round(e.contentRect.height); if (w > 0 && h > 0) setSize([w, h]) })
+    ro.observe(el)
+    return () => ro.disconnect()
+  }, [])
 
   const pts = useMemo(() => {
     if (!series.length) return []
@@ -81,12 +93,12 @@ export function IndexChart({ series }: { series: IndexPoint[] }) {
       ? new Date(d).toLocaleDateString(locale === 'ar' ? 'ar-u-nu-latn' : 'en-GB', { month: 'short', year: 'numeric' })
       : shortDate(d, locale)
     return { x, y, line, area, lo, hi, iHi, iLo, ticks: niceTicks(y0, y1), months: dateLabels(pts, range, fmt), first: pts[0].isx60 }
-  }, [pts, locale, range])
+  }, [pts, locale, range, W, H])
 
   const onMove = (e: React.PointerEvent<SVGSVGElement>) => {
     if (!geo || !svgRef.current) return
     const r = svgRef.current.getBoundingClientRect()
-    const px = ((e.clientX - r.left) / r.width) * W
+    const px = e.clientX - r.left
     const i = Math.round(((px - PL) / (W - PL - PR)) * (pts.length - 1))
     setHover(Math.max(0, Math.min(pts.length - 1, i)))
   }
@@ -117,7 +129,7 @@ export function IndexChart({ series }: { series: IndexPoint[] }) {
       </header>
 
       {geo ? (
-        <svg ref={svgRef} className="ix-svg id-num" viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none"
+        <svg ref={svgRef} className="ix-svg id-num" viewBox={`0 0 ${W} ${H}`}
           onPointerMove={onMove} onPointerLeave={() => setHover(null)} role="img" aria-label={c.label}>
           <defs>
             <linearGradient id="ix-wash" x1="0" y1="0" x2="0" y2="1">

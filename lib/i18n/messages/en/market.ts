@@ -125,7 +125,7 @@ export const market: typeof ar = {
       label:   (buy: string, sell: string) => `Foreign buying ${buy}, foreign selling ${sell}`,
       empty:   'Foreign flow data is unavailable.',
       note:    'Each side\u2019s share of total foreign trading.',
-      strip:   'Hover a session to show it in the ring',
+      strip:   'Hover a session to show it in the ring · log scale',
     },
   },
 }
