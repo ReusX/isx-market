@@ -1,0 +1,58 @@
+/* /heatmap · layout and the seven bands. Vocabulary in identity.css. */
+.hm2 { padding-block: 24px 0; }
+.hm2-body { min-width: 0; }
+.hm2-head { margin-bottom: 20px; }
+.hm2-summary { margin: 8px 0 0; }
+.hm2-controls { display: flex; gap: 14px; align-items: center; flex-wrap: wrap; margin-bottom: 14px; }
+
+/* The scale: seven steps, coral to mint, with the period's cap at each end. */
+.hm2-scale { display: flex; align-items: center; gap: 3px; margin-inline-start: auto; }
+.hm2-step { width: 26px; height: 14px; border: 0; border-radius: 3px; cursor: pointer; padding: 0; }
+.hm2-step.is-on { outline: 2px solid var(--blue); outline-offset: 1px; }
+.hm2-scale .id-cap { margin-inline: 6px; }
+
+/* Seven bands · mint up, coral down, deeper for larger moves. Text keeps
+   contrast by switching to the paper ink on the strongest bands. */
+.is-b0  { background: var(--surface-2); color: var(--secondary); }
+.is-b1  { background: rgba(31, 107, 69, .30); } .is-b2 { background: rgba(31, 107, 69, .58); } .is-b3 { background: #1f6b45; color: #f5f2ec; }
+.is-b-1 { background: rgba(164, 64, 47, .30); } .is-b-2 { background: rgba(164, 64, 47, .58); } .is-b-3 { background: #a4402f; color: #f5f2ec; }
+[data-theme='dark'] .is-b1  { background: rgba(143, 211, 168, .22); } [data-theme='dark'] .is-b2 { background: rgba(143, 211, 168, .45); } [data-theme='dark'] .is-b3 { background: #8fd3a8; color: #0f1218; }
+[data-theme='dark'] .is-b-1 { background: rgba(240, 160, 142, .22); } [data-theme='dark'] .is-b-2 { background: rgba(240, 160, 142, .45); } [data-theme='dark'] .is-b-3 { background: #f0a08e; color: #0f1218; }
+.is-none { background: repeating-linear-gradient(135deg, var(--surface-2) 0 6px, transparent 6px 12px); color: var(--muted); }
+
+/* Stage: the map and the side card. */
+.hm2-stage { position: relative; }
+.hm2-map { position: relative; width: 100%; overflow: hidden; border-radius: var(--r-md); background: var(--surface); border: 1px solid var(--border); isolation: isolate; }
+.hm2-mark { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; pointer-events: none; user-select: none; font-weight: 700; font-size: clamp(40px, 8vw, 96px); letter-spacing: .08em; direction: ltr; color: var(--ink); opacity: .07; z-index: 0; }
+.hm2-sector { position: absolute; border-radius: 8px; background: var(--page); overflow: hidden; z-index: 1; }
+.hm2-sector-name { position: absolute; top: 0; inset-inline: 0; height: 26px; padding: 0 8px; display: flex; align-items: center; gap: 8px; font-size: 13px; white-space: nowrap; overflow: hidden;
+  border: 0; background: none; color: var(--ink); font-family: inherit; cursor: zoom-in; text-align: start; }
+.hm2-sector-name:hover { background: var(--surface-2); }
+.hm2-zoom { margin-inline-start: auto; color: var(--muted); font-size: 12px; }
+.hm2-crumb { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+.hm2-tip { position: absolute; z-index: 4; transform: translate(-50%, calc(-100% - 14px)); pointer-events: none; white-space: nowrap;
+  padding: 6px 10px; border-radius: 8px; background: var(--surface); color: var(--ink); box-shadow: 0 0 0 1px var(--border); font-size: 13px; display: flex; gap: 8px; align-items: baseline; }
+[dir='rtl'] .hm2-tip { transform: translate(50%, calc(-100% - 14px)); }
+.hm2-sector-name b { font-weight: 500; }
+.hm2-tile { position: absolute; border: 0; border-radius: 6px; padding: 5px 7px; cursor: pointer; text-align: start; overflow: hidden;
+  display: flex; flex-direction: column; justify-content: space-between; font: inherit; transition: opacity .15s, box-shadow .15s; outline-offset: -2px; }
+.hm2-tile.is-dim { opacity: .22; }
+.hm2-tile.is-sel { box-shadow: inset 0 0 0 2px var(--blue); }
+.hm2-tile:hover { box-shadow: inset 0 0 0 2px var(--ink); }
+.hm2-tick { font-size: 12px; font-weight: 500; letter-spacing: 0; }
+.hm2-pct { font-size: 13px; }
+
+.hm2-card { position: absolute; top: 16px; inset-inline-start: 16px; width: 280px; max-width: calc(100% - 32px); padding: 16px; z-index: 3; box-shadow: 0 0 0 1px var(--border); }
+.hm2-side-head { display: grid; grid-template-columns: auto 1fr auto; gap: 10px; align-items: center; margin-bottom: 12px; }
+.hm2-side-head .id-h3 { margin: 0; font-size: 16px; }
+.hm2-side-head .id-cap { margin: 2px 0 0; }
+.hm2-facts { margin: 0 0 14px; display: flex; flex-direction: column; gap: 8px; }
+.hm2-facts > div { display: flex; justify-content: space-between; gap: 10px; font-size: 14px; border-bottom: 1px solid var(--border); padding-bottom: 8px; }
+.hm2-facts dt { color: var(--muted); } .hm2-facts dd { margin: 0; }
+.hm2-foot { display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap; margin-top: 12px; }
+.hm2-foot .id-pills { align-items: center; gap: 8px; }
+.hm2-about { margin-top: 40px; padding-inline: 0; margin-inline: 0; }
+.hm2-about summary { cursor: pointer; list-style: none; }
+.hm2-about summary::before { content: '▾ '; color: var(--muted); }
+.hm2-about[open] summary::before { content: '▴ '; }
+.hm2-about .id-body { color: var(--secondary); margin: 0 0 12px; }

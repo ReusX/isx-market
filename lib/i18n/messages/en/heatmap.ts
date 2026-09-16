@@ -65,4 +65,23 @@ export const heatmap: typeof ar = {
   notTraded:  (date: string) => `Did not trade in the latest session · last actual trade ${date}.`,
   noTradeData:'No trading figures are available for this company.',
   openCompany:'Open the company page',
+  page: {
+    eyebrow: 'Markets',
+    lede:    'The whole market in one picture: each square is a company, sized by market cap and coloured by its price change over the chosen period, grouped by sector.',
+    sizeBy:  'Size by',
+    sizeCap: 'Market cap',
+    sizeValue: 'Traded value (20 sessions)',
+    summary: (up: string, down: string, flat: string, none: string, period: string) =>
+      `Over ${period}: ${up} up \u00b7 ${down} down \u00b7 ${flat} flat \u00b7 ${none} no reading`,
+    excluded: (n: string) => `${n} companies are off the map: no market cap, or suspended for more than 60 days.`,
+    pick:    'Click any square to see its details here.',
+    about: {
+      title: 'How to read the map',
+      body: [
+        'Each square is a company listed on the Iraq Stock Exchange. Its area is its market cap (last price \u00d7 shares) or its 20-session average traded value, as you choose. Its colour is the price change over the period: green up, coral down, deeper for larger moves.',
+        'Squares are grouped by sector, and a sector\u2019s move is its companies\u2019 moves weighted by market cap. A company with no reference price for the period is hatched, not coloured, because \u201cno reading\u201d is not \u201cflat\u201d.',
+        'The colour scale depends on the period: \u00b13% in a day is treated like \u00b160% in a year. Companies suspended for more than sixty days are not shown because their price no longer describes the market.',
+      ],
+    },
+  },
 }

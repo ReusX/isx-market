@@ -1,8 +1,9 @@
-import { Heatmap } from '@/components/routes/Heatmap'
+import { HeatmapPage } from '@/components/site/HeatmapPage'
+import { loadScreener } from '@/lib/marketServer'
 
-// Title/description live in ./layout.tsx. Shared with /en/heatmap.
 export const revalidate = 300
 
-export default function Page() {
-  return <Heatmap />
+/** /heatmap · the market in one picture; rows from the same view as the screener. */
+export default async function Page() {
+  return <HeatmapPage initial={await loadScreener()} />
 }
