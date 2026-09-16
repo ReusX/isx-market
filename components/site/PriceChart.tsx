@@ -76,6 +76,30 @@ function sma(bars: Bar[], n: number): (number | null)[] {
   return out
 }
 
+
+/* Stroked icons, currentColor, 20px grid. Drawing tools read as pictures on
+   a rail the way a chart's tools always have; text pills for them produced
+   twenty-one labels above the plot and buried the chart itself. */
+const ICON: Record<string, React.ReactNode> = {
+  cursor: <><path d="M10 3v5M10 12v5M3 10h5M12 10h5" /><circle cx="10" cy="10" r="1.2" /></>,
+  trend: <><path d="M4 16 16 4" /><circle cx="16" cy="4" r="1.8" /><circle cx="4" cy="16" r="1.8" /></>,
+  hline: <><path d="M3 7h14M3 13h14" /><circle cx="14" cy="7" r="1.6" /><circle cx="6" cy="13" r="1.6" /></>,
+  rect: <rect x="3.5" y="5.5" width="13" height="9" rx="1" />,
+  fib: <><path d="M3 5h14M3 8.5h14M3 12h14M3 15.5h14" /></>,
+  trash: <><path d="M4 6h12M8 6V4h4v2M6.5 6l.7 10h5.6l.7-10" /></>,
+  settings: <><circle cx="10" cy="10" r="2.6" /><path d="M10 2.5v2.2M10 15.3v2.2M17.5 10h-2.2M4.7 10H2.5M15.3 4.7l-1.6 1.6M6.3 13.7l-1.6 1.6M15.3 15.3l-1.6-1.6M6.3 6.3 4.7 4.7" /></>,
+  reset: <><path d="M4 10a6 6 0 1 1 1.8 4.3" /><path d="M3 15.5V11h4.5" /></>,
+  expand: <><path d="M3 7V3h4M13 3h4v4M17 13v4h-4M7 17H3v-4" /></>,
+  collapse: <><path d="M7 3v4H3M13 7V3h4M13 13h4v4M7 17v-4H3" /></>,
+  download: <><path d="M10 3v9M6.5 8.5 10 12l3.5-3.5M4 15.5h12" /></>,
+}
+function Icon({ name }: { name: string }) {
+  return (
+    <svg viewBox="0 0 20 20" width="18" height="18" fill="none" stroke="currentColor"
+      strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">{ICON[name]}</svg>
+  )
+}
+
 export function PriceChart({ bars, label, sym }: { bars: Bar[]; label: string; sym: string }) {
   const { t, locale } = useLocale()
   const C = t.company.chart
@@ -95,7 +119,19 @@ export function PriceChart({ bars, label, sym }: { bars: Bar[]; label: string; s
   const draftRef = useRef<Drawing | null>(null)
   const [msg, setMsg] = useState<string | null>(null)
   const svgRef = useRef<SVGSVGElement | null>(null)
+  const menuRef = useRef<HTMLDetailsElement | null>(null)
   const drag = useRef<{ x: number; a: number; b: number } | null>(null)
+
+  /* A <details> menu left open swallows the next click somewhere else on the
+     page, so close it when the pointer goes elsewhere. */
+  useEffect(() => {
+    const away = (e: MouseEvent) => {
+      const el = menuRef.current
+      if (el?.open && !el.contains(e.target as Node)) el.open = false
+    }
+    document.addEventListener('pointerdown', away)
+    return () => document.removeEventListener('pointerdown', away)
+  }, [])
 
   /* Drawings persist per symbol, in this browser only. Wrapped because
      storage throws in a private window and must never break the chart.
@@ -341,37 +377,57 @@ export function PriceChart({ bars, label, sym }: { bars: Bar[]; label: string; s
           ))}
         </div>
         <div className="cmp-tools-end">
-          <div className="id-pills" role="group" aria-label={K.view}>
-            {(['candles', 'line', 'area'] as const).map((v) => (
-              <button key={v} type="button" className="id-pill is-sm" aria-pressed={view === v} onClick={() => setView(v)}>{K[v]}</button>
-            ))}
-          </div>
-          <div className="id-pills" role="group" aria-label={K.ma}>
-            {MAS.map((m) => (
-              <button key={m} type="button" className="id-pill is-sm" aria-pressed={mas.includes(m)}
-                onClick={() => setMas((cur) => cur.includes(m) ? cur.filter((z) => z !== m) : [...cur, m])}>{K.maN(String(m))}</button>
-            ))}
-          </div>
-          <div className="id-pills" role="group" aria-label={K.scale}>
-            <button type="button" className="id-pill is-sm" aria-pressed={!logScale} onClick={() => setLogScale(false)}>{K.linear}</button>
-            <button type="button" className="id-pill is-sm" aria-pressed={logScale} onClick={() => setLogScale(true)}>{K.log}</button>
-          </div>
-          <div className="id-pills" role="group" aria-label={K.draw}>
-            {(['cursor', 'trend', 'hline', 'rect', 'fib'] as const).map((tl) => (
-              <button key={tl} type="button" className="id-pill is-sm" aria-pressed={tool === tl} onClick={() => { setTool(tl); setSel(null) }}>{K[tl]}</button>
-            ))}
-          </div>
-          <div className="id-pills">
-            {sel ? <button type="button" className="id-pill is-sm" onClick={() => { setDraws((l) => l.filter((d) => d.id !== sel)); setSel(null) }}>{K.deleteOne}</button> : null}
-            {draws.length ? <button type="button" className="id-pill is-sm" onClick={() => { setDraws([]); setSel(null) }}>{K.clearAll}</button> : null}
-          </div>
-          <div className="id-pills">
-            <button type="button" className="id-pill is-sm" onClick={() => { setWin(null); setHover(null) }}>{K.reset}</button>
-            <button type="button" className="id-pill is-sm" aria-pressed={full} onClick={() => setFull((f) => !f)}>{full ? K.exitFullscreen : K.fullscreen}</button>
-            <button type="button" className="id-pill is-sm" onClick={download}>{msg ?? K.download}</button>
-          </div>
+          {/* View, averages and scale live behind one control: eight pills
+              across the top of a chart is a settings screen, not a chart. */}
+          <details className="cmp-menu" ref={menuRef}>
+            <summary className="cmp-ico" aria-label={K.settings}><Icon name="settings" /></summary>
+            <div className="cmp-menu-body">
+              <p className="cmp-menu-h">{K.view}</p>
+              <div className="id-pills">
+                {(['candles', 'line', 'area'] as const).map((v) => (
+                  <button key={v} type="button" className="id-pill is-sm" aria-pressed={view === v} onClick={() => setView(v)}>{K[v]}</button>
+                ))}
+              </div>
+              <p className="cmp-menu-h">{K.ma}</p>
+              <div className="id-pills">
+                {MAS.map((m) => (
+                  <button key={m} type="button" className="id-pill is-sm" aria-pressed={mas.includes(m)}
+                    onClick={() => setMas((cur) => cur.includes(m) ? cur.filter((z) => z !== m) : [...cur, m])}>{K.maN(String(m))}</button>
+                ))}
+              </div>
+              <p className="cmp-menu-h">{K.scale}</p>
+              <div className="id-pills">
+                <button type="button" className="id-pill is-sm" aria-pressed={!logScale} onClick={() => setLogScale(false)}>{K.linear}</button>
+                <button type="button" className="id-pill is-sm" aria-pressed={logScale} onClick={() => setLogScale(true)}>{K.log}</button>
+              </div>
+            </div>
+          </details>
+          <button type="button" className="cmp-ico" aria-label={K.reset} title={K.reset} onClick={() => { setWin(null); setHover(null) }}><Icon name="reset" /></button>
+          <button type="button" className="cmp-ico" aria-label={full ? K.exitFullscreen : K.fullscreen} title={full ? K.exitFullscreen : K.fullscreen}
+            aria-pressed={full} onClick={() => setFull((f) => !f)}><Icon name={full ? 'collapse' : 'expand'} /></button>
+          <button type="button" className="cmp-ico" aria-label={K.download} title={msg ?? K.download} onClick={download}><Icon name="download" /></button>
         </div>
       </div>
+
+      <div className="cmp-stage">
+        {/* The drawing rail sits ON the chart, as a chart's tools do.
+            Physically left in BOTH locales: the time axis runs oldest → newest
+            left to right whatever the page direction, so the rail belongs with
+            it rather than flipping to the price axis. */}
+        <div className="cmp-rail" role="toolbar" aria-label={K.draw} aria-orientation="vertical">
+          {([['cursor', 'cursor'], ['trend', 'trend'], ['hline', 'hline'], ['rect', 'rect'], ['fib', 'fib']] as const).map(([tl, ic]) => (
+            <button key={tl} type="button" className="cmp-rail-btn" aria-pressed={tool === tl} aria-label={K[tl]} title={K[tl]}
+              onClick={() => { setTool(tl); setSel(null) }}><Icon name={ic} /></button>
+          ))}
+          {sel || draws.length ? <span className="cmp-rail-sep" aria-hidden="true" /> : null}
+          {sel ? (
+            <button type="button" className="cmp-rail-btn" aria-label={K.deleteOne} title={K.deleteOne}
+              onClick={() => { setDraws((l) => l.filter((d) => d.id !== sel)); setSel(null) }}><Icon name="trash" /></button>
+          ) : draws.length ? (
+            <button type="button" className="cmp-rail-btn" aria-label={K.clearAll} title={K.clearAll}
+              onClick={() => { setDraws([]); setSel(null) }}><Icon name="trash" /></button>
+          ) : null}
+        </div>
 
       <svg ref={svgRef} viewBox={`0 0 ${W} ${H}`} className="cmp-svg id-num" role="img" aria-label={label}
         onWheel={onWheel}
@@ -507,7 +563,32 @@ export function PriceChart({ bars, label, sym }: { bars: Bar[]; label: string; s
             <circle cx={x(hover)} cy={y(pts[hover].close)} r="3.5" className="cmp-dot" />
           </g>
         ) : null}
+
+        {/* The price lives ON the axis, where a reader looks for it — the last
+            close always, and the hovered close while a crosshair is up. The
+            last-close badge is the one number the chart is really about, so
+            it is drawn last and never clipped. */}
+        {(() => {
+          const lastC = pts[pts.length - 1]
+          const prevC = pts.length > 1 ? pts[pts.length - 2] : null
+          const dir = prevC ? (lastC.close > prevC.close ? 'is-up' : lastC.close < prevC.close ? 'is-down' : '') : ''
+          const ly = y(lastC.close)
+          return (
+            <g className={`cmp-last ${dir}`.trim()}>
+              <line x1={PL} x2={W - PR} y1={ly} y2={ly} className="cmp-last-line" />
+              <rect x={W - PR + 2} y={ly - 9} width={PR - 6} height={18} rx="3" className="cmp-last-tag" />
+              <text x={W - PR + 6} y={ly} className="cmp-last-text">{nf.format(lastC.close)}</text>
+            </g>
+          )
+        })()}
+        {hover != null && hover !== pts.length - 1 ? (
+          <g className="cmp-cur">
+            <rect x={W - PR + 2} y={y(pts[hover].close) - 9} width={PR - 6} height={18} rx="3" className="cmp-cur-tag" />
+            <text x={W - PR + 6} y={y(pts[hover].close)} className="cmp-cur-text">{nf.format(pts[hover].close)}</text>
+          </g>
+        ) : null}
       </svg>
+      </div>
       <p className="id-cap cmp-hint">{tool === 'cursor' ? K.zoomHint : K.drawHint}{draws.length ? ` · ${K.drawCount(String(draws.length))}` : ''}</p>
     </div>
   )

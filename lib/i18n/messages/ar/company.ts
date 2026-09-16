@@ -200,6 +200,7 @@ export const company = {
     noSeries: 'لا يتوفر سجل أسعار كافٍ لرسم السهم.',
     chartTools: {
       view: 'نوع الرسم',
+      settings: 'إعدادات الرسم',
       candles: 'شموع',
       line: 'خط',
       area: 'مساحة',

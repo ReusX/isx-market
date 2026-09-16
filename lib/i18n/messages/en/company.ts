@@ -180,6 +180,7 @@ export const company: typeof ar = {
     noSeries: 'Not enough price history to draw this share.',
     chartTools: {
       view: 'Chart type',
+      settings: 'Chart settings',
       candles: 'Candles',
       line: 'Line',
       area: 'Area',
