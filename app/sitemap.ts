@@ -117,6 +117,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const fin = await bankFinancials(allBanks.map((b) => b.ticker).filter(Boolean) as string[])
   const banks: MetadataRoute.Sitemap = [
     { url: absUrl('/banks'), lastModified: dataDate },
+    { url: absUrl('/banks/deposits'), lastModified: dataDate },
+    { url: absUrl('/banks/loans'), lastModified: dataDate },
     ...allBanks
       .filter((b) => indexability(
         b,

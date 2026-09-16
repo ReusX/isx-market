@@ -149,3 +149,32 @@ export const loadBankProfile = cache(async (slug: string): Promise<BankProfileIn
     indexable: indexability(bank, products, services, Boolean(fin), editorial).indexable,
   }
 })
+
+/* ── /banks/deposits · /banks/loans ───────────────────────────────────────── */
+
+export type RateRow = ProfileProduct & { bankAr: string; bankEn: string; bankIslamic: boolean }
+export type BankRatesInitial = { rows: RateRow[]; asOf: string | null }
+
+const isDepositKind = (kind: string) => kind.startsWith('deposit') || kind === 'account_current'
+
+/**
+ * Every published product of one family, across all banks, with its facts
+ * attached — the compare pages are the profile's product block laid out as
+ * a table. Products WITHOUT a rate stay in: a bank that names a product and
+ * publishes no number is a fact worth a row, said in those words.
+ */
+export const loadBankRates = cache(async (family: 'deposits' | 'loans'): Promise<BankRatesInitial> => {
+  const [banks, products] = await Promise.all([listBanks(), listProducts()])
+  const mine = products.filter((p) => (family === 'deposits') === isDepositKind(p.kind))
+  const { facts, conditions } = await productDetail(mine.map((p) => p.id))
+  const bySlug = new Map(banks.map((b) => [b.slug, b]))
+  const rows: RateRow[] = mine.flatMap((p) => {
+    const b = bySlug.get(p.bank_slug)
+    if (!b) return []
+    const f = facts.filter((x) => x.product_id === p.id)
+    const ids = new Set(f.map((x) => x.id))
+    return [{ ...p, facts: f, conditions: conditions.filter((x) => ids.has(x.fact_id)), bankAr: b.name_ar, bankEn: b.name_en, bankIslamic: b.bank_type === 'islamic' }]
+  })
+  const asOf = rows.map((r) => r.last_verified).filter(Boolean).sort().pop() ?? null
+  return { rows, asOf }
+})

@@ -10,7 +10,7 @@ import { AboutSection } from './AboutSection'
 import type { BankProfileInitial, ProfileProduct } from '@/lib/banksServer'
 import { isCurrentEnough, type FactRow } from '@/lib/banks'
 import { CATEGORY_KEYS, ratedCategoryCount, storeRatingText, type CategoryKey } from '@/lib/bankEditorial'
-import { describeCondition, factText, factNote, introSentence } from '@/lib/bankFacts'
+import { describeCondition, factText, factNote, introSentence, basisLabel } from '@/lib/bankFacts'
 import '@/styles/banks-page.css'
 
 /**
@@ -31,8 +31,8 @@ import '@/styles/banks-page.css'
  */
 const RAIL = [
   { key: 'banks', route: '/banks' },
-  { key: 'deposits', route: '/banks/deposits', soon: true },
-  { key: 'loans', route: '/banks/loans', soon: true },
+  { key: 'deposits', route: '/banks/deposits' },
+  { key: 'loans', route: '/banks/loans' },
   { key: 'cards', route: '/banks/cards', soon: true },
 ] as const
 
@@ -275,7 +275,7 @@ function Product({ p }: { p: ProfileProduct }) {
             <>
               <strong><bdi>{headline.value_num}%</bdi></strong>
               <span className="id-cap">
-                {basis?.state === 'KNOWN' && basis.value_text ? ((B.rateBasis as Record<string, string>)[basis.value_text] ?? basis.value_text)
+                {basis?.state === 'KNOWN' && basis.value_text ? (basisLabel(basis.value_text, B) ?? basis.value_text)
                   : basis?.state === 'UNKNOWN' ? B.rateBasis.unstated : null}
               </span>
             </>

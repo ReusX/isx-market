@@ -51,6 +51,13 @@ export function describeCondition(x: ConditionRow, c: C): string {
   return `${field} ${op} ${raw}`
 }
 
+/** A rate basis code in the reader's language. The seeds use one
+ *  vocabulary (`annual`, `reducing`) and the editorial package another
+ *  (`expected_profit_not_guaranteed`); both are dictionaries here. */
+export function basisLabel(code: string, c: C): string | null {
+  return (c.rateBasis as Record<string, string>)[code] ?? (c.ed.basis as Record<string, string>)[code] ?? null
+}
+
 /** The fact's value as text, or the state's own words when there is none. */
 export function factText(f: FactRow, c: C, locale: Locale): { text: string; known: boolean } {
   if (f.state === 'UNKNOWN') return { text: c.notPublished, known: false }
@@ -59,7 +66,7 @@ export function factText(f: FactRow, c: C, locale: Locale): { text: string; know
   if (f.state === 'UNVERIFIED') return { text: c.notChecked, known: false }
   if (f.value_bool != null) return { text: f.value_bool ? '✓' : '✗', known: true }
   if (f.value_text != null) {
-    const basis = (c.rateBasis as Record<string, string>)[f.value_text]
+    const basis = basisLabel(f.value_text, c)
     if (basis) return { text: basis, known: true }
     /* Free prose: the bank's own Arabic is the evidence, our English is the
        rendering. */

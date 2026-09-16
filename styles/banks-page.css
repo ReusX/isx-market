@@ -125,3 +125,18 @@
 .bnk-src { margin-top: 16px; }
 .bnk-src summary { cursor: pointer; }
 .bnk-src ol { margin: 8px 0 0; padding-inline-start: 20px; display: grid; gap: 4px; }
+
+/* ── /banks/deposits · /banks/loans ─────────────────────────────────────── */
+.bnk-rates { min-width: 900px; }
+.bnk-rates td { padding: 13px 0; font-size: 14px; vertical-align: top; }
+.bnk-rates th + th, .bnk-rates td + td { padding-inline-start: 16px; }
+.bnk-rates .id-sub { display: block; }
+.bnk-rate-cell b { font-weight: 300; font-size: 22px; line-height: 1; color: var(--moss-ink); }
+.bnk-basis { max-width: 320px; }
+/* Sortable hub headers: a button that looks like the header, with the
+   direction as a small mark. */
+.bnk-th { background: none; border: 0; padding: 0; font: inherit; color: inherit; cursor: pointer; display: inline-flex; gap: 4px; align-items: center; }
+.bnk-th:hover { color: var(--ink); }
+.bnk-table th[aria-sort] .bnk-th { color: var(--ink); }
+.bnk-table th[aria-sort] .bnk-th::after { content: '↓'; font-size: 11px; }
+.bnk-table th[aria-sort='ascending'] .bnk-th::after { content: '↑'; }

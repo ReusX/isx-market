@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useLocale } from '@/context/LocaleContext'
 import { SiteShell } from './SiteShell'
 import { DoorRail } from './DoorRail'
@@ -28,14 +28,19 @@ import '@/styles/banks-page.css'
  */
 const RAIL = [
   { key: 'banks', route: '/banks' },
-  { key: 'deposits', route: '/banks/deposits', soon: true },
-  { key: 'loans', route: '/banks/loans', soon: true },
+  { key: 'deposits', route: '/banks/deposits' },
+  { key: 'loans', route: '/banks/loans' },
   { key: 'cards', route: '/banks/cards', soon: true },
 ] as const
 
 type Filter = 'all' | 'commercial' | 'islamic' | 'investment' | 'listed' | 'state' | 'foreign' | 'publishing'
-type Sort = 'assets' | 'name' | 'rating'
+type SortKey = 'name' | 'type' | 'ownership' | 'status' | 'assets' | 'rating'
+type Dir = 'asc' | 'desc'
 const FILTERS: Filter[] = ['all', 'commercial', 'islamic', 'investment', 'listed', 'state', 'foreign', 'publishing']
+const SORTS: SortKey[] = ['name', 'type', 'ownership', 'status', 'assets', 'rating']
+/** The direction a column starts in when first clicked: figures descend, words ascend. */
+const FIRST: Record<SortKey, Dir> = { name: 'asc', type: 'asc', ownership: 'asc', status: 'asc', assets: 'desc', rating: 'desc' }
+const STATUS_RANK = { operating: 0, establishment: 1, guardianship: 2, liquidation: 3 }
 
 type Units = { tn: string; bn: string; mn: string; k: string }
 function compact(v: number | null | undefined, u: Units): string {
@@ -56,7 +61,28 @@ export function BanksPage({ initial }: { initial: BanksInitial }) {
   const name = (r: { ar: string; en: string }) => (ar ? r.ar : r.en || r.ar)
   const [q, setQ] = useState('')
   const [filter, setFilter] = useState<Filter>('all')
-  const [sort, setSort] = useState<Sort>('assets')
+  const [sort, setSort] = useState<{ key: SortKey; dir: Dir }>({ key: 'assets', dir: 'desc' })
+
+  /* View state in the URL — read on mount, written on change — so a filtered
+     list is a link. The route stays static: nothing here reaches the server. */
+  useEffect(() => {
+    const sp = new URLSearchParams(window.location.search)
+    const f = sp.get('filter') as Filter | null
+    if (f && FILTERS.includes(f)) setFilter(f)
+    const k = sp.get('sort') as SortKey | null
+    if (k && SORTS.includes(k)) setSort({ key: k, dir: sp.get('dir') === 'asc' ? 'asc' : sp.get('dir') === 'desc' ? 'desc' : FIRST[k] })
+    const query = sp.get('q')
+    if (query) setQ(query)
+  }, [])
+  useEffect(() => {
+    const sp = new URLSearchParams()
+    if (filter !== 'all') sp.set('filter', filter)
+    if (sort.key !== 'assets' || sort.dir !== 'desc') { sp.set('sort', sort.key); if (sort.dir !== FIRST[sort.key]) sp.set('dir', sort.dir) }
+    if (q.trim()) sp.set('q', q.trim())
+    const qs = sp.toString()
+    window.history.replaceState(null, '', `${window.location.pathname}${qs ? `?${qs}` : ''}`)
+  }, [filter, sort, q])
+  const clickSort = (key: SortKey) => setSort((s) => s.key === key ? { key, dir: s.dir === 'asc' ? 'desc' : 'asc' } : { key, dir: FIRST[key] })
 
   const rows = useMemo(() => {
     const needle = q.trim().toLowerCase()
@@ -73,10 +99,24 @@ export function BanksPage({ initial }: { initial: BanksInitial }) {
     }
     const list = initial.rows.filter(keep)
     const byName = (a: HubRow, b: HubRow) => name(a).localeCompare(name(b), ar ? 'ar' : 'en')
-    if (sort === 'name') return list.sort(byName)
-    if (sort === 'rating') return list.sort((a, b) => (b.rating?.overall ?? -1) - (a.rating?.overall ?? -1) || byName(a, b))
-    /* Assets: listed banks with a filing first, largest first; the rest by name. */
-    return list.sort((a, b) => (b.assets ?? -1) - (a.assets ?? -1) || byName(a, b))
+    const m = sort.dir === 'asc' ? 1 : -1
+    const word = (f: (r: HubRow) => string) => (a: HubRow, b: HubRow) => f(a).localeCompare(f(b), ar ? 'ar' : 'en') * m || byName(a, b)
+    /* Figures: a missing value sorts last whichever way the column runs. */
+    const num = (f: (r: HubRow) => number | null) => (a: HubRow, b: HubRow) => {
+      const x = f(a), y = f(b)
+      if (x == null && y == null) return byName(a, b)
+      if (x == null) return 1
+      if (y == null) return -1
+      return (x - y) * m || byName(a, b)
+    }
+    switch (sort.key) {
+      case 'name': return list.sort((a, b) => byName(a, b) * m)
+      case 'type': return list.sort(word((r) => B.type[r.type]))
+      case 'ownership': return list.sort(word((r) => B.ownership[r.ownership]))
+      case 'status': return list.sort((a, b) => (STATUS_RANK[a.status] - STATUS_RANK[b.status]) * m || byName(a, b))
+      case 'rating': return list.sort(num((r) => r.rating?.overall ?? null))
+      default: return list.sort(num((r) => r.assets))
+    }
   }, [initial.rows, q, filter, sort, ar]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const c = initial.counts
@@ -122,11 +162,6 @@ export function BanksPage({ initial }: { initial: BanksInitial }) {
                 <button key={f} type="button" className="id-pill is-sm" aria-pressed={filter === f} onClick={() => setFilter(f)}>{H.filters[f]}</button>
               ))}
             </div>
-            <div className="id-pills bnk-sort" role="group" aria-label={H.sort}>
-              {(['assets', 'name', 'rating'] as Sort[]).map((s) => (
-                <button key={s} type="button" className="id-pill is-sm" aria-pressed={sort === s} onClick={() => setSort(s)}>{H.sorts[s]}</button>
-              ))}
-            </div>
           </div>
           <p className="id-cap bnk-shown">{H.shown(nf.format(rows.length), nf.format(initial.rows.length))}</p>
 
@@ -134,14 +169,18 @@ export function BanksPage({ initial }: { initial: BanksInitial }) {
             <table className="id-table bnk-table id-num">
               <thead>
                 <tr>
-                  <th scope="col">{H.cols.bank}</th>
-                  <th scope="col">{H.cols.type}</th>
-                  <th scope="col">{H.cols.ownership}</th>
-                  <th scope="col">{H.cols.status}</th>
+                  {([['name', H.cols.bank, ''], ['type', H.cols.type, ''], ['ownership', H.cols.ownership, ''], ['status', H.cols.status, '']] as const).map(([k, label, cls]) => (
+                    <th scope="col" key={k} className={cls} aria-sort={sort.key === k ? (sort.dir === 'asc' ? 'ascending' : 'descending') : undefined}>
+                      <button type="button" className="bnk-th" onClick={() => clickSort(k)}>{label}</button>
+                    </th>
+                  ))}
                   <th scope="col">{H.cols.ticker}</th>
                   <th scope="col">{H.cols.publishes}</th>
-                  <th scope="col" className="is-end">{H.cols.assets}</th>
-                  <th scope="col" className="is-end">{H.cols.rating}</th>
+                  {([['assets', H.cols.assets], ['rating', H.cols.rating]] as const).map(([k, label]) => (
+                    <th scope="col" key={k} className="is-end" aria-sort={sort.key === k ? (sort.dir === 'asc' ? 'ascending' : 'descending') : undefined}>
+                      <button type="button" className="bnk-th" onClick={() => clickSort(k)}>{label}</button>
+                    </th>
+                  ))}
                 </tr>
               </thead>
               <tbody>

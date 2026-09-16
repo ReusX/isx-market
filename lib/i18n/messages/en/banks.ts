@@ -348,4 +348,39 @@ export const banks: typeof ar = {
       'The rating is editorial, from published sources — the bank\'s site, the app store and what users write — and neither measures the bank\'s safety nor is endorsed by it.',
     ],
   },
+  /* ── /banks/deposits · /banks/loans · the compare pages (site/BankRatesPage) ── */
+  rates: {
+    deposits: {
+      title: 'Deposit rates at Iraqi banks',
+      note: 'Every term deposit and savings account whose terms a bank has published on its own site, the rate as announced for individuals in dinars unless stated. Rates are not confirmed with the bank; a figure older than a year is shown with its date. A bank that names a deposit and publishes no rate appears as such.',
+      seoTitle: 'Deposit rates at Iraqi banks · published rates compared',
+      seoDescription: 'Term-deposit and savings rates as Iraqi banks publish them on their own sites: the rate, the term, the minimum amount and the date checked.',
+      empty: 'No published deposits.',
+    },
+    loans: {
+      title: 'Loan and financing rates at Iraqi banks',
+      note: 'Every loan and financing product whose terms a bank has published on its own site: the rate as announced, its basis, the term and the maximum amount. At Islamic banks the rate is a murabaha margin or financing return, not interest. Rates are not confirmed with the bank.',
+      seoTitle: 'Loan rates at Iraqi banks · published rates compared',
+      seoDescription: 'Personal, car, home and business financing as Iraqi banks publish it: the rate, its basis, the term, the maximum amount and the date checked.',
+      empty: 'No published loans.',
+    },
+    kinds: { deposit_savings: 'Savings', deposit_term: 'Term deposit', account_current: 'Current account', loan_personal: 'Personal', loan_auto: 'Car', loan_home: 'Home', loan_business: 'Business', advance: 'Advance' },
+    filters: { all: 'All', conventional: 'Conventional', islamic: 'Islamic', rated: 'With a published rate' },
+    cols: { bank: 'Bank', product: 'Product', rate: 'Rate', basis: 'Basis and conditions', term: 'Term', amount: 'Amount', verified: 'Checked' },
+    noRate: 'No rate published',
+    dated: (d: string) => `Rate published ${d}`,
+    upTo: (v: string) => `up to ${v}`,
+    from: (v: string) => `from ${v}`,
+    fromTo: (a: string, b: string) => `${a} – ${b}`,
+    shown: (n: string) => `${n} products`,
+    asOf: (d: string) => `Last checked ${d}`,
+    about: {
+      title: 'About these figures',
+      body: [
+        'Each row is a product whose terms the bank published on its site; the rate is the ordinary retail scenario as the bank announced it, with its conditions. Other rates under other conditions are on the bank\'s page.',
+        'Rates are as the banks published them and were not confirmed directly. A rate published more than a year ago keeps its date and is never shown as a current offer.',
+        'Banks missing here either publish no product terms, could not be reached from outside Iraq, or have not been researched yet. A bank\'s absence does not mean it does not offer the product.',
+      ],
+    },
+  },
 }

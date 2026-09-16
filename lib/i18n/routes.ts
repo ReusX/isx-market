@@ -49,6 +49,8 @@ export const ROUTES: RouteEntry[] = [
   /* Left the Arabic-only set when the legacy page was replaced: /banks is now
      a real bilingual research surface, and each profile has an English twin. */
   { pattern: '/banks',                     cls: 'mirror' },
+  { pattern: '/banks/deposits',            cls: 'mirror' },
+  { pattern: '/banks/loans',               cls: 'mirror' },
   { pattern: '/banks/[slug]',              cls: 'mirror' },
   { pattern: '/c/[sym]',                   cls: 'mirror' },
   { pattern: '/c/[sym]/financials',        cls: 'mirror' },
