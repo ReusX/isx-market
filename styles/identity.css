@@ -58,7 +58,7 @@ body {
 /* ── Blocks ─────────────────────────────────────────────────────────────── */
 .id-block { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-lg); padding: 40px; }
 .id-block.is-blue { background: var(--blue); color: var(--white); border-color: transparent; }
-.id-block.is-navy { background: var(--navy); color: var(--white); border-color: transparent; }
+.id-block.is-navy { background: var(--block-bg); color: var(--block-ink); border-color: var(--block-line); }
 .id-panel { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-md); padding: 20px; }
 .id-well  { background: var(--surface-2); border-radius: var(--r-md); padding: 20px; }
 @media (max-width: 760px) { .id-block { padding: 24px 20px; border-radius: 24px; } }
@@ -78,8 +78,8 @@ body {
 .id-btn.is-blue:hover { background: var(--blue-deep); }
 .id-btn.is-sm { min-height: 36px; padding: 6px 16px; font-size: 13px; }
 /* On a blue or navy block, the outline button borrows the white hairline. */
-.is-blue .id-btn, .is-navy .id-btn { background: transparent; color: var(--white); border-color: var(--white-22); }
-.is-blue .id-btn.is-light, .is-navy .id-btn.is-light { background: var(--white); color: var(--navy); border-color: var(--white); }
+.is-blue .id-btn { background: transparent; color: var(--white); border-color: var(--white-22); }
+.is-blue .id-btn.is-light { background: var(--white); color: var(--navy); border-color: var(--white); }
 
 .id-pills { display: flex; gap: 8px; flex-wrap: wrap; }
 .id-pill {

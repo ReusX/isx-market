@@ -44,27 +44,27 @@
 .iq-page {
   --mv-hero: #146bfd;
   --mv-hero-bright: #0f56d1;
-  --mv-ink: #002664;
-  --mv-ink-2: rgba(0, 38, 100, 0.64);  /* 0.62 measured 4.41:1 on cream; 0.64 clears 4.5 */
-  --mv-ink-3: rgba(0, 38, 100, 0.52);
-  --mv-line: rgba(0, 38, 100, 0.14);
-  --mv-line-strong: rgba(0, 38, 100, 0.28);
-  --mv-panel: #ffffff;
-  --mv-panel-solid: #ffffff;
-  --mv-well: #fbf6ef;
+  --mv-ink: #1a2035;
+  --mv-ink-2: rgba(26, 32, 53, 0.66);
+  --mv-ink-3: rgba(26, 32, 53, 0.54);
+  --mv-line: rgba(24, 30, 50, 0.12);
+  --mv-line-strong: rgba(24, 30, 50, 0.26);
+  --mv-panel: #fffdf9;
+  --mv-panel-solid: #fffdf9;
+  --mv-well: #ede9e1;
   /* No shadows in this identity: elevation is a hairline. */
-  --mv-shadow: 0 0 0 1px rgba(0, 38, 100, 0.14);
+  --mv-shadow: 0 0 0 1px rgba(24, 30, 50, 0.12);
 
   /* Rising and falling as text, 4.5:1 on cream and on white. The pastel
      chips (--moss / --sand in globals.css) carry the colour where a ground
      is available. */
-  --mv-up: #157a52;
-  --mv-up-soft: #e1efac;
-  --mv-down: #c0392b;
-  --mv-down-soft: #f3dec5;
+  --mv-up: #1f6b45;
+  --mv-up-soft: #dcecd8;
+  --mv-down: #a4402f;
+  --mv-down-soft: #f4dcd0;
 
   /* Flat cream. The environment is no longer a gradient. */
-  --mv-env: #fffbf7;
+  --mv-env: #f5f2ec;
 }
 
 [data-theme='dark'] .iq-page {

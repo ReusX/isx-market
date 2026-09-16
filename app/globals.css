@@ -27,29 +27,29 @@
   color-scheme: light;
 
   /* ── Identity primitives ── */
-  --cream:      #fffbf7;
-  --navy:       #002664;
+  --cream:      #f5f2ec;  /* L2 · paper */
+  --navy:       #1a2035;  /* L2 · softened ink; the saturated navy read harsh at length */
   --blue:       #146bfd;
   --blue-deep:  #0f56d1;
   --white:      #ffffff;
-  --moss:       #e1efac;  /* rising · chip ground */
-  --moss-ink:   #273d12;  /* rising · chip text */
-  --sand:       #f3dec5;  /* falling · chip ground */
-  --sand-ink:   #654516;  /* falling · chip text */
-  --ink-60:     rgba(0, 38, 100, 0.64);  /* 4.5:1 on cream; 0.62 measured 4.41 */
-  --ink-40:     rgba(0, 38, 100, 0.42);
-  --ink-14:     rgba(0, 38, 100, 0.14);
-  --ink-08:     rgba(0, 38, 100, 0.08);
+  --moss:       #dcecd8;  /* rising · chip ground */
+  --moss-ink:   #1f6b45;  /* rising · chip text */
+  --sand:       #f4dcd0;  /* falling · chip ground */
+  --sand-ink:   #a4402f;  /* falling · chip text */
+  --ink-60:     rgba(26, 32, 53, 0.64);
+  --ink-40:     rgba(26, 32, 53, 0.44);
+  --ink-14:     rgba(24, 30, 50, 0.12);
+  --ink-08:     rgba(24, 30, 50, 0.07);
   --white-22:   rgba(255, 255, 255, 0.22);
   --white-60:   rgba(255, 255, 255, 0.60);
-  --navy-deep:  #00184a;
+  --navy-deep:  #10141f;
   --navy-page:  #06173a;  /* dark theme ground */
   --navy-surf:  #0c2252;  /* dark theme panel */
 
   /* ── Base roles (read by every stylesheet) ── */
   --page:            var(--cream);
-  --surface:         var(--white);
-  --surface-2:       #fbf6ef;
+  --surface:         #fffdf9;
+  --surface-2:       #ede9e1;
   --surface-popover: var(--white);
   --ink:             var(--navy);
   --secondary:       var(--ink-60);
@@ -62,8 +62,8 @@
   --hero-number:     var(--navy);
   /* Rising/falling as TEXT need 4.5:1 on cream; the pastel chips carry the
      colour where there is room for a ground behind it. */
-  --up:              #157a52;
-  --down:            #c0392b;
+  --up:              #1f6b45;
+  --down:            #a4402f;
   --border:          var(--ink-14);
   --orbit-a:         var(--ink-08);
   --orbit-b:         var(--ink-14);
@@ -81,8 +81,13 @@
      r,g,b for canvas work. */
   --hero-bg:         #2a5fcf;
   --hero-plate:      42, 95, 207;
+  /* A data block (the session summary): a pale tint by day, so the page
+     carries no heavy masses; a raised surface by night. */
+  --block-bg:        #e8eef9;
+  --block-ink:       var(--ink);
+  --block-line:      rgba(26, 32, 53, 0.10);
   /* The active row of a section rail · a warm-white filled pill. */
-  --rail-on-bg:      #ffffff;
+  --rail-on-bg:      #fffdf9;
   --rail-on-ink:     var(--navy);
 
   /* ── Type ── */
@@ -149,6 +154,9 @@
     --hero-plate:      10, 43, 116;
     --rail-on-bg:      var(--cream);
     --rail-on-ink:     var(--navy);
+    --block-bg:        var(--navy-surf);
+    --block-ink:       #f4f6fb;
+    --block-line:      rgba(244, 246, 251, 0.14);
     --shadow-sm:  0 0 0 1px rgba(244, 246, 251, 0.08);
     --shadow-md:  0 0 0 1px rgba(244, 246, 251, 0.14);
     --shadow-pop: 0 0 0 1px rgba(244, 246, 251, 0.14);
@@ -191,6 +199,9 @@
   --hero-plate:      10, 43, 116;
   --rail-on-bg:      var(--cream);
   --rail-on-ink:     var(--navy);
+  --block-bg:        var(--navy-surf);
+  --block-ink:       #f4f6fb;
+  --block-line:      rgba(244, 246, 251, 0.14);
   --shadow-sm:  0 0 0 1px rgba(244, 246, 251, 0.08);
   --shadow-md:  0 0 0 1px rgba(244, 246, 251, 0.14);
   --shadow-pop: 0 0 0 1px rgba(244, 246, 251, 0.14);

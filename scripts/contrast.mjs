@@ -37,7 +37,7 @@ const THEME = {
 
 /* The environment gradients are not flat, so contrast is measured against the
    dominant stop of each — the colour that occupies most of the page. */
-const ENV = { light: '#fffbf7', dark: '#06173a' } // cream page · deep-navy page
+const ENV = { light: '#f5f2ec', dark: '#06173a' } // paper page · dark page
 
 function parse(c) {
   c = c.trim()

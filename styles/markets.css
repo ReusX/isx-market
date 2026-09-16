@@ -6,7 +6,7 @@
 .iqm-session { padding: 28px 32px 32px; }
 .iqm-session-head { display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; font-size: 13px; opacity: .8; margin-bottom: 20px; }
 .iqm-figures { display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; }
-.iqm-figures > div { border-inline-start: 1px solid var(--white-22); padding-inline-start: 18px; }
+.iqm-figures > div { border-inline-start: 1px solid var(--block-line); padding-inline-start: 18px; }
 .iqm-figures > div:first-child { border: 0; padding-inline-start: 0; }
 .iqm-figures small { display: block; font-size: 12px; opacity: .75; margin-bottom: 8px; }
 .iqm-figures strong { display: block; font-weight: 300; font-size: clamp(26px, 3vw, 36px); line-height: 1; }
