@@ -168,10 +168,10 @@ export function Globe({ className, labels }: { className?: string; labels: Globe
             const gj = Math.floor(((Math.PI / 2 - lat) / Math.PI) * LAND_H)
             const g = GLYPHS[(gi * 31 + gj * 17) % GLYPHS.length]
             const iraq = inIraq((lon * 180) / Math.PI, (lat * 180) / Math.PI)
-            ctx.fillStyle = iraq ? '#fff' : `rgba(255,255,255,${(0.62 * depth).toFixed(3)})`
+            ctx.fillStyle = iraq ? '#fff' : `rgba(255,255,255,${(0.52 * depth).toFixed(3)})`
             ctx.fillText(g, x, y)
           } else {
-            ctx.fillStyle = `rgba(255,255,255,${(0.28 * depth).toFixed(3)})`
+            ctx.fillStyle = `rgba(255,255,255,${(0.22 * depth).toFixed(3)})`
             ctx.fillRect(x - 0.6, y - 0.6, 1.2, 1.2)
           }
         }

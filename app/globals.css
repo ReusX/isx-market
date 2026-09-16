@@ -75,10 +75,12 @@
   --primary-ink:     var(--white);
   --primary-hover:   var(--navy-deep);
   --hover-tint:      #eef4ff;
-  /* The hero block · electric blue by day, a deep midnight blue by night.
-     --hero-plate is the same colour as r,g,b for canvas work. */
-  --hero-bg:         var(--blue);
-  --hero-plate:      20, 107, 253;
+  /* The hero block · a calmer, slightly deeper blue than the accent: the
+     accent is for a button, this fills a whole viewport and must not
+     dazzle. Midnight blue by night. --hero-plate is the same colour as
+     r,g,b for canvas work. */
+  --hero-bg:         #2a5fcf;
+  --hero-plate:      42, 95, 207;
 
   /* ── Type ── */
   --font-body:       var(--font-sans);
