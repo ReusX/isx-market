@@ -281,4 +281,25 @@ export const company: typeof ar = {
       ],
     },
   },
+  /* ── The generated company profile (lib/companyProfile) ───────────────── */
+  gen: {
+    heading: (name: string, sym: string) => `About ${name} (${sym})`,
+    about: (p: { name: string; sym: string; sector: string; mcap: string | null }) =>
+      `${p.name} (${p.sym}) is a company listed on the Iraq Stock Exchange (ISX) in the ${p.sector} sector` +
+      `${p.mcap ? `, with a market capitalization of approximately ${p.mcap} IQD` : ''}. ` +
+      `Track ${p.name}'s share price after each session, along with historical charts, trading volume and market data, on iraqsm.com. ` +
+      `The ${p.sym} stock trades in Iraqi Dinar (IQD) on the ISX.`,
+    facts: { ticker: 'Ticker', sector: 'Sector', mcap: 'Market cap', exchange: 'Exchange', exchangeValue: 'Iraq Stock Exchange (ISX)', currency: 'Currency', currencyValue: 'Iraqi Dinar (IQD)', lastPrice: 'Last price' },
+    faq: (p: { name: string; sym: string; sector: string }) => [
+      { q: `What is ${p.name}'s share price today?`, a: `iraqsm.com shows ${p.name}'s (${p.sym}) closing price from the latest Iraq Stock Exchange session, with charts, highs and lows, and trading volume.` },
+      { q: `What is ${p.name}'s ticker symbol?`, a: `${p.name} trades under the ticker ${p.sym} on the Iraq Stock Exchange (ISX).` },
+      { q: `What sector is ${p.name} in?`, a: `${p.name} operates in the ${p.sector} sector of the Iraqi market.` },
+      { q: `Where can I track ${p.sym}'s share price?`, a: `You can follow ${p.sym}'s price, charts and trading volume on iraqsm.com, updated after each session.` },
+    ],
+    priceQ: (name: string) => `What is ${name}'s share price today?`,
+    priceA: (name: string, sym: string, price: string, date: string) => `${name} (${sym}) last traded at ${price} on the Iraq Stock Exchange, per the official ISX bulletin of ${date}.`,
+    price: (n: string) => `${n} IQD`,
+    up: 'up', down: 'down',
+    isPriceQ: (q: string) => /share price today/i.test(q),
+  },
 }

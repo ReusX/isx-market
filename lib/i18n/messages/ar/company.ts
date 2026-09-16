@@ -301,4 +301,26 @@ export const company = {
       ],
     },
   },
+  /* ── The generated company profile (lib/companyProfile) ───────────────── */
+  gen: {
+    heading: (name: string, sym: string) => `نبذة عن ${name} (${sym})`,
+    about: (p: { name: string; sym: string; sector: string; mcap: string | null }) =>
+      `${p.name} (${p.sym}) شركة مدرجة في سوق العراق للأوراق المالية (بورصة العراق – ISX) ضمن قطاع ${p.sector}` +
+      `${p.mcap ? `، برأس مال سوقي يبلغ نحو ${p.mcap} دينار عراقي` : ''}. ` +
+      `تابع سعر سهم ${p.name} بعد كل جلسة، والمخططات التاريخية، وحجم التداول، والقيمة السوقية على iraqsm.com. ` +
+      `يتداول سهم ${p.sym} بالدينار العراقي (IQD) في بورصة العراق.`,
+    facts: { ticker: 'الرمز', sector: 'القطاع', mcap: 'القيمة السوقية', exchange: 'السوق', exchangeValue: 'بورصة العراق (ISX)', currency: 'العملة', currencyValue: 'الدينار العراقي (IQD)', lastPrice: 'آخر سعر' },
+    faq: (p: { name: string; sym: string; sector: string }) => [
+      { q: `كم سعر سهم ${p.name} اليوم؟`, a: `يعرض iraqsm.com سعر إغلاق سهم ${p.name} (${p.sym}) في آخر جلسة تداول في بورصة العراق، مع الرسم البياني والأعلى والأدنى وحجم التداول.` },
+      { q: `ما هو رمز سهم ${p.name}؟`, a: `يتداول سهم ${p.name} تحت الرمز ${p.sym} في بورصة العراق.` },
+      { q: `في أي قطاع تعمل ${p.name}؟`, a: `تعمل ${p.name} ضمن قطاع ${p.sector} في السوق العراقي.` },
+      { q: `أين أتابع سعر سهم ${p.sym}؟`, a: `يمكنك متابعة سعر سهم ${p.sym}، والمخططات، وحجم التداول على iraqsm.com، محدّثة بعد كل جلسة.` },
+    ],
+    priceQ: (name: string) => `كم سعر سهم ${name} اليوم؟`,
+    priceA: (name: string, sym: string, price: string, date: string) => `سعر سهم ${name} (${sym}) في آخر جلسة تداول هو ${price}، بحسب نشرة بورصة العراق ليوم ${date}.`,
+    price: (n: string) => `${n} دينار عراقي`,
+    up: 'بارتفاع', down: 'بانخفاض',
+    /** Which existing question the live one replaces. */
+    isPriceQ: (q: string) => q.includes('سعر') && q.includes('اليوم'),
+  },
 }

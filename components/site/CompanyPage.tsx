@@ -71,10 +71,10 @@ export function CompanyPage({ initial }: { initial: CompanyInitial }) {
      unique prose the page ranks with; it is server-rendered like the rest. */
   const profile = useMemo(() => buildCompanyProfile({
     sym: initial.sym, ar: initial.ar, en: initial.en,
-    sectorAr: sectorLabel(initial.sec, 'ar'), sectorEn: sectorLabel(initial.sec, 'en'),
+    sector: sectorLabel(initial.sec, locale),
     mcapIqd: mcap,
     quote: initial.last != null && initial.session ? { close: initial.last, pct: initial.changePct, date: initial.session, suspended: initial.stale && (initial.daysSinceTrade ?? 0) > 60 } : null,
-  }, locale), [initial, mcap, locale])
+  }, C.gen, locale), [initial, mcap, locale, C])
   const ratios = useMemo(() => latestRatios(initial.ratios), [initial.ratios])
   const earnings = useMemo(() => earningsSeries(initial.facts, 'annual').slice(-5), [initial.facts])
 
