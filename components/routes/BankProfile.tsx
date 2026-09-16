@@ -11,7 +11,7 @@ import type {
   Bank, ProductRow, ServiceRow, FactRow, ConditionRow, BankFinancials, Coverage,
 } from '@/lib/banks'
 import {
-  CATEGORY_KEYS, editorialCoverage, ratedCategoryCount, storeRatingText, METHODOLOGY_AR,
+  CATEGORY_KEYS, ratedCategoryCount, METHODOLOGY_AR,
   type EditorialProfile, type EditorialProduct, type CategoryKey,
 } from '@/lib/bankEditorial'
 import '@/styles/banks.css'
@@ -93,10 +93,10 @@ export function BankProfile({ bank, products, facts, conditions, services, finan
   const art = bank.ticker
     ? (companiesData as { sym: string; logo?: string; color?: string }[]).find((x) => x.sym === bank.ticker)
     : undefined
-  const covKind = editorialCoverage(ed)
   const rated = ed ? ratedCategoryCount(ed) : 0
   const available = services.filter((s) => s.availability === 'available')
   const productRows = new Map(products.map((p) => [p.slug, p]))
+  const sources = sourceList(ed, facts)
 
   return (
     <main className="iq-page bk-page">
@@ -104,7 +104,7 @@ export function BankProfile({ bank, products, facts, conditions, services, finan
         <span className="dir-go" aria-hidden="true">›</span> {c.backToBanks}
       </Link>
 
-      {/* ── Identity, and the sentence that answers "who is this" ─────── */}
+      {/* ── Who this is, in one line and one paragraph ─────────────────── */}
       <header className="bk-hero-card">
         <CompanyLogo className="bk-mark" sym={bank.ticker ?? initials(bank.name_en)}
           logo={art?.logo} color={art?.color ?? 'var(--mv-hero)'} letters={bank.ticker ? 2 : 3} />
@@ -120,45 +120,23 @@ export function BankProfile({ bank, products, facts, conditions, services, finan
             {bank.usd_restricted ? <span className="bk-flag is-usd">{c.usdRestricted}</span> : null}
           </p>
           <p className="bk-intro">{ar && ed ? ed.intro : intro(bank, c, city)}</p>
-          <div className="bk-hero-links">
-            {bank.website ? (
-              <a className="bk-pill" href={bank.website} target="_blank" rel="noopener noreferrer">
-                {bank.website.replace(/^https?:\/\/(www\.)?/, '')}
-              </a>
-            ) : null}
-            {bank.ticker ? (
-              <Link className="bk-pill" href={L(`/c/${bank.ticker}`)}>
-                <bdi>{bank.ticker}</bdi> · {c.linkedCompany}
-              </Link>
-            ) : null}
-            {ed?.app ? (
-              <a className="bk-pill" href={ed.app.url} target="_blank" rel="noopener noreferrer">{e.appLink}</a>
-            ) : null}
-          </div>
         </div>
       </header>
 
       {bank.operating_status !== 'operating' ? (
         <p className={`bk-notice is-${bank.operating_status}`}>{c.statusNote[bank.operating_status]}</p>
       ) : null}
-      {bank.usd_restricted ? <p className="bk-notice is-usd">{c.usdRestrictedNote}</p> : null}
       {bank.research_state === 'source_unreachable' ? (
         <p className="bk-notice is-unreachable">{c.unreachableNote}</p>
       ) : null}
 
-      {/* ── The verdict: suits, watch out, and how sure we are ─────────── */}
+      {/* ── Suits / watch out ──────────────────────────────────────────── */}
       {ed ? (
         <section className="bk-verdict" aria-label={e.verdict}>
           {ar ? (
             <>
-              <div className="bk-verdict-cell">
-                <h2>{e.suitableFor}</h2>
-                <p>{ed.suitableFor}</p>
-              </div>
-              <div className="bk-verdict-cell is-warn">
-                <h2>{e.watchOut}</h2>
-                <p>{ed.watchOut}</p>
-              </div>
+              <div className="bk-verdict-cell"><h2>{e.suitableFor}</h2><p>{ed.suitableFor}</p></div>
+              <div className="bk-verdict-cell is-warn"><h2>{e.watchOut}</h2><p>{ed.watchOut}</p></div>
             </>
           ) : (
             <div className="bk-verdict-cell">
@@ -166,41 +144,23 @@ export function BankProfile({ bank, products, facts, conditions, services, finan
               <p>{e.arabicOnly} <Link className="bk-link" href={`/banks/${bank.slug}`} lang="ar">{e.arabicLink}</Link></p>
             </div>
           )}
-          <div className="bk-verdict-cell is-conf">
-            <h2>{e.confidenceLabel}</h2>
-            <p>
-              <strong className={`bk-cov-word is-${covKind}`}>{e.coverage[covKind]}</strong>
-              <span className="bk-cov-hint">
-                {covKind === 'partial' ? e.coverageHint.partial(String(rated)) : e.coverageHint[covKind as 'overall' | 'products' | 'limited']}
-                {/* The package's overall-level confidence is meaningful only
-                    beside an overall figure; on its own it just repeats
-                    «أدلة محدودة» in other words. */}
-                {ed.ratings.overall !== null && ed.ratings.confidence ? ` · ${e.confidence[ed.ratings.confidence]}` : ''}
-              </span>
-            </p>
-          </div>
         </section>
       ) : null}
 
-      {/* ── Ratings: every score with its sentence, every null as words ── */}
+      {/* ── The rating: one number, one line, six short rows ───────────── */}
       {ed ? <Ratings ed={ed} rated={rated} /> : null}
 
-      {/* ── Products: the package's selection, one rate each ───────────── */}
+      {/* ── Products: name, one rate, one line of conditions ───────────── */}
       {ed?.products.length ? (
         <section className="bk-section" id="products">
-          <div className="bk-section-head">
-            <h2>{e.products}</h2>
-            <span className="bk-section-note">{e.productsNote}</span>
-          </div>
+          <h2>{e.products}</h2>
           <div className="bk-picks">
             {ed.products.map((p) => {
               const row = productRows.get(p.slug)
-              return (
-                <Pick key={p.slug} p={p} row={row ?? null}
-                  facts={row ? byProduct(row.id) : []} conditions={conditions} />
-              )
+              return <Pick key={p.slug} p={p} row={row ?? null} facts={row ? byProduct(row.id) : []} conditions={conditions} />
             })}
           </div>
+          {ed.products.some((p) => p.rate) ? <p className="bk-foot">{e.ratesFoot}</p> : null}
         </section>
       ) : !ed && products.length ? (
         <section className="bk-section">
@@ -211,72 +171,59 @@ export function BankProfile({ bank, products, facts, conditions, services, finan
         </section>
       ) : null}
 
-      {/* ── Fees: compact, and never confused with interest ────────────── */}
       {ar && ed?.fees ? (
         <section className="bk-section">
-          <div className="bk-section-head">
-            <h2>{e.fees}</h2>
-            <span className="bk-section-note">{e.feesNote}</span>
-          </div>
+          <h2>{e.fees}</h2>
           <p className="bk-fees">{ed.fees}</p>
         </section>
       ) : null}
 
-      {/* ── Official capability on one side, reported experience on the other */}
-      {(available.length || ed) ? (
+      {/* ── Services the bank publishes, and the app in one line ───────── */}
+      {(available.length || ed?.app || (ar && ed)) ? (
         <section className="bk-section">
           <h2>{e.experience}</h2>
-          <div className="bk-xp">
-            <div className="bk-xp-col">
-              <h3>{e.official}</h3>
-              {available.length ? (
-                <ul className="bk-services">
-                  {available.map((s) => (
-                    <li key={s.service_key} className="is-available" title={c.available}>
-                      <span className="bk-svc-icon" aria-hidden="true">✓</span>
-                      <span>{c.service[s.service_key as keyof typeof c.service] ?? s.service_key}</span>
-                    </li>
-                  ))}
-                </ul>
-              ) : (
-                <p className="bk-empty-line">{e.noVerifiedServices}</p>
-              )}
-              {available.some((s) => s.service_key === 'usd_account') && bank.usd_restricted
-                ? <p className="bk-section-foot">{c.usdRestrictedNote}</p> : null}
-            </div>
-            <div className="bk-xp-col">
-              <h3>{e.reported}</h3>
-              {ed?.app && storeRatingText(ed.app) ? (
-                <p className="bk-store">
-                  <strong><bdi>{storeRatingText(ed.app)}</bdi></strong>
-                  <span> {e.storeRating(ed.app.title.includes('Google') ? 'Google Play' : 'App Store')}
-                    {ed.app.storefront && ed.app.storefront !== 'as retrieved' ? ` · ${e.storefront(ed.app.storefront)}` : ''}</span>
-                </p>
-              ) : null}
-              {ar && ed ? <p className="bk-prose">{ed.experience}</p> : null}
-              {!ar && ed?.app?.summary ? <p className="bk-prose">{e.arabicOnly}</p> : null}
-              {ed?.app ? <p className="bk-section-foot">{e.reportedNote}</p> : null}
-            </div>
+          <div className="bk-panel-flat">
+            {available.length ? (
+              <ul className="bk-services">
+                {available.map((s) => (
+                  <li key={s.service_key} className="is-available">
+                    <span className="bk-svc-icon" aria-hidden="true">✓</span>
+                    <span>{c.service[s.service_key as keyof typeof c.service] ?? s.service_key}</span>
+                  </li>
+                ))}
+              </ul>
+            ) : null}
+            {available.some((s) => s.service_key === 'usd_account') && bank.usd_restricted
+              ? <p className="bk-foot">{c.usdRestrictedNote}</p> : null}
+
+            {ed?.app || (ar && ed) ? (
+              <div className="bk-app">
+                <div className="bk-app-head">
+                  <b>{e.app}</b>
+                  {ed?.ratings.categories.mobile?.score != null
+                    ? <Score n={ed.ratings.categories.mobile.score} />
+                    : <em className="bk-na">{e.notRated}</em>}
+                  {ed?.app ? <a className="bk-link" href={ed.app.url} target="_blank" rel="noopener noreferrer">{e.appLink}</a> : null}
+                </div>
+                {ar && ed ? <p className="bk-prose">{ed.experience}</p> : null}
+                {ed?.app ? <p className="bk-foot">{e.reportedFoot}</p> : null}
+              </div>
+            ) : null}
           </div>
         </section>
       ) : null}
 
-      {/* ── Two or three questions, answered, visible ──────────────────── */}
       {ar && ed?.faqs.length ? (
         <section className="bk-section" id="faq">
           <h2>{e.faqs}</h2>
           <dl className="bk-faq">
             {ed.faqs.map((f, i) => (
-              <div key={i}>
-                <dt>{f.q}</dt>
-                <dd>{f.a}</dd>
-              </div>
+              <div key={i}><dt>{f.q}</dt><dd>{f.a}</dd></div>
             ))}
           </dl>
         </section>
       ) : null}
 
-      {/* ── The join to the company record, kept compact and low ───────── */}
       {financials ? (
         <section className="bk-section">
           <div className="bk-section-head">
@@ -290,33 +237,39 @@ export function BankProfile({ bank, products, facts, conditions, services, finan
             {FIN_ORDER.filter((k) => financials.values[k] != null).slice(0, 4).map((k) => (
               <div key={k}>
                 <dt>{c.fin[k]}</dt>
-                <dd><bdi>{k.endsWith('ratio') || k === 'lcr'
-                  ? `${financials.values[k].toFixed(1)}%`
-                  : iqd(financials.values[k])}</bdi></dd>
+                <dd><bdi>{k.endsWith('ratio') || k === 'lcr' ? `${financials.values[k].toFixed(1)}%` : iqd(financials.values[k])}</bdi></dd>
               </div>
             ))}
           </dl>
         </section>
       ) : null}
 
-      {/* ── Links you need, sources behind a toggle ────────────────────── */}
+      {/* ── Links, then sources behind a toggle ────────────────────────── */}
       <section className="bk-section bk-sources">
-        {ed?.links.length ? (
-          <>
-            <h2>{e.links}</h2>
-            <div className="bk-hero-links">
-              {ed.links.map((l, i) => (
-                <a key={i} className="bk-pill" href={l.url} target="_blank" rel="noopener noreferrer">{ar ? l.label : l.url.replace(/^https?:\/\/(www\.)?/, '').slice(0, 40)}</a>
-              ))}
-            </div>
-          </>
-        ) : null}
+        <h2>{e.links}</h2>
+        <div className="bk-hero-links">
+          {bank.website ? (
+            <a className="bk-pill" href={bank.website} target="_blank" rel="noopener noreferrer">
+              {bank.website.replace(/^https?:\/\/(www\.)?/, '')}
+            </a>
+          ) : null}
+          {bank.ticker ? (
+            <Link className="bk-pill" href={L(`/c/${bank.ticker}`)}><bdi>{bank.ticker}</bdi> · {c.linkedCompany}</Link>
+          ) : null}
+          {ed?.links.filter((l) => l.url !== bank.website).map((l, i) => (
+            <a key={i} className="bk-pill" href={l.url} target="_blank" rel="noopener noreferrer">
+              {ar ? l.label : l.url.replace(/^https?:\/\/(www\.)?/, '').slice(0, 40)}
+            </a>
+          ))}
+        </div>
         <details className="bk-details">
-          <summary>{e.sourcesToggle(String(sourceList(ed, facts).length))}</summary>
+          <summary>{e.sourcesToggle(String(sources.length))}</summary>
           <ul>
-            {sourceList(ed, facts).map((u) => (
+            {sources.map((u) => (
               <li key={u.url}>
-                <a className="bk-link" href={u.url} target="_blank" rel="noopener noreferrer">{u.title ?? u.url.replace(/^https?:\/\/(www\.)?/, '').slice(0, 70)}</a>
+                <a className="bk-link" href={u.url} target="_blank" rel="noopener noreferrer">
+                  {u.title ?? u.url.replace(/^https?:\/\/(www\.)?/, '').slice(0, 70)}
+                </a>
                 {u.date ? <small> · {u.date}</small> : null}
               </li>
             ))}
@@ -326,94 +279,94 @@ export function BankProfile({ bank, products, facts, conditions, services, finan
             {bank.research_checked_at ? ` ${c.verifiedOn(localeDate(bank.research_checked_at, locale))}.` : ''}
           </p>
         </details>
-        {ed ? <p className="bk-editorial-notice">{e.editorialNotice}</p> : null}
+        {ed ? <p className="bk-foot">{e.editorialNotice}</p> : null}
       </section>
     </main>
   )
 }
 
-/* ── The rating table ──────────────────────────────────────────────────── */
+/** «4/5» with a five-segment bar. Never rendered for a null. */
+function Score({ n, outOf = 5 }: { n: number; outOf?: number }) {
+  return (
+    <span className="bk-score-inline">
+      <bdi><b>{n}</b>/{outOf}</bdi>
+      <span className="bk-bar" aria-hidden="true">
+        {[1, 2, 3, 4, 5].map((k) => (
+          <i key={k} className={k <= Math.floor(n) ? 'on' : k - 0.5 === n ? 'half' : ''} />
+        ))}
+      </span>
+    </span>
+  )
+}
+
+/* ── The rating block ───────────────────────────────────────────────────── */
 
 function Ratings({ ed, rated }: { ed: EditorialProfile; rated: number }) {
   const { t: T, locale } = useLocale()
   const e = T.banks.ed
   const ar = locale === 'ar'
   const r = ed.ratings
+
   return (
     <section className="bk-section" id="rating">
-      <div className="bk-section-head">
-        <h2>{e.ratings}</h2>
-        <span className="bk-section-note">{e.ratingsWhat}</span>
-      </div>
+      <h2>{e.ratings}</h2>
 
       {rated === 0 ? (
-        <p className="bk-empty-line">{e.notRated} — {e.notRatedHint}</p>
+        <p className="bk-empty-line">{e.notRatedLine}</p>
       ) : (
         <div className="bk-rating">
-          {/* The overall never travels without its coverage and confidence,
-              and there is no mobile variant that drops them. */}
-          {r.overall !== null ? (
-            <div className="bk-overall">
+          <div className="bk-overall">
+            {r.overall !== null ? (
               <strong><bdi>{r.overall}</bdi><small>/{r.outOf}</small></strong>
-              <div>
-                <b>{ar ? r.label : e.coverage.overall}</b>
-                <span>
-                  {r.coveredWeight ? e.overallCovers(String(r.coveredWeight)) : ''}
-                  {r.confidence ? ` · ${e.confidence[r.confidence]}` : ''}
-                </span>
-              </div>
+            ) : null}
+            <div>
+              <b>{r.overall !== null ? e.coverage.overall : e.coverage.partial}</b>
+              <span>{r.overall !== null ? e.overallLine(String(rated)) : e.partialLine(String(rated))}</span>
             </div>
-          ) : null}
+          </div>
 
-          <table className="bk-rating-table">
-            <tbody>
-              {CATEGORY_KEYS.map((k: CategoryKey) => {
-                const cat = r.categories[k]
-                if (!cat) return null
-                const scored = cat.score !== null
-                return (
-                  <tr key={k} className={scored ? '' : 'is-unrated'}>
-                    <th scope="row">
-                      {e.category[k]}
-                      <small>{e.weight(String(cat.weight))}</small>
-                    </th>
-                    <td className="bk-score">
-                      {scored ? (
-                        <>
-                          <bdi><b>{cat.score}</b>/{cat.outOf}</bdi>
-                          <span className="bk-bar" aria-hidden="true">
-                            {[1, 2, 3, 4, 5].map((n) => (
-                              <i key={n} className={n <= Math.floor(cat.score!) ? 'on' : n - 0.5 === cat.score ? 'half' : ''} />
-                            ))}
-                          </span>
-                        </>
-                      ) : (
-                        <em>{e.notRated}</em>
-                      )}
-                    </td>
-                    <td className="bk-why">
-                      {ar ? cat.rationale : (scored ? '' : e.notRatedHint)}
-                      <small>{e.confidence[cat.confidence]}</small>
-                    </td>
-                  </tr>
-                )
-              })}
-            </tbody>
-          </table>
+          <ul className="bk-rating-rows">
+            {CATEGORY_KEYS.map((k: CategoryKey) => {
+              const cat = r.categories[k]
+              if (!cat) return null
+              return (
+                <li key={k} className={cat.score === null ? 'is-unrated' : ''}>
+                  <span>{e.category[k]}</span>
+                  {cat.score !== null ? <Score n={cat.score} outOf={cat.outOf} /> : <em>{e.notRated}</em>}
+                </li>
+              )
+            })}
+          </ul>
+
+          {/* The sentence behind each score, one toggle for all of them. */}
+          {ar ? (
+            <details className="bk-details bk-why-details">
+              <summary>{e.why}</summary>
+              <dl className="bk-why-list">
+                {CATEGORY_KEYS.filter((k) => r.categories[k]?.score !== null).map((k) => (
+                  <div key={k}><dt>{e.category[k]}</dt><dd>{r.categories[k].rationale}</dd></div>
+                ))}
+              </dl>
+            </details>
+          ) : null}
         </div>
       )}
 
-      {ar ? (
-        <details className="bk-details">
-          <summary>{e.methodology}</summary>
-          {METHODOLOGY_AR.split('\n').map((para, i) => <p key={i} className="bk-prose">{para}</p>)}
-        </details>
-      ) : null}
+      {/* A <details> cannot live inside a <p>; it hydrated wrong. */}
+      <div className="bk-foot">
+        {e.ratingsWhat}
+        {ar ? (
+          <details className="bk-details is-inline">
+            <summary>{e.methodology}</summary>
+            {METHODOLOGY_AR.split('\n').map((para, i) => <p key={i} className="bk-prose">{para}</p>)}
+          </details>
+        ) : null}
+      </div>
     </section>
   )
 }
 
-/* ── One selected product: the copy, the one rate, the facts behind it ── */
+/* ── One product row ───────────────────────────────────────────────────── */
 
 function Pick({ p, row, facts, conditions }: {
   p: EditorialProduct; row: ProductRow | null; facts: FactRow[]; conditions: ConditionRow[]
@@ -438,7 +391,6 @@ function Pick({ p, row, facts, conditions }: {
             <em>{e.basis[p.rate.basis]}</em>
             {ar ? <span className="bk-scenario-line">{p.rate.scenario}</span>
               : scenario.length ? <span className="bk-scenario-line">{scenario.map((x) => describe(x, c)).join(' · ')}</span> : null}
-            <small>{e.notReconfirmed}</small>
           </>
         ) : (
           <span className="bk-na">{e.noRateSelected}</span>
@@ -461,7 +413,6 @@ function Pick({ p, row, facts, conditions }: {
               </div>
             ))}
           </dl>
-          {row?.last_verified ? <p className="bk-verified">{c.verifiedShort(localeDate(row.last_verified, locale))}</p> : null}
         </details>
       ) : null}
     </article>

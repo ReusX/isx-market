@@ -8,7 +8,7 @@ import companiesData from '@/public/data/companies.json'
 import { categoriesOf } from '@/lib/banks'
 import type { Bank, ProductRow, ServiceRow, BankFinancials, Coverage } from '@/lib/banks'
 import {
-  editorialCoverage, headlineProduct, ratedCategoryCount, storeRatingText, type EditorialProfile,
+  editorialCoverage, headlineProduct, ratedCategoryCount, type EditorialProfile,
 } from '@/lib/bankEditorial'
 import '@/styles/banks.css'
 
@@ -100,13 +100,6 @@ export function BanksHub({ rows }: { rows: HubBank[] }) {
       <header className="bk-hero">
         <h1>{c.title}</h1>
         <p>{c.standfirst}</p>
-        <dl className="bk-stats">
-          <div><dt>{c.entriesLabel}</dt><dd><bdi>{stats.total}</bdi></dd></div>
-          <div><dt>{c.operatingLabel}</dt><dd><bdi>{stats.operating}</bdi></dd></div>
-          <div><dt>{c.listedBanks}</dt><dd><bdi>{stats.listed}</bdi></dd></div>
-          <div><dt>{c.publishingLabel}</dt><dd><bdi>{stats.publishing}</bdi></dd></div>
-        </dl>
-        <p className="bk-note bk-note-tight">{c.countsNote}</p>
       </header>
 
       <div className="bk-controls">
@@ -124,90 +117,74 @@ export function BanksHub({ rows }: { rows: HubBank[] }) {
               aria-pressed={filter === f.id} onClick={() => setFilter(f.id)}>{f.label}</button>
           ))}
         </div>
-        <span className="bk-count"><bdi>{c.showingOf(String(shown.length), String(rows.length))}</bdi></span>
       </div>
 
       <div className="bk-table-wrap">
-        <table className="bk-table">
+        <table className="bk-table bk-table-lean">
           <thead>
             <tr>
               <th scope="col">{c.colBank}</th>
-              <th scope="col">{c.colStatus}</th>
-              <th scope="col" className="bk-col-suits">{c.ed.colSuits}</th>
-              <th scope="col">{c.ed.colDigital}</th>
-              <th scope="col">{c.ed.colPick}</th>
-              <th scope="col">{c.ed.colCoverage}</th>
+              <th scope="col">{c.ed.colRating}</th>
+              <th scope="col">{c.ed.colProduct}</th>
+              <th scope="col" className="num">{c.ed.colRate}</th>
             </tr>
           </thead>
           <tbody>
             {shown.map(({ bank, products, editorial: ed }) => {
               const art = bank.ticker ? LOGOS.get(bank.ticker) : undefined
-              const cats = categoriesOf(products)
               const cov = editorialCoverage(ed)
-              const mobile = ed?.ratings.categories.mobile
+              const overall = ed?.ratings.overall ?? null
+              const mobile = ed?.ratings.categories.mobile?.score ?? null
               const pick = headlineProduct(ed)
               const pickRow = pick ? products.find((p) => p.slug === pick.slug) : null
+              const special = bank.operating_status !== 'operating'
               return (
                 <tr key={bank.slug} className={`is-cov-${cov}`}>
                   <th scope="row">
                     <span className="bk-row-name">
                       <CompanyLogo className="bk-row-mark" sym={bank.ticker ?? bank.name_en.slice(0, 2)}
                         logo={art?.logo} color={art?.color ?? 'var(--mv-line-strong)'} letters={2} />
-                      <Link href={L(`/banks/${bank.slug}`)}>
-                        {locale === 'ar' ? bank.name_ar : bank.name_en}
-                      </Link>
-                      {bank.ticker ? <bdi className="bk-ticker">{bank.ticker}</bdi> : null}
+                      <Link href={L(`/banks/${bank.slug}`)}>{locale === 'ar' ? bank.name_ar : bank.name_en}</Link>
                     </span>
-                    <small className="bk-row-type">{c.type[bank.bank_type]} · {c.ownership[bank.ownership]}</small>
-                  </th>
-                  <td>
-                    {bank.operating_status === 'operating'
-                      ? <span className="bk-dim">{c.status.operating}</span>
-                      : <span className={`bk-flag is-${bank.operating_status}`}>
+                    <small className="bk-row-type">
+                      {c.type[bank.bank_type]} · {c.ownership[bank.ownership]}
+                      {/* Status only when there is one to show. */}
+                      {special ? (
+                        <span className={`bk-flag is-${bank.operating_status}`}>
                           {(locale === 'ar' ? bank.status_note_ar : bank.status_note_en) ?? c.status[bank.operating_status]}
-                        </span>}
-                    {bank.usd_restricted ? <small className="bk-flag-usd">{c.usdRestricted}</small> : null}
-                  </td>
-                  {/* The package's one sentence on who the bank suits. Arabic
-                      only; the English table shows what is published instead. */}
-                  <td className="bk-col-suits">
-                    {locale === 'ar' && ed
-                      ? <span className="bk-suits">{ed.suitableFor}</span>
-                      : cats.length
-                        ? <span className="bk-cats">{cats.map((k) => <em key={k}>{k === 'deposits' ? c.catDeposits : c.catLoans}</em>)}</span>
-                        : <span className="bk-na">—</span>}
-                  </td>
-                  <td>
-                    {mobile && mobile.score !== null ? (
-                      <span className="bk-digital">
-                        <bdi><b>{mobile.score}</b>/5</bdi>
-                        {ed?.app && storeRatingText(ed.app)
-                          ? <small><bdi>{storeRatingText(ed.app)}</bdi> {ed.app.title.includes('Google') ? 'Play' : 'App Store'}</small>
-                          : null}
-                      </span>
-                    ) : ed?.app ? (
-                      <span className="bk-digital is-unrated">
-                        <em>{c.ed.notRated}</em>
-                        <small>{c.ed.appLink}</small>
-                      </span>
-                    ) : <span className="bk-na">{ed ? c.ed.notRated : '—'}</span>}
-                  </td>
-                  <td>
-                    {pick ? (
-                      <span className="bk-pick-cell">
-                        <span>{locale === 'ar' ? pick.name : (pickRow?.name_en ?? pick.name)}</span>
-                        {pick.rate
-                          ? <b><bdi>{pick.rate.value}%</bdi> <small>{c.ed.basis[pick.rate.basis]}</small></b>
-                          : <small className="bk-na">{c.ed.noRateSelected}</small>}
-                      </span>
-                    ) : <span className="bk-na">{c.ed.noPick}</span>}
-                  </td>
-                  <td>
-                    <span className={`bk-cov-word is-${cov}`}>{c.ed.coverage[cov]}</span>
-                    <small className="bk-dim">
-                      {cov === 'partial' && ed ? c.ed.coverageHint.partial(String(ratedCategoryCount(ed)))
-                        : cov === 'partial' ? '' : c.ed.coverageHint[cov]}
+                        </span>
+                      ) : null}
+                      {bank.usd_restricted ? <span className="bk-flag is-usd">{c.usdRestricted}</span> : null}
                     </small>
+                  </th>
+                  {/* One number. The overall where the package gives one, the app
+                      score where that is all there is, a word where there is
+                      nothing — never a store's stars. */}
+                  <td>
+                    {overall !== null ? (
+                      <span className="bk-cell-rating">
+                        <b><bdi>{overall}</bdi></b><small>/10 · {c.ed.coverage.overall}</small>
+                      </span>
+                    ) : mobile !== null ? (
+                      <span className="bk-cell-rating is-partial">
+                        <b><bdi>{mobile}</bdi></b><small>/5 · {c.ed.category.mobile}</small>
+                      </span>
+                    ) : (
+                      <span className="bk-na">{c.ed.coverage[cov === 'limited' ? 'limited' : 'products']}</span>
+                    )}
+                  </td>
+                  <td>
+                    {pick
+                      ? <span className="bk-cell-product">{locale === 'ar' ? pick.name : (pickRow?.name_en ?? pick.name)}</span>
+                      : <span className="bk-na">—</span>}
+                  </td>
+                  <td className="num">
+                    {pick?.rate ? (
+                      <span className="bk-cell-rate">
+                        <b><bdi>{pick.rate.value}%</bdi></b>
+                        <small>{c.ed.basis[pick.rate.basis]}</small>
+                      </span>
+                    ) : <span className="bk-na">—</span>}
                   </td>
                 </tr>
               )
@@ -217,7 +194,7 @@ export function BanksHub({ rows }: { rows: HubBank[] }) {
       </div>
 
       {!shown.length ? <p className="bk-none">{c.noMatch}</p> : null}
-      <p className="bk-note">{c.coverageNote}</p>
+      <p className="bk-note">{c.ed.hubFoot}</p>
     </main>
   )
 }
