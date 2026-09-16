@@ -160,8 +160,11 @@ export function ForeignFlowPage({ initial }: { initial: FlowInitial }) {
             ))}
           </div>
 
-          {tab === 'trading' ? (
-            <>
+          {/* ⚠ BOTH panels render, always. Toggling with `hidden` keeps the
+              inactive tab in the server-rendered HTML; the `tab === …`
+              conditional this replaces kept the whole accounts tab out of the
+              page a crawler sees. */}
+          <div role="tabpanel" aria-label={pg.tabs.trading} hidden={tab !== 'trading'}>
               {/* 1 · Net flow, session by session, with the timeframe on the chart. */}
               <section className="id-panel ffl-net" aria-label={pg.netTitle}>
                 <div className="ffl-net-head">
@@ -244,9 +247,8 @@ export function ForeignFlowPage({ initial }: { initial: FlowInitial }) {
                   {share == null ? <p className="id-cap">{pg.noTotals}</p> : null}
                 </section>
               </div>
-            </>
-          ) : (
-            <>
+          </div>
+          <div role="tabpanel" aria-label={pg.tabs.accounts} hidden={tab !== 'accounts'}>
               {held && heldTotal ? (
                 <section className="ffl-ring-panel id-panel" aria-label={pg.accounts.held}>
                   <div className="ffl-ring-head"><div><h2 className="id-h3">{pg.accounts.held}</h2><p className="id-cap">{pg.accounts.heldNote(monthLabel(latestHeld!.ym, locale))}</p></div></div>
@@ -296,8 +298,7 @@ export function ForeignFlowPage({ initial }: { initial: FlowInitial }) {
               ) : null}
               {!held && !latestNew ? <p className="id-note">{pg.accounts.empty}</p> : null}
               <p className="id-cap ffl-caveat">{pg.accounts.caveat}</p>
-            </>
-          )}
+          </div>
 
           <section className="stx-about id-read" aria-label={pg.about.title}>
             <h2 className="id-h2">{pg.about.title}</h2>

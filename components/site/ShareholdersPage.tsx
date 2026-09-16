@@ -62,7 +62,6 @@ export function ShareholdersPage({ initial }: { initial: HoldersInitial }) {
   const top = initial.rows[0] ?? null
   const over50 = useMemo(() => initial.rows.filter((r) => r.pct > 50).length, [initial.rows])
   const month = monthLabel(initial.month, locale)
-  const shown = rows.slice(0, limit)
 
   return (
     <SiteShell>
@@ -129,8 +128,10 @@ export function ShareholdersPage({ initial }: { initial: HoldersInitial }) {
                           </tr>
                         </thead>
                         <tbody>
-                          {shown.map((r) => (
-                            <tr key={r.id}>
+                          {/* Every matching row is rendered; the ones past the
+                              cap are hidden by CSS so they stay in the HTML. */}
+                          {rows.map((r, i) => (
+                            <tr key={r.id} className={i >= limit ? 'is-over' : undefined}>
                               {/* The cell keeps the TABLE's direction so the column
                                   aligns with its own header in English; the bdi
                                   isolates the Arabic run inside it. `dir="auto"` on
@@ -154,9 +155,9 @@ export function ShareholdersPage({ initial }: { initial: HoldersInitial }) {
                         </tbody>
                       </table>
                     </div>
-                    {rows.length > shown.length ? (
+                    {rows.length > limit ? (
                       <div className="own-more">
-                        <button type="button" className="id-btn is-sm" onClick={() => setLimit((n) => n + PAGE)}>{P.showMore(int.format(Math.min(PAGE, rows.length - shown.length)))}</button>
+                        <button type="button" className="id-btn is-sm" onClick={() => setLimit((n) => n + PAGE)}>{P.showMore(int.format(Math.min(PAGE, rows.length - limit)))}</button>
                       </div>
                     ) : null}
                   </>

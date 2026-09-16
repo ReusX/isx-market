@@ -73,6 +73,13 @@
 .own-pct-track { display: block; flex: 1 1 auto; max-width: 130px; height: 8px; border-radius: 4px; background: var(--surface-2); overflow: hidden; }
 .own-pct-track i { display: block; height: 100%; background: var(--nav-active); opacity: .85; border-radius: 4px; }
 
+/* Rows past the visible cap are RENDERED AND HIDDEN, not withheld. The cap
+   keeps the first paint short; withholding the rows would keep them out of
+   the HTML entirely, so a crawler would only ever see the first page of the
+   filing. Same rule as the page note: collapse with CSS, never with a
+   conditional. */
+.own-table tr.is-over { display: none; }
+
 .own-empty { padding: 40px 0; text-align: center; color: var(--secondary); }
 .own-empty strong { display: block; font-weight: 400; font-size: 17px; margin-bottom: 6px; color: var(--ink); }
 .own-note { margin: 14px 0 0; }

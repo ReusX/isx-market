@@ -69,7 +69,6 @@ export function OwnershipPage({ initial }: { initial: OwnershipInitial }) {
   const foreignPct = m.pct
   const iraqiPct = 100 - foreignPct
   const month = monthLabel(initial.month, locale)
-  const shown = rows.slice(0, limit)
 
   return (
     <SiteShell>
@@ -142,8 +141,10 @@ export function OwnershipPage({ initial }: { initial: OwnershipInitial }) {
                           </tr>
                         </thead>
                         <tbody>
-                          {shown.map((r) => (
-                            <tr key={r.sym}>
+                          {/* Every matching row is rendered; the ones past the
+                              cap are hidden by CSS so they stay in the HTML. */}
+                          {rows.map((r, i) => (
+                            <tr key={r.sym} className={i >= limit ? 'is-over' : undefined}>
                               <td>
                                 <Link href={L(`/c/${r.sym}`)}>
                                   <span className="id-name" dir="auto">{r.name}</span>
@@ -163,9 +164,9 @@ export function OwnershipPage({ initial }: { initial: OwnershipInitial }) {
                         </tbody>
                       </table>
                     </div>
-                    {rows.length > shown.length ? (
+                    {rows.length > limit ? (
                       <div className="own-more">
-                        <button type="button" className="id-btn is-sm" onClick={() => setLimit((n) => n + PAGE)}>{P.showMore(int.format(Math.min(PAGE, rows.length - shown.length)))}</button>
+                        <button type="button" className="id-btn is-sm" onClick={() => setLimit((n) => n + PAGE)}>{P.showMore(int.format(Math.min(PAGE, rows.length - limit)))}</button>
                       </div>
                     ) : null}
                   </>
