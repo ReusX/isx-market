@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useMemo, useState } from 'react'
+import Link from 'next/link'
 import { useLocale } from '@/context/LocaleContext'
 import { shortDate } from '@/lib/date'
 
@@ -22,7 +23,7 @@ type Period = 'session' | 'month'
 const R = 74, SW = 14, C = 2 * Math.PI * R
 
 export function FlowRing({ rows, session, compact }: { rows: FlowRow[]; session: string | null; compact: (v: number) => string }) {
-  const { t, locale } = useLocale()
+  const { t, locale, href: L } = useLocale()
   const c = t.market.page.flow
   const [period, setPeriod] = useState<Period>('session')
   const [side, setSide] = useState<'buy' | 'sell' | null>(null)
@@ -119,6 +120,10 @@ export function FlowRing({ rows, session, compact }: { rows: FlowRow[]; session:
           </p>
         </div>
       </div>
+      <footer className="fr-foot">
+        <span className="fr-mark" aria-hidden="true">IRAQSM.COM</span>
+        <Link href={L('/statistics/foreign-flow')} className="id-btn is-sm">{c.full} →</Link>
+      </footer>
     </section>
   )
 }

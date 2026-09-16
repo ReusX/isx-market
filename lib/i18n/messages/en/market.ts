@@ -112,6 +112,7 @@ export const market: typeof ar = {
       since:   (d: string) => `since ${d}`,
       label:   'ISX60 index chart',
       empty:   'Index data is unavailable.',
+      full:    'View full chart',
     },
     flow: {
       title:   'Foreign investor flow',
@@ -124,6 +125,7 @@ export const market: typeof ar = {
       periods: { session: 'Session', month: 'Last 20 sessions' },
       label:   (buy: string, sell: string) => `Foreign buying ${buy}, foreign selling ${sell}`,
       empty:   'Foreign flow data is unavailable.',
+      full:    'Full foreign-flow statistics',
       note:    'Each side\u2019s share of total foreign trading.',
       strip:   'Hover a session to show it in the ring · log scale',
     },

@@ -83,12 +83,18 @@
   --hero-plate:      42, 95, 207;
   /* A data block (the session summary): a pale tint by day, so the page
      carries no heavy masses; a raised surface by night. */
-  --block-bg:        #e8eef9;
+  --block-bg:        #e9ecf2;  /* quiet, near-neutral: no blue on large cards */
   --block-ink:       var(--ink);
   --block-line:      rgba(26, 32, 53, 0.10);
-  /* The active row of a section rail · a warm-white filled pill. */
-  --rail-on-bg:      #fffdf9;
-  --rail-on-ink:     var(--navy);
+  /* Selected state (a chosen range, filter, door, rail item): a quiet
+     dark-blue-grey surface with light text and a thin blue edge. The
+     warm-white / navy fill is reserved for PRIMARY actions (sign in, the
+     one call to action). */
+  --sel-bg:          #3a4460;
+  --sel-ink:         #f5f2ec;
+  --sel-edge:        rgba(20, 107, 253, 0.45);
+  --rail-on-bg:      var(--surface-2);
+  --rail-on-ink:     var(--ink);
 
   /* ── Type ── */
   --font-body:       var(--font-sans);
@@ -155,8 +161,11 @@
     --hover-tint:      #1d222a;
     --hero-bg:         #0a2b74;
     --hero-plate:      10, 43, 116;
-    --rail-on-bg:      #e7e7e2;
-    --rail-on-ink:     #0f1218;
+    --sel-bg:          #242b3a;
+    --sel-ink:         #e7e7e2;
+    --sel-edge:        rgba(127, 171, 255, 0.45);
+    --rail-on-bg:      #1c222c;
+    --rail-on-ink:     #e7e7e2;
     --block-bg:        #171b22;
     --block-ink:       #e7e7e2;
     --block-line:      rgba(120, 160, 255, 0.14);
@@ -203,8 +212,11 @@
   --hover-tint:      #1d222a;
   --hero-bg:         #0a2b74;
   --hero-plate:      10, 43, 116;
-  --rail-on-bg:      #e7e7e2;
-  --rail-on-ink:     #0f1218;
+  --sel-bg:          #242b3a;
+  --sel-ink:         #e7e7e2;
+  --sel-edge:        rgba(127, 171, 255, 0.45);
+  --rail-on-bg:      #1c222c;
+  --rail-on-ink:     #e7e7e2;
   --block-bg:        #171b22;
   --block-ink:       #e7e7e2;
   --block-line:      rgba(120, 160, 255, 0.14);

@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useMemo, useRef, useState } from 'react'
+import Link from 'next/link'
 import { useLocale } from '@/context/LocaleContext'
 import { shortDate } from '@/lib/date'
 
@@ -53,7 +54,7 @@ function dateLabels(pts: IndexPoint[], range: Range, fmt: (d: string, long: bool
 }
 
 export function IndexChart({ series }: { series: IndexPoint[] }) {
-  const { t, locale } = useLocale()
+  const { t, locale, href: L } = useLocale()
   const c = t.market.page.chart
   const [range, setRange] = useState<Range>('y1')
   const [hover, setHover] = useState<number | null>(null)
@@ -97,7 +98,13 @@ export function IndexChart({ series }: { series: IndexPoint[] }) {
     const fmt = (d: string, long: boolean) => long
       ? new Date(d).toLocaleDateString(locale === 'ar' ? 'ar-u-nu-latn' : 'en-GB', { month: 'short', year: 'numeric' })
       : shortDate(d, locale)
-    return { x, y, line, area, lo, hi, iHi, iLo, ticks: niceTicks(y0, y1), months: dateLabels(pts, range, fmt), first: pts[0].isx60 }
+    /* The watermark goes where the line is not: the half of the range whose
+       closes sit lower leaves more room above them. */
+    const mid = Math.floor(pts.length / 2)
+    const mean = (a: IndexPoint[]) => a.reduce((t, p) => t + p.isx60, 0) / a.length
+    const markX = mean(pts.slice(0, mid)) <= mean(pts.slice(mid)) ? x(Math.floor(mid / 2)) : x(mid + Math.floor(mid / 2))
+    const markY = PT + (H - PT - PB) * 0.28
+    return { x, y, line, area, lo, hi, iHi, iLo, ticks: niceTicks(y0, y1), months: dateLabels(pts, range, fmt), first: pts[0].isx60, markX, markY }
   }, [pts, locale, range, W, H])
 
   const onMove = (e: React.PointerEvent<SVGSVGElement>) => {
@@ -150,6 +157,7 @@ export function IndexChart({ series }: { series: IndexPoint[] }) {
               <text x={W - PR + 8} y={geo.y(v)} className="ix-tick">{nf.format(v)}</text>
             </g>
           ))}
+          <text x={geo.markX} y={geo.markY} className="ix-mark" aria-hidden="true">IRAQSM.COM</text>
           <line x1={PL} x2={W - PR} y1={geo.y(geo.first)} y2={geo.y(geo.first)} className="ix-base" />
           <path d={geo.area} fill="url(#ix-wash)" />
           <path d={geo.line} className="ix-line" />
@@ -171,6 +179,12 @@ export function IndexChart({ series }: { series: IndexPoint[] }) {
         </svg>
       ) : <p className="id-note">{c.empty}</p>}
       </div>
+      {/* /charts exists in Arabic only for now; no link to a 404. */}
+      {locale === 'ar' ? (
+        <footer className="ix-foot">
+          <Link href={L('/charts')} className="id-btn is-sm">{c.full} →</Link>
+        </footer>
+      ) : null}
     </section>
   )
 }
