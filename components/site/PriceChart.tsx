@@ -13,8 +13,18 @@ import { shortDate, localeDate } from '@/lib/date'
  *
  * What it does: candlestick / line / area views, a volume pane, moving
  * averages, a crosshair reporting the full OHLC of the hovered session,
- * wheel-zoom and drag-pan over the window, log or linear price scale, and a
- * toolbar with reset, fullscreen and PNG export.
+ * log or linear price scale, and a toolbar with reset, fullscreen and PNG
+ * export.
+ *
+ * Navigation is the terminal's, not a slider's: drag the plot to pan (time
+ * and price), wheel or pinch to zoom about the cursor, drag the DATE axis to
+ * stretch time, drag the PRICE axis to stretch price, double-click either to
+ * reset it. The price scale fits the visible bars until the reader takes it
+ * over; the reset control or a double-click hands it back.
+ *
+ * ⚠ The wheel listener is attached natively with `passive: false`. React
+ * registers `onWheel` passively, so `preventDefault` there is ignored and
+ * the page scrolls under the chart.
  *
  * Drawing tools: trend lines, horizontal price levels, rectangles and
  * Fibonacci retracements, with select, delete and clear.
@@ -47,9 +57,34 @@ const HIT = 8   // px; how close a click must land to select a shape
 const DAYS: Record<Range, number> = { m1: 31, m3: 92, y1: 366, y3: 3 * 366, all: Infinity }
 const MAS = [20, 50, 200] as const
 const PT = 14, PB = 26, PL = 8, PR = 62
-const H_PRICE = 300, H_VOL = 64, GAP = 10
-const H = PT + H_PRICE + GAP + H_VOL + PB
-const W = 960
+const H_VOL = 64, GAP = 10
+/** Fewest bars a window may show; the widest is 1.5× the series. */
+const MIN_SPAN = 8
+/** Server-side size; the real one comes from a ResizeObserver after mount. */
+const DEFAULT_W = 960, DEFAULT_H = 414
+
+/**
+ * The view is a WINDOW over the full series — `[a, b)` in bar indices, as
+ * floats, so a pan of half a bar is a pan of half a bar. It may run a little
+ * past both ends (air after the last candle, like any charting terminal),
+ * but never so far that fewer than three bars remain on screen.
+ */
+type Win = { a: number; b: number }
+function clampWin(len: number, a: number, b: number): Win {
+  let span = b - a
+  span = Math.max(MIN_SPAN, Math.min(Math.max(MIN_SPAN, len * 1.5), span))
+  const minA = -span * 0.02
+  const maxA = Math.max(minA, len - 3)
+  a = Math.max(minA, Math.min(maxA, a))
+  return { a, b: a + span }
+}
+
+type Gesture =
+  | { kind: 'pan'; x0: number; y0: number; a0: number; b0: number; lo0: number; hi0: number }
+  | { kind: 'taxis'; x0: number; a0: number; b0: number }
+  | { kind: 'paxis'; y0: number; lo0: number; hi0: number }
+  | { kind: 'pinch'; d0: number; mx: number; a0: number; b0: number }
+type Zone = 'plot' | 'taxis' | 'paxis'
 
 function niceTicks(lo: number, hi: number): number[] {
   const span = hi - lo || 1
@@ -104,13 +139,14 @@ export function PriceChart({ bars, label, sym }: { bars: Bar[]; label: string; s
   const { t, locale } = useLocale()
   const C = t.company.chart
   const K = C.chartTools
+  const len = bars.length
+
   const [range, setRange] = useState<Range>('y1')
   const [view, setView] = useState<View>('candles')
   const [logScale, setLogScale] = useState(false)
   const [mas, setMas] = useState<number[]>([])
+  /** Hovered bar as an index into the FULL series. */
   const [hover, setHover] = useState<number | null>(null)
-  /** Zoom/pan window over the range's bars, as [start, end) indices. */
-  const [win, setWin] = useState<{ a: number; b: number } | null>(null)
   const [full, setFull] = useState(false)
   const [tool, setTool] = useState<Tool>('cursor')
   const [draws, setDraws] = useState<Drawing[]>([])
@@ -118,9 +154,91 @@ export function PriceChart({ bars, label, sym }: { bars: Bar[]; label: string; s
   const [draft, setDraft] = useState<Drawing | null>(null)
   const draftRef = useRef<Drawing | null>(null)
   const [msg, setMsg] = useState<string | null>(null)
+  const [size, setSize] = useState({ w: DEFAULT_W, h: DEFAULT_H })
+  const [zone, setZone] = useState<Zone>('plot')
+  /** Free crosshair (exact pointer position) while a drawing tool is active. */
+  const [cross, setCross] = useState<{ px: number; py: number } | null>(null)
+  const [grabbing, setGrabbing] = useState(false)
   const svgRef = useRef<SVGSVGElement | null>(null)
   const menuRef = useRef<HTMLDetailsElement | null>(null)
-  const drag = useRef<{ x: number; a: number; b: number } | null>(null)
+  const gest = useRef<Gesture | null>(null)
+  const ptrs = useRef(new Map<number, { px: number; py: number }>())
+
+  /** The window a range pill asks for: the last N days, plus 4% of air. */
+  const windowFor = useCallback((r: Range): Win => {
+    if (len < 2) return { a: 0, b: Math.max(2, len) }
+    let a = 0
+    if (DAYS[r] !== Infinity) {
+      const since = new Date(new Date(bars[len - 1].date).getTime() - DAYS[r] * 86400_000).toISOString().slice(0, 10)
+      a = bars.findIndex((b) => b.date >= since)
+      if (a < 0) a = 0
+      if (len - a < 2) a = Math.max(0, len - 2)
+    }
+    return { a, b: len + (len - a) * 0.04 }
+  }, [bars, len])
+  const [win, setWin] = useState<Win>(() => windowFor('y1'))
+  /** Manual price scale in TRANSFORMED space (log or linear); null = fit. */
+  const [pr, setPr] = useState<{ lo: number; hi: number } | null>(null)
+  const winRef = useRef(win); winRef.current = win
+  const sizeRef = useRef(size); sizeRef.current = size
+
+  const resetView = useCallback((r: Range) => {
+    setWin(windowFor(r)); setPr(null); setHover(null)
+  }, [windowFor])
+  const pickRange = (r: Range) => { setRange(r); resetView(r) }
+  /* A different symbol's bars: start over. */
+  useEffect(() => { resetView('y1'); setRange('y1') }, [sym, resetView])
+  useEffect(() => { if (tool === 'cursor') setCross(null) }, [tool])
+  /* A manual scale means nothing across a log/linear switch. */
+  useEffect(() => { setPr(null) }, [logScale])
+
+  /* Real size, so text and strokes never scale with the viewBox and a
+     fullscreen chart really fills the screen. The observer watches the HTML
+     stage, not the <svg>: for an SVG element ResizeObserver reports the
+     drawing's bounding box, not its CSS box. */
+  const stageRef = useRef<HTMLDivElement | null>(null)
+  useEffect(() => {
+    const stage = stageRef.current
+    if (!stage) return
+    const measure = () => {
+      const r = svgRef.current?.getBoundingClientRect()
+      if (r && r.width > 0 && r.height > 0) setSize({ w: Math.round(r.width), h: Math.round(r.height) })
+    }
+    const ro = new ResizeObserver(measure)
+    ro.observe(stage)
+    measure()
+    return () => ro.disconnect()
+  }, [len, full])
+
+  /* Wheel: zoom about the cursor; a horizontal wheel (trackpad) or shift
+     pans. Native and non-passive — see the header. */
+  useEffect(() => {
+    const el = svgRef.current
+    if (!el) return
+    const onWheel = (e: WheelEvent) => {
+      e.preventDefault()
+      if (draftRef.current) return
+      const r = el.getBoundingClientRect()
+      const { w } = sizeRef.current
+      const pw = w - PL - PR
+      const px = (e.clientX - r.left) / r.width * w
+      const { a, b } = winRef.current
+      const span = b - a
+      const unit = e.deltaMode === 1 ? 16 : e.deltaMode === 2 ? 400 : 1
+      if (e.shiftKey || Math.abs(e.deltaX) > Math.abs(e.deltaY)) {
+        const d = ((e.deltaX || e.deltaY) * unit) / pw * span
+        setWin(clampWin(len, a + d, b + d))
+      } else {
+        const f = Math.exp(e.deltaY * unit * 0.0015)
+        const at = a + ((px - PL) / pw) * span
+        const ns = span * f
+        const na = at - ((px - PL) / pw) * ns
+        setWin(clampWin(len, na, na + ns))
+      }
+    }
+    el.addEventListener('wheel', onWheel, { passive: false })
+    return () => el.removeEventListener('wheel', onWheel)
+  }, [len])
 
   /* A <details> menu left open swallows the next click somewhere else on the
      page, so close it when the pointer goes elsewhere. */
@@ -157,108 +275,97 @@ export function PriceChart({ bars, label, sym }: { bars: Bar[]; label: string; s
     try { window.localStorage.setItem(storeKey, JSON.stringify(draws)) } catch { /* not fatal */ }
   }, [hydratedKey, storeKey, draws])
 
-  /* The range's bars, before zoom. */
-  const ranged = useMemo(() => {
-    if (!bars.length) return []
-    if (DAYS[range] === Infinity) return bars
-    const last = bars[bars.length - 1].date
-    const since = new Date(new Date(last).getTime() - DAYS[range] * 86400_000).toISOString().slice(0, 10)
-    const w = bars.filter((b) => b.date >= since)
-    return w.length > 1 ? w : bars.slice(-2)
-  }, [bars, range])
-
-  useEffect(() => { setWin(null); setHover(null) }, [range])
-
-  const view0 = win ? Math.max(0, win.a) : 0
-  const view1 = win ? Math.min(ranged.length, win.b) : ranged.length
-  const pts = useMemo(() => ranged.slice(view0, view1), [ranged, view0, view1])
-
-  /* Moving averages are computed over the RANGE, not the zoom window, so a
-     20-day average does not restart when you zoom in. */
-  const maSeries = useMemo(() => {
+  /* Moving averages over the FULL series, once; the view only slices. */
+  const maAll = useMemo(() => {
     const m: Record<number, (number | null)[]> = {}
-    for (const n of MAS) if (mas.includes(n)) m[n] = sma(ranged, n).slice(view0, view1)
-    return m
-  }, [ranged, mas, view0, view1])
-
-  /** date → index in the full series, so an anchor never depends on the view. */
-  const gIndex = useMemo(() => {
-    const m = new Map<string, number>()
-    bars.forEach((b, i) => m.set(b.date, i))
+    for (const n of MAS) m[n] = sma(bars, n)
     return m
   }, [bars])
 
-  const onWheel = useCallback((e: React.WheelEvent) => {
-    if (!ranged.length || draftRef.current) return
-    e.preventDefault()
-    const a = view0, b = view1
-    const span = b - a
-    const step = Math.max(1, Math.round(span * 0.12))
-    if (e.deltaY < 0) {
-      if (span - step * 2 < 10) return
-      setWin({ a: a + step, b: b - step })
-    } else {
-      setWin({ a: Math.max(0, a - step), b: Math.min(ranged.length, b + step) })
-    }
-  }, [ranged.length, view0, view1])
+  if (len < 2) return <p className="id-note">{C.noSeries}</p>
 
-  if (pts.length < 2) return <p className="id-note">{C.noSeries}</p>
+  /* ── Geometry ─────────────────────────────────────────────────────────── */
+  const W = size.w, H = size.h
+  const PW = W - PL - PR
+  const H_PRICE = Math.max(80, H - PT - GAP - H_VOL - PB)
+  const Y_VOL = PT + H_PRICE + GAP + H_VOL
+  const span = win.b - win.a
+  const x = (i: number) => PL + ((i - win.a) / span) * PW
+  const iOfX = (px: number) => win.a + ((px - PL) / PW) * span
+  /* Visible bars, including the partial ones at either edge; the plot is
+     clipped so they are cut by the frame rather than popping in and out. */
+  const i0 = Math.max(0, Math.floor(win.a)), i1 = Math.min(len, Math.ceil(win.b) + 1)
+  const pts = bars.slice(i0, i1)
+  const lastVis = Math.max(0, Math.min(len - 1, i1 - 1))
 
-  const lo = Math.min(...pts.map((p) => (view === 'candles' ? p.low : p.close)))
-  const hi = Math.max(...pts.map((p) => (view === 'candles' ? p.high : p.close)))
-  const pad = (hi - lo) * 0.08 || Math.max(0.01, hi * 0.02)
-  /* Log scale only where every value is positive — prices are, but guard
-     anyway rather than produce NaN geometry. */
-  const canLog = logScale && lo - pad > 0
-  const yLo = canLog ? Math.log(Math.max(1e-6, lo - pad)) : lo - pad
-  const yHi = canLog ? Math.log(hi + pad) : hi + pad
-  const yv = (v: number) => (canLog ? Math.log(Math.max(1e-6, v)) : v)
-  const x = (i: number) => PL + (i / Math.max(1, pts.length - 1)) * (W - PL - PR)
-  const y = (v: number) => PT + (1 - (yv(v) - yLo) / (yHi - yLo || 1)) * H_PRICE
-  const bw = Math.max(1, ((W - PL - PR) / pts.length) * 0.66)
-
-  /* Anchors live in the FULL series' index space, so they survive range and
-     zoom changes. These two map that space to and from the visible window.
-     Visible bars are a contiguous slice, so a linear map is exact for them
-     and extrapolates sensibly for a shape drawn outside the current view. */
-  const gi0 = gIndex.get(pts[0].date) ?? 0
-  const gi1 = gIndex.get(pts[pts.length - 1].date) ?? Math.max(1, bars.length - 1)
-  const xOfI = (gi: number) => PL + ((gi - gi0) / Math.max(1, gi1 - gi0)) * (W - PL - PR)
-  const iOfX = (px: number) => gi0 + ((px - PL) / (W - PL - PR)) * Math.max(1, gi1 - gi0)
-  /* Inverse of y(): screen pixel back to a price, log-aware. */
-  const pOfY = (py: number) => {
-    const f = 1 - (py - PT) / H_PRICE
-    const v = yLo + f * (yHi - yLo)
-    return canLog ? Math.exp(v) : v
+  const tf = (v: number) => (logScale ? Math.log(Math.max(1e-6, v)) : v)
+  const inv = (u: number) => (logScale ? Math.exp(u) : u)
+  let yLo: number, yHi: number
+  if (pr) { yLo = pr.lo; yHi = pr.hi } else {
+    const src = pts.length ? pts : bars.slice(-2)
+    const lo = Math.min(...src.map((p) => (view === 'candles' ? p.low : p.close)))
+    const hi = Math.max(...src.map((p) => (view === 'candles' ? p.high : p.close)))
+    const pad = (hi - lo) * 0.08 || Math.max(0.01, hi * 0.02)
+    yLo = tf(logScale && lo - pad <= 0 ? lo * 0.9 : lo - pad)
+    yHi = tf(hi + pad)
   }
+  const ySpan = yHi - yLo || 1
+  const y = (v: number) => PT + (1 - (tf(v) - yLo) / ySpan) * H_PRICE
+  const pOfY = (py: number) => inv(yLo + (1 - (py - PT) / H_PRICE) * ySpan)
+  const bw = Math.max(1, (PW / span) * 0.66)
 
   const vMax = Math.max(1, ...pts.map((p) => p.volume))
-  const vy = (v: number) => PT + H_PRICE + GAP + H_VOL - (v / vMax) * H_VOL
+  const vy = (v: number) => Y_VOL - (v / vMax) * H_VOL
 
-  const line = pts.map((p, i) => `${i ? 'L' : 'M'}${x(i).toFixed(1)},${y(p.close).toFixed(1)}`).join(' ')
-  const area = `${line} L${x(pts.length - 1).toFixed(1)},${PT + H_PRICE} L${x(0).toFixed(1)},${PT + H_PRICE} Z`
-  const up = pts[pts.length - 1].close >= pts[0].close
-  const ticks = niceTicks(canLog ? Math.exp(yLo) : yLo, canLog ? Math.exp(yHi) : yHi)
-  const shown = pts[hover ?? pts.length - 1]
-  const prevOf = hover != null && hover > 0 ? pts[hover - 1] : pts[pts.length - 2]
+  const seg = (from: number, to: number, val: (i: number) => number | null) => {
+    let d = '', pen = false
+    for (let i = from; i < to; i++) {
+      const v = val(i)
+      if (v == null) { pen = false; continue }
+      d += `${pen ? 'L' : 'M'}${x(i).toFixed(1)},${y(v).toFixed(1)}`
+      pen = true
+    }
+    return d
+  }
+  const line = seg(i0, i1, (i) => bars[i].close)
+  const area = pts.length ? `${line} L${x(i1 - 1).toFixed(1)},${PT + H_PRICE} L${x(i0).toFixed(1)},${PT + H_PRICE} Z` : ''
+  const up = pts.length ? pts[pts.length - 1].close >= pts[0].close : true
+  const ticks = niceTicks(inv(yLo), inv(yHi))
+  const shownI = hover ?? lastVis
+  const shown = bars[shownI]
+  const prevOf = shownI > 0 ? bars[shownI - 1] : null
   const chg = prevOf && prevOf.close > 0 ? ((shown.close - prevOf.close) / prevOf.close) * 100 : null
   const nf = new Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
   const vf = new Intl.NumberFormat('en-US', { notation: 'compact', maximumFractionDigits: 1 })
 
+  /* Watermark in the emptier half of the price pane, so it never sits on
+     the line — the same rule the index chart follows. */
+  const mid = Math.floor(pts.length / 2)
+  const mean = (a: Bar[]) => a.reduce((z, p) => z + p.close, 0) / Math.max(1, a.length)
+  const markX = mean(pts.slice(0, mid)) <= mean(pts.slice(mid)) ? x(i0 + Math.floor(mid / 2)) : x(i0 + mid + Math.floor(mid / 2))
+  const markY = PT + H_PRICE * 0.3
+
+  /* Date labels: about one per 150px of plot, on real bars, kept off the
+     frame edges. Full year on long windows: a two-digit suffix rendered
+     «22 نوفمبر 22», where the day and the year read as the same number. */
   const labels: { i: number; label: string }[] = []
-  const n = Math.min(6, pts.length)
-  const long = range === 'y1' || range === 'y3' || range === 'all'
-  for (let k = 0; k < n; k++) {
-    const i = Math.round((k / Math.max(1, n - 1)) * (pts.length - 1))
-    /* Full year on long ranges: a two-digit suffix rendered «22 نوفمبر 22»,
-       where the day and the year read as the same number. */
-    labels.push({ i, label: shortDate(pts[i].date, locale) + (long ? ` ${pts[i].date.slice(0, 4)}` : '') })
+  {
+    const nLab = Math.max(2, Math.min(8, Math.round(PW / 150)))
+    const long = span > 200
+    for (let k = 0; k < nLab; k++) {
+      const i = Math.round(i0 + (k / (nLab - 1)) * (i1 - 1 - i0))
+      if (i < 0 || i >= len) continue
+      const lx = x(i)
+      if (lx < PL + 34 || lx > W - PR - 34) continue
+      if (labels.some((l) => Math.abs(x(l.i) - lx) < 90)) continue
+      labels.push({ i, label: shortDate(bars[i].date, locale) + (long ? ` ${bars[i].date.slice(0, 4)}` : '') })
+    }
   }
 
   /** Screen-space distance from a click to a shape, for selection. */
   function hitDist(d: Drawing, px: number, py: number): number {
     if (d.kind === 'hline') return Math.abs(py - y(d.p))
-    const ax = xOfI(d.a.i), ay = y(d.a.p), bx = xOfI(d.b.i), by = y(d.b.p)
+    const ax = x(d.a.i), ay = y(d.a.p), bx = x(d.b.i), by = y(d.b.p)
     if (d.kind === 'trend') {
       const vx = bx - ax, vy2 = by - ay
       const len2 = vx * vx + vy2 * vy2 || 1
@@ -273,11 +380,13 @@ export function PriceChart({ bars, label, sym }: { bars: Bar[]; label: string; s
     return Math.hypot(dx, dy)
   }
 
-  /** Pointer position in the SVG's own viewBox coordinates. */
-  function svgPos(e: React.PointerEvent): { px: number; py: number } {
-    const r = e.currentTarget.getBoundingClientRect()
+  /** Pointer position in the SVG's own coordinates (1:1 with CSS pixels). */
+  function svgPos(e: { clientX: number; clientY: number }): { px: number; py: number } {
+    const r = svgRef.current?.getBoundingClientRect()
+    if (!r || !r.width || !r.height) return { px: 0, py: 0 }
     return { px: (e.clientX - r.left) / r.width * W, py: (e.clientY - r.top) / r.height * H }
   }
+  const zoneAt = (px: number, py: number): Zone => (px > W - PR ? 'paxis' : py > Y_VOL ? 'taxis' : 'plot')
 
   function startDraw(px: number, py: number) {
     const id = `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`
@@ -305,13 +414,133 @@ export function PriceChart({ bars, label, sym }: { bars: Bar[]; label: string; s
     /* Discard a shape that is really just a click: a zero-length trend line
        is invisible and un-selectable, so it would be litter. */
     if (cur.kind !== 'hline') {
-      const dx = Math.abs(xOfI(cur.b.i) - xOfI(cur.a.i))
+      const dx = Math.abs(x(cur.b.i) - x(cur.a.i))
       const dy = Math.abs(y(cur.b.p) - y(cur.a.p))
       if (dx < 4 && dy < 4) return
     }
     setDraws((list) => [...list, cur])
     setSel(cur.id)
     setTool('cursor')
+  }
+
+  /* ── Gestures ─────────────────────────────────────────────────────────── */
+  type PE = { clientX: number; clientY: number; pointerId: number; pointerType?: string; button?: number }
+
+  /* Once a press starts, the move and release are read from the WINDOW, not
+     the element: a fast drag leaves the plot, and pointer capture is not
+     something every browser honours on an inline SVG. The listeners live
+     only for the gesture. */
+  const winRefs = useRef<{ move: (e: PointerEvent) => void; up: (e: PointerEvent) => void } | null>(null)
+  const detachWindow = () => {
+    const w = winRefs.current
+    if (!w) return
+    window.removeEventListener('pointermove', w.move)
+    window.removeEventListener('pointerup', w.up)
+    window.removeEventListener('pointercancel', w.up)
+    winRefs.current = null
+  }
+  const attachWindow = () => {
+    if (winRefs.current) return
+    const move = (e: PointerEvent) => onMove(e)
+    const up = (e: PointerEvent) => onUp(e)
+    window.addEventListener('pointermove', move)
+    window.addEventListener('pointerup', up)
+    window.addEventListener('pointercancel', up)
+    winRefs.current = { move, up }
+  }
+
+  function onDown(e: React.PointerEvent<SVGSVGElement>) {
+    const { px, py } = svgPos(e)
+    ptrs.current.set(e.pointerId, { px, py })
+    if (ptrs.current.size === 2) {
+      /* Second finger: whatever was happening becomes a pinch. */
+      const [p, q] = Array.from(ptrs.current.values())
+      draftRef.current = null; setDraft(null)
+      gest.current = { kind: 'pinch', d0: Math.hypot(p.px - q.px, p.py - q.py) || 1, mx: (p.px + q.px) / 2, a0: win.a, b0: win.b }
+      setGrabbing(true)
+      return
+    }
+    if (e.button !== 0 && e.pointerType === 'mouse') return
+    e.preventDefault()
+    attachWindow()
+    const z = zoneAt(px, py)
+    if (z === 'paxis') { gest.current = { kind: 'paxis', y0: py, lo0: yLo, hi0: yHi }; setGrabbing(true); return }
+    if (z === 'taxis') { gest.current = { kind: 'taxis', x0: px, a0: win.a, b0: win.b }; setGrabbing(true); return }
+    if (tool !== 'cursor') { startDraw(px, py); return }
+    /* Cursor tool: a click either selects a shape or begins a pan. */
+    const near = draws
+      .map((d) => ({ d, dist: hitDist(d, px, py) }))
+      .sort((m, n) => m.dist - n.dist)[0]
+    if (near && near.dist <= HIT) { setSel(near.d.id); return }
+    setSel(null)
+    gest.current = { kind: 'pan', x0: px, y0: py, a0: win.a, b0: win.b, lo0: yLo, hi0: yHi }
+    setGrabbing(true)
+  }
+
+  function onMove(e: PE) {
+    const { px, py } = svgPos(e)
+    if (ptrs.current.has(e.pointerId)) ptrs.current.set(e.pointerId, { px, py })
+    const z = zoneAt(px, py)
+    if (z !== zone) setZone(z)
+    const inPlot = z === 'plot' && px >= PL && py >= PT && py <= Y_VOL
+    /* A drawing tool gets a FREE crosshair — the exact pointer, not the
+       nearest bar — so a shape can start and end anywhere. */
+    if (tool !== 'cursor') setCross(inPlot || draftRef.current ? { px, py } : null)
+    if (draftRef.current) { moveDraw(px, py); return }
+    const g = gest.current
+    if (g) {
+      if (g.kind === 'pan') {
+        const s0 = g.b0 - g.a0
+        const shift = -((px - g.x0) / PW) * s0
+        setWin(clampWin(len, g.a0 + shift, g.b0 + shift))
+        const dy = py - g.y0
+        if (Math.abs(dy) > 2 || pr) {
+          const ys = g.hi0 - g.lo0
+          setPr({ lo: g.lo0 + (dy / H_PRICE) * ys, hi: g.hi0 + (dy / H_PRICE) * ys })
+        }
+      } else if (g.kind === 'taxis') {
+        /* Drag right = stretch time (zoom in), anchored at the last bar. */
+        const f = Math.exp(-((px - g.x0) / PW) * 2)
+        const s0 = g.b0 - g.a0
+        const ns = Math.max(MIN_SPAN, Math.min(len * 1.5, s0 * f))
+        setWin(clampWin(len, g.b0 - ns, g.b0))
+      } else if (g.kind === 'paxis') {
+        /* Drag down = expand the price range (zoom out), about its centre. */
+        const f = Math.exp(((py - g.y0) / H_PRICE) * 2)
+        const c = (g.lo0 + g.hi0) / 2, half = ((g.hi0 - g.lo0) / 2) * f
+        setPr({ lo: c - half, hi: c + half })
+      } else if (g.kind === 'pinch' && ptrs.current.size === 2) {
+        const [p, q] = Array.from(ptrs.current.values())
+        const d = Math.hypot(p.px - q.px, p.py - q.py) || 1
+        const s0 = g.b0 - g.a0
+        const ns = s0 * (g.d0 / d)
+        const at = g.a0 + ((g.mx - PL) / PW) * s0
+        const na = at - ((g.mx - PL) / PW) * ns
+        setWin(clampWin(len, na, na + ns))
+        return
+      }
+    }
+    if (inPlot) {
+      const i = Math.round(iOfX(px))
+      setHover(i >= 0 && i < len ? i : null)
+    } else setHover(null)
+  }
+
+  function onUp(e: PE) {
+    ptrs.current.delete(e.pointerId)
+    if (draftRef.current) endDraw()
+    if (gest.current?.kind === 'pinch' && ptrs.current.size) return
+    gest.current = null
+    setGrabbing(false)
+    detachWindow()
+  }
+  useEffect(() => detachWindow, [])   // eslint-disable-line react-hooks/exhaustive-deps
+
+  function onDouble(e: React.MouseEvent<SVGSVGElement>) {
+    const { px, py } = svgPos(e)
+    const z = zoneAt(px, py)
+    if (z === 'paxis') setPr(null)
+    else resetView(range)
   }
 
   /* PNG export: serialise the SVG, paint it on a canvas, hand back a file.
@@ -325,13 +554,18 @@ export function PriceChart({ bars, label, sym }: { bars: Bar[]; label: string; s
       const cs = getComputedStyle(document.documentElement)
       const bg = cs.getPropertyValue('--surface').trim() || '#fff'
       clone.setAttribute('style', `background:${bg}`)
-      for (const el of Array.from(clone.querySelectorAll<SVGElement>('*'))) {
-        const src = document.querySelector(`.cmp-svg ${el.tagName}`)
-        if (!src) continue
-        const s = getComputedStyle(src as Element)
-        el.setAttribute('fill', el.getAttribute('fill') ?? s.fill)
+      const live = Array.from(svg.querySelectorAll<SVGElement>('*'))
+      Array.from(clone.querySelectorAll<SVGElement>('*')).forEach((el, k) => {
+        const src = live[k]
+        if (!src) return
+        const s = getComputedStyle(src)
+        el.setAttribute('fill', s.fill)
         el.setAttribute('stroke', s.stroke)
-      }
+        el.setAttribute('stroke-width', s.strokeWidth)
+        el.setAttribute('opacity', s.opacity)
+        el.setAttribute('font-size', s.fontSize)
+        el.setAttribute('font-weight', s.fontWeight)
+      })
       const xml = new XMLSerializer().serializeToString(clone)
       const img = new Image()
       img.crossOrigin = 'anonymous'
@@ -353,27 +587,15 @@ export function PriceChart({ bars, label, sym }: { bars: Bar[]; label: string; s
     } catch { /* export is a convenience; never break the chart over it */ }
   }
 
+  const cursor = tool !== 'cursor' ? 'crosshair' : grabbing ? 'grabbing' : zone === 'paxis' ? 'ns-resize' : zone === 'taxis' ? 'ew-resize' : 'crosshair'
+  const clip = `clip-${sym}`
+
   return (
     <div className={`cmp-chart ${full ? 'is-full' : ''} ${tool !== 'cursor' ? 'is-drawing' : ''}`.replace(/\s+/g, ' ').trim()}>
-      <div className="cmp-chart-head">
-        <p className="cmp-read id-num">
-          <strong>{nf.format(shown.close)}</strong>
-          <span className={`cmp-ohlc id-cap ${chg == null ? '' : chg > 0 ? 'id-up' : chg < 0 ? 'id-down' : ''}`}>
-            <bdi>{localeDate(shown.date, locale)}</bdi>
-            <bdi>{K.o} {nf.format(shown.open)}</bdi>
-            <bdi>{K.h} {nf.format(shown.high)}</bdi>
-            <bdi>{K.l} {nf.format(shown.low)}</bdi>
-            <bdi>{K.c} {nf.format(shown.close)}</bdi>
-            {chg != null ? <bdi>{chg > 0 ? '+' : ''}{chg.toFixed(2)}%</bdi> : null}
-            <bdi>{K.volume} {vf.format(shown.volume)}</bdi>
-          </span>
-        </p>
-      </div>
-
       <div className="cmp-tools">
         <div className="id-pills" role="group" aria-label={C.range}>
           {(['m1', 'm3', 'y1', 'y3', 'all'] as const).map((r) => (
-            <button key={r} type="button" className="id-pill is-sm" aria-pressed={range === r} onClick={() => setRange(r)}>{C.ranges[r]}</button>
+            <button key={r} type="button" className="id-pill is-sm" aria-pressed={range === r} onClick={() => pickRange(r)}>{C.ranges[r]}</button>
           ))}
         </div>
         <div className="cmp-tools-end">
@@ -402,14 +624,14 @@ export function PriceChart({ bars, label, sym }: { bars: Bar[]; label: string; s
               </div>
             </div>
           </details>
-          <button type="button" className="cmp-ico" aria-label={K.reset} title={K.reset} onClick={() => { setWin(null); setHover(null) }}><Icon name="reset" /></button>
+          <button type="button" className="cmp-ico" aria-label={K.reset} title={K.reset} onClick={() => resetView(range)}><Icon name="reset" /></button>
           <button type="button" className="cmp-ico" aria-label={full ? K.exitFullscreen : K.fullscreen} title={full ? K.exitFullscreen : K.fullscreen}
             aria-pressed={full} onClick={() => setFull((f) => !f)}><Icon name={full ? 'collapse' : 'expand'} /></button>
           <button type="button" className="cmp-ico" aria-label={K.download} title={msg ?? K.download} onClick={download}><Icon name="download" /></button>
         </div>
       </div>
 
-      <div className="cmp-stage">
+      <div className="cmp-stage" ref={stageRef}>
         {/* The drawing rail sits ON the chart, as a chart's tools do.
             Physically left in BOTH locales: the time axis runs oldest → newest
             left to right whatever the page direction, so the rail belongs with
@@ -429,39 +651,38 @@ export function PriceChart({ bars, label, sym }: { bars: Bar[]; label: string; s
           ) : null}
         </div>
 
+        {/* The legend sits ON the plot, top-left beside the rail, the way a
+            chart's readout always has: the hovered session while a crosshair
+            is up, the last session otherwise. The big price above the chart
+            already says «what is it now»; this says «what was it then». */}
+        <div className="cmp-legend-plot id-num" aria-live="polite">
+          <span className="cmp-lg-date"><bdi>{localeDate(shown.date, locale)}</bdi></span>
+          <span className={`cmp-lg-ohlc ${chg == null ? '' : chg > 0 ? 'id-up' : chg < 0 ? 'id-down' : ''}`.trim()}>
+            <bdi><i>{K.o}</i>{nf.format(shown.open)}</bdi>
+            <bdi><i>{K.h}</i>{nf.format(shown.high)}</bdi>
+            <bdi><i>{K.l}</i>{nf.format(shown.low)}</bdi>
+            <bdi><i>{K.c}</i>{nf.format(shown.close)}</bdi>
+            {chg != null ? <bdi>{chg > 0 ? '+' : ''}{chg.toFixed(2)}%</bdi> : null}
+          </span>
+          <span className="cmp-lg-vol"><bdi><i>{K.volume}</i>{vf.format(shown.volume)}</bdi></span>
+          {MAS.filter((n) => mas.includes(n)).map((n, k) => {
+            const v = maAll[n][shownI]
+            return <span key={n} className={`cmp-lg-ma is-ma${MAS.indexOf(n)}`} data-k={k}><bdi><i>{K.maN(String(n))}</i>{v == null ? '—' : nf.format(v)}</bdi></span>
+          })}
+        </div>
+
       <svg ref={svgRef} viewBox={`0 0 ${W} ${H}`} className="cmp-svg id-num" role="img" aria-label={label}
-        onWheel={onWheel}
-        onPointerLeave={() => { setHover(null); drag.current = null; if (draftRef.current) endDraw() }}
-        onPointerDown={(e) => {
-          ;(e.currentTarget as Element).setPointerCapture?.(e.pointerId)
-          if (tool !== 'cursor') { const { px, py } = svgPos(e); startDraw(px, py); return }
-          /* Cursor tool: a click either selects a shape or begins a pan. */
-          const { px, py } = svgPos(e)
-          const near = draws
-            .map((d) => ({ d, dist: hitDist(d, px, py) }))
-            .sort((m, n) => m.dist - n.dist)[0]
-          if (near && near.dist <= HIT) { setSel(near.d.id); return }
-          setSel(null)
-          drag.current = { x: e.clientX, a: view0, b: view1 }
-        }}
-        onPointerUp={() => { if (draftRef.current) endDraw(); drag.current = null }}
-        onPointerMove={(e) => {
-          const r = e.currentTarget.getBoundingClientRect()
-          if (draftRef.current) { const { px, py } = svgPos(e); moveDraw(px, py); return }
-          if (drag.current) {
-            const dx = (e.clientX - drag.current.x) / r.width * W
-            const perBar = (W - PL - PR) / Math.max(1, pts.length)
-            const shift = Math.round(-dx / perBar) * (locale === 'ar' ? -1 : 1)
-            const span = drag.current.b - drag.current.a
-            let a = drag.current.a + shift
-            a = Math.max(0, Math.min(ranged.length - span, a))
-            setWin({ a, b: a + span })
-            return
-          }
-          const rel = (e.clientX - r.left) / r.width * W
-          const i = Math.round(((rel - PL) / (W - PL - PR)) * (pts.length - 1))
-          setHover(Math.max(0, Math.min(pts.length - 1, i)))
-        }}>
+        style={{ cursor }}
+        onPointerDown={onDown}
+        onPointerMove={(e) => { if (!winRefs.current) onMove(e) }}
+        onPointerLeave={() => { if (!gest.current && !draftRef.current) { setHover(null); setCross(null) } }}
+        onDragStart={(e) => e.preventDefault()}
+        onDoubleClick={onDouble}>
+        <defs>
+          <clipPath id={clip}><rect x={PL} y={PT} width={PW} height={H_PRICE} /></clipPath>
+          <clipPath id={`${clip}-v`}><rect x={PL} y={PT + H_PRICE + GAP} width={PW} height={H_VOL} /></clipPath>
+        </defs>
+
         {ticks.map((v) => (
           <g key={v}>
             <line x1={PL} x2={W - PR} y1={y(v)} y2={y(v)} className="cmp-grid" />
@@ -469,43 +690,44 @@ export function PriceChart({ bars, label, sym }: { bars: Bar[]; label: string; s
           </g>
         ))}
 
-        {view === 'candles' ? pts.map((p, i) => {
-          const rise = p.close >= p.open
-          const top = y(Math.max(p.open, p.close)), bot = y(Math.min(p.open, p.close))
-          return (
-            <g key={p.date} className={`cmp-candle ${rise ? 'is-up' : 'is-down'}`}>
-              <line x1={x(i)} x2={x(i)} y1={y(p.high)} y2={y(p.low)} className="cmp-wick" />
-              <rect x={x(i) - bw / 2} y={top} width={bw} height={Math.max(1, bot - top)} className="cmp-body" />
-            </g>
-          )
-        }) : (
-          <>
-            {view === 'area' ? <path d={area} className={`cmp-area ${up ? 'is-up' : 'is-down'}`} /> : null}
-            <path d={line} className={`cmp-line ${up ? 'is-up' : 'is-down'}`} />
-          </>
-        )}
+        <text x={markX} y={markY} className="cmp-mark" aria-hidden="true">IRAQSM.COM</text>
 
-        {Object.entries(maSeries).map(([n, vals], k) => {
-          const d = vals.map((v, i) => (v == null ? null : `${x(i).toFixed(1)},${y(v).toFixed(1)}`))
-            .reduce<string>((acc, cur, i) => cur == null ? acc : acc + (acc && vals[i - 1] != null ? 'L' : 'M') + cur, '')
-          return d ? <path key={n} d={d} className={`cmp-ma is-ma${k}`} /> : null
-        })}
+        <g clipPath={`url(#${clip})`}>
+          {view === 'candles' ? pts.map((p, k) => {
+            const i = i0 + k
+            const rise = p.close >= p.open
+            const top = y(Math.max(p.open, p.close)), bot = y(Math.min(p.open, p.close))
+            return (
+              <g key={p.date} className={`cmp-candle ${rise ? 'is-up' : 'is-down'}`}>
+                <line x1={x(i)} x2={x(i)} y1={y(p.high)} y2={y(p.low)} className="cmp-wick" />
+                <rect x={x(i) - bw / 2} y={top} width={bw} height={Math.max(1, bot - top)} className="cmp-body" />
+              </g>
+            )
+          }) : (
+            <>
+              {view === 'area' ? <path d={area} className={`cmp-area ${up ? 'is-up' : 'is-down'}`} /> : null}
+              <path d={line} className={`cmp-line ${up ? 'is-up' : 'is-down'}`} />
+            </>
+          )}
+
+          {MAS.filter((n) => mas.includes(n)).map((n) => {
+            const d = seg(Math.max(0, i0 - 1), Math.min(len, i1 + 1), (i) => maAll[n][i])
+            return d ? <path key={n} d={d} className={`cmp-ma is-ma${MAS.indexOf(n)}`} /> : null
+          })}
+        </g>
 
         {/* Volume pane, on its own scale under the price. */}
-        <line x1={PL} x2={W - PR} y1={PT + H_PRICE + GAP + H_VOL} y2={PT + H_PRICE + GAP + H_VOL} className="cmp-grid" />
-        {pts.map((p, i) => (
-          <rect key={`v${p.date}`} x={x(i) - bw / 2} y={vy(p.volume)} width={bw} height={Math.max(0, PT + H_PRICE + GAP + H_VOL - vy(p.volume))}
-            className={`cmp-vol ${p.close >= p.open ? 'is-up' : 'is-down'}`} />
-        ))}
+        <line x1={PL} x2={W - PR} y1={Y_VOL} y2={Y_VOL} className="cmp-grid" />
+        <g clipPath={`url(#${clip}-v)`}>
+          {pts.map((p, k) => (
+            <rect key={`v${p.date}`} x={x(i0 + k) - bw / 2} y={vy(p.volume)} width={bw} height={Math.max(0, Y_VOL - vy(p.volume))}
+              className={`cmp-vol ${p.close >= p.open ? 'is-up' : 'is-down'}`} />
+          ))}
+        </g>
 
         {/* Drawings, clipped to the price pane so a shape panned out of view
             cannot spill over the axis or the volume pane. */}
-        <defs>
-          <clipPath id={`clip-${sym}`}>
-            <rect x={PL} y={PT} width={W - PL - PR} height={H_PRICE} />
-          </clipPath>
-        </defs>
-        <g clipPath={`url(#clip-${sym})`}>
+        <g clipPath={`url(#${clip})`}>
           {[...draws, ...(draft ? [draft] : [])].map((d) => {
             const on = d.id === sel
             const cls = `cmp-draw ${on ? 'is-sel' : ''}`.trim()
@@ -517,7 +739,7 @@ export function PriceChart({ bars, label, sym }: { bars: Bar[]; label: string; s
                 </g>
               )
             }
-            const ax = xOfI(d.a.i), ay = y(d.a.p), bx = xOfI(d.b.i), by = y(d.b.p)
+            const ax = x(d.a.i), ay = y(d.a.p), bx = x(d.b.i), by = y(d.b.p)
             if (d.kind === 'trend') {
               return (
                 <g key={d.id} className={cls}>
@@ -556,11 +778,25 @@ export function PriceChart({ bars, label, sym }: { bars: Bar[]; label: string; s
 
         {labels.map((l) => <text key={l.i} x={x(l.i)} y={H - 8} className="cmp-xlabel">{l.label}</text>)}
 
-        {hover != null ? (
+        {cross ? (
           <g>
-            <line x1={x(hover)} x2={x(hover)} y1={PT} y2={PT + H_PRICE + GAP + H_VOL} className="cmp-cross" />
-            <line x1={PL} x2={W - PR} y1={y(pts[hover].close)} y2={y(pts[hover].close)} className="cmp-cross" />
-            <circle cx={x(hover)} cy={y(pts[hover].close)} r="3.5" className="cmp-dot" />
+            <line x1={cross.px} x2={cross.px} y1={PT} y2={Y_VOL} className="cmp-cross" />
+            <line x1={PL} x2={W - PR} y1={cross.py} y2={cross.py} className="cmp-cross" />
+            <g className="cmp-cur">
+              <rect x={W - PR + 2} y={cross.py - 9} width={PR - 6} height={18} rx="3" className="cmp-cur-tag" />
+              <text x={W - PR + 6} y={cross.py} className="cmp-cur-text">{nf.format(pOfY(cross.py))}</text>
+            </g>
+          </g>
+        ) : hover != null ? (
+          <g>
+            <line x1={x(hover)} x2={x(hover)} y1={PT} y2={Y_VOL} className="cmp-cross" />
+            <line x1={PL} x2={W - PR} y1={y(bars[hover].close)} y2={y(bars[hover].close)} className="cmp-cross" />
+            <circle cx={x(hover)} cy={y(bars[hover].close)} r="3.5" className="cmp-dot" />
+            {/* The session under the crosshair, as a tag on the date axis. */}
+            <g className="cmp-cur">
+              <rect x={Math.max(PL, Math.min(W - PR - 96, x(hover) - 48))} y={Y_VOL + 4} width={96} height={18} rx="3" className="cmp-cur-tag" />
+              <text x={Math.max(PL, Math.min(W - PR - 96, x(hover) - 48)) + 48} y={Y_VOL + 13} className="cmp-cur-text is-mid">{localeDate(bars[hover].date, locale)}</text>
+            </g>
           </g>
         ) : null}
 
@@ -569,10 +805,11 @@ export function PriceChart({ bars, label, sym }: { bars: Bar[]; label: string; s
             last-close badge is the one number the chart is really about, so
             it is drawn last and never clipped. */}
         {(() => {
-          const lastC = pts[pts.length - 1]
-          const prevC = pts.length > 1 ? pts[pts.length - 2] : null
+          const lastC = bars[len - 1]
+          const prevC = len > 1 ? bars[len - 2] : null
           const dir = prevC ? (lastC.close > prevC.close ? 'is-up' : lastC.close < prevC.close ? 'is-down' : '') : ''
           const ly = y(lastC.close)
+          if (ly < PT - 9 || ly > PT + H_PRICE + 9) return null
           return (
             <g className={`cmp-last ${dir}`.trim()}>
               <line x1={PL} x2={W - PR} y1={ly} y2={ly} className="cmp-last-line" />
@@ -581,10 +818,10 @@ export function PriceChart({ bars, label, sym }: { bars: Bar[]; label: string; s
             </g>
           )
         })()}
-        {hover != null && hover !== pts.length - 1 ? (
+        {!cross && hover != null && hover !== len - 1 ? (
           <g className="cmp-cur">
-            <rect x={W - PR + 2} y={y(pts[hover].close) - 9} width={PR - 6} height={18} rx="3" className="cmp-cur-tag" />
-            <text x={W - PR + 6} y={y(pts[hover].close)} className="cmp-cur-text">{nf.format(pts[hover].close)}</text>
+            <rect x={W - PR + 2} y={y(bars[hover].close) - 9} width={PR - 6} height={18} rx="3" className="cmp-cur-tag" />
+            <text x={W - PR + 6} y={y(bars[hover].close)} className="cmp-cur-text">{nf.format(bars[hover].close)}</text>
           </g>
         ) : null}
       </svg>

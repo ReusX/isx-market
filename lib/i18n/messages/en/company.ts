@@ -195,7 +195,7 @@ export const company: typeof ar = {
       download: 'Download image',
       downloaded: 'Downloaded',
       volume: 'Volume',
-      zoomHint: 'Scroll to zoom \u00b7 drag to pan',
+      zoomHint: 'Drag to pan · scroll or pinch to zoom · drag the price or date axis to rescale · double-click to reset',
       draw: 'Draw',
       cursor: 'Cursor',
       trend: 'Trend line',
