@@ -48,7 +48,6 @@ export default function FinancialsLayout({ children, params }: { children: React
       {children}
       <Breadcrumbs
         trail={[
-          { name: 'السوق', path: '/market' },
           { name: seo.shortAr, path: `/c/${sym}` },
           { name: 'البيانات المالية', path: `/c/${sym}/financials` },
         ]}

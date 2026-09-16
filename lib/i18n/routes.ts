@@ -37,7 +37,6 @@ export type RouteEntry = {
 export const ROUTES: RouteEntry[] = [
   // ── Market & data ───────────────────────────────────────────────────────
   { pattern: '/',                          cls: 'mirror' },
-  { pattern: '/market',                    cls: 'mirror' },
   { pattern: '/companies',                 cls: 'mirror' },
   { pattern: '/screener',                  cls: 'mirror' },
   { pattern: '/heatmap',                   cls: 'mirror' },

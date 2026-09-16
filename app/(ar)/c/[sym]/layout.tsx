@@ -95,7 +95,6 @@ export default async function CompanyLayout({ children, params }: Props) {
           defaults to 'ar', so crawlers still get unique content per page. */}
       <Breadcrumbs
         trail={[
-          { name: 'السوق', path: '/market' },
           { name: seo.shortAr, path: `/c/${sym}` },
         ]}
       />

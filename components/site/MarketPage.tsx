@@ -10,11 +10,17 @@ import { SiteShell } from './SiteShell'
 import { DoorRail } from './DoorRail'
 import { IndexChart, type IndexPoint, type IndexSeries } from './IndexChart'
 import { FlowRing, type FlowRow } from './FlowRing'
+import { WelcomeCard } from './WelcomeCard'
 import '@/styles/markets.css'
+import '@/styles/landing.css'
 import type { Company } from '@/types'
 
 /**
- * /market · the foundation of the الأسواق door.
+ * The market · the root of the site, and the الأسواق door.
+ *
+ * It lives at `/` (the URL that carries the site's authority); `/market`
+ * redirects here. With `welcome`, the globe card sits above the content
+ * for first-time visitors.
  *
  * Top to bottom:
  *
@@ -64,11 +70,11 @@ function Pct({ v }: { v: number }) {
 }
 
 const RAIL = [
-  { key: 'market', route: '/market' }, { key: 'companies', route: '/companies' }, { key: 'screener', route: '/screener' },
+  { key: 'market', route: '/' }, { key: 'companies', route: '/companies' }, { key: 'screener', route: '/screener' },
   { key: 'heatmap', route: '/heatmap' }, { key: 'statistics', route: '/statistics' }, { key: 'pulse', route: '/pulse' },
 ] as const
 
-export function MarketPage() {
+export function MarketPage({ welcome = false }: { welcome?: boolean }) {
   const { t, locale, href: L } = useLocale()
   const m = t.market
   const p = m.page
@@ -225,7 +231,8 @@ export function MarketPage() {
 
   return (
     <SiteShell>
-      <main className="iqm id-full iq-door">
+      {welcome ? <WelcomeCard /> : null}
+      <main className="iqm id-full iq-door" id="market">
         <DoorRail door="markets" items={RAIL.map((r) => ({ label: p.rail[r.key], route: r.route }))} />
         <div className="iqm-body">
         <header className="iqm-head">

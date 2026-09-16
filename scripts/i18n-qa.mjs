@@ -9,7 +9,7 @@
  */
 const ORIGIN = process.argv[2] ?? process.env.I18N_ORIGIN ?? 'http://localhost:3000'
 const ROUTES = [
-  '/', '/market', '/screener', '/heatmap', '/pulse', '/statistics',
+  '/', '/screener', '/heatmap', '/pulse', '/statistics',
   '/statistics/foreign-flow', '/statistics/ownership', '/statistics/shareholders',
   '/c/BBOB', '/c/BBOB/financials', '/news', '/learn', '/learn/trading-from-zero',
   '/fx', '/gold', '/oil', '/portfolio', '/watchlist', '/profile',

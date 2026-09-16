@@ -1,9 +1,9 @@
-import { Landing } from '@/components/routes/Landing'
+import { MarketPage } from '@/components/site/MarketPage'
 
 // Title/description are the ROOT layout's defaults — the homepage is the one
 // route whose metadata belongs there. The surface is shared with `/en`.
 export const revalidate = 60
 
 export default function Page() {
-  return <Landing locale="ar" />
+  return <MarketPage welcome />
 }

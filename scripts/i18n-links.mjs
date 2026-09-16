@@ -60,8 +60,8 @@ for (const file of shared) {
 
 // ── RENDERED · every internal link in the delivered HTML must resolve ──────
 const SAMPLE = [
-  '/', '/market', '/statistics', '/statistics/ownership', '/c/TASC', '/c/BBOB/financials', '/news', '/legal',
-  '/en', '/en/market', '/en/statistics', '/en/statistics/ownership', '/en/c/TASC', '/en/c/BBOB/financials', '/en/news', '/en/legal',
+  '/', '/statistics', '/statistics/ownership', '/c/TASC', '/c/BBOB/financials', '/news', '/legal',
+  '/en', '/en/statistics', '/en/statistics/ownership', '/en/c/TASC', '/en/c/BBOB/financials', '/en/news', '/en/legal',
 ]
 const status = new Map()
 const seenShape = new Set()
@@ -88,7 +88,7 @@ for (const page of SAMPLE) {
       .filter(h => !h.startsWith('/_next') && !h.startsWith('/data/') && !/\.(png|jpe?g|svg|ico|xml|txt|webmanifest)$/.test(h)),
   )
   for (const h of hrefs) {
-    /* One representative per URL SHAPE. /market links to ~100 company pages
+    /* One representative per URL SHAPE. The root links to ~100 company pages
        and /news to 52 articles; fetching each is minutes of work to re-prove
        the same template. A shape is the path with its identifying segment
        collapsed, so /c/TASC and /c/BBOB check once — and a systematic break

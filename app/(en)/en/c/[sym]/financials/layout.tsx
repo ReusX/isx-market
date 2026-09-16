@@ -37,7 +37,6 @@ export default function EnFinancialsLayout({ children, params }: { children: Rea
       <Breadcrumbs
         locale="en"
         trail={[
-          { name: 'Market', path: '/market' },
           { name: seo.shortAr, path: `/c/${sym}` },
           { name: 'Financials', path: `/c/${sym}/financials` },
         ]}

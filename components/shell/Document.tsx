@@ -123,7 +123,7 @@ export function Document({ locale, children }: { locale: Locale; children: React
             tokens and the not-yet-rebuilt ones alike — keys on it; leaving it
             off would split the page between two themes. */}
         <script
-          dangerouslySetInnerHTML={{ __html: `(function(){try{var t=localStorage.getItem('theme');if(t!=='dark'&&t!=='light')t=matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';document.documentElement.setAttribute('data-theme',t);}catch(e){}})();` }}
+          dangerouslySetInnerHTML={{ __html: `(function(){try{var t=localStorage.getItem('theme');if(t!=='dark'&&t!=='light')t=matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';document.documentElement.setAttribute('data-theme',t);if(localStorage.getItem('iq-welcome')==='off')document.documentElement.setAttribute('data-welcome','off');}catch(e){}})();` }}
         />
       </head>
       <body>

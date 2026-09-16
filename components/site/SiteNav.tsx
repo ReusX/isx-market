@@ -21,7 +21,7 @@ import { splitLocale } from '@/lib/i18n/paths'
  * behind one of them, so there is no second row, no "more", no sidebar.
  */
 export const DOORS = [
-  { id: 'markets', route: '/market',  owns: ['/market', '/companies', '/c/', '/screener', '/heatmap', '/statistics', '/pulse', '/portfolio', '/watchlist', '/alerts', '/analysis'] },
+  { id: 'markets', route: '/',        owns: ['/', '/market', '/companies', '/c/', '/screener', '/heatmap', '/statistics', '/pulse', '/portfolio', '/watchlist', '/alerts', '/analysis'] },
   { id: 'banking', route: '/banks',   owns: ['/banks'] },
   { id: 'economy', route: '/fx',      owns: ['/fx', '/gold', '/oil'] },
   { id: 'learn',   route: '/learn',   owns: ['/learn', '/news', '/research'] },
@@ -50,7 +50,7 @@ export function SiteNav({ on = 'page' }: { on?: 'hero' | 'page' }) {
   const { route } = splitLocale(usePathname() ?? '/')
   const [open, setOpen] = useState(false)
   const doors = t.home.landing.doors
-  const current = DOORS.find((d) => d.owns.some((o) => route === o || route.startsWith(o.endsWith('/') ? o : `${o}/`)))?.id
+  const current = DOORS.find((d) => d.owns.some((o) => o === '/' ? route === '/' : route === o || route.startsWith(o.endsWith('/') ? o : `${o}/`)))?.id
 
   return (
     <header className={`iqn is-${on} ${open ? 'is-open' : ''}`.trim()}>

@@ -96,9 +96,17 @@ for (const route of AR_ONLY) {
 }
 
 /* The withdrawn /en redirects must be gone. */
-for (const path of ['/en', '/en/market']) {
+for (const path of ['/en']) {
   const { status, location } = await get(path)
   if (status >= 300 && status < 400) fail(`${path} still redirects (${status} → ${location}) — the legacy /en 301s must stay removed`)
+}
+
+/* /market folded into the root (the market IS the homepage now). Each
+   language redirects to its OWN root — never across languages. */
+for (const [path, to] of [['/market', '/'], ['/en/market', '/en']]) {
+  const { status, location } = await get(path)
+  if (status !== 308 && status !== 301) fail(`${path} → HTTP ${status}, expected a permanent redirect to ${to}`)
+  else if (!location || !(location === to || location.endsWith(to))) fail(`${path} redirects to ${location}, expected ${to}`)
 }
 
 /* A 404 must be a real 404, and must not inherit the root canonical. */

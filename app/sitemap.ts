@@ -55,7 +55,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // ── Public, indexable static pages ──
   const statics: MetadataRoute.Sitemap = [
     { url: absUrl('/'),            lastModified: dataDate },
-    { url: absUrl('/market'),     lastModified: dataDate },
     { url: absUrl('/charts'),     lastModified: dataDate },
     { url: absUrl('/screener'),   lastModified: dataDate },
     { url: absUrl('/heatmap'),    lastModified: dataDate },

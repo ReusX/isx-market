@@ -1,7 +1,7 @@
-import { Landing } from '@/components/routes/Landing'
+import { MarketPage } from '@/components/site/MarketPage'
 
 export const revalidate = 60
 
 export default function Page() {
-  return <Landing locale="en" />
+  return <MarketPage welcome />
 }

@@ -62,19 +62,13 @@ const BARE_ROUTES = [
 ]
 
 /**
- * The homepage is bare too, but matched exactly: its blue opener carries its
- * own navigation, and a sidebar beside a full-bleed hero is two chromes on
- * one screen. Prefix-matching '/' would strip the frame from every route.
- */
-const BARE_EXACT = ['/']
-
-/**
  * Routes rebuilt on the new site shell (components/site/SiteShell). They
  * carry their own navigation and foot, so the old frame steps aside. This
  * list is the migration ledger: a route is added here the day it is rebuilt,
  * and the frame is deleted the day the list covers everything.
  */
 const REBUILT = ['/market']
+const REBUILT_EXACT = ['/']   // the root: prefix-matching '/' would cover every route
 
 export default function AppFrame({ children }: { children: ReactNode }) {
   const pathname = usePathname() ?? '/'
@@ -88,7 +82,7 @@ export default function AppFrame({ children }: { children: ReactNode }) {
    * route test in the shell goes through `splitLocale` for this reason.
    */
   const { route } = splitLocale(pathname)
-  const bare = BARE_EXACT.includes(route)
+  const bare = REBUILT_EXACT.includes(route)
     || REBUILT.some((r) => route === r || route.startsWith(`${r}/`))
     || BARE_ROUTES.some((r) => route === r || route.startsWith(`${r}/`))
 

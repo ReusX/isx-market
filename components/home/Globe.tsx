@@ -133,9 +133,9 @@ export function Globe({ className, labels }: { className?: string; labels: Globe
       const rtl = document.documentElement.dir !== 'ltr'
       /* Desktop: the globe owns the half of the hero the copy does not.
          Phone: centred, above the copy. */
-      cx = narrow ? w / 2 : (rtl ? w * 0.31 : w * 0.69)
-      cy = narrow ? h * 0.36 : h * 0.5
-      r = narrow ? Math.min(w * 0.44, h * 0.28) : Math.min(w * 0.27, h * 0.40)
+      cx = narrow ? w / 2 : (rtl ? w * 0.30 : w * 0.70)
+      cy = narrow ? h * 0.34 : h * 0.5
+      r = narrow ? Math.min(w * 0.40, h * 0.26) : Math.min(w * 0.24, h * 0.44)
       ctx.font = `${CELL - 1}px ui-monospace, Menlo, monospace`
       ctx.textAlign = 'center'; ctx.textBaseline = 'middle'
     }

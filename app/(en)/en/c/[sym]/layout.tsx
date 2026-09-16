@@ -102,7 +102,6 @@ export default async function EnCompanyLayout({ children, params }: Props) {
       <Breadcrumbs
         locale="en"
         trail={[
-          { name: 'Market', path: '/market' },
           { name: seo.shortAr, path: `/c/${sym}` },
         ]}
       />
