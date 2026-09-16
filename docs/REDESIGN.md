@@ -109,6 +109,14 @@ Every English route (`/en/...`) shares the component with its Arabic twin, so a 
   · `/` pages the whole `daily_index` from the BROWSER on every visit (4 round trips). The fix is a CDN-cached `/api/index/isx60` mirroring `/api/index/rsisx`'s headers. Supabase egress is at 35%, so this is headroom, not a fire.
   · On-demand revalidation from the ingest cron is NOT a three-line change: `revalidatePath` clears the route cache but not the Data Cache, and `lib/marketServer.ts`'s Supabase fetches carry their own `next: { revalidate: 60 }`. Done properly it means tagging those fetches and using `revalidateTag`.
 
+### SEO regression audit (third session) — run it again before deploying
+
+`scripts/seo-audit.py` diffs the OLD build against the new one route by route (title, description, canonical, hreflang, robots, OG, h1/h2, JSON-LD types, body 3-grams, internal links). Run the pre-redesign commit in a worktree on port 3400 (`git worktree add /tmp/isx-old bb6fe64`, symlink node_modules, stub `@vercel/speed-insights` which was removed, `npx next dev -p 3400`), warm both servers, then `python3 scripts/seo-audit.py`. Old pages were client-rendered, so "copy coverage" against them is noise; the h1/h2/metadata/link/JSON-LD lines are the signal.
+
+Found and fixed: the company profile prose had vanished from /c/[sym]; foreign-flow inherited the hub's OG; internal linking collapsed to the door rail (fixed with the footer link map); root and /companies h1s weakened. Known deliberate changes: screener rename («مستكشف» → «رادار»; the old spelling stays in keywords), statistics sub-page titles, company names as h1.
+
+Still open: /statistics/foreign-flow no longer has the «توزيع رأس المال الأجنبي حسب القطاع» section the old page had (a chart; little text) — decide whether to rebuild it.
+
 ### Gotchas this session paid for — do not rediscover them
 
   · **`buildReturns` returns FRACTIONS, not percentages.** Printing one straight to `toFixed(1)` renders a −15.7% year as «−0.2%».
