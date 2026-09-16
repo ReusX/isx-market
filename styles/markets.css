@@ -38,7 +38,12 @@
 @media (max-width: 1100px) { .iqm-openers { grid-template-columns: 1fr; } }
 
 .ix { padding: 20px 20px 12px; }
-.ix-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; flex-wrap: wrap; margin-bottom: 8px; }
+.ix-head { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: start; gap: 16px; margin-bottom: 8px; }
+.ix-lead { min-width: 0; }
+.ix-when { margin: 4px 0 0; min-height: 1.4em; }
+.ix-ranges { justify-content: flex-end; }
+.ix-plot { position: relative; }
+@media (max-width: 640px) { .ix-head { grid-template-columns: 1fr; } .ix-ranges { justify-content: flex-start; } }
 .ix-title { margin-bottom: 6px; }
 .ix-value { display: flex; align-items: baseline; gap: 12px; margin: 0; flex-wrap: wrap; }
 .ix-value strong { font-weight: 300; font-size: clamp(28px, 3vw, 40px); line-height: 1; }

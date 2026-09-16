@@ -62,9 +62,14 @@ export function IndexChart({ series }: { series: IndexPoint[] }) {
      the container — instead of being stretched to fit. Stretching a fixed
      viewBox distorts everything drawn in it: circles become ellipses, the
      crosshair drifts off the line, text widens. */
+  const plotRef = useRef<HTMLDivElement>(null)
   const [[W, H], setSize] = useState<[number, number]>([800, 300])
+  /* Observe the plot BOX, which is always mounted — the SVG itself only
+     exists once data has arrived, and an observer attached before that
+     watched nothing, leaving the viewBox at its default and the pointer
+     mapped to the wrong x. */
   useEffect(() => {
-    const el = svgRef.current
+    const el = plotRef.current
     if (!el) return
     const ro = new ResizeObserver(([e]) => { const w = Math.round(e.contentRect.width), h = Math.round(e.contentRect.height); if (w > 0 && h > 0) setSize([w, h]) })
     ro.observe(el)
@@ -113,21 +118,23 @@ export function IndexChart({ series }: { series: IndexPoint[] }) {
   return (
     <section className="ix id-panel" aria-label={c.label}>
       <header className="ix-head">
-        <div>
+        <div className="ix-lead">
           <h2 className="id-h3 ix-title">{c.title}</h2>
           <p className="ix-value id-num">
             <strong>{shown ? nf.format(shown.isx60) : '—'}</strong>
             {shown ? <span className={`id-chg ${pct > 0 ? 'is-up' : pct < 0 ? 'is-down' : 'is-flat'}`}>{pct > 0 ? '▲' : pct < 0 ? '▼' : ''} {Math.abs(pct).toFixed(2)}%</span> : null}
-            {shown ? <span className="id-cap">{hover != null ? fullDate(shown.date) : c.since(fullDate(pts[0].date))}</span> : null}
           </p>
+          {/* Its own line, so a long date on hover never reflows the pills. */}
+          <p className="id-cap ix-when">{shown ? (hover != null ? fullDate(shown.date) : c.since(fullDate(pts[0].date))) : '\u00a0'}</p>
         </div>
-        <div className="id-pills" role="group">
+        <div className="id-pills ix-ranges" role="group">
           {(['m1', 'm3', 'y1', 'y3', 'all'] as Range[]).map((r) => (
             <button key={r} type="button" className="id-pill is-sm" aria-pressed={range === r} onClick={() => { setRange(r); setHover(null) }}>{c.ranges[r]}</button>
           ))}
         </div>
       </header>
 
+      <div ref={plotRef} className="ix-plot">
       {geo ? (
         <svg ref={svgRef} className="ix-svg id-num" viewBox={`0 0 ${W} ${H}`}
           onPointerMove={onMove} onPointerLeave={() => setHover(null)} role="img" aria-label={c.label}>
@@ -163,6 +170,7 @@ export function IndexChart({ series }: { series: IndexPoint[] }) {
           )}
         </svg>
       ) : <p className="id-note">{c.empty}</p>}
+      </div>
     </section>
   )
 }
