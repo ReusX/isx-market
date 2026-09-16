@@ -172,4 +172,38 @@ export const company: typeof ar = {
   loadFailed: (sym: string) => `Couldn’t load data for ${sym}`,
   loadFailedNote: 'You can try again, or go back to the Market page.',
   retry: 'Try again',
+
+  /* ── The rebuilt page (redesign) ── see the Arabic file for the rules. */
+  chart: {
+    range: 'Period',
+    ranges: { m1: '1M', m3: '3M', y1: '1Y', y3: '3Y', all: 'All' },
+    noSeries: 'Not enough price history to draw this share.',
+  },
+  page: {
+    eyebrow: 'Markets',
+    currency: 'IQD',
+    periodCol: 'Period',
+    lede: (name: string) => `${name} on the Iraq Stock Exchange: the latest close and how it has moved, what the company owns and who owns it, and its financials exactly as published.`,
+    notFound: 'No company with this ticker is listed on the Iraq Stock Exchange.',
+    priceChart: (name: string) => `${name} share price`,
+    noPrior: 'No valid previous close, so the change is unknown.',
+    suspended: (d: string) => `Suspended from trading \u00b7 last trade ${d}`,
+    untraded: (d: string) => `Did not trade this session \u00b7 last trade ${d}`,
+    figures: 'Share figures',
+    sessionValue: 'Traded value',
+    trades: 'Trades',
+    range52: '52-week range',
+    noFlow: 'No foreign trading figures are available for this share.',
+    noHolders: 'No major shareholders are disclosed for this company in the latest filing.',
+    holderCols: { holder: 'Shareholder', pct: 'Ownership' },
+    about: {
+      title: 'About these figures',
+      body: [
+        'Price, volume and trade counts come from the Iraq Stock Exchange\u2019s official daily bulletin, session by session. The chart shows real closes only: every point is an actual trading session, with no gap-filling and no smoothing.',
+        'Market capitalisation is the last price times shares outstanding. A suspended share carries an old price, so a market cap computed from it is exactly as old \u2014 which is why the date of the last trade is stated rather than the number alone.',
+        'Financial figures are taken from the company\u2019s published reports and shown as filed, with no periods derived that the company did not disclose. Ratios are computed on the last complete fiscal year and the most recent reported quarter.',
+        'Ownership and major shareholders come from the monthly depository filing \u2014 a monthly snapshot, not a figure that moves with the session. The filing carries no ticker column, so company names are matched against the register of listed companies, and what cannot be proven is not shown.',
+      ],
+    },
+  },
 }

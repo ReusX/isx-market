@@ -1,0 +1,80 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   /c/[sym] · the company page — layout only; vocabulary is identity.css.
+
+   Designed fresh. The price is the page: `.id-price` display weight at the
+   top, the chart under it, then the evidence as one-fact rows and tables.
+   No cards-in-a-grid, no panel chrome around single numbers.
+   ═══════════════════════════════════════════════════════════════════════════ */
+.cmp { padding-block: 24px 0; }
+.cmp-body { min-width: 0; }
+
+/* ── The price hero ─────────────────────────────────────────────────────── */
+.cmp-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 24px; flex-wrap: wrap; margin-bottom: 8px; }
+.cmp-id { display: flex; align-items: center; gap: 14px; min-width: 0; }
+.cmp-logo { width: 44px; height: 44px; border-radius: 10px; object-fit: contain; background: var(--surface); border: 1px solid var(--border); flex: 0 0 auto; }
+.cmp-names { min-width: 0; }
+.cmp-names h1 { font-size: clamp(26px, 3.4vw, 38px); font-weight: 300; line-height: 1.1; margin: 0; }
+.cmp-sub { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin: 6px 0 0; font-size: 13px; color: var(--secondary); }
+.cmp-sym { border: 1px solid var(--border); border-radius: var(--r-pill); padding: 2px 10px; font-size: 12px; }
+.cmp-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+
+.cmp-price { display: flex; align-items: baseline; gap: 16px; flex-wrap: wrap; margin: 18px 0 0; }
+.cmp-price strong { font-weight: 200; font-size: clamp(44px, 6vw, 72px); line-height: 1; }
+.cmp-price .cmp-cur { font-size: 15px; color: var(--muted); }
+.cmp-when { margin: 10px 0 0; font-size: 13px; color: var(--muted); }
+.cmp-warn { margin: 10px 0 0; }
+
+/* ── Chart ──────────────────────────────────────────────────────────────── */
+.cmp-chart { margin-top: 8px; }
+.cmp-chart-head { display: flex; justify-content: space-between; align-items: flex-end; gap: 16px; flex-wrap: wrap; }
+.cmp-read { display: flex; align-items: baseline; gap: 12px; margin: 0; }
+.cmp-read strong { font-weight: 300; font-size: clamp(22px, 2.4vw, 30px); line-height: 1; }
+.cmp-svg { width: 100%; height: auto; display: block; margin-top: 12px; min-height: 240px; }
+.cmp-grid { stroke: var(--border); stroke-width: 1; opacity: .6; }
+.cmp-base { stroke: var(--muted); stroke-width: 1; stroke-dasharray: 3 5; opacity: .7; }
+.cmp-tick { fill: var(--muted); font-size: 11px; dominant-baseline: middle; }
+.cmp-xlabel { fill: var(--muted); font-size: 11px; text-anchor: middle; }
+.cmp-line { fill: none; stroke-width: 1.6; }
+.cmp-line.is-up { stroke: var(--moss-ink); } .cmp-line.is-down { stroke: var(--sand-ink); }
+.cmp-area { stroke: none; opacity: .12; }
+.cmp-area.is-up { fill: var(--moss-ink); } .cmp-area.is-down { fill: var(--sand-ink); }
+.cmp-hi { fill: var(--moss-ink); } .cmp-lo { fill: var(--sand-ink); }
+.cmp-cross { stroke: var(--ink); stroke-width: 1; opacity: .35; }
+.cmp-dot { fill: var(--ink); stroke: var(--surface); stroke-width: 2; }
+[dir='rtl'] .cmp-svg text { direction: ltr; }
+
+/* ── Panels and tables ──────────────────────────────────────────────────── */
+.cmp-panel { padding: 20px; margin-bottom: 20px; }
+.cmp-panel > .id-cap { margin: 4px 0 16px; }
+.cmp-row { display: grid; grid-template-columns: minmax(0, 3fr) minmax(300px, 2fr); gap: 20px; }
+@media (max-width: 1000px) { .cmp-row { grid-template-columns: 1fr; } }
+.cmp-row > section { margin-bottom: 20px; }
+.cmp-scroll { overflow-x: auto; }
+/* The wide tables earn a scroll container; the two-column holders table sits
+   in a narrow grid column and would be clipped by the same floor, hiding the
+   percentage entirely. */
+.cmp-table { min-width: 420px; }
+.cmp-table.is-sm { min-width: 240px; }
+.cmp-table th + th, .cmp-table td + td { padding-inline-start: 20px; }
+.cmp-table td { padding: 14px 0; }
+
+/* Returns vs the index: one row, two bars on a shared zero. */
+.cmp-perf { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 14px; }
+.cmp-perf li { display: grid; grid-template-columns: 96px minmax(0, 1fr) 72px; gap: 14px; align-items: center; font-size: 14px; }
+.cmp-perf-label { color: var(--secondary); white-space: nowrap; }
+.cmp-perf-track { position: relative; height: 18px; }
+.cmp-perf-track i { position: absolute; top: 2px; height: 6px; border-radius: 3px; }
+.cmp-perf-track i.is-idx { top: 10px; background: var(--muted); opacity: .6; }
+.cmp-perf-track i.is-up { background: var(--moss-ink); } .cmp-perf-track i.is-down { background: var(--sand-ink); }
+.cmp-perf-zero { position: absolute; top: 0; bottom: 0; width: 1px; background: var(--border); }
+.cmp-perf-val { text-align: end; font-variant-numeric: tabular-nums; }
+.cmp-legend { display: flex; gap: 16px; margin: 14px 0 0; font-size: 12px; color: var(--muted); }
+.cmp-legend span { display: inline-flex; align-items: center; gap: 6px; }
+.cmp-legend i { width: 12px; height: 4px; border-radius: 2px; display: inline-block; }
+
+.cmp-split { display: flex; gap: 3px; height: 10px; margin: 14px 0; }
+.cmp-split i { display: block; border-radius: 5px; min-width: 3px; }
+.cmp-split .is-buy { background: var(--moss-ink); opacity: .85; }
+.cmp-split .is-sell { background: var(--sand-ink); opacity: .85; }
+
+.cmp-empty { padding: 24px 0; color: var(--secondary); font-size: 14px; }

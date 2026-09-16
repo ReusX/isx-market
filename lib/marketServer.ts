@@ -558,3 +558,226 @@ export const loadPulse = cache(async (): Promise<PulseInitial> => {
     }
   } catch { return empty }
 })
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   /c/[sym] · the company page, on the server
+
+   This route had the worst cost profile on the site. It carried no
+   `revalidate` and no `generateStaticParams`, so 104 companies × 2 locales
+   were rendered dynamically on every view; the component then queried
+   Supabase from the browser AND called /api/chart/[sym]. Two function
+   invocations and a direct database read per page view.
+
+   ⚠ The expensive part was not the count of queries but two of them:
+
+        ownership_monthly   .limit(2000)
+        major_shareholders  .limit(4000)
+
+   Six thousand rows pulled into the browser to find the handful belonging to
+   ONE company. Those tables key on a printed company NAME rather than a
+   ticker, which is why the old code could not filter — so it fetched
+   everything and matched client-side.
+
+   The fix is to read only the LATEST period of each, the same way
+   loadOwnership does, and let `ownershipFor` / `holdersFor` do the name
+   resolution over ~200 rows instead of 6,000.
+
+   Returns are computed HERE, not shipped: the index-comparison module needs
+   eight numbers, not two multi-year series.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+export type CompanyInitial = {
+  found: boolean
+  sym: string
+  ar: string; en: string
+  /** A key `sectorLabel` understands — NOT companies.json's 3-letter code. */
+  sec: string
+  isBank: boolean
+  logo: string | null; color: string | null
+  shares: number | null
+  /** Session snapshot. */
+  last: number | null; prev: number | null; change: number | null; changePct: number | null
+  volume: number | null; value: number | null; trades: number | null
+  session: string | null; lastTrade: string | null; stale: boolean
+  high52: number | null; low52: number | null; daysSinceTrade: number | null
+  pe: number | null
+  /** Closes for the chart, oldest first — five years, the longest range offered. */
+  series: { date: string; close: number }[]
+  /** Price returns for the company and the index, already computed. */
+  returns: { co: import('@/lib/companyView').Returns | null; idx: import('@/lib/companyView').Returns | null }
+  facts: import('@/lib/companyView').FactRow[]
+  ratios: import('@/lib/companyView').RatioRow[]
+  flow: { date: string; side: string; value: number }[]
+  ownership: import('@/lib/companyView').OwnershipRow | null
+  holders: import('@/lib/companyView').Holder[]
+}
+
+const SEC_CODE: Record<string, string> = {
+  BANK: 'Banks', TEL: 'Telecom', IND: 'Industry', HTL: 'Tourism',
+  INS: 'Insurance', SVC: 'Services', AGR: 'Agriculture', INV: 'Investment',
+}
+
+export const loadCompany = cache(async (symRaw: string): Promise<CompanyInitial> => {
+  const sym = symRaw.toUpperCase()
+  const meta = (companiesData as CompanyMeta[]).find((m) => m.sym === sym)
+  const base: CompanyInitial = {
+    found: false, sym, ar: sym, en: sym, sec: '', isBank: false, logo: null, color: null, shares: null,
+    last: null, prev: null, change: null, changePct: null, volume: null, value: null, trades: null,
+    session: null, lastTrade: null, stale: false, high52: null, low52: null, daysSinceTrade: null, pe: null,
+    series: [], returns: { co: null, idx: null }, facts: [], ratios: [], flow: [], ownership: null, holders: [],
+  }
+  if (!meta) return base
+
+  const out: CompanyInitial = {
+    ...base, found: true,
+    ar: meta.ar || sym, en: meta.en || sym,
+    /* ⚠ companies.json spells sectors as 3-letter codes (BANK, TEL) while
+       SECTOR_LABELS — and every other rebuilt page — is keyed on
+       company_metrics.sector (Banks, Telecom). Passing the raw code through
+       printed «TEL» on the page instead of «الاتصالات». Mapped here, once,
+       and overridden below by the metrics row when there is one. */
+    sec: SEC_CODE[String(meta.sec ?? '')] ?? String(meta.sec ?? ''),
+    isBank: String(meta.sec ?? '') === 'BANK',
+    logo: meta.logo && !/placeholder/.test(meta.logo) ? meta.logo : null,
+    color: meta.color ?? null, shares: meta.shares ?? null,
+  }
+
+  try {
+    const sb = client()
+    const { buildReturns } = await import('@/lib/companyView')
+    const since = new Date(Date.now() - 5 * 366 * 86400_000).toISOString().slice(0, 10)
+
+    /* Latest period of each depository table — NOT the whole table. */
+    const period = async (table: string) => {
+      const { data } = await sb.from(table).select('year,month').order('year', { ascending: false }).order('month', { ascending: false }).limit(1)
+      const r = (data?.[0] ?? null) as { year?: number; month?: number } | null
+      return r?.year && r?.month ? { year: r.year, month: r.month } : null
+    }
+
+    const [live, mRes, seriesRows, idxRows, fRes, rRes, ffRes, ownP, holdP] = await Promise.all([
+      fetchLiveWith(sb).catch(() => null),
+      sb.from('company_metrics').select('ticker,sector,last_close,prev_close,high_52w,low_52w,days_since_trade,last_date').eq('ticker', sym).limit(1),
+      (async () => {
+        const rows: { date: string; close: number }[] = []
+        for (let from = 0; ; from += 1000) {
+          const { data, error } = await sb.from('daily_prices').select('date,close').eq('ticker', sym).gte('date', since).order('date').range(from, from + 999)
+          if (error || !data?.length) break
+          for (const r of data as { date: string; close: number | null }[]) if (r.close != null && r.close > 0) rows.push({ date: r.date, close: r.close })
+          if (data.length < 1000) break
+        }
+        return rows
+      })(),
+      (async () => {
+        const rows: { date: string; close: number }[] = []
+        for (let from = 0; ; from += 1000) {
+          const { data, error } = await sb.from('daily_index').select('date,isx60').gt('isx60', 0).gte('date', since).order('date').range(from, from + 999)
+          if (error || !data?.length) break
+          for (const r of data as { date: string; isx60: number }[]) rows.push({ date: r.date, close: r.isx60 })
+          if (data.length < 1000) break
+        }
+        return rows
+      })(),
+      sb.from('financial_facts_public').select('fiscal_year,period,line_key,value_iqd').eq('ticker', sym).eq('statement', 'income')
+        .in('line_key', ['revenue', 'net_income', 'financing_income', 'revenue_and_commissions']),
+      sb.from('financial_ratios_public').select('fiscal_year,period,ratio_key,value').eq('ticker', sym),
+      sb.from('foreign_flow_company_daily').select('date,side,value').eq('ticker', sym).order('date', { ascending: false }).limit(120),
+      period('ownership_monthly'),
+      period('major_shareholders'),
+    ])
+
+    const stock = live?.stocks.find((s) => s.code === sym) ?? null
+    const m = (mRes.data?.[0] ?? null) as { sector: string | null; last_close: number | null; prev_close: number | null; high_52w: number | null; low_52w: number | null; days_since_trade: number | null; last_date: string | null } | null
+
+    if (m?.sector) out.sec = m.sector
+    out.session = live?.updated || null
+    out.last = stock?.close ?? m?.last_close ?? null
+    out.prev = m?.prev_close ?? null
+    /* ⚠ `vol` is the traded VALUE in IQD — a legacy name — and
+       `shares_traded` is the share count. Reading them the other way round
+       prints dinars as shares. */
+    out.volume = stock?.shares_traded ?? null
+    out.value = stock?.vol ?? null
+    out.trades = stock?.deals ?? null
+    out.lastTrade = stock?.lastTrade ?? m?.last_date ?? null
+    out.stale = Boolean(stock?.stale)
+    out.high52 = m?.high_52w ?? null
+    out.low52 = m?.low_52w ?? null
+    out.daysSinceTrade = m?.days_since_trade ?? null
+    /* `noPrior` means change and pct are held at 0 for compatibility but are
+       NOT measurements. Null here, so the page can say so rather than print a
+       zero that reads as «no change». */
+    if (stock && !stock.noPrior) {
+      out.change = stock.change
+      out.changePct = stock.pct
+    } else if (out.last != null && out.prev != null && out.prev > 0) {
+      out.change = out.last - out.prev
+      out.changePct = (out.change / out.prev) * 100
+    }
+
+    out.series = seriesRows
+    const toPts = (rows: { date: string; close: number }[]) => rows.map((r) => ({ t: Date.parse(`${r.date}T00:00:00Z`), v: r.close }))
+    out.returns = { co: buildReturns(toPts(seriesRows)), idx: buildReturns(toPts(idxRows)) }
+
+    out.facts = (fRes.data ?? []) as CompanyInitial['facts']
+    out.ratios = (rRes.data ?? []) as CompanyInitial['ratios']
+    out.flow = ((ffRes.data ?? []) as { date: string; side: string; value: number | null }[]).map((r) => ({ date: r.date, side: r.side, value: Number(r.value ?? 0) }))
+
+    /* ~126 ownership rows and ~67 shareholder rows, not 6,000.
+     *
+     * ⚠ Resolved through lib/depositoryNames — the SAME path /statistics
+     * uses — rather than through companyView's `matchCompanyRecord`. The
+     * point is that the two surfaces cannot disagree about which filed row
+     * belongs to which company: the roster normalises orthography, models
+     * the lam-alef ligature damage, and carries `company_metrics.name_ar`
+     * as an extra match key because it is damaged by the same OCR.
+     *
+     * It does NOT resolve everything, and must not. The August ownership
+     * table spells Bank of Baghdad «مرصف بغداد» — a ر where the ص belongs —
+     * and the resolver reports that as `unresolved / no-candidate` rather
+     * than guessing. So BBOB's page shows no ownership block at all. That is
+     * the intended outcome: the rule is that a false negative is preferable
+     * to attaching a filing to the wrong company, and a page showing nothing
+     * is honest where a page showing someone else's ownership is not. */
+    const { resolveSnapshot } = await import('@/lib/depositoryNames')
+    const list = await roster(sb)
+    if (ownP) {
+      const { data } = await sb.from('ownership_monthly')
+        .select('year,month,name_ar,capital,deposited_capital,deposit_ratio,iraqi_shares,foreign_shares,iraqi_count,foreign_count')
+        .eq('year', ownP.year).eq('month', ownP.month)
+      const rows = (data ?? []) as import('@/lib/companyView').OwnershipRow[]
+      const res = resolveSnapshot(rows.map((r) => r.name_ar), list)
+      out.ownership = rows.find((r) => res.get(r.name_ar)?.sym === sym) ?? null
+    }
+    if (holdP) {
+      const { data } = await sb.from('major_shareholders')
+        .select('year,month,company_name_ar,rank,name_ar,nationality,curr_shares,curr_pct,prev_pct,change_pct')
+        .eq('year', holdP.year).eq('month', holdP.month)
+      const rows = (data ?? []) as import('@/lib/companyView').ShareholderRow[]
+      const res = resolveSnapshot(rows.map((r) => r.company_name_ar), list)
+      /* Same shaping holdersFor applies: a nameless holder is not a holder,
+         and `change_pct` is unusable in this source, so it is absent rather
+         than printed as a zero that would read as «no change». */
+      out.holders = rows
+        .filter((r) => res.get(r.company_name_ar)?.sym === sym)
+        .filter((r) => r.name_ar?.trim() && r.curr_pct != null && r.curr_pct > 0)
+        .sort((a, b) => (b.curr_pct ?? 0) - (a.curr_pct ?? 0))
+        .map((r, i) => ({
+          rank: i + 1, name: r.name_ar.trim(),
+          foreign: (r.nationality ?? '').toLowerCase().startsWith('for'),
+          pct: r.curr_pct as number, changePct: null,
+        }))
+    }
+
+    try {
+      const { fetchTtmPe } = await import('@/lib/fundamentals')
+      if (out.last && out.last > 0) {
+        const res = await fetchTtmPe(sb, { [sym]: out.last })
+        out.pe = res[sym]?.pe ?? null
+      }
+    } catch { /* P/E is allowed to fail alone. */ }
+
+    return out
+  } catch {
+    return out
+  }
+})
