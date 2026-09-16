@@ -57,7 +57,7 @@ Order is by traffic and by what other pages borrow from. Shell first because eve
 |---|---|---|---|---|
 | 1 | shell (nav, mobile menu, foot) | NEW `site/SiteNav` `SiteFoot` `SiteShell` (`styles/site.css`) — rebuilt pages wear this; old `shell/*` + `shell.css` are deleted when `AppFrame.REBUILT` covers every route | — | ☑ 2026-09-16 (search not yet rebuilt) |
 | 2 | `/` | `routes/Landing` (+ `home/Globe`) | `landing.css` · old `HomePage`/`home.css` kept only until /market reuses its modules | ☑ 2026-09-16 |
-| 3 | `/market` | NEW `site/MarketPage` (`styles/markets.css`): session block, door rail, board (search + sector pills + one-row-one-fact table) | old `MarketBoard`/`market.css` unused, delete in sweep | ☑ 2026-09-16 foundation |
+| 3 | `/market` | NEW `site/MarketPage` (`styles/markets.css`): openers (`IndexChart` to-scale SVG with ranges/hi-lo/crosshair · `FlowRing` foreign buy/sell ring with net in the centre, session or last-20), session block, door rail, board (search + sector pills + one-row-one-fact table) | old `MarketBoard`/`market.css` unused, delete in sweep | ☑ 2026-09-16 foundation |
 | 4 | `/c/[sym]` | `routes/CompanyDetail` `company/CompanyProfile` `company/CompanyChart` | `company.css` `chart-engine.css` `panels.css` | ☐ |
 | 5 | `/c/[sym]/financials` | `routes/CompanyFinancials` | `financials.css` | ☐ |
 | 6 | `/companies` | `routes/CompaniesPage` | in `globals.css` (companies directory blocks) | ☐ |

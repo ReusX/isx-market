@@ -7,16 +7,19 @@ import { sessionDate, type IndexRow } from '@/lib/homeData'
 import { useLocale } from '@/context/LocaleContext'
 import { SiteShell } from './SiteShell'
 import { DoorRail } from './DoorRail'
+import { IndexChart, type IndexPoint } from './IndexChart'
+import { FlowRing, type FlowRow } from './FlowRing'
 import '@/styles/markets.css'
 import type { Company } from '@/types'
 
 /**
  * /market · the foundation of the الأسواق door.
  *
- * Three things, top to bottom, and nothing else yet:
+ * Top to bottom:
  *
+ *   0. The two openers: the ISX60 drawn to scale, and foreign flow as a ring.
  *   1. The session in four figures — ISX60, traded value, volume, breadth —
- *      on a navy block, so the page opens on what the market did.
+ *      on a data block.
  *   2. The door's rail: the pages that belong to الأسواق, as a sidebar.
  *   3. The board: every listed company, one row each — name, last price, the
  *      change as a chip, traded value — most active first, with one search
@@ -64,6 +67,8 @@ export function MarketPage() {
   const [companies, setCompanies] = useState<Company[]>([])
   const [session, setSession] = useState<string | null>(null)
   const [index, setIndex] = useState<{ latest: IndexRow; prev: IndexRow | null } | null>(null)
+  const [series, setSeries] = useState<IndexPoint[]>([])
+  const [flowRows, setFlowRows] = useState<FlowRow[]>([])
   const [failed, setFailed] = useState(false)
   const [loading, setLoading] = useState(true)
   const [q, setQ] = useState('')
@@ -81,13 +86,23 @@ export function MarketPage() {
           setCompanies(mergeCompanies(meta, live.stocks))
           setSession(live.updated || null)
         })().catch(() => alive && setFailed(true)),
+        /* Three years of sessions (~740 rows) — under PostgREST's 1000-row
+           cap, so the LAST row really is the latest session. An unbounded
+           ascending query silently returned the first thousand rows and
+           the "latest" close was years old. Zero closes are data holes. */
         sb.from('daily_index')
           .select('date,isx60,total_value,total_volume,total_trades,traded_companies,listed_companies')
-          .not('isx60', 'is', null).order('date', { ascending: false }).limit(2)
+          .gt('isx60', 0).gte('date', new Date(Date.now() - 3 * 366 * 86400_000).toISOString().slice(0, 10))
+          .order('date').limit(1000)
           .then(({ data }) => {
             if (!alive || !data?.length) return
-            setIndex({ latest: data[0] as IndexRow, prev: (data[1] as IndexRow) ?? null })
+            const rows = data as IndexRow[]
+            setSeries(rows.map((r) => ({ date: r.date, isx60: r.isx60 })))
+            setIndex({ latest: rows[rows.length - 1], prev: rows[rows.length - 2] ?? null })
           }),
+        sb.from('foreign_flow_company_daily')
+          .select('date,side,value').order('date', { ascending: false }).limit(1200)
+          .then(({ data }) => { if (alive && data) setFlowRows(data as FlowRow[]) }),
       ])
       if (alive) setLoading(false)
     })()
@@ -116,6 +131,11 @@ export function MarketPage() {
           <h1 className="id-h1">{m.title}</h1>
           <p className="id-lede">{p.lede}</p>
         </header>
+
+        <div className="iqm-openers">
+          <IndexChart series={series} />
+          <FlowRing rows={flowRows} session={index?.latest.date ?? null} compact={(v) => compact(v, u)} />
+        </div>
 
         <section className="iqm-session id-block is-navy id-num" aria-label={m.summaryLabel}>
           <div className="iqm-session-head">

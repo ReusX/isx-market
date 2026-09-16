@@ -117,5 +117,28 @@ export const market = {
     emptyTitle: 'لا نتائج',
     emptyNote:  'جرّب اسماً آخر أو أزل التصفية.',
     loadFailed: 'تعذّر تحميل السوق. حاول مرة أخرى بعد قليل.',
+    /** The two openers: the ISX60 chart and the foreign-flow ring. */
+    chart: {
+      title:   'مؤشر ISX60',
+      ranges:  { m1: 'شهر', m3: '٣ أشهر', y1: 'سنة', all: 'الكل' },
+      high:    'الأعلى',
+      low:     'الأدنى',
+      since:   (pct: string) => `${pct} خلال الفترة`,
+      label:   'مخطط مؤشر ISX60',
+      empty:   'لا تتوفر بيانات المؤشر.',
+    },
+    flow: {
+      title:   'تدفق المستثمر الأجنبي',
+      buy:     'شراء',
+      sell:    'بيع',
+      net:     'الصافي',
+      netBuy:  'صافي شراء',
+      netSell: 'صافي بيع',
+      even:    'متوازن',
+      periods: { session: 'الجلسة', month: 'آخر ٢٠ جلسة' },
+      label:   (buy: string, sell: string) => `شراء أجنبي ${buy}، بيع أجنبي ${sell}`,
+      empty:   'لا تتوفر بيانات تدفق أجنبي.',
+      note:    'حصة كل جهة من إجمالي التداول الأجنبي.',
+    },
   },
 }
