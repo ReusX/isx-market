@@ -82,17 +82,57 @@ Order is by traffic and by what other pages borrow from. Shell first because eve
 
 Every English route (`/en/...`) shares the component with its Arabic twin, so a row is done for both languages at once.
 
-## HANDOFF · 2026-09-16 (session moved to another account)
+## HANDOFF · 2026-09-16 (second session — moving to another account)
 
-**State:** branch `redesign/latitude`, all work committed, NOT deployed. Dev server: `preview_start` name `isx-dev` (port 3300). Gates: `check:tokens`, `check:i18n` (needs `I18N_ORIGIN=http://localhost:3300`), `check:routes` — run them in the background; they take 3–4 min.
+**State:** branch `redesign/latitude`, working tree clean, everything committed, **NOTHING DEPLOYED** and nothing should be. Dev server: `preview_start` name `isx-dev`, port 3300. Note the port may already be held by another session's server — if `preview_start` refuses, just use the running one.
 
-**Last thing done:** `/statistics/ownership` and `/statistics/shareholders` rebuilt (rows 9b, 9c). The whole statistics section is now on the new shell: `/statistics` moved from `AppFrame.REBUILT_EXACT` to `REBUILT`, so `REBUILT_EXACT` is the root alone.
+**Rows done:** 1 shell · 2 `/` · 3 `/market` · 4 `/c/[sym]` · 6 `/companies` · 7 `/screener` · 8 `/heatmap` · 9 `/statistics` · 9a foreign-flow · 9b ownership · 9c shareholders · 12 `/pulse`. Ten of nineteen.
 
-**Next:** `/c/[sym]/financials` (row 5). It is the last route under `/c` still on the old frame — `AppFrame.NOT_YET` exists solely to keep it there, and that guard is deleted the day the row lands. It is also still `ƒ`, and `/api/chart/[sym]` is now called by nobody once it goes.
+**Next: row 5 `/c/[sym]/financials`.** It is the last route under `/c` on the old frame. Three things are waiting on it:
+  · `AppFrame.NOT_YET` exists *solely* to hold it there while `'/c'` is a REBUILT prefix — delete that constant when the row lands.
+  · It is still `ƒ` (dynamic). Row 4 showed the fix: `generateStaticParams` + `revalidate`.
+  · `/api/chart/[sym]` has no other caller once this page stops using it; it can go in the sweep.
 
-**Small open items:** old `/companies` layout still wraps the directory (harmless; sweep); `/screener` search keywords keep the old spelling «مستكشف» on purpose; 124 older monthly PDFs unreadable by the accounts parser (different layouts / scans).
+### What this session changed beyond the tracker rows
 
-**Names & rules the user locked:** see the identity table above and memory `iqwealth-redesign-vocab` ("the board" = جدول الشركات, «رادار الأسهم», «دليل الشركات», palettes, fill rules).
+**The «!» pattern.** A page's standfirst is not printed under the h1 any more. `site/PageTitle` puts it behind a quiet «!» beside the title, and it works for section headings too (`as="h2"`). `site/AboutSection` does the same for «عن هذه الأرقام» on every rebuilt page.
+
+⚠ **Both use native `<details>` / CSS collapse and NEVER conditional rendering.** The copy must stay in the server-rendered HTML — it is real page text that these pages rank for. A `title` attribute or hover-injected text would take it out of the page. Do not "simplify" either component into `{open && <p>…</p>}`.
+
+**A cost pass, because the numbers said something different from what I assumed.** Vercel Hobby was at 91% of Fluid Active CPU while bandwidth sat at 5.7% and invocations at 13% — so payload size was never the problem; server renders were. Fixes landed:
+  · `/` regenerated every 60s running the heaviest loader on the site (≈2,880 heavy renders/day) to catch data that changes once per session → 900s.
+  · `/c/[sym]` was fully dynamic across 104 companies × 2 locales, and pulled `ownership_monthly` (2000 rows) + `major_shareholders` (4000 rows) into the BROWSER to find the handful belonging to one company → prerendered, ~200 rows, server-side.
+  · Vercel Speed Insights removed at 98% of its own 10K/month quota; nobody read it. `@vercel/analytics` stays (12%).
+
+**Remaining perf items, none urgent** (measure before doing more — Active CPU is a 30-day rolling window and the above needs days to show):
+  · `/screener` is `ƒ` only because `generateMetadata` reads `?preset=`; the page itself takes no searchParams.
+  · `/` pages the whole `daily_index` from the BROWSER on every visit (4 round trips). The fix is a CDN-cached `/api/index/isx60` mirroring `/api/index/rsisx`'s headers. Supabase egress is at 35%, so this is headroom, not a fire.
+  · On-demand revalidation from the ingest cron is NOT a three-line change: `revalidatePath` clears the route cache but not the Data Cache, and `lib/marketServer.ts`'s Supabase fetches carry their own `next: { revalidate: 60 }`. Done properly it means tagging those fetches and using `revalidateTag`.
+
+### Gotchas this session paid for — do not rediscover them
+
+  · **`buildReturns` returns FRACTIONS, not percentages.** Printing one straight to `toFixed(1)` renders a −15.7% year as «−0.2%».
+  · **`companies.json.sec` is a 3-letter code (`TEL`, `BANK`); `SECTOR_LABELS` is keyed on `company_metrics.sector` (`Telecom`, `Banks`).** Passing the raw code through prints «TEL» on the page. `SEC_CODE` in `lib/marketServer.ts` maps it.
+  · **`LiveStock.vol` is the traded VALUE in IQD** (legacy name) and `shares_traded` is the share count. Reading them the other way round prints dinars as shares.
+  · **`noPrior` is not zero.** A company with no valid previous close has an UNKNOWN change, not a flat one. Same rule in `lib/pulse.ts`'s four-state breadth.
+  · **The depository filings are OCR'd and do not all resolve.** The August table spells Bank of Baghdad «مرصف بغداد»; `resolveName` reports `no-candidate` and BBOB's page shows no ownership block. That is correct — a false negative beats attaching a filing to the wrong company. Resolve through `lib/depositoryNames` (not `companyView`'s simpler matcher) so this page and /statistics cannot disagree.
+  · **localStorage persistence needs a hydration gate.** `PriceChart` writes drawings per symbol; the first version's save effect ran on mount with the empty initial state and wiped stored drawings on every page load. See `hydratedKey`.
+  · **Chart drawing anchors are stored in DATA space** (bar index + price), never pixels — that is what keeps a trend line on its two sessions through zoom, pan, range change and log scale.
+  · **`check:routes` tracks rendering MODE per route** in `scripts/route-markers.json`. An intended change (e.g. `ƒ → ●`) needs `npm run check:routes:update` and the diff should be only the lines you meant.
+
+### The chart
+
+`site/PriceChart` is a full analysis surface now: candles / line / area, volume pane, MA20/50/200, OHLC crosshair, wheel-zoom + drag-pan, log/linear, fullscreen, PNG export, and drawing tools (trend, horizontal, rectangle, Fibonacci) with select / delete / clear, persisted per symbol. Tools are an icon rail ON the plot; the price is a tag on the axis.
+
+⚠ The rail is **physically left in both locales** on purpose: the time axis runs oldest → newest left-to-right whatever the page direction.
+
+**Deliberately NOT built:** indicator sub-panes (RSI, MACD), multi-symbol comparison, and moving a shape after drawing it (select and delete, not drag handles). The user knows; do not pretend otherwise.
+
+**Open question the user has not answered:** whether the OHLC legend and session date should move from the header row onto the plot, overlaid top-left, the way TradingView does it.
+
+**Small open items (older):** old `/companies` layout still wraps the directory (harmless; sweep); `/screener` search keywords keep the old spelling «مستكشف» on purpose; 124 older monthly PDFs unreadable by the accounts parser; a few companies have an empty `ar` in `companies.json` (BNOR, HPAL, INCP, SIGT, BZII) so Arabic pages show their English names — a data gap, not a bug.
+
+**Names & rules the user locked:** the identity table above is the contract. Also memory `iqwealth-redesign-vocab` if it is available ("the board" = جدول الشركات, «رادار الأسهم», «دليل الشركات», «الملكية الأجنبية», palettes, fill rules).
 
 ## Follow-ups (data, not design)
 
