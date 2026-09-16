@@ -1,8 +1,9 @@
-import { Statistics } from '@/components/routes/Statistics'
+import { StatisticsPage } from '@/components/site/StatisticsPage'
+import { loadStatistics } from '@/lib/marketServer'
 
-// Title/description live in ./layout.tsx. Shared with /en/statistics.
-export const revalidate = 300
+export const revalidate = 900
 
-export default function Page() {
-  return <Statistics />
+/** /statistics · the hub: how much trades, where, who is buying, who owns it. */
+export default async function Page() {
+  return <StatisticsPage initial={await loadStatistics()} />
 }

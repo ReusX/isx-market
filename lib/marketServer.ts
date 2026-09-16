@@ -6,6 +6,7 @@ import iscTiers from '@/public/data/isc-tiers.json'
 import type { Company, CompanyMeta } from '@/types'
 import type { IndexRow } from '@/lib/homeData'
 import type { Metric } from '@/lib/screener'
+import { REBASE, type Session, type SectorMonthRow } from '@/lib/statistics'
 
 /**
  * What the market page needs on the SERVER, so the session figures and the
@@ -157,4 +158,50 @@ export const loadScreener = cache(async (): Promise<ScreenerInitial> => {
     pe = Object.fromEntries(Object.entries(res).map(([t, v]) => [t, v.pe]))
   } catch { peFailed = true }
   return { metrics, meta: companiesData as CompanyMeta[], pe, peFailed, marketSession }
+})
+
+/**
+ * The statistics hub on the server: the daily series since the rebase
+ * (paged), the latest month's sector table, recent foreign flow, and the
+ * latest ownership month aggregated to two numbers. Each part fails alone.
+ */
+export type StatisticsInitial = {
+  sessions: Session[]
+  sectorRows: SectorMonthRow[]
+  flow: { date: string; side: string; value: number | null }[]
+  ownership: { month: string; iraqi: number; foreign: number } | null
+}
+
+export const loadStatistics = cache(async (): Promise<StatisticsInitial> => {
+  const sb = client()
+  const out: StatisticsInitial = { sessions: [], sectorRows: [], flow: [], ownership: null }
+  await Promise.allSettled([
+    (async () => {
+      for (let from = 0; from < 8000; from += 1000) {
+        const { data, error } = await sb.from('daily_index')
+          .select('date,isx60,total_value,total_volume,total_trades,traded_companies,listed_companies')
+          .gte('date', REBASE).order('date').range(from, from + 999)
+        if (error || !data?.length) break
+        for (const r of data as Record<string, number | string | null>[]) {
+          out.sessions.push({ date: r.date as string, isx60: r.isx60 as number | null, value: r.total_value as number | null, volume: r.total_volume as number | null,
+            trades: r.total_trades as number | null, traded: r.traded_companies as number | null, listed: r.listed_companies as number | null })
+        }
+        if (data.length < 1000) break
+      }
+    })(),
+    sb.from('sector_monthly').select('year,month,sector,volume,value,trades,traded_companies,listed_companies')
+      .order('year', { ascending: false }).order('month', { ascending: false }).limit(40)
+      .then(({ data }) => { const rows = (data ?? []) as SectorMonthRow[]; if (rows.length) out.sectorRows = rows.filter((r) => r.year === rows[0].year && r.month === rows[0].month) }),
+    sb.from('foreign_flow_company_daily').select('date,side,value').order('date', { ascending: false }).limit(2400)
+      .then(({ data }) => { out.flow = (data ?? []) as StatisticsInitial['flow'] }),
+    sb.from('ownership_monthly').select('year,month,iraqi_shares,foreign_shares').order('year', { ascending: false }).order('month', { ascending: false }).limit(400)
+      .then(({ data }) => {
+        const rows = (data ?? []) as { year: number; month: number; iraqi_shares: number | null; foreign_shares: number | null }[]
+        if (!rows.length) return
+        const y = rows[0].year, m = rows[0].month
+        const cur = rows.filter((r) => r.year === y && r.month === m)
+        out.ownership = { month: `${y}-${String(m).padStart(2, '0')}`, iraqi: cur.reduce((a, r) => a + (r.iraqi_shares ?? 0), 0), foreign: cur.reduce((a, r) => a + (r.foreign_shares ?? 0), 0) }
+      }),
+  ])
+  return out
 })

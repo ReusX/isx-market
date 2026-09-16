@@ -68,7 +68,7 @@ const BARE_ROUTES = [
  * and the frame is deleted the day the list covers everything.
  */
 const REBUILT = ['/market', '/companies', '/screener', '/heatmap']
-const REBUILT_EXACT = ['/']   // the root: prefix-matching '/' would cover every route
+const REBUILT_EXACT = ['/', '/statistics']   // the root (prefix-matching '/' would cover every route); the statistics hub while its sub-pages are still old
 
 export default function AppFrame({ children }: { children: ReactNode }) {
   const pathname = usePathname() ?? '/'

@@ -65,7 +65,10 @@ Order is by traffic and by what other pages borrow from. Shell first because eve
 | 6 | `/companies` | NEW `site/DirectoryPage` (`styles/directory.css`): the directory — who is listed, no prices; cards with logo, names, capital, ISC market tier (`public/data/isc-tiers.json`), facts from profiles, trading status; sector/capital/A–Z order; search; status filter; ItemList markup; server-rendered ISR 1h | old `CompaniesPage` unused, delete in sweep | ☑ 2026-09-16 |
 | 7 | `/screener` («رادار الأسهم») | NEW `site/ScreenerPage` (`styles/screener-page.css`, prefix `scr-`): presets write visible condition chips; filters in the URL; preset URLs carry titles + self canonicals; board-style sortable results; builder behind a disclosure; CSV; server-rendered ISR 5 min. `lib/screener` logic unchanged | old `Screener`/`screener.css` unused, delete in sweep | ☑ 2026-09-16 |
 | 8 | `/heatmap` | NEW `site/HeatmapPage` (`styles/heatmap-page.css`, prefix `hm2-`): the map is the page — period pills + one seven-step scale (mint/coral, hatched = no reading), size by cap or 20-session value, sector zoom, instant hover label, click → floating detail card; server-rendered summary line. `lib/heatmap` unchanged | old `Heatmap`/`heatmap.css` unused, delete in sweep | ☑ 2026-09-16 |
-| 9 | `/statistics` + `/foreign-flow` `/ownership` `/shareholders` | `routes/Statistics` `ForeignFlow` `OwnershipPage` `ShareholdersPage` `depositoryUi` | `statistics.css` `foreign-flow.css` `depository.css` `data-table.css` | ☐ |
+| 9 | `/statistics` hub | NEW `site/StatisticsPage` (`styles/statistics-page.css`, prefix `stx-`): activity bar chart (session/week/month, 3 measures, vs previous period), sector share bars, foreign-flow and ownership doors, about text; server-rendered ISR 15 min; sub-nav pills to the three sub-pages | old `routes/Statistics`/`statistics.css` unused, delete in sweep | ☑ 2026-09-16 |
+| 9a | `/statistics/foreign-flow` | `routes/ForeignFlow` → rebuild next | `foreign-flow.css` | ☐ |
+| 9b | `/statistics/ownership` | `routes/OwnershipPage` `depositoryUi` | `depository.css` `data-table.css` | ☐ |
+| 9c | `/statistics/shareholders` | `routes/ShareholdersPage` | — | ☐ |
 | 10 | `/banks`, `/banks/[slug]` | `routes/BanksHub` `BankProfile` | `banks.css` | ☐ |
 | 11 | `/gold` `/fx` `/oil` | `routes/GoldPage` `FxPage` `FxHistory` `OilPage` | `market-tools.css` `fx-history.css` | ☐ |
 | 12 | `/pulse` | `routes/Pulse` | `pulse.css` | ☐ |
@@ -78,6 +81,10 @@ Order is by traffic and by what other pages borrow from. Shell first because eve
 | 19 | sweep: delete `globals.css` legacy blocks (lines after "Design system · base + components"), drop `data-theme` attribute, delete `public/fonts/*` | — | — | ☐ |
 
 Every English route (`/en/...`) shares the component with its Arabic twin, so a row is done for both languages at once.
+
+## Follow-ups (data, not design)
+
+- **Individuals vs institutions** (holder counts per company: `depository_monthly.individual_*` / `entity_*`) — the table exists but the monthly-PDF parser never filled it (foreign columns null in all 903 rows, Iraqi counts implausible). Fix the parser, re-parse the archived PDFs, validate a few companies by hand, backfill; then a fourth panel on هيكل الملكية. No public source splits *trading* by investor type — only ownership.
 
 ## Log
 
