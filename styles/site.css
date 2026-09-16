@@ -36,8 +36,9 @@
 .iqn-pill:hover { border-color: var(--ink); transform: translateY(-1px); }
 .iqn-pill[aria-current='page'] { background: var(--sel-bg); color: var(--sel-ink); border-color: transparent; box-shadow: inset 0 0 0 1px var(--sel-edge); }
 .iqn-pill[aria-current='page'] svg { color: var(--nav-active); }
-.iqn-pill.is-strong { background: var(--primary-bg); color: var(--primary-ink); border-color: var(--primary-bg); }
-.iqn-pill.is-strong svg { color: currentColor; }
+/* Sign-in is an outlined pill like the rest; only its icon carries the blue. */
+.iqn-pill.is-strong { background: var(--surface); color: var(--ink); border-color: var(--border); }
+.iqn-pill.is-strong svg { color: var(--nav-active); }
 .iqn-pill.is-icon { padding: 0; width: 44px; justify-content: center; }
 .iqn .gh-lang {
   display: inline-flex; align-items: center; min-height: 44px; padding: 0 18px; border-radius: var(--r-pill);
@@ -48,8 +49,8 @@
 .iqn.is-hero .iqn-pill, .iqn.is-hero .gh-lang { background: #fff; color: var(--navy); border-color: #fff; }
 .iqn.is-hero .iqn-pill svg { color: var(--blue); }
 .iqn.is-hero .iqn-pill:hover, .iqn.is-hero .gh-lang:hover { background: #eef4ff; }
-.iqn.is-hero .iqn-pill.is-strong { background: var(--navy); color: #fff; border-color: var(--navy); }
-.iqn.is-hero .iqn-pill.is-strong svg { color: #fff; }
+.iqn.is-hero .iqn-pill.is-strong { background: #fff; color: var(--navy); border-color: #fff; }
+.iqn.is-hero .iqn-pill.is-strong svg { color: var(--blue); }
 .iqn-burger { display: none; }
 
 /* The four doors need ~1180px beside the logo and tools; below that the

@@ -11,7 +11,7 @@ open it in a browser — it is the answer to "what should this look like".
 | Page | light `#F5F2EC` (paper) · dark `#0F1218` (graphite, blue hint) | The ground. Flat, no gradient. Dark is a NEUTRAL near-black, never a coloured ground. |
 | Ink | light `#1A2035` · dark `#E7E7E2` | Softened navy by day, warm off-white by night — never pure white on dark. Secondary ≈ 65 %, muted ≈ 45 %. |
 | Accent | `--blue #146BFD` | Only in chart details, links, icons, focus rings and selected-state edges. Never on the main canvas or large cards; the homepage hero is the one deliberate exception. |
-| Fills | primary vs selected | Warm-white / navy fill = a **primary action** only (sign in, the one CTA). A selected range, filter, door or rail item = quiet dark-blue-grey `--sel-bg` with light text and a thin blue edge. Active rail item = quiet surface + 3px blue edge at the start. No pure white, no pure black, no glow, no heavy shadow. |
+| Fills | primary vs selected | Warm-white / navy fill = the one **primary CTA** on a page only (e.g. «استكشف السوق»); sign-in and the logo are outlined pills. A selected range, filter, door or rail item = quiet dark-blue-grey `--sel-bg` with light text and a thin blue edge. Active rail item = quiet surface + 3px blue edge at the start. No pure white, no pure black, no glow, no heavy shadow. |
 | Watermark | `IRAQSM.COM` | Bold, low-opacity, in the empty space of every chart or data panel a reader might screenshot. |
 | Rising | light chip `#DCECD8`/`#1F6B45` · dark `#8FD3A8` at 14 % | Chip when there is a ground; text when not. |
 | Falling | light chip `#F4DCD0`/`#A4402F` · dark `#F0A08E` at 14 % | Same. |
