@@ -120,7 +120,7 @@ export const market = {
     /** The two openers: the ISX60 chart and the foreign-flow ring. */
     chart: {
       title:   'مؤشر ISX60',
-      ranges:  { m1: 'شهر', m3: '٣ أشهر', y1: 'سنة', y3: '٣ سنوات' },
+      ranges:  { m1: 'شهر', m3: '٣ أشهر', y1: 'سنة', y3: '٣ سنوات', all: 'الكل' },
       high:    'الأعلى',
       low:     'الأدنى',
       since:   (d: string) => `منذ ${d}`,
@@ -139,6 +139,7 @@ export const market = {
       label:   (buy: string, sell: string) => `شراء أجنبي ${buy}، بيع أجنبي ${sell}`,
       empty:   'لا تتوفر بيانات تدفق أجنبي.',
       note:    'حصة كل جهة من إجمالي التداول الأجنبي.',
+      strip:   'مرّر على جلسة لعرضها في الدائرة',
     },
   },
 }

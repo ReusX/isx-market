@@ -80,9 +80,15 @@
 .fr-legend .is-buy dt i { background: var(--moss-ink); } .fr-legend .is-sell dt i { background: var(--sand-ink); }
 .fr-legend dd { margin: 0; font-size: 16px; font-weight: 300; display: flex; gap: 10px; align-items: baseline; }
 .fr-legend dd span { font-size: 12px; color: var(--muted); }
-.fr-strip { display: flex; align-items: flex-end; gap: 3px; height: 36px; margin-top: 14px; }
-.fr-strip span { flex: 1; border-radius: 2px 2px 0 0; min-width: 3px; }
-.fr-strip .is-buy { background: var(--moss-ink); opacity: .7; } .fr-strip .is-sell { background: var(--sand-ink); opacity: .7; }
+.fr-strip { display: flex; gap: 3px; height: 56px; margin-top: 14px; position: relative; }
+.fr-strip::before { content: ''; position: absolute; inset-inline: 0; top: 50%; height: 1px; background: var(--border); }
+.fr-bar { flex: 1; min-width: 4px; display: grid; grid-template-rows: 1fr 1fr; padding: 0; border: 0; background: none; cursor: pointer; border-radius: 3px; }
+.fr-bar i { display: block; width: 100%; border-radius: 2px; opacity: .55; transition: opacity .15s; min-height: 1px; }
+.fr-bar .is-buy  { align-self: end; background: var(--moss-ink); }
+.fr-bar .is-sell { align-self: start; background: var(--sand-ink); }
+.fr-bar:hover, .fr-bar.is-on { background: var(--surface-2); }
+.fr-bar:hover i, .fr-bar.is-on i { opacity: 1; }
+.fr-bar:focus-visible { outline: 2px solid var(--blue); outline-offset: 1px; }
 .fr-note { margin: 6px 0 0; }
 @media (max-width: 480px) { .fr-body { grid-template-columns: 1fr; justify-items: center; } .fr-side { width: 100%; } }
 @media (prefers-reduced-motion: reduce) { .fr-buy, .fr-sell { transition: none; } }

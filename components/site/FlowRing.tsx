@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import { useLocale } from '@/context/LocaleContext'
+import { shortDate } from '@/lib/date'
 
 /**
  * Foreign investor flow as a ring.
@@ -11,7 +12,9 @@ import { useLocale } from '@/context/LocaleContext'
  * before any number is. The arcs draw themselves in when the data lands and
  * whenever the period changes; hovering a side thickens its arc and its
  * legend row together; and under the legend a strip of the last twenty
- * sessions shows the run of net flow, so the day sits in its context.
+ * sessions shows buying above the line and selling below it, to scale.
+ * Hovering a session in the strip turns the ring into THAT session — the
+ * ring is a viewer for the strip — and a tooltip names the day's figures.
  */
 export type FlowRow = { date: string; side: string; value: number | null }
 type Period = 'session' | 'month'
@@ -19,11 +22,12 @@ type Period = 'session' | 'month'
 const R = 74, SW = 14, C = 2 * Math.PI * R
 
 export function FlowRing({ rows, session, compact }: { rows: FlowRow[]; session: string | null; compact: (v: number) => string }) {
-  const { t } = useLocale()
+  const { t, locale } = useLocale()
   const c = t.market.page.flow
   const [period, setPeriod] = useState<Period>('session')
   const [side, setSide] = useState<'buy' | 'sell' | null>(null)
   const [drawn, setDrawn] = useState(false)
+  const [peek, setPeek] = useState<string | null>(null)   // a session hovered in the strip
 
   const days = useMemo(() => {
     const byDate = new Map<string, { buy: number; sell: number }>()
@@ -38,11 +42,12 @@ export function FlowRing({ rows, session, compact }: { rows: FlowRow[]; session:
   const flow = useMemo(() => {
     if (!days.length) return null
     const last = days[days.length - 1]
-    const sel = period === 'session' ? [days.find((d) => d.date === session) ?? last] : days
+    const sel = peek ? [days.find((d) => d.date === peek) ?? last]
+      : period === 'session' ? [days.find((d) => d.date === session) ?? last] : days
     const buy = sel.reduce((s, d) => s + d.buy, 0), sell = sel.reduce((s, d) => s + d.sell, 0)
     const total = buy + sell
     return { buy, sell, net: buy - sell, buyShare: total ? buy / total : 0, sellShare: total ? sell / total : 0, total }
-  }, [days, session, period])
+  }, [days, session, period, peek])
 
   /* Draw-in: the arcs start at zero length and grow to their share. Re-run
      when the period flips so the change is seen, not just noticed. */
@@ -55,7 +60,8 @@ export function FlowRing({ rows, session, compact }: { rows: FlowRow[]; session:
   const buyLen = drawn ? Math.max(0, flow.buyShare * C - gap) : 0
   const sellLen = drawn ? Math.max(0, flow.sellShare * C - gap) : 0
   const mood = Math.abs(flow.buyShare - 0.5) < 0.03 ? 'even' : flow.net > 0 ? 'buy' : 'sell'
-  const maxAbs = Math.max(1, ...days.map((d) => Math.abs(d.net)))
+  const maxSide = Math.max(1, ...days.map((d) => Math.max(d.buy, d.sell)))
+  const shownDate = peek ?? (period === 'session' ? (days.find((d) => d.date === session)?.date ?? days[days.length - 1].date) : null)
 
   return (
     <section className={`fr id-panel ${side ? `is-${side}` : ''}`.trim()} aria-label={c.title}>
@@ -88,14 +94,22 @@ export function FlowRing({ rows, session, compact }: { rows: FlowRow[]; session:
               </div>
             ))}
           </dl>
-          {/* The last twenty sessions of net flow: up-bars in moss, down-bars in sand. */}
-          <div className="fr-strip" aria-hidden="true">
+          {/* Twenty sessions, to scale: buying up from the line, selling down. */}
+          <div className="fr-strip" onPointerLeave={() => setPeek(null)}>
             {days.map((d) => (
-              <span key={d.date} className={d.net >= 0 ? 'is-buy' : 'is-sell'} title={d.date}
-                style={{ height: `${Math.max(8, (Math.abs(d.net) / maxAbs) * 100)}%` }} />
+              <button type="button" key={d.date} className={`fr-bar ${d.date === shownDate ? 'is-on' : ''}`.trim()}
+                onPointerEnter={() => setPeek(d.date)} onFocus={() => setPeek(d.date)} onBlur={() => setPeek(null)}
+                aria-label={`${shortDate(d.date, locale)} · ${c.buy} ${compact(d.buy)} · ${c.sell} ${compact(d.sell)}`}>
+                <i className="is-buy" style={{ height: `${(d.buy / maxSide) * 100}%` }} />
+                <i className="is-sell" style={{ height: `${(d.sell / maxSide) * 100}%` }} />
+              </button>
             ))}
           </div>
-          <p className="id-cap fr-note">{c.periods.month} · {c.net}</p>
+          <p className="id-cap fr-note id-num">
+            {peek
+              ? <>{shortDate(peek, locale)} · {c.buy} {compact(days.find((d) => d.date === peek)!.buy)} · {c.sell} {compact(days.find((d) => d.date === peek)!.sell)}</>
+              : <>{c.periods.month} · {c.strip}</>}
+          </p>
         </div>
       </div>
     </section>

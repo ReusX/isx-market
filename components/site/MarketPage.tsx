@@ -86,20 +86,23 @@ export function MarketPage() {
           setCompanies(mergeCompanies(meta, live.stocks))
           setSession(live.updated || null)
         })().catch(() => alive && setFailed(true)),
-        /* Three years of sessions (~740 rows) — under PostgREST's 1000-row
-           cap, so the LAST row really is the latest session. An unbounded
-           ascending query silently returned the first thousand rows and
-           the "latest" close was years old. Zero closes are data holes. */
-        sb.from('daily_index')
-          .select('date,isx60,total_value,total_volume,total_trades,traded_companies,listed_companies')
-          .gt('isx60', 0).gte('date', new Date(Date.now() - 3 * 366 * 86400_000).toISOString().slice(0, 10))
-          .order('date').limit(1000)
-          .then(({ data }) => {
-            if (!alive || !data?.length) return
-            const rows = data as IndexRow[]
-            setSeries(rows.map((r) => ({ date: r.date, isx60: r.isx60 })))
-            setIndex({ latest: rows[rows.length - 1], prev: rows[rows.length - 2] ?? null })
-          }),
+        /* The whole index history, in pages: PostgREST caps a query at 1000
+           rows, and an unbounded ascending query once made a years-old close
+           look like the latest session. Zero closes are data holes. */
+        (async () => {
+          const rows: IndexRow[] = []
+          for (let from = 0; ; from += 1000) {
+            const { data, error } = await sb.from('daily_index')
+              .select('date,isx60,total_value,total_volume,total_trades,traded_companies,listed_companies')
+              .gt('isx60', 0).order('date').range(from, from + 999)
+            if (error || !data?.length) break
+            rows.push(...(data as IndexRow[]))
+            if (data.length < 1000) break
+          }
+          if (!alive || !rows.length) return
+          setSeries(rows.map((r) => ({ date: r.date, isx60: r.isx60 })))
+          setIndex({ latest: rows[rows.length - 1], prev: rows[rows.length - 2] ?? null })
+        })(),
         sb.from('foreign_flow_company_daily')
           .select('date,side,value').order('date', { ascending: false }).limit(1200)
           .then(({ data }) => { if (alive && data) setFlowRows(data as FlowRow[]) }),

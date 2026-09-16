@@ -15,10 +15,10 @@ import { shortDate } from '@/lib/date'
  * fill under the line is a faint blue wash; the line itself is the ink.
  */
 export type IndexPoint = { date: string; isx60: number }
-type Range = 'm1' | 'm3' | 'y1' | 'y3'
+type Range = 'm1' | 'm3' | 'y1' | 'y3' | 'all'
 /* Calendar days back from the LAST session in the series, not from today:
    a range is measured against the market's own clock. */
-const DAYS: Record<Range, number> = { m1: 31, m3: 92, y1: 366, y3: 3 * 366 }
+const DAYS: Record<Range, number> = { m1: 31, m3: 92, y1: 366, y3: 3 * 366, all: Infinity }
 
 const W = 800, H = 300, PT = 18, PB = 28, PL = 8, PR = 64
 const nf = new Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
@@ -43,7 +43,7 @@ function niceTicks(lo: number, hi: number): number[] {
    ranges, month and year for long ones. */
 function dateLabels(pts: IndexPoint[], range: Range, fmt: (d: string, long: boolean) => string) {
   const n = Math.min(6, pts.length)
-  const long = range === 'y1' || range === 'y3'
+  const long = range === 'y1' || range === 'y3' || range === 'all'
   const out: { i: number; label: string }[] = []
   for (let k = 0; k < n; k++) {
     const i = Math.round((k / (n - 1)) * (pts.length - 1))
@@ -78,7 +78,7 @@ export function IndexChart({ series }: { series: IndexPoint[] }) {
     const area = `${line} L${x(pts.length - 1).toFixed(1)},${(H - PB).toFixed(1)} L${x(0).toFixed(1)},${(H - PB).toFixed(1)} Z`
     const iHi = vals.indexOf(hi), iLo = vals.indexOf(lo)
     const fmt = (d: string, long: boolean) => long
-      ? new Date(d).toLocaleDateString(locale === 'ar' ? 'ar-u-nu-latn' : 'en-GB', { month: 'short', year: '2-digit' })
+      ? new Date(d).toLocaleDateString(locale === 'ar' ? 'ar-u-nu-latn' : 'en-GB', { month: 'short', year: 'numeric' })
       : shortDate(d, locale)
     return { x, y, line, area, lo, hi, iHi, iLo, ticks: niceTicks(y0, y1), months: dateLabels(pts, range, fmt), first: pts[0].isx60 }
   }, [pts, locale, range])
@@ -91,6 +91,9 @@ export function IndexChart({ series }: { series: IndexPoint[] }) {
     setHover(Math.max(0, Math.min(pts.length - 1, i)))
   }
 
+  /* The caption always carries the year: a chart that spans years cannot
+     say «14 سبتمبر» and expect the reader to know which. */
+  const fullDate = (d: string) => new Date(d).toLocaleDateString(locale === 'ar' ? 'ar-u-nu-latn' : 'en-GB', { day: 'numeric', month: 'long', year: 'numeric' })
   const last = pts[pts.length - 1]
   const shown = hover != null ? pts[hover] : last
   const pct = geo && shown ? ((shown.isx60 - geo.first) / geo.first) * 100 : 0
@@ -103,11 +106,11 @@ export function IndexChart({ series }: { series: IndexPoint[] }) {
           <p className="ix-value id-num">
             <strong>{shown ? nf.format(shown.isx60) : '—'}</strong>
             {shown ? <span className={`id-chg ${pct > 0 ? 'is-up' : pct < 0 ? 'is-down' : 'is-flat'}`}>{pct > 0 ? '▲' : pct < 0 ? '▼' : ''} {Math.abs(pct).toFixed(2)}%</span> : null}
-            {shown ? <span className="id-cap">{hover != null ? shortDate(shown.date, locale) : c.since(shortDate(pts[0].date, locale))}</span> : null}
+            {shown ? <span className="id-cap">{hover != null ? fullDate(shown.date) : c.since(fullDate(pts[0].date))}</span> : null}
           </p>
         </div>
         <div className="id-pills" role="group">
-          {(['m1', 'm3', 'y1', 'y3'] as Range[]).map((r) => (
+          {(['m1', 'm3', 'y1', 'y3', 'all'] as Range[]).map((r) => (
             <button key={r} type="button" className="id-pill is-sm" aria-pressed={range === r} onClick={() => { setRange(r); setHover(null) }}>{c.ranges[r]}</button>
           ))}
         </div>

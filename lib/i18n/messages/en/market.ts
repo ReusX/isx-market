@@ -106,7 +106,7 @@ export const market: typeof ar = {
     loadFailed: 'The market could not be loaded. Try again shortly.',
     chart: {
       title:   'ISX60 index',
-      ranges:  { m1: '1M', m3: '3M', y1: '1Y', y3: '3Y' },
+      ranges:  { m1: '1M', m3: '3M', y1: '1Y', y3: '3Y', all: 'All' },
       high:    'High',
       low:     'Low',
       since:   (d: string) => `since ${d}`,
@@ -125,6 +125,7 @@ export const market: typeof ar = {
       label:   (buy: string, sell: string) => `Foreign buying ${buy}, foreign selling ${sell}`,
       empty:   'Foreign flow data is unavailable.',
       note:    'Each side\u2019s share of total foreign trading.',
+      strip:   'Hover a session to show it in the ring',
     },
   },
 }
