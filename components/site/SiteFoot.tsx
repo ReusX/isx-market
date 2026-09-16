@@ -10,7 +10,7 @@ export function SiteFoot() {
   const { t, href: L } = useLocale()
   const doors = t.home.landing.doors
   return (
-    <footer className="iqf id-wrap">
+    <footer className="iqf id-full">
       <div className="iqf-row">
         <Link href={L('/')} className="iqf-brand" aria-label={t.site.brandHome}><StarMark size={20} /><span>IQWealth</span></Link>
         <nav className="iqf-doors" aria-label={t.site.menu}>

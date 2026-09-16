@@ -21,6 +21,9 @@ import type { Company } from '@/types'
  *      change as a chip, traded value — most active first, with one search
  *      field and the sector pills. A row is a link to the company page.
  *
+ * An information surface, so it runs full width (.id-full); only the lede
+ * caps its own line length.
+ *
  * Data comes from the same sources as before (lib/market, daily_index);
  * nothing about how it is SHOWN is inherited. Both sources are fetched
  * independently, so a failed index does not blank the board.
@@ -104,7 +107,7 @@ export function MarketPage() {
 
   return (
     <SiteShell>
-      <main className="iqm id-wrap">
+      <main className="iqm id-full">
         <header className="iqm-head">
           <p className="id-eyebrow">{p.eyebrow}</p>
           <h1 className="id-h1">{m.title}</h1>
