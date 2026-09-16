@@ -11,5 +11,5 @@ export const site = {
   about:     'About',
   contact:   'Contact',
   rights:    (year: string) => `© ${year} IQWealth`,
-  units:     { bn: 'B', mn: 'M', k: 'K', iqd: 'IQD', shares: 'shares' },
+  units:     { tn: 'T', bn: 'B', mn: 'M', k: 'K', iqd: 'IQD', shares: 'shares' },
 }

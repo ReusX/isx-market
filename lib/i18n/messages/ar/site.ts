@@ -16,5 +16,5 @@ export const site = {
   about:     'من نحن',
   contact:   'تواصل معنا',
   rights:    (year: string) => `IQWealth ${year} ©`,
-  units:     { bn: 'مليار', mn: 'مليون', k: 'ألف', iqd: 'دينار', shares: 'سهم' },
+  units:     { tn: 'ترليون', bn: 'مليار', mn: 'مليون', k: 'ألف', iqd: 'دينار', shares: 'سهم' },
 }

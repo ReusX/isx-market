@@ -2,6 +2,7 @@ import { cache } from 'react'
 import { createClient } from '@supabase/supabase-js'
 import { fetchLiveWith, mergeCompanies } from '@/lib/market'
 import companiesData from '@/public/data/companies.json'
+import iscTiers from '@/public/data/isc-tiers.json'
 import type { Company, CompanyMeta } from '@/types'
 import type { IndexRow } from '@/lib/homeData'
 
@@ -82,4 +83,51 @@ export const loadMarketInitial = cache(async (date?: string): Promise<MarketInit
   } catch {
     return empty
   }
+})
+
+/**
+ * The directory's rows: every listed company with its facts and its trading
+ * status as of the latest session — no prices. Facts come from the curated
+ * profiles where one exists (founded, listed, headquarters, first line of
+ * the about text); status from the session snapshot.
+ */
+export type DirectoryRow = {
+  sym: string; ar: string; en: string; logo: string | null; color: string | null; sec: string
+  shares: number | null
+  status: 'active' | 'untraded' | 'suspended'
+  lastTrade: string | null
+  /** ISC register market: 1 regular, 2 second; null when the register does not list the company. */
+  tier: 1 | 2 | null
+  founded: string | null; listed: string | null; hq: string | null
+  blurb: string | null
+}
+
+export const loadDirectory = cache(async (locale: 'ar' | 'en'): Promise<{ session: string | null; rows: DirectoryRow[] }> => {
+  const { COMPANY_PROFILES, FACT_LABELS } = await import('@/lib/companyProfiles')
+  const sb = client()
+  let live: Awaited<ReturnType<typeof fetchLiveWith>> | null = null
+  try { live = await fetchLiveWith(sb) } catch { live = null }
+  const bySym = new Map((live?.stocks ?? []).map((x) => [x.code, x]))
+  const session = live?.updated || null
+  const fact = (facts: { label: string; value: string }[] | undefined, labels: string[]) =>
+    facts?.find((f) => labels.includes(f.label.trim()))?.value ?? null
+  const rows = (companiesData as CompanyMeta[]).map((c): DirectoryRow => {
+    const st = bySym.get(c.sym)
+    const days = st?.lastTrade && session ? (new Date(session).getTime() - new Date(st.lastTrade).getTime()) / 86400_000 : null
+    const status: DirectoryRow['status'] = !st || !st.stale ? 'active' : days != null && days > 60 ? 'suspended' : 'untraded'
+    const prof = COMPANY_PROFILES[c.sym]
+    const p = (locale === 'ar' ? prof?.ar : prof?.en) ?? prof?.ar
+    const about = p?.about ?? null
+    return {
+      sym: c.sym, ar: c.ar, en: c.en, logo: c.logo && !/placeholder/.test(c.logo) ? c.logo : null, color: c.color ?? null, sec: String(c.sec),
+      shares: c.shares ?? null,
+      status, lastTrade: st?.lastTrade ?? null,
+      tier: ((iscTiers as Record<string, number>)[c.sym] === 1 ? 1 : (iscTiers as Record<string, number>)[c.sym] === 2 ? 2 : null),
+      founded: fact(p?.facts, FACT_LABELS.founded),
+      listed: fact(p?.facts, FACT_LABELS.listed),
+      hq: fact(p?.facts, FACT_LABELS.hq),
+      blurb: about ? about.split(/(?<=[.。؟!])\s/)[0].slice(0, 220) : null,
+    }
+  })
+  return { session, rows }
 })

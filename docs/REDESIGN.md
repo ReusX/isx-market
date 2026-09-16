@@ -62,7 +62,7 @@ Order is by traffic and by what other pages borrow from. Shell first because eve
 | 3 | `/market` (the full board, own title kept; server-rendered; `?date=` any session; listing filter incl. suspended; about + FAQ text) | NEW `site/MarketPage` (`styles/markets.css`): openers (`IndexChart` to-scale SVG, ISX60 · RSISX switch (RSISX via `/api/index/rsisx` proxy), ranges/hi-lo/crosshair · `FlowRing` foreign buy/sell ring with net in the centre, session or last-20), session block (breadth from traded companies · value · volume · trades), door rail, board (search + sector pills + one-row-one-fact table) | old `MarketBoard`/`market.css` unused, delete in sweep | ☑ 2026-09-16 foundation |
 | 4 | `/c/[sym]` | `routes/CompanyDetail` `company/CompanyProfile` `company/CompanyChart` | `company.css` `chart-engine.css` `panels.css` | ☐ |
 | 5 | `/c/[sym]/financials` | `routes/CompanyFinancials` | `financials.css` | ☐ |
-| 6 | `/companies` | `routes/CompaniesPage` | in `globals.css` (companies directory blocks) | ☐ |
+| 6 | `/companies` | NEW `site/DirectoryPage` (`styles/directory.css`): the directory — who is listed, no prices; cards with logo, names, capital, ISC market tier (`public/data/isc-tiers.json`), facts from profiles, trading status; sector/capital/A–Z order; search; status filter; ItemList markup; server-rendered ISR 1h | old `CompaniesPage` unused, delete in sweep | ☑ 2026-09-16 |
 | 7 | `/screener` | `routes/Screener` | `screener.css` (50 dark rules) | ☐ |
 | 8 | `/heatmap` | `routes/Heatmap` | `heatmap.css` | ☐ |
 | 9 | `/statistics` + `/foreign-flow` `/ownership` `/shareholders` | `routes/Statistics` `ForeignFlow` `OwnershipPage` `ShareholdersPage` `depositoryUi` | `statistics.css` `foreign-flow.css` `depository.css` `data-table.css` | ☐ |

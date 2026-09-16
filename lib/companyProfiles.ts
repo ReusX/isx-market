@@ -10,6 +10,13 @@ export interface QA   { q: string; a: string }
 export interface Profile { about: string; facts: Fact[]; faq: QA[] }
 export interface CompanyProfileContent { ar?: Profile; en?: Profile }
 
+/** The fact labels the directory reads, in the spellings the profiles use. */
+export const FACT_LABELS = {
+  founded: ['تأسست', 'Founded'],
+  listed:  ['تاريخ الإدراج', 'Listed', 'Listing date'],
+  hq:      ['المقر', 'Headquarters'],
+}
+
 export const COMPANY_PROFILES: Record<string, CompanyProfileContent> = {
   TASC: {
     ar: {
