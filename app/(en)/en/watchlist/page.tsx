@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import { seoAlternates } from '@/lib/seo'
-import { Watchlist } from '@/components/routes/Watchlist'
+import { WatchlistPage } from '@/components/site/WatchlistPage'
 
 /** `/en/watchlist`. Usability mirror — noindex, no hreflang. */
 export const metadata: Metadata = {
@@ -11,5 +11,5 @@ export const metadata: Metadata = {
 }
 
 export default function Page() {
-  return <Watchlist />
+  return <WatchlistPage />
 }

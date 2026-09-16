@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import { seoAlternates } from '@/lib/seo'
-import { Portfolio } from '@/components/routes/Portfolio'
+import { PortfolioPage } from '@/components/site/PortfolioPage'
 
 /**
  * `/en/portfolio`.
@@ -18,5 +18,5 @@ export const metadata: Metadata = {
 }
 
 export default function Page() {
-  return <Portfolio />
+  return <PortfolioPage />
 }

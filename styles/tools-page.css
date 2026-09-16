@@ -1,0 +1,41 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   /portfolio /watchlist /alerts — the reader's own tools. Layout only;
+   vocabulary is identity.css. Prefix `tl-`.
+   ═══════════════════════════════════════════════════════════════════════════ */
+.tl { padding-block: 24px 0; }
+.tl-body { min-width: 0; }
+.tl-head { margin-bottom: 20px; }
+.tl-linkbtn { background: none; border: 0; padding: 0; font: inherit; color: var(--blue); cursor: pointer; text-decoration: underline; }
+.tl-stats { margin-bottom: 12px; }
+.tl-stats .id-stat .id-chg, .tl-stats .id-stat .id-cap { display: inline-block; margin-top: 6px; }
+.tl-note { margin: 8px 0 0; }
+.tl-tools { display: flex; flex-wrap: wrap; align-items: end; gap: 12px 16px; margin: 20px 0 16px; }
+.tl-q { flex: 0 1 260px; }
+.tl-pick { display: grid; gap: 6px; min-width: 260px; }
+.tl-pick .id-input { width: 100%; }
+
+.tl-form { padding: 20px; margin-bottom: 20px; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px 20px; align-items: end; }
+.tl-form label, .tl-form > div { display: grid; gap: 6px; }
+.tl-form .id-input { width: 100%; }
+.tl-form .tl-wide { grid-column: 1 / -1; }
+.tl-form-actions { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+@media (max-width: 900px) { .tl-form { grid-template-columns: 1fr 1fr; } }
+@media (max-width: 560px) { .tl-form { grid-template-columns: 1fr; } }
+
+.tl-table td { padding: 13px 0; font-size: 14px; }
+.tl-table th + th, .tl-table td + td { padding-inline-start: 16px; }
+.tl-name { color: var(--ink); text-decoration: none; }
+.tl-name:hover { text-decoration: underline; }
+.tl-table .id-sub { display: block; }
+.tl-actions { white-space: nowrap; }
+.tl-actions .id-btn + .id-btn { margin-inline-start: 6px; }
+.tl-lot td { background: var(--surface-2); padding: 9px 0; font-size: 13px; }
+.tl-lot td + td { padding-inline-start: 16px; }
+.tl-table tr.is-hit td { background: var(--moss); }
+.tl-panel { padding: 20px; margin-top: 20px; }
+.tl-alloc { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.tl-alloc li { display: grid; grid-template-columns: 140px minmax(0, 1fr) 150px; gap: 14px; align-items: center; font-size: 14px; }
+.tl-alloc-bar { height: 8px; border-radius: 4px; background: var(--surface-2); overflow: hidden; }
+.tl-alloc-bar i { display: block; height: 100%; background: var(--moss-ink); border-radius: 4px; }
+.tl-alloc-v { text-align: end; }
+@media (max-width: 560px) { .tl-alloc li { grid-template-columns: 1fr; gap: 4px; } }

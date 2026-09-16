@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import { seoAlternates } from '@/lib/seo'
-import { Portfolio } from '@/components/routes/Portfolio'
+import { PortfolioPage } from '@/components/site/PortfolioPage'
 
 export const metadata: Metadata = {
   title: 'المحفظة · متابعة أسهمك في بورصة العراق',
@@ -15,5 +15,5 @@ export const metadata: Metadata = {
 }
 
 export default function Page() {
-  return <Portfolio />
+  return <PortfolioPage />
 }
