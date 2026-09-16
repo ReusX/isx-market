@@ -129,7 +129,6 @@ export function MarketPage() {
         <header className="iqm-head">
           <p className="id-eyebrow">{p.eyebrow}</p>
           <h1 className="id-h1">{m.title}</h1>
-          <p className="id-lede">{p.lede}</p>
         </header>
 
         <div className="iqm-openers">

@@ -123,7 +123,7 @@ export const market = {
       ranges:  { m1: 'شهر', m3: '٣ أشهر', y1: 'سنة', all: 'الكل' },
       high:    'الأعلى',
       low:     'الأدنى',
-      since:   (pct: string) => `${pct} خلال الفترة`,
+      since:   (d: string) => `منذ ${d}`,
       label:   'مخطط مؤشر ISX60',
       empty:   'لا تتوفر بيانات المؤشر.',
     },

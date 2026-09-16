@@ -109,7 +109,7 @@ export const market: typeof ar = {
       ranges:  { m1: '1M', m3: '3M', y1: '1Y', all: 'All' },
       high:    'High',
       low:     'Low',
-      since:   (pct: string) => `${pct} over the period`,
+      since:   (d: string) => `since ${d}`,
       label:   'ISX60 index chart',
       empty:   'Index data is unavailable.',
     },

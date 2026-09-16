@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useLocale } from '@/context/LocaleContext'
 
 /**
@@ -8,9 +8,10 @@ import { useLocale } from '@/context/LocaleContext'
  *
  * Two arcs on one circle — buying in moss, selling in sand — and the net in
  * the middle, so the answer («are foreigners buying or selling?») is read
- * before any number is. The gap between the arcs is where the ring "opens";
- * the bigger side is the mood of the session. A period switch aggregates
- * the last twenty sessions for the trend behind the day.
+ * before any number is. The arcs draw themselves in when the data lands and
+ * whenever the period changes; hovering a side thickens its arc and its
+ * legend row together; and under the legend a strip of the last twenty
+ * sessions shows the run of net flow, so the day sits in its context.
  */
 export type FlowRow = { date: string; side: string; value: number | null }
 type Period = 'session' | 'month'
@@ -21,31 +22,45 @@ export function FlowRing({ rows, session, compact }: { rows: FlowRow[]; session:
   const { t } = useLocale()
   const c = t.market.page.flow
   const [period, setPeriod] = useState<Period>('session')
+  const [side, setSide] = useState<'buy' | 'sell' | null>(null)
+  const [drawn, setDrawn] = useState(false)
+
+  const days = useMemo(() => {
+    const byDate = new Map<string, { buy: number; sell: number }>()
+    for (const r of rows) {
+      const d = byDate.get(r.date) ?? { buy: 0, sell: 0 }
+      if (r.side === 'buy') d.buy += r.value ?? 0; else if (r.side === 'sell') d.sell += r.value ?? 0
+      byDate.set(r.date, d)
+    }
+    return Array.from(byDate.entries()).sort((a, b) => a[0].localeCompare(b[0])).slice(-20).map(([date, v]) => ({ date, ...v, net: v.buy - v.sell }))
+  }, [rows])
 
   const flow = useMemo(() => {
-    if (!rows.length) return null
-    const dates = Array.from(new Set(rows.map((r) => r.date))).sort().reverse()
-    const day = session && dates.includes(session) ? session : dates[0]
-    const keep = period === 'session' ? new Set([day]) : new Set(dates.slice(0, 20))
-    const sel = rows.filter((r) => keep.has(r.date))
-    const buy = sel.filter((r) => r.side === 'buy').reduce((s, r) => s + (r.value ?? 0), 0)
-    const sell = sel.filter((r) => r.side === 'sell').reduce((s, r) => s + (r.value ?? 0), 0)
+    if (!days.length) return null
+    const last = days[days.length - 1]
+    const sel = period === 'session' ? [days.find((d) => d.date === session) ?? last] : days
+    const buy = sel.reduce((s, d) => s + d.buy, 0), sell = sel.reduce((s, d) => s + d.sell, 0)
     const total = buy + sell
     return { buy, sell, net: buy - sell, buyShare: total ? buy / total : 0, sellShare: total ? sell / total : 0, total }
-  }, [rows, session, period])
+  }, [days, session, period])
+
+  /* Draw-in: the arcs start at zero length and grow to their share. Re-run
+     when the period flips so the change is seen, not just noticed. */
+  useEffect(() => { setDrawn(false); const id = requestAnimationFrame(() => requestAnimationFrame(() => setDrawn(true))); return () => cancelAnimationFrame(id) }, [period, flow?.total])
 
   if (!flow || !flow.total) {
-    return <section className="fr id-panel"><p className="id-eyebrow">{c.title}</p><p className="id-note">{c.empty}</p></section>
+    return <section className="fr id-panel"><h2 className="id-h3">{c.title}</h2><p className="id-note">{c.empty}</p></section>
   }
-  const gap = 0.012 * C                       // a hairline of air between the arcs
-  const buyLen = Math.max(0, flow.buyShare * C - gap)
-  const sellLen = Math.max(0, flow.sellShare * C - gap)
+  const gap = 0.012 * C
+  const buyLen = drawn ? Math.max(0, flow.buyShare * C - gap) : 0
+  const sellLen = drawn ? Math.max(0, flow.sellShare * C - gap) : 0
   const mood = Math.abs(flow.buyShare - 0.5) < 0.03 ? 'even' : flow.net > 0 ? 'buy' : 'sell'
+  const maxAbs = Math.max(1, ...days.map((d) => Math.abs(d.net)))
 
   return (
-    <section className="fr id-panel" aria-label={c.title}>
+    <section className={`fr id-panel ${side ? `is-${side}` : ''}`.trim()} aria-label={c.title}>
       <header className="fr-head">
-        <p className="id-eyebrow">{c.title}</p>
+        <h2 className="id-h3 fr-title">{c.title}</h2>
         <div className="id-pills" role="group">
           {(['session', 'month'] as Period[]).map((p) => (
             <button key={p} type="button" className="id-pill is-sm" aria-pressed={period === p} onClick={() => setPeriod(p)}>{c.periods[p]}</button>
@@ -55,20 +70,34 @@ export function FlowRing({ rows, session, compact }: { rows: FlowRow[]; session:
       <div className="fr-body">
         <svg className="fr-ring" viewBox="0 0 180 180" role="img" aria-label={c.label(compact(flow.buy), compact(flow.sell))}>
           <circle cx="90" cy="90" r={R} className="fr-track" strokeWidth={SW} />
-          {/* Arcs start at the top and run clockwise: buying first, selling after. */}
           <circle cx="90" cy="90" r={R} className="fr-buy" strokeWidth={SW}
-            strokeDasharray={`${buyLen} ${C - buyLen}`} strokeDashoffset={C / 4 - gap / 2} />
+            strokeDasharray={`${buyLen} ${C - buyLen}`} strokeDashoffset={C / 4 - gap / 2}
+            onPointerEnter={() => setSide('buy')} onPointerLeave={() => setSide(null)} />
           <circle cx="90" cy="90" r={R} className="fr-sell" strokeWidth={SW}
-            strokeDasharray={`${sellLen} ${C - sellLen}`} strokeDashoffset={C / 4 - gap / 2 - buyLen - gap} />
+            strokeDasharray={`${sellLen} ${C - sellLen}`} strokeDashoffset={C / 4 - gap / 2 - (drawn ? flow.buyShare * C : 0)}
+            onPointerEnter={() => setSide('sell')} onPointerLeave={() => setSide(null)} />
           <text x="90" y="84" className={`fr-net id-num is-${mood}`}>{flow.net > 0 ? '+' : flow.net < 0 ? '−' : ''}{compact(Math.abs(flow.net))}</text>
           <text x="90" y="104" className="fr-netlabel">{mood === 'even' ? c.even : mood === 'buy' ? c.netBuy : c.netSell}</text>
         </svg>
-        <dl className="fr-legend id-num">
-          <div><dt><i className="is-buy" />{c.buy}</dt><dd>{compact(flow.buy)}<span>{Math.round(flow.buyShare * 100)}%</span></dd></div>
-          <div><dt><i className="is-sell" />{c.sell}</dt><dd>{compact(flow.sell)}<span>{Math.round(flow.sellShare * 100)}%</span></dd></div>
-        </dl>
+        <div className="fr-side">
+          <dl className="fr-legend id-num">
+            {(['buy', 'sell'] as const).map((k) => (
+              <div key={k} className={`is-${k}`} onPointerEnter={() => setSide(k)} onPointerLeave={() => setSide(null)}>
+                <dt><i />{c[k]}</dt>
+                <dd>{compact(flow[k])}<span>{Math.round((k === 'buy' ? flow.buyShare : flow.sellShare) * 100)}%</span></dd>
+              </div>
+            ))}
+          </dl>
+          {/* The last twenty sessions of net flow: up-bars in moss, down-bars in sand. */}
+          <div className="fr-strip" aria-hidden="true">
+            {days.map((d) => (
+              <span key={d.date} className={d.net >= 0 ? 'is-buy' : 'is-sell'} title={d.date}
+                style={{ height: `${Math.max(8, (Math.abs(d.net) / maxAbs) * 100)}%` }} />
+            ))}
+          </div>
+          <p className="id-cap fr-note">{c.periods.month} · {c.net}</p>
+        </div>
       </div>
-      <p className="id-cap fr-note">{c.note}</p>
     </section>
   )
 }

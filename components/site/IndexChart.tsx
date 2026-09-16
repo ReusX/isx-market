@@ -80,11 +80,11 @@ export function IndexChart({ series }: { series: IndexPoint[] }) {
     <section className="ix id-panel" aria-label={c.label}>
       <header className="ix-head">
         <div>
-          <p className="id-eyebrow">{c.title}</p>
+          <h2 className="id-h3 ix-title">{c.title}</h2>
           <p className="ix-value id-num">
             <strong>{shown ? nf.format(shown.isx60) : '—'}</strong>
             {shown ? <span className={`id-chg ${pct > 0 ? 'is-up' : pct < 0 ? 'is-down' : 'is-flat'}`}>{pct > 0 ? '▲' : pct < 0 ? '▼' : ''} {Math.abs(pct).toFixed(2)}%</span> : null}
-            {shown ? <span className="id-cap">{hover != null ? shortDate(shown.date, locale) : c.since('')}</span> : null}
+            {shown ? <span className="id-cap">{hover != null ? shortDate(shown.date, locale) : c.since(shortDate(pts[0].date, locale))}</span> : null}
           </p>
         </div>
         <div className="id-pills" role="group">

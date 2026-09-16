@@ -39,7 +39,7 @@
 
 .ix { padding: 20px 20px 12px; }
 .ix-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; flex-wrap: wrap; margin-bottom: 8px; }
-.ix-head .id-eyebrow { margin-bottom: 4px; }
+.ix-title { margin-bottom: 6px; }
 .ix-value { display: flex; align-items: baseline; gap: 12px; margin: 0; flex-wrap: wrap; }
 .ix-value strong { font-weight: 300; font-size: clamp(28px, 3vw, 40px); line-height: 1; }
 .ix-svg { width: 100%; height: clamp(200px, 26vw, 300px); display: block; touch-action: none; }
@@ -57,21 +57,32 @@
 
 .fr { padding: 20px; display: flex; flex-direction: column; }
 .fr-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; flex-wrap: wrap; margin-bottom: 8px; }
-.fr-body { display: grid; grid-template-columns: auto 1fr; gap: 20px; align-items: center; flex: 1; }
-.fr-ring { width: 180px; height: 180px; }
+.fr-body { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 20px; align-items: center; flex: 1; }
+.fr-ring { width: 180px; height: 180px; overflow: visible; }
 .fr-track { fill: none; stroke: var(--surface-2); }
-.fr-buy, .fr-sell { fill: none; stroke-linecap: round; transition: stroke-dasharray .6s ease, stroke-dashoffset .6s ease; }
+.fr-buy, .fr-sell { fill: none; stroke-linecap: round; cursor: pointer;
+  transition: stroke-dasharray .9s cubic-bezier(.2,.7,.2,1), stroke-dashoffset .9s cubic-bezier(.2,.7,.2,1), stroke-width .18s, opacity .18s; }
 .fr-buy  { stroke: var(--moss-ink); }
 .fr-sell { stroke: var(--sand-ink); }
+/* Hovering a side: it thickens, the other side steps back, its legend row lifts. */
+.fr.is-buy .fr-buy, .fr.is-sell .fr-sell { stroke-width: 18; }
+.fr.is-buy .fr-sell, .fr.is-sell .fr-buy { opacity: .45; }
+.fr.is-buy .fr-legend .is-sell, .fr.is-sell .fr-legend .is-buy { opacity: .5; }
 .fr-net { text-anchor: middle; font-size: 22px; font-weight: 300; fill: var(--ink); }
 .fr-net.is-buy { fill: var(--up); } .fr-net.is-sell { fill: var(--down); }
 .fr-netlabel { text-anchor: middle; font-size: 11px; fill: var(--muted); }
-.fr-legend { margin: 0; display: flex; flex-direction: column; gap: 14px; }
-.fr-legend > div { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; border-bottom: 1px solid var(--border); padding-bottom: 10px; }
+.fr-side { min-width: 0; }
+.fr-legend { margin: 0; display: flex; flex-direction: column; gap: 10px; }
+.fr-legend > div { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; border-bottom: 1px solid var(--border); padding: 4px 6px 8px; margin: 0 -6px; border-radius: 8px; transition: opacity .18s, background .18s; cursor: default; }
+.fr-legend > div:hover { background: var(--surface-2); }
 .fr-legend dt { display: flex; align-items: center; gap: 8px; font-size: 14px; }
 .fr-legend dt i { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
-.fr-legend dt i.is-buy { background: var(--moss-ink); } .fr-legend dt i.is-sell { background: var(--sand-ink); }
+.fr-legend .is-buy dt i { background: var(--moss-ink); } .fr-legend .is-sell dt i { background: var(--sand-ink); }
 .fr-legend dd { margin: 0; font-size: 16px; font-weight: 300; display: flex; gap: 10px; align-items: baseline; }
 .fr-legend dd span { font-size: 12px; color: var(--muted); }
-.fr-note { margin: 12px 0 0; }
-@media (max-width: 480px) { .fr-body { grid-template-columns: 1fr; justify-items: center; } }
+.fr-strip { display: flex; align-items: flex-end; gap: 3px; height: 36px; margin-top: 14px; }
+.fr-strip span { flex: 1; border-radius: 2px 2px 0 0; min-width: 3px; }
+.fr-strip .is-buy { background: var(--moss-ink); opacity: .7; } .fr-strip .is-sell { background: var(--sand-ink); opacity: .7; }
+.fr-note { margin: 6px 0 0; }
+@media (max-width: 480px) { .fr-body { grid-template-columns: 1fr; justify-items: center; } .fr-side { width: 100%; } }
+@media (prefers-reduced-motion: reduce) { .fr-buy, .fr-sell { transition: none; } }
