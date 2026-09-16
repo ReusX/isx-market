@@ -24,7 +24,7 @@ import type { Company } from '@/types'
  *   2. The door's rail: the pages that belong to الأسواق, as a sidebar.
  *   3. The board (public name: جدول الشركات): every listed company, one row
  *      each — logo and name, the price large, then 24h / 7-day / 30-day
- *      change, session volume and shares outstanding — biggest market cap
+ *      change, session volume, market cap and shares outstanding — busiest
  *      first, twenty rows then «عرض الكل». A company that did not trade says
  *      so in place of its change, with a streak when it has been more than
  *      one session. One search field and the sector pills. A row links to
@@ -85,12 +85,13 @@ export function MarketPage() {
   const [q, setQ] = useState('')
   const [sector, setSector] = useState('all')
   const [showAll, setShowAll] = useState(false)
-  /* Column sort. Default is market cap, descending; a click on a header
+  /* Column sort. Default is session volume, descending — the busiest
+     companies first, the untraded ones last; a click on a header
      sorts by that column, a second click flips it. Untraded companies
      always sink below traded ones when sorting by a change column, because
      their change is not a number. */
   type SortKey = 'mcap' | 'name' | 'price' | 'd1' | 'd7' | 'd30' | 'volume' | 'shares'
-  const [sort, setSort] = useState<{ key: SortKey; dir: 'asc' | 'desc' }>({ key: 'mcap', dir: 'desc' })
+  const [sort, setSort] = useState<{ key: SortKey; dir: 'asc' | 'desc' }>({ key: 'volume', dir: 'desc' })
   const sortBy = (key: SortKey) => setSort((s) => s.key === key ? { key, dir: s.dir === 'desc' ? 'asc' : 'desc' } : { key, dir: key === 'name' ? 'asc' : 'desc' })
   /* Closes per ticker for the last ~45 days, for the 7- and 30-day changes. */
   const [hist, setHist] = useState<Record<string, { date: string; close: number }[]>>({})
@@ -325,7 +326,7 @@ export function MarketPage() {
           {!loading && !rows.length && !failed ? (
             <div className="iqm-empty"><p className="id-h3">{p.emptyTitle}</p><p className="id-cap">{p.emptyNote}</p></div>
           ) : null}
-          {rows.length ? <p className="id-cap iqm-count">{p.showing(int.format(filtered.length))}{sort.key === 'mcap' ? ` · ${p.board.sortNote}` : ''}</p> : null}
+          {rows.length ? <p className="id-cap iqm-count">{p.showing(int.format(filtered.length))}{sort.key === 'volume' ? ` · ${p.board.sortNote}` : ''}</p> : null}
         </section>
         </div>
       </main>

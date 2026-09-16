@@ -112,7 +112,7 @@ export const market: typeof ar = {
       streak:   (n: number) => `No trade for ${n} sessions`,
       showAll:  (n: string) => `Show all companies (${n})`,
       showLess: 'Show less',
-      sortNote: 'Sorted by market cap',
+      sortNote: 'Sorted by volume',
     },
     breadth:   { label: 'Company moves', up: 'advancing', down: 'declining', flat: (n: string) => `${n} unchanged` },
     untraded:  'Not traded',
