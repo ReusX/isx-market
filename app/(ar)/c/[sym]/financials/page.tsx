@@ -1,10 +1,19 @@
-'use client'
+import companiesData from '@/public/data/companies.json'
+import { FinancialsPage } from '@/components/site/FinancialsPage'
+import { loadFinancials } from '@/lib/marketServer'
 
-import { useParams } from 'next/navigation'
-import { CompanyFinancials } from '@/components/routes/CompanyFinancials'
+/**
+ * Prerendered per ticker like `/c/[sym]`; a filing changes a few times a
+ * year, so an hour is generous. The old page was a client component that
+ * queried three tables from the browser on every view.
+ */
+export const revalidate = 3600
+export const dynamicParams = true
 
-// Shared with /en/c/[sym]/financials.
-export default function Page() {
-  const { sym } = useParams<{ sym: string }>()
-  return <CompanyFinancials sym={(sym ?? '').toUpperCase()} />
+export function generateStaticParams() {
+  return (companiesData as { sym: string }[]).map((c) => ({ sym: c.sym }))
+}
+
+export default async function Page({ params }: { params: { sym: string } }) {
+  return <FinancialsPage initial={await loadFinancials(params.sym)} />
 }

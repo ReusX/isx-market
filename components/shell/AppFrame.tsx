@@ -70,14 +70,6 @@ const BARE_ROUTES = [
 const REBUILT = ['/market', '/companies', '/screener', '/heatmap', '/statistics', '/pulse', '/c']
 const REBUILT_EXACT = ['/']   // the root only — prefix-matching '/' would cover every route
 
-/**
- * Routes a REBUILT prefix covers but that are NOT rebuilt yet.
- *
- * '/c' above covers the company page, and would silently swallow
- * /c/[sym]/financials with it — leaving row 5 with no frame at all rather
- * than the old one. Delete this the day that row lands.
- */
-const NOT_YET = [/^\/c\/[^/]+\/financials$/]
 
 export default function AppFrame({ children }: { children: ReactNode }) {
   const pathname = usePathname() ?? '/'
@@ -91,10 +83,9 @@ export default function AppFrame({ children }: { children: ReactNode }) {
    * route test in the shell goes through `splitLocale` for this reason.
    */
   const { route } = splitLocale(pathname)
-  const bare = !NOT_YET.some((re) => re.test(route))
-    && (REBUILT_EXACT.includes(route)
-      || REBUILT.some((r) => route === r || route.startsWith(`${r}/`))
-      || BARE_ROUTES.some((r) => route === r || route.startsWith(`${r}/`)))
+  const bare = REBUILT_EXACT.includes(route)
+    || REBUILT.some((r) => route === r || route.startsWith(`${r}/`))
+    || BARE_ROUTES.some((r) => route === r || route.startsWith(`${r}/`))
 
   const [collapsed, setCollapsed] = useState(false)
   const [navOpen, setNavOpen] = useState(false)

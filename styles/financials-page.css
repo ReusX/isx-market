@@ -1,0 +1,91 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   /c/[sym]/financials · the statements — layout only; vocabulary is
+   identity.css. Prefix `fin-`.
+
+   A filing is a table, so the page is tables: defined column tracks, the
+   line names in a sticky first column, subtotals ruled, totals ruled twice.
+   Full width — a balance sheet with eight periods is an information surface.
+   ═══════════════════════════════════════════════════════════════════════════ */
+.fin { padding-block: 24px 0; }
+.fin-body { min-width: 0; }
+.fin-head { margin-bottom: 20px; }
+.fin-head .id-eyebrow a { color: inherit; text-decoration: none; }
+.fin-head .id-eyebrow a:hover { color: var(--ink); text-decoration: underline; }
+.fin-meta { display: flex; flex-wrap: wrap; gap: 6px 18px; margin: 8px 0 0; font-size: 13px; color: var(--secondary); }
+.fin-withheld { margin-bottom: 24px; }
+
+.fin-panel { padding: 20px; margin-bottom: 20px; }
+.fin-panel > .id-cap { margin: 4px 0 16px; }
+
+/* ── The lead: four facts for the latest financial year ─────────────────── */
+.fin-lead { margin-bottom: 24px; }
+.fin-lead-h { margin: 0 0 12px; }
+.fin-lead .id-stat b { font-size: clamp(22px, 2.4vw, 30px); }
+.fin-lead .id-chg { margin-top: 8px; }
+
+/* ── The trend: two bars per financial year, pure HTML ──────────────────── */
+.fin-trend {
+  position: relative; display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr);
+  gap: 8px; height: 220px; align-items: end; padding-top: 24px;
+}
+.fin-yr { display: flex; flex-direction: column; height: 100%; min-width: 0; }
+.fin-bars { flex: 1; display: flex; gap: 4px; align-items: flex-end; justify-content: center; border-bottom: 1px solid var(--border); }
+.fin-bar-slot { position: relative; width: min(40px, 40%); height: 100%; display: flex; align-items: flex-end; }
+.fin-bar { position: relative; display: block; width: 100%; min-height: 2px; border-radius: 3px 3px 0 0; }
+.fin-bar.is-top { background: var(--muted); opacity: .55; }
+.fin-bar.is-ni { background: var(--moss-ink); }
+.fin-bar.is-ni.is-neg { background: var(--sand-ink); }
+.fin-bar b {
+  position: absolute; bottom: 100%; left: 50%; transform: translateX(-50%); margin-bottom: 4px;
+  font-weight: 400; font-size: 11px; color: var(--secondary); white-space: nowrap;
+}
+.fin-yr-label { text-align: center; font-size: 12px; color: var(--muted); margin-top: 8px; }
+.fin-legend { display: flex; gap: 16px; margin: 12px 0 0; }
+.fin-legend span { display: inline-flex; align-items: center; gap: 6px; }
+.fin-legend i { width: 12px; height: 6px; border-radius: 2px; display: inline-block; }
+.fin-legend .is-top { background: var(--muted); opacity: .55; }
+.fin-legend .is-ni { background: var(--moss-ink); }
+.fin-mark {
+  position: absolute; inset-inline-end: 0; top: 0; font-weight: 600; font-size: 26px; letter-spacing: .08em;
+  color: var(--ink); opacity: .12; pointer-events: none; direction: ltr;
+}
+
+/* ── Period mode ────────────────────────────────────────────────────────── */
+.fin-mode { display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap; margin: 4px 0 16px; }
+.fin-mode .id-cap { margin: 0; }
+.fin-mode .id-pill:disabled { opacity: .4; cursor: default; }
+
+/* ── Statements ─────────────────────────────────────────────────────────── */
+.fin-stmt { table-layout: fixed; min-width: calc(260px + var(--cols, 4) * 120px); }
+.fin-stmt .fin-line { width: 260px; text-align: start; font-weight: 400; }
+.fin-stmt thead .fin-line { position: sticky; inset-inline-start: 0; background: var(--surface); z-index: 1; }
+.fin-stmt tbody .fin-line { position: sticky; inset-inline-start: 0; background: var(--surface); z-index: 1; padding: 12px 0; border-bottom: 1px solid var(--border); vertical-align: middle; }
+.fin-stmt td { padding: 12px 0 12px 20px; }
+.fin-stmt th.is-end { padding-inline-start: 20px; }
+.fin-stmt tbody tr:hover .fin-line { background: var(--surface-2); }
+.fin-stmt tr.is-d1 .fin-line { padding-inline-start: 18px; }
+.fin-stmt tr.is-d1 .id-name { font-weight: 400; color: var(--secondary); }
+.fin-stmt tr.is-sub .fin-line, .fin-stmt tr.is-sub td { border-top: 1px solid var(--ink); }
+.fin-stmt tr.is-total .fin-line, .fin-stmt tr.is-total td { border-top: 1px solid var(--ink); border-bottom: 3px double var(--ink); }
+.fin-stmt tr.is-total .id-name { font-weight: 500; }
+.fin-colh { color: inherit; text-decoration: none; border-bottom: 1px dotted var(--muted); }
+.fin-colh:hover { color: var(--ink); border-bottom-style: solid; }
+.fin-conf { color: var(--muted); text-decoration: none; cursor: help; }
+
+/* ── Detail under a line — the filing's own wording, a ratio's definition —
+   stays in the markup and shows on hover or focus. ─────────────────────── */
+.fin-group th { padding: 22px 0 8px; font-size: 12px; color: var(--secondary); text-align: start; border-bottom: 0; position: static; }
+.fin-help { display: block; font-size: 12px; color: var(--muted); max-height: 0; overflow: hidden; transition: max-height .18s ease; }
+.fin-stmt tbody tr:hover .fin-help, .fin-stmt tbody tr:focus-within .fin-help { max-height: 4em; }
+
+/* ── Sources ────────────────────────────────────────────────────────────── */
+.fin-src td { padding: 12px 0; }
+.fin-src td + td, .fin-src th + th { padding-inline-start: 20px; }
+
+@media (max-width: 760px) {
+  .fin-stmt .fin-line { width: 180px; }
+  .fin-stmt { min-width: calc(180px + var(--cols, 4) * 104px); }
+  .fin-trend { height: 180px; }
+  .fin-bar b { font-size: 10px; }
+  .fin-mark { font-size: 18px; }
+}

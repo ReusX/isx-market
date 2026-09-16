@@ -797,3 +797,76 @@ export const loadCompany = cache(async (symRaw: string): Promise<CompanyInitial>
     return out
   }
 })
+
+/* ── /c/[sym]/financials ────────────────────────────────────────────────── */
+
+/**
+ * The financials model, built on the server and flattened for the wire.
+ *
+ * `buildFinancials` returns Maps; a client component's props must be JSON,
+ * so the Maps become plain objects here. Everything else is the model as
+ * `lib/financials` defines it — nothing derived, nothing rescaled.
+ */
+export type FinancialsJson = {
+  template: 'industrial' | 'bank'
+  annualCols: import('@/lib/financials').ColMeta[]
+  quarterCols: import('@/lib/financials').ColMeta[]
+  /** `${statement}:${line_key}:${year}:${period}` → cell */
+  facts: Record<string, import('@/lib/financials').Cell>
+  /** `${ratio_key}:${year}` → value */
+  ratios: Record<string, number>
+  sourceLabels: Record<string, string>
+  years: number[]
+  latest: import('@/lib/financials').ColMeta | null
+  reportedUnits: string[]
+  conflicts: number
+  valuesWithheld: boolean
+}
+
+export type FinancialsInitial = {
+  found: boolean
+  sym: string
+  ar: string; en: string
+  sec: string
+  isBank: boolean
+  logo: string | null
+  fin: FinancialsJson | null
+}
+
+export const loadFinancials = cache(async (symRaw: string): Promise<FinancialsInitial> => {
+  const sym = symRaw.toUpperCase()
+  const meta = (companiesData as CompanyMeta[]).find((m) => m.sym === sym)
+  const out: FinancialsInitial = {
+    found: !!meta, sym,
+    ar: meta?.ar || sym, en: meta?.en || sym,
+    sec: SEC_CODE[String(meta?.sec ?? '')] ?? String(meta?.sec ?? ''),
+    isBank: String(meta?.sec ?? '') === 'BANK',
+    logo: meta?.logo && !/placeholder/.test(meta.logo) ? meta.logo : null,
+    fin: null,
+  }
+  if (!meta) return out
+  try {
+    const sb = client()
+    const { buildFinancials } = await import('@/lib/financials')
+    const [f, r, p] = await Promise.all([
+      sb.from('financial_facts_public').select('fiscal_year,period,statement,line_key,value_iqd,unit_reported,source_label_ar').eq('ticker', sym).limit(3000),
+      sb.from('financial_ratios_public').select('fiscal_year,period,ratio_key,value').eq('ticker', sym).limit(2000),
+      sb.from('financial_reports_public').select('fiscal_year,period,pdf_url,unit_reported,template').eq('ticker', sym).limit(200),
+    ])
+    const fin = buildFinancials(sym,
+      (f.data ?? []) as import('@/lib/financials').FactRow[],
+      (r.data ?? []) as import('@/lib/financials').RatioRow[],
+      (p.data ?? []) as import('@/lib/financials').ReportRow[])
+    if (!fin) return out
+    out.fin = {
+      template: fin.template, annualCols: fin.annualCols, quarterCols: fin.quarterCols,
+      facts: Object.fromEntries(fin.facts), ratios: Object.fromEntries(fin.ratios),
+      sourceLabels: Object.fromEntries(fin.sourceLabels),
+      years: fin.years, latest: fin.latest, reportedUnits: fin.reportedUnits,
+      conflicts: fin.conflicts, valuesWithheld: fin.valuesWithheld,
+    }
+    return out
+  } catch {
+    return out
+  }
+})
