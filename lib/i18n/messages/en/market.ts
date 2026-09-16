@@ -99,6 +99,36 @@ export const market: typeof ar = {
     sessionOf: (date: string) => `Session of ${date}`,
     rail: { market: 'Market', board: 'Companies table', companies: 'Companies', screener: 'Screener', heatmap: 'Heatmap', statistics: 'Statistics', pulse: 'Pulse' },
     showing:   (n: string) => `${n} companies`,
+    full: {
+      title:   'Prices of every company on the Iraq Stock Exchange',
+      intro:   'Every company listed on the Iraq Stock Exchange / Iraq stock market in one table: last price, change, volume, market cap and shares. Pick any past session to see its prices, or sort by any column.',
+      session: 'Session',
+      latest:  'Latest session',
+      prev:    'Previous session',
+      next:    'Next session',
+      pick:    'Pick a date',
+      noSession: (d: string) => `No trading session on ${d}. Pick another day.`,
+      listing: { all: 'All', traded: 'Traded', untraded: 'Not traded', suspended: 'Suspended' },
+      suspended: (d: string) => `Suspended \u00b7 last traded ${d}`,
+      about: {
+        title: 'About this table',
+        body: [
+          'Prices come from the Iraq Stock Exchange\u2019s daily trading bulletin and update after each session closes. Sessions run Sunday to Thursday and are cancelled on public holidays.',
+          'Change is the difference between the session\u2019s close and the previous session\u2019s. The 7- and 30-day changes are measured against the last close before that many calendar days.',
+          'Volume is the number of shares that changed hands; value is what they cost in dinars. Market cap is the last price times the shares issued.',
+          'A company that did not trade keeps its last price and gets no change. A suspended company is one that has not traded for more than sixty days.',
+        ],
+      },
+      faq: {
+        title: 'Frequently asked',
+        items: [
+          ['When do prices update?', 'After each session closes, usually in the afternoon Baghdad time. There are no live intraday prices.'],
+          ['What is the difference between volume and value?', 'Volume is shares; value is their cost in dinars. A one-dinar share gives a small value however large the volume.'],
+          ['Why do some companies show no change?', 'They did not trade that session; the price shown is their last trade, and a change without a trade means nothing.'],
+          ['Can I see a past session?', 'Yes. Pick the date in the session control above the table, or step between sessions with the arrows.'],
+        ],
+      },
+    },
     board: {
       title:    'Companies',
       price:    'Price',

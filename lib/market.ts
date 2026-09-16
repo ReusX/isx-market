@@ -1,5 +1,6 @@
 import type { Company, CompanyMeta, LiveData, LiveStock } from '@/types'
 import { createClient } from '@/lib/supabase/client'
+import type { SupabaseClient } from '@supabase/supabase-js'
 import { arDate, enDate } from '@/lib/date'
 
 // ─── Data fetchers ──────────────────────────────────────────────────────────
@@ -25,11 +26,21 @@ export async function fetchLive(): Promise<LiveData> {
 // at /api/cron/daily-prices). We take the latest trading session for current
 // prices and the prior session to compute the day-over-day change.
 async function fetchLiveRaw(): Promise<LiveData> {
-  const sb = createClient()
+  return fetchLiveWith(createClient())
+}
 
-  // most recent session date
-  const { data: latestRow } = await sb
-    .from('daily_prices').select('date').order('date', { ascending: false }).limit(1)
+/**
+ * The same session snapshot, against a client the caller supplies — the
+ * server loader (lib/marketServer.ts) passes a no-store server client so
+ * the root can be rendered with real prices in the HTML. One merge, two
+ * runtimes.
+ */
+export async function fetchLiveWith(sb: SupabaseClient, session?: string): Promise<LiveData> {
+
+  // the requested session, else the most recent one
+  const { data: latestRow } = await (session
+    ? sb.from('daily_prices').select('date').eq('date', session).limit(1)
+    : sb.from('daily_prices').select('date').order('date', { ascending: false }).limit(1))
   const latest = latestRow?.[0]?.date as string | undefined
   if (!latest) {
     return { updated: '', stocks: [], rsisx: null, breadth: { up: 0, dn: 0, fl: 0, na: 0 }, sectors: {} }

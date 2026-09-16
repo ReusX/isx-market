@@ -2,7 +2,9 @@
 
 import Link from 'next/link'
 import { useEffect, useMemo, useState } from 'react'
-import { fetchLive, fetchCompanyMeta, mergeCompanies, companyName, liveMcap, SECTORS } from '@/lib/market'
+import { fetchLive, fetchCompanyMeta, mergeCompanies, companyName, liveMcap, isSuspended, SECTORS } from '@/lib/market'
+import { useRouter } from 'next/navigation'
+import { shortDate } from '@/lib/date'
 import { CompanyLogo } from '@/components/CompanyLogo'
 import { sessionDate, type IndexRow } from '@/lib/homeData'
 import { useLocale } from '@/context/LocaleContext'
@@ -14,6 +16,7 @@ import { WelcomeCard } from './WelcomeCard'
 import '@/styles/markets.css'
 import '@/styles/landing.css'
 import type { Company } from '@/types'
+import type { MarketInitial } from '@/lib/marketServer'
 
 /**
  * The market · the root of the site, and the الأسواق door.
@@ -79,7 +82,7 @@ const RAIL = [
  * link to /market for the rest. `full`: /market — every company, every
  * column, no card.
  */
-export function MarketPage({ variant = 'root' }: { variant?: 'root' | 'full' }) {
+export function MarketPage({ variant = 'root', initial }: { variant?: 'root' | 'full'; initial?: MarketInitial }) {
   const full = variant === 'full'
   const { t, locale, href: L } = useLocale()
   const m = t.market
@@ -87,18 +90,26 @@ export function MarketPage({ variant = 'root' }: { variant?: 'root' | 'full' }) 
   const u = t.site.units
   const ar = locale === 'ar'
 
-  const [companies, setCompanies] = useState<Company[]>([])
-  const [session, setSession] = useState<string | null>(null)
-  const [index, setIndex] = useState<{ latest: IndexRow; prev: IndexRow | null } | null>(null)
+  /* Seeded from the server when the page was rendered with data, so the
+     session figures and the board are on screen — and in the HTML — before
+     any client fetch. The client then only fetches what the server did
+     not: the index series for the chart, RSISX, and foreign flow. */
+  const [companies, setCompanies] = useState<Company[]>(initial?.companies ?? [])
+  const [session, setSession] = useState<string | null>(initial?.session ?? null)
+  const [index, setIndex] = useState<{ latest: IndexRow; prev: IndexRow | null } | null>(
+    initial?.recent.length ? { latest: initial.recent[initial.recent.length - 1], prev: initial.recent[initial.recent.length - 2] ?? null } : null)
   /* The last 21 sessions' totals: the latest, and the twenty before it that
      give each figure its «عن متوسط 20 جلسة» context. */
-  const [recent, setRecent] = useState<IndexRow[]>([])
+  const [recent, setRecent] = useState<IndexRow[]>(initial?.recent ?? [])
   const [series, setSeries] = useState<IndexSeries>({ isx60: [], rsisx: [] })
   const [flowRows, setFlowRows] = useState<FlowRow[]>([])
   const [failed, setFailed] = useState(false)
-  const [loading, setLoading] = useState(true)
+  const [loading, setLoading] = useState(!initial)
   const [q, setQ] = useState('')
   const [sector, setSector] = useState('all')
+  type Listing = 'all' | 'traded' | 'untraded' | 'suspended'
+  const [listing, setListing] = useState<Listing>('all')
+  const router = useRouter()
   /* Column sort. Default is session volume, descending — the busiest
      companies first, the untraded ones last; a click on a header
      sorts by that column, a second click flips it. Untraded companies
@@ -108,15 +119,17 @@ export function MarketPage({ variant = 'root' }: { variant?: 'root' | 'full' }) 
   const [sort, setSort] = useState<{ key: SortKey; dir: 'asc' | 'desc' }>({ key: 'volume', dir: 'desc' })
   const sortBy = (key: SortKey) => setSort((s) => s.key === key ? { key, dir: s.dir === 'desc' ? 'asc' : 'desc' } : { key, dir: key === 'name' ? 'asc' : 'desc' })
   /* Closes per ticker for the last ~45 days, for the 7- and 30-day changes. */
-  const [hist, setHist] = useState<Record<string, { date: string; close: number }[]>>({})
+  const [hist, setHist] = useState<Record<string, { date: string; close: number }[]>>(initial?.hist ?? {})
 
   useEffect(() => {
     let alive = true
     ;(async () => {
       const { createClient } = await import('@/lib/supabase/client')
       const sb = createClient()
+      const seeded = Boolean(initial?.companies.length)
+      if (full && seeded) { setLoading(false); return }   // the full board is served whole
       await Promise.allSettled([
-        (async () => {
+        seeded ? Promise.resolve() : (async () => {
           const [live, meta] = await Promise.all([fetchLive(), fetchCompanyMeta()])
           if (!alive) return
           setCompanies(mergeCompanies(meta, live.stocks))
@@ -138,11 +151,11 @@ export function MarketPage({ variant = 'root' }: { variant?: 'root' | 'full' }) 
           if (!alive || !rows.length) return
           setSeries((s) => ({ ...s, isx60: rows.map((r) => ({ date: r.date, isx60: r.isx60 })) }))
           setIndex({ latest: rows[rows.length - 1], prev: rows[rows.length - 2] ?? null })
-          setRecent(rows.slice(-21))
+          if (!initial?.recent.length) setRecent(rows.slice(-21))
         })(),
         /* Price history for the 7- and 30-day columns: 45 calendar days of
            closes for every ticker, paged under PostgREST's 1000-row cap. */
-        (async () => {
+        initial?.hist && Object.keys(initial.hist).length ? Promise.resolve() : (async () => {
           const since = new Date(Date.now() - 45 * 86400_000).toISOString().slice(0, 10)
           const by: Record<string, { date: string; close: number }[]> = {}
           for (let from = 0; ; from += 1000) {
@@ -167,12 +180,23 @@ export function MarketPage({ variant = 'root' }: { variant?: 'root' | 'full' }) 
       if (alive) setLoading(false)
     })()
     return () => { alive = false }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
 
-  /* Sessions the market has held, newest last — for the untraded streak. */
-  const sessions = useMemo(() => series.isx60.map((p) => p.date), [series.isx60])
+  /* Sessions the market has held, oldest first, up to the session shown —
+     for the untraded streak. From the server's list when there is one,
+     else from the chart's series. */
+  const sessions = useMemo(() => {
+    const all = initial?.sessions.length ? initial.sessions.slice().reverse() : series.isx60.map((p) => p.date)
+    return session ? all.filter((d) => d <= session) : all
+  }, [initial?.sessions, series.isx60, session])
   const streakOf = (c: Company) => (c.lastTrade ? sessions.filter((d) => d > c.lastTrade!).length : sessions.length)
+  /* Suspended = more than sixty days without a trade, measured at the
+     session shown, not at today — a past board must not know the future. */
+  const suspended = (c: Company) => Boolean(c.stale) && (c.lastTrade
+    ? (new Date(session ?? Date.now()).getTime() - new Date(c.lastTrade).getTime()) / 86400_000 > 60
+    : isSuspended(c))
 
   /* Change over N calendar days: against the last close on or before
      session − N days. Null when there is no such close. */
@@ -208,7 +232,7 @@ export function MarketPage({ variant = 'root' }: { variant?: 'root' | 'full' }) 
     const needle = q.trim().toLowerCase()
     const val = (c: Company): number | string | null => {
       switch (sort.key) {
-        case 'name': return companyName(c, locale)
+        case 'name': return companyName(c, c.sym, locale)
         case 'price': return c.close || null
         case 'd1': return c.stale ? null : c.pct
         case 'd7': return c.stale ? null : changeOver(c, 7)
@@ -221,6 +245,10 @@ export function MarketPage({ variant = 'root' }: { variant?: 'root' | 'full' }) 
     const dir = sort.dir === 'asc' ? 1 : -1
     return companies
       .filter((c) => sector === 'all' || c.sec === sector)
+      .filter((c) => listing === 'all' ? true
+        : listing === 'traded' ? !c.stale
+        : listing === 'suspended' ? suspended(c)
+        : Boolean(c.stale) && !suspended(c))
       .filter((c) => !needle || c.sym.toLowerCase().includes(needle) || c.ar.includes(q.trim()) || c.en.toLowerCase().includes(needle))
       .sort((a, b) => {
         const x = val(a), y = val(b)
@@ -231,8 +259,22 @@ export function MarketPage({ variant = 'root' }: { variant?: 'root' | 'full' }) 
         return ((x as number) - (y as number)) * dir || liveMcap(b) - liveMcap(a)
       })
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [companies, q, sector, sort, hist, session, locale])
+  }, [companies, q, sector, listing, sort, hist, session, locale])
   const rows = full || q.trim() ? filtered : filtered.slice(0, 30)
+
+  /* Session picker (full board): move between sessions or type a date. */
+  const sessionsList = initial?.sessions ?? []
+  const at = session ? sessionsList.indexOf(session) : -1
+  const goTo = (d: string | null) => router.push(d && d !== sessionsList[0] ? `${L('/market')}?date=${d}` : L('/market'))
+  const onPick = (d: string) => {
+    if (!d) return
+    if (sessionsList.includes(d)) goTo(d)
+    else {
+      /* Not a trading day: the nearest session on or before it. */
+      const near = sessionsList.find((x) => x <= d)
+      if (near) goTo(near)
+    }
+  }
 
   return (
     <SiteShell>
@@ -242,13 +284,27 @@ export function MarketPage({ variant = 'root' }: { variant?: 'root' | 'full' }) 
         <div className="iqm-body">
         <header className="iqm-head">
           <p className="id-eyebrow">{p.eyebrow}</p>
-          <h1 className="id-h1">{m.title}</h1>
+          <h1 className="id-h1">{full ? p.full.title : m.title}</h1>
+          {full ? <p className="id-lede">{p.full.intro}</p> : null}
         </header>
 
-        <div className="iqm-openers">
-          <IndexChart series={series} />
-          <FlowRing rows={flowRows} session={index?.latest.date ?? null} compact={(v) => compact(v, u)} />
-        </div>
+        {full ? (
+          <div className="iqm-picker id-num" role="group" aria-label={p.full.session}>
+            <button type="button" className="id-pill is-sm" disabled={at < 0 || at >= sessionsList.length - 1} onClick={() => goTo(sessionsList[at + 1])} aria-label={p.full.prev}>{ar ? '→' : '←'} {p.full.prev}</button>
+            <label className="iqm-picker-date">
+              <span className="id-cap">{p.full.session}</span>
+              <input id="iqm-date" type="date" className="id-input" value={session ?? ''} max={sessionsList[0]} min={sessionsList[sessionsList.length - 1]}
+                onChange={(e) => onPick(e.target.value)} aria-label={p.full.pick} />
+            </label>
+            <button type="button" className="id-pill is-sm" disabled={at <= 0} onClick={() => goTo(sessionsList[at - 1])} aria-label={p.full.next}>{p.full.next} {ar ? '←' : '→'}</button>
+            {at > 0 ? <button type="button" className="id-pill is-sm" onClick={() => goTo(null)}>{p.full.latest}</button> : null}
+          </div>
+        ) : (
+          <div className="iqm-openers">
+            <IndexChart series={series} />
+            <FlowRing rows={flowRows} session={index?.latest.date ?? null} compact={(v) => compact(v, u)} />
+          </div>
+        )}
 
         <section className="iqm-session id-block is-navy id-num" aria-label={m.summaryLabel}>
           <div className="iqm-session-head">
@@ -286,6 +342,13 @@ export function MarketPage({ variant = 'root' }: { variant?: 'root' | 'full' }) 
           <div className="iqm-controls">
             <input id="iqm-q" className="id-input" type="search" value={q} onChange={(e) => setQ(e.target.value)}
               placeholder={m.searchPlaceholder} aria-label={m.searchLabel} />
+            {full ? (
+              <div className="id-pills" role="group" aria-label={m.listingLabel}>
+                {(['all', 'traded', 'untraded', 'suspended'] as Listing[]).map((k) => (
+                  <button key={k} type="button" className="id-pill is-sm" aria-pressed={listing === k} onClick={() => setListing(k)}>{p.full.listing[k]}</button>
+                ))}
+              </div>
+            ) : null}
             <div className="id-pills" role="group" aria-label={m.sectorLabel}>
               {SECTORS.map((s) => (
                 <button key={s.id} type="button" className="id-pill is-sm" aria-pressed={sector === s.id} onClick={() => setSector(s.id)}>
@@ -328,7 +391,7 @@ export function MarketPage({ variant = 'root' }: { variant?: 'root' | 'full' }) 
                         <Link href={L(`/c/${c.sym}`)} className="iqm-co">
                           <CompanyLogo sym={c.sym} logo={c.logo} color={c.color} className="iqm-logo" />
                           <span className="iqm-co-text">
-                            <span className="id-name">{companyName(c, locale)}</span>
+                            <span className="id-name">{companyName(c, c.sym, locale)}</span>
                             <span className="id-sub">{c.sym} · {SECTORS.find((s) => s.id === c.sec)?.[ar ? 'ar' : 'en'] ?? c.sec}</span>
                           </span>
                         </Link>
@@ -336,7 +399,9 @@ export function MarketPage({ variant = 'root' }: { variant?: 'root' | 'full' }) 
                       <td className="is-end iqm-price">{c.close ? price.format(c.close) : '—'}</td>
                       {c.stale ? (
                         <>
-                          <td className="is-end iqm-untraded"><span className="iqm-untraded-chip">{streak > 1 ? p.board.streak(streak) : p.board.untraded}</span></td>
+                          <td className="is-end iqm-untraded"><span className={`iqm-untraded-chip ${suspended(c) ? 'is-suspended' : ''}`.trim()}>
+                            {suspended(c) && c.lastTrade ? p.full.suspended(shortDate(c.lastTrade, locale)) : streak > 1 ? p.board.streak(streak) : p.board.untraded}
+                          </span></td>
                           <td className="iqm-hide-sm" /><td className="iqm-hide-sm" />
                         </>
                       ) : (
@@ -367,6 +432,17 @@ export function MarketPage({ variant = 'root' }: { variant?: 'root' | 'full' }) 
           ) : null}
           {rows.length ? <p className="id-cap iqm-count">{p.showing(int.format(filtered.length))}{sort.key === 'volume' ? ` · ${p.board.sortNote}` : ''}</p> : null}
         </section>
+
+        {full ? (
+          <section className="iqm-about id-read" aria-label={p.full.about.title}>
+            <h2 className="id-h2">{p.full.about.title}</h2>
+            {p.full.about.body.map((t, i) => <p key={i} className="id-body">{t}</p>)}
+            <h2 className="id-h2">{p.full.faq.title}</h2>
+            <dl className="iqm-faq">
+              {p.full.faq.items.map(([q, a]) => <div key={q}><dt>{q}</dt><dd>{a}</dd></div>)}
+            </dl>
+          </section>
+        ) : null}
         </div>
       </main>
     </SiteShell>

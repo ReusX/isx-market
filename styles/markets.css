@@ -142,3 +142,16 @@ th.is-end .iqm-sort { flex-direction: row-reverse; }
 .fr-note { margin: 6px 0 0; }
 @media (max-width: 480px) { .fr-body { grid-template-columns: 1fr; justify-items: center; } .fr-side { width: 100%; } }
 @media (prefers-reduced-motion: reduce) { .fr-buy, .fr-sell { transition: none; } }
+
+/* ── Full board (/market) ───────────────────────────────────────────────── */
+.iqm-picker { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 24px; }
+.iqm-picker-date { display: inline-flex; align-items: center; gap: 10px; }
+.iqm-picker-date .id-input { width: auto; min-height: 40px; padding: 6px 14px; font-size: 14px; }
+.iqm-untraded-chip.is-suspended { background: var(--surface-2); color: var(--muted); }
+.iqm-about { margin-top: 56px; padding-inline: 0; margin-inline: 0; }
+.iqm-about .id-h2 { margin: 28px 0 12px; }
+.iqm-about .id-body { color: var(--secondary); margin: 0 0 12px; }
+.iqm-faq { margin: 0; }
+.iqm-faq > div { padding: 14px 0; border-bottom: 1px solid var(--border); }
+.iqm-faq dt { font-weight: 500; margin-bottom: 6px; }
+.iqm-faq dd { margin: 0; color: var(--secondary); max-width: 65ch; }

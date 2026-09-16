@@ -1,4 +1,6 @@
 import { MarketPage } from '@/components/site/MarketPage'
+import { loadMarketInitial } from '@/lib/marketServer'
+
 
 /**
  * /market · the full board — every listed company, every column. Its title
@@ -6,6 +8,8 @@ import { MarketPage } from '@/components/site/MarketPage'
  * result for the prices query; the root is the market OVERVIEW and links
  * here for the complete table. Two pages, two intents, on purpose.
  */
-export default function Page() {
-  return <MarketPage variant="full" />
+/* `?date=YYYY-MM-DD` shows that session's board; without it, the latest. */
+export default async function Page({ searchParams }: { searchParams: Promise<{ date?: string }> }) {
+  const { date } = await searchParams
+  return <MarketPage variant="full" initial={await loadMarketInitial(date)} />
 }
