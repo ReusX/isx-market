@@ -80,4 +80,32 @@ export const screener: typeof ar = {
   sheetMatching: 'matching',
   show: 'Show',
   results: 'results',
+  page: {
+    eyebrow:  'Markets',
+    lede:     'Start from a preset, or write your own conditions: a company must meet all of them. A company without a given measure is excluded from that condition only.',
+    presets:  'Presets',
+    coverage: (n: string, total: string) => `P/E available for ${n} of ${total} companies`,
+    showSuspended: 'Show suspended',
+    csv:      'Download CSV',
+    share:    'Copy link to this screen',
+    copied:   'Link copied',
+    titles: {
+      all:      'Iraqi stock screener \u00b7 filter Iraq Stock Exchange shares',
+      gainers:  'Iraqi stocks gaining \u00b7 Iraq Stock Exchange',
+      losers:   'Iraqi stocks falling \u00b7 Iraq Stock Exchange',
+      liquid:   'Most liquid stocks on the Iraq Stock Exchange',
+      cheap:    'Cheapest Iraqi stocks by P/E',
+      fbuy:     'Stocks foreign investors are buying on the Iraq Stock Exchange',
+      fsell:    'Stocks foreign investors are selling on the Iraq Stock Exchange',
+      nearhigh: 'Iraqi stocks near their 52-week high',
+    } as Record<string, string>,
+    about: {
+      title: 'How the screener works',
+      body: [
+        'The screener filters Iraq Stock Exchange companies on seven measures: price, change over a period you choose, position within the 52-week range, daily liquidity, market cap, net foreign trading over 30 days, and P/E.',
+        'Presets are conditions written for you, not hidden modes: press \u201cLowest P/E\u201d and the condition \u201cP/E \u2264 10\u201d appears, editable and combinable. Every screen has a shareable link.',
+        'P/E relies on published financial statements and exists only for profitable companies that have filed them. Companies suspended for more than sixty days are hidden by default because their measures rest on an old price.',
+      ],
+    },
+  },
 }

@@ -67,7 +67,7 @@ const BARE_ROUTES = [
  * list is the migration ledger: a route is added here the day it is rebuilt,
  * and the frame is deleted the day the list covers everything.
  */
-const REBUILT = ['/market', '/companies']
+const REBUILT = ['/market', '/companies', '/screener']
 const REBUILT_EXACT = ['/']   // the root: prefix-matching '/' would cover every route
 
 export default function AppFrame({ children }: { children: ReactNode }) {

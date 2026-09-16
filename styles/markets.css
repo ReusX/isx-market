@@ -51,7 +51,7 @@
 /* Header stays put under the sticky nav through a hundred rows. The board's
    columns hide rather than overflow on small screens, so the wrapper can
    stay non-scrolling — an overflow container would trap the sticky header. */
-.iqm-board .id-table-scroll { overflow: visible; }
+.id-table-scroll:has(> .iqm-table) { overflow: visible; }
 .iqm-table thead th { position: sticky; top: var(--iqn-h); background: var(--page); z-index: 2; }
 .iqm-sort {
   display: inline-flex; align-items: center; gap: 6px; padding: 6px 8px; margin: 0 -8px; border: 0; border-radius: 8px;

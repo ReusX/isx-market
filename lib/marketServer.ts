@@ -5,6 +5,7 @@ import companiesData from '@/public/data/companies.json'
 import iscTiers from '@/public/data/isc-tiers.json'
 import type { Company, CompanyMeta } from '@/types'
 import type { IndexRow } from '@/lib/homeData'
+import type { Metric } from '@/lib/screener'
 
 /**
  * What the market page needs on the SERVER, so the session figures and the
@@ -130,4 +131,26 @@ export const loadDirectory = cache(async (locale: 'ar' | 'en'): Promise<{ sessio
     }
   })
   return { session, rows }
+})
+
+/**
+ * The screener's rows on the server: the `company_metrics` view, the
+ * identity file, and trailing P/E where financials exist. P/E is allowed to
+ * fail on its own — losing it must not lose the other six measures.
+ */
+export type ScreenerInitial = { metrics: Metric[]; meta: CompanyMeta[]; pe: Record<string, number>; peFailed: boolean }
+
+export const loadScreener = cache(async (): Promise<ScreenerInitial> => {
+  const sb = client()
+  const { data } = await sb.from('company_metrics').select('*')
+  const metrics = (data ?? []) as Metric[]
+  let pe: Record<string, number> = {}, peFailed = false
+  try {
+    const { fetchTtmPe } = await import('@/lib/fundamentals')
+    const prices: Record<string, number> = {}
+    for (const m of metrics) if (m.last_close > 0) prices[m.ticker] = m.last_close
+    const res = await fetchTtmPe(sb, prices)
+    pe = Object.fromEntries(Object.entries(res).map(([t, v]) => [t, v.pe]))
+  } catch { peFailed = true }
+  return { metrics, meta: companiesData as CompanyMeta[], pe, peFailed }
 })
