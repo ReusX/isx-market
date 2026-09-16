@@ -139,7 +139,7 @@ export const flow = {
   ownership: 'الملكية الأجنبية',
   ownershipSub: 'ما يملكه الأجانب — لا ما تداولوه',
   monthlySnapshot: (m: string) => `لقطة شهرية · ${m}`,
-  fullOwnership: 'هيكل الملكية',
+  fullOwnership: 'الملكية الأجنبية',
   majorShareholders: 'كبار المساهمين',
   ownershipFailed: 'تعذّر تحميل بيانات الملكية',
   ownershipFailedNote: 'أرقام التدفق أعلاه كاملة — الملكية جدول شهري منفصل.',

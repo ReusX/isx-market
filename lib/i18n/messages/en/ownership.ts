@@ -46,4 +46,72 @@ export const ownership = {
   noResultsHint: 'Try the ticker, or part of the company name.',
   loadFailed: 'Ownership data could not be loaded.',
   retry: 'Try again',
+
+  /* ── The rebuilt pages (redesign) ─────────────────────────────────────── */
+  page: {
+    eyebrow: 'Markets',
+    filing: (month: string) => `Iraq Depository Center filing · ${month}`,
+    searchLabel: 'Search',
+    clearSearch: 'Clear',
+    showMore: (n: string) => `Show ${n} more`,
+    showing: (shown: string, total: string) => `${shown} of ${total}`,
+    tableCaption: 'Ordered by share, largest first',
+    empty: 'The depository filing could not be read. Try again later.',
+    noMatch: 'No matching results.',
+    noMatchHint: 'Try the ticker, or part of the company name.',
+    coverage: (matched: string, total: string) => `${matched} of ${total} names in the filing could be matched to a company. Only proven records are shown \u2014 nothing is guessed.`,
+  },
+
+  own: {
+    title: 'Foreign Ownership',
+    lede: 'Who owns the deposited capital of listed companies: the Iraqi share and the foreign share, from the latest monthly filing of the Iraq Depository Center.',
+    headline: 'Foreign share of deposited shares',
+    iraqiShare: 'Iraqis',
+    foreignShare: 'Foreigners',
+    figures: {
+      companies: 'companies in the filing',
+      foreignShares: 'foreign-held shares',
+      holders: 'foreign holders',
+      matched: 'companies matched',
+    },
+    tableTitle: 'Companies with foreign ownership',
+    tableNote: (shown: string) => `${shown} companies whose record could be matched and that carry foreign ownership this month`,
+    search: 'Search by ticker or company name',
+    cols: { company: 'Company', pct: 'Foreign ownership', shares: 'Foreign-held shares', holders: 'Foreign holders' },
+    none: 'No reliable ownership data is available for this month.',
+    about: {
+      title: 'About these figures',
+      body: [
+        'The Iraq Depository Center holds listed companies\u2019 shares electronically and publishes a monthly table showing how much of each company\u2019s capital is deposited in the name of Iraqi investors and how much in the name of foreign investors. This page reads the latest available table and nothing more: it is a monthly snapshot, not a figure that moves with the session.',
+        'These are deposited shares, not traded shares. A company can carry high foreign ownership and trade barely at all, and the reverse is just as common \u2014 so read this page alongside foreign flow, not instead of it.',
+        'The filing is printed and carries no ticker column, so company names are matched against the register of listed companies. The totals above are summed from every line in the filing, because a sum needs no name; the table shows only the companies whose record could be proven, and the rest is left alone rather than guessed.',
+      ],
+    },
+  },
+
+  holders: {
+    title: 'Major Shareholders',
+    lede: 'The largest disclosed stakes in listed companies, with each shareholder\u2019s name and ownership share, from the latest monthly filing of the Iraq Depository Center.',
+    headline: 'Largest disclosed stake',
+    figures: {
+      stakes: 'disclosed stakes',
+      companies: 'companies with a filing',
+      over50: 'stakes above half the capital',
+      matched: 'companies matched',
+    },
+    tableTitle: 'Disclosed stakes',
+    tableNote: (shown: string) => `${shown} stakes in companies whose record could be matched`,
+    search: 'Search a company or a shareholder',
+    cols: { holder: 'Shareholder', company: 'Company', pct: 'Ownership' },
+    none: 'No reliable shareholder data is available for this month.',
+    nationality: 'The source records Iraqi nationality for every disclosed stake in this month.',
+    about: {
+      title: 'About these figures',
+      body: [
+        'The depository discloses each listed company\u2019s major shareholders monthly: the holder\u2019s name and the share of capital they own. A large stake means part of the company\u2019s shares is effectively not available to trade, and that the company\u2019s decisions lean towards whoever holds it.',
+        'Shareholder names appear exactly as the filing printed them. A shareholder is a person or a legal entity, and the filing\u2019s spelling is the only record of that name there is \u2014 so it is never translated, never matched and never corrected, not even on the English page.',
+        'The page does not show the change from the previous month: the field exists in the source, but most of its values are zero or blank and a real zero cannot be told from a default one, so leaving it out is the honest option.',
+      ],
+    },
+  },
 }

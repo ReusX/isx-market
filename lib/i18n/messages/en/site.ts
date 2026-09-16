@@ -2,6 +2,7 @@ export const site = {
   brandHome: 'IQWealth · Home',
   menu:      'Menu',
   section:   'Section',
+  note:      'About this page',
   close:     'Close',
   signIn:    'Sign in',
   account:   'My account',

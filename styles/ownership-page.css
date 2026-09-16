@@ -1,0 +1,79 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   The depository family · /statistics/ownership and /statistics/shareholders
+
+   One stylesheet for two twin routes: they read the same monthly filing and
+   wear the same furniture — a lead panel with the headline share, a figure
+   row, and a searchable table whose percentage column carries a quiet bar.
+   Layout only; the vocabulary is identity.css and the page frame is
+   statistics-page.css, as on every other page of this section.
+   ═══════════════════════════════════════════════════════════════════════════ */
+.own { padding-block: 24px 0; }
+.own-body { min-width: 0; }
+
+/* ── The lead: one share, stated once ───────────────────────────────────── */
+.own-lead { padding: 20px; margin-bottom: 20px; }
+.own-lead-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; flex-wrap: wrap; }
+.own-lead-head .id-cap { margin: 4px 0 0; }
+.own-big { display: flex; align-items: baseline; gap: 12px; margin: 16px 0 12px; flex-wrap: wrap; }
+.own-big strong { font-weight: 200; font-size: clamp(40px, 5.2vw, 64px); line-height: 1; }
+.own-big span { color: var(--secondary); font-size: 14px; }
+
+/* The split bar. Two segments, a hairline gap, no ground of their own — the
+   numbers below carry the meaning, so this is never colour-only. */
+.own-split { display: flex; gap: 3px; height: 10px; margin-bottom: 14px; }
+.own-split i { display: block; border-radius: 5px; min-width: 3px; }
+.own-split .is-iraqi { background: var(--moss-ink); opacity: .8; }
+.own-split .is-foreign { background: var(--nav-active); opacity: .85; }
+.own-legend { display: flex; gap: 24px; flex-wrap: wrap; margin: 0 0 18px; font-size: 14px; }
+.own-legend > div { display: flex; align-items: baseline; gap: 8px; }
+.own-legend dt { display: flex; align-items: center; gap: 8px; color: var(--secondary); }
+.own-legend dt i { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+.own-legend .is-iraqi dt i { background: var(--moss-ink); }
+.own-legend .is-foreign dt i { background: var(--nav-active); }
+.own-legend dd { margin: 0; font-weight: 300; font-size: 18px; }
+
+.own-figs { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; padding-top: 16px; border-top: 1px solid var(--border); }
+.own-figs > div { border-inline-start: 1px solid var(--border); padding-inline-start: 16px; }
+.own-figs > div:first-child { border: 0; padding-inline-start: 0; }
+.own-figs small { display: block; font-size: 12px; color: var(--secondary); margin-bottom: 6px; }
+.own-figs b { display: block; font-weight: 300; font-size: 24px; line-height: 1; }
+@media (max-width: 760px) {
+  .own-figs { grid-template-columns: 1fr 1fr; row-gap: 18px; }
+  .own-figs > div:nth-child(odd) { border: 0; padding-inline-start: 0; }
+}
+
+/* ── The table ──────────────────────────────────────────────────────────── */
+.own-panel { padding: 20px; margin-bottom: 20px; }
+.own-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; flex-wrap: wrap; margin-bottom: 16px; }
+.own-head .id-cap { margin: 4px 0 0; }
+.own-search { flex: 0 1 300px; min-width: 200px; }
+.own-scroll { overflow-x: auto; }
+/* Defined column tracks, not auto layout. Left to `auto`, the name column
+   grows to its widest unbroken name and pushes the numbers off the panel —
+   the identity's rule that a table declares its tracks is what prevents it.
+   The name column takes whatever the numbers do not. */
+.own-table { min-width: 620px; table-layout: fixed; }
+.own-col-pct { width: 210px; }
+.own-col-shares { width: 150px; }
+.own-col-holders { width: 120px; }
+.own-table .id-name { overflow-wrap: anywhere; }
+.own-table td { padding: 14px 0; }
+/* `.id-table` cells carry no side padding, so two long headers run into each
+   other — «Foreign ownership» against «Foreign-held shares». One gutter
+   between columns, none on the outside, so the table still sits flush. */
+.own-table th + th, .own-table td + td { padding-inline-start: 20px; }
+.own-table a { color: inherit; text-decoration: none; display: block; }
+.own-table a:hover .id-name { text-decoration: underline; }
+.own-holder { overflow-wrap: anywhere; }
+
+/* A percentage and the bar that reads it at a glance. The bar is decoration;
+   the number carries the meaning. */
+.own-pct { display: flex; align-items: center; gap: 10px; justify-content: flex-end; }
+.own-pct bdi { flex: 0 0 auto; min-width: 58px; text-align: end; }
+.own-pct-track { display: block; flex: 1 1 auto; max-width: 130px; height: 8px; border-radius: 4px; background: var(--surface-2); overflow: hidden; }
+.own-pct-track i { display: block; height: 100%; background: var(--nav-active); opacity: .85; border-radius: 4px; }
+
+.own-empty { padding: 40px 0; text-align: center; color: var(--secondary); }
+.own-empty strong { display: block; font-weight: 400; font-size: 17px; margin-bottom: 6px; color: var(--ink); }
+.own-note { margin: 14px 0 0; }
+.own-more { margin: 16px 0 0; display: flex; justify-content: center; }

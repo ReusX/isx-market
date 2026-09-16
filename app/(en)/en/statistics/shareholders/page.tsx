@@ -1,6 +1,9 @@
 import type { Metadata } from 'next'
 import { absUrl, seoAlternates } from '@/lib/seo'
-import { ShareholdersPage } from '@/components/routes/ShareholdersPage'
+import { ShareholdersPage } from '@/components/site/ShareholdersPage'
+import { loadShareholders } from '@/lib/marketServer'
+
+export const revalidate = 3600
 
 export const metadata: Metadata = {
   alternates: seoAlternates('/statistics/shareholders', 'en'),
@@ -10,11 +13,12 @@ export const metadata: Metadata = {
     locale: 'en_US',
     alternateLocale: 'ar_IQ',
   },
-  title: 'Major Shareholders | IQWealth',
+  title: 'Major shareholders on the Iraq Stock Exchange · the largest disclosed stakes',
   description:
-    'The largest disclosed stakes in companies listed on the Iraq Stock Exchange, with each shareholder\'s ownership percentage, from the latest available monthly depository filing.',
+    'Who holds the largest stakes in Iraq Stock Exchange companies, with each shareholder’s name and share of capital, from the latest monthly depository filing.',
 }
 
-export default function Page() {
-  return <ShareholdersPage />
+/** /statistics/shareholders · the largest disclosed stakes. */
+export default async function Page() {
+  return <ShareholdersPage initial={await loadShareholders('en')} />
 }

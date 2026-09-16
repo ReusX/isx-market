@@ -139,3 +139,32 @@
   }
   .iqr-sheet .iqr-item { min-height: 44px; font-size: 15px; }
 }
+
+/* ── Page note · the standfirst behind a «!» ─────────────────────────────
+   See components/site/PageTitle.tsx for why this exists. The rule that
+   matters here: `.iqp-note` is COLLAPSED with visibility, never removed
+   from the markup, so the copy stays in the HTML for a crawler whether or
+   not a reader opens it. Do not swap this for conditional rendering.
+
+   The note is positioned against `.iqp`, which spans the content column —
+   not against the button — so `max-inline-size` can never push it past the
+   page edge on a phone. */
+.iqp { position: relative; }
+.iqp-head { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.iqp-btn {
+  width: 24px; height: 24px; padding: 0; border-radius: 50%;
+  border: 1px solid var(--border); background: transparent; color: var(--secondary);
+  font: inherit; font-size: 13px; font-weight: 500; line-height: 1;
+  display: inline-grid; place-items: center; cursor: pointer; flex: 0 0 auto;
+}
+.iqp-btn:hover { border-color: var(--ink); color: var(--ink); }
+.iqp.is-open .iqp-btn { border-color: var(--ink); color: var(--ink); }
+.iqp-note {
+  position: absolute; inset-inline-start: 0; top: calc(100% + 12px); z-index: 20;
+  max-inline-size: min(52ch, 100%);
+  margin: 0; padding: 16px 20px;
+  background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-md);
+  color: var(--secondary); font-size: 16px; line-height: 1.55;
+  visibility: hidden; opacity: 0; transition: opacity .14s ease;
+}
+.iqp.is-open .iqp-note { visibility: visible; opacity: 1; }

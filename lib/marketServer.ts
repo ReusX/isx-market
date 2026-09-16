@@ -252,3 +252,160 @@ export const loadForeignFlow = cache(async (): Promise<FlowInitial> => {
   ])
   return out
 })
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   The depository reports · /statistics/ownership and /statistics/shareholders
+
+   Both tables are monthly filings keyed on a company NAME, not a ticker, so
+   every read here does three things:
+
+     1. finds the latest period IN THE SOURCE and reads only that period — a
+        union of several months is not a snapshot;
+     2. pages until the period is exhausted (both tables pass 1000 rows);
+     3. resolves the printed name through `resolveSnapshot`, which either
+        proves a ticker or leaves the row unresolved. An unresolved row is
+        counted in the coverage denominator and never shown against a company.
+
+   Market totals are summed over EVERY row of the period, because a sum needs
+   no company name. The table below shows only what could be proven, and the
+   page says so rather than quietly showing a shorter list.
+
+   Moved from the client (`components/routes/depositoryData.ts`) so the
+   figures and the table are in the HTML for first paint and for the crawler.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+export type Coverage = { sourceCompanies: number; matched: number; rows: number }
+
+export type OwnershipRow = {
+  sym: string; name: string
+  iraqi: number; foreign: number
+  /** Foreign holders of record; null where the report left the count blank. */
+  holders: number | null
+  total: number; pct: number
+}
+
+export type OwnershipInitial = {
+  /** `YYYY-MM` of the report, or null when nothing could be read. */
+  month: string | null
+  rows: OwnershipRow[]
+  market: { iraqi: number; foreign: number; pct: number; holders: number; companies: number }
+  coverage: Coverage
+  failed: boolean
+}
+
+export type HolderRow = { id: string; holder: string; sym: string; company: string; pct: number }
+
+export type HoldersInitial = {
+  month: string | null
+  rows: HolderRow[]
+  coverage: Coverage
+  companies: number
+  /** Distinct nationality values the SOURCE recorded — not a claim about the holders. */
+  nationalities: string[]
+  failed: boolean
+}
+
+type Period = { year: number; month: number }
+
+/** Every row of one period, not the first page. */
+async function readPeriod(sb: ReturnType<typeof client>, table: string, select: string, p: Period) {
+  const out: Record<string, unknown>[] = []
+  for (let from = 0; ; from += 1000) {
+    const { data, error } = await sb.from(table).select(select).eq('year', p.year).eq('month', p.month).range(from, from + 999)
+    if (error) break
+    const page = (data ?? []) as unknown as Record<string, unknown>[]
+    out.push(...page)
+    if (page.length < 1000) break
+  }
+  return out
+}
+
+async function latestPeriod(sb: ReturnType<typeof client>, table: string): Promise<Period | null> {
+  const { data } = await sb.from(table).select('year,month').order('year', { ascending: false }).order('month', { ascending: false }).limit(1)
+  const row = (data?.[0] ?? null) as { year?: number; month?: number } | null
+  return row?.year && row?.month ? { year: row.year, month: row.month } : null
+}
+
+/** The roster both pages match against. Curated names display; metrics names only match. */
+async function roster(sb: ReturnType<typeof client>) {
+  const { buildRoster } = await import('@/lib/depositoryNames')
+  const { data } = await sb.from('company_metrics').select('ticker,name_ar,name_en')
+  return buildRoster(companiesData as CompanyMeta[], (data ?? []) as { ticker: string; name_ar?: string | null; name_en?: string | null }[])
+}
+
+const ym = (p: Period) => `${p.year}-${String(p.month).padStart(2, '0')}`
+
+export const loadOwnership = cache(async (locale: 'ar' | 'en'): Promise<OwnershipInitial> => {
+  const empty: OwnershipInitial = { month: null, rows: [], market: { iraqi: 0, foreign: 0, pct: 0, holders: 0, companies: 0 }, coverage: { sourceCompanies: 0, matched: 0, rows: 0 }, failed: true }
+  try {
+    const sb = client()
+    const period = await latestPeriod(sb, 'ownership_monthly')
+    if (!period) return empty
+    const { resolveSnapshot } = await import('@/lib/depositoryNames')
+    const [raw, list] = await Promise.all([
+      readPeriod(sb, 'ownership_monthly', 'name_ar,iraqi_shares,foreign_shares,iraqi_count,foreign_count', period),
+      roster(sb),
+    ])
+    const bySym = new Map(list.map((r) => [r.sym, r]))
+    const res = resolveSnapshot(raw.map((r) => String(r.name_ar ?? '')), list)
+
+    let iraqi = 0, foreign = 0, holders = 0
+    const rows: OwnershipRow[] = []
+    for (const r of raw) {
+      const i = Number(r.iraqi_shares ?? 0), f = Number(r.foreign_shares ?? 0)
+      iraqi += i; foreign += f; holders += Number(r.foreign_count ?? 0)
+      const hit = res.get(String(r.name_ar ?? ''))
+      if (!hit?.sym || f <= 0) continue
+      const e = bySym.get(hit.sym)
+      /* Prefer the reader's language, but never machine-translate a legal
+         company name — the canonical Arabic is the fallback either way. */
+      const name = (locale === 'en' ? e?.en || hit.canonical || e?.ar : hit.canonical || e?.ar || e?.en) || hit.sym
+      rows.push({ sym: hit.sym, name, iraqi: i, foreign: f, holders: r.foreign_count == null ? null : Number(r.foreign_count), total: i + f, pct: i + f ? (f / (i + f)) * 100 : 0 })
+    }
+    rows.sort((a, b) => b.pct - a.pct)
+    const names = Array.from(res.values())
+    return {
+      month: ym(period), rows,
+      market: { iraqi, foreign, pct: iraqi + foreign ? (foreign / (iraqi + foreign)) * 100 : 0, holders, companies: raw.length },
+      coverage: { sourceCompanies: names.length, matched: names.filter((r) => r.sym).length, rows: raw.length },
+      failed: false,
+    }
+  } catch { return empty }
+})
+
+export const loadShareholders = cache(async (locale: 'ar' | 'en'): Promise<HoldersInitial> => {
+  const empty: HoldersInitial = { month: null, rows: [], coverage: { sourceCompanies: 0, matched: 0, rows: 0 }, companies: 0, nationalities: [], failed: true }
+  try {
+    const sb = client()
+    const period = await latestPeriod(sb, 'major_shareholders')
+    if (!period) return empty
+    const { resolveSnapshot } = await import('@/lib/depositoryNames')
+    const [raw, list] = await Promise.all([
+      readPeriod(sb, 'major_shareholders', 'company_name_ar,rank,name_ar,nationality,curr_pct', period),
+      roster(sb),
+    ])
+    const bySym = new Map(list.map((r) => [r.sym, r]))
+    const res = resolveSnapshot(raw.map((r) => String(r.company_name_ar ?? '')), list)
+
+    const rows: HolderRow[] = []
+    for (const r of raw) {
+      const hit = res.get(String(r.company_name_ar ?? ''))
+      /* The holder's own name is never matched or translated — it is a person
+         or a legal entity, and the report's spelling is the only record of it
+         there is. */
+      if (!hit?.sym || r.curr_pct == null || !r.name_ar) continue
+      const e = bySym.get(hit.sym)
+      const company = (locale === 'en' ? e?.en || hit.canonical || e?.ar : hit.canonical || e?.ar || e?.en) || hit.sym
+      rows.push({ id: `${hit.sym}·${r.rank}·${String(r.name_ar)}`, holder: String(r.name_ar), sym: hit.sym, company, pct: Number(r.curr_pct) })
+    }
+    rows.sort((a, b) => b.pct - a.pct)
+    const names = Array.from(res.values())
+    return {
+      month: ym(period), rows,
+      coverage: { sourceCompanies: names.length, matched: names.filter((r) => r.sym).length, rows: raw.length },
+      companies: new Set(rows.map((r) => r.sym)).size,
+      nationalities: Array.from(new Set(raw.map((r) => r.nationality).filter(Boolean))) as string[],
+      failed: false,
+    }
+  } catch { return empty }
+})
