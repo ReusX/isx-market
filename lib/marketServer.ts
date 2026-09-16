@@ -1,3 +1,4 @@
+import { cache } from 'react'
 import { createClient } from '@supabase/supabase-js'
 import { fetchLiveWith, mergeCompanies } from '@/lib/market'
 import companiesData from '@/public/data/companies.json'
@@ -33,11 +34,19 @@ function client() {
   })
 }
 
-/** `date`: a past session for the board; omitted → the latest. */
-export async function loadMarketInitial(date?: string): Promise<MarketInitial> {
+/**
+ * `date`: a past session for the board; omitted → the latest. A date with no
+ * session (a Friday, a holiday) snaps to the last session on or before it.
+ * Wrapped in React's `cache` so the page and its metadata share one load.
+ */
+export const loadMarketInitial = cache(async (date?: string): Promise<MarketInitial> => {
   const sb = client()
   const empty: MarketInitial = { session: null, sessions: [], companies: [], recent: [], hist: {} }
-  const until = date && /^\d{4}-\d{2}-\d{2}$/.test(date) ? date : undefined
+  let until = date && /^\d{4}-\d{2}-\d{2}$/.test(date) ? date : undefined
+  if (until) {
+    const { data } = await sb.from('daily_prices').select('date').lte('date', until).order('date', { ascending: false }).limit(1)
+    until = (data?.[0]?.date as string | undefined) ?? undefined
+  }
   try {
     const [live, recentRes, hist, sessionsRes] = await Promise.all([
       fetchLiveWith(sb, until),
@@ -73,4 +82,4 @@ export async function loadMarketInitial(date?: string): Promise<MarketInitial> {
   } catch {
     return empty
   }
-}
+})

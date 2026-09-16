@@ -262,6 +262,23 @@ export function MarketPage({ variant = 'root', initial }: { variant?: 'root' | '
   }, [companies, q, sector, listing, sort, hist, session, locale])
   const rows = full || q.trim() ? filtered : filtered.slice(0, 30)
 
+  /* CSV of the current view — the rows as filtered and sorted, with the
+     column names the reader sees. Built in the browser; a BOM so Excel
+     opens the Arabic as Arabic. */
+  const exportCsv = () => {
+    const head = [m.colCompany, 'Symbol', p.board.price, p.board.d1, p.board.d7, p.board.d30, p.board.volume, p.board.mcap, p.board.shares]
+    const cell = (v: string | number | null | undefined) => v == null ? '' : `"${String(v).replace(/"/g, '""')}"`
+    const lines = filtered.map((c) => [
+      companyName(c, c.sym, locale), c.sym, c.close || '', c.stale ? '' : c.pct.toFixed(2),
+      c.stale ? '' : changeOver(c, 7)?.toFixed(2) ?? '', c.stale ? '' : changeOver(c, 30)?.toFixed(2) ?? '',
+      c.stale ? '' : c.shares_traded || 0, liveMcap(c) || '', c.shares || '',
+    ].map(cell).join(','))
+    const blob = new Blob(['\ufeff' + [head.map(cell).join(','), ...lines].join('\n')], { type: 'text/csv;charset=utf-8' })
+    const a = document.createElement('a')
+    a.href = URL.createObjectURL(blob); a.download = `iraqsm-market-${session ?? 'latest'}.csv`; a.click()
+    URL.revokeObjectURL(a.href)
+  }
+
   /* Session picker (full board): move between sessions or type a date. */
   const sessionsList = initial?.sessions ?? []
   const at = session ? sessionsList.indexOf(session) : -1
@@ -298,6 +315,7 @@ export function MarketPage({ variant = 'root', initial }: { variant?: 'root' | '
             </label>
             <button type="button" className="id-pill is-sm" disabled={at <= 0} onClick={() => goTo(sessionsList[at - 1])} aria-label={p.full.next}>{p.full.next} {ar ? '←' : '→'}</button>
             {at > 0 ? <button type="button" className="id-pill is-sm" onClick={() => goTo(null)}>{p.full.latest}</button> : null}
+            <button type="button" className="id-pill is-sm iqm-csv" onClick={exportCsv}>{p.full.csv}</button>
           </div>
         ) : (
           <div className="iqm-openers">

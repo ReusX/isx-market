@@ -121,6 +121,7 @@ export const market = {
       prev:    'الجلسة السابقة',
       next:    'الجلسة التالية',
       pick:    'اختر تاريخاً',
+      csv:     'تنزيل CSV',
       noSession: (d: string) => `لا توجد جلسة تداول في ${d}. اختر يوماً آخر.`,
       listing: { all: 'الكل', traded: 'تم تداولها', untraded: 'لم تُتداول', suspended: 'موقوفة' },
       suspended: (d: string) => `موقوفة عن التداول · آخر تداول ${d}`,

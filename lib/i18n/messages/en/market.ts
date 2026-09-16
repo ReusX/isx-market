@@ -107,6 +107,7 @@ export const market: typeof ar = {
       prev:    'Previous session',
       next:    'Next session',
       pick:    'Pick a date',
+      csv:     'Download CSV',
       noSession: (d: string) => `No trading session on ${d}. Pick another day.`,
       listing: { all: 'All', traded: 'Traded', untraded: 'Not traded', suspended: 'Suspended' },
       suspended: (d: string) => `Suspended \u00b7 last traded ${d}`,

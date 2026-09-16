@@ -48,6 +48,11 @@
 .iqm-table .id-name { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 /* Column headers: prominent, and buttons — click to sort, click again to flip. */
 .iqm-table th { padding-block: 0 10px; }
+/* Header stays put under the sticky nav through a hundred rows. The board's
+   columns hide rather than overflow on small screens, so the wrapper can
+   stay non-scrolling — an overflow container would trap the sticky header. */
+.iqm-board .id-table-scroll { overflow: visible; }
+.iqm-table thead th { position: sticky; top: var(--iqn-h); background: var(--page); z-index: 2; }
 .iqm-sort {
   display: inline-flex; align-items: center; gap: 6px; padding: 6px 8px; margin: 0 -8px; border: 0; border-radius: 8px;
   background: none; color: var(--ink); font: inherit; font-size: 13px; font-weight: 500; cursor: pointer; white-space: nowrap;
@@ -147,6 +152,7 @@ th.is-end .iqm-sort { flex-direction: row-reverse; }
 .iqm-picker { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 24px; }
 .iqm-picker-date { display: inline-flex; align-items: center; gap: 10px; }
 .iqm-picker-date .id-input { width: auto; min-height: 40px; padding: 6px 14px; font-size: 14px; }
+.iqm-csv { margin-inline-start: auto; }
 .iqm-untraded-chip.is-suspended { background: var(--surface-2); color: var(--muted); }
 .iqm-about { margin-top: 56px; padding-inline: 0; margin-inline: 0; }
 .iqm-about .id-h2 { margin: 28px 0 12px; }
