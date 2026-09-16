@@ -21,7 +21,7 @@
  * language.
  */
 export const market = {
-  title:        'السوق',
+  title:        'السوق في آخر جلسة',
   bulletin:     'آخر نشرة',
   session:      'الجلسة',
   traded:       'المتداولة',

@@ -70,6 +70,12 @@
 
 /* ── Foot ───────────────────────────────────────────────────────────────── */
 .iqf { padding-block: 56px 40px; border-top: 1px solid var(--border); margin-top: 72px; font-size: 14px; color: var(--secondary); }
+.iqf-map { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 24px; margin: 32px 0 28px; }
+.iqf-col { display: grid; gap: 8px; align-content: start; font-size: 13px; }
+.iqf-col-h { margin: 0 0 4px; color: var(--ink); font-weight: 500; }
+.iqf-col a:hover { color: var(--ink); }
+@media (max-width: 900px) { .iqf-map { grid-template-columns: repeat(3, 1fr); } }
+@media (max-width: 560px) { .iqf-map { grid-template-columns: repeat(2, 1fr); } }
 .iqf-row { display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap; }
 .iqf-brand { display: inline-flex; align-items: center; gap: 8px; color: var(--ink); font-weight: 500; font-size: 16px; text-decoration: none; }
 .iqf-doors, .iqf-small nav { display: flex; gap: 20px; flex-wrap: wrap; }

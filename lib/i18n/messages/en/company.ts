@@ -214,6 +214,7 @@ export const company: typeof ar = {
     currency: 'IQD',
     periodCol: 'Period',
     lede: (name: string) => `${name} on the Iraq Stock Exchange: the latest close and how it has moved, what the company owns and who owns it, and its financials exactly as published.`,
+    faqTitle: 'Frequently asked questions',
     notFound: 'No company with this ticker is listed on the Iraq Stock Exchange.',
     priceChart: (name: string) => `${name} share price`,
     noPrior: 'No valid previous close, so the change is unknown.',

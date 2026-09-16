@@ -17,5 +17,15 @@ export const site = {
   about:     'من نحن',
   contact:   'تواصل معنا',
   rights:    (year: string) => `IQWealth ${year} ©`,
+  sitemap:   'خريطة الموقع',
+  tools:     'أدواتي',
+  pages: {
+    '/': 'السوق', '/market': 'جدول الشركات', '/companies': 'دليل الشركات', '/screener': 'رادار الأسهم', '/heatmap': 'خريطة السوق',
+    '/statistics': 'الإحصاءات', '/statistics/foreign-flow': 'التدفق الأجنبي', '/statistics/ownership': 'الملكية الأجنبية', '/statistics/shareholders': 'كبار المساهمين', '/pulse': 'نبض السوق',
+    '/banks': 'المصارف', '/banks/deposits': 'فوائد الودائع', '/banks/loans': 'فوائد القروض',
+    '/fx': 'سعر الدولار', '/gold': 'سعر الذهب', '/silver': 'سعر الفضة', '/oil': 'سعر النفط',
+    '/learn': 'تعلّم', '/news': 'الأخبار', '/research': 'تحليلات',
+    '/portfolio': 'محفظتي', '/watchlist': 'قائمة المتابعة', '/alerts': 'التنبيهات',
+  } as Record<string, string>,
   units:     { tn: 'ترليون', bn: 'مليار', mn: 'مليون', k: 'ألف', iqd: 'دينار', shares: 'سهم' },
 }

@@ -79,7 +79,7 @@ export function DirectoryPage({ rows, session }: { rows: DirectoryRow[]; session
         <div className="dr-body">
           <header className="dr-head">
             <p className="id-eyebrow">{d.eyebrow}</p>
-            <PageTitle title={d.title} note={d.intro(int.format(rows.length), int.format(sectorCount))} />
+            <PageTitle title={t.company.directory.h1(int.format(rows.length))} note={d.intro(int.format(rows.length), int.format(sectorCount))} />
             <p className="id-body dr-sectors id-num">{sectorSentence}</p>
           </header>
 

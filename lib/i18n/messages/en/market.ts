@@ -10,7 +10,7 @@ import type { market as ar } from '../ar/market'
  * `Latest bulletin`, not `Live` and not `Today`. Same rule, same reason.
  */
 export const market: typeof ar = {
-  title:        'Market',
+  title:        'Latest Market Session',
   bulletin:     'Latest bulletin',
   session:      'Session',
   traded:       'Traded',

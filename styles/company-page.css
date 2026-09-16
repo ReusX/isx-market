@@ -205,3 +205,18 @@
 .cmp-lg-ma.is-ma2 { color: var(--muted); }
 /* The watermark: bold, faint, in whichever half of the price pane is emptier. */
 .cmp-mark { fill: var(--ink); opacity: .14; font-weight: 600; font-size: 30px; letter-spacing: .08em; text-anchor: middle; dominant-baseline: middle; }
+
+/* ── The profile: prose, facts, questions ───────────────────────────────── */
+.cmp-profile { margin: 28px 0 8px; }
+.cmp-profile > .id-h2 { margin-bottom: 12px; }
+.cmp-profile > .id-h3 { margin: 20px 0 8px; }
+.cmp-profile-facts { margin: 16px 0 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 0 24px; }
+.cmp-profile-facts > div { display: grid; gap: 2px; padding: 10px 0; border-bottom: 1px solid var(--border); }
+.cmp-profile-facts dt { font-size: 12px; color: var(--secondary); }
+.cmp-profile-facts dd { margin: 0; font-size: 15px; }
+.cmp-q { border-top: 1px solid var(--border); }
+.cmp-q summary { cursor: pointer; padding: 12px 0; font-size: 15px; font-weight: 500; list-style: none; display: flex; justify-content: space-between; gap: 12px; }
+.cmp-q summary::-webkit-details-marker { display: none; }
+.cmp-q summary::after { content: '+'; color: var(--muted); }
+.cmp-q[open] summary::after { content: '−'; }
+.cmp-q p { margin: 0 0 14px; }

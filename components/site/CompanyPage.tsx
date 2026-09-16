@@ -11,6 +11,7 @@ import { PriceChart } from './PriceChart'
 import type { CompanyInitial } from '@/lib/marketServer'
 import { latestRatios, earningsSeries } from '@/lib/companyView'
 import { sectorLabel } from '@/lib/screener'
+import { buildCompanyProfile } from '@/lib/companyProfile'
 import { localeDate } from '@/lib/date'
 import '@/styles/company-page.css'
 
@@ -65,6 +66,15 @@ export function CompanyPage({ initial }: { initial: CompanyInitial }) {
   const watched = watchlist?.includes(initial.sym)
 
   const mcap = initial.last != null && initial.shares ? initial.last * initial.shares : null
+  /* The profile: hand-written for 41 companies, generated for the rest, the
+     last close folded into its facts and its price question. This is the
+     unique prose the page ranks with; it is server-rendered like the rest. */
+  const profile = useMemo(() => buildCompanyProfile({
+    sym: initial.sym, ar: initial.ar, en: initial.en,
+    sectorAr: sectorLabel(initial.sec, 'ar'), sectorEn: sectorLabel(initial.sec, 'en'),
+    mcapIqd: mcap,
+    quote: initial.last != null && initial.session ? { close: initial.last, pct: initial.changePct, date: initial.session, suspended: initial.stale && (initial.daysSinceTrade ?? 0) > 60 } : null,
+  }, locale), [initial, mcap, locale])
   const ratios = useMemo(() => latestRatios(initial.ratios), [initial.ratios])
   const earnings = useMemo(() => earningsSeries(initial.facts, 'annual').slice(-5), [initial.facts])
 
@@ -282,6 +292,18 @@ export function CompanyPage({ initial }: { initial: CompanyInitial }) {
               )}
             </section>
           </div>
+
+          <section className="cmp-profile id-read" aria-label={profile.heading}>
+            <h2 className="id-h2">{profile.heading}</h2>
+            <p className="id-body">{profile.about}</p>
+            <dl className="cmp-profile-facts id-num">
+              {profile.facts.map((f) => <div key={f.label}><dt>{f.label}</dt><dd><bdi>{f.value}</bdi></dd></div>)}
+            </dl>
+            <h3 className="id-h3">{P.faqTitle}</h3>
+            {profile.faq.map((qa) => (
+              <details key={qa.q} className="cmp-q"><summary>{qa.q}</summary><p className="id-body">{qa.a}</p></details>
+            ))}
+          </section>
 
           <AboutSection title={P.about.title} body={P.about.body} />
         </div>
