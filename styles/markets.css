@@ -38,6 +38,17 @@
 .iqm-logo .co-logo-img { width: 100%; height: 100%; object-fit: contain; }
 .iqm-co-text { min-width: 0; }
 .iqm-table .id-name { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+/* Column headers: prominent, and buttons — click to sort, click again to flip. */
+.iqm-table th { padding-block: 0 10px; }
+.iqm-sort {
+  display: inline-flex; align-items: center; gap: 6px; padding: 6px 8px; margin: 0 -8px; border: 0; border-radius: 8px;
+  background: none; color: var(--ink); font: inherit; font-size: 13px; font-weight: 500; cursor: pointer; white-space: nowrap;
+}
+.iqm-sort:hover { background: var(--surface-2); }
+.iqm-sort.is-on { color: var(--nav-active); }
+.iqm-sort-arrow { font-size: 12px; opacity: .45; }
+.iqm-sort.is-on .iqm-sort-arrow { opacity: 1; }
+th.is-end .iqm-sort { flex-direction: row-reverse; }
 /* Signed percentages keep their sign in front whatever the page direction. */
 .iqm-pct { direction: ltr; unicode-bidi: isolate; display: inline-block; }
 /* The price is the row's headline. */

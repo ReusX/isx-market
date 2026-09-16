@@ -85,6 +85,13 @@ export function MarketPage() {
   const [q, setQ] = useState('')
   const [sector, setSector] = useState('all')
   const [showAll, setShowAll] = useState(false)
+  /* Column sort. Default is market cap, descending; a click on a header
+     sorts by that column, a second click flips it. Untraded companies
+     always sink below traded ones when sorting by a change column, because
+     their change is not a number. */
+  type SortKey = 'mcap' | 'name' | 'price' | 'd1' | 'd7' | 'd30' | 'volume' | 'shares'
+  const [sort, setSort] = useState<{ key: SortKey; dir: 'asc' | 'desc' }>({ key: 'mcap', dir: 'desc' })
+  const sortBy = (key: SortKey) => setSort((s) => s.key === key ? { key, dir: s.dir === 'desc' ? 'asc' : 'desc' } : { key, dir: key === 'name' ? 'asc' : 'desc' })
   /* Closes per ticker for the last ~45 days, for the 7- and 30-day changes. */
   const [hist, setHist] = useState<Record<string, { date: string; close: number }[]>>({})
 
@@ -146,15 +153,6 @@ export function MarketPage() {
     return () => { alive = false }
   }, [])
 
-  const filtered = useMemo(() => {
-    const needle = q.trim().toLowerCase()
-    return companies
-      .filter((c) => sector === 'all' || c.sec === sector)
-      .filter((c) => !needle || c.sym.toLowerCase().includes(needle) || c.ar.includes(q.trim()) || c.en.toLowerCase().includes(needle))
-      /* Biggest market cap first — price × shares, live. */
-      .sort((a, b) => liveMcap(b) - liveMcap(a))
-  }, [companies, q, sector])
-  const rows = showAll || q.trim() ? filtered : filtered.slice(0, 20)
 
   /* Sessions the market has held, newest last — for the untraded streak. */
   const sessions = useMemo(() => series.isx60.map((p) => p.date), [series.isx60])
@@ -178,6 +176,36 @@ export function MarketPage() {
     const traded = companies.filter((c) => !c.stale)
     return { up: traded.filter((c) => c.pct > 0).length, down: traded.filter((c) => c.pct < 0).length, flat: traded.filter((c) => c.pct === 0).length }
   }, [companies])
+
+  const filtered = useMemo(() => {
+    const needle = q.trim().toLowerCase()
+    const val = (c: Company): number | string | null => {
+      switch (sort.key) {
+        case 'name': return companyName(c, locale)
+        case 'price': return c.close || null
+        case 'd1': return c.stale ? null : c.pct
+        case 'd7': return c.stale ? null : changeOver(c, 7)
+        case 'd30': return c.stale ? null : changeOver(c, 30)
+        case 'volume': return c.stale ? null : c.shares_traded || 0
+        case 'shares': return c.shares || null
+        default: return liveMcap(c)
+      }
+    }
+    const dir = sort.dir === 'asc' ? 1 : -1
+    return companies
+      .filter((c) => sector === 'all' || c.sec === sector)
+      .filter((c) => !needle || c.sym.toLowerCase().includes(needle) || c.ar.includes(q.trim()) || c.en.toLowerCase().includes(needle))
+      .sort((a, b) => {
+        const x = val(a), y = val(b)
+        if (x == null && y == null) return liveMcap(b) - liveMcap(a)
+        if (x == null) return 1
+        if (y == null) return -1
+        if (typeof x === 'string' && typeof y === 'string') return x.localeCompare(y, locale) * dir
+        return ((x as number) - (y as number)) * dir || liveMcap(b) - liveMcap(a)
+      })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [companies, q, sector, sort, hist, session, locale])
+  const rows = showAll || q.trim() ? filtered : filtered.slice(0, 20)
 
   return (
     <SiteShell>
@@ -236,13 +264,20 @@ export function MarketPage() {
               <colgroup><col /><col className="iqm-c-price" /><col className="iqm-c-chg" /><col className="iqm-c-chg iqm-hide-sm" /><col className="iqm-c-chg iqm-hide-sm" /><col className="iqm-c-val iqm-hide-sm" /><col className="iqm-c-val iqm-hide-md" /></colgroup>
               <thead>
                 <tr>
-                  <th>{m.colCompany}</th>
-                  <th className="is-end">{p.board.price}</th>
-                  <th className="is-end">{p.board.d1}</th>
-                  <th className="is-end iqm-hide-sm">{p.board.d7}</th>
-                  <th className="is-end iqm-hide-sm">{p.board.d30}</th>
-                  <th className="is-end iqm-hide-sm">{p.board.volume}</th>
-                  <th className="is-end iqm-hide-md">{p.board.shares}</th>
+                  {([
+                    ['name', m.colCompany, ''], ['price', p.board.price, 'is-end'], ['d1', p.board.d1, 'is-end'],
+                    ['d7', p.board.d7, 'is-end iqm-hide-sm'], ['d30', p.board.d30, 'is-end iqm-hide-sm'],
+                    ['volume', p.board.volume, 'is-end iqm-hide-sm'], ['shares', p.board.shares, 'is-end iqm-hide-md'],
+                  ] as [SortKey, string, string][]).map(([key, label, cls]) => {
+                    const on = sort.key === key
+                    return (
+                      <th key={key} className={cls} aria-sort={on ? (sort.dir === 'asc' ? 'ascending' : 'descending') : 'none'}>
+                        <button type="button" className={`iqm-sort ${on ? 'is-on' : ''}`.trim()} onClick={() => sortBy(key)}>
+                          {label}<span className="iqm-sort-arrow" aria-hidden="true">{on ? (sort.dir === 'asc' ? '↑' : '↓') : '↕'}</span>
+                        </button>
+                      </th>
+                    )
+                  })}
                 </tr>
               </thead>
               <tbody>
@@ -289,7 +324,7 @@ export function MarketPage() {
           {!loading && !rows.length && !failed ? (
             <div className="iqm-empty"><p className="id-h3">{p.emptyTitle}</p><p className="id-cap">{p.emptyNote}</p></div>
           ) : null}
-          {rows.length ? <p className="id-cap iqm-count">{p.showing(int.format(filtered.length))} · {p.board.sortNote}</p> : null}
+          {rows.length ? <p className="id-cap iqm-count">{p.showing(int.format(filtered.length))}{sort.key === 'mcap' ? ` · ${p.board.sortNote}` : ''}</p> : null}
         </section>
         </div>
       </main>
