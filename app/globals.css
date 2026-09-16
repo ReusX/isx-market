@@ -81,6 +81,9 @@
      r,g,b for canvas work. */
   --hero-bg:         #2a5fcf;
   --hero-plate:      42, 95, 207;
+  /* The active row of a section rail · a warm-white filled pill. */
+  --rail-on-bg:      #ffffff;
+  --rail-on-ink:     var(--navy);
 
   /* ── Type ── */
   --font-body:       var(--font-sans);
@@ -144,6 +147,8 @@
     --hover-tint:      #143069;
     --hero-bg:         #0a2b74;
     --hero-plate:      10, 43, 116;
+    --rail-on-bg:      var(--cream);
+    --rail-on-ink:     var(--navy);
     --shadow-sm:  0 0 0 1px rgba(244, 246, 251, 0.08);
     --shadow-md:  0 0 0 1px rgba(244, 246, 251, 0.14);
     --shadow-pop: 0 0 0 1px rgba(244, 246, 251, 0.14);
@@ -184,6 +189,8 @@
   --hover-tint:      #143069;
   --hero-bg:         #0a2b74;
   --hero-plate:      10, 43, 116;
+  --rail-on-bg:      var(--cream);
+  --rail-on-ink:     var(--navy);
   --shadow-sm:  0 0 0 1px rgba(244, 246, 251, 0.08);
   --shadow-md:  0 0 0 1px rgba(244, 246, 251, 0.14);
   --shadow-pop: 0 0 0 1px rgba(244, 246, 251, 0.14);

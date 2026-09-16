@@ -17,6 +17,7 @@ open it in a browser — it is the answer to "what should this look like".
 | Type | Readex Pro, one face | 200–300 display · 400 body · 500 controls. Nothing bold. No positive tracking on Arabic. Figures tabular. |
 | Shape | 54 px pills · 32 px blocks · 16 px panels · 8 px chips | |
 | Density | one row = one fact | Detail goes behind a click. Prefer a table to cards. |
+| Shell | page shell ≤ 1920px = 260px section rail + 32px gap + flexible main (`min-width: 0`) | Top nav = product navigation (the four doors). The rail = navigation within the active section only; never repeated in the content. < 1280px: rail becomes one scrollable row above the content; < 720px: out of flow, opened via «القسم». Tables use defined column tracks, never space-between. |
 | Width | **full width for information surfaces; constrained width for reading** | `.id-full` for tables/boards/dashboards (edge to edge, nav gutters) · `.id-wrap` 1180px for hubs and mixed pages · `.id-read` 72ch for articles, guides, legal, prose. |
 | Theme | light + dark | Dark is the same identity turned over: deep-navy page `#06173A`, cream ink, same blue block, same pills, no shadows. Style through ROLE tokens (`--page`, `--ink`, `--border`, `--primary-bg`, `--moss`…), never primitives. `data-theme` is always stamped (stored choice, else OS). |
 

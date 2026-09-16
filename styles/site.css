@@ -49,7 +49,9 @@
 .iqn.is-hero .iqn-pill[aria-current='page'] svg, .iqn.is-hero .iqn-pill.is-strong svg { color: #fff; }
 .iqn-burger { display: none; }
 
-@media (max-width: 960px) {
+/* The four doors need ~1180px beside the logo and tools; below that the
+   doors fold behind the burger rather than wrap into a second row. */
+@media (max-width: 1180px) {
   .iqn { grid-template-columns: auto 1fr; }
   .iqn-logo { grid-row: 1; justify-self: start; }
   .iqn-tools { grid-row: 1; grid-column: 2; }
@@ -72,23 +74,56 @@
 .iqf-note { max-width: 64ch; margin: 24px 0; }
 .iqf-small { font-size: 13px; color: var(--muted); }
 
-/* ── Door rail · the sidebar inside a door ──────────────────────────────── */
-.iq-door { display: grid; grid-template-columns: 220px minmax(0, 1fr); gap: 40px; align-items: start; }
-.iqr { position: sticky; top: 88px; }
-.iqr-door { display: flex; align-items: center; gap: 8px; margin: 8px 0 16px; padding-inline-start: 18px; font-size: 13px; color: var(--secondary); }
+/* ── Door rail · navigation within the active product section ──────────
+   Page shell capped at 1920px: a 260px sidebar on the start side, a 32px
+   gap, and a main area that takes everything else (min-width: 0 so a wide
+   table scrolls inside it instead of stretching the page). */
+:root { --iqn-h: 76px; }
+.iq-door {
+  max-width: 1920px; margin-inline: auto;
+  display: grid; grid-template-columns: 260px minmax(0, 1fr); gap: 32px; align-items: start;
+}
+.iq-door > .iqm-body, .iq-door > .iq-main { min-width: 0; }
+
+.iqr { position: sticky; top: calc(var(--iqn-h) + 12px); }
+.iqr-door { display: flex; align-items: center; gap: 8px; margin: 8px 0 12px; padding-inline-start: 18px; font-size: 13px; color: var(--secondary); }
 .iqr-door svg { color: var(--nav-active); }
-.iqr-list { display: flex; flex-direction: column; gap: 4px; }
+.iqr-list { display: flex; flex-direction: column; gap: 2px; }
 .iqr-item {
   display: flex; align-items: center; min-height: 44px; padding: 0 18px; border-radius: var(--r-pill);
-  color: var(--ink); font-size: 15px; font-weight: 400; text-decoration: none;
+  color: var(--ink); font-size: 15px; font-weight: 400; text-decoration: none; white-space: nowrap;
+  transition: background .12s, color .12s;
 }
 .iqr-item:hover { background: var(--surface-2); }
-.iqr-item[aria-current='page'] { background: var(--primary-bg); color: var(--primary-ink); font-weight: 500; }
-@media (max-width: 960px) {
-  .iq-door { grid-template-columns: 1fr; gap: 20px; }
+.iqr-item[aria-current='page'] { background: var(--rail-on-bg); color: var(--rail-on-ink); font-weight: 500; box-shadow: 0 0 0 1px var(--border); }
+.iqr-sheet { display: none; }
+
+/* < 1280px · the sidebar leaves the grid; one scrollable row above the content. */
+@media (max-width: 1279px) {
+  .iq-door { grid-template-columns: minmax(0, 1fr); gap: 20px; }
   .iqr { position: static; }
   .iqr-door { display: none; }
-  .iqr-list { flex-direction: row; flex-wrap: wrap; gap: 8px; }
-  .iqr-item { min-height: 40px; padding: 0 16px; border: 1px solid var(--border); background: var(--surface); font-size: 14px; }
-  .iqr-item[aria-current='page'] { border-color: var(--primary-bg); }
+  .iqr-list { flex-direction: row; gap: 6px; overflow-x: auto; padding-bottom: 6px; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
+  .iqr-list::-webkit-scrollbar { display: none; }
+  .iqr-item { min-height: 40px; padding: 0 16px; font-size: 14px; flex: 0 0 auto; }
+}
+/* < 720px · out of the flow; a «القسم» control opens the same list. */
+@media (max-width: 719px) {
+  .iqr { display: none; }
+  .iqr-sheet { display: block; position: relative; }
+  .iqr-toggle {
+    list-style: none; display: inline-flex; align-items: center; gap: 10px; min-height: 44px; padding: 0 16px 0 14px;
+    border-radius: var(--r-pill); border: 1px solid var(--border); background: var(--surface); color: var(--ink);
+    font-size: 14px; cursor: pointer; user-select: none;
+  }
+  .iqr-toggle::-webkit-details-marker { display: none; }
+  .iqr-toggle-k { color: var(--secondary); }
+  .iqr-toggle-v { font-weight: 500; }
+  .iqr-sheet[open] .iqr-toggle svg { transform: rotate(180deg); }
+  .iqr-sheet .iqr-list {
+    position: absolute; z-index: 15; inset-inline-start: 0; top: calc(100% + 8px); min-width: 240px;
+    flex-direction: column; gap: 2px; padding: 8px; overflow: visible;
+    background: var(--surface-popover); border: 1px solid var(--border); border-radius: var(--r-md);
+  }
+  .iqr-sheet .iqr-item { min-height: 44px; font-size: 15px; }
 }

@@ -1,5 +1,6 @@
 /* /market · layout only; vocabulary in styles/identity.css. */
 .iqm { padding-block: 24px 0; }
+.iqm-body { min-width: 0; }
 .iqm-head { margin-bottom: 28px; }
 
 .iqm-session { padding: 28px 32px 32px; }
@@ -22,7 +23,12 @@
 .iqm-controls { display: flex; gap: 16px; align-items: center; flex-wrap: wrap; margin-bottom: 20px; }
 .iqm-controls .id-input { max-width: 340px; }
 .iqm-co { display: block; color: inherit; text-decoration: none; }
+.iqm-table { table-layout: fixed; }
+.iqm-c-price { width: 120px; } .iqm-c-chg { width: 150px; } .iqm-c-val { width: 160px; }
 .iqm-table td { padding-block: 14px; }
+.iqm-table td:first-child { overflow: hidden; }
+.iqm-table .id-name { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+@media (max-width: 760px) { .iqm-c-price { width: 84px; } .iqm-c-chg { width: 110px; } }
 .iqm-empty { text-align: center; padding: 56px 0; }
 .iqm-count { margin: 16px 0 0; }
 @media (max-width: 760px) { .iqm-hide-sm { display: none; } }

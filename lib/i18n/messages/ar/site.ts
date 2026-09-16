@@ -6,6 +6,7 @@
 export const site = {
   brandHome: 'IQWealth · الرئيسية',
   menu:      'القائمة',
+  section:   'القسم',
   close:     'إغلاق',
   signIn:    'تسجيل الدخول',
   account:   'حسابي',

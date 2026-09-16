@@ -152,6 +152,9 @@ export function MarketPage() {
 
           <div className="id-table-scroll">
             <table className="id-table id-num iqm-table">
+              {/* Defined columns: the company takes what is left; the
+                  figures sit in fixed tracks, so nothing floats apart. */}
+              <colgroup><col /><col className="iqm-c-price" /><col className="iqm-c-chg" /><col className="iqm-c-val" /></colgroup>
               <thead>
                 <tr>
                   <th>{m.colCompany}</th>
