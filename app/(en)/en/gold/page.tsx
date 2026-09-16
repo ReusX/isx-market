@@ -1,3 +1,5 @@
+import { messages } from '@/lib/i18n'
+import { goldFaqFigures, faqLd } from '@/lib/ratesFaq'
 import { fetchGold, fetchFx } from '@/lib/rates'
 import { GoldPage } from '@/components/site/GoldPage'
 
@@ -11,5 +13,12 @@ export const dynamic = 'force-static'
 
 export default async function Page() {
   const [gold, fx] = await Promise.all([fetchGold(), fetchFx()])
-  return <GoldPage gold={gold} fx={fx} />
+  /* The visible FAQ and this markup are the same call on the same data. */
+  const faq = messages('en').rates.page.gold.faq(goldFaqFigures(gold, 'en'))
+  return (
+    <>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({ '@context': 'https://schema.org', ...faqLd(faq) }) }} />
+      <GoldPage gold={gold} fx={fx} />
+    </>
+  )
 }

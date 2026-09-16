@@ -3,6 +3,7 @@ import { fetchSilver, fetchFx } from '@/lib/rates'
 import { SilverPage } from '@/components/site/SilverPage'
 import { absUrl, seoAlternates } from '@/lib/seo'
 import { messages } from '@/lib/i18n'
+import { silverFaqFigures, faqLd } from '@/lib/ratesFaq'
 
 /** `/en/silver` — see the Arabic route. */
 export const revalidate = 10800
@@ -23,12 +24,12 @@ export const metadata: Metadata = {
 
 export default async function Page() {
   const [silver, fx] = await Promise.all([fetchSilver(), fetchFx()])
-  const faq = messages('en').rates.page.silver.faq
+  const faq = messages('en').rates.page.silver.faq(silverFaqFigures(silver, fx, 'en'))
   const ld = {
     '@context': 'https://schema.org',
     '@graph': [
       { '@type': 'WebPage', '@id': absUrl('/silver', 'en'), url: absUrl('/silver', 'en'), name: 'Silver price in Iraq today', inLanguage: 'en', ...(silver?.date ? { dateModified: silver.date } : {}) },
-      { '@type': 'FAQPage', mainEntity: faq.map((f) => ({ '@type': 'Question', name: f.q, acceptedAnswer: { '@type': 'Answer', text: f.a } })) },
+      faqLd(faq),
     ],
   }
   return (

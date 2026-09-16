@@ -3,6 +3,7 @@ import { fetchSilver, fetchFx } from '@/lib/rates'
 import { SilverPage } from '@/components/site/SilverPage'
 import { absUrl, seoAlternates } from '@/lib/seo'
 import { messages } from '@/lib/i18n'
+import { silverFaqFigures, faqLd } from '@/lib/ratesFaq'
 
 /* Re-read the source every 3h; served from the static cache in between,
    like /gold. `force-static`: the source's no-cache headers would otherwise
@@ -25,12 +26,12 @@ export const metadata: Metadata = {
 
 export default async function Page() {
   const [silver, fx] = await Promise.all([fetchSilver(), fetchFx()])
-  const faq = messages('ar').rates.page.silver.faq
+  const faq = messages('ar').rates.page.silver.faq(silverFaqFigures(silver, fx, 'ar'))
   const ld = {
     '@context': 'https://schema.org',
     '@graph': [
       { '@type': 'WebPage', '@id': absUrl('/silver'), url: absUrl('/silver'), name: 'سعر الفضة اليوم في العراق', inLanguage: ['ar-IQ', 'en'], ...(silver?.date ? { dateModified: silver.date } : {}) },
-      { '@type': 'FAQPage', mainEntity: faq.map((f) => ({ '@type': 'Question', name: f.q, acceptedAnswer: { '@type': 'Answer', text: f.a } })) },
+      faqLd(faq),
     ],
   }
   return (

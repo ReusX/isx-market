@@ -235,9 +235,10 @@ export const rates: typeof ar = {
         ],
       },
       faqTitle: 'Questions about the gold price in Iraq',
-      faq: [
-        { q: 'What is the price of a 21K mithqal of gold in Iraq today?', a: 'The 21K mithqal price is at the top of the page: the published gram price multiplied by 4.608. 21K is the karat most traded in Iraqi markets and the price changes daily.' },
-        { q: 'What is the gold price per gram in Iraq today?', a: 'The gram price depends on the karat: 24K (pure gold) is the dearest, then 21K, the most traded, then 18K. The table by karat shows the gram, mithqal and ounce for each.' },
+      faq: (v: { mithqal21: string; gram21: string; gram24: string; gram18: string; ounceUsd: string; date: string }) => [
+        { q: 'What is the price of a 21K mithqal of gold in Iraq today?', a: `A 21-karat mithqal of gold in Iraq is ${v.mithqal21} Iraqi dinars today (list of ${v.date}): the gram price of ${v.gram21} dinars multiplied by 4.608. 21K is the karat most traded in Iraqi markets and the price changes daily.` },
+        { q: 'What is the gold price per gram in Iraq today?', a: `A gram of 24K gold is ${v.gram24} dinars today, 21K is ${v.gram21} and 18K is ${v.gram18}. 24K is pure gold and the dearest, 21K the most traded, then 18K. The table by karat shows the gram, mithqal and ounce for each.` },
+        { q: 'What is the gold ounce price today?', a: `The gold ounce is $${v.ounceUsd} today as the source publishes it. An ounce is 31.1035 g; its dinar price per karat is in the table.` },
         { q: 'What is a mithqal and how many grams is it?', a: 'A mithqal is the traditional weight unit of Iraqi gold markets, equal to 4.608 grams. The 21K mithqal price is the figure most quoted in souks and jewellery markets.' },
       ],
     },
@@ -275,9 +276,9 @@ export const rates: typeof ar = {
         ],
       },
       faqTitle: 'Questions about the silver price in Iraq',
-      faq: [
-        { q: 'What is the silver price per gram in Iraq today?', a: 'The fine-silver (999) gram price is at the top of the page in dollars and in dinars at the parallel rate; the purity table shows the gram for every grade from 999 to 800.' },
-        { q: 'What is the silver ounce price today?', a: 'The ounce price in dollars is at the top of the page with its daily change, and its dinar equivalent. An ounce is 31.1035 g.' },
+      faq: (v: { gram999: string; gram999Iqd: string; gram925Iqd: string; ounceUsd: string; ounceIqd: string; date: string }) => [
+        { q: 'What is the silver price per gram in Iraq today?', a: `A gram of fine silver (999) is $${v.gram999} today — about ${v.gram999Iqd} Iraqi dinars at the parallel rate — and a gram of 925 sterling about ${v.gram925Iqd} dinars (list of ${v.date}). The purity table shows the gram for every grade from 999 to 800.` },
+        { q: 'What is the silver ounce price today?', a: `The silver ounce is $${v.ounceUsd} today, about ${v.ounceIqd} dinars at the parallel rate. An ounce is 31.1035 g; its daily change is at the top of the page.` },
         { q: 'What is the difference between 925 and 999 silver?', a: '999 is near-pure silver used in bars and investment coins; 925 (sterling) is 92.5% silver and 7.5% copper for hardness, and is the grade common in jewellery.' },
       ],
     },
@@ -304,10 +305,10 @@ export const rates: typeof ar = {
         ],
       },
       faqTitle: 'Questions about the oil price',
-      faq: [
-        { q: 'What is the price of a barrel of oil today?', a: 'The barrel price in dollars and Iraqi dinars for the main grades is in the blends table: Brent, WTI, the OPEC basket and Iraq\'s Basrah crude. Prices update through the day.' },
-        { q: 'What is the price of Iraqi Basrah crude today?', a: 'Basrah Heavy and Basrah Medium are Iraq\'s main export grades; their dollar price and dinar equivalent are at the top of the page.' },
-        { q: 'What is the difference between Brent and WTI?', a: 'Brent is the North Sea benchmark used to price most Middle East grades; West Texas Intermediate is the US benchmark. Brent usually trades slightly above WTI.' },
+      faq: (v: { heavy: string; medium: string; brent: string; wti: string; heavyIqd: string; date: string }) => [
+        { q: 'What is the price of a barrel of oil today?', a: `Brent is $${v.brent} a barrel today, WTI $${v.wti} and Basrah Heavy $${v.heavy} (observed ${v.date}). The blends table shows every grade in dollars and its Iraqi dinar equivalent.` },
+        { q: 'What is the price of Iraqi Basrah crude today?', a: `Basrah Heavy is $${v.heavy} a barrel and Basrah Medium $${v.medium} — about ${v.heavyIqd} dinars a barrel for the heavy grade at the parallel rate. They are Iraq\'s two main export grades; the figures are published assessments, not official selling prices.` },
+        { q: 'What is the difference between Brent and WTI?', a: `Brent is the North Sea benchmark used to price most Middle East grades; West Texas Intermediate is the US benchmark. Today Brent is $${v.brent} and WTI $${v.wti}.` },
         { q: 'Why does the oil price matter to Iraq\'s economy?', a: 'Oil is most of Iraq\'s budget revenue and exports, so the barrel price bears directly on government spending, the dinar\'s exchange rate and the economy at large.' },
       ],
     },

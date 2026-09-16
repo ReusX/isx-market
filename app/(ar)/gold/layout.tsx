@@ -1,6 +1,5 @@
 import type { Metadata } from 'next'
 import { absUrl, seoAlternates } from '@/lib/seo'
-import { messages } from '@/lib/i18n'
 
 export const metadata: Metadata = {
   title: { absolute: 'سعر الذهب اليوم في العراق · مثقال وغرام عيار 21 و24' },
@@ -51,12 +50,6 @@ const faqSchema = {
           { '@type': 'ListItem', position: 2, name: 'Gold Price in Iraq', item: absUrl('/gold') },
         ],
       },
-    },
-    {
-      '@type': 'FAQPage',
-      /* The same array the page renders — markup that disagrees with the
-         visible copy is worse than none. */
-      mainEntity: messages('ar').rates.page.gold.faq.map((f) => ({ '@type': 'Question', name: f.q, acceptedAnswer: { '@type': 'Answer', text: f.a } })),
     },
   ],
 }

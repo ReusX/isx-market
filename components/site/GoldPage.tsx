@@ -8,6 +8,7 @@ import { EconRail } from './EconRail'
 import { PageTitle } from './PageTitle'
 import { AboutSection } from './AboutSection'
 import type { GoldData, FxData } from '@/lib/rates'
+import { goldFaqFigures } from '@/lib/ratesFaq'
 import '@/styles/econ-page.css'
 
 /**
@@ -130,7 +131,7 @@ export function GoldPage({ gold, fx }: { gold: GoldData | null; fx: FxData | nul
 
           <section className="eco-faq" aria-label={P.faqTitle}>
             <h2 className="id-h3">{P.faqTitle}</h2>
-            {P.faq.map((f) => (
+            {P.faq(goldFaqFigures(gold, locale)).map((f) => (
               <details key={f.q} className="eco-q"><summary>{f.q}</summary><p className="id-body">{f.a}</p></details>
             ))}
           </section>

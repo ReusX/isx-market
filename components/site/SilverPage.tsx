@@ -9,6 +9,7 @@ import { PageTitle } from './PageTitle'
 import { AboutSection } from './AboutSection'
 import { SeriesChart } from './SeriesChart'
 import type { SilverData, FxData } from '@/lib/rates'
+import { silverFaqFigures } from '@/lib/ratesFaq'
 import '@/styles/econ-page.css'
 
 /**
@@ -140,7 +141,7 @@ export function SilverPage({ silver, fx }: { silver: SilverData | null; fx: FxDa
 
           <section className="eco-faq" aria-label={P.faqTitle}>
             <h2 className="id-h3">{P.faqTitle}</h2>
-            {P.faq.map((f) => <details key={f.q} className="eco-q"><summary>{f.q}</summary><p className="id-body">{f.a}</p></details>)}
+            {P.faq(silverFaqFigures(silver, fx, locale)).map((f) => <details key={f.q} className="eco-q"><summary>{f.q}</summary><p className="id-body">{f.a}</p></details>)}
           </section>
 
           <AboutSection title={P.about.title} body={P.about.body} />

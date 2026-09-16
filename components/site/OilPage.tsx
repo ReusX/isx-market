@@ -7,6 +7,7 @@ import { EconRail } from './EconRail'
 import { PageTitle } from './PageTitle'
 import { AboutSection } from './AboutSection'
 import type { OilData, OilBlend, FxData } from '@/lib/rates'
+import { oilFaqFigures } from '@/lib/ratesFaq'
 import '@/styles/econ-page.css'
 
 /**
@@ -97,7 +98,7 @@ export function OilPage({ oil, fx }: { oil: OilData | null; fx: FxData | null })
 
           <section className="eco-faq" aria-label={P.faqTitle}>
             <h2 className="id-h3">{P.faqTitle}</h2>
-            {P.faq.map((f) => (
+            {P.faq(oilFaqFigures(oil, fx, locale)).map((f) => (
               <details key={f.q} className="eco-q"><summary>{f.q}</summary><p className="id-body">{f.a}</p></details>
             ))}
           </section>

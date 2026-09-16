@@ -1,3 +1,5 @@
+import { messages } from '@/lib/i18n'
+import { oilFaqFigures, faqLd } from '@/lib/ratesFaq'
 import { fetchOil, fetchFx } from '@/lib/rates'
 import { OilPage } from '@/components/site/OilPage'
 
@@ -11,5 +13,12 @@ export const dynamic = 'force-static'
 
 export default async function Page() {
   const [oil, fx] = await Promise.all([fetchOil(), fetchFx()])
-  return <OilPage oil={oil} fx={fx} />
+  /* The visible FAQ and this markup are the same call on the same data. */
+  const faq = messages('ar').rates.page.oil.faq(oilFaqFigures(oil, fx, 'ar'))
+  return (
+    <>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({ '@context': 'https://schema.org', ...faqLd(faq) }) }} />
+      <OilPage oil={oil} fx={fx} />
+    </>
+  )
 }
