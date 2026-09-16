@@ -49,10 +49,11 @@ import type { MarketInitial } from '@/lib/marketServer'
 const price = new Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
 const int = new Intl.NumberFormat('en-US')
 
-type Units = { bn: string; mn: string; k: string }
+type Units = { tn: string; bn: string; mn: string; k: string }
 function compact(v: number | null | undefined, u: Units): string {
   if (v == null || !Number.isFinite(v)) return '—'
   const a = Math.abs(v)
+  if (a >= 1e12) return `${(v / 1e12).toFixed(a >= 1e13 ? 0 : 1)} ${u.tn}`
   if (a >= 1e9) return `${(v / 1e9).toFixed(a >= 1e10 ? 0 : 1)} ${u.bn}`
   if (a >= 1e6) return `${(v / 1e6).toFixed(a >= 1e7 ? 0 : 1)} ${u.mn}`
   if (a >= 1e3) return `${(v / 1e3).toFixed(0)} ${u.k}`

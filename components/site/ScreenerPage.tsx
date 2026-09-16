@@ -39,7 +39,7 @@ const price = new Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximum
 const int = new Intl.NumberFormat('en-US')
 const COLS: MetricId[] = ['change', 'liquidity', 'mcap', 'foreign', 'pe', 'band']
 
-function fmtMetric(id: MetricId, v: number | null, u: { bn: string; mn: string; k: string }): string {
+function fmtMetric(id: MetricId, v: number | null, u: { tn: string; bn: string; mn: string; k: string }): string {
   if (v == null) return '—'
   switch (id) {
     case 'price': return price.format(v)
@@ -48,6 +48,7 @@ function fmtMetric(id: MetricId, v: number | null, u: { bn: string; mn: string; 
     case 'pe': return v.toFixed(1)
     default: {
       const a = Math.abs(v), sign = v < 0 ? '−' : ''
+      if (a >= 1e12) return `${sign}${(a / 1e12).toFixed(a >= 1e13 ? 0 : 1)} ${u.tn}`
       if (a >= 1e9) return `${sign}${(a / 1e9).toFixed(a >= 1e10 ? 0 : 1)} ${u.bn}`
       if (a >= 1e6) return `${sign}${(a / 1e6).toFixed(a >= 1e7 ? 0 : 1)} ${u.mn}`
       if (a >= 1e3) return `${sign}${(a / 1e3).toFixed(0)} ${u.k}`
