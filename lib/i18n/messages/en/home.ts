@@ -120,4 +120,37 @@ export const home: typeof ar = {
       'Market cap = last traded price × shares issued, the same figure shown on the Market and Companies pages · '
       + 'a snapshot of the register, not an official ranking. Companies with no price or no share count are excluded, not counted as zero.',
   },
+  landing: {
+    title:    'Iraq\u2019s market,\nmade clear.',
+    intro:    'Iraq Stock Exchange prices, company data, bank rates, and the dollar, oil and gold \u2014 in one place, in plain language.',
+    intro2:   'Official data, updated every session.',
+    explore:  'Start with the market',
+    scroll:   'Sections',
+    soon:     'Soon',
+    doors: {
+      markets: {
+        name: 'Markets',
+        lede: 'Everything traded on the Iraq Stock Exchange: prices, companies, the index, statistics, and your portfolio.',
+        links: {
+          market: 'Market', companies: 'Companies', screener: 'Screener', heatmap: 'Heatmap',
+          statistics: 'Statistics', pulse: 'Pulse', portfolio: 'Portfolio', watchlist: 'Watchlist', alerts: 'Alerts',
+        },
+      },
+      banking: {
+        name: 'Banks & Finance',
+        lede: 'Every Iraqi bank with an independent rating, and one clear rate per deposit and loan.',
+        links: { banks: 'Banks', deposits: 'Deposits', loans: 'Loans & financing', cards: 'Cards & apps' },
+      },
+      economy: {
+        name: 'Iraqi Economy',
+        lede: 'The dollar on the street, the oil that funds the state, and the gold people save in.',
+        links: { fx: 'Dollar', oil: 'Oil', gold: 'Gold', cbi: 'Central Bank', budget: 'Budget' },
+      },
+      learn: {
+        name: 'Learn',
+        lede: 'From a first share to reading financial statements. In Arabic, without the jargon.',
+        links: { learn: 'Learning guide', zero: 'Trading from zero', news: 'News', research: 'Research' },
+      },
+    },
+  },
 }

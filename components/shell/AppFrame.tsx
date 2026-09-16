@@ -61,6 +61,13 @@ const BARE_ROUTES = [
   '/login', '/signup', '/verify-email', '/forgot-password',
 ]
 
+/**
+ * The homepage is bare too, but matched exactly: its blue opener carries its
+ * own navigation, and a sidebar beside a full-bleed hero is two chromes on
+ * one screen. Prefix-matching '/' would strip the frame from every route.
+ */
+const BARE_EXACT = ['/']
+
 export default function AppFrame({ children }: { children: ReactNode }) {
   const pathname = usePathname() ?? '/'
   const { user } = useApp()
@@ -73,7 +80,7 @@ export default function AppFrame({ children }: { children: ReactNode }) {
    * route test in the shell goes through `splitLocale` for this reason.
    */
   const { route } = splitLocale(pathname)
-  const bare = BARE_ROUTES.some((r) => route === r || route.startsWith(`${r}/`))
+  const bare = BARE_EXACT.includes(route) || BARE_ROUTES.some((r) => route === r || route.startsWith(`${r}/`))
 
   const [collapsed, setCollapsed] = useState(false)
   const [navOpen, setNavOpen] = useState(false)

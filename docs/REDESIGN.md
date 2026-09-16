@@ -46,7 +46,7 @@ Order is by traffic and by what other pages borrow from. Shell first because eve
 | # | Route(s) | Component(s) | Stylesheet(s) to replace | Status |
 |---|---|---|---|---|
 | 1 | shell (header, nav, mobile nav, footer, search) | `shell/GlobalHeader` `SideNav` `MobileNav` `SiteFooter` `GlobalSearch` `AppFrame` | `shell.css` (30 dark rules) | ☐ |
-| 2 | `/` | `routes/HomePage` | `home.css` (1154 lines, 39 dark rules) | ☐ |
+| 2 | `/` | `routes/Landing` (+ `home/Globe`) | `landing.css` · old `HomePage`/`home.css` kept only until /market reuses its modules | ☑ 2026-09-16 |
 | 3 | `/market` | `routes/MarketBoard` | `market.css` | ☐ |
 | 4 | `/c/[sym]` | `routes/CompanyDetail` `company/CompanyProfile` `company/CompanyChart` | `company.css` `chart-engine.css` `panels.css` | ☐ |
 | 5 | `/c/[sym]/financials` | `routes/CompanyFinancials` | `financials.css` | ☐ |
@@ -70,3 +70,4 @@ Every English route (`/en/...`) shares the component with its Arabic twin, so a 
 ## Log
 
 - 2026-09-16 · Foundation landed on branch `redesign/latitude`.
+- 2026-09-16 · Homepage: full-viewport blue opener with the character globe (`lib/landmask.ts` + canvas) and the four doors — الأسواق · البنوك والتمويل · الاقتصاد العراقي · تعلّم. Renders bare (no sidebar). Pages that do not exist yet (deposits, loans, cards, CBI, budget) show «قريباً».
