@@ -2,7 +2,11 @@ import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import { absUrl, seoAlternates } from '@/lib/seo'
 import Breadcrumbs from '@/components/seo/Breadcrumbs'
-import { BankProfile } from '@/components/routes/BankProfile'
+/* `load()` feeds the metadata and the JSON-LD; `loadBankProfile` shapes the
+   same rows for the page. Both read the same PostgREST URLs, which Next
+   dedupes within one render, so nothing is fetched twice. */
+import { BankProfilePage } from '@/components/site/BankProfilePage'
+import { loadBankProfile } from '@/lib/banksServer'
 import { bankTitle, bankDescription, bankJsonLd, type BankSeoInput } from '@/lib/bankSeo'
 import { messages } from '@/lib/i18n'
 import {
@@ -65,8 +69,10 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
   if (canonical !== slug) permanentRedirect(`/banks/${canonical}`)
   const loaded = await load(slug)
   if (!loaded) notFound()
-  const { input, conditions, fin, editorial } = loaded
-  const { bank, products, facts, services } = input
+  const profile = await loadBankProfile(slug)
+  if (!profile) notFound()
+  const { input } = loaded
+  const { bank } = input
   const ld = bankJsonLd(input, 'ar')
   const t = messages('ar').banks
   return (
@@ -81,11 +87,7 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
       {/* Structured data only where the page is indexable: markup on a noindex
           page is a request to be treated as a result. */}
       {ld ? <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(ld) }} /> : null}
-      <BankProfile
-        bank={bank} products={products} facts={facts} conditions={conditions}
-        services={services} financials={fin} coverage={coverageOf(bank, products)}
-        editorial={editorial}
-      />
+      <BankProfilePage initial={profile} />
     </>
   )
 }

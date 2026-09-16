@@ -19,7 +19,9 @@ import { NavIcon } from './SiteNav'
  *             scrollable row above the content — never squeezed beside it.
  *   < 720px   out of the flow entirely: a «القسم» control opens the list.
  */
-export type RailItem = { label: string; route: string }
+/** `soon` marks a page that is planned but not built: rendered as a row
+ *  with a «قريباً» tag, never as a link to a 404. */
+export type RailItem = { label: string; route: string; soon?: boolean }
 
 export function DoorRail({ door, items }: { door: 'markets' | 'banking' | 'economy' | 'learn'; items: RailItem[] }) {
   const { t, href: L } = useLocale()
@@ -30,7 +32,9 @@ export function DoorRail({ door, items }: { door: 'markets' | 'banking' | 'econo
 
   const list = (
     <nav className="iqr-list">
-      {items.map((it) => (
+      {items.map((it) => it.soon ? (
+        <span key={it.route} className="iqr-item is-soon" aria-disabled="true">{it.label}<small>{t.home.landing.soon}</small></span>
+      ) : (
         <Link key={it.route} href={L(it.route)} className="iqr-item" aria-current={isOn(it) ? 'page' : undefined}>{it.label}</Link>
       ))}
     </nav>

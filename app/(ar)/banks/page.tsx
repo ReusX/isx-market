@@ -1,8 +1,7 @@
 import type { Metadata } from 'next'
 import { absUrl, seoAlternates } from '@/lib/seo'
-import { BanksHub, type HubBank } from '@/components/routes/BanksHub'
-import { listBanks, listProducts, listServices, bankFinancials, coverageOf } from '@/lib/banks'
-import { editorialFor } from '@/lib/bankEditorial'
+import { BanksPage } from '@/components/site/BanksPage'
+import { loadBanksHub } from '@/lib/banksServer'
 
 /**
  * This replaces a legacy page that was Arabic-only, absent from navigation,
@@ -21,17 +20,5 @@ export const metadata: Metadata = {
 }
 
 export default async function Page() {
-  const [banks, products, services] = await Promise.all([listBanks(), listProducts(), listServices()])
-  const fin = await bankFinancials(banks.map((b) => b.ticker).filter(Boolean) as string[])
-  const rows: HubBank[] = banks.map((bank) => {
-    const p = products.filter((x) => x.bank_slug === bank.slug)
-    return {
-      bank, products: p,
-      services: services.filter((x) => x.bank_slug === bank.slug),
-      coverage: coverageOf(bank, p),
-      financials: bank.ticker ? fin.get(bank.ticker) : undefined,
-      editorial: editorialFor(bank.slug),
-    }
-  })
-  return <BanksHub rows={rows} />
+  return <BanksPage initial={await loadBanksHub()} />
 }

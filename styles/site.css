@@ -103,6 +103,9 @@
   transition: background .12s, color .12s;
 }
 .iqr-item:hover { background: var(--surface-2); }
+.iqr-item.is-soon { color: var(--muted); cursor: default; display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.iqr-item.is-soon:hover { background: transparent; }
+.iqr-item.is-soon small { font-size: 11px; border: 1px solid var(--border); border-radius: var(--r-pill); padding: 1px 8px; }
 .iqr-item { position: relative; }
 /* Active: a quiet surface and a thin blue edge on the start side — not a
    large fill. */
