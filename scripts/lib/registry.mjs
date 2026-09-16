@@ -35,15 +35,14 @@ export function readRegistry(file = 'lib/i18n/routes.ts') {
   }
 
   /* Self-check. These three are structural: the site root is mirrored, the
-     portfolio is private, and /charts is a retired compatibility route. If any
-     is missing the parse is wrong, and a blind gate is worse than no gate. */
+     portfolio is private, and /analysis is Arabic-only. If any is missing the
+     parse is wrong, and a blind gate is worse than no gate. */
   const problems = []
   if (!byClass.mirror.includes('/')) problems.push("registry parse: '/' should be mirror")
   if (!byClass.private.includes('/portfolio')) problems.push("registry parse: '/portfolio' should be private")
-  /* `/charts`, not `/banks`: /banks became a real bilingual pair when the
-     legacy page was replaced, so it is no longer a valid ar-only anchor.
-     /charts is still a retired compatibility route and still ar-only. */
-  if (!byClass['ar-only'].includes('/charts')) problems.push("registry parse: '/charts' should be ar-only")
+  /* `/analysis`: /banks became a bilingual pair and /charts was deleted
+     (301 → /), so neither is a valid ar-only anchor any more. */
+  if (!byClass['ar-only'].includes('/analysis')) problems.push("registry parse: '/analysis' should be ar-only")
   if (problems.length) {
     console.error('✗ cannot read lib/i18n/routes.ts')
     problems.forEach(p => console.error('  ·', p))
