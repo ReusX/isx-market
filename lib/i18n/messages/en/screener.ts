@@ -82,7 +82,7 @@ export const screener: typeof ar = {
   results: 'results',
   page: {
     eyebrow:  'Markets',
-    lede:     'Start from a preset, or write your own conditions: a company must meet all of them. A company without a given measure is excluded from that condition only.',
+    lede:     'Pick a ready-made filter above, or set your own under \u201cAdvanced filters\u201d. Only companies that meet every condition are shown.',
     presets:  'Presets',
     coverage: (n: string, total: string) => `P/E available for ${n} of ${total} companies`,
     showSuspended: 'Show suspended',
