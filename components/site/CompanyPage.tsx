@@ -150,7 +150,7 @@ export function CompanyPage({ initial }: { initial: CompanyInitial }) {
           </header>
 
           <section className="id-panel cmp-panel" aria-label={P.priceChart(name)}>
-            <PriceChart points={initial.series} label={P.priceChart(name)} />
+            <PriceChart bars={initial.series} label={P.priceChart(name)} sym={initial.sym} />
           </section>
 
           <section className="id-panel cmp-panel" aria-label={P.figures}>

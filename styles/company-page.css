@@ -78,3 +78,63 @@
 .cmp-split .is-sell { background: var(--sand-ink); opacity: .85; }
 
 .cmp-empty { padding: 24px 0; color: var(--secondary); font-size: 14px; }
+
+/* ── Chart toolbar, candles, volume ─────────────────────────────────────
+   See components/site/PriceChart.tsx. Everything here is layout and ink;
+   the rising/falling colours are the identity's moss and sand. */
+.cmp-ohlc { display: flex; flex-wrap: wrap; gap: 10px; align-items: baseline; }
+.cmp-tools { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; flex-wrap: wrap; margin-top: 14px; }
+.cmp-tools-end { display: flex; gap: 12px; flex-wrap: wrap; justify-content: flex-end; }
+.cmp-hint { margin: 8px 0 0; }
+
+.cmp-wick { stroke-width: 1; }
+.cmp-candle.is-up .cmp-wick { stroke: var(--moss-ink); }
+.cmp-candle.is-down .cmp-wick { stroke: var(--sand-ink); }
+.cmp-candle.is-up .cmp-body { fill: var(--moss-ink); }
+.cmp-candle.is-down .cmp-body { fill: var(--sand-ink); }
+.cmp-vol { opacity: .35; }
+.cmp-vol.is-up { fill: var(--moss-ink); }
+.cmp-vol.is-down { fill: var(--sand-ink); }
+.cmp-ma { fill: none; stroke-width: 1.3; opacity: .9; }
+.cmp-ma.is-ma0 { stroke: var(--nav-active); }
+.cmp-ma.is-ma1 { stroke: var(--ink); opacity: .55; }
+.cmp-ma.is-ma2 { stroke: var(--muted); stroke-dasharray: 4 4; }
+
+/* Fullscreen: the chart takes the viewport, nothing else moves. */
+.cmp-chart.is-full {
+  position: fixed; inset: 0; z-index: 90; background: var(--page);
+  padding: 20px clamp(16px, 4vw, 40px); overflow: auto;
+  padding-top: calc(20px + env(safe-area-inset-top, 0px));
+}
+.cmp-chart.is-full .cmp-svg { min-height: 60vh; }
+
+/* Phone: the toolbar was stacking into five rows of pills and pushing the
+   chart itself below the fold. Two horizontally scrollable rows instead —
+   the range on one, every other control on the other — which is the same
+   move DoorRail makes when the sidebar will not fit. */
+@media (max-width: 760px) {
+  .cmp-tools { flex-wrap: nowrap; flex-direction: column; align-items: stretch; gap: 10px; }
+  .cmp-tools > .id-pills,
+  .cmp-tools-end { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; justify-content: flex-start; padding-bottom: 2px; }
+  .cmp-tools > .id-pills::-webkit-scrollbar,
+  .cmp-tools-end::-webkit-scrollbar { display: none; }
+  .cmp-tools .id-pill { flex: 0 0 auto; }
+  .cmp-tools-end .id-pills { flex-wrap: nowrap; }
+  .cmp-ohlc { font-size: 11px; gap: 8px; }
+}
+
+/* ── Drawings ───────────────────────────────────────────────────────────
+   Reader-made marks, so they read as annotation rather than as data: the
+   ink colour, not the rise/fall palette, which belongs to the market. */
+.cmp-draw-line { stroke: var(--nav-active); stroke-width: 1.6; fill: none; }
+.cmp-draw-rect { stroke: var(--nav-active); stroke-width: 1.2; fill: var(--nav-active); fill-opacity: .1; }
+.cmp-draw-fib { stroke: var(--nav-active); stroke-width: 1; opacity: .7; }
+.cmp-draw-fib.is-edge { stroke-dasharray: 3 4; opacity: .5; }
+.cmp-draw-label { fill: var(--secondary); font-size: 10px; }
+.cmp-draw-hand { fill: var(--surface); stroke: var(--nav-active); stroke-width: 2; }
+.cmp-draw.is-sel .cmp-draw-line { stroke-width: 2.4; }
+.cmp-draw.is-sel .cmp-draw-rect { stroke-width: 2; fill-opacity: .16; }
+.cmp-draw.is-sel .cmp-draw-fib { opacity: 1; }
+.cmp-draw.is-sel .cmp-draw-label { fill: var(--ink); }
+/* A drawing tool turns the plot into a canvas; say so with the cursor. */
+.cmp-chart.is-drawing .cmp-svg { cursor: crosshair; }

@@ -601,8 +601,9 @@ export type CompanyInitial = {
   session: string | null; lastTrade: string | null; stale: boolean
   high52: number | null; low52: number | null; daysSinceTrade: number | null
   pe: number | null
-  /** Closes for the chart, oldest first — five years, the longest range offered. */
-  series: { date: string; close: number }[]
+  /** OHLCV for the chart, oldest first — five years, the longest range
+      offered. Candles need the full bar, not just the close. */
+  series: { date: string; open: number; high: number; low: number; close: number; volume: number }[]
   /** Price returns for the company and the index, already computed. */
   returns: { co: import('@/lib/companyView').Returns | null; idx: import('@/lib/companyView').Returns | null }
   facts: import('@/lib/companyView').FactRow[]
@@ -658,11 +659,26 @@ export const loadCompany = cache(async (symRaw: string): Promise<CompanyInitial>
       fetchLiveWith(sb).catch(() => null),
       sb.from('company_metrics').select('ticker,sector,last_close,prev_close,high_52w,low_52w,days_since_trade,last_date').eq('ticker', sym).limit(1),
       (async () => {
-        const rows: { date: string; close: number }[] = []
+        const rows: CompanyInitial['series'] = []
         for (let from = 0; ; from += 1000) {
-          const { data, error } = await sb.from('daily_prices').select('date,close').eq('ticker', sym).gte('date', since).order('date').range(from, from + 999)
+          const { data, error } = await sb.from('daily_prices').select('date,open,high,low,close,volume')
+            .eq('ticker', sym).gte('date', since).order('date').range(from, from + 999)
           if (error || !data?.length) break
-          for (const r of data as { date: string; close: number | null }[]) if (r.close != null && r.close > 0) rows.push({ date: r.date, close: r.close })
+          for (const r of data as { date: string; open: number | null; high: number | null; low: number | null; close: number | null; volume: number | null }[]) {
+            if (r.close == null || !(r.close > 0)) continue
+            /* A bulletin row can carry a close with no open/high/low. Fall
+               back to the close so the candle degrades to a doji rather than
+               drawing a bar out of nulls. */
+            const c = r.close
+            rows.push({
+              date: r.date,
+              open: r.open != null && r.open > 0 ? r.open : c,
+              high: r.high != null && r.high > 0 ? r.high : Math.max(c, r.open ?? c),
+              low: r.low != null && r.low > 0 ? r.low : Math.min(c, r.open ?? c),
+              close: c,
+              volume: r.volume ?? 0,
+            })
+          }
           if (data.length < 1000) break
         }
         return rows
