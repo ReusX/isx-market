@@ -6,6 +6,7 @@ import { CompanyLogo } from '@/components/CompanyLogo'
 import { useLocale } from '@/context/LocaleContext'
 import { SiteShell } from './SiteShell'
 import { DoorRail } from './DoorRail'
+import { PageTitle } from './PageTitle'
 import {
   METRICS, PERIODS, PRESETS, STALE_DAYS,
   activePreset, inRange, metricDef, metricValue, periodChange, presetRanges, rangeInvalid, rangeIsSet, sectorLabel, toRow,
@@ -176,8 +177,7 @@ export function ScreenerPage({ initial, marketSession }: { initial: ScreenerInit
         <div className="scr-body">
           <header className="scr-head">
             <p className="id-eyebrow">{pg.eyebrow}</p>
-            <h1 className="id-h1">{s.title}</h1>
-            <p className="id-lede">{pg.lede}</p>
+            <PageTitle title={s.title} note={pg.lede} />
           </header>
 
           {/* Presets: each writes a condition. The hint under the row says what the active one means. */}

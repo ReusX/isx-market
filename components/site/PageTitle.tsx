@@ -29,13 +29,17 @@ import { useLocale } from '@/context/LocaleContext'
  */
 export function PageTitle({ title, note, as: As = 'h1', className = 'id-h1' }: {
   title: string
-  note: string
+  /** Omitted where a page has no standfirst — then there is no «!» at all,
+      rather than a control that opens nothing. */
+  note?: string
   as?: 'h1' | 'h2'
   className?: string
 }) {
   const { t } = useLocale()
   const [open, setOpen] = useState(false)
   const id = useId()
+
+  if (!note) return <As className={className}>{title}</As>
 
   return (
     <div

@@ -5,6 +5,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { useLocale } from '@/context/LocaleContext'
 import { SiteShell } from './SiteShell'
 import { DoorRail } from './DoorRail'
+import { PageTitle } from './PageTitle'
 import {
   PERIODS, bandOf, bandLabel, capFor, pctText, sectorNodes, squarify, universe, matchesQuery,
   type Band, type MapRow, type PeriodId, type SectorNode,
@@ -177,7 +178,7 @@ export function HeatmapPage({ initial }: { initial: ScreenerInitial }) {
         <div className="hm2-body">
           <header className="hm2-head">
             <p className="id-eyebrow">{pg.eyebrow}</p>
-            <h1 className="id-h1">{h.title}</h1>
+            <PageTitle title={h.title} note={pg.lede} />
             <p className="id-cap hm2-summary id-num">{pg.summary(int.format(summary.up), int.format(summary.down), int.format(summary.flat), int.format(summary.none), periodLabel)}</p>
           </header>
 

@@ -10,6 +10,7 @@ import { sessionDate, type IndexRow } from '@/lib/homeData'
 import { useLocale } from '@/context/LocaleContext'
 import { SiteShell } from './SiteShell'
 import { DoorRail } from './DoorRail'
+import { PageTitle } from './PageTitle'
 import { IndexChart, type IndexPoint, type IndexSeries } from './IndexChart'
 import { FlowRing, type FlowRow } from './FlowRing'
 import { WelcomeCard } from './WelcomeCard'
@@ -302,8 +303,7 @@ export function MarketPage({ variant = 'root', initial }: { variant?: 'root' | '
         <div className="iqm-body">
         <header className="iqm-head">
           <p className="id-eyebrow">{p.eyebrow}</p>
-          <h1 className="id-h1">{full ? p.full.title : m.title}</h1>
-          {full ? <p className="id-lede">{p.full.intro}</p> : null}
+          <PageTitle title={full ? p.full.title : m.title} note={full ? p.full.intro : undefined} />
         </header>
 
         {full ? (

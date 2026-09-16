@@ -5,6 +5,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { useLocale } from '@/context/LocaleContext'
 import { SiteShell } from './SiteShell'
 import { DoorRail } from './DoorRail'
+import { PageTitle } from './PageTitle'
 import {
   PERIODS, METRICS, SECTOR_LABELS, bucketize, grainFor, totalsFor, windowFor, normalizeSectors, bucketLabel, monthLabel,
   type MetricId, type PeriodId, type Bucket,
@@ -112,8 +113,7 @@ export function StatisticsPage({ initial }: { initial: StatisticsInitial }) {
         <div className="stx-body">
           <header className="stx-head">
             <p className="id-eyebrow">{pg.eyebrow}</p>
-            <h1 className="id-h1">{st.title}</h1>
-            <p className="id-lede">{pg.lede}</p>
+            <PageTitle title={st.title} note={pg.lede} />
             <nav className="id-pills stx-sub" aria-label={st.tabsLabel}>
               {SUB.map((s) => <Link key={s.key} href={L(s.route)} className="id-pill" aria-current={s.key === 'overview' ? 'page' : undefined}>{pg.sub[s.key]}</Link>)}
             </nav>

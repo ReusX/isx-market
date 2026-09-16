@@ -5,6 +5,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { useLocale } from '@/context/LocaleContext'
 import { SiteShell } from './SiteShell'
 import { DoorRail } from './DoorRail'
+import { PageTitle } from './PageTitle'
 import type { FlowInitial } from '@/lib/marketServer'
 import { monthLabel } from '@/lib/statistics'
 import { shortDate, localeDate } from '@/lib/date'
@@ -147,8 +148,7 @@ export function ForeignFlowPage({ initial }: { initial: FlowInitial }) {
         <div className="ffl-body">
           <header className="stx-head">
             <p className="id-eyebrow">{pg.eyebrow}</p>
-            <h1 className="id-h1">{pg.title}</h1>
-            <p className="id-lede">{pg.lede}</p>
+            <PageTitle title={pg.title} note={pg.lede} />
             <nav className="id-pills stx-sub" aria-label={t.statistics.tabsLabel}>
               {SUB.map((s) => <Link key={s.key} href={L(s.route)} className="id-pill" aria-current={s.key === 'flow' ? 'page' : undefined}>{t.statistics.page.sub[s.key]}</Link>)}
             </nav>

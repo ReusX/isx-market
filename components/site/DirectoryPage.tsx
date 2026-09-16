@@ -6,6 +6,7 @@ import { CompanyLogo } from '@/components/CompanyLogo'
 import { useLocale } from '@/context/LocaleContext'
 import { SiteShell } from './SiteShell'
 import { DoorRail } from './DoorRail'
+import { PageTitle } from './PageTitle'
 import { SECTORS, companyName } from '@/lib/market'
 import { localeDate } from '@/lib/date'
 import type { DirectoryRow } from '@/lib/marketServer'
@@ -78,8 +79,7 @@ export function DirectoryPage({ rows, session }: { rows: DirectoryRow[]; session
         <div className="dr-body">
           <header className="dr-head">
             <p className="id-eyebrow">{d.eyebrow}</p>
-            <h1 className="id-h1">{d.title}</h1>
-            <p className="id-lede">{d.intro(int.format(rows.length), int.format(sectorCount))}</p>
+            <PageTitle title={d.title} note={d.intro(int.format(rows.length), int.format(sectorCount))} />
             <p className="id-body dr-sectors id-num">{sectorSentence}</p>
           </header>
 
