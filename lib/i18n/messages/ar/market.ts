@@ -108,7 +108,7 @@ export const market = {
     eyebrow:   'الأسواق',
     lede:      'كل شركة مدرجة في بورصة العراق: آخر سعر، التغيّر، وقيمة التداول — لجلسة واحدة، مرتّبة حسب الأنشط.',
     index:     'مؤشر ISX60',
-    tradedOf:  (n: string, total: string) => `${n} من ${total} شركة تم تداولها`,
+    tradedOf:  (n: string, total: string) => `${n} من أصل ${total} تم تداولها`,
     sessionOf: (date: string) => `جلسة ${date}`,
     rail: { market: 'السوق', companies: 'الشركات', screener: 'مستكشف الأسهم', heatmap: 'خريطة السوق', statistics: 'الإحصاءات', pulse: 'نبض السوق' },
     showing:   (n: string) => `${n} شركة`,
