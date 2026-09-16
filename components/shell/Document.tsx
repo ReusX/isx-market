@@ -3,7 +3,6 @@ import { AppProvider } from '@/context/AppContext'
 import { LocaleProvider } from '@/context/LocaleContext'
 import AppFrame from '@/components/shell/AppFrame'
 import { Analytics } from '@vercel/analytics/react'
-import { SpeedInsights } from '@vercel/speed-insights/next'
 import NativeBridge from '@/components/NativeBridge'
 import { SITE, absUrl } from '@/lib/seo'
 import { dirOf, langOf, type Locale } from '@/lib/i18n/locale'
@@ -136,8 +135,11 @@ export function Document({ locale, children }: { locale: Locale; children: React
             <AppFrame>{children}</AppFrame>
             <NativeBridge />
           </LocaleProvider>
+          {/* Web Analytics only. Speed Insights (real-user Core Web
+              Vitals) was removed: it fired ~1 event per page view against a
+              10K/month Hobby quota it had nearly exhausted, and nobody read
+              it — PageSpeed Insights covers the same ground on demand. */}
           <Analytics />
-          <SpeedInsights />
         </AppProvider>
       </body>
     </html>
