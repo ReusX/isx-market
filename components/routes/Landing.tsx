@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { Globe } from '@/components/home/Globe'
+import { Constellation } from '@/components/home/Constellation'
 import { StarMark } from '@/components/brand/StarMark'
 import { LanguageSwitch } from '@/components/shell/LanguageSwitch'
 import { SiteFooter } from '@/components/shell/SiteFooter'
@@ -9,8 +9,9 @@ import type { Locale } from '@/lib/i18n/locale'
 import '@/styles/landing.css'
 
 /**
- * The homepage · a full-viewport blue opener with the turning globe, then the
- * four doors into the site.
+ * The homepage · a full-viewport blue opener with the market constellation
+ * on one side and the headline, copy and action on the other, then the four
+ * doors into the site.
  *
  * The four doors ARE the information architecture from here on:
  *
@@ -79,7 +80,7 @@ export function Landing({ locale }: { locale: Locale }) {
     <>
       <main className="ld">
         <section className="ld-hero">
-          <Globe className="ld-globe" />
+          <Constellation className="ld-globe" />
 
           <header className="ld-nav">
             <Link href={L('/')} className="ld-logo" aria-label={t.shell.brandHome}>
@@ -97,12 +98,11 @@ export function Landing({ locale }: { locale: Locale }) {
             </div>
           </header>
 
+          {/* One RTL content group: headline, copy, action — start side. */}
           <div className="ld-hero-body">
             <h1 className="ld-title">{titleA}<br />{titleB}</h1>
-            <div className="ld-intro">
-              <p>{c.intro}</p>
-              <Link href={L('/market')} className="ld-cta">{c.explore}</Link>
-            </div>
+            <p className="ld-intro">{c.intro}</p>
+            <Link href={L('/market')} className="ld-cta">{c.explore}</Link>
           </div>
         </section>
 

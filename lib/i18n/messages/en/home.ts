@@ -123,7 +123,7 @@ export const home: typeof ar = {
   landing: {
     title:    'The Iraqi economy,\nin one place',
     intro:    'The Iraqi stock market, company data, bank information, the dollar and gold prices and more \u2014 in one place, in plain language.',
-    explore:  'Start with the market',
+    explore:  'Explore the market',
     scroll:   'Sections',
     soon:     'Soon',
     doors: {

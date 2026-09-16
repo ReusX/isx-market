@@ -54,30 +54,26 @@
 @media (max-width: 900px) { .ld-links { display: none; } }
 @media (max-width: 480px) { .ld-logo span { display: none; } .ld-logo { padding: 0 14px; } }
 
-/* Title at the start, sitting a little above the fold's foot; intro in the
-   far corner at the very bottom — the two places the globe leaves free, and
-   the title higher than the copy, as in the reference. */
+/* One content group on the start side — headline, copy, action — sitting in
+   the lower half; the constellation owns the other side. */
 .ld-hero-body {
   margin-top: auto; padding-top: 40vh;
-  display: grid; grid-template-columns: 1fr 1fr; gap: 32px; align-items: end;
+  max-width: 560px; display: flex; flex-direction: column; align-items: flex-start; gap: 20px;
 }
 .ld-title {
-  font-size: clamp(44px, 6.8vw, 92px); font-weight: 300; line-height: 1.05; color: var(--white);
-  letter-spacing: 0; margin: 0 0 clamp(40px, 14vh, 160px); text-wrap: balance;
+  font-size: clamp(44px, 6.4vw, 88px); font-weight: 300; line-height: 1.05; color: var(--white);
+  letter-spacing: 0; margin: 0; text-wrap: balance;
 }
-.ld-intro { max-width: 46ch; justify-self: end; font-size: clamp(15px, 1.4vw, 18px); line-height: 1.55; }
-.ld-intro p { margin: 0 0 12px; }
-.ld-intro p + p { opacity: .85; }
+.ld-intro { margin: 0; max-width: 44ch; font-size: clamp(15px, 1.4vw, 18px); line-height: 1.6; opacity: .92; }
 .ld-cta {
-  display: inline-flex; align-items: center; min-height: 44px; padding: 0 22px; margin-top: 12px;
+  display: inline-flex; align-items: center; min-height: 46px; padding: 0 24px; margin-top: 4px;
   border-radius: var(--r-pill); background: var(--white); color: var(--navy);
-  font-size: 14px; font-weight: 500; text-decoration: none;
+  font-size: 15px; font-weight: 500; text-decoration: none;
 }
+.ld-cta:hover { background: #eef4ff; }
 @media (max-width: 760px) {
   .ld-hero { margin: 6px; border-radius: 18px; min-height: calc(100svh - 12px); }
-  .ld-hero-body { grid-template-columns: 1fr; padding-top: 36vh; gap: 20px; }
-  .ld-title { margin-bottom: 24px; }
-  .ld-intro { justify-self: start; }
+  .ld-hero-body { padding-top: 58vh; gap: 14px; }
 }
 
 /* ── The four doors ─────────────────────────────────────────────────────── */
