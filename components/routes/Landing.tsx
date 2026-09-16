@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { Globe } from '@/components/home/Globe'
 import { StarMark } from '@/components/brand/StarMark'
 import { LanguageSwitch } from '@/components/shell/LanguageSwitch'
+import { ThemeToggle } from '@/components/shell/ThemeToggle'
 import { SiteFooter } from '@/components/shell/SiteFooter'
 import { messages } from '@/lib/i18n'
 import { localePath } from '@/lib/i18n/paths'
@@ -107,6 +108,7 @@ export function Landing({ locale }: { locale: Locale }) {
             </nav>
             <div className="ld-tools">
               <LanguageSwitch />
+              <ThemeToggle className="ld-pill is-icon" />
               <Link href={L('/login')} className="ld-pill is-navy"><Icon name="login" />{t.shell.signIn}</Link>
             </div>
           </header>

@@ -37,18 +37,20 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   // Stable client — created once, never recreated
   const supabase = useMemo(() => createClient(), [])
 
-  // Light-only identity. The theme value and toggle survive so nothing that
-  // reads them breaks mid-rebuild, but both resolve to light: a stored 'dark'
-  // from before the redesign is ignored, not honoured.
+  // Light until mounted; the effect below reads the stored choice, else the OS.
   const [theme, setThemeState] = useState<Theme>('light')
   const [user, setUser]         = useState<any | null>(null)
   const [profile, setProfile]   = useState<UserProfile | null>(null)
   const [watchlist, setWatchlist] = useState<string[]>([])
   const [authLoading, setAuthLoading] = useState(true)
   const [authModalTab, setAuthModalTab] = useState<'signin' | 'signup' | null>(null)
-  // Init watchlist from localStorage
+  // Init theme + watchlist from localStorage
   useEffect(() => {
-    document.documentElement.setAttribute('data-theme', 'light')
+    const stored = localStorage.getItem('theme')
+    const system: Theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
+    const initial: Theme = stored === 'dark' || stored === 'light' ? stored : system
+    setThemeState(initial)
+    document.documentElement.setAttribute('data-theme', initial)
     try {
       const wl = JSON.parse(localStorage.getItem('isx_watchlist') ?? '[]')
       setWatchlist(wl)
@@ -107,8 +109,12 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   }, [supabase, fetchProfile])
 
   const toggleTheme = () => {
-    setThemeState('light')
-    document.documentElement.setAttribute('data-theme', 'light')
+    setThemeState(prev => {
+      const next: Theme = prev === 'dark' ? 'light' : 'dark'
+      localStorage.setItem('theme', next)
+      document.documentElement.setAttribute('data-theme', next)
+      return next
+    })
   }
 
   const toggleWatchlist = (sym: string) => {

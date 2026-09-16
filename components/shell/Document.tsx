@@ -17,7 +17,8 @@ import { dirOf, langOf, type Locale } from '@/lib/i18n/locale'
  * without `headers()`, and `headers()` opts every route into dynamic
  * rendering — it would have taken all 49 statically-prerendered routes with
  * it. So the app has TWO root layouts, `app/(ar)` and `app/(en)`, and they
- * both render this. The font and the JSON-LD graph are defined once, here, rather than kept in sync by hand in two files.
+ * both render this. The font, the theme bootstrap and the JSON-LD graph are
+ * defined once, here, rather than kept in sync by hand in two files.
  *
  * ── The typeface ──────────────────────────────────────────────────────────
  * One face for both languages, all three roles. Readex Pro carries Arabic,
@@ -113,12 +114,18 @@ export function Document({ locale, children }: { locale: Locale; children: React
     <html
       lang={langOf(locale)}
       dir={dirOf(locale)}
-      /* The identity is light-only: cream page, navy ink. There is no theme
-         to bootstrap any more, and the attribute stays only because the
-         stylesheets still key on it during the page-by-page rebuild. */
-      data-theme="light"
       className={readex.variable}
+      suppressHydrationWarning
     >
+      <head>
+        {/* Pre-paint: a stored choice wins, else the OS preference. The
+            attribute is ALWAYS stamped, because every stylesheet — the new
+            tokens and the not-yet-rebuilt ones alike — keys on it; leaving it
+            off would split the page between two themes. */}
+        <script
+          dangerouslySetInnerHTML={{ __html: `(function(){try{var t=localStorage.getItem('theme');if(t!=='dark'&&t!=='light')t=matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';document.documentElement.setAttribute('data-theme',t);}catch(e){}})();` }}
+        />
+      </head>
       <body>
         <script
           type="application/ld+json"

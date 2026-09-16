@@ -40,9 +40,10 @@
 [dir='ltr'] .ld-pill { padding: 0 16px 0 18px; }
 .ld-pill:hover { background: #eef4ff; transform: translateY(-1px); }
 .ld-pill svg { color: var(--blue); }
+.ld-pill.is-icon { padding: 0; width: 44px; justify-content: center; border: 0; font: inherit; cursor: pointer; }
 .ld-pill.is-navy { background: var(--navy); color: var(--white); }
 .ld-pill.is-navy svg { color: var(--white); }
-.ld-pill.is-navy:hover { background: #00184a; }
+.ld-pill.is-navy:hover { background: var(--navy-deep); }
 /* The shared language switch (.gh-lang, styled for the old header) drawn as
    one of these pills. */
 .ld-tools .gh-lang {

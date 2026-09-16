@@ -17,7 +17,7 @@ open it in a browser — it is the answer to "what should this look like".
 | Type | Readex Pro, one face | 200–300 display · 400 body · 500 controls. Nothing bold. No positive tracking on Arabic. Figures tabular. |
 | Shape | 54 px pills · 32 px blocks · 16 px panels · 8 px chips | |
 | Density | one row = one fact | Detail goes behind a click. Prefer a table to cards. |
-| Theme | light only | No dark mode. `data-theme` is always `"light"` and goes away when the last stylesheet stops keying on it. |
+| Theme | light + dark | Dark is the same identity turned over: deep-navy page `#06173A`, cream ink, same blue block, same pills, no shadows. Style through ROLE tokens (`--page`, `--ink`, `--border`, `--primary-bg`, `--moss`…), never primitives. `data-theme` is always stamped (stored choice, else OS). |
 
 Tokens: `app/globals.css` (base) · `styles/design-tokens.css` (`--mv-*`, same palette).
 Vocabulary: `styles/identity.css` (`.id-*` classes — build from these).
@@ -26,7 +26,7 @@ Gates: `npm run check:tokens` (parity · contrast · Arabic tracking) must pass 
 ## What "done" means for a page
 
 1. Built from `.id-*` vocabulary + a small route stylesheet; nothing bold, nothing shadowed, no blue text.
-2. Its old stylesheet is deleted or emptied; no `[data-theme='dark']` rules remain in it.
+2. Its old stylesheet is deleted or emptied; no `[data-theme='dark']` rules with their own literal colours remain in it — dark comes from the role tokens.
 3. Arabic copy reads naturally (short sentences, no jargon), English page matches.
 4. Phone width (400 px) checked; body never scrolls sideways.
 5. `check:tokens`, `check:i18n`, `check:routes` green; the page-specific gate (`check:banking`, `check:charts`) where one exists.
@@ -35,7 +35,7 @@ Gates: `npm run check:tokens` (parity · contrast · Arabic tracking) must pass 
 
 - [x] Palette → `app/globals.css`, `styles/design-tokens.css` (parity + contrast gates green)
 - [x] Readex Pro replaces Plex Arabic / Noto Kufi / Roboto Mono (`components/shell/Document.tsx`)
-- [x] Theme pinned to light; toggle removed from header; Thmanyah `@font-face` removed
+- [x] Dark theme as role-token overrides; shared `shell/ThemeToggle` in header and homepage nav; Thmanyah `@font-face` removed
 - [x] `styles/identity.css` vocabulary
 - [x] Mockup kept at `docs/design/direction.html`
 
@@ -70,4 +70,5 @@ Every English route (`/en/...`) shares the component with its Arabic twin, so a 
 ## Log
 
 - 2026-09-16 · Foundation landed on branch `redesign/latitude`.
+- 2026-09-16 · Dark mode added as role-token overrides (globals.css + design-tokens.css); un-rebuilt pages still show their OLD charcoal dark rules until their row is done.
 - 2026-09-16 · Homepage: full-viewport blue opener with the character Earth faced at Iraq (canvas; `lib/landmask.ts`), Iraq's cells lit, ISX60/USD·IQD/oil/gold pinned over Iraq and sector clusters of real tickers pinned round the globe, one lit at a time and the four doors — الأسواق · البنوك والتمويل · الاقتصاد العراقي · تعلّم. Renders bare (no sidebar). Pages that do not exist yet (deposits, loans, cards, CBI, budget) show «قريباً».

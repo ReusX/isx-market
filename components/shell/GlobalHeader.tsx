@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { useApp } from '@/context/AppContext'
 import { useLocale } from '@/context/LocaleContext'
 import { LanguageSwitch } from './LanguageSwitch'
+import { ThemeToggle } from './ThemeToggle'
 
 /**
  * The detached top header.
@@ -64,9 +65,10 @@ export function GlobalHeader({
       </button>
 
       <div className="gh-actions">
-        {/* Beside the account control, which is where the brief puts it: the
-            global-preference cluster, not a settings page. */}
+        {/* Beside the theme toggle and the account control, which is where the
+            brief puts it: the global-preference cluster, not a settings page. */}
         <LanguageSwitch />
+        <ThemeToggle className="gh-theme" />
 
         {user ? (
           <Link href={L('/profile')} className="gh-account" aria-label={t.shell.account}>

@@ -6,8 +6,8 @@
    classes rather than styled from scratch. Tokens live in app/globals.css.
 
    The rules of the identity, so they do not have to be rediscovered:
-     · Cream page, navy ink. Blue is a BLOCK (hero, primary button), never a
-       text colour and never more than one block per screen.
+     · Cream page, navy ink — or, in dark, navy page, cream ink. Blue is a
+       BLOCK (hero, primary button), never a text colour, one per screen.
      · One typeface, three weights: 200–300 for display, 400 for body, 500 for
        controls only. Nothing bold. No positive letter-spacing on Arabic.
      · Pills (54px) for controls; 32px radius on big blocks; 16px on panels;
@@ -61,8 +61,8 @@ body {
   text-decoration: none; white-space: nowrap;
 }
 .id-btn:hover { border-color: var(--ink); }
-.id-btn.is-primary { background: var(--navy); color: var(--white); border-color: var(--navy); }
-.id-btn.is-primary:hover { background: #00184a; }
+.id-btn.is-primary { background: var(--primary-bg); color: var(--primary-ink); border-color: var(--primary-bg); }
+.id-btn.is-primary:hover { background: var(--primary-hover); }
 .id-btn.is-blue { background: var(--blue); color: var(--white); border-color: var(--blue); }
 .id-btn.is-blue:hover { background: var(--blue-deep); }
 .id-btn.is-sm { min-height: 36px; padding: 6px 16px; font-size: 13px; }
@@ -78,7 +78,7 @@ body {
   cursor: pointer; text-decoration: none;
 }
 .id-pill:hover { border-color: var(--ink); }
-.id-pill.is-on, .id-pill[aria-current], .id-pill[aria-pressed='true'] { background: var(--navy); color: var(--white); border-color: var(--navy); }
+.id-pill.is-on, .id-pill[aria-current], .id-pill[aria-pressed='true'] { background: var(--primary-bg); color: var(--primary-ink); border-color: var(--primary-bg); }
 
 .id-input {
   min-height: 44px; padding: 10px 18px; border-radius: var(--r-pill);

@@ -11,11 +11,13 @@
    blue used as a block and never as text, pastel moss/sand for rising and
    falling, hairline borders, no shadows, one typeface at light weights.
 
-   This is the ONLY palette. The site is light-only by decision — the identity
-   is the cream and the navy, and a dark variant of it would be a different
-   site — so there is no `prefers-color-scheme` block and no `[data-theme]`
-   block. The attribute still exists on <html> (always "light") only because
-   un-rebuilt stylesheets key on it; it goes when the last one does.
+   Two themes, one identity. Light is the cream page with navy ink; dark
+   turns the same identity over — deep navy page, cream ink — and keeps the
+   one electric blue, the pills, the hairlines and the no-shadow rule. The
+   primitives below are theme-invariant; only the ROLE tokens change, in the
+   two blocks that follow, so every rule reads a role and never a primitive.
+   `data-theme` on <html> is the toggle (set pre-paint from localStorage);
+   with no stored choice the OS preference decides.
 
    Names are the ones every existing stylesheet already reads (`--page`,
    `--ink`, `--border`, `--up` …) so the whole site moves to the new palette
@@ -40,6 +42,9 @@
   --ink-08:     rgba(0, 38, 100, 0.08);
   --white-22:   rgba(255, 255, 255, 0.22);
   --white-60:   rgba(255, 255, 255, 0.60);
+  --navy-deep:  #00184a;
+  --navy-page:  #06173a;  /* dark theme ground */
+  --navy-surf:  #0c2252;  /* dark theme panel */
 
   /* ── Base roles (read by every stylesheet) ── */
   --page:            var(--cream);
@@ -65,6 +70,11 @@
   --star-a:          var(--ink-08);
   --star-b:          var(--ink-14);
   --shadow-popover:  0 0 0 1px var(--ink-14);
+  /* Primary control · navy on light, cream on dark. */
+  --primary-bg:      var(--navy);
+  --primary-ink:     var(--white);
+  --primary-hover:   var(--navy-deep);
+  --hover-tint:      #eef4ff;
 
   /* ── Type ── */
   --font-body:       var(--font-sans);
@@ -89,6 +99,84 @@
   --gold-deep: #9a6d12;
   --gold-grad: linear-gradient(135deg, #e6c27a 0%, #c08a1b 55%, #9a6d12 100%);
   --purple:    var(--blue);
+}
+
+/* ── Dark · the same identity turned over ─────────────────────────────── */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    color-scheme: dark;
+    --page:            var(--navy-page);
+    --surface:         var(--navy-surf);
+    --surface-2:       #10295e;
+    --surface-popover: var(--navy-surf);
+    --ink:             #f4f6fb;
+    --secondary:       rgba(244, 246, 251, 0.68);
+    --muted:           rgba(244, 246, 251, 0.46);
+    --accent:          #f4f6fb;
+    --bg-accent:       rgba(225, 239, 172, 0.16);
+    --text-accent:     #d9ec9f;
+    --nav-active:      #6ea3ff;
+    --nav-active-bg:   rgba(20, 107, 253, 0.22);
+    --hero-number:     #f4f6fb;
+    --up:              #5ed4a0;
+    --down:            #ff8f7a;
+    --border:          rgba(244, 246, 251, 0.14);
+    --orbit-a:         rgba(244, 246, 251, 0.06);
+    --orbit-b:         rgba(244, 246, 251, 0.12);
+    --star-a:          rgba(244, 246, 251, 0.06);
+    --star-b:          rgba(244, 246, 251, 0.12);
+    --shadow-popover:  0 0 0 1px rgba(244, 246, 251, 0.14);
+    --moss:            rgba(225, 239, 172, 0.18);
+    --moss-ink:        #d9ec9f;
+    --sand:            rgba(243, 222, 197, 0.18);
+    --sand-ink:        #f3dec5;
+    --ink-14:          rgba(244, 246, 251, 0.14);
+    --ink-08:          rgba(244, 246, 251, 0.08);
+    --primary-bg:      #f4f6fb;
+    --primary-ink:     var(--navy);
+    --primary-hover:   #ffffff;
+    --hover-tint:      #143069;
+    --shadow-sm:  0 0 0 1px rgba(244, 246, 251, 0.08);
+    --shadow-md:  0 0 0 1px rgba(244, 246, 251, 0.14);
+    --shadow-pop: 0 0 0 1px rgba(244, 246, 251, 0.14);
+  }
+}
+:root[data-theme='dark'] {
+  color-scheme: dark;
+  --page:            var(--navy-page);
+  --surface:         var(--navy-surf);
+  --surface-2:       #10295e;
+  --surface-popover: var(--navy-surf);
+  --ink:             #f4f6fb;
+  --secondary:       rgba(244, 246, 251, 0.68);
+  --muted:           rgba(244, 246, 251, 0.46);
+  --accent:          #f4f6fb;
+  --bg-accent:       rgba(225, 239, 172, 0.16);
+  --text-accent:     #d9ec9f;
+  --nav-active:      #6ea3ff;
+  --nav-active-bg:   rgba(20, 107, 253, 0.22);
+  --hero-number:     #f4f6fb;
+  --up:              #5ed4a0;
+  --down:            #ff8f7a;
+  --border:          rgba(244, 246, 251, 0.14);
+  --orbit-a:         rgba(244, 246, 251, 0.06);
+  --orbit-b:         rgba(244, 246, 251, 0.12);
+  --star-a:          rgba(244, 246, 251, 0.06);
+  --star-b:          rgba(244, 246, 251, 0.12);
+  --shadow-popover:  0 0 0 1px rgba(244, 246, 251, 0.14);
+  --moss:            rgba(225, 239, 172, 0.18);
+  --moss-ink:        #d9ec9f;
+  --sand:            rgba(243, 222, 197, 0.18);
+  --sand-ink:        #f3dec5;
+  --ink-14:          rgba(244, 246, 251, 0.14);
+  --ink-08:          rgba(244, 246, 251, 0.08);
+  --primary-bg:      #f4f6fb;
+  --primary-ink:     var(--navy);
+  --primary-hover:   #ffffff;
+  --hover-tint:      #143069;
+  --shadow-sm:  0 0 0 1px rgba(244, 246, 251, 0.08);
+  --shadow-md:  0 0 0 1px rgba(244, 246, 251, 0.14);
+  --shadow-pop: 0 0 0 1px rgba(244, 246, 251, 0.14);
 }
 
 /* ══ Legacy token bridge ══════════════════════════════════════════════════

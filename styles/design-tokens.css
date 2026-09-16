@@ -36,14 +36,12 @@
    ═══════════════════════════════════════════════════════════════════════════ */
 
 /* ── Colour ─────────────────────────────────────────────────────────────────
-   Repointed to the September 2026 identity (cream / navy / electric blue).
-   The `[data-theme='dark']` block is kept with IDENTICAL values, on purpose:
-   the site is light-only now, and the parity gate below still asserts both
-   blocks declare the same set — so a token added to one and not the other
-   is still caught, and a stale data-theme can never paint a second palette. */
+   The September 2026 identity: cream / navy / electric blue, and the same
+   identity turned over for dark. Both blocks declare the same set — the
+   parity gate below insists on it — so a token added to one and not the
+   other is caught before it renders as an invisible label in one theme. */
 [data-theme='light'] .iq-page,
-.iq-page,
-[data-theme='dark'] .iq-page {
+.iq-page {
   --mv-hero: #146bfd;
   --mv-hero-bright: #0f56d1;
   --mv-ink: #002664;
@@ -67,6 +65,25 @@
 
   /* Flat cream. The environment is no longer a gradient. */
   --mv-env: #fffbf7;
+}
+
+[data-theme='dark'] .iq-page {
+  --mv-hero: #146bfd;
+  --mv-hero-bright: #6ea3ff;
+  --mv-ink: #f4f6fb;
+  --mv-ink-2: rgba(244, 246, 251, 0.68);
+  --mv-ink-3: rgba(244, 246, 251, 0.52);
+  --mv-line: rgba(244, 246, 251, 0.14);
+  --mv-line-strong: rgba(244, 246, 251, 0.28);
+  --mv-panel: #0c2252;
+  --mv-panel-solid: #0c2252;
+  --mv-well: #10295e;
+  --mv-shadow: 0 0 0 1px rgba(244, 246, 251, 0.14);
+  --mv-up: #5ed4a0;
+  --mv-up-soft: rgba(225, 239, 172, 0.18);
+  --mv-down: #ff8f7a;
+  --mv-down-soft: rgba(243, 222, 197, 0.18);
+  --mv-env: #06173a;
 }
 
 /* ── Scale ──────────────────────────────────────────────────────────────────
