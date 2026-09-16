@@ -75,6 +75,10 @@
   --primary-ink:     var(--white);
   --primary-hover:   var(--navy-deep);
   --hover-tint:      #eef4ff;
+  /* The hero block · electric blue by day, a deep midnight blue by night.
+     --hero-plate is the same colour as r,g,b for canvas work. */
+  --hero-bg:         var(--blue);
+  --hero-plate:      20, 107, 253;
 
   /* ── Type ── */
   --font-body:       var(--font-sans);
@@ -136,6 +140,8 @@
     --primary-ink:     var(--navy);
     --primary-hover:   #ffffff;
     --hover-tint:      #143069;
+    --hero-bg:         #0a2b74;
+    --hero-plate:      10, 43, 116;
     --shadow-sm:  0 0 0 1px rgba(244, 246, 251, 0.08);
     --shadow-md:  0 0 0 1px rgba(244, 246, 251, 0.14);
     --shadow-pop: 0 0 0 1px rgba(244, 246, 251, 0.14);
@@ -174,6 +180,8 @@
   --primary-ink:     var(--navy);
   --primary-hover:   #ffffff;
   --hover-tint:      #143069;
+  --hero-bg:         #0a2b74;
+  --hero-plate:      10, 43, 116;
   --shadow-sm:  0 0 0 1px rgba(244, 246, 251, 0.08);
   --shadow-md:  0 0 0 1px rgba(244, 246, 251, 0.14);
   --shadow-pop: 0 0 0 1px rgba(244, 246, 251, 0.14);

@@ -93,6 +93,13 @@ export function Globe({ className, labels }: { className?: string; labels: Globe
 
     const still = window.matchMedia('(prefers-reduced-motion: reduce)').matches
     const family = getComputedStyle(document.body).fontFamily
+    /* The label plates are painted in the hero's own colour, which changes
+       with the theme; re-read it whenever data-theme flips. */
+    let plate = '20, 107, 253'
+    const readPlate = () => { plate = getComputedStyle(canvas).getPropertyValue('--hero-plate').trim() || plate }
+    readPlate()
+    const mo = new MutationObserver(readPlate)
+    mo.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] })
     const rad = (d: number) => (d * Math.PI) / 180
     const hash = (i: number) => { const x = Math.sin(i * 12.9898 + 78.233) * 43758.5453; return x - Math.floor(x) }
     type Pin = { lat: number; lon: number; text: string; sector: number; big: boolean }
@@ -196,7 +203,7 @@ export function Globe({ className, labels }: { className?: string; labels: Globe
         const tw = ctx.measureText(p.text).width + 12
         const th = p.sector < 0 ? 22 : p.big ? 20 : 17
         const ty = y + (p.big ? 16 : 12)
-        ctx.fillStyle = `rgba(20,107,253,${(0.92 * Math.min(1, o + 0.3)).toFixed(3)})`
+        ctx.fillStyle = `rgba(${plate},${(0.92 * Math.min(1, o + 0.3)).toFixed(3)})`
         ctx.beginPath(); ctx.roundRect(x - tw / 2, ty - th / 2, tw, th, th / 2); ctx.fill()
         ctx.fillStyle = `rgba(255,255,255,${o.toFixed(3)})`
         ctx.beginPath(); ctx.arc(x, y, p.big ? 2.6 : 1.8, 0, Math.PI * 2); ctx.fill()
@@ -217,7 +224,7 @@ export function Globe({ className, labels }: { className?: string; labels: Globe
     ro.observe(canvas)
     const io = new IntersectionObserver(([e]) => { visible = e.isIntersecting })
     io.observe(canvas)
-    return () => { cancelAnimationFrame(raf); ro.disconnect(); io.disconnect() }
+    return () => { cancelAnimationFrame(raf); ro.disconnect(); io.disconnect(); mo.disconnect() }
   }, [labels])
 
   return <canvas ref={ref} className={className} aria-hidden="true" />
