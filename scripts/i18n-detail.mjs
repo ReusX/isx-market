@@ -65,7 +65,7 @@ if (articles.length < 2) {
     const label = decodeURIComponent(path).slice(0, 48)
     checkShell(label, html, { minText: 600 })
     // The article's own body has to be there, not just the shell around it.
-    if (!/class="ln-prose/.test(html)) bad.push(`${label} rendered no article body`)
+    if (!/class="(?:ln-prose|art-body)/.test(html)) bad.push(`${label} rendered no article body`)
     // A related/prev/next rail must never point back at the article you are on.
     const self = path.replace(/\/$/, '')
     const links = [...html.matchAll(/href="(\/news\/[^"]+)"/g)].map(m => m[1].replace(/\/$/, ''))
