@@ -37,6 +37,7 @@ export const KINDS = [
      dictionary — «هيئة الأوراق المالية» is a real institution with an official
      English name, so it is translated rather than transliterated. */
   { id: 'all' },
+  { id: 'wrap' },
   { id: 'filing' },
   { id: 'article' },
 ] as const

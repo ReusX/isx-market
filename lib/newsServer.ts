@@ -7,6 +7,8 @@ import { sectorLabel } from '@/lib/screener'
 import { PERIOD_LABEL, type NewsItem } from '@/lib/news'
 import { messages } from '@/lib/i18n'
 import type { Locale } from '@/lib/i18n/locale'
+import { wrapVars } from '@/lib/wrapText'
+import { loadSessions, loadSessionWrap } from '@/lib/wrapServer'
 
 /**
  * /news · the feed: CMS articles and ISC filings, merged newest first.
@@ -134,9 +136,31 @@ async function loadFilings(locale: Locale): Promise<{ items: NewsItem[]; ok: boo
 }
 
 
+/* The daily session wraps as feed rows: the last thirty sessions, each a
+   headline with the close and the move. Arabic pages, so on /en/news they
+   carry the foreign-language mark like the CMS articles do. */
+async function loadWraps(locale: Locale): Promise<NewsItem[]> {
+  try {
+    const t = messages(locale)
+    const dates = (await loadSessions(30))
+    const wraps = await Promise.all(dates.map((d) => loadSessionWrap(d)))
+    return wraps.flatMap((s) => {
+      if (!s) return []
+      const v = wrapVars(s, t, locale)
+      return [{
+        id: `w${s.date}`, kind: 'wrap' as const, at: `${s.date}T14:00:00+03:00`,
+        headline: t.wrap.feedHeadline(v.dateShort, v.close, v.pct, v.dir),
+        excerpt: `${t.wrap.breadth(v)} ${t.wrap.liquidity(v)}`,
+        symbol: null, name: null, sector: null, source: t.wrap.source, doc: null,
+        href: `/news/session/${s.date}`, external: false, foreignLang: locale !== 'ar',
+      }]
+    })
+  } catch { return [] }
+}
+
 export async function loadNews(locale: Locale): Promise<NewsInitial> {
-  const [articles, filings] = await Promise.all([loadArticles(locale), loadFilings(locale)])
-  const items = [...articles.items, ...filings.items]
+  const [articles, filings, wraps] = await Promise.all([loadArticles(locale), loadFilings(locale), loadWraps(locale)])
+  const items = [...articles.items, ...filings.items, ...wraps]
     .sort((a, b) => (a.at < b.at ? 1 : a.at > b.at ? -1 : 0))
   return {
     items,

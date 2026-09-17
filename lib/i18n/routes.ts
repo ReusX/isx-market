@@ -64,6 +64,13 @@ export const ROUTES: RouteEntry[] = [
   // ── Editorial ───────────────────────────────────────────────────────────
   { pattern: '/news',                      cls: 'chrome' },
   {
+    pattern: '/news/session',
+    cls: 'ar-only',
+    why: 'The daily session wrap is generated in Arabic for the Arabic audience that '
+       + 'searches for it; the English dictionary exists but no English route yet.',
+  },
+  { pattern: '/news/session/[date]',       cls: 'ar-only', why: 'Same as /news/session.' },
+  {
     pattern: '/news/[slug]',
     cls: 'ar-only',
     why: 'The CMS holds one Arabic body per article and no English translation. '

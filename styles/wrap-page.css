@@ -1,0 +1,17 @@
+/* /news/session · the session wrap. Prefix wrp-; article chrome from news-page.css. */
+.wrp-figures { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 16px 24px; margin: 8px 0 28px; padding: 18px 20px; border: 1px solid var(--border); border-radius: var(--r-md); }
+.wrp-figures > div { display: grid; gap: 4px; }
+.wrp-figures strong { font-weight: 300; font-size: 26px; line-height: 1.1; }
+.wrp-table { margin: 6px 0 22px; font-size: 15px; }
+.wrp-table th { font-size: 12px; }
+.wrp-table td { padding-block: 10px; }
+.wrp-co { display: grid; color: inherit; text-decoration: none; }
+.wrp-co:hover .id-name { text-decoration: underline; }
+.wrp-archive { list-style: none; margin: 8px 0 0; padding: 0; }
+.wrp-archive li { border-bottom: 1px solid var(--border); }
+.wrp-archive a { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; gap: 16px; align-items: baseline; padding: 14px 4px; color: inherit; text-decoration: none; }
+.wrp-archive a:hover { background: var(--surface-2); }
+.wrp-archive-date { font-size: 15px; }
+.wrp-archive-close { font-weight: 300; font-size: 18px; }
+.wrp-archive-pct { font-size: 13px; min-width: 64px; text-align: end; }
+@media (max-width: 640px) { .wrp-hide-sm { display: none; } .wrp-figures strong { font-size: 22px; } }

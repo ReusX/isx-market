@@ -5,6 +5,7 @@ import { editorialFor } from '@/lib/bankEditorial'
 import { getPosts, type Section } from '@/lib/cms'
 import { getLastSessionDate } from '@/lib/freshness'
 import { absUrl } from '@/lib/seo'
+import { loadSessions } from '@/lib/wrapServer'
 import { isPaired } from '@/lib/i18n/routes'
 
 
@@ -100,10 +101,15 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     url:             absUrl(`/${section}/${p.slug}`),
     lastModified:    p.modified ? new Date(p.modified) : now,
   })
+  /* Daily session wraps: one URL per trading day, generated from the
+     session tables. The archive page plus every session on record. */
+  const sessions = await loadSessions(600)
   const articles: MetadataRoute.Sitemap = [
     ...news.map(p => article('news', p)),
     ...research.map(p => article('research', p)),
     ...learn.map(p => article('learn', p)),
+    { url: absUrl('/news/session'), lastModified: sessions[0] ? new Date(sessions[0]) : now },
+    ...sessions.map((d) => ({ url: absUrl(`/news/session/${d}`), lastModified: new Date(d) })),
   ]
 
   /* Bank profiles are indexed on SUBSTANCE, not on existence.

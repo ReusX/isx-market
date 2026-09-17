@@ -70,6 +70,8 @@
   "/market": "ƒ",
   "/news": "○",
   "/news/[slug]": "ƒ",
+  "/news/session": "○",
+  "/news/session/[date]": "●",
   "/oil": "○",
   "/opengraph-image": "ƒ",
   "/portfolio": "○",
