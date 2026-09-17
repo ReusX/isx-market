@@ -323,4 +323,26 @@ export const company = {
     /** Which existing question the live one replaces. */
     isPriceQ: (q: string) => q.includes('سعر') && q.includes('اليوم'),
   },
+  /* ── /analysis (site/AnalysisPage) ───────────────────────────────────── */
+  analysis: {
+    eyebrow: 'الأسواق',
+    title: 'التحليلات',
+    note: 'تحليل مُولَّد آلياً لكل شركة من بياناتها المالية وسعرها ووضع قطاعها، ويُجدَّد أسبوعياً. للاطلاع لا للتداول، وليس توصية استثمارية.',
+    search: 'ابحث بالاسم أو الرمز',
+    noResults: 'لا نتائج',
+    open: 'عرض التحليل',
+    loading: 'جارٍ إعداد التحليل، قد يستغرق دقيقة',
+    failed: 'تعذّر تحميل التحليل',
+    retry: 'إعادة المحاولة',
+    back: 'كل التحليلات',
+    verdict: 'الحكم',
+    verdicts: { 'Very Bullish': 'إيجابي جداً', Bullish: 'إيجابي', 'Mildly Bullish': 'إيجابي قليلاً', Neutral: 'محايد', 'Mildly Bearish': 'سلبي قليلاً', Bearish: 'سلبي', 'Very Bearish': 'سلبي جداً' } as Record<string, string>,
+    bull: 'الحالة الإيجابية',
+    bear: 'الحالة السلبية',
+    themes: 'المحاور الرئيسية',
+    outlook: 'التوقعات',
+    kpis: 'أبرز الأرقام',
+    disclaimer: 'هذا التحليل مُولَّد آلياً من بيانات منشورة ولا يُعدّ نصيحة استثمارية. تحقّق من الأرقام في صفحة الشركة وقوائمها المالية قبل أي قرار.',
+    companyPage: 'صفحة الشركة',
+  },
 }

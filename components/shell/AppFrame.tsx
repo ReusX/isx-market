@@ -67,7 +67,7 @@ const BARE_ROUTES = [
  * list is the migration ledger: a route is added here the day it is rebuilt,
  * and the frame is deleted the day the list covers everything.
  */
-const REBUILT = ['/market', '/companies', '/screener', '/heatmap', '/statistics', '/pulse', '/c', '/banks', '/fx', '/gold', '/oil', '/silver', '/news', '/portfolio', '/watchlist', '/alerts', '/login', '/signup', '/forgot-password', '/verify-email', '/auth/reset', '/profile', '/about', '/contact', '/legal', '/privacy']
+const REBUILT = ['/market', '/companies', '/screener', '/heatmap', '/statistics', '/pulse', '/c', '/banks', '/fx', '/gold', '/oil', '/silver', '/news', '/portfolio', '/watchlist', '/alerts', '/login', '/signup', '/forgot-password', '/verify-email', '/auth/reset', '/profile', '/about', '/contact', '/legal', '/privacy', '/analysis']
 const REBUILT_EXACT = ['/']   // the root only — prefix-matching '/' would cover every route
 
 

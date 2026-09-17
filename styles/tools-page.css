@@ -39,3 +39,9 @@
 .tl-alloc-bar i { display: block; height: 100%; background: var(--moss-ink); border-radius: 4px; }
 .tl-alloc-v { text-align: end; }
 @media (max-width: 560px) { .tl-alloc li { grid-template-columns: 1fr; gap: 4px; } }
+/* ── /analysis ──────────────────────────────────────────────────────────── */
+.tl-lede { font-size: 17px; line-height: 1.7; margin: 16px 0 20px; }
+.tl-sec { margin-top: 28px; }
+.tl-sec > .id-h3 { margin-bottom: 10px; }
+.tl-verdict { margin: 4px 0 10px; }
+.tl-verdict .id-chg { font-size: 15px; padding: 4px 12px; }
