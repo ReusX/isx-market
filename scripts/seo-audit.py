@@ -2,13 +2,14 @@
 """SEO regression audit: old build (3400) vs new build (3300), route by route."""
 import re, sys, json, html, urllib.request, collections
 
-OLD = 'http://localhost:3400'
-NEW = 'http://localhost:3300'
+import os
+OLD = os.environ.get('SEO_OLD', 'http://localhost:3400')
+NEW = os.environ.get('SEO_NEW', 'http://localhost:3300')
 ROUTES = [
     '/', '/market', '/companies', '/screener', '/heatmap', '/statistics',
     '/statistics/foreign-flow', '/statistics/ownership', '/statistics/shareholders',
     '/pulse', '/c/TASC', '/c/BBOB', '/c/TASC/financials', '/banks', '/banks/mansour',
-    '/fx', '/gold', '/oil', '/news', '/about', '/contact', '/legal', '/privacy', '/portfolio', '/watchlist', '/alerts', '/login', '/analysis', '/analysis/TASC',
+    '/fx', '/gold', '/oil', '/news', '/about', '/contact', '/legal', '/privacy', '/portfolio', '/watchlist', '/alerts', '/login', '/analysis', '/analysis/TASC', '/learn', '/learn/trading-from-zero', '/research', '/en/learn', '/en/learn/trading-from-zero',
     '/en', '/en/market', '/en/companies', '/en/c/TASC', '/en/banks', '/en/fx', '/en/gold', '/en/news', '/en/about', '/en/legal', '/en/login',
 ]
 

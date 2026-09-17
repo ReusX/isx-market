@@ -45,18 +45,12 @@ const ALLOW_FILES = [
   'lib/pulse.ts',               // Arabic identifiers in comments only
   'lib/infoData.ts',            // no Arabic left; kept for the reply-time note
   'app/(ar)/',                  // the ARABIC route group's own metadata
-  'components/auth/AuthShell.tsx', // AUTH_ERRORS ar/en pair lives here
-  'components/auth/screens.tsx',   // isAr ternaries, both languages present
   'components/site/AuthScreens.tsx',      // the same screens on the site shell
   'components/site/AuthKit.tsx',          // show/hide password labels, both languages
   'components/site/ResetPasswordPage.tsx',// isAr ternaries, both languages present
-  'components/auth/AuthModal.tsx',
   'app/global-error.tsx',       // deliberately bilingual — see the file
-  'components/shell/LanguageSwitch.tsx', // «العربية» is the switch's own label
-  'components/company/CompanyProfile.tsx', // ar/en generated profile pair
-  'components/routes/ResetPassword.tsx',   // isAr ternaries, both languages present
+  'components/site/LanguageSwitch.tsx',  // «العربية» is the switch's own label
   'app/api/',                   // ⚠ SEE BELOW — Arabic LLM prompts, not chrome
-  'components/info/LegalDoc.tsx',  // parses the «[مراجعة قانونية:…]» marker format
   'lib/i18n/messages/en/',      // the auth error pair and the language endonym
   'lib/depositoryNames.ts',     // Arabic MATCHING data — the structural words a
                                 // depository name is stripped of, and the

@@ -3,7 +3,7 @@
 import { createContext, useContext, useEffect, useState, useCallback, useMemo } from 'react'
 import type { UserProfile, Lang } from '@/types'
 import { createClient } from '@/lib/supabase/client'
-import AuthModal from '@/components/auth/AuthModal'
+import { useRouter, usePathname } from 'next/navigation'
 
 type Theme = 'dark' | 'light'
 
@@ -43,7 +43,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [profile, setProfile]   = useState<UserProfile | null>(null)
   const [watchlist, setWatchlist] = useState<string[]>([])
   const [authLoading, setAuthLoading] = useState(true)
-  const [authModalTab, setAuthModalTab] = useState<'signin' | 'signup' | null>(null)
+  const router = useRouter()
+  const pathname = usePathname()
   // Init theme + watchlist from localStorage
   useEffect(() => {
     const stored = localStorage.getItem('theme')
@@ -132,7 +133,12 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     setProfile(null)
   }
 
-  const openAuth = (tab: 'signin' | 'signup' = 'signin') => setAuthModalTab(tab)
+  /* The sign-in pages replaced the modal: «سجّل الدخول» anywhere goes to
+     /login (or /en/login), with the sign-up variant for «إنشاء حساب». */
+  const openAuth = (tab: 'signin' | 'signup' = 'signin') => {
+    const en = (pathname ?? '/').startsWith('/en')
+    router.push(`${en ? '/en' : ''}${tab === 'signup' ? '/signup' : '/login'}`)
+  }
 
   return (
     <AppContext.Provider value={{
@@ -140,9 +146,6 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       toggleTheme, toggleWatchlist, refreshProfile, signOut, openAuth,
     }}>
       {children}
-      {authModalTab && !user && (
-        <AuthModal defaultTab={authModalTab} onClose={() => setAuthModalTab(null)} />
-      )}
     </AppContext.Provider>
   )
 }

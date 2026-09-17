@@ -46,12 +46,12 @@ ok('verdict returns an id, not prose', /id: 'broadSupported'/.test(pl) && !/head
      · unobserved buckets are excluded from the chart rather than drawn flat. */
 const ffEn = execSync('cat lib/i18n/messages/en/flow.ts').toString()
 const ffAr = execSync('cat lib/i18n/messages/ar/flow.ts').toString()
-const ffUi = execSync('cat components/routes/ForeignFlow.tsx').toString()
 const zeroEn = /measuredZero:\s*'([^']+)'/.exec(ffEn)?.[1] ?? ''
 const zeroAr = /measuredZero:\s*'([^']+)'/.exec(ffAr)?.[1] ?? ''
 ok('measured zero ≠ missing data (en)', /zero/i.test(zeroEn) && /not missing data|not the same as missing/i.test(zeroEn))
 ok('measured zero ≠ missing data (ar)', /صفر/.test(zeroAr) && /لا غياب بيانات/.test(zeroAr))
-ok('no-data count is conditional, never a printed zero', /t\.missing > 0 \?/.test(ffUi))
+/* The «no data: 0» guard lived in the retired ForeignFlow.tsx; the rebuilt
+   page (components/site/ForeignFlowPage) has no per-period no-data count. */
 const ffLib = execSync('cat lib/foreignFlow.ts').toString()
 /* `isCounted` is the denominator rule itself: a `missing` session is the one
    kind that never counts. If this predicate stops excluding it, every ratio on
@@ -106,16 +106,8 @@ ok('CBI workbook is parsed by openpyxl, not by regex',
 ok('the python parser confirms the day from column A',
   /data\[0\] != day/.test(execSync('cat scripts/cbi_history.py').toString()))
 
-// Statistics canvas transplant + axis fix survive.
-const css = execSync('cat styles/statistics.css').toString()
-ok('statistics axis fix intact', /--stw-plot-h/.test(css) && /\.stw-axis-y/.test(css))
-const sc = execSync('cat components/routes/StatChart.tsx').toString()
-ok('statistics donor canvas intact', /canvasRef/.test(sc) && /exportPng/.test(sc))
-
-// Homepage market-cap tab really shows market cap.
-const home = execSync('cat components/routes/HomePage.tsx').toString()
-ok('market-cap tab owns the table', /pool = moverTab === 'mcap' \? companies : traded/.test(home.replace(/\s+/g, ' ')) || /moverTab === 'mcap'/.test(home))
-ok('value column names its metric', /valueCapMode/.test(home) && /valueTradeMode/.test(home))
+/* The statistics canvas and the homepage mover tabs were retired with the
+   old components in the row-19 sweep (2026-09-17); their checks went with them. */
 
 // TZNI stays eligible for market-cap ranking.
 const live = await (await fetch(O + '/api/chart/TZNI').catch(() => ({ ok: false }))).ok

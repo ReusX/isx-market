@@ -1,7 +1,6 @@
 import { Readex_Pro } from 'next/font/google'
 import { AppProvider } from '@/context/AppContext'
 import { LocaleProvider } from '@/context/LocaleContext'
-import AppFrame from '@/components/shell/AppFrame'
 import { Analytics } from '@vercel/analytics/react'
 import NativeBridge from '@/components/NativeBridge'
 import { SITE, absUrl } from '@/lib/seo'
@@ -132,7 +131,7 @@ export function Document({ locale, children }: { locale: Locale; children: React
         />
         <AppProvider>
           <LocaleProvider locale={locale}>
-            <AppFrame>{children}</AppFrame>
+            {children}
             <NativeBridge />
           </LocaleProvider>
           {/* Web Analytics only. Speed Insights (real-user Core Web

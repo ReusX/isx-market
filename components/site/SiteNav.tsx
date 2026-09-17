@@ -4,8 +4,8 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useState } from 'react'
 import { StarMark } from '@/components/brand/StarMark'
-import { LanguageSwitch } from '@/components/shell/LanguageSwitch'
-import { ThemeToggle } from '@/components/shell/ThemeToggle'
+import { LanguageSwitch } from './LanguageSwitch'
+import { ThemeToggle } from './ThemeToggle'
 import { useApp } from '@/context/AppContext'
 import { useLocale } from '@/context/LocaleContext'
 import { splitLocale } from '@/lib/i18n/paths'
@@ -26,7 +26,7 @@ export const DOORS = [
   { id: 'economy', route: '/fx',      owns: ['/fx', '/gold', '/oil', '/silver', '/currencies', '/cbi-window'] },
   /* Learn is «قريباً» for now: the pill stays so the four doors read as the
      product, but it is not a link. /news still lives under it. */
-  { id: 'learn',   route: '/news',    owns: ['/learn', '/news', '/research'], soon: true },
+  { id: 'learn',   route: '/learn',   owns: ['/learn', '/news', '/research'] },
 ] as const
 
 const ICON: Record<string, React.ReactNode> = {

@@ -27,12 +27,12 @@ export default function CompanyNotFound() {
       <h2 style={{ fontSize: 20, fontWeight: 800, marginBottom: 8 }}>
         {cd.notFoundTitle('')}
       </h2>
-      <p style={{ fontSize: 14, color: 'var(--ink3)', marginBottom: 24, lineHeight: 1.6 }}>
+      <p style={{ fontSize: 14, color: 'var(--secondary)', marginBottom: 24, lineHeight: 1.6 }}>
         {cd.notFoundNote}
       </p>
       <Link href={L('/market')} style={{
         display: 'inline-block', padding: '10px 24px',
-        background: 'var(--brand)', color: '#fff',
+        background: 'var(--nav-active)', color: '#fff',
         borderRadius: 10, fontWeight: 700, fontSize: 14,
       }}>
         {cd.allCompanies}

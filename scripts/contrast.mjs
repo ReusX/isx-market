@@ -1,43 +1,18 @@
 #!/usr/bin/env node
 /**
- * WCAG contrast audit of the design-token layer, both themes.
- *
- * Adapted from the archived checker to read `styles/design-tokens.css`.
- *
- * The pairs below are the ones a user actually reads. Each names the surface
- * it is read against, because a colour has no contrast on its own — half of
- * all contrast bugs are a correct colour on an unexpected background.
- *
- * Alpha values are composited over their stated base before measuring; an
- * rgba() line at 9% opacity is not a colour until it is on something.
+ * Contrast for the site's theme tokens (app/globals.css), both themes.
+ * Text tokens against the page and the panel; up/down; the link blue.
+ * Colours are resolved through their var() chains first.
  *
  *   node scripts/contrast.mjs [--verbose]
  */
+import { readThemes, resolve } from './lib/themeTokens.mjs'
 
-import { readFileSync } from 'node:fs'
-
-const TOKENS = 'styles/design-tokens.css'
-const css = readFileSync(TOKENS, 'utf8')
-
-function declaredIn(needle) {
-  const found = new Map()
-  const re = /([^{}]+)\{([^{}]*)\}/g
-  let m
-  while ((m = re.exec(css))) {
-    if (!m[1].includes(needle)) continue
-    for (const d of m[2].matchAll(/(--[\w-]+)\s*:\s*([^;]+);/g)) found.set(d[1], d[2].trim())
-  }
-  return found
-}
-
+const { light, dark } = readThemes()
 const THEME = {
-  light: declaredIn("[data-theme='light']"),
-  dark: declaredIn("[data-theme='dark']"),
+  light: (k) => resolve(k, light),
+  dark: (k) => resolve(k, dark, light),
 }
-
-/* The environment gradients are not flat, so contrast is measured against the
-   dominant stop of each — the colour that occupies most of the page. */
-const ENV = { light: '#f5f2ec', dark: '#0f1218' } // paper page · graphite page
 
 function parse(c) {
   c = c.trim()
@@ -78,28 +53,21 @@ function ratio(fgRaw, bgRaw) {
 /* [token, background, minimum, what it is]
    4.5 = body text · 3.0 = large text (≥18.66px bold / 24px) and UI boundaries. */
 const PAIRS = [
-  ['--mv-ink', 'ENV', 4.5, 'body copy on the page'],
-  ['--mv-ink-2', 'ENV', 4.5, 'secondary text on the page'],
-  ['--mv-ink-3', 'ENV', 3.0, 'captions and muted labels'],
-  ['--mv-ink', 'PANEL', 4.5, 'body copy on a panel'],
-  ['--mv-ink-2', 'PANEL', 4.5, 'secondary text on a panel'],
-  ['--mv-ink-3', 'PANEL', 3.0, 'muted labels on a panel'],
-  ['--mv-up', 'ENV', 4.5, 'a rising value'],
-  ['--mv-down', 'ENV', 4.5, 'a falling value'],
-  ['--mv-up', 'PANEL', 4.5, 'a rising value on a panel'],
-  ['--mv-down', 'PANEL', 4.5, 'a falling value on a panel'],
-  ['--mv-hero-bright', 'ENV', 3.0, 'links and the focus ring'],
+  ['--ink', '--page', 4.5, 'body copy on the page'],
+  ['--secondary', '--page', 4.5, 'secondary text on the page'],
+  ['--muted', '--page', 3.0, 'captions and muted labels'],
+  ['--ink', '--surface', 4.5, 'body copy on a panel'],
+  ['--secondary', '--surface', 4.5, 'secondary text on a panel'],
+  ['--muted', '--surface', 3.0, 'muted labels on a panel'],
+  ['--up', '--page', 4.5, 'a rising value'],
+  ['--down', '--page', 4.5, 'a falling value'],
+  ['--up', '--surface', 4.5, 'a rising value on a panel'],
+  ['--down', '--surface', 4.5, 'a falling value on a panel'],
+  ['--nav-active', '--page', 3.0, 'links and the focus ring'],
+  ['--sel-ink', '--sel-bg', 4.5, 'a selected pill'],
 ]
-
-/* Reported, never failed. WCAG 1.4.11 sets 3:1 for UI components and
-   meaningful graphics; a divider is neither — how subtle it should be is a
-   design decision, not an accessibility one. An earlier draft of this gate
-   failed `--mv-line-strong` against an invented 1.4:1 minimum, which would
-   have pressured an approved colour to satisfy a rule that does not exist. */
-const INFORMATIONAL = [
-  ['--mv-line', 'ENV', 'hairline divider'],
-  ['--mv-line-strong', 'ENV', 'emphasis divider'],
-]
+/* Dividers have no accessibility minimum; reported with --verbose only. */
+const INFORMATIONAL = [['--border', '--page', 'hairline divider']]
 
 const verbose = process.argv.includes('--verbose')
 const fails = []
@@ -109,8 +77,8 @@ for (const theme of ['light', 'dark']) {
   const t = THEME[theme]
   if (verbose) console.log(`\n── ${theme} ──`)
   for (const [token, bgKey, min, what] of PAIRS) {
-    const fg = t.get(token)
-    const bg = bgKey === 'ENV' ? ENV[theme] : t.get('--mv-panel-solid')
+    const fg = t(token)
+    const bg = t(bgKey)
     if (!fg || !bg) continue
     const r = ratio(fg, bg)
     checked++
@@ -122,8 +90,8 @@ for (const theme of ['light', 'dark']) {
   }
   if (verbose) {
     for (const [token, bgKey, what] of INFORMATIONAL) {
-      const fg = t.get(token)
-      const bg = bgKey === 'ENV' ? ENV[theme] : t.get('--mv-panel-solid')
+      const fg = t(token)
+      const bg = t(bgKey)
       if (!fg || !bg) continue
       console.log(`  · ${token.padEnd(18)} on ${bgKey.padEnd(6)} ${ratio(fg, bg).toFixed(2)}:1 (no minimum)  ${what}`)
     }

@@ -3,7 +3,7 @@ import type { Metadata } from 'next'
 import { getPost, stripHtml } from '@/lib/cms'
 import { plainText } from '@/lib/article'
 import { loadArticle } from '@/lib/articleLoad'
-import { ArticleView } from '@/components/article/ArticleView'
+import { ArticlePage } from '@/components/site/ArticlePage'
 import { absUrl, seoAlternates } from '@/lib/seo'
 
 /**
@@ -44,7 +44,7 @@ export default async function LearnArticle({ params }: { params: { slug: string 
   if (!article) notFound()
 
   return (
-    <ArticleView
+    <ArticlePage
       eyebrow="تعلّم"
       backHref="/learn"
       backLabel="تعلّم"

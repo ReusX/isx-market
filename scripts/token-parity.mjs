@@ -1,104 +1,61 @@
 #!/usr/bin/env node
 /**
- * Asserts the design-token layer stays internally consistent.
+ * Theme parity for the site's tokens (app/globals.css).
  *
- * Adapted from the archived checker, which read `styles/tokens.css` and
- * `styles/legacy/02-tokens.css` — neither of which exists here. This one reads
- * the files this repo actually has.
- *
- * Three checks, each guarding a failure that ships silently:
- *
- *   1 · THEME PARITY. A token declared in one theme and not the other does not
- *       fail a build, does not warn, and does not show up in review. It renders
- *       perfectly until someone toggles the theme, at which point that one
- *       property falls back to whatever it inherited — usually an invisible
- *       label or a transparent border, in one theme, on one screen.
- *
- *   2 · NO COLLISION WITH THE BASE LAYER. The `--mv-*` layer coexists with the
- *       base tokens that still style every un-migrated page. A name reused
- *       across the two would silently recolour the site.
- *
- *   3 · NO DANGLING REFERENCES. Every `var(--mv-…)` used inside the layer must
- *       be declared by it.
- *
- * Deliberately NOT checked: the specific value of any token. Values are the
- * designer's to change; this gate detects structural drift, not evolution.
- * The one exception is the small PINNED set below — constants the reference
- * app treats as identity, where a change is far more likely to be an accident
- * than a decision.
+ *   1. every ROLE token the pages use is declared in light AND in dark
+ *      (and in the system-dark block, which must mirror explicit dark)
+ *   2. dark declares nothing light does not (a token only dark knows is a
+ *      label that vanishes in light)
+ *   3. every `var(--x)` used in the live stylesheets resolves to a token
+ *      declared somewhere in globals.css
+ *   4. the one brand constant is pinned
  *
  *   node scripts/token-parity.mjs
  */
+import { readFileSync, readdirSync } from 'node:fs'
+import { readThemes, resolve } from './lib/themeTokens.mjs'
 
-import { readFileSync } from 'node:fs'
+const ROLES = ['--page', '--surface', '--surface-2', '--ink', '--secondary', '--muted', '--accent', '--nav-active', '--up', '--down', '--border', '--sel-bg', '--sel-ink']
+const PINNED = { '--blue': '#146bfd' }
 
-const TOKENS = 'styles/design-tokens.css'
-const BASE = 'app/globals.css'
-
-/** Reference-app constants that must not drift silently. Brand identity only. */
-const PINNED = {
-  '--mv-hero': '#146bfd', // Electric Blue · the identity's one accent
-}
-
-/** Declarations inside the rule whose selector list contains `needle`. */
-function declaredIn(css, needle) {
-  const found = new Map()
-  const re = /([^{}]+)\{([^{}]*)\}/g
-  let m
-  while ((m = re.exec(css))) {
-    if (!m[1].includes(needle)) continue
-    for (const d of m[2].matchAll(/(--[\w-]+)\s*:\s*([^;]+);/g)) {
-      found.set(d[1], d[2].trim())
-    }
-  }
-  return found
-}
-
-const css = readFileSync(TOKENS, 'utf8')
-const base = readFileSync(BASE, 'utf8')
+const { css, light, dark, system } = readThemes()
 const errors = []
 
-// ── 1 · theme parity ────────────────────────────────────────────────────────
-const light = declaredIn(css, "[data-theme='light']")
-const dark = declaredIn(css, "[data-theme='dark']")
-
-for (const k of light.keys()) {
-  if (!dark.has(k)) errors.push(`${k} declared in LIGHT but not DARK`)
+for (const k of ROLES) {
+  if (!light.has(k)) errors.push(`${k} missing from the light :root block`)
+  if (!dark.has(k)) errors.push(`${k} missing from [data-theme='dark']`)
+  if (!system.has(k)) errors.push(`${k} missing from the system-dark block`)
+  else if (system.get(k) !== dark.get(k)) errors.push(`${k}: system-dark (${system.get(k)}) ≠ explicit dark (${dark.get(k)})`)
 }
-for (const k of dark.keys()) {
-  if (!light.has(k)) errors.push(`${k} declared in DARK but not LIGHT`)
+for (const k of dark.keys()) if (!light.has(k)) errors.push(`${k} declared in DARK but not LIGHT`)
+
+// Every var() used by a live stylesheet must be declared somewhere.
+const declared = new Set([...css.matchAll(/(--[\w-]+)\s*:/g)].map((m) => m[1]))
+const files = readdirSync('styles').filter((f) => f.endsWith('.css')).map((f) => `styles/${f}`)
+for (const f of files) {
+  const s = readFileSync(f, 'utf8')
+  for (const d of s.matchAll(/(--[\w-]+)\s*:/g)) declared.add(d[1])   // page-local tokens count too
+}
+/* Tokens set from JavaScript — next/font's `variable` names on <html>, and
+   style-prop tokens like `--cols` — are declared too, just not in CSS. */
+const walk = (dir) => readdirSync(dir, { withFileTypes: true }).flatMap((e) => e.isDirectory() ? walk(`${dir}/${e.name}`) : e.name.match(/\.tsx?$/) ? [`${dir}/${e.name}`] : [])
+for (const f of [...walk('components'), ...walk('app'), ...walk('lib')]) {
+  const s = readFileSync(f, 'utf8')
+  for (const d of s.matchAll(/['"`](--[\w-]+)['"`]/g)) declared.add(d[1])
+}
+for (const f of [...files, 'app/globals.css']) {
+  const s = readFileSync(f, 'utf8')
+  for (const u of s.matchAll(/var\((--[\w-]+)/g)) if (!declared.has(u[1])) errors.push(`${u[1]} used in ${f} but never declared`)
 }
 
-// ── 2 · collision with the base layer ───────────────────────────────────────
-const baseNames = new Set()
-for (const d of base.matchAll(/(--[\w-]+)\s*:/g)) baseNames.add(d[1])
-const all = new Set([...css.matchAll(/(--[\w-]+)\s*:/g)].map(m => m[1]))
-for (const k of all) {
-  if (baseNames.has(k)) errors.push(`${k} is declared by BOTH the token layer and the base layer`)
-}
-
-// ── 3 · dangling references ─────────────────────────────────────────────────
-for (const u of css.matchAll(/var\((--mv-[\w-]+)/g)) {
-  if (!all.has(u[1])) errors.push(`${u[1]} is used but never declared`)
-}
-
-// ── pinned constants ────────────────────────────────────────────────────────
 for (const [k, want] of Object.entries(PINNED)) {
-  for (const [themeName, set] of [['light', light], ['dark', dark]]) {
-    const got = set.get(k)
-    if (got && got.toLowerCase() !== want.toLowerCase()) {
-      errors.push(`${k} in ${themeName} is ${got}, pinned to ${want}`)
-    }
-  }
+  const got = resolve(k, light)
+  if (got && got.toLowerCase() !== want.toLowerCase()) errors.push(`${k} is ${got}, pinned to ${want}`)
 }
 
 if (errors.length) {
-  for (const e of errors) console.error(`✗ ${e}`)
-  console.error(`\n${errors.length} token problem(s) in ${TOKENS}.`)
+  for (const e of [...new Set(errors)]) console.error(`✗ ${e}`)
+  console.error(`\n${new Set(errors).size} token problem(s).`)
   process.exit(1)
 }
-
-console.log(
-  `✓ tokens: ${light.size} per theme in parity, ` +
-  `${all.size} total, no base-layer collisions, no dangling refs`
-)
+console.log(`✓ tokens: ${ROLES.length} roles in parity across light · dark · system-dark, ${declared.size} tokens declared, no dangling refs`)

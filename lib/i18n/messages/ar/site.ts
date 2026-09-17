@@ -38,7 +38,7 @@ export const site = {
     '/statistics': 'الإحصاءات', '/statistics/foreign-flow': 'التدفق الأجنبي', '/statistics/ownership': 'الملكية الأجنبية', '/statistics/shareholders': 'كبار المساهمين', '/pulse': 'نبض السوق',
     '/banks': 'المصارف', '/banks/deposits': 'فوائد الودائع', '/banks/loans': 'فوائد القروض',
     '/fx': 'سعر الدولار', '/currencies': 'أسعار العملات', '/gold': 'سعر الذهب', '/silver': 'سعر الفضة', '/oil': 'سعر النفط',
-    '/learn': 'تعلّم', '/news': 'الأخبار', '/research': 'تحليلات',
+    '/learn': 'تعلّم', '/learn/trading-from-zero': 'التداول من الصفر', '/news': 'الأخبار', '/research': 'الأبحاث والتحليلات',
     '/portfolio': 'محفظتي', '/watchlist': 'قائمة المتابعة', '/alerts': 'التنبيهات',
   } as Record<string, string>,
   units:     { tn: 'ترليون', bn: 'مليار', mn: 'مليون', k: 'ألف', iqd: 'دينار', shares: 'سهم' },

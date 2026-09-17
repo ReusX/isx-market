@@ -1,11 +1,11 @@
 import { getPosts } from '@/lib/cms'
-import SectionPage from '@/components/cms/SectionPage'
+import { ResearchPage } from '@/components/site/ResearchPage'
 
 export const revalidate = 300
 
 // Title/description live in ./layout.tsx · see the note in app/news/page.tsx.
 
-export default async function ResearchPage() {
+export default async function Page() {
   const { posts } = await getPosts('research', { perPage: 18 })
-  return <SectionPage section="research" posts={posts} />
+  return <ResearchPage posts={posts} />
 }

@@ -1,0 +1,14 @@
+/* /learn · the path card, the library grid, the guide's numbered steps. Prefix lrn-. */
+.lrn-start { padding: 22px 24px; margin-bottom: 28px; }
+.lrn-path { display: flex; align-items: center; justify-content: space-between; gap: 20px; margin-top: 10px; color: inherit; text-decoration: none; }
+.lrn-path-copy { display: grid; gap: 6px; min-width: 0; }
+.lrn-path:hover strong { text-decoration: underline; }
+.lrn-library-head { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-bottom: 14px; }
+.lrn-q { max-width: 320px; }
+.lrn-clear { border: 0; background: none; padding: 0; font: inherit; color: var(--blue); cursor: pointer; }
+.lrn-grid { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 12px; }
+.lrn-card { display: grid; gap: 6px; padding: 18px; border: 1px solid var(--border); border-radius: var(--r-md); color: inherit; text-decoration: none; min-height: 100%; }
+.lrn-card:hover { background: var(--surface-2); }
+.lrn-card-sum { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+.lrn-step { display: inline-grid; place-items: center; width: 30px; height: 30px; margin-inline-end: 10px; border-radius: 50%; background: var(--sel-bg); color: var(--sel-ink); font-size: 14px; font-weight: 500; vertical-align: middle; }
+@media (max-width: 640px) { .lrn-path { flex-direction: column; align-items: flex-start; } }

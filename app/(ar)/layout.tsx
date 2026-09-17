@@ -1,6 +1,6 @@
 import type { Metadata, Viewport } from 'next'
 import '../globals.css'
-import { Document } from '@/components/shell/Document'
+import { Document } from '@/components/site/Document'
 import { SITE, absUrl, seoAlternates } from '@/lib/seo'
 
 /**

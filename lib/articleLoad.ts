@@ -1,7 +1,7 @@
 import { getPost, getPosts, featuredImage, authorName, stripHtml, type Section } from '@/lib/cms'
 import { outlineBody, plainText } from '@/lib/article'
 import { arDate } from '@/lib/date'
-import type { ArticleNeighbour } from '@/components/article/ArticleView'
+type ArticleNeighbour = { slug: string; title: string; href: string }
 
 /**
  * The shared loader behind /news/[slug] and /learn/[slug].

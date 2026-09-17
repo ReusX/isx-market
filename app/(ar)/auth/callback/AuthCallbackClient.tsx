@@ -6,7 +6,8 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useApp } from '@/context/AppContext'
 import { createClient } from '@/lib/supabase/client'
-import { AuthShell, AuthError, Outcome } from '@/components/auth/AuthShell'
+import { AuthShell, AuthError, Outcome } from '@/components/site/AuthKit'
+import '@/styles/auth-page.css'
 import type { AuthErrorId } from '@/lib/auth'
 
 /**

@@ -128,11 +128,6 @@ export const ROUTES: RouteEntry[] = [
          + '(docs/REMOVED_ROUTE_RETIREMENT.md). Minting an English twin of a '
          + 'route that may be retired creates a second URL to retire.',
     }))),
-  {
-    pattern: '/dev/foundation',
-    cls: 'ar-only',
-    why: 'Internal token/component reference. Not a product surface.',
-  },
 ]
 
 const BY_PATTERN = new Map(ROUTES.map((r) => [r.pattern, r]))

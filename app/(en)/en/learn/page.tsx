@@ -1,4 +1,4 @@
-import { LearnPageBody } from '@/components/routes/learnData'
+import { LearnPageBody } from '@/lib/learnData'
 
 export const revalidate = 300
 

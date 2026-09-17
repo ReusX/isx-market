@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { LearnGuide } from '@/components/routes/LearnGuide'
+import { LearnGuidePage } from '@/components/site/LearnPages'
 import { absUrl, seoAlternates } from '@/lib/seo'
 
 /**
@@ -26,5 +26,5 @@ export const metadata: Metadata = {
 }
 
 export default function Page() {
-  return <LearnGuide />
+  return <LearnGuidePage />
 }

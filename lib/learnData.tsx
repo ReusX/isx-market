@@ -1,7 +1,7 @@
 import { getPosts, stripHtml } from '@/lib/cms'
 import { guideSections } from '@/lib/tradingFromZero'
 import { readingMinutes, type LearnItem, type LearnPath } from '@/lib/learn'
-import { LearnIndex } from '@/components/routes/LearnIndex'
+import { LearnIndexPage } from '@/components/site/LearnPages'
 import { messages } from '@/lib/i18n'
 import type { Locale } from '@/lib/i18n/locale'
 
@@ -48,5 +48,5 @@ export async function LearnPageBody({ locale }: { locale: Locale }) {
     }
   })
 
-  return <LearnIndex items={items} path={pathFor(locale)} libraryOk={ok} />
+  return <LearnIndexPage items={items} path={pathFor(locale)} libraryOk={ok} />
 }
