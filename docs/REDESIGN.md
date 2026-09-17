@@ -83,17 +83,17 @@ Order is by traffic and by what other pages borrow from. Shell first because eve
 
 Every English route (`/en/...`) shares the component with its Arabic twin, so a row is done for both languages at once.
 
-## HANDOFF · 2026-09-16 (second session — moving to another account)
+## HANDOFF · 2026-09-17 (third session) — READY TO DEPLOY, awaiting the user's go
 
-**State:** branch `redesign/latitude`, working tree clean, everything committed, **NOTHING DEPLOYED** and nothing should be. Dev server: `preview_start` name `isx-dev`, port 3300. Note the port may already be held by another session's server — if `preview_start` refuses, just use the running one.
+**State:** branch `redesign/latitude` at `1cc5379`, working tree clean, **NOTHING DEPLOYED**. Gates green (tokens · i18n · routes, 90 routes), `next build` exit 0, SEO audit vs the pre-redesign build (`bb6fe64`) shows no regressions. Dev server: `preview_start` name `isx-dev`, port 3300 (it dies when the session restarts — just start it again).
 
-**Rows done:** 1 shell · 2 `/` · 3 `/market` · 4 `/c/[sym]` · 6 `/companies` · 7 `/screener` · 8 `/heatmap` · 9 `/statistics` · 9a foreign-flow · 9b ownership · 9c shareholders · 12 `/pulse`. Ten of nineteen.
+**Rows done:** 1 shell · 2 `/` · 3 `/market` · 4 `/c/[sym]` · 5 financials · 6 `/companies` · 7 `/screener` · 8 `/heatmap` · 9/9a/9b/9c statistics · 10 `/banks` (+ profiles, deposits, loans) · 11 `/fx` `/gold` `/oil` + 11a `/silver` · 12 `/pulse` · 13 `/news` + article (learn/research deferred) · 14 tools · 15 auth + profile · 16 info pages · 17 `/analysis` · 18 404/500. Only row 19 (the sweep) remains, plus the deferred learn/research rows.
 
-**Row 5 landed (third session):** `/c/[sym]/financials` is on the new shell and prerendered; `AppFrame.NOT_YET` is gone; `/api/chart/[sym]` has no caller and goes in the sweep. Every route under the markets door is rebuilt.
+**Deploy step (user must say which):** merge `redesign/latitude` → `main`, or point Vercel at the branch. Do not merge or deploy unprompted. After deploy: watch Search Console for `/screener` (title renamed «مستكشف» → «رادار») and the statistics sub-pages (titles rewritten).
 
-**Learn door is «قريباً»** (user's call before deploy): the تعلّم pill in the nav is not a link, the foot's learn column keeps only /news, and the news rail shows دليل التعلّم · التداول من الصفر · الأبحاث as «قريباً» rows. `/learn*` and `/research*` still exist on the old frame, unlinked, until their rows are built.
+**User decisions this session (locked):** `/charts` removed (301 → `/`; «view full chart» expands IndexChart in place). Economy pages stay in the الاقتصاد العراقي door (the user briefly wanted them in the markets rail, then reverted). Learn door is «قريباً»: nav pill not a link, foot keeps only /news, news rail shows learn rows as «قريباً». Learn/research rows and العملات / نافذة بيع العملة / السندات / التضخم / سعر الفائدة come AFTER deploy. Silver headline in dinars. Source lines («المصدر: …») off the page tops. FAQs on fx/gold/oil/silver answer with live figures (`lib/ratesFaq`), same call feeds the JSON-LD.
 
-**`/charts` removed** (301 → `/`; «view full chart» expands `IndexChart` in place). **Row 10 `/banks` landed** — the banking door is open; its sub-pages (deposits, loans, cards) are «قريباً» rows in the rail, not routes. **Row 11 landed.** The economy door stays (the user first wanted these in the markets rail, then decided to keep the door). **Planned next in this door**, each its own row: `/silver` (iraqgoldprice.com/silverprice — USD figures, dinar via the market rate), `/currencies` (EUR/GBP/TRY/AED/SAR/KWD/IRR vs the dinar, a separate page from the dollar), `/cbi-window` (the CBI's daily currency-window sales — new scraper), and `/bonds` (the ISX workbook's السندات sheet — belongs in the الأسواق rail). Later: `/inflation`, `/policy-rate`.
+**Next after deploy, in order:** row 19 sweep (old `components/routes|shell|design|company|auth|info|system|cms|article`, old stylesheets, `lightweight-charts`, `/api/chart/[sym]`, `public/fonts`; check `scripts/i18n-strings.mjs` allowlist entries as files go) · learn/research rows on `site/ArticlePage` · `/currencies` (plan: free USD-base feed — open.er-api.com — × the parallel rate, labelled as a conversion) · `/bonds` (ISX workbook السندات sheet, markets rail) · `/cbi-window` (CBI scraper) · foreign-flow «توزيع رأس المال الأجنبي حسب القطاع» section (dropped in the rebuild, open) · operator items (rotate sbp token, revoke old PAT).
 
 ### What this session changed beyond the tracker rows
 
