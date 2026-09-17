@@ -30,6 +30,9 @@ export function ProfilePage() {
   const { theme, toggleTheme, user, profile, authLoading, refreshProfile, signOut, openAuth, watchlist } = useApp()
   const { lots } = usePortfolio()
   const email = user?.email ?? ''
+  /* A phone account has no address: the identity row shows the number and
+     the emailed reset is not offered (there is nowhere to send it). */
+  const phone = user?.phone ? `+${user.phone}` : ''
   const [name, setName] = useState(profile?.username ?? '')
   const [editing, setEditing] = useState(false)
   const [saving, setSaving] = useState(false)
@@ -90,15 +93,17 @@ export function ProfilePage() {
             </div>
           </div>
           <div className="ath-row">
-            <dt>{ac.email}</dt>
-            <dd><bdi dir="ltr">{email}</bdi><span className="id-sub id-cap">{ac.emailNotEditable}</span></dd>
+            <dt>{email ? ac.email : ac.phone}</dt>
+            <dd><bdi dir="ltr">{email || phone}</bdi><span className="id-sub id-cap">{ac.emailNotEditable}</span></dd>
             <span className="id-cap">{ac.notEditable}</span>
           </div>
-          <div className="ath-row">
-            <dt>{ac.password}</dt>
-            <dd>{resetSent ? ac.resetSentTo(email) : ac.passwordViaEmail}<span className="id-sub id-cap">{ac.noCurrentPassword}</span></dd>
-            <button type="button" className="id-btn is-sm" onClick={sendReset} disabled={resetSent}>{resetSent ? ac.resetSent : ac.sendResetLink}</button>
-          </div>
+          {email ? (
+            <div className="ath-row">
+              <dt>{ac.password}</dt>
+              <dd>{resetSent ? ac.resetSentTo(email) : ac.passwordViaEmail}<span className="id-sub id-cap">{ac.noCurrentPassword}</span></dd>
+              <button type="button" className="id-btn is-sm" onClick={sendReset} disabled={resetSent}>{resetSent ? ac.resetSent : ac.sendResetLink}</button>
+            </div>
+          ) : null}
         </dl>
       </section>
 

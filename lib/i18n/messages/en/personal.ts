@@ -206,6 +206,7 @@ export const personal: typeof ar = {
     title: 'Account',
     username: 'Username',
     email: 'Email',
+    phone: 'Phone number',
     language: 'Language',
     appearance: 'Appearance',
     changePassword: 'Change Password',

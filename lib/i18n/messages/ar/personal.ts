@@ -215,6 +215,7 @@ export const personal = {
     title: 'الحساب',
     username: 'اسم المستخدم',
     email: 'البريد الإلكتروني',
+    phone: 'رقم الهاتف',
     language: 'اللغة',
     appearance: 'المظهر',
     changePassword: 'تغيير كلمة المرور',
