@@ -51,7 +51,8 @@
 .bnk-table th:nth-child(8) { width: 8%; }
 .bnk-table td { padding: 13px 0; font-size: 14px; }
 .bnk-table th + th, .bnk-table td + td { padding-inline-start: 16px; }
-.bnk-name { display: inline-flex; align-items: center; gap: 10px; color: var(--ink); text-decoration: none; min-width: 0; }
+.bnk-table td:first-child { overflow: hidden; }
+.bnk-name { display: flex; align-items: center; gap: 10px; color: var(--ink); text-decoration: none; min-width: 0; max-width: 100%; }
 .bnk-name:hover .id-name { text-decoration: underline; }
 .bnk-name .id-name { font-weight: 400; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .bnk-logo { width: 28px; height: 28px; border-radius: 7px; object-fit: contain; background: var(--surface); border: 1px solid var(--border); flex: 0 0 auto; }

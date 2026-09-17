@@ -18,9 +18,12 @@
 .site :where(tbody tr:hover) { background: none; }
 @media (max-width: 720px) {
   .site :where(table) { display: table; }
-  .site :where(thead) { display: table-header-group; }
+  /* The legacy block also hides <thead> with position:absolute + clip — and
+     an absolutely positioned box is forced to display:block whatever we
+     say, which threw away every column width. Undo the positioning too. */
+  .site :where(thead) { display: table-header-group; position: static; inline-size: auto; block-size: auto; overflow: visible; clip: auto; }
   .site :where(tbody) { display: table-row-group; }
-  .site :where(tr) { display: table-row; }
+  .site :where(tr) { display: table-row; margin: 0; border: 0; border-radius: 0; background: none; }
   .site :where(th, td) { display: table-cell; }
   .site :where(td)::before { content: none; }
 }

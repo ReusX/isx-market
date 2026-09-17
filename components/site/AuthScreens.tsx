@@ -125,11 +125,17 @@ export function SignUpScreen() {
     if (ee || pe || ce) return
     setBusy(true); setFormError(null)
     try {
-      const { error } = await createClient().auth.signUp({
+      const { data, error } = await createClient().auth.signUp({
         email, password,
         options: { emailRedirectTo: `${window.location.origin}/auth/callback` },
       })
       if (error) { setFormError(authErrorId(error)); return }
+      /* The project may not require email confirmation (Supabase Auth →
+         "Confirm email" off): then signUp answers with a live session and
+         no message is ever sent. Saying «we sent you a link» in that case
+         was a lie the reader could wait on forever. A session means in;
+         the «check your email» state is for the confirming configuration. */
+      if (data.session) { router.replace(L('/profile')); return }
       setSent(true)
     } catch (err) {
       setFormError(authErrorId(err))
