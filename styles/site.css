@@ -6,6 +6,25 @@
 .site { min-height: 100svh; display: flex; flex-direction: column; background: var(--page); color: var(--ink); }
 .site > main { flex: 1; }
 
+/* The legacy globals.css still styles bare elements (`table { min-inline-size:
+   900px }`, `th, td { white-space: nowrap; padding; border }`, sticky `th`).
+   Rebuilt pages own their tables through `.id-table` and the page prefixes;
+   these `:where` resets (0,1,0) clear the legacy defaults without out-ranking
+   any component rule. Same idea as the `.iq-page` block in design-tokens.css. */
+.site :where(table) { min-inline-size: 0; }
+.site :where(th, td) { padding: 0; border-block-end: 0; color: inherit; line-height: inherit; white-space: normal; }
+.site :where(th) { position: static; background: none; }
+.site :where(tbody tr) { transition: none; }
+.site :where(tbody tr:hover) { background: none; }
+@media (max-width: 720px) {
+  .site :where(table) { display: table; }
+  .site :where(thead) { display: table-header-group; }
+  .site :where(tbody) { display: table-row-group; }
+  .site :where(tr) { display: table-row; }
+  .site :where(th, td) { display: table-cell; }
+  .site :where(td)::before { content: none; }
+}
+
 /* ── Nav ────────────────────────────────────────────────────────────────── */
 .iqn {
   display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 12px;

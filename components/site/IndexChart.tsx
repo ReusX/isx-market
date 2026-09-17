@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useLocale } from '@/context/LocaleContext'
+import { chartToPng, copyBlob, downloadBlob } from '@/lib/chartImage'
 import { shortDate } from '@/lib/date'
 
 /**
@@ -52,11 +53,12 @@ function niceTicks(lo: number, hi: number): number[] {
   return [1, 2, 3].map((i) => +(lo + i * step).toFixed(2))
 }
 
-/* Date labels: about six, evenly spaced through the plotted points, each
+/* Date labels: up to six, evenly spaced through the plotted points, each
    the real date of the point it sits under — day and month for short
-   ranges, month and year for long ones. */
-function dateLabels(pts: IndexPoint[], range: Range, fmt: (d: string, long: boolean) => string) {
-  const n = Math.min(6, pts.length)
+   ranges, month and year for long ones. A label needs ~80px; a phone-wide
+   plot gets three, so neighbours never overlap. */
+function dateLabels(pts: IndexPoint[], range: Range, fmt: (d: string, long: boolean) => string, plotW: number) {
+  const n = Math.max(2, Math.min(6, pts.length, Math.floor(plotW / 80)))
   const long = range === 'y1' || range === 'y3' || range === 'all'
   const out: { i: number; label: string }[] = []
   for (let k = 0; k < n; k++) {
@@ -83,6 +85,15 @@ export function IndexChart({ series: all }: { series: IndexSeries }) {
   const plotRef = useRef<HTMLDivElement>(null)
   const [[W, H], setSize] = useState<[number, number]>([800, 300])
   const [full, setFull] = useState(false)
+  /* Copy / save the chart as an image. The outcome shows in the button for
+     a moment and then the label returns; a failure says so instead of
+     silently doing nothing. */
+  const [exportNote, setExportNote] = useState<'copied' | 'saved' | 'failed' | null>(null)
+  useEffect(() => {
+    if (!exportNote) return
+    const id = setTimeout(() => setExportNote(null), 2200)
+    return () => clearTimeout(id)
+  }, [exportNote])
   useEffect(() => {
     if (!full) return
     const key = (e: KeyboardEvent) => { if (e.key === 'Escape') setFull(false) }
@@ -96,10 +107,21 @@ export function IndexChart({ series: all }: { series: IndexSeries }) {
   useEffect(() => {
     const el = plotRef.current
     if (!el) return
-    const ro = new ResizeObserver(([e]) => { const w = Math.round(e.contentRect.width), h = Math.round(e.contentRect.height); if (w > 0 && h > 0) setSize([w, h]) })
+    const measure = () => {
+      const r = el.getBoundingClientRect()
+      const w = Math.round(r.width), h = Math.round(r.height)
+      if (w > 0 && h > 0) setSize((s) => (s[0] === w && s[1] === h ? s : [w, h]))
+    }
+    /* Measure now — the observer's first report is not guaranteed to be
+       prompt — then keep following the box, with the window as a fallback. */
+    measure()
+    const raf = requestAnimationFrame(measure)
+    const ro = new ResizeObserver(measure)
     ro.observe(el)
-    return () => ro.disconnect()
-  }, [])
+    window.addEventListener('resize', measure)
+    window.addEventListener('load', measure)
+    return () => { cancelAnimationFrame(raf); ro.disconnect(); window.removeEventListener('resize', measure); window.removeEventListener('load', measure) }
+  }, [full, series.length])
 
   const pts = useMemo(() => {
     if (!series.length) return []
@@ -126,9 +148,14 @@ export function IndexChart({ series: all }: { series: IndexSeries }) {
        closes sit lower leaves more room above them. */
     const mid = Math.floor(pts.length / 2)
     const mean = (a: IndexPoint[]) => a.reduce((t, p) => t + p.isx60, 0) / a.length
-    const markX = mean(pts.slice(0, mid)) <= mean(pts.slice(mid)) ? x(Math.floor(mid / 2)) : x(mid + Math.floor(mid / 2))
+    /* Sized to the plot and kept clear of both edges, so no letter clips on a phone. */
+    const plotW = W - PL - PR
+    const markSize = Math.max(14, Math.min(30, plotW / 11))
+    const markHalf = markSize * 0.8 * 10 / 2
+    const markX = Math.max(PL + markHalf, Math.min(PL + plotW - markHalf,
+      mean(pts.slice(0, mid)) <= mean(pts.slice(mid)) ? x(Math.floor(mid / 2)) : x(mid + Math.floor(mid / 2))))
     const markY = PT + (H - PT - PB) * 0.28
-    return { x, y, line, area, lo, hi, iHi, iLo, ticks: niceTicks(y0, y1), months: dateLabels(pts, range, fmt), first: pts[0].isx60, markX, markY }
+    return { x, y, line, area, lo, hi, iHi, iLo, ticks: niceTicks(y0, y1), months: dateLabels(pts, range, fmt, plotW), first: pts[0].isx60, markX, markY, markSize }
   }, [pts, locale, range, W, H])
 
   const onMove = (e: React.PointerEvent<SVGSVGElement>) => {
@@ -145,6 +172,19 @@ export function IndexChart({ series: all }: { series: IndexSeries }) {
   const last = pts[pts.length - 1]
   const shown = hover != null ? pts[hover] : last
   const pct = geo && shown ? ((shown.isx60 - geo.first) / geo.first) * 100 : 0
+
+  const caption = () => ({
+    title: `${c.series[which]} · ${c.ranges[range]}`,
+    value: last ? nf.format(last.isx60) : '—',
+    note: last ? fullDate(last.date) : '',
+    brand: 'IRAQSM.COM',
+  })
+  const makePng = () => svgRef.current ? chartToPng(svgRef.current, caption()) : Promise.reject(new Error('no chart'))
+  const onCopy = async () => setExportNote((await copyBlob(makePng)) ? 'copied' : 'failed')
+  const onSave = async () => {
+    try { downloadBlob(await makePng(), `${which}-${range}-${last?.date ?? 'chart'}.png`); setExportNote('saved') }
+    catch { setExportNote('failed') }
+  }
 
   return (
     <section className={`ix id-panel ${full ? 'is-full' : ''}`.trim()} aria-label={c.label}>
@@ -173,7 +213,9 @@ export function IndexChart({ series: all }: { series: IndexSeries }) {
       <div ref={plotRef} className="ix-plot">
       {geo ? (
         <svg ref={svgRef} className="ix-svg id-num" viewBox={`0 0 ${W} ${H}`}
-          onPointerMove={onMove} onPointerLeave={() => setHover(null)} role="img" aria-label={c.label}>
+          onPointerMove={onMove} onPointerDown={onMove}
+          /* A finger lifts, then "leaves": keep the touched value on screen. */
+          onPointerLeave={(e) => { if (e.pointerType !== 'touch') setHover(null) }} role="img" aria-label={c.label}>
           <defs>
             <linearGradient id="ix-wash" x1="0" y1="0" x2="0" y2="1">
               <stop offset="0" stopColor="var(--blue)" stopOpacity=".16" />
@@ -186,7 +228,7 @@ export function IndexChart({ series: all }: { series: IndexSeries }) {
               <text x={W - PR + 8} y={geo.y(v)} className="ix-tick">{nf.format(v)}</text>
             </g>
           ))}
-          <text x={geo.markX} y={geo.markY} className="ix-mark" aria-hidden="true">IRAQSM.COM</text>
+          <text x={geo.markX} y={geo.markY} className="ix-mark" style={{ fontSize: geo.markSize }} aria-hidden="true">IRAQSM.COM</text>
           <line x1={PL} x2={W - PR} y1={geo.y(geo.first)} y2={geo.y(geo.first)} className="ix-base" />
           <path d={geo.area} fill="url(#ix-wash)" />
           <path d={geo.line} className="ix-line" />
@@ -209,6 +251,10 @@ export function IndexChart({ series: all }: { series: IndexSeries }) {
       ) : <p className="id-note">{c.empty}</p>}
       </div>
       <footer className="ix-foot">
+        <div className="ix-export" role="group" aria-label={c.exportGroup}>
+          <button type="button" className="id-btn is-sm" onClick={onCopy} disabled={!geo}>{exportNote === 'copied' ? c.copied : exportNote === 'failed' ? c.exportFailed : c.copyImage}</button>
+          <button type="button" className="id-btn is-sm" onClick={onSave} disabled={!geo}>{exportNote === 'saved' ? c.saved : c.downloadImage}</button>
+        </div>
         <button type="button" className="id-btn is-sm" aria-pressed={full} onClick={() => setFull((f) => !f)}>
           {full ? c.exitFull : c.full}
         </button>

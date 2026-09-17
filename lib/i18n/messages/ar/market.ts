@@ -210,6 +210,12 @@ export const market = {
       empty:   'لا تتوفر بيانات المؤشر.',
       full:    'عرض المخطط الكامل',
       exitFull: 'إغلاق المخطط الكامل',
+      exportGroup: 'تصدير المخطط',
+      copyImage: 'نسخ كصورة',
+      downloadImage: 'تنزيل الصورة',
+      copied: 'نُسخت',
+      saved: 'نُزّلت',
+      exportFailed: 'تعذّر النسخ',
     },
     flow: {
       title:   'تدفق المستثمر الأجنبي',

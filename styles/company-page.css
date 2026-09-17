@@ -26,7 +26,13 @@
 
 /* ── Chart ──────────────────────────────────────────────────────────────── */
 .cmp-chart { margin-top: 8px; }
-.cmp-svg { width: 100%; height: clamp(320px, 42vw, 520px); display: block; margin-top: 12px; touch-action: none; user-select: none; -webkit-user-select: none; -webkit-user-drag: none; }
+/* A finger on the chart scrolls the page (pan-y) — a full-width block that
+   swallowed every touch left phones stuck on it. Horizontal drags and
+   pinches still reach the chart; it owns vertical touch only while a
+   drawing tool is active or in fullscreen, where there is nothing to scroll. */
+.cmp-svg { width: 100%; height: clamp(320px, 42vw, 520px); display: block; margin-top: 12px; touch-action: pan-y; user-select: none; -webkit-user-select: none; -webkit-user-drag: none; }
+.cmp-chart.is-drawing .cmp-svg, .cmp-chart.is-full .cmp-svg { touch-action: none; }
+@media (max-width: 760px) { .cmp-svg { height: clamp(260px, 70vw, 360px); } }
 .cmp-grid { stroke: var(--border); stroke-width: 1; opacity: .6; }
 .cmp-base { stroke: var(--muted); stroke-width: 1; stroke-dasharray: 3 5; opacity: .7; }
 .cmp-tick { fill: var(--muted); font-size: 11px; dominant-baseline: middle; }
@@ -103,22 +109,6 @@
   padding-top: calc(20px + env(safe-area-inset-top, 0px));
 }
 .cmp-chart.is-full .cmp-svg { height: calc(100vh - 140px); }
-
-/* Phone: the toolbar was stacking into five rows of pills and pushing the
-   chart itself below the fold. Two horizontally scrollable rows instead —
-   the range on one, every other control on the other — which is the same
-   move DoorRail makes when the sidebar will not fit. */
-@media (max-width: 760px) {
-  .cmp-tools { flex-wrap: nowrap; flex-direction: column; align-items: stretch; gap: 10px; }
-  .cmp-tools > .id-pills,
-  .cmp-tools-end { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; justify-content: flex-start; padding-bottom: 2px; }
-  .cmp-tools > .id-pills::-webkit-scrollbar,
-  .cmp-tools-end::-webkit-scrollbar { display: none; }
-  .cmp-tools .id-pill { flex: 0 0 auto; }
-  .cmp-tools-end .id-pills { flex-wrap: nowrap; }
-  .cmp-legend-plot { font-size: 10px; left: 50px; gap: 1px; }
-  .cmp-lg-ohlc { gap: 0 6px; }
-}
 
 /* ── Drawings ───────────────────────────────────────────────────────────
    Reader-made marks, so they read as annotation rather than as data: the
@@ -220,3 +210,31 @@
 .cmp-q summary::after { content: '+'; color: var(--muted); }
 .cmp-q[open] summary::after { content: '−'; }
 .cmp-q p { margin: 0 0 14px; }
+
+/* ── Phone layout · last, so it wins over the chrome rules above ────────
+   The toolbar was stacking into five rows of pills and pushing the chart
+   below the fold: two horizontally scrollable rows instead — the range on
+   one, every other control on the other — the same move DoorRail makes
+   when the sidebar will not fit. */
+@media (max-width: 760px) {
+  .cmp-tools { flex-wrap: nowrap; flex-direction: column; align-items: stretch; gap: 10px; }
+  .cmp-tools > .id-pills,
+  .cmp-tools-end { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; justify-content: flex-start; padding-bottom: 2px; }
+  .cmp-tools > .id-pills::-webkit-scrollbar,
+  .cmp-tools-end::-webkit-scrollbar { display: none; }
+  .cmp-tools .id-pill { flex: 0 0 auto; }
+  .cmp-tools-end .id-pills { flex-wrap: nowrap; }
+  /* On a phone nothing floats over the plot: the drawing rail becomes a
+     row above it and the legend a wrapping line beneath that, so every
+     candle stays visible and every control is reachable with a thumb. */
+  .cmp-stage { display: flex; flex-direction: column; gap: 8px; }
+  .cmp-rail { position: static; flex-direction: row; flex-wrap: wrap; align-self: flex-start; }
+  .cmp-rail-sep { width: 1px; height: auto; align-self: stretch; margin: 2px 3px; }
+  .cmp-rail-btn { width: 36px; height: 36px; }
+  .cmp-legend-plot { position: static; flex-direction: row; flex-wrap: wrap; gap: 2px 12px; font-size: 11px; }
+  .cmp-lg-ohlc { gap: 0 8px; }
+  .cmp-svg { margin-top: 0; }
+  .cmp-chart.is-full { display: flex; flex-direction: column; }
+  .cmp-chart.is-full .cmp-stage { flex: 1; min-height: 0; }
+  .cmp-chart.is-full .cmp-svg { height: auto; flex: 1; min-height: 200px; }
+}

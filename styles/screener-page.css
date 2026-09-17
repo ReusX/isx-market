@@ -27,3 +27,15 @@
 .scr-about { margin-top: 48px; padding-inline: 0; margin-inline: 0; }
 .scr-about .id-h2 { margin-bottom: 12px; }
 .scr-about .id-body { color: var(--secondary); margin: 0 0 12px; }
+
+/* Phone: the results compare four measures side by side, which is wider than
+   the screen by design. The panel scrolls sideways (the board's non-scrolling
+   wrapper rule is for the board's hidden-column strategy, not this table),
+   the company column stays put, and the header stops being sticky — a
+   sticky header inside a scroll container just jitters. */
+@media (max-width: 760px) {
+  .id-table-scroll:has(> .scr-table) { overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: thin; }
+  .scr-table { min-width: 620px; }
+  .scr-table thead th { position: static; }
+  .scr-table th:first-child, .scr-table td:first-child { position: sticky; inset-inline-start: 0; background: var(--page); z-index: 1; }
+}

@@ -261,14 +261,16 @@
   min-inline-size: 0;
 }
 
-/* globals.css:4620 — legacy cell padding, border, and the BASE-layer --ink,
-   which is not --mv-ink. A component that styles its cells overrides all of
-   this normally; a component that does not gets sane inherited defaults. */
+/* globals.css:4620 — legacy cell padding, border, the BASE-layer --ink
+   (which is not --mv-ink), and `white-space: nowrap`, which made a prose
+   cell push a phone page 900px wide. A component that styles its cells
+   overrides all of this normally; one that does not gets sane defaults. */
 .iq-page :where(th, td) {
   padding: 0;
   border-block-end: 0;
   color: inherit;
   line-height: inherit;
+  white-space: normal;
 }
 
 /* globals.css:4643,4647 — a hover fill in the base layer's --page. */

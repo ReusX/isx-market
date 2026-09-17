@@ -148,7 +148,7 @@ export function SeriesChart({ series, ranges, defaultRange, format, label, heigh
       <div ref={plotRef} className="lch-plot" style={{ height }}>
         {geo ? (
           <svg className="lch-svg id-num" viewBox={`0 0 ${W} ${H}`} role="img" aria-label={label}
-            onPointerMove={onMove} onPointerLeave={() => setHover(null)}>
+            onPointerMove={onMove} onPointerDown={onMove} onPointerLeave={(e) => { if (e.pointerType !== 'touch') setHover(null) }}>
             {geo.ticks.map((v) => (
               <g key={v}>
                 <line x1={PL} x2={W - PR} y1={geo.y(v)} y2={geo.y(v)} className="lch-grid" />

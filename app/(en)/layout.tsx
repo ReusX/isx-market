@@ -1,7 +1,7 @@
 import type { Metadata, Viewport } from 'next'
 import '../globals.css'
 import { Document } from '@/components/shell/Document'
-import { absUrl, seoAlternates } from '@/lib/seo'
+import { SITE, absUrl, seoAlternates } from '@/lib/seo'
 
 /**
  * The ENGLISH root layout · everything under `/en`.
@@ -21,6 +21,7 @@ import { absUrl, seoAlternates } from '@/lib/seo'
  * Arabic list transliterated.
  */
 export const metadata: Metadata = {
+  metadataBase: new URL(SITE),
   title: {
     default: 'IQWealth · Iraq Stock Market Data',
     // No brand suffix by design · see the note above.

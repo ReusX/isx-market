@@ -355,7 +355,13 @@ export function PriceChart({ bars, label, sym }: { bars: Bar[]; label: string; s
      the line — the same rule the index chart follows. */
   const mid = Math.floor(pts.length / 2)
   const mean = (a: Bar[]) => a.reduce((z, p) => z + p.close, 0) / Math.max(1, a.length)
-  const markX = mean(pts.slice(0, mid)) <= mean(pts.slice(mid)) ? x(i0 + Math.floor(mid / 2)) : x(i0 + mid + Math.floor(mid / 2))
+  /* The mark scales with the plot — 30px on a desktop, smaller on a phone —
+     and its centre is kept far enough from either edge that no letter is
+     cut off (the ten letters run about 0.8em each with the tracking at that weight). */
+  const markSize = Math.max(14, Math.min(30, PW / 11))
+  const markHalf = markSize * 0.8 * 10 / 2
+  const markX = Math.max(PL + markHalf, Math.min(PL + PW - markHalf,
+    mean(pts.slice(0, mid)) <= mean(pts.slice(mid)) ? x(i0 + Math.floor(mid / 2)) : x(i0 + mid + Math.floor(mid / 2))))
   const markY = PT + H_PRICE * 0.3
 
   /* Date labels: about one per 150px of plot, on real bars, kept off the
@@ -693,7 +699,7 @@ export function PriceChart({ bars, label, sym }: { bars: Bar[]; label: string; s
           </g>
         ))}
 
-        <text x={markX} y={markY} className="cmp-mark" aria-hidden="true">IRAQSM.COM</text>
+        <text x={markX} y={markY} className="cmp-mark" style={{ fontSize: markSize }} aria-hidden="true">IRAQSM.COM</text>
 
         <g clipPath={`url(#${clip})`}>
           {view === 'candles' ? pts.map((p, k) => {

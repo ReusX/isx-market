@@ -194,6 +194,12 @@ export const market: typeof ar = {
       empty:   'Index data is unavailable.',
       full:    'View full chart',
       exitFull: 'Close full chart',
+      exportGroup: 'Export chart',
+      copyImage: 'Copy as image',
+      downloadImage: 'Download image',
+      copied: 'Copied',
+      saved: 'Saved',
+      exportFailed: 'Could not copy',
     },
     flow: {
       title:   'Foreign investor flow',
