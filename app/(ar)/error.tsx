@@ -1,6 +1,6 @@
 'use client'
 
-import { FaultView } from '@/components/system/RouteStates'
+import { FaultPage as FaultView } from '@/components/site/StatePages'
 
 /**
  * The Arabic 500. Surface shared with `app/(en)/en/error.tsx`.

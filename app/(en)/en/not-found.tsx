@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { NotFoundView } from '@/components/system/RouteStates'
+import { NotFoundPage as NotFoundView } from '@/components/site/StatePages'
 import { messages } from '@/lib/i18n'
 
 /**
