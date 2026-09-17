@@ -4,7 +4,7 @@ import { FxPage as FxSurface } from '@/components/site/FxPage'
 import { absUrl, seoAlternates } from '@/lib/seo'
 import { fxSeries } from '@/lib/fxHistory'
 
-export const revalidate = 10800
+export const revalidate = 900
 export const dynamic = 'force-static'
 
 /**

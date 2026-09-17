@@ -9,6 +9,11 @@ const UA = {
     'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124 Safari/537.36 (+iraqsm.com)',
 }
 const REVALIDATE = 60 * 60 * 3 // 3 hours · picks up the daily update reliably
+/* The dollar is the one rate readers check the hour it moves. Alsumaria posts
+   its story at no fixed time, so the listing and the article are re-read every
+   10 minutes; a 3-hour data-cache TTL here meant production kept serving
+   yesterday's figure for hours after today's story was up (17 Sep 2026). */
+const FX_REVALIDATE = 60 * 10
 
 const intNum = (s: string) => parseInt(s.replace(/[^\d]/g, ''), 10)
 const floatNum = (s: string | undefined | null) =>
@@ -91,7 +96,7 @@ const ALS_LIST = 'https://www.alsumaria.tv/economy-news'
 
 async function fetchText(url: string, timeout = 12000): Promise<string | null> {
   try {
-    const res = await fetch(url, { headers: UA, next: { revalidate: REVALIDATE }, signal: AbortSignal.timeout(timeout) })
+    const res = await fetch(url, { headers: UA, next: { revalidate: FX_REVALIDATE }, signal: AbortSignal.timeout(timeout) })
     return res.ok ? await res.text() : null
   } catch { return null }
 }
