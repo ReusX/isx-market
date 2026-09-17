@@ -32,11 +32,11 @@ export function NewsPage({ initial }: { initial: NewsInitial }) {
   useEffect(() => { setShown(PAGE) }, [kind, sector, q])
 
   const rail = [
-    { label: t.home.landing.doors.learn.links.learn, route: '/learn' },
-    { label: t.home.landing.doors.learn.links.zero, route: '/learn/trading-from-zero' },
     { label: t.home.landing.doors.learn.links.news, route: '/news' },
-    { label: t.home.landing.doors.learn.links.research, route: '/research' },
-  ].filter((r) => existsIn(r.route, locale))
+    { label: t.home.landing.doors.learn.links.learn, route: '/learn', soon: true },
+    { label: t.home.landing.doors.learn.links.zero, route: '/learn/trading-from-zero', soon: true },
+    { label: t.home.landing.doors.learn.links.research, route: '/research', soon: true },
+  ].filter((r) => r.soon || existsIn(r.route, locale))
 
   const filtered = useMemo(() => filterNews(initial.items, { kind, sector, query: q }), [initial.items, kind, sector, q])
   const groups = useMemo(() => groupByDay(filtered.slice(0, shown), locale), [filtered, shown, locale])

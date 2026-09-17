@@ -91,6 +91,8 @@ Every English route (`/en/...`) shares the component with its Arabic twin, so a 
 
 **Row 5 landed (third session):** `/c/[sym]/financials` is on the new shell and prerendered; `AppFrame.NOT_YET` is gone; `/api/chart/[sym]` has no caller and goes in the sweep. Every route under the markets door is rebuilt.
 
+**Learn door is «قريباً»** (user's call before deploy): the تعلّم pill in the nav is not a link, the foot's learn column keeps only /news, and the news rail shows دليل التعلّم · التداول من الصفر · الأبحاث as «قريباً» rows. `/learn*` and `/research*` still exist on the old frame, unlinked, until their rows are built.
+
 **`/charts` removed** (301 → `/`; «view full chart» expands `IndexChart` in place). **Row 10 `/banks` landed** — the banking door is open; its sub-pages (deposits, loans, cards) are «قريباً» rows in the rail, not routes. **Row 11 landed.** The economy door stays (the user first wanted these in the markets rail, then decided to keep the door). **Planned next in this door**, each its own row: `/silver` (iraqgoldprice.com/silverprice — USD figures, dinar via the market rate), `/currencies` (EUR/GBP/TRY/AED/SAR/KWD/IRR vs the dinar, a separate page from the dollar), `/cbi-window` (the CBI's daily currency-window sales — new scraper), and `/bonds` (the ISX workbook's السندات sheet — belongs in the الأسواق rail). Later: `/inflation`, `/policy-rate`.
 
 ### What this session changed beyond the tracker rows

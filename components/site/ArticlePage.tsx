@@ -40,11 +40,11 @@ export function ArticlePage({ eyebrow, backHref, backLabel, title, standfirst, a
   const { t, locale, href: L } = useLocale()
   const a = t.learn.article
   const rail = [
-    { label: t.home.landing.doors.learn.links.learn, route: '/learn' },
-    { label: t.home.landing.doors.learn.links.zero, route: '/learn/trading-from-zero' },
     { label: t.home.landing.doors.learn.links.news, route: '/news' },
-    { label: t.home.landing.doors.learn.links.research, route: '/research' },
-  ].filter((r) => existsIn(r.route, locale))
+    { label: t.home.landing.doors.learn.links.learn, route: '/learn', soon: true },
+    { label: t.home.landing.doors.learn.links.zero, route: '/learn/trading-from-zero', soon: true },
+    { label: t.home.landing.doors.learn.links.research, route: '/research', soon: true },
+  ].filter((r) => r.soon || existsIn(r.route, locale))
 
   return (
     <SiteShell>

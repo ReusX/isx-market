@@ -18,7 +18,7 @@ const MAP = {
   markets: ['/', '/market', '/companies', '/screener', '/heatmap', '/statistics', '/statistics/foreign-flow', '/statistics/ownership', '/statistics/shareholders', '/pulse'],
   banking: ['/banks', '/banks/deposits', '/banks/loans'],
   economy: ['/fx', '/gold', '/silver', '/oil'],
-  learn: ['/learn', '/news', '/research'],
+  learn: ['/news'],
   tools: ['/portfolio', '/watchlist', '/alerts'],
 } as const
 export function SiteFoot() {
@@ -29,7 +29,7 @@ export function SiteFoot() {
       <div className="iqf-row">
         <Link href={L('/')} className="iqf-brand" aria-label={t.site.brandHome}><StarMark size={20} /><span>IQWealth</span></Link>
         <nav className="iqf-doors" aria-label={t.site.menu}>
-          {DOORS.map((d) => <Link key={d.id} href={L(d.route)}>{doors[d.id].name}</Link>)}
+          {DOORS.filter((d) => !('soon' in d && d.soon)).map((d) => <Link key={d.id} href={L(d.route)}>{doors[d.id].name}</Link>)}
         </nav>
       </div>
       <nav className="iqf-map" aria-label={t.site.sitemap}>

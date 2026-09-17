@@ -24,7 +24,9 @@ export const DOORS = [
   { id: 'markets', route: '/',        owns: ['/', '/market', '/companies', '/c/', '/screener', '/heatmap', '/statistics', '/pulse', '/portfolio', '/watchlist', '/alerts', '/analysis'] },
   { id: 'banking', route: '/banks',   owns: ['/banks'] },
   { id: 'economy', route: '/fx',      owns: ['/fx', '/gold', '/oil', '/silver', '/currencies', '/cbi-window'] },
-  { id: 'learn',   route: '/learn',   owns: ['/learn', '/news', '/research'] },
+  /* Learn is «قريباً» for now: the pill stays so the four doors read as the
+     product, but it is not a link. /news still lives under it. */
+  { id: 'learn',   route: '/news',    owns: ['/learn', '/news', '/research'], soon: true },
 ] as const
 
 const ICON: Record<string, React.ReactNode> = {
@@ -60,7 +62,11 @@ export function SiteNav({ on = 'page' }: { on?: 'hero' | 'page' }) {
       </Link>
 
       <nav className="iqn-doors" aria-label={t.site.menu}>
-        {DOORS.map((d) => (
+        {DOORS.map((d) => 'soon' in d && d.soon ? (
+          <span key={d.id} className="iqn-pill is-soon" aria-disabled="true">
+            <NavIcon name={d.id} />{doors[d.id].name}<small>{t.home.landing.soon}</small>
+          </span>
+        ) : (
           <Link key={d.id} href={L(d.route)} className="iqn-pill" aria-current={current === d.id ? 'page' : undefined} onClick={() => setOpen(false)}>
             <NavIcon name={d.id} />{doors[d.id].name}
           </Link>
