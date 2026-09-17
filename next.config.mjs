@@ -55,6 +55,21 @@ const nextConfig = {
       { source: '/charts', destination: '/', permanent: true },
       { source: '/c/MTMT', destination: '/companies', permanent: true },
       { source: '/c/MTRA', destination: '/companies', permanent: true },
+      /* Search Console 404 report, 17 Sep 2026: dead tickers Google still
+         asks for (delisted money-transfer companies and mis-parsed codes),
+         features the old site had, and article slugs that no longer exist.
+         Each goes to the nearest living page, permanently. */
+      ...['IMCL', 'MTIR', 'BDFD', 'BEIR', 'MTUM', 'ISIN', 'MTNI', 'MTMA', 'MYUN', 'AREB', 'MTAH', 'MTSB', 'MTAI', 'MTMO', 'MTNO', 'IMPI', 'MTNN', 'MTAM']
+        .map((t) => ({ source: `/c/${t}`, destination: '/companies', permanent: true })),
+      { source: '/foreign', destination: '/statistics/foreign-flow', permanent: true },
+      { source: '/sector/:id', destination: '/companies', permanent: true },
+      { source: '/wallet', destination: '/portfolio', permanent: true },
+      { source: '/points', destination: '/', permanent: true },
+      { source: '/quests', destination: '/', permanent: true },
+      { source: '/rewards/:path*', destination: '/', permanent: true },
+      { source: '/news/altdaol-fy-alaarak-dlyl-albdaa-fy-sok-alashm-alaaraky', destination: '/news', permanent: true },
+      { source: '/news/isx-strong-opening-rsisx-rise', destination: '/news', permanent: true },
+      { source: '/research/isx-banking-sector-analysis-q1-2026', destination: '/analysis', permanent: true },
     ]
   },
 

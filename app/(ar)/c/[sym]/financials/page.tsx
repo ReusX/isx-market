@@ -1,4 +1,5 @@
 import companiesData from '@/public/data/companies.json'
+import { permanentRedirect } from 'next/navigation'
 import { FinancialsPage } from '@/components/site/FinancialsPage'
 import { loadFinancials } from '@/lib/marketServer'
 
@@ -15,5 +16,8 @@ export function generateStaticParams() {
 }
 
 export default async function Page({ params }: { params: { sym: string } }) {
+  /* Tickers are upper-case; a lower-case URL is the same page. Google had
+     indexed both shapes, so this is a 301, not a canonical hint. */
+  if (params.sym !== params.sym.toUpperCase()) permanentRedirect(`/c/${params.sym.toUpperCase()}/financials`)
   return <FinancialsPage initial={await loadFinancials(params.sym)} />
 }
