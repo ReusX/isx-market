@@ -9,6 +9,8 @@ import { messages } from '@/lib/i18n'
 import type { Locale } from '@/lib/i18n/locale'
 import { wrapVars } from '@/lib/wrapText'
 import { loadSessions, loadSessionWrap } from '@/lib/wrapServer'
+import { loadResults, loadResultsIndex, resultsSlug } from '@/lib/resultsServer'
+import { resultsVars } from '@/lib/resultsText'
 
 /**
  * /news · the feed: CMS articles and ISC filings, merged newest first.
@@ -158,9 +160,29 @@ async function loadWraps(locale: Locale): Promise<NewsItem[]> {
   } catch { return [] }
 }
 
+/* Company results as feed rows: the forty most recent trusted filings. */
+async function loadResultRows(locale: Locale): Promise<NewsItem[]> {
+  try {
+    const t = messages(locale)
+    const keys = (await loadResultsIndex()).slice(0, 40)
+    const all = await Promise.all(keys.map((k) => loadResults(k.sym, resultsSlug(k))))
+    return all.flatMap((x) => {
+      if (!x) return []
+      const v = resultsVars(x, t, locale)
+      const sec = (companiesData as { sym: string; sec?: string }[]).find((c) => c.sym === x.key.sym)?.sec ?? null
+      return [{
+        id: `r${x.key.sym}${x.slug}`, kind: 'results' as const, at: x.addedAt ?? `${x.key.year}-12-31T00:00:00Z`,
+        headline: t.results.feedHeadline(v), excerpt: t.results.revenue(v) || t.results.balance(v) || null,
+        symbol: x.key.sym, name: locale === 'ar' ? x.ar : x.en, sector: sec, source: t.results.sourceName, doc: null,
+        href: `/c/${x.key.sym}/results/${x.slug}`, external: false, foreignLang: locale !== 'ar',
+      }]
+    })
+  } catch { return [] }
+}
+
 export async function loadNews(locale: Locale): Promise<NewsInitial> {
-  const [articles, filings, wraps] = await Promise.all([loadArticles(locale), loadFilings(locale), loadWraps(locale)])
-  const items = [...articles.items, ...filings.items, ...wraps]
+  const [articles, filings, wraps, results] = await Promise.all([loadArticles(locale), loadFilings(locale), loadWraps(locale), loadResultRows(locale)])
+  const items = [...articles.items, ...filings.items, ...wraps, ...results]
     .sort((a, b) => (a.at < b.at ? 1 : a.at > b.at ? -1 : 0))
   return {
     items,

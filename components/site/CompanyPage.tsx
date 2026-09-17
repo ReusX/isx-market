@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { useMemo } from 'react'
 import { useLocale } from '@/context/LocaleContext'
+import { periodLabel } from '@/lib/news'
 import { useApp } from '@/context/AppContext'
 import { SiteShell } from './SiteShell'
 import { DoorRail } from './DoorRail'
@@ -50,6 +51,9 @@ function compact(v: number | null | undefined, u: Units): string {
   return `${sign}${int.format(a)}`
 }
 const pctStr = (v: number | null) => (v == null ? '—' : `${v > 0 ? '+' : ''}${v.toFixed(1)}%`)
+
+/* Results pages exist in Arabic only; resolved per locale for the link gate. */
+const RESULTS_HOME: Record<string, string | null> = { ar: '/c', en: null }
 
 export function CompanyPage({ initial }: { initial: CompanyInitial }) {
   const { t, locale, href: L } = useLocale()
@@ -128,6 +132,11 @@ export function CompanyPage({ initial }: { initial: CompanyInitial }) {
                   {watched ? C.watching : C.watch}
                 </button>
                 <Link className="id-btn is-sm" href={L(`/c/${initial.sym}/financials`)}>{C.fullFinancials}</Link>
+                {initial.latestResults && RESULTS_HOME[locale] ? (
+                  <Link className="id-btn is-sm" href={L(`${RESULTS_HOME[locale]}/${initial.sym}/results/${initial.latestResults.slug}`)}>
+                    {C.latestResults(periodLabel(initial.latestResults.period, locale), String(initial.latestResults.year))}
+                  </Link>
+                ) : null}
               </div>
             </div>
 

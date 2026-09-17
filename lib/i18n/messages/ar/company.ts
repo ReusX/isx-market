@@ -68,6 +68,7 @@ export const company = {
 
   ratiosNote: (year: string) => `النسب محسوبة على آخر سنة مالية مكتملة (${year}) وآخر ربع مُعلن.`,
   fullFinancials: 'القوائم المالية الكاملة',
+  latestResults: (period: string, year: string) => `نتائج ${period} ${year}`,
   noFundamentals: 'الأساسيات غير معروضة لهذه الشركة حالياً',
   stillAvailable: 'ما يزال متوفراً',
   stillAvailableNote: (withOwnership: boolean) =>

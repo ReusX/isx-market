@@ -611,6 +611,8 @@ export type CompanyInitial = {
   flow: { date: string; side: string; value: number }[]
   ownership: import('@/lib/companyView').OwnershipRow | null
   holders: import('@/lib/companyView').Holder[]
+  /** The newest trusted filing with a results page, for the link. */
+  latestResults: { slug: string; year: number; period: string } | null
 }
 
 const SEC_CODE: Record<string, string> = {
@@ -625,7 +627,7 @@ export const loadCompany = cache(async (symRaw: string): Promise<CompanyInitial>
     found: false, sym, ar: sym, en: sym, sec: '', isBank: false, logo: null, color: null, shares: null,
     last: null, prev: null, change: null, changePct: null, volume: null, value: null, trades: null,
     session: null, lastTrade: null, stale: false, high52: null, low52: null, daysSinceTrade: null, pe: null,
-    series: [], returns: { co: null, idx: null }, facts: [], ratios: [], flow: [], ownership: null, holders: [],
+    series: [], returns: { co: null, idx: null }, facts: [], ratios: [], flow: [], ownership: null, holders: [], latestResults: null,
   }
   if (!meta) return base
 
@@ -791,6 +793,12 @@ export const loadCompany = cache(async (symRaw: string): Promise<CompanyInitial>
         out.pe = res[sym]?.pe ?? null
       }
     } catch { /* P/E is allowed to fail alone. */ }
+
+    try {
+      const { loadResultsIndex, resultsSlug } = await import('@/lib/resultsServer')
+      const k = (await loadResultsIndex()).find((r) => r.sym === sym)
+      out.latestResults = k ? { slug: resultsSlug(k), year: k.year, period: k.period } : null
+    } catch { /* the link is optional */ }
 
     return out
   } catch {

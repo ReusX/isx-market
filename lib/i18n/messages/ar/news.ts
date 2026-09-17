@@ -38,6 +38,7 @@ export const news = {
   kinds: {
     all:     'الكل',
     wrap:    'ملخص الجلسة',
+    results: 'نتائج',
     filing:  'إفصاحات',
     article: 'أخبار',
   },

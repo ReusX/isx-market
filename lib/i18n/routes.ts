@@ -70,6 +70,7 @@ export const ROUTES: RouteEntry[] = [
        + 'searches for it; the English dictionary exists but no English route yet.',
   },
   { pattern: '/news/session/[date]',       cls: 'ar-only', why: 'Same as /news/session.' },
+  { pattern: '/c/[sym]/results/[period]',  cls: 'ar-only', why: 'Company results are written for the Arabic audience that searches for them; English dictionary ready, no route yet.' },
   {
     pattern: '/news/[slug]',
     cls: 'ar-only',

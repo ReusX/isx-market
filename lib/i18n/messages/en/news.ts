@@ -25,6 +25,7 @@ export const news: typeof ar = {
   kinds: {
     all:     'All',
     wrap:    'Session wraps',
+    results: 'Results',
     filing:  'Company filings',
     article: 'News',
   },

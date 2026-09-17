@@ -38,6 +38,7 @@ export const KINDS = [
      English name, so it is translated rather than transliterated. */
   { id: 'all' },
   { id: 'wrap' },
+  { id: 'results' },
   { id: 'filing' },
   { id: 'article' },
 ] as const

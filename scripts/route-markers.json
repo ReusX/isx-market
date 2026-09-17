@@ -19,6 +19,7 @@
   "/banks/loans": "○",
   "/c/[sym]": "●",
   "/c/[sym]/financials": "●",
+  "/c/[sym]/results/[period]": "●",
   "/companies": "○",
   "/contact": "○",
   "/dev/foundation": "○",

@@ -15,3 +15,5 @@
 .wrp-archive-close { font-weight: 300; font-size: 18px; }
 .wrp-archive-pct { font-size: 13px; min-width: 64px; text-align: end; }
 @media (max-width: 640px) { .wrp-hide-sm { display: none; } .wrp-figures strong { font-size: 22px; } }
+.wrp-siblings { display: flex; flex-wrap: wrap; gap: 8px; }
+.wrp-siblings .id-pill { text-decoration: none; }

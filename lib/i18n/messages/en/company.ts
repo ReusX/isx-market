@@ -51,6 +51,7 @@ export const company: typeof ar = {
 
   ratiosNote: (year: string) => `Ratios are computed from the last complete financial year (${year}) and the most recent reported quarter.`,
   fullFinancials: 'Full financial statements',
+  latestResults: (period: string, year: string) => `${period} ${year} results`,
   noFundamentals: 'Fundamentals are not shown for this company yet',
   stillAvailable: 'Still available',
   stillAvailableNote: (withOwnership: boolean) =>
