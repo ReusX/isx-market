@@ -21,5 +21,5 @@ const ITEMS = [
 export function EconRail() {
   const { t } = useLocale()
   const r = t.rates.page.rail
-  return <DoorRail door="economy" items={ITEMS.map((i) => ({ label: r[i.key], route: i.route, soon: 'soon' in i && i.soon }))} />
+  return <DoorRail door="economy" />
 }

@@ -36,10 +36,6 @@ import '@/styles/company-page.css'
  * today's, and `noPrior` (no valid previous close) renders as "unknown"
  * rather than as a zero that would read as "no change".
  */
-const RAIL = [
-  { key: 'market', route: '/' }, { key: 'board', route: '/market' }, { key: 'companies', route: '/companies' },
-  { key: 'screener', route: '/screener' }, { key: 'heatmap', route: '/heatmap' }, { key: 'statistics', route: '/statistics' }, { key: 'pulse', route: '/pulse' },
-] as const
 
 const int = new Intl.NumberFormat('en-US')
 const price = new Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
@@ -101,7 +97,7 @@ export function CompanyPage({ initial }: { initial: CompanyInitial }) {
     return (
       <SiteShell>
         <main className="cmp id-full iq-door">
-          <DoorRail door="markets" items={RAIL.map((r) => ({ label: t.market.page.rail[r.key], route: r.route }))} />
+          <DoorRail door="markets" />
           <div className="cmp-body"><p className="id-note">{P.notFound}</p></div>
         </main>
       </SiteShell>
@@ -111,7 +107,7 @@ export function CompanyPage({ initial }: { initial: CompanyInitial }) {
   return (
     <SiteShell>
       <main className="cmp id-full iq-door">
-        <DoorRail door="markets" items={RAIL.map((r) => ({ label: t.market.page.rail[r.key], route: r.route }))} />
+        <DoorRail door="markets" />
         <div className="cmp-body">
           <header>
             <p className="id-eyebrow">{P.eyebrow}</p>

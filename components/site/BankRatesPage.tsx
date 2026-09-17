@@ -26,12 +26,6 @@ import '@/styles/banks-page.css'
  * headline only while `isCurrentEnough`; older figures are shown with the
  * date that demoted them. Filters live in the URL.
  */
-const RAIL = [
-  { key: 'banks', route: '/banks' },
-  { key: 'deposits', route: '/banks/deposits' },
-  { key: 'loans', route: '/banks/loans' },
-  { key: 'cards', route: '/banks/cards', soon: true },
-] as const
 
 type Filter = 'all' | 'conventional' | 'islamic' | 'rated'
 const FILTERS: Filter[] = ['all', 'conventional', 'islamic', 'rated']
@@ -103,7 +97,7 @@ export function BankRatesPage({ family, initial }: { family: 'deposits' | 'loans
   return (
     <SiteShell>
       <main className="bnk id-full iq-door">
-        <DoorRail door="banking" items={RAIL.map((r) => ({ label: B.hub.rail[r.key], route: r.route, soon: 'soon' in r && r.soon }))} />
+        <DoorRail door="banking" />
         <div className="bnk-body">
           <header className="bnk-head">
             <p className="id-eyebrow"><Link href={L('/banks')}>{B.hub.eyebrow}</Link> · <Link href={L('/banks')}>{B.profile.back}</Link></p>

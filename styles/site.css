@@ -122,34 +122,77 @@
 }
 .iq-door > .iqm-body, .iq-door > .iq-main { min-width: 0; }
 
-.iqr { position: sticky; top: calc(var(--iqn-h) + 12px); }
-.iqr-door { display: flex; align-items: center; gap: 8px; margin: 8px 0 12px; padding-inline-start: 18px; font-size: 13px; color: var(--secondary); }
+/* ── Section rail ────────────────────────────────────────────────────────
+   Icon + label rows, 44px tall, one group heading for the personal tools,
+   and an edit mode (see DoorRail) where the same rows grow their controls. */
+.iqr { position: sticky; top: calc(var(--iqn-h) + 12px); padding-inline-end: 8px; }
+.iqr-door { display: flex; align-items: center; gap: 8px; margin: 10px 0 14px; padding-inline-start: 16px; font-size: 12px; color: var(--secondary); }
 .iqr-door svg { color: var(--nav-active); }
-.iqr-list { display: flex; flex-direction: column; gap: 2px; }
+.iqr-list { display: flex; flex-direction: column; gap: 3px; }
+.iqr-slot { display: contents; }
+.iqr-group { margin: 14px 0 6px; padding-inline-start: 16px; font-size: 11px; color: var(--muted); }
 .iqr-item {
-  display: flex; align-items: center; min-height: 44px; padding: 0 18px; border-radius: var(--r-pill);
+  position: relative; display: flex; align-items: center; gap: 12px; min-height: 44px; padding: 0 14px; border-radius: 12px;
   color: var(--ink); font-size: 15px; font-weight: 400; text-decoration: none; white-space: nowrap;
   transition: background .12s, color .12s;
 }
+.iqr-ico { flex: 0 0 18px; color: var(--secondary); transition: color .12s; }
+.iqr-label { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
 .iqr-item:hover { background: var(--surface-2); }
-.iqr-item.is-soon { color: var(--muted); cursor: default; display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.iqr-item:hover .iqr-ico { color: var(--ink); }
+.iqr-item.is-soon { color: var(--muted); cursor: default; }
+.iqr-item.is-soon .iqr-ico { color: var(--muted); }
 .iqr-item.is-soon:hover { background: transparent; }
 .iqr-item.is-soon small { font-size: 11px; border: 1px solid var(--border); border-radius: var(--r-pill); padding: 1px 8px; }
-.iqr-item { position: relative; }
 /* Active: a quiet surface and a thin blue edge on the start side — not a
    large fill. */
 .iqr-item[aria-current='page'] { background: var(--rail-on-bg); color: var(--rail-on-ink); font-weight: 500; }
-.iqr-item[aria-current='page']::before { content: ''; position: absolute; inset-inline-start: 4px; top: 12px; bottom: 12px; width: 3px; border-radius: 2px; background: var(--nav-active); }
+.iqr-item[aria-current='page'] .iqr-ico { color: var(--nav-active); }
+.iqr-item[aria-current='page']::before { content: ''; position: absolute; inset-inline-start: 0; top: 12px; bottom: 12px; width: 3px; border-radius: 2px; background: var(--nav-active); }
+
+/* Edit mode */
+.iqr-foot { margin-top: 12px; padding-inline-start: 6px; }
+.iqr-customise {
+  display: inline-flex; align-items: center; gap: 8px; min-height: 34px; padding: 0 12px; border: 0; border-radius: var(--r-pill);
+  background: transparent; color: var(--secondary); font: inherit; font-size: 13px; cursor: pointer;
+}
+.iqr-customise:hover, .iqr-customise.is-on { background: var(--surface-2); color: var(--ink); }
+.iqr-item.is-edit { cursor: default; background: var(--surface); border: 1px dashed var(--border); padding-inline-end: 8px; }
+.iqr-item.is-edit.is-hidden { opacity: .45; }
+.iqr-item.is-edit .iqr-label { font-size: 14px; }
+.iqr-edit-acts { display: inline-flex; gap: 2px; margin-inline-start: auto; }
+.iqr-mini {
+  width: 28px; height: 28px; display: inline-grid; place-items: center; padding: 0; border: 0; border-radius: 8px;
+  background: transparent; color: var(--secondary); font: inherit; font-size: 14px; line-height: 1; cursor: pointer;
+}
+.iqr-mini:hover:not(:disabled) { background: var(--surface-2); color: var(--ink); }
+.iqr-mini:disabled { opacity: .3; cursor: default; }
+.iqr-mini[aria-pressed='true'] { color: var(--nav-active); }
+.iqr-edit-foot { margin-top: 10px; padding: 0 6px; }
+.iqr-edit-row { display: flex; gap: 8px; flex-wrap: wrap; }
+.iqr-pick { display: flex; flex-direction: column; gap: 3px; padding: 8px; border: 1px solid var(--border); border-radius: 12px; background: var(--surface); }
+.iqr-item.is-pick { border: 0; background: transparent; font: inherit; cursor: pointer; text-align: start; min-height: 40px; }
+.iqr-item.is-pick:hover { background: var(--surface-2); }
+.iqr-item.is-pick .iqr-mini { margin-inline-start: auto; }
+.iqr-pick > .id-btn { align-self: flex-start; margin-top: 6px; }
 .iqr-sheet { display: none; }
 
 /* < 1280px · the sidebar leaves the grid; one scrollable row above the content. */
 @media (max-width: 1279px) {
   .iq-door { grid-template-columns: minmax(0, 1fr); gap: 20px; }
-  .iqr { position: static; }
+  .iqr { position: static; padding: 0; display: flex; align-items: center; gap: 8px; }
   .iqr-door { display: none; }
-  .iqr-list { flex-direction: row; gap: 6px; overflow-x: auto; padding-bottom: 6px; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
+  .iqr-list { flex: 1 1 auto; min-width: 0; flex-direction: row; gap: 6px; overflow-x: auto; padding-bottom: 6px; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
   .iqr-list::-webkit-scrollbar { display: none; }
-  .iqr-item { min-height: 40px; padding: 0 16px; font-size: 14px; flex: 0 0 auto; }
+  .iqr-group { display: none; }
+  .iqr-item { min-height: 40px; padding: 0 14px; font-size: 14px; flex: 0 0 auto; gap: 8px; }
+  .iqr-item[aria-current='page']::before { display: none; }
+  .iqr-foot { margin: 0 0 6px; padding: 0; flex: 0 0 auto; }
+  .iqr-customise span { display: none; }
+  /* Editing in a row: the list wraps so every control stays reachable. */
+  .iqr-list.is-editing { flex-wrap: wrap; overflow: visible; }
+  .iqr-list.is-editing .iqr-slot { display: block; }
+  .iqr-edit-foot { flex-basis: 100%; }
 }
 /* < 720px · out of the flow; a «القسم» control opens the same list. */
 @media (max-width: 719px) {
@@ -164,12 +207,15 @@
   .iqr-toggle-k { color: var(--secondary); }
   .iqr-toggle-v { font-weight: 500; }
   .iqr-sheet[open] .iqr-toggle svg { transform: rotate(180deg); }
-  .iqr-sheet .iqr-list {
-    position: absolute; z-index: 15; inset-inline-start: 0; top: calc(100% + 8px); min-width: 240px;
-    flex-direction: column; gap: 2px; padding: 8px; overflow: visible;
-    background: var(--surface-popover); border: 1px solid var(--border); border-radius: var(--r-md);
+  .iqr-sheet-body {
+    position: absolute; z-index: 15; inset-inline-start: 0; top: calc(100% + 8px); min-width: 260px; max-width: calc(100vw - 32px);
+    padding: 8px; background: var(--surface-popover); border: 1px solid var(--border); border-radius: var(--r-md);
   }
+  .iqr-sheet .iqr-list { flex-direction: column; gap: 2px; overflow: visible; }
   .iqr-sheet .iqr-item { min-height: 44px; font-size: 15px; }
+  .iqr-sheet .iqr-foot { margin-top: 8px; padding: 0; }
+  .iqr-sheet .iqr-group { display: block; }
+  .iqr-sheet .iqr-customise span { display: inline; }
 }
 
 /* ── Page note · the standfirst behind a «!» ─────────────────────────────

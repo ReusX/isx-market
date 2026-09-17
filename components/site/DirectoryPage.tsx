@@ -23,10 +23,6 @@ import '@/styles/directory.css'
  * filter. Rendered from server data so every card and every link to a
  * company page is in the HTML.
  */
-const RAIL = [
-  { key: 'market', route: '/' }, { key: 'board', route: '/market' }, { key: 'companies', route: '/companies' },
-  { key: 'screener', route: '/screener' }, { key: 'heatmap', route: '/heatmap' }, { key: 'statistics', route: '/statistics' }, { key: 'pulse', route: '/pulse' },
-] as const
 
 const int = new Intl.NumberFormat('en-US')
 function capital(v: number | null, u: { tn: string; bn: string; mn: string; k: string }): string {
@@ -75,7 +71,7 @@ export function DirectoryPage({ rows, session }: { rows: DirectoryRow[]; session
   return (
     <SiteShell>
       <main className="dr id-full iq-door">
-        <DoorRail door="markets" items={RAIL.map((r) => ({ label: p.rail[r.key], route: r.route }))} />
+        <DoorRail door="markets" />
         <div className="dr-body">
           <header className="dr-head">
             <p className="id-eyebrow">{d.eyebrow}</p>

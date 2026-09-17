@@ -15,7 +15,7 @@ export function ToolsRail() {
     { label: r.watchlist, route: '/watchlist' },
     { label: r.alerts, route: '/alerts' },
   ].filter((i) => existsIn(i.route, locale))
-  return <DoorRail door="markets" items={items} />
+  return <DoorRail door="markets" />
 }
 
 /**

@@ -29,12 +29,6 @@ import '@/styles/banks-page.css'
  *
  * Server-seeded by `loadBankProfile`; this component fetches nothing.
  */
-const RAIL = [
-  { key: 'banks', route: '/banks' },
-  { key: 'deposits', route: '/banks/deposits' },
-  { key: 'loans', route: '/banks/loans' },
-  { key: 'cards', route: '/banks/cards', soon: true },
-] as const
 
 const nf = new Intl.NumberFormat('en-US')
 type Units = { tn: string; bn: string; mn: string; k: string }
@@ -81,7 +75,7 @@ export function BankProfilePage({ initial }: { initial: BankProfileInitial }) {
   return (
     <SiteShell>
       <main className="bnk id-full iq-door">
-        <DoorRail door="banking" items={RAIL.map((r) => ({ label: B.hub.rail[r.key], route: r.route, soon: 'soon' in r && r.soon }))} />
+        <DoorRail door="banking" />
         <div className="bnk-body bnk-read">
           <header className="bnk-head">
             <p className="id-eyebrow"><Link href={L('/banks')}>{P.back}</Link> · {B.type[bank.bank_type]} · {B.ownership[bank.ownership]}</p>

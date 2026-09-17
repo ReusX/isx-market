@@ -49,7 +49,7 @@ export function ArticlePage({ eyebrow, backHref, backLabel, title, standfirst, a
   return (
     <SiteShell>
       <main className="nws id-full iq-door">
-        <DoorRail door="learn" items={rail} />
+        <DoorRail door="learn" />
         <article className="art id-read">
           <nav className="id-eyebrow art-crumbs" aria-label={a.crumbs}>
             <Link href={L(backHref)}>{backLabel}</Link> · <span>{eyebrow}</span>

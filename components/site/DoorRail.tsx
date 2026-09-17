@@ -2,9 +2,14 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
+import { useEffect, useMemo, useState } from 'react'
 import { useLocale } from '@/context/LocaleContext'
 import { splitLocale } from '@/lib/i18n/paths'
+import { existsIn } from '@/lib/i18n/routes'
+import { EMPTY, arrange, readPrefs, writePrefs, type RailPrefs } from '@/lib/railPrefs'
 import { NavIcon } from './SiteNav'
+import { RailIcon } from './RailIcon'
+import { RAILS, allPages, type Door, type RailDef } from './rails'
 
 /**
  * Navigation WITHIN a product section — the pages of the active door.
@@ -14,30 +19,119 @@ import { NavIcon } from './SiteNav'
  * the content. Three shapes, one list:
  *
  *   ≥ 1280px  a 260px sidebar on the start side, sticky under the top nav;
- *             the active page a warm-white filled pill, the rest text rows.
+ *             the active page a quiet surface with a thin blue edge.
  *   < 1280px  the sidebar leaves the grid and becomes one horizontally
  *             scrollable row above the content — never squeezed beside it.
  *   < 720px   out of the flow entirely: a «القسم» control opens the list.
+ *
+ * The list is the reader's to arrange. «تخصيص» turns every row into a
+ * control: move up or down, hide, and a picker to pull in any page from
+ * any section. The arrangement lives in localStorage per section
+ * (lib/railPrefs) — applied after mount, so the server HTML is always the
+ * default order and there is nothing for a crawler to disagree with.
  */
-/** `soon` marks a page that is planned but not built: rendered as a row
- *  with a «قريباً» tag, never as a link to a 404. */
 export type RailItem = { label: string; route: string; soon?: boolean }
 
-export function DoorRail({ door, items }: { door: 'markets' | 'banking' | 'economy' | 'learn'; items: RailItem[] }) {
-  const { t, href: L } = useLocale()
+type Row = { route: string; def: RailDef; label: string }
+
+export function DoorRail({ door, items: _legacy }: { door: Door; items?: RailItem[] }) {
+  const { t, locale, href: L } = useLocale()
   const { route } = splitLocale(usePathname() ?? '/')
   const name = t.home.landing.doors[door].name
-  const isOn = (it: RailItem) => route === it.route || route.startsWith(`${it.route}/`)
-  const current = items.find(isOn)
+  const S = t.site.rail
+
+  const defaults = useMemo<Row[]>(() =>
+    RAILS[door].filter((d) => d.soon || existsIn(d.route, locale)).map((d) => ({ route: d.route, def: d, label: d.label(t) })), [door, locale, t])
+  const extras = useMemo<Row[]>(() =>
+    allPages().filter((d) => existsIn(d.route, locale) && !RAILS[door].some((x) => x.route === d.route)).map((d) => ({ route: d.route, def: d, label: d.label(t) })), [door, locale, t])
+
+  const [prefs, setPrefs] = useState<RailPrefs>(EMPTY)
+  const [ready, setReady] = useState(false)
+  const [editing, setEditing] = useState(false)
+  const [picking, setPicking] = useState(false)
+  useEffect(() => { setPrefs(readPrefs(door)); setReady(true) }, [door])
+  const save = (p: RailPrefs) => { setPrefs(p); writePrefs(door, p) }
+
+  const rows = useMemo(() => arrange(defaults, extras, ready ? prefs : EMPTY), [defaults, extras, prefs, ready])
+  const isOn = (r: Row) => route === r.def.route || (r.def.route !== '/' && route.startsWith(`${r.def.route}/`))
+  const hidden = (r: Row) => prefs.hidden.includes(r.def.route) && !isOn(r)
+  const shown = rows.filter((r) => editing || !hidden(r))
+  const current = rows.find(isOn)
+  const customised = prefs.order.length > 0 || prefs.hidden.length > 0 || prefs.added.length > 0
+
+  const move = (r: Row, dir: -1 | 1) => {
+    const order = rows.map((x) => x.def.route)
+    const i = order.indexOf(r.def.route), j = i + dir
+    if (j < 0 || j >= order.length) return
+    ;[order[i], order[j]] = [order[j], order[i]]
+    save({ ...prefs, order })
+  }
+  const toggleHide = (r: Row) => {
+    const h = prefs.hidden.includes(r.def.route) ? prefs.hidden.filter((x) => x !== r.def.route) : [...prefs.hidden, r.def.route]
+    save({ ...prefs, hidden: h })
+  }
+  const remove = (r: Row) => save({ ...prefs, added: prefs.added.filter((x) => x !== r.def.route), order: prefs.order.filter((x) => x !== r.def.route), hidden: prefs.hidden.filter((x) => x !== r.def.route) })
+  const add = (d: RailDef) => { save({ ...prefs, added: [...prefs.added, d.route], hidden: prefs.hidden.filter((x) => x !== d.route) }); setPicking(false) }
+  const reset = () => { save(EMPTY); setPicking(false) }
+  const addable = extras.filter((x) => !prefs.added.includes(x.def.route))
 
   const list = (
-    <nav className="iqr-list">
-      {items.map((it) => it.soon ? (
-        <span key={it.route} className="iqr-item is-soon" aria-disabled="true">{it.label}<small>{t.home.landing.soon}</small></span>
-      ) : (
-        <Link key={it.route} href={L(it.route)} className="iqr-item" aria-current={isOn(it) ? 'page' : undefined}>{it.label}</Link>
-      ))}
+    <nav className={`iqr-list ${editing ? 'is-editing' : ''}`.trim()} aria-label={name}>
+      {shown.map((r, i) => {
+        const d = r.def
+        const tools = d.group === 'tools' && !editing && (i === 0 || shown[i - 1].def.group !== 'tools')
+        const on = isOn(r)
+        const hid = prefs.hidden.includes(d.route)
+        const body = <><RailIcon name={d.icon} /><span className="iqr-label">{r.label}</span></>
+        return (
+          <div key={d.route} className="iqr-slot">
+            {tools ? <p className="iqr-group">{S.tools}</p> : null}
+            {editing ? (
+              <div className={`iqr-item is-edit ${hid ? 'is-hidden' : ''}`.trim()}>
+                {body}
+                <span className="iqr-edit-acts">
+                  <button type="button" className="iqr-mini" onClick={() => move(r, -1)} disabled={i === 0} aria-label={S.moveUp} title={S.moveUp}>↑</button>
+                  <button type="button" className="iqr-mini" onClick={() => move(r, 1)} disabled={i === shown.length - 1} aria-label={S.moveDown} title={S.moveDown}>↓</button>
+                  {prefs.added.includes(d.route)
+                    ? <button type="button" className="iqr-mini" onClick={() => remove(r)} aria-label={S.remove} title={S.remove}>×</button>
+                    : <button type="button" className="iqr-mini" onClick={() => toggleHide(r)} disabled={on} aria-pressed={hid} aria-label={hid ? S.show : S.hide} title={hid ? S.show : S.hide}>{hid ? '◌' : '●'}</button>}
+                </span>
+              </div>
+            ) : d.soon ? (
+              <span className="iqr-item is-soon" aria-disabled="true">{body}<small>{t.home.landing.soon}</small></span>
+            ) : (
+              <Link href={L(d.route)} className="iqr-item" aria-current={on ? 'page' : undefined}>{body}</Link>
+            )}
+          </div>
+        )
+      })}
+      {editing ? (
+        <div className="iqr-edit-foot">
+          {picking ? (
+            <div className="iqr-pick" role="group" aria-label={S.addPage}>
+              {addable.length ? addable.map((x) => (
+                <button key={x.def.route} type="button" className="iqr-item is-pick" onClick={() => add(x.def)}><RailIcon name={x.def.icon} /><span className="iqr-label">{x.label}</span><span className="iqr-mini" aria-hidden="true">+</span></button>
+              )) : <p className="id-cap">{S.nothingToAdd}</p>}
+              <button type="button" className="id-btn is-sm" onClick={() => setPicking(false)}>{S.cancel}</button>
+            </div>
+          ) : (
+            <div className="iqr-edit-row">
+              <button type="button" className="id-btn is-sm" onClick={() => setPicking(true)} disabled={!addable.length}>{S.addPage}</button>
+              {customised ? <button type="button" className="id-btn is-sm" onClick={reset}>{S.reset}</button> : null}
+            </div>
+          )}
+        </div>
+      ) : null}
     </nav>
+  )
+
+  const editBtn = (
+    <button type="button" className={`iqr-customise ${editing ? 'is-on' : ''}`.trim()} aria-pressed={editing} onClick={() => { setEditing((e) => !e); setPicking(false) }}>
+      <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+        {editing ? <path d="M5 12l5 5L19 7" /> : <><path d="M4 7h10M18 7h2M4 17h4M12 17h8" /><circle cx="16" cy="7" r="2" /><circle cx="10" cy="17" r="2" /></>}
+      </svg>
+      <span>{editing ? S.done : S.customise}</span>
+    </button>
   )
 
   return (
@@ -45,6 +139,7 @@ export function DoorRail({ door, items }: { door: 'markets' | 'banking' | 'econo
       <aside className="iqr" aria-label={name}>
         <p className="iqr-door"><NavIcon name={door} />{name}</p>
         {list}
+        <div className="iqr-foot">{editBtn}</div>
       </aside>
       {/* Phone: the same list behind a «القسم» control. Native <details>, so
           it needs no script and closes on navigation like any link. */}
@@ -54,7 +149,10 @@ export function DoorRail({ door, items }: { door: 'markets' | 'banking' | 'econo
           <span className="iqr-toggle-v">{current?.label ?? name}</span>
           <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6" /></svg>
         </summary>
-        {list}
+        <div className="iqr-sheet-body">
+          {list}
+          <div className="iqr-foot">{editBtn}</div>
+        </div>
       </details>
     </>
   )

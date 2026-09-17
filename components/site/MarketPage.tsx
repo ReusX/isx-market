@@ -74,10 +74,6 @@ function Pct({ v }: { v: number }) {
   return <bdi className={`iqm-pct ${cls}`}>{v > 0 ? '+' : ''}{v.toFixed(2)}%</bdi>
 }
 
-const RAIL = [
-  { key: 'market', route: '/' }, { key: 'board', route: '/market' }, { key: 'companies', route: '/companies' }, { key: 'screener', route: '/screener' },
-  { key: 'heatmap', route: '/heatmap' }, { key: 'statistics', route: '/statistics' }, { key: 'pulse', route: '/pulse' },
-] as const
 
 /**
  * `root`: the overview — welcome card for first visits, thirty rows, and a
@@ -299,7 +295,7 @@ export function MarketPage({ variant = 'root', initial }: { variant?: 'root' | '
     <SiteShell>
       {full ? null : <WelcomeCard />}
       <main className="iqm id-full iq-door" id="market">
-        <DoorRail door="markets" items={RAIL.map((r) => ({ label: p.rail[r.key], route: r.route }))} />
+        <DoorRail door="markets" />
         <div className="iqm-body">
         <header className="iqm-head">
           <p className="id-eyebrow">{p.eyebrow}</p>

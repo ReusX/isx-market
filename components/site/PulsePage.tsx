@@ -41,10 +41,6 @@ import '@/styles/pulse-page.css'
  * from every denominator here. For history it is `null` — "this source
  * cannot say" — because `breadth_daily` has nowhere to put it.
  */
-const RAIL = [
-  { key: 'market', route: '/' }, { key: 'board', route: '/market' }, { key: 'companies', route: '/companies' },
-  { key: 'screener', route: '/screener' }, { key: 'heatmap', route: '/heatmap' }, { key: 'statistics', route: '/statistics' }, { key: 'pulse', route: '/pulse' },
-] as const
 
 const int = new Intl.NumberFormat('en-US')
 const pct = (v: number | null) => (v == null ? '—' : `${(v * 100).toFixed(0)}%`)
@@ -134,7 +130,7 @@ export function PulsePage({ initial }: { initial: PulseInitial }) {
   return (
     <SiteShell>
       <main className="plz id-full iq-door">
-        <DoorRail door="markets" items={RAIL.map((r) => ({ label: t.market.page.rail[r.key], route: r.route }))} />
+        <DoorRail door="markets" />
         <div className="plz-body">
           <header className="stx-head">
             <p className="id-eyebrow">{P.eyebrow}</p>

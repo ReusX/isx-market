@@ -26,12 +26,6 @@ import '@/styles/banks-page.css'
  * Everything is server-seeded by `loadBanksHub`; this component fetches
  * nothing. Filters and sort are local, as on the board.
  */
-const RAIL = [
-  { key: 'banks', route: '/banks' },
-  { key: 'deposits', route: '/banks/deposits' },
-  { key: 'loans', route: '/banks/loans' },
-  { key: 'cards', route: '/banks/cards', soon: true },
-] as const
 
 type Filter = 'all' | 'commercial' | 'islamic' | 'investment' | 'listed' | 'state' | 'foreign' | 'publishing'
 type SortKey = 'name' | 'type' | 'ownership' | 'status' | 'assets' | 'rating'
@@ -125,7 +119,7 @@ export function BanksPage({ initial }: { initial: BanksInitial }) {
   return (
     <SiteShell>
       <main className="bnk id-full iq-door">
-        <DoorRail door="banking" items={RAIL.map((r) => ({ label: H.rail[r.key], route: r.route, soon: 'soon' in r && r.soon }))} />
+        <DoorRail door="banking" />
         <div className="bnk-body">
           <header className="bnk-head">
             <p className="id-eyebrow">{H.eyebrow}</p>

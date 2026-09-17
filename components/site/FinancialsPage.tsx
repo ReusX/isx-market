@@ -34,10 +34,6 @@ import '@/styles/financials-page.css'
  * the policy. The model itself is built on the server (`loadFinancials`);
  * this component fetches nothing.
  */
-const RAIL = [
-  { key: 'market', route: '/' }, { key: 'board', route: '/market' }, { key: 'companies', route: '/companies' },
-  { key: 'screener', route: '/screener' }, { key: 'heatmap', route: '/heatmap' }, { key: 'statistics', route: '/statistics' }, { key: 'pulse', route: '/pulse' },
-] as const
 
 const STATEMENTS: StatementId[] = ['income', 'balance', 'cashflow']
 const MAX_COLS = 8
@@ -54,7 +50,7 @@ export function FinancialsPage({ initial }: { initial: FinancialsInitial }) {
   const fin = initial.fin
   const [mode, setMode] = useState<PeriodMode>('ANNUAL')
 
-  const rail = <DoorRail door="markets" items={RAIL.map((r) => ({ label: t.market.page.rail[r.key], route: r.route }))} />
+  const rail = <DoorRail door="markets" />
 
   /* The lead: latest annual column against the one before it. */
   const lead = useMemo(() => {

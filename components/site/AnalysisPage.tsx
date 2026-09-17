@@ -21,10 +21,6 @@ import '@/styles/tools-page.css'
  * cases as two lists, themes, outlook, and the disclaimer. Arabic-only,
  * client-fetched, unchanged in substance from the old page.
  */
-const RAIL = [
-  { key: 'market', route: '/' }, { key: 'board', route: '/market' }, { key: 'companies', route: '/companies' },
-  { key: 'screener', route: '/screener' }, { key: 'heatmap', route: '/heatmap' }, { key: 'statistics', route: '/statistics' }, { key: 'pulse', route: '/pulse' },
-] as const
 
 /* The analysis index exists in Arabic only; resolved per locale so the
    static link gate sees the guard. */
@@ -48,7 +44,7 @@ export function AnalysisIndexPage() {
   return (
     <SiteShell>
       <main className="tl id-full iq-door">
-        <DoorRail door="markets" items={RAIL.map((r) => ({ label: t.market.page.rail[r.key], route: r.route }))} />
+        <DoorRail door="markets" />
         <div className="tl-body">
           <header className="tl-head">
             <p className="id-eyebrow">{A.eyebrow}</p>
@@ -104,7 +100,7 @@ export function AnalysisPage({ sym }: { sym: string }) {
   return (
     <SiteShell>
       <main className="tl id-full iq-door">
-        <DoorRail door="markets" items={RAIL.map((r) => ({ label: t.market.page.rail[r.key], route: r.route }))} />
+        <DoorRail door="markets" />
         <article className="tl-body id-read">
           <p className="id-eyebrow">{ANALYSIS_HOME[locale] ? <><Link href={L(ANALYSIS_HOME[locale]!)}>{A.back}</Link> · </> : null}<Link href={L(`/c/${sym}`)}>{A.companyPage}</Link></p>
           <PageTitle title={c?.headline || name} note={A.note} />

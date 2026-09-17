@@ -29,10 +29,6 @@ import '@/styles/heatmap-page.css'
  * bands, the exclusions and the null policy are lib/heatmap, unchanged.
  * Rows arrive from the server.
  */
-const RAIL = [
-  { key: 'market', route: '/' }, { key: 'board', route: '/market' }, { key: 'companies', route: '/companies' },
-  { key: 'screener', route: '/screener' }, { key: 'heatmap', route: '/heatmap' }, { key: 'statistics', route: '/statistics' }, { key: 'pulse', route: '/pulse' },
-] as const
 
 const int = new Intl.NumberFormat('en-US')
 const price = new Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
@@ -175,7 +171,7 @@ export function HeatmapPage({ initial }: { initial: ScreenerInitial }) {
   return (
     <SiteShell>
       <main className="hm2 id-full iq-door">
-        <DoorRail door="markets" items={RAIL.map((r) => ({ label: t.market.page.rail[r.key], route: r.route }))} />
+        <DoorRail door="markets" />
         <div className="hm2-body">
           <header className="hm2-head">
             <p className="id-eyebrow">{pg.eyebrow}</p>

@@ -31,10 +31,6 @@ import '@/styles/screener-page.css'
  * The logic — measures, presets, ranges, the null policy — is lib/screener,
  * unchanged. Rows come from the server so the default screen is in the HTML.
  */
-const RAIL = [
-  { key: 'market', route: '/' }, { key: 'board', route: '/market' }, { key: 'companies', route: '/companies' },
-  { key: 'screener', route: '/screener' }, { key: 'heatmap', route: '/heatmap' }, { key: 'statistics', route: '/statistics' }, { key: 'pulse', route: '/pulse' },
-] as const
 
 const price = new Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
 const int = new Intl.NumberFormat('en-US')
@@ -173,7 +169,7 @@ export function ScreenerPage({ initial, marketSession }: { initial: ScreenerInit
   return (
     <SiteShell>
       <main className="scr id-full iq-door">
-        <DoorRail door="markets" items={RAIL.map((r) => ({ label: t.market.page.rail[r.key], route: r.route }))} />
+        <DoorRail door="markets" />
         <div className="scr-body">
           <header className="scr-head">
             <p className="id-eyebrow">{pg.eyebrow}</p>

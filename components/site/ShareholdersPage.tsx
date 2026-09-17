@@ -32,10 +32,6 @@ import '@/styles/ownership-page.css'
  * a legal entity and the filing's spelling is the only record of it there is,
  * so an English reader sees the Arabic name, exactly as filed.
  */
-const RAIL = [
-  { key: 'market', route: '/' }, { key: 'board', route: '/market' }, { key: 'companies', route: '/companies' },
-  { key: 'screener', route: '/screener' }, { key: 'heatmap', route: '/heatmap' }, { key: 'statistics', route: '/statistics' }, { key: 'pulse', route: '/pulse' },
-] as const
 const SUB = [
   { key: 'overview', route: '/statistics' }, { key: 'flow', route: '/statistics/foreign-flow' },
   { key: 'ownership', route: '/statistics/ownership' }, { key: 'holders', route: '/statistics/shareholders' },
@@ -67,7 +63,7 @@ export function ShareholdersPage({ initial }: { initial: HoldersInitial }) {
   return (
     <SiteShell>
       <main className="own id-full iq-door">
-        <DoorRail door="markets" items={RAIL.map((r) => ({ label: t.market.page.rail[r.key], route: r.route }))} />
+        <DoorRail door="markets" />
         <div className="own-body">
           <header className="stx-head">
             <p className="id-eyebrow">{P.eyebrow}</p>

@@ -97,7 +97,7 @@ export const market: typeof ar = {
     index:     'ISX60 index',
     tradedOf:  (n: string, total: string) => `${n} of ${total} companies traded`,
     sessionOf: (date: string) => `Session of ${date}`,
-    rail: { market: 'Market', board: 'Companies table', companies: 'Companies directory', screener: 'Screener', heatmap: 'Heatmap', statistics: 'Statistics', pulse: 'Pulse' },
+    rail: { market: 'Market', board: 'Companies table', companies: 'Companies directory', screener: 'Screener', heatmap: 'Heatmap', statistics: 'Statistics', pulse: 'Pulse', news: 'News' },
     showing:   (n: string) => `${n} companies`,
     full: {
       title:   'Prices of every company on the Iraq Stock Exchange',

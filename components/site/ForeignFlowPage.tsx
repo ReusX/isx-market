@@ -30,10 +30,6 @@ import '@/styles/flow-page.css'
  *   counts, never trading — the page says so, because the exchange does not
  *   publish trading by investor type.
  */
-const RAIL = [
-  { key: 'market', route: '/' }, { key: 'board', route: '/market' }, { key: 'companies', route: '/companies' },
-  { key: 'screener', route: '/screener' }, { key: 'heatmap', route: '/heatmap' }, { key: 'statistics', route: '/statistics' }, { key: 'pulse', route: '/pulse' },
-] as const
 const SUB = [
   { key: 'overview', route: '/statistics' }, { key: 'flow', route: '/statistics/foreign-flow' },
   { key: 'ownership', route: '/statistics/ownership' }, { key: 'holders', route: '/statistics/shareholders' },
@@ -145,7 +141,7 @@ export function ForeignFlowPage({ initial }: { initial: FlowInitial }) {
   return (
     <SiteShell>
       <main className="ffl id-full iq-door">
-        <DoorRail door="markets" items={RAIL.map((r) => ({ label: t.market.page.rail[r.key], route: r.route }))} />
+        <DoorRail door="markets" />
         <div className="ffl-body">
           <header className="stx-head">
             <p className="id-eyebrow">{pg.eyebrow}</p>

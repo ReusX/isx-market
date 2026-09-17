@@ -30,10 +30,6 @@ import '@/styles/statistics-page.css'
  * server; the data model (lib/statistics) is unchanged, including its
  * period rule — four cadences, never merged into one timestamp.
  */
-const RAIL = [
-  { key: 'market', route: '/' }, { key: 'board', route: '/market' }, { key: 'companies', route: '/companies' },
-  { key: 'screener', route: '/screener' }, { key: 'heatmap', route: '/heatmap' }, { key: 'statistics', route: '/statistics' }, { key: 'pulse', route: '/pulse' },
-] as const
 const SUB = [
   { key: 'overview', route: '/statistics' }, { key: 'flow', route: '/statistics/foreign-flow' },
   { key: 'ownership', route: '/statistics/ownership' }, { key: 'holders', route: '/statistics/shareholders' },
@@ -110,7 +106,7 @@ export function StatisticsPage({ initial }: { initial: StatisticsInitial }) {
   return (
     <SiteShell>
       <main className="stx id-full iq-door">
-        <DoorRail door="markets" items={RAIL.map((r) => ({ label: t.market.page.rail[r.key], route: r.route }))} />
+        <DoorRail door="markets" />
         <div className="stx-body">
           <header className="stx-head">
             <p className="id-eyebrow">{pg.eyebrow}</p>
