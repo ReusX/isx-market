@@ -50,6 +50,7 @@ export const ROUTES: RouteEntry[] = [
      a real bilingual research surface, and each profile has an English twin. */
   { pattern: '/banks',                     cls: 'mirror' },
   { pattern: '/silver',                    cls: 'mirror' },
+  { pattern: '/currencies',                cls: 'mirror' },
   { pattern: '/banks/deposits',            cls: 'mirror' },
   { pattern: '/banks/loans',               cls: 'mirror' },
   { pattern: '/banks/[slug]',              cls: 'mirror' },

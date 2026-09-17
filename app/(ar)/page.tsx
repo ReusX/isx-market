@@ -19,7 +19,7 @@ import { loadMarketInitial } from '@/lib/marketServer'
 // The real fix is on-demand revalidation from the ingest cron, so a new
 // session appears the moment it lands rather than up to 15 minutes later.
 // Until that is in, this window is the backstop.
-export const revalidate = 900
+export const revalidate = 3600
 
 export default async function Page() {
   return <MarketPage initial={await loadMarketInitial()} />

@@ -7,7 +7,7 @@ import { loadPulse } from '@/lib/marketServer'
 // everything in the browser, so ISR regenerated an empty shell: a crawler got
 // the module headings and not one of the numbers under them, on a page whose
 // own title promises «الأسهم الصاعدة والهابطة». The model now loads here.
-export const revalidate = 900
+export const revalidate = 3600
 
 export default async function Page() {
   return <PulsePage initial={await loadPulse()} />

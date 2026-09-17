@@ -11,7 +11,7 @@
  * Missing data renders as «—» rather than dropping the question: the
  * question is still page text, and the dash is honest.
  */
-import type { GoldData, OilData, SilverData, FxData } from '@/lib/rates'
+import type { CurrenciesData, GoldData, OilData, SilverData, FxData } from '@/lib/rates'
 import { localeDate } from '@/lib/date'
 
 type Locale = 'ar' | 'en'
@@ -63,3 +63,17 @@ export const faqLd = (faq: { q: string; a: string }[]) => ({
   '@type': 'FAQPage',
   mainEntity: faq.map((f) => ({ '@type': 'Question', name: f.q, acceptedAnswer: { '@type': 'Answer', text: f.a } })),
 })
+
+/** The currencies FAQ: five figures readers ask for by name, in dinars. */
+export function currenciesFaqFigures(cur: CurrenciesData | null, fx: FxData | null, locale: Locale) {
+  const market = fx?.sell ?? fx?.buy ?? null
+  const iqd = (code: keyof CurrenciesData['perUsd']) => {
+    const r = cur?.perUsd[code]
+    return r && market ? n0.format(market / r) : "—"
+  }
+  return {
+    eur: iqd('EUR'), gbp: iqd('GBP'), try: iqd('TRY'), aed: iqd('AED'), sar: iqd('SAR'), kwd: iqd('KWD'), jod: iqd('JOD'),
+    usd: market ? n0.format(market) : "—",
+    date: cur?.updatedAt ? localeDate(cur.updatedAt.slice(0, 10), locale) : '—',
+  }
+}

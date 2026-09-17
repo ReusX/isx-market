@@ -32,7 +32,7 @@ export const site = {
     '/': 'Market', '/market': 'Company table', '/companies': 'Company directory', '/screener': 'Stock screener', '/heatmap': 'Market map',
     '/statistics': 'Statistics', '/statistics/foreign-flow': 'Foreign flow', '/statistics/ownership': 'Foreign ownership', '/statistics/shareholders': 'Major shareholders', '/pulse': 'Market pulse',
     '/banks': 'Banks', '/banks/deposits': 'Deposit rates', '/banks/loans': 'Loan rates',
-    '/fx': 'Dollar rate', '/gold': 'Gold price', '/silver': 'Silver price', '/oil': 'Oil price',
+    '/fx': 'Dollar rate', '/currencies': 'Currency rates', '/gold': 'Gold price', '/silver': 'Silver price', '/oil': 'Oil price',
     '/learn': 'Learn', '/news': 'News', '/research': 'Research',
     '/portfolio': 'Portfolio', '/watchlist': 'Watchlist', '/alerts': 'Alerts',
   } as Record<string, string>,

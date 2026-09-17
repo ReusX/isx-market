@@ -4,7 +4,7 @@ import { loadScreener } from '@/lib/marketServer'
 import { messages } from '@/lib/i18n'
 import { absUrl, seoAlternates } from '@/lib/seo'
 
-export const revalidate = 300
+export const revalidate = 1800
 
 /**
  * /screener · presets first, conditions in the URL. A preset URL carries its

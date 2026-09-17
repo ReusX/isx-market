@@ -7,10 +7,11 @@ import { sectorLabel } from '@/lib/screener'
 import { PERIOD_LABEL, type NewsItem } from '@/lib/news'
 import { messages } from '@/lib/i18n'
 import type { Locale } from '@/lib/i18n/locale'
-import { wrapVars } from '@/lib/wrapText'
-import { loadSessions, loadSessionWrap } from '@/lib/wrapServer'
-import { loadResults, loadResultsIndex, resultsSlug } from '@/lib/resultsServer'
-import { resultsVars } from '@/lib/resultsText'
+import { compactIqd } from '@/lib/wrapText'
+import { loadResultsIndex, resultsSlug } from '@/lib/resultsServer'
+import { money, cmp } from '@/lib/resultsText'
+import { localeDate } from '@/lib/date'
+import { periodLabel } from '@/lib/news'
 
 /**
  * /news · the feed: CMS articles and ISC filings, merged newest first.
@@ -138,51 +139,70 @@ async function loadFilings(locale: Locale): Promise<{ items: NewsItem[]; ok: boo
 }
 
 
-/* The daily session wraps as feed rows: the last thirty sessions, each a
-   headline with the close and the move. Arabic pages, so on /en/news they
-   carry the foreign-language mark like the CMS articles do. */
+/* The daily session wraps as feed rows — from daily_index alone (one
+   query): the headline needs only the close and the move. Loading thirty
+   full wraps here cost ninety queries per render of /news. */
 async function loadWraps(locale: Locale): Promise<NewsItem[]> {
   try {
     const t = messages(locale)
-    const dates = (await loadSessions(30))
-    const wraps = await Promise.all(dates.map((d) => loadSessionWrap(d)))
-    return wraps.flatMap((s) => {
-      if (!s) return []
-      const v = wrapVars(s, t, locale)
-      return [{
-        id: `w${s.date}`, kind: 'wrap' as const, at: `${s.date}T14:00:00+03:00`,
-        headline: t.wrap.feedHeadline(v.dateShort, v.close, v.pct, v.dir),
-        excerpt: `${t.wrap.breadth(v)} ${t.wrap.liquidity(v)}`,
-        symbol: null, name: null, sector: null, source: t.wrap.source, doc: null,
-        href: `/news/session/${s.date}`, external: false, foreignLang: locale !== 'ar',
-      }]
+    const sb = createPublicClient()
+    const { data } = await sb.from('daily_index').select('date,isx60,total_value,total_trades,traded_companies')
+      .gt('isx60', 0).order('date', { ascending: false }).limit(31)
+    const rows = (data ?? []) as { date: string; isx60: number; total_value: number; total_trades: number; traded_companies: number }[]
+    const n2 = new Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+    return rows.slice(0, 30).map((r, k) => {
+      const prev = rows[k + 1]
+      const pct = prev ? ((r.isx60 - prev.isx60) / prev.isx60) * 100 : 0
+      const dir = pct > 0.005 ? 'up' : pct < -0.005 ? 'down' : 'flat'
+      const dateShort = localeDate(r.date, locale)
+      const w = t.wrap
+      return {
+        id: `w${r.date}`, kind: 'wrap' as const, at: `${r.date}T14:00:00+03:00`,
+        headline: w.feedHeadline(dateShort, n2.format(r.isx60), n2.format(Math.abs(pct)), dir),
+        excerpt: `${compactIqd(r.total_value, w)} · ${new Intl.NumberFormat('en-US').format(r.total_trades)} · ${r.traded_companies}`,
+        symbol: null, name: null, sector: null, source: w.source, doc: null,
+        href: `/news/session/${r.date}`, external: false, foreignLang: locale !== 'ar',
+      }
     })
   } catch { return [] }
 }
 
-/* Company results as feed rows: the forty most recent trusted filings. */
+/* Company results as feed rows — the forty newest trusted filings, with
+   net income and its prior-year figure from ONE facts query. */
 async function loadResultRows(locale: Locale): Promise<NewsItem[]> {
   try {
     const t = messages(locale)
     const keys = (await loadResultsIndex()).slice(0, 40)
-    const all = await Promise.all(keys.map((k) => loadResults(k.sym, resultsSlug(k))))
-    return all.flatMap((x) => {
-      if (!x) return []
-      const v = resultsVars(x, t, locale)
-      const sec = (companiesData as { sym: string; sec?: string }[]).find((c) => c.sym === x.key.sym)?.sec ?? null
+    if (!keys.length) return []
+    const sb = createPublicClient()
+    const { data } = await sb.from('financial_facts_public').select('ticker,fiscal_year,period,value_iqd')
+      .eq('line_key', 'net_income').in('ticker', Array.from(new Set(keys.map((k) => k.sym))))
+    const facts = (data ?? []) as { ticker: string; fiscal_year: number; period: string; value_iqd: number | null }[]
+    const net = (sym: string, y: number, p: string) => facts.find((f) => f.ticker === sym && f.fiscal_year === y && f.period === p && f.value_iqd != null)?.value_iqd ?? null
+    const r = t.results
+    return keys.flatMap((k) => {
+      const now = net(k.sym, k.year, k.period)
+      if (now == null) return []
+      const meta = (companiesData as { sym: string; ar: string; en: string; sec?: string }[]).find((c) => c.sym === k.sym)
+      if (!meta) return []
+      const prior = net(k.sym, k.year - 1, k.period)
+      const c = cmp(now, prior ?? undefined)
+      const full = locale === 'ar' ? meta.ar : meta.en
+      const words = full.split(/\s+/)
+      const v = { company: words.length > 6 ? words.slice(0, 4).join(' ') : full, sym: k.sym, periodLabel: periodLabel(k.period, locale), year: String(k.year), isAnnual: k.period === 'ANNUAL',
+        net: money(now, r), netYoY: c } as Parameters<typeof r.feedHeadline>[0]
       return [{
-        id: `r${x.key.sym}${x.slug}`, kind: 'results' as const, at: x.addedAt ?? `${x.key.year}-12-31T00:00:00Z`,
-        headline: t.results.feedHeadline(v), excerpt: t.results.revenue(v) || t.results.balance(v) || null,
-        symbol: x.key.sym, name: locale === 'ar' ? x.ar : x.en, sector: sec, source: t.results.sourceName, doc: null,
-        href: `/c/${x.key.sym}/results/${x.slug}`, external: false, foreignLang: locale !== 'ar',
+        id: `r${k.sym}${resultsSlug(k)}`, kind: 'results' as const, at: k.addedAt || `${k.year}-12-31T00:00:00Z`,
+        headline: r.feedHeadline(v), excerpt: null,
+        symbol: k.sym, name: full, sector: meta.sec ?? null, source: r.sourceName, doc: null,
+        href: `/c/${k.sym}/results/${resultsSlug(k)}`, external: false, foreignLang: locale !== 'ar',
       }]
     })
   } catch { return [] }
 }
 
 /* The aggregator feed: headlines the GitHub job collected from the press
-   and the institutions (news_feed). Each links out; nothing is rewritten.
-   A missing table (before the migration runs) simply contributes nothing. */
+   and the institutions (news_feed). Each links out; nothing is rewritten. */
 async function loadExternal(locale: Locale): Promise<NewsItem[]> {
   try {
     const t = messages(locale)

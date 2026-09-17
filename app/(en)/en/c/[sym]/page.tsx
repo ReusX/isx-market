@@ -4,7 +4,7 @@ import { CompanyPage } from '@/components/site/CompanyPage'
 import { loadCompany } from '@/lib/marketServer'
 
 // See the Arabic route for why the caching here matters.
-export const revalidate = 900
+export const revalidate = 3600
 export const dynamicParams = true
 
 export function generateStaticParams() {

@@ -3,7 +3,7 @@ import { absUrl, seoAlternates } from '@/lib/seo'
 import { ForeignFlowPage } from '@/components/site/ForeignFlowPage'
 import { loadForeignFlow } from '@/lib/marketServer'
 
-export const revalidate = 900
+export const revalidate = 3600
 
 const TITLE = 'التدفق الأجنبي في بورصة العراق · من يتداول ومن يدخل السوق'
 const DESC = 'حصة المستثمرين غير العراقيين من الشراء والبيع في بورصة العراق جلسة بجلسة، صافي التدفق الأجنبي، أكثر الشركات شراءً وبيعاً، وحسابات مركز الإيداع حسب نوع المستثمر.'

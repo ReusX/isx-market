@@ -12,14 +12,16 @@ import { NextResponse } from 'next/server'
  * (the same trap that froze the company charts); the Cache-Control header
  * lets the CDN hold it for an hour, which is plenty for a once-a-day index.
  */
-export const dynamic = 'force-dynamic'
+/* Cached: the index moves once a session, and a live upstream fetch per
+   homepage visit was a function invocation and a Rabee request each time. */
+export const revalidate = 3600
 
 const UPSTREAM = 'https://appapi.rs.iq/api/SiteStock/GetRSISXList?type=RSISX'
 
 export async function GET() {
   try {
     const res = await fetch(UPSTREAM, {
-      cache: 'no-store',
+      next: { revalidate: 3600 },
       headers: {
         'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36',
         Origin: 'https://rs.iq',

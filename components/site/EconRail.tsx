@@ -9,7 +9,7 @@ import { DoorRail } from './DoorRail'
  */
 const ITEMS = [
   { key: 'fx', route: '/fx' },
-  { key: 'currencies', route: '/currencies', soon: true },
+  { key: 'currencies', route: '/currencies' },
   { key: 'gold', route: '/gold' },
   { key: 'silver', route: '/silver' },
   { key: 'oil', route: '/oil' },

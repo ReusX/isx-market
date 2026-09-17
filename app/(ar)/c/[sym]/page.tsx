@@ -14,7 +14,7 @@ import { loadCompany } from '@/lib/marketServer'
  *
  * Now: prerendered per ticker, revalidating on the session's own cadence.
  */
-export const revalidate = 900
+export const revalidate = 3600
 export const dynamicParams = true
 
 export function generateStaticParams() {

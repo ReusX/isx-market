@@ -37,7 +37,7 @@ export const site = {
     '/': 'السوق', '/market': 'جدول الشركات', '/companies': 'دليل الشركات', '/screener': 'رادار الأسهم', '/heatmap': 'خريطة السوق',
     '/statistics': 'الإحصاءات', '/statistics/foreign-flow': 'التدفق الأجنبي', '/statistics/ownership': 'الملكية الأجنبية', '/statistics/shareholders': 'كبار المساهمين', '/pulse': 'نبض السوق',
     '/banks': 'المصارف', '/banks/deposits': 'فوائد الودائع', '/banks/loans': 'فوائد القروض',
-    '/fx': 'سعر الدولار', '/gold': 'سعر الذهب', '/silver': 'سعر الفضة', '/oil': 'سعر النفط',
+    '/fx': 'سعر الدولار', '/currencies': 'أسعار العملات', '/gold': 'سعر الذهب', '/silver': 'سعر الفضة', '/oil': 'سعر النفط',
     '/learn': 'تعلّم', '/news': 'الأخبار', '/research': 'تحليلات',
     '/portfolio': 'محفظتي', '/watchlist': 'قائمة المتابعة', '/alerts': 'التنبيهات',
   } as Record<string, string>,

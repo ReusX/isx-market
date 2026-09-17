@@ -428,3 +428,30 @@ export async function fetchSilver(): Promise<SilverData | null> {
     return null
   }
 }
+
+// ── Currencies ───────────────────────────────────────────────────────────────
+// Cross rates against the dollar from a free, keyless feed (open.er-api.com,
+// daily, ~160 currencies). The dinar figure for each currency is a CONVERSION:
+// the currency's dollar rate × the parallel dollar rate from /fx. Nobody in
+// Baghdad quotes «the euro» directly with any depth; the dollar is the unit.
+import { CURRENCY_CODES, type CurrenciesData } from '@/lib/currencies'
+export { CURRENCY_CODES, type CurrenciesData, type CurrencyCode } from '@/lib/currencies'
+const CUR_URL = 'https://open.er-api.com/v6/latest/USD'
+
+export async function fetchCurrencies(): Promise<CurrenciesData | null> {
+  try {
+    const res = await fetch(CUR_URL, { headers: UA, next: { revalidate: REVALIDATE }, signal: AbortSignal.timeout(9000) })
+    if (!res.ok) return null
+    const j = (await res.json()) as { result?: string; rates?: Record<string, number>; time_last_update_utc?: string }
+    if (j.result !== 'success' || !j.rates) return null
+    const perUsd: CurrenciesData['perUsd'] = {}
+    for (const c of CURRENCY_CODES) if (typeof j.rates[c] === 'number' && j.rates[c] > 0) perUsd[c] = j.rates[c]
+    if (!Object.keys(perUsd).length) return null
+    const upd = j.time_last_update_utc ? new Date(j.time_last_update_utc) : new Date()
+    return {
+      perUsd, iqdPerUsdFeed: typeof j.rates.IQD === 'number' ? j.rates.IQD : null,
+      updatedAt: (isNaN(upd.getTime()) ? new Date() : upd).toISOString(), fetchedAt: new Date().toISOString(),
+      source: 'open.er-api.com', sourceUrl: 'https://www.exchangerate-api.com',
+    }
+  } catch { return null }
+}

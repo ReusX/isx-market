@@ -14,7 +14,7 @@ import { absUrl, seoAlternates } from '@/lib/seo'
 export const revalidate = 3600
 export const dynamicParams = true
 export async function generateStaticParams() {
-  return (await loadResultsIndex()).slice(0, 150).map((k) => ({ sym: k.sym, period: resultsSlug(k) }))
+  return (await loadResultsIndex()).slice(0, 40).map((k) => ({ sym: k.sym, period: resultsSlug(k) }))
 }
 
 export async function generateMetadata({ params }: { params: { sym: string; period: string } }): Promise<Metadata> {

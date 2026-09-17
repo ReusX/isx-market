@@ -17,7 +17,7 @@ import { existsIn } from '@/lib/i18n/routes'
 const MAP = {
   markets: ['/', '/market', '/companies', '/screener', '/heatmap', '/statistics', '/statistics/foreign-flow', '/statistics/ownership', '/statistics/shareholders', '/pulse'],
   banking: ['/banks', '/banks/deposits', '/banks/loans'],
-  economy: ['/fx', '/gold', '/silver', '/oil'],
+  economy: ['/fx', '/currencies', '/gold', '/silver', '/oil'],
   learn: ['/news'],
   tools: ['/portfolio', '/watchlist', '/alerts'],
 } as const

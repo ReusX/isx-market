@@ -52,7 +52,7 @@ export const RAILS: Record<Door, RailDef[]> = {
   ],
   economy: [
     { route: '/fx', icon: 'fx', label: (t) => e(t).fx },
-    { route: '/currencies', icon: 'currencies', label: (t) => e(t).currencies, soon: true },
+    { route: '/currencies', icon: 'currencies', label: (t) => e(t).currencies },
     { route: '/gold', icon: 'gold', label: (t) => e(t).gold },
     { route: '/silver', icon: 'silver', label: (t) => e(t).silver },
     { route: '/oil', icon: 'oil', label: (t) => e(t).oil },
