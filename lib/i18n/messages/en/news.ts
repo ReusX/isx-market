@@ -26,12 +26,14 @@ export const news: typeof ar = {
     all:     'All',
     wrap:    'Session wraps',
     results: 'Results',
+    external: 'From the press',
     filing:  'Company filings',
     article: 'News',
   },
   sources: {
     filing:  'Iraq Securities Commission',
     article: 'IQWealth editorial',
+    isc: 'Iraq Securities Commission', alsumaria: 'Alsumaria', rs: 'Rabee Securities', cbi: 'Central Bank of Iraq', almada: 'Al Mada',
   },
   financialStatements: 'Financial statements',
 

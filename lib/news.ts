@@ -39,6 +39,7 @@ export const KINDS = [
   { id: 'all' },
   { id: 'wrap' },
   { id: 'results' },
+  { id: 'external' },
   { id: 'filing' },
   { id: 'article' },
 ] as const

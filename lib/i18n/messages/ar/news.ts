@@ -39,12 +39,14 @@ export const news = {
     all:     'الكل',
     wrap:    'ملخص الجلسة',
     results: 'نتائج',
+    external: 'من المصادر',
     filing:  'إفصاحات',
     article: 'أخبار',
   },
   sources: {
     filing:  'هيئة الأوراق المالية',
     article: 'تحرير IQWealth',
+    isc: 'هيئة الأوراق المالية', alsumaria: 'السومرية', rs: 'الربيع للأوراق المالية', cbi: 'البنك المركزي العراقي', almada: 'المدى',
   },
   financialStatements: 'البيانات المالية',
 

@@ -180,9 +180,30 @@ async function loadResultRows(locale: Locale): Promise<NewsItem[]> {
   } catch { return [] }
 }
 
+/* The aggregator feed: headlines the GitHub job collected from the press
+   and the institutions (news_feed). Each links out; nothing is rewritten.
+   A missing table (before the migration runs) simply contributes nothing. */
+async function loadExternal(locale: Locale): Promise<NewsItem[]> {
+  try {
+    const t = messages(locale)
+    const sb = createPublicClient()
+    const since = new Date(Date.now() - 14 * 86400_000).toISOString()
+    const { data, error } = await sb.from('news_feed').select('url,source,title,summary,lang,ticker,published_at')
+      .gte('published_at', since).order('published_at', { ascending: false }).limit(300)
+    if (error || !data) return []
+    const names = t.news.sources as Record<string, string>
+    return (data as { url: string; source: string; title: string; summary: string | null; lang: string; ticker: string | null; published_at: string }[]).map((r) => ({
+      id: `x${r.url}`, kind: 'external' as const, at: r.published_at,
+      headline: r.title, excerpt: r.summary, symbol: r.ticker, name: null, sector: null,
+      source: names[r.source] ?? r.source, doc: null, href: r.url, external: true,
+      foreignLang: r.lang !== locale,
+    }))
+  } catch { return [] }
+}
+
 export async function loadNews(locale: Locale): Promise<NewsInitial> {
-  const [articles, filings, wraps, results] = await Promise.all([loadArticles(locale), loadFilings(locale), loadWraps(locale), loadResultRows(locale)])
-  const items = [...articles.items, ...filings.items, ...wraps, ...results]
+  const [articles, filings, wraps, results, external] = await Promise.all([loadArticles(locale), loadFilings(locale), loadWraps(locale), loadResultRows(locale), loadExternal(locale)])
+  const items = [...articles.items, ...filings.items, ...wraps, ...results, ...external]
     .sort((a, b) => (a.at < b.at ? 1 : a.at > b.at ? -1 : 0))
   return {
     items,
