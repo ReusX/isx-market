@@ -8,8 +8,8 @@ ROUTES = [
     '/', '/market', '/companies', '/screener', '/heatmap', '/statistics',
     '/statistics/foreign-flow', '/statistics/ownership', '/statistics/shareholders',
     '/pulse', '/c/TASC', '/c/BBOB', '/c/TASC/financials', '/banks', '/banks/mansour',
-    '/fx', '/gold', '/oil',
-    '/en', '/en/market', '/en/companies', '/en/c/TASC', '/en/banks', '/en/fx', '/en/gold',
+    '/fx', '/gold', '/oil', '/news', '/about', '/contact', '/legal', '/privacy', '/portfolio', '/watchlist', '/alerts', '/login', '/analysis', '/analysis/TASC',
+    '/en', '/en/market', '/en/companies', '/en/c/TASC', '/en/banks', '/en/fx', '/en/gold', '/en/news', '/en/about', '/en/legal', '/en/login',
 ]
 
 def get(url):
