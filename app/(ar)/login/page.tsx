@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import { seoAlternates } from '@/lib/seo'
 import { Suspense } from 'react'
-import { LoginScreen } from '@/components/auth/screens'
+import { LoginScreen } from '@/components/site/AuthScreens'
 
 export const metadata: Metadata = {
   title: 'تسجيل الدخول · IQWealth',

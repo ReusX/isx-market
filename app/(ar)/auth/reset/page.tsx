@@ -1,4 +1,4 @@
-import { ResetPassword } from '@/components/routes/ResetPassword'
+import { ResetPassword } from '@/components/site/ResetPasswordPage'
 
 // Metadata lives in ./layout.tsx.
 export default function Page() {

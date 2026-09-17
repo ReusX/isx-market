@@ -1,0 +1,42 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   The auth family and the profile — layout only; vocabulary is identity.css.
+   Prefix `ath-`. A centred card at reading width under the ordinary nav.
+   ═══════════════════════════════════════════════════════════════════════════ */
+.ath { padding-block: 40px 24px; display: flex; justify-content: center; }
+.ath-card { width: 100%; max-width: 440px; }
+.ath-head { margin-bottom: 20px; }
+.ath-lede { margin: 8px 0 0; color: var(--secondary); font-size: 15px; line-height: 1.6; }
+.ath-form, .au-form { display: grid; gap: 16px; }
+.ath-field { display: grid; gap: 6px; }
+.ath-field .id-input { width: 100%; }
+.ath-field.is-bad .id-input { border-color: var(--sand-ink); }
+.ath-err { color: var(--sand-ink); margin: 0; }
+.ath-hint { margin: 0; }
+.ath-pw { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px; align-items: center; }
+.ath-submit { width: 100%; justify-content: center; margin-top: 4px; }
+.ath-error { margin-bottom: 16px; }
+.ath-error b { font-weight: 500; }
+.ath-error-act { margin-top: 6px; }
+.ath-foot { margin-top: 24px; padding-top: 16px; border-top: 1px solid var(--border); }
+.ath-foot a, .ath-hint a, .ath-error-act a, .ath-outcome-acts a { color: var(--blue); }
+.ath-outcome { display: grid; gap: 10px; padding: 20px; border: 1px solid var(--border); border-radius: var(--r-md); }
+.ath-mark { font-size: 22px; color: var(--secondary); }
+.ath-outcome.is-good .ath-mark { color: var(--moss-ink); }
+.ath-outcome.is-bad .ath-mark { color: var(--sand-ink); }
+.ath-outcome-body { font-size: 15px; }
+.ath-outcome-acts { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 6px; }
+.ath-benefits { list-style: none; margin: 0 0 20px; padding: 0; display: grid; gap: 8px; font-size: 14px; color: var(--secondary); }
+.ath-benefits li::before { content: '✓'; color: var(--moss-ink); margin-inline-end: 8px; }
+
+/* ── Profile ────────────────────────────────────────────────────────────── */
+.ath-profile { max-width: 640px; }
+.ath-sec { margin-top: 28px; }
+.ath-sec > .id-h3 { margin-bottom: 10px; }
+.ath-rows { display: grid; }
+.ath-row { display: grid; grid-template-columns: 150px minmax(0, 1fr) auto; gap: 12px; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--border); font-size: 15px; }
+.ath-row dt { color: var(--secondary); font-size: 13px; }
+.ath-row dd { margin: 0; min-width: 0; overflow-wrap: anywhere; }
+@media (max-width: 560px) { .ath-row { grid-template-columns: 1fr; gap: 4px; } }
+.ath-wide { display: grid; gap: 20px; }
+.ath-benefits li { display: grid; gap: 2px; }
+.ath-benefits li strong { font-weight: 500; color: var(--ink); }

@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import { seoAlternates } from '@/lib/seo'
-import { Account } from '@/components/routes/Account'
+import { ProfilePage as Account } from '@/components/site/ProfilePage'
 
 export const metadata: Metadata = {
   title: 'الحساب · الإعدادات',

@@ -47,6 +47,9 @@ const ALLOW_FILES = [
   'app/(ar)/',                  // the ARABIC route group's own metadata
   'components/auth/AuthShell.tsx', // AUTH_ERRORS ar/en pair lives here
   'components/auth/screens.tsx',   // isAr ternaries, both languages present
+  'components/site/AuthScreens.tsx',      // the same screens on the site shell
+  'components/site/AuthKit.tsx',          // show/hide password labels, both languages
+  'components/site/ResetPasswordPage.tsx',// isAr ternaries, both languages present
   'components/auth/AuthModal.tsx',
   'app/global-error.tsx',       // deliberately bilingual — see the file
   'components/shell/LanguageSwitch.tsx', // «العربية» is the switch's own label

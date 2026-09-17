@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import { seoAlternates } from '@/lib/seo'
 import { Suspense } from 'react'
-import { VerifyEmailScreen } from '@/components/auth/screens'
+import { VerifyEmailScreen } from '@/components/site/AuthScreens'
 
 export const metadata: Metadata = {
   title: 'Check your email · IQWealth',

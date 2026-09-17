@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import { seoAlternates } from '@/lib/seo'
 import { Suspense } from 'react'
-import { ForgotPasswordScreen } from '@/components/auth/screens'
+import { ForgotPasswordScreen } from '@/components/site/AuthScreens'
 
 export const metadata: Metadata = {
   title: 'إعادة تعيين كلمة المرور · IQWealth',
