@@ -95,7 +95,8 @@ export function NewsPage({ initial }: { initial: NewsInitial }) {
                               {it.name ? <span className="id-name">{it.name}</span> : null}{it.name ? ' · ' : ''}{it.headline} ↗
                             </a>
                           ) : (
-                            <Link className="nws-title" href={L(it.href)}>{it.headline}{it.foreignLang && nw.arabicArticle ? <span className="id-cap"> · {nw.arabicArticle}</span> : null}</Link>
+                            /* An article that exists in Arabic only links to the Arabic page. */
+                            <Link className="nws-title" href={it.foreignLang ? it.href : L(it.href)}>{it.headline}{it.foreignLang && nw.arabicArticle ? <span className="id-cap"> · {nw.arabicArticle}</span> : null}</Link>
                           )}
                           {it.excerpt ? <p className="nws-excerpt id-cap">{it.excerpt}</p> : null}
                           <p className="nws-meta id-cap">

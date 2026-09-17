@@ -26,6 +26,9 @@ const RAIL = [
   { key: 'screener', route: '/screener' }, { key: 'heatmap', route: '/heatmap' }, { key: 'statistics', route: '/statistics' }, { key: 'pulse', route: '/pulse' },
 ] as const
 
+/* The analysis index exists in Arabic only; resolved per locale so the
+   static link gate sees the guard. */
+const ANALYSIS_HOME: Record<string, string | null> = { ar: '/analysis', en: null }
 const SEC_CODE: Record<string, string> = { BANK: 'Banks', TEL: 'Telecom', IND: 'Industry', HTL: 'Tourism', INS: 'Insurance', SVC: 'Services', AGR: 'Agriculture', INV: 'Investment' }
 
 export function AnalysisIndexPage() {
@@ -103,7 +106,7 @@ export function AnalysisPage({ sym }: { sym: string }) {
       <main className="tl id-full iq-door">
         <DoorRail door="markets" items={RAIL.map((r) => ({ label: t.market.page.rail[r.key], route: r.route }))} />
         <article className="tl-body id-read">
-          <p className="id-eyebrow"><Link href={L('/analysis')}>{A.back}</Link> · <Link href={L(`/c/${sym}`)}>{A.companyPage}</Link></p>
+          <p className="id-eyebrow">{ANALYSIS_HOME[locale] ? <><Link href={L(ANALYSIS_HOME[locale]!)}>{A.back}</Link> · </> : null}<Link href={L(`/c/${sym}`)}>{A.companyPage}</Link></p>
           <PageTitle title={c?.headline || name} note={A.note} />
           <p className="id-cap id-num"><bdi>{sym}</bdi>{co ? ` · ${sectorLabel(SEC_CODE[String(co.sec)] ?? String(co.sec), locale)}` : ''}</p>
           {phase === 'loading' ? <p className="id-note">{A.loading}…</p> : null}
