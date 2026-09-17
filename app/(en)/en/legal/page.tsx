@@ -1,4 +1,4 @@
-import { LegalDoc } from '@/components/info/LegalDoc'
+import { LegalPage as LegalDoc } from '@/components/site/InfoPages'
 import { TERMS_DOC_EN, DOC_UPDATED_EN } from '@/lib/legalContentEn'
 
 /**
@@ -16,7 +16,7 @@ export default function Page() {
       title="Terms and disclaimer"
       sections={TERMS_DOC_EN}
       updated={DOC_UPDATED_EN}
-      scene="legal"
+
       banner="IQWealth is not a licensed financial brokerage and does not provide investment advice. All information on the platform is for information and education only."
     />
   )

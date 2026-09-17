@@ -1,4 +1,4 @@
-import { LegalDoc } from '@/components/info/LegalDoc'
+import { LegalPage as LegalDoc } from '@/components/site/InfoPages'
 import { TERMS_DOC, DOC_UPDATED } from '@/lib/legalContent'
 
 /**
@@ -16,7 +16,7 @@ export default function Page() {
       title="الشروط وإخلاء المسؤولية"
       sections={TERMS_DOC}
       updated={DOC_UPDATED}
-      scene="legal"
+
       banner="IQWealth ليست شركة وساطة مالية مرخّصة ولا تقدّم نصائح استثمارية. جميع المعلومات على المنصّة لأغراض إعلامية وتعليمية فقط."
     />
   )

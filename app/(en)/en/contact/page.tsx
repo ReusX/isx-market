@@ -1,4 +1,4 @@
-import { ContactPage } from '@/components/routes/ContactPage'
+import { ContactPage } from '@/components/site/InfoPages'
 
 export default function Page() {
   return <ContactPage />

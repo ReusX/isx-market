@@ -1,4 +1,4 @@
-import { LegalDoc } from '@/components/info/LegalDoc'
+import { LegalPage as LegalDoc } from '@/components/site/InfoPages'
 import { PRIVACY_DOC, DOC_UPDATED } from '@/lib/legalContent'
 
 /**
@@ -26,7 +26,7 @@ export default function Page() {
       title="كيف نتعامل مع بياناتك"
       sections={PRIVACY_DOC}
       updated={DOC_UPDATED}
-      scene="privacy"
+
     />
   )
 }

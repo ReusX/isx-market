@@ -1,0 +1,31 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   /about /contact /privacy /legal — reading pages. Layout only; vocabulary
+   is identity.css. Prefix `inf-`.
+   ═══════════════════════════════════════════════════════════════════════════ */
+.inf { padding-block: 32px 0; }
+.inf-body { min-width: 0; }
+.inf-letter { margin: 20px 0 0; }
+.inf-letter p { margin: 0 0 16px; }
+.inf-sign { margin-top: 24px; }
+.inf-sec { margin-top: 32px; }
+.inf-sec > .id-h3 { margin-bottom: 10px; }
+.inf-sec > .id-body { margin: 0 0 14px; }
+.inf-claims { margin: 0; display: grid; }
+.inf-claims > div { display: grid; grid-template-columns: 180px minmax(0, 1fr); gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--border); font-size: 15px; }
+.inf-claims dt { color: var(--secondary); font-size: 13px; }
+.inf-claims dd { margin: 0; line-height: 1.6; }
+@media (max-width: 560px) { .inf-claims > div { grid-template-columns: 1fr; gap: 4px; } }
+.inf-rows { display: flex; flex-wrap: wrap; gap: 10px 24px; align-items: center; margin: 0 0 8px; font-size: 16px; }
+.inf-mail { font-size: 18px; }
+.inf-topics { margin-top: 12px; }
+.inf-banner { margin: 16px 0 0; }
+.inf-banner b { font-weight: 500; }
+.inf-toc { margin: 20px 0 0; padding: 14px 18px; border: 1px solid var(--border); border-radius: var(--r-md); }
+.inf-toc > .id-cap { margin: 0 0 6px; }
+.inf-toc ol { margin: 0; padding-inline-start: 18px; display: grid; gap: 4px; font-size: 14px; }
+.inf-toc a { color: var(--ink); text-decoration: none; }
+.inf-toc a:hover { text-decoration: underline; }
+.inf-ul { margin: 0 0 14px; padding-inline-start: 22px; }
+.inf-family { display: flex; flex-wrap: wrap; gap: 8px 20px; margin: 40px 0 0; padding-top: 16px; border-top: 1px solid var(--border); font-size: 14px; }
+.inf-family a { color: var(--secondary); text-decoration: none; }
+.inf-family a:hover { color: var(--ink); text-decoration: underline; }
