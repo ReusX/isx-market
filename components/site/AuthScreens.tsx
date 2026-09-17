@@ -10,8 +10,8 @@ import {
   AuthShell, Field, PasswordField, AuthError, Submit, Outcome,
 } from './AuthKit'
 import {
-  checkEmail, checkPassword, checkConfirm, authErrorId, RESEND_COOLDOWN,
-  BENEFITS, BENEFITS_EN, type AuthErrorId, type FieldError,
+  checkEmail, checkPassword, checkConfirm, checkPhone, checkCode, normalizePhone, identityKind,
+  authErrorId, RESEND_COOLDOWN, BENEFITS, BENEFITS_EN, type AuthErrorId, type FieldError,
 } from '@/lib/auth'
 
 /**
@@ -30,6 +30,74 @@ import {
 
 const ar = (l: string) => l === 'ar'
 
+/* ── The code step · six digits, by email or SMS ──────────────────────────
+   Sign-up with confirmation on ends here: the account exists, the session
+   does not, and the reader types the code Supabase sent. `verifyOtp` with
+   the right `type` turns it into a session; `resend` asks for another
+   code behind a real cooldown. The same step serves email («signup») and
+   phone («sms»). If the email template still carries a link, the link
+   works too — this page never blocks it. */
+export function CodeStep({ email, phone, onDone }: { email?: string; phone?: string; onDone: () => void }) {
+  const { locale } = useLocale()
+  const isAr = locale === 'ar'
+  const [code, setCode] = useState('')
+  const [codeErr, setCodeErr] = useState<FieldError>(null)
+  const [formError, setFormError] = useState<AuthErrorId | null>(null)
+  const [busy, setBusy] = useState(false)
+  const [cooldown, setCooldown] = useState(RESEND_COOLDOWN)
+  const [resent, setResent] = useState(false)
+  useEffect(() => {
+    if (cooldown <= 0) return
+    const t = setTimeout(() => setCooldown((c) => c - 1), 1000)
+    return () => clearTimeout(t)
+  }, [cooldown])
+  const target = phone ?? email ?? ''
+
+  async function submit(e: React.FormEvent) {
+    e.preventDefault()
+    const ce = checkCode(code, locale); setCodeErr(ce); if (ce) return
+    setBusy(true); setFormError(null)
+    try {
+      const sb = createClient()
+      const { data, error } = phone
+        ? await sb.auth.verifyOtp({ phone, token: code.trim(), type: 'sms' })
+        : await sb.auth.verifyOtp({ email: email as string, token: code.trim(), type: 'signup' })
+      if (error) { setFormError(authErrorId(error)); return }
+      if (data.session) onDone()
+      else setFormError('unknown')
+    } catch (err) { setFormError(authErrorId(err)) } finally { setBusy(false) }
+  }
+  async function resend() {
+    setBusy(true); setFormError(null); setResent(false)
+    try {
+      const sb = createClient()
+      const { error } = phone
+        ? await sb.auth.resend({ type: 'sms', phone })
+        : await sb.auth.resend({ type: 'signup', email: email as string, options: { emailRedirectTo: `${window.location.origin}/auth/callback` } })
+      if (error) { setFormError(authErrorId(error)); return }
+      setResent(true); setCooldown(RESEND_COOLDOWN)
+    } catch (err) { setFormError(authErrorId(err)) } finally { setBusy(false) }
+  }
+
+  return (
+    <AuthShell title={isAr ? 'أدخل رمز التحقق' : 'Enter the verification code'}
+      lede={<>{phone ? (isAr ? 'أرسلنا رمزاً من ستة أرقام برسالة نصية إلى ' : 'We texted a six-digit code to ') : (isAr ? 'أرسلنا رمزاً من ستة أرقام إلى ' : 'We emailed a six-digit code to ')}<bdi dir="ltr">{target}</bdi>{isAr ? '.' : '.'}</>}>
+      {formError ? <AuthError id={formError} locale={locale} /> : null}
+      {resent ? <p className="id-note"><b>{isAr ? 'أُرسل رمز جديد.' : 'A new code is on its way.'}</b></p> : null}
+      <form className="ath-form" onSubmit={submit} noValidate>
+        <Field id="code" label={isAr ? 'الرمز' : 'Code'} value={code} onChange={(v) => setCode(v.replace(/\D/g, '').slice(0, 6))}
+          error={codeErr} ltr inputMode="numeric" autoComplete="one-time-code" maxLength={6} autoFocus disabled={busy} />
+        <Submit busy={busy} busyLabel={isAr ? 'جارٍ التحقق' : 'Verifying…'}>{isAr ? 'تأكيد' : 'Verify'}</Submit>
+        <p className="id-cap ath-resend">
+          {cooldown > 0
+            ? (isAr ? `يمكنك طلب رمز جديد بعد ${cooldown} ثانية.` : `You can request a new code in ${cooldown}s.`)
+            : <button type="button" className="id-link ath-linkbtn" onClick={resend} disabled={busy}>{isAr ? 'إرسال رمز جديد' : 'Send a new code'}</button>}
+        </p>
+      </form>
+    </AuthShell>
+  )
+}
+
 /* ── Login ────────────────────────────────────────────────────────────────── */
 export function LoginScreen() {
   const { user } = useApp()
@@ -46,14 +114,23 @@ export function LoginScreen() {
   // Already signed in? This page has nothing to offer.
   useEffect(() => { if (user) router.replace(L('/profile')) }, [user, router])
 
+  /* One field takes either identity: an address or an Iraqi/E.164 number. */
+  const checkIdentity = (v: string): FieldError => {
+    const k = identityKind(v)
+    if (k) return null
+    if (!v.trim()) return isAr ? 'أدخل بريدك الإلكتروني أو رقم هاتفك.' : 'Enter your email or phone number.'
+    return v.includes('@') ? checkEmail(v, locale) : checkPhone(v, locale)
+  }
   async function submit(e: React.FormEvent) {
     e.preventDefault()
-    const ee = checkEmail(email, locale), pe = checkPassword(password, locale)
+    const ee = checkIdentity(email), pe = checkPassword(password, locale)
     setEmailErr(ee); setPwErr(pe)
     if (ee || pe) return
     setBusy(true); setFormError(null)
     try {
-      const { error } = await createClient().auth.signInWithPassword({ email, password })
+      const { error } = identityKind(email) === 'phone'
+        ? await createClient().auth.signInWithPassword({ phone: normalizePhone(email), password })
+        : await createClient().auth.signInWithPassword({ email: email.trim(), password })
       if (error) { setFormError(authErrorId(error)); return }
       router.replace(L('/profile'))
     } catch (err) {
@@ -75,7 +152,7 @@ export function LoginScreen() {
         <AuthError id={formError} locale={locale}
           action={formError === 'unconfirmed'
             ? <Link href={L(`/verify-email?email=${encodeURIComponent(email)}`)}>
-                {isAr ? 'إعادة إرسال الرابط' : 'Resend link'}
+                {isAr ? 'أدخل رمز التحقق' : 'Enter the verification code'}
               </Link>
             : formError === 'credentials'
               ? <Link href={L("/forgot-password")}>{isAr ? 'نسيت كلمة المرور؟' : 'Forgot your password?'}</Link>
@@ -83,10 +160,10 @@ export function LoginScreen() {
       ) : null}
 
       <form className="ath-form" onSubmit={submit} noValidate>
-        <Field id="email" label={isAr ? 'البريد الإلكتروني' : 'Email'} type="email"
+        <Field id="email" label={isAr ? 'البريد الإلكتروني أو رقم الهاتف' : 'Email or phone number'} type="text"
           value={email} onChange={setEmail} error={emailErr} ltr inputMode="email"
-          autoComplete="email" autoFocus disabled={busy}
-          onBlur={() => setEmailErr(checkEmail(email, locale))} />
+          autoComplete="username" autoFocus disabled={busy}
+          onBlur={() => setEmailErr(checkIdentity(email))} />
         <PasswordField id="password" label={isAr ? 'كلمة المرور' : 'Password'}
           value={password} onChange={setPassword} error={pwErr}
           autoComplete="current-password" disabled={busy} locale={locale}
@@ -114,21 +191,27 @@ export function SignUpScreen() {
   const [formError, setFormError] = useState<AuthErrorId | null>(null)
   const [busy, setBusy] = useState(false)
   const [sent, setSent] = useState(false)
+  const [method, setMethod] = useState<'email' | 'phone'>('email')
+  const [phone, setPhone] = useState('')
+  const [phoneErr, setPhoneErr] = useState<FieldError>(null)
 
   useEffect(() => { if (user && !sent) router.replace(L('/profile')) }, [user, sent, router])
 
   async function submit(e: React.FormEvent) {
     e.preventDefault()
-    const ee = checkEmail(email, locale), pe = checkPassword(password, locale)
-    const ce = checkConfirm(password, confirm, locale)
-    setEmailErr(ee); setPwErr(pe); setCErr(ce)
-    if (ee || pe || ce) return
+    const byPhone = method === 'phone'
+    const ee = byPhone ? null : checkEmail(email, locale), fe = byPhone ? checkPhone(phone, locale) : null
+    const pe = checkPassword(password, locale), ce = checkConfirm(password, confirm, locale)
+    setEmailErr(ee); setPhoneErr(fe); setPwErr(pe); setCErr(ce)
+    if (ee || fe || pe || ce) return
     setBusy(true); setFormError(null)
     try {
-      const { data, error } = await createClient().auth.signUp({
-        email, password,
-        options: { emailRedirectTo: `${window.location.origin}/auth/callback` },
-      })
+      const { data, error } = byPhone
+        ? await createClient().auth.signUp({ phone: normalizePhone(phone), password })
+        : await createClient().auth.signUp({
+            email, password,
+            options: { emailRedirectTo: `${window.location.origin}/auth/callback` },
+          })
       if (error) { setFormError(authErrorId(error)); return }
       /* The project may not require email confirmation (Supabase Auth →
          "Confirm email" off): then signUp answers with a live session and
@@ -143,22 +226,8 @@ export function SignUpScreen() {
   }
 
   if (sent) {
-    return (
-      <AuthShell title={isAr ? 'تحقق من بريدك الإلكتروني' : 'Check your email'}>
-        <Outcome title={isAr ? 'أرسلنا رابط التحقق إلى بريدك.' : 'We sent a verification link to your email address.'}
-          actions={<Link className="id-btn is-primary" href={L(`/verify-email?email=${encodeURIComponent(email)}`)}>
-            {isAr ? 'لم يصل الرابط؟' : 'Didn’t get it?'}
-          </Link>}>
-          <p>
-            {isAr ? 'أرسلنا رابط تأكيد إلى ' : 'We sent a verification link to '}
-            <bdi dir="ltr">{email}</bdi>
-            {isAr ? '. افتحه لتفعيل حسابك.' : '. Open it to activate your account.'}
-          </p>
-        </Outcome>
-      </AuthShell>
-    )
+    return <CodeStep email={method === 'email' ? email.trim() : undefined} phone={method === 'phone' ? normalizePhone(phone) : undefined} onDone={() => router.replace(L('/profile'))} />
   }
-
   return (
     <AuthShell wide
       title={isAr ? 'إنشاء حساب' : 'Create an account'}
@@ -178,10 +247,22 @@ export function SignUpScreen() {
 
       <div className="ath-wide">
         <form className="ath-form" onSubmit={submit} noValidate>
-          <Field id="email" label={isAr ? 'البريد الإلكتروني' : 'Email'} type="email"
-            value={email} onChange={setEmail} error={emailErr} ltr inputMode="email"
-            autoComplete="email" autoFocus disabled={busy}
-            onBlur={() => setEmailErr(checkEmail(email, locale))} />
+          <div className="id-pills ath-method" role="group" aria-label={isAr ? 'طريقة التسجيل' : 'Sign-up method'}>
+            <button type="button" className="id-pill is-sm" aria-pressed={method === 'email'} onClick={() => setMethod('email')}>{isAr ? 'البريد الإلكتروني' : 'Email'}</button>
+            <button type="button" className="id-pill is-sm" aria-pressed={method === 'phone'} onClick={() => setMethod('phone')}>{isAr ? 'رقم الهاتف' : 'Phone number'}</button>
+          </div>
+          {method === 'phone' ? (
+            <Field id="phone" label={isAr ? 'رقم الهاتف' : 'Phone number'} type="tel"
+              value={phone} onChange={setPhone} error={phoneErr} ltr inputMode="numeric"
+              autoComplete="tel" autoFocus disabled={busy}
+              hint={isAr ? 'مثال: 07701234567 · سيصلك رمز تحقق برسالة نصية.' : 'e.g. 07701234567 · a verification code arrives by SMS.'}
+              onBlur={() => setPhoneErr(checkPhone(phone, locale))} />
+          ) : (
+            <Field id="email" label={isAr ? 'البريد الإلكتروني' : 'Email'} type="email"
+              value={email} onChange={setEmail} error={emailErr} ltr inputMode="email"
+              autoComplete="email" autoFocus disabled={busy}
+              onBlur={() => setEmailErr(checkEmail(email, locale))} />
+          )}
           <PasswordField id="password" label={isAr ? 'كلمة المرور' : 'Password'}
             value={password} onChange={setPassword} error={pwErr}
             autoComplete="new-password" disabled={busy} locale={locale}
@@ -204,73 +285,27 @@ export function SignUpScreen() {
   )
 }
 
-/* ── Verify email · resend with a real cooldown ───────────────────────────── */
+/* ── Verify email · the code step, reachable from a sign-in that says
+   «not confirmed» and from the link in the sign-up email ────────────── */
 export function VerifyEmailScreen() {
   const { locale, href: L } = useLocale()
+  const router = useRouter()
   const isAr = locale === 'ar'
-  /* ⚠ Read the query from `window.location` after mount, NOT with
-     `useSearchParams()`. That hook suspends during prerendering, so the static
-     HTML for /verify-email was the <Suspense> fallback — which is empty. The
-     shipped document had no <main>, no <h1> and nothing visible before
-     hydration. Reading it in an effect lets the full shell prerender and the
-     address fill in afterwards, and keeps the route static. Same correction
-     LanguageSwitch and MarketBoard already carry. */
   const [email, setEmail] = useState('')
+  const [emailErr, setEmailErr] = useState<FieldError>(null)
+  const [ready, setReady] = useState(false)
   useEffect(() => {
     const q = new URLSearchParams(window.location.search).get('email')
-    if (q) setEmail(q)
-  }, [])
-  const [cooldown, setCooldown] = useState(0)
-  const [busy, setBusy] = useState(false)
-  const [sent, setSent] = useState(false)
-  const [formError, setFormError] = useState<AuthErrorId | null>(null)
-
-  useEffect(() => {
-    if (cooldown <= 0) return
-    const t = setTimeout(() => setCooldown(c => c - 1), 1000)
-    return () => clearTimeout(t)
-  }, [cooldown])
-
-  async function resend() {
-    const ee = checkEmail(email, locale)
-    if (ee) { setFormError('unknown'); return }
-    setBusy(true); setFormError(null)
-    try {
-      const { error } = await createClient().auth.resend({
-        type: 'signup', email,
-        options: { emailRedirectTo: `${window.location.origin}/auth/callback` },
-      })
-      if (error) { setFormError(authErrorId(error)); return }
-      setSent(true); setCooldown(RESEND_COOLDOWN)
-    } catch (err) {
-      setFormError(authErrorId(err))
-    } finally { setBusy(false) }
-  }
-
+    if (q && !checkEmail(q, locale)) { setEmail(q); setReady(true) }
+  }, [locale])
+  if (ready) return <CodeStep email={email.trim()} onDone={() => router.replace(L('/profile'))} />
   return (
-    <AuthShell title={isAr ? 'تفعيل الحساب' : 'Verify your email'}
-      footer={<p><Link href={L("/login")}>{isAr ? 'العودة إلى تسجيل الدخول' : 'Back to sign in'}</Link></p>}>
-      {formError ? <AuthError id={formError} locale={locale} /> : null}
-      <Outcome tone={sent ? 'good' : 'neutral'}
-        title={sent
-          ? (isAr ? 'أُرسل رابط جديد' : 'A new link is on its way')
-          : (isAr ? 'افتح الرابط المرسل إلى بريدك' : 'Open the link we emailed you')}>
-        <p>
-          {isAr
-            ? 'لا يمكن تسجيل الدخول قبل تفعيل الحساب. إن لم يصل الرابط، تحقّق من مجلد الرسائل غير المرغوبة أو اطلب رابطاً جديداً.'
-            : 'You cannot sign in until the account is activated. If the link has not arrived, check your spam folder or request a new one.'}
-        </p>
-        <form className="ath-form" onSubmit={e => { e.preventDefault(); resend() }} noValidate>
-          <Field id="verify-email" label={isAr ? 'البريد الإلكتروني' : 'Email'} type="email"
-            value={email} onChange={setEmail} ltr inputMode="email" autoComplete="email" disabled={busy} />
-          <Submit busy={busy} disabled={cooldown > 0}
-            busyLabel={isAr ? 'جارٍ الإرسال' : 'Sending'}>
-            {cooldown > 0
-              ? (isAr ? `يمكن إعادة الإرسال بعد ${cooldown} ثانية` : `Resend in ${cooldown}s`)
-              : (isAr ? 'إرسال رابط جديد' : 'Send a new link')}
-          </Submit>
-        </form>
-      </Outcome>
+    <AuthShell title={isAr ? 'تفعيل الحساب' : 'Activate your account'}
+      lede={isAr ? 'اكتب البريد الذي سجّلت به لنرسل رمز التحقق.' : 'Enter the email you signed up with and we will send the code.'}>
+      <form className="ath-form" onSubmit={(e) => { e.preventDefault(); const ee = checkEmail(email, locale); setEmailErr(ee); if (!ee) setReady(true) }} noValidate>
+        <Field id="email" label={isAr ? 'البريد الإلكتروني' : 'Email'} type="email" value={email} onChange={setEmail} error={emailErr} ltr inputMode="email" autoComplete="email" autoFocus />
+        <Submit busyLabel="">{isAr ? 'متابعة' : 'Continue'}</Submit>
+      </form>
     </AuthShell>
   )
 }

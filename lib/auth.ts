@@ -41,6 +41,36 @@ export function checkEmail(v: string, l: L = "ar"): FieldError {
   return null;
 }
 
+/**
+ * Phone numbers, Iraq-first. «07701234567» and «+9647701234567» are the same
+ * number; the server wants E.164. Any other country works with its «+».
+ */
+export function normalizePhone(v: string): string {
+  const digits = v.replace(/[\s\-().]/g, "").replace(/^00/, "+");
+  if (/^0?7\d{9}$/.test(digits)) return `+964${digits.replace(/^0/, "")}`;
+  if (/^9647\d{9}$/.test(digits)) return `+${digits}`;
+  return digits.startsWith("+") ? digits : `+${digits}`;
+}
+export function checkPhone(v: string, l: L = "ar"): FieldError {
+  const s = v.trim();
+  if (!s) return l === "ar" ? "أدخل رقم هاتفك." : "Enter your phone number.";
+  if (!/^\+[1-9]\d{7,14}$/.test(normalizePhone(s))) {
+    return l === "ar" ? "اكتب الرقم بصيغة 07xxxxxxxxx أو مع رمز الدولة." : "Write it as 07xxxxxxxxx or with the country code.";
+  }
+  return null;
+}
+/** The identity a sign-in form was given: an email, a phone, or neither. */
+export function identityKind(v: string): "email" | "phone" | null {
+  const s = v.trim();
+  if (!s) return null;
+  if (s.includes("@")) return checkEmail(s) ? null : "email";
+  return checkPhone(s) ? null : "phone";
+}
+export function checkCode(v: string, l: L = "ar"): FieldError {
+  if (!/^\d{6}$/.test(v.trim())) return l === "ar" ? "الرمز ستة أرقام." : "The code is six digits.";
+  return null;
+}
+
 export function checkPassword(v: string, l: L = "ar"): FieldError {
   if (!v) return l === "ar" ? "أدخل كلمة المرور." : "Enter your password.";
   if (v.length < MIN_PASSWORD) {
@@ -67,7 +97,7 @@ export function checkConfirm(pw: string, confirm: string, l: L = "ar"): FieldErr
 /* ── Error mapping · §9 §24 · real SDK messages → real Arabic ────────────── */
 export type AuthErrorId =
   | "credentials" | "unconfirmed" | "exists" | "weak"
-  | "ratelimit" | "network" | "expired" | "unknown";
+  | "ratelimit" | "network" | "expired" | "badcode" | "phoneoff" | "unknown";
 
 export const AUTH_ERRORS: Record<AuthErrorId, { title: string; hint?: string }> = {
   /* Supabase: "Invalid login credentials" — one message for both a wrong
@@ -80,7 +110,7 @@ export const AUTH_ERRORS: Record<AuthErrorId, { title: string; hint?: string }> 
   /* Supabase: "Email not confirmed" */
   unconfirmed: {
     title: "لم يُفعَّل هذا الحساب بعد.",
-    hint: "افتح رابط التأكيد المرسل إلى بريدك، أو اطلب رابطاً جديداً.",
+    hint: "أدخل رمز التحقق المرسل إلى بريدك، أو اطلب رمزاً جديداً.",
   },
   /* Supabase: "User already registered" */
   exists: {
@@ -102,6 +132,16 @@ export const AUTH_ERRORS: Record<AuthErrorId, { title: string; hint?: string }> 
   expired: {
     title: "انتهت صلاحية الرابط.",
     hint: "روابط التأكيد وإعادة التعيين صالحة لفترة محدودة.",
+  },
+  /* Supabase: "Token has expired or is invalid" on verifyOtp */
+  badcode: {
+    title: "الرمز غير صحيح أو انتهت صلاحيته.",
+    hint: "تحقّق من الأرقام الستة، أو اطلب رمزاً جديداً.",
+  },
+  /* Phone sign-up asked for before the SMS provider is configured */
+  phoneoff: {
+    title: "التسجيل برقم الهاتف غير متاح حالياً.",
+    hint: "استخدم بريدك الإلكتروني في الوقت الحالي.",
   },
   unknown: {
     title: "تعذّر إتمام العملية.",
@@ -231,12 +271,14 @@ export const T = {
 /** Both languages for the error map. §24 */
 export const ERROR_EN: Record<AuthErrorId, { title: string; hint?: string }> = {
   credentials: { title: "Email or password is incorrect.", hint: "Check both fields, or reset your password." },
-  unconfirmed: { title: "This account isn't activated yet.", hint: "Open the activation link we emailed, or request a new one." },
+  unconfirmed: { title: "This account isn't activated yet.", hint: "Enter the verification code we emailed, or request a new one." },
   exists: { title: "That email is already registered.", hint: "Sign in instead of creating a new account." },
   weak: { title: `Password must be at least ${MIN_PASSWORD} characters.` },
   ratelimit: { title: "Too many attempts in a short time.", hint: "Wait a moment before trying again." },
   network: { title: "Couldn't reach the server.", hint: "Check your connection and try again — nothing you typed was lost." },
   expired: { title: "This link has expired.", hint: "Activation and reset links are valid for a limited time." },
+  badcode: { title: "That code is wrong or has expired.", hint: "Check the six digits, or request a new code." },
+  phoneoff: { title: "Phone sign-up isn't available right now.", hint: "Use your email for now." },
   unknown: { title: "That didn't go through.", hint: "Please try again shortly." },
 };
 
@@ -260,7 +302,9 @@ export function authErrorId(err: unknown): AuthErrorId {
   if (raw.includes('already registered') || raw.includes('already been registered')) return 'exists'
   if (raw.includes('password should be') || raw.includes('weak password')) return 'weak'
   if (raw.includes('rate limit') || raw.includes('too many requests') || raw.includes('for security purposes')) return 'ratelimit'
+  if (raw.includes('token has expired or is invalid') || raw.includes('otp')) return 'badcode'
   if (raw.includes('expired') || raw.includes('invalid or has expired')) return 'expired'
+  if (raw.includes('phone') && (raw.includes('disabled') || raw.includes('not enabled') || raw.includes('unsupported'))) return 'phoneoff'
   if (raw.includes('fetch') || raw.includes('network')) return 'network'
   return 'unknown'
 }
