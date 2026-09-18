@@ -53,6 +53,7 @@ export function SiteFoot() {
           <Link href={L('/contact')}>{t.site.contact}</Link>
           <Link href={L('/privacy')}>{t.site.privacy}</Link>
           <Link href={L('/legal')}>{t.site.legal}</Link>
+          <Link href={L('/widget')}>{t.site.widget.footLink}</Link>
         </nav>
       </div>
     </footer>

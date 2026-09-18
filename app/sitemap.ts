@@ -73,6 +73,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     /* /banks is listed with the bank block below, dated by the data. */
     // Info / legal
     { url: absUrl('/about'),      lastModified: staticDate },
+    { url: absUrl('/widget'),     lastModified: new Date('2026-09-18') },
     { url: absUrl('/contact'),    lastModified: staticDate },
     { url: absUrl('/privacy'),    lastModified: staticDate },
     { url: absUrl('/legal'),      lastModified: staticDate },

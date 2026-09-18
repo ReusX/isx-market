@@ -62,6 +62,10 @@ Each company: `https://iraqsm.com/c/{TICKER}` (price, candlestick chart with dra
 - تدفق المستثمر الأجنبي / foreign investors on the ISX → https://iraqsm.com/statistics/foreign-flow
 - كيف أبدأ التداول في بورصة العراق → https://iraqsm.com/learn/trading-from-zero
 
+## Embeddable widget
+
+- [Widget](https://iraqsm.com/widget): one `<script src="https://iraqsm.com/widget.js">` tag renders a card with the Baghdad dollar rate, gold and the ISX60, refreshed from the endpoints below. Free with the attribution link.
+
 ## Machine-readable data (free, no key, JSON, CORS open)
 
 All answers carry `asOf` (the session or reading date), `source`, `page`, `publisher` and `license`. Figures are session-end, never real-time.

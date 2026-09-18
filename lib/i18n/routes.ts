@@ -95,6 +95,7 @@ export const ROUTES: RouteEntry[] = [
 
   // ── Info & legal ────────────────────────────────────────────────────────
   { pattern: '/about',                     cls: 'mirror' },
+  { pattern: '/widget',                    cls: 'mirror' },
   { pattern: '/contact',                   cls: 'mirror' },
   { pattern: '/privacy',                   cls: 'mirror' },
   { pattern: '/legal',                     cls: 'mirror' },

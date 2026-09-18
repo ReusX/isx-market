@@ -2,6 +2,17 @@ export const site = {
   brandHome: 'IQWealth · Home',
   menu:      'Menu',
   section:   'Section',
+  widget: {
+    eyebrow: 'Tools for websites', footLink: 'Widget for your site', title: 'Dollar & gold widget for your site',
+    note: 'A small card with the Baghdad dollar rate, gold and the ISX60 for your site, blog or channel, refreshed automatically from IQWealth open data. Free as long as the source link stays.',
+    seoTitle: 'Dollar & gold widget for your site · free from IQWealth',
+    description: 'Add the Baghdad dollar rate, gold price and the ISX60 to your site with one line. Free, auto-updating, Arabic or English, light or dark.',
+    options: 'Options', rows: 'Rows', fx: 'Dollar', gold: 'Gold', index: 'ISX60', lang: 'Language', ar: 'Arabic', en: 'English',
+    theme: 'Theme', auto: 'Auto', light: 'Light', dark: 'Dark', width: 'Width', preview: 'Preview', code: 'Code',
+    codeNote: 'Paste this line where the card should appear. Works on any site, no key needed.', copy: 'Copy code', copied: 'Copied',
+    terms: 'Terms', termsBody: ['Free for sites, blogs and channels as long as the "Source: IQWealth" link stays visible in the card.', 'Figures are the same as on IQWealth pages; not real-time, the date is shown in the card.', 'For commercial use in an app or pricing platform, or without the link, contact us.'],
+    data: 'Want the same data as JSON?', dataNote: 'Open endpoints are documented in llms.txt: /data/fx.json, /data/gold.json, /data/index.json, /data/quotes.json.',
+  },
   rail: {
     subpages: 'Sub-pages',
     customise: 'Customise',

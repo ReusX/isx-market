@@ -64,6 +64,7 @@
   "/en/statistics/shareholders": "○",
   "/en/verify-email": "○",
   "/en/watchlist": "○",
+  "/en/widget": "○",
   "/forgot-password": "○",
   "/fx": "○",
   "/gold": "○",
@@ -98,5 +99,6 @@
   "/statistics/ownership": "○",
   "/statistics/shareholders": "○",
   "/verify-email": "○",
-  "/watchlist": "○"
+  "/watchlist": "○",
+  "/widget": "○"
 }

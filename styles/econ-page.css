@@ -80,3 +80,10 @@
 .eco-table td.eco-wrap { white-space: normal; overflow: visible; text-overflow: clip; max-width: none; min-width: 160px; }
 .eco-table td.eco-wrap.id-cap { min-width: 120px; }
 .eco-status { font-weight: 300; font-size: clamp(32px, 4vw, 44px); line-height: 1.1; }
+
+/* /widget configurator */
+.wdg-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 16px; }
+@media (max-width: 760px) { .wdg-grid { grid-template-columns: minmax(0, 1fr); } }
+.wdg .id-pills { margin: 6px 0 14px; flex-wrap: wrap; }
+.wdg-preview { min-height: 160px; display: flex; align-items: flex-start; }
+.wdg-code { width: 100%; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 13px; resize: vertical; }
