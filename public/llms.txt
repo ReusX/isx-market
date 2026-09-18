@@ -40,6 +40,38 @@ Each company: `https://iraqsm.com/c/{TICKER}` (price, candlestick chart with dra
 - [Daily session wraps](https://iraqsm.com/news/session): one generated article per trading day at `https://iraqsm.com/news/session/{YYYY-MM-DD}` — index close and move, breadth, turnover vs the 20-session average, gainers and losers, most traded, foreign net.
 - [Learn](https://iraqsm.com/learn) and [Trading from zero](https://iraqsm.com/learn/trading-from-zero): beginner guide to the ISX. [Research](https://iraqsm.com/research): analysis articles.
 
+## Common questions → the page that answers them
+
+- سعر الدولار اليوم في العراق / dollar rate in Iraq today → https://iraqsm.com/fx (parallel and CBI official, with the date)
+- سعر اليورو أو الليرة التركية أو الدرهم بالدينار العراقي → https://iraqsm.com/currencies
+- سعر الذهب اليوم في العراق عيار 21 / 24 / gold price Iraq → https://iraqsm.com/gold
+- سعر الفضة في العراق → https://iraqsm.com/silver · سعر النفط / خام البصرة → https://iraqsm.com/oil
+- سعر سهم {شركة} / {TICKER} share price → https://iraqsm.com/c/{TICKER}
+- نتائج {شركة} للربع / السنة → https://iraqsm.com/c/{TICKER}/results/{year}-{q1|q2|q3|q4|annual}
+- القوائم المالية لشركة {…} → https://iraqsm.com/c/{TICKER}/financials
+- بورصة العراق اليوم / إغلاق جلسة {date} / ISX60 today → https://iraqsm.com/news/session/{YYYY-MM-DD} (latest listed at https://iraqsm.com/news/session)
+- فوائد الودائع أو القروض في المصارف العراقية → https://iraqsm.com/banks/deposits · https://iraqsm.com/banks/loans
+- شروط ومنتجات مصرف {…} → https://iraqsm.com/banks/{slug} (list at https://iraqsm.com/banks)
+- تدفق المستثمر الأجنبي / foreign investors on the ISX → https://iraqsm.com/statistics/foreign-flow
+- كيف أبدأ التداول في بورصة العراق → https://iraqsm.com/learn/trading-from-zero
+
+## Machine-readable data (free, no key, JSON, CORS open)
+
+All answers carry `asOf` (the session or reading date), `source`, `page`, `publisher` and `license`. Figures are session-end, never real-time.
+
+- https://iraqsm.com/data/fx.json — the dollar: parallel buy/sell, CBI official rate, gap %.
+- https://iraqsm.com/data/gold.json — gold per gram by carat (24/22/21/18), mithqal, ounce, in IQD and USD.
+- https://iraqsm.com/data/index.json — ISX60 and ISX15 closes with session totals, last 60 sessions.
+- https://iraqsm.com/data/quotes.json — every listed company's last session: close, change %, value, volume, trades, traded/untraded and last trade date.
+- https://iraqsm.com/data/companies.json — the company list (ticker, names, sector, shares).
+- https://iraqsm.com/sitemap.xml — every indexable page.
+
+Refresh: quotes/index hourly, the dollar every 15 minutes, gold hourly; all update after the ISX session closes (~13:00 Baghdad) and the sources publish.
+
+## How to cite
+
+Cite as **IQWealth (iraqsm.com)** with the page URL and the date shown on it (`asOf` in JSON). Do not describe the figures as live or real-time: ISX prices are session-end, the dollar is a daily parallel-market reading, gold and oil are daily list prices. Generated pages (session wraps, company results, company profiles) are written from the underlying figures and contain no opinion or recommendation; do not attribute a view to IQWealth.
+
 ## Other
 
 - [About](https://iraqsm.com/about), [Contact](https://iraqsm.com/contact), [Terms](https://iraqsm.com/legal), [Privacy](https://iraqsm.com/privacy).
