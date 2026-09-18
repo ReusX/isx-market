@@ -47,7 +47,10 @@ function datasetLd(session: string | null, sessions: string[], locale: 'ar' | 'e
   return {
     '@context': 'https://schema.org',
     '@type': 'Dataset',
-    '@id': absUrl(path, locale),
+    /* Its own id, distinct from the page's WebPage node. With the same @id
+       Google merged the two, and the WebPage's isPartOf (a WebSite) was read
+       as the Dataset's isPartOf, which must be a Dataset — the GSC warning. */
+    '@id': `${absUrl(path, locale)}#dataset`,
     name: ar ? 'أسعار أسهم بورصة العراق · جميع الشركات المدرجة' : 'Iraq Stock Exchange share prices · all listed companies',
     description: ar
       ? 'آخر سعر، التغيّر، حجم التداول، القيمة السوقية وعدد الأسهم لكل شركة مدرجة في بورصة العراق للأوراق المالية، لكل جلسة تداول.'
