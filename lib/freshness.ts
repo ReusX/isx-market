@@ -68,7 +68,9 @@ export function freshnessJsonLd({
     name,
     description,
     inLanguage: 'ar-IQ',
-    isPartOf: { '@id': `${SITE}/#website` },
+    /* Typed, not a bare @id: Search Console reports a bare reference as
+       «Invalid object type for field isPartOf» on the Dataset page. */
+    isPartOf: { '@type': 'WebSite', '@id': `${SITE}/#website`, name: 'IQWealth', url: `${SITE}/` },
     ...(modified ? { dateModified: modified } : {}),
   }
 }
