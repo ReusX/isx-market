@@ -59,6 +59,7 @@ export const ROUTES: RouteEntry[] = [
 
   // ── Rates tools ─────────────────────────────────────────────────────────
   { pattern: '/fx',                        cls: 'mirror' },
+  { pattern: '/currencies/[code]',         cls: 'ar-only', why: 'One page per major currency, written for the Arabic queries («سعر اليورو اليوم في العراق»); the English table at /en/currencies already carries the figures.' },
   { pattern: '/gold',                      cls: 'mirror' },
   { pattern: '/oil',                       cls: 'mirror' },
 

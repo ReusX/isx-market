@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import Link from 'next/link'
 import { useLocale } from '@/context/LocaleContext'
 import { localeDate } from '@/lib/date'
 import { CBI_OFFICIAL_RATE } from '@/lib/fxOfficial'
@@ -23,6 +24,8 @@ import '@/styles/econ-page.css'
  * why Baghdad has no direct euro market.
  */
 const SMALL: CurrencyCode[] = ['IRR', 'SYP', 'LBP', 'KRW']  // shown per 1,000 units
+/* Currencies with a page of their own (Arabic only) — the table links to them. */
+const PAGES: Partial<Record<CurrencyCode, string>> = { TRY: 'try', SAR: 'sar', IRR: 'irr', EUR: 'eur', AED: 'aed', KWD: 'kwd', JOD: 'jod', GBP: 'gbp' }
 const nf0 = new Intl.NumberFormat('en-US', { maximumFractionDigits: 0 })
 const nf2 = new Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
 const nf4 = new Intl.NumberFormat('en-US', { maximumFractionDigits: 4 })
@@ -85,7 +88,7 @@ export function CurrenciesPage({ cur, fx }: { cur: CurrenciesData | null; fx: Fx
                       const m = mult(c)
                       return (
                         <tr key={c} className={c === 'EUR' ? 'is-lead' : undefined}>
-                          <td><span className="id-name">{P.names[c] ?? c}</span><span className="id-sub"><bdi>{c}</bdi>{m > 1 ? ` · ${P.thousand}` : ''}</span></td>
+                          <td><span className="id-name">{PAGES[c] && locale === 'ar' ? <Link href={`/currencies/${PAGES[c]}`}>{P.names[c] ?? c}</Link> : (P.names[c] ?? c)}</span><span className="id-sub"><bdi>{c}</bdi>{m > 1 ? ` · ${P.thousand}` : ''}</span></td>
                           <td className="is-end"><bdi>{fmtIqd((iqdPer(c, market) ?? 0) * m || null)}</bdi></td>
                           <td className="is-end"><bdi>{fmtIqd((iqdPer(c, CBI_OFFICIAL_RATE) ?? 0) * m || null)}</bdi></td>
                           <td className="is-end"><bdi>{nf4.format(perUsd(c) as number)}</bdi></td>

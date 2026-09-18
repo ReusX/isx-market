@@ -21,6 +21,7 @@
   "/companies": "○",
   "/contact": "○",
   "/currencies": "○",
+  "/currencies/[code]": "●",
   "/data/fx.json": "○",
   "/data/gold.json": "○",
   "/data/index.json": "○",

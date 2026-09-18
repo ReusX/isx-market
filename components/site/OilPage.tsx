@@ -25,7 +25,24 @@ const nf2 = new Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximumFr
 export function OilPage({ oil, fx }: { oil: OilData | null; fx: FxData | null }) {
   const { t, locale } = useLocale()
   /* The source is read in Arabic; its slug is the English name. */
-  const nameOf = (b: OilBlend) => (locale === 'ar' ? b.name : b.key.replace(/-/g, ' '))
+  /* Flag by the source's country code. Codes it uses that are not countries
+     (OPEC, hashed ids) get no flag rather than a wrong one. */
+  const FLAG: Record<string, string> = {
+    iraq: '🇮🇶', uk: '🇬🇧', usa: '🇺🇸', uae: '🇦🇪', qatar: '🇶🇦', kuwait: '🇰🇼', arab: '🇸🇦', iran: '🇮🇷',
+    nig: '🇳🇬', libya: '🇱🇾', algeria: '🇩🇿', rus: '🇷🇺', mexico: '🇲🇽', ven: '🇻🇪', canada: '🇨🇦', india: '🇮🇳', bed: '🇴🇲',
+  }
+  const flag = (b: OilBlend) => {
+    const f = b.country ? FLAG[b.country] : undefined
+    return f ? <span className="oil-flag" aria-hidden="true">{f}</span> : null
+  }
+  /* The source publishes some Arabic names half in English («Basrah Medium»);
+     the two Iraqi blends are named by us, everything else as published. */
+  const nameOf = (b: OilBlend) => {
+    if (/basra.*heavy/i.test(b.key)) return R.page.oil.basrahHeavy
+    if (/basra.*medium/i.test(b.key)) return R.page.oil.basrahMedium
+    if (locale !== 'ar') return b.key.replace(/-/g, ' ')
+    return R.page.oil.names[b.key] ?? b.name
+  }
   const R = t.rates
   const P = R.page.oil
   const blends = oil?.blends ?? []
@@ -38,7 +55,7 @@ export function OilPage({ oil, fx }: { oil: OilData | null; fx: FxData | null })
 
   const row = (b: OilBlend) => (
     <tr key={b.key} className={b.country === 'iraq' ? 'is-lead' : ''}>
-      <td><span className="id-name">{nameOf(b)}</span>{b.country === 'iraq' ? <span className="id-sub">{P.iraq}</span> : null}</td>
+      <td><span className="id-name">{flag(b)}{nameOf(b)}</span>{b.country === 'iraq' ? <span className="id-sub">{P.iraq}</span> : null}</td>
       <td className="is-end"><bdi>{nf2.format(b.usd)}</bdi></td>
       <td className="is-end"><bdi className={chgCls(b.pct)}>{b.change > 0 ? '+' : ''}{nf2.format(b.change)} · {b.pct > 0 ? '+' : ''}{b.pct.toFixed(2)}%</bdi></td>
       <td className="is-end">{brent && b.key !== brent.key ? <bdi>{b.usd - brent.usd > 0 ? '+' : ''}{nf2.format(b.usd - brent.usd)}</bdi> : <span className="id-cap">—</span>}</td>
@@ -57,18 +74,22 @@ export function OilPage({ oil, fx }: { oil: OilData | null; fx: FxData | null })
             <PageTitle title={P.title} note={P.basrahNote} />
             {!blends.length ? <p className="id-note">{R.oil.unavailableWhat} · {R.oil.unavailableWhy}</p> : (
               <>
+                {/* Dinars lead: «سعر برميل النفط بالدينار» is what the Iraqi reader asks; the dollar quote follows. */}
                 {iraq[0] ? (
+                  <>
                   <p className="eco-lead id-num">
-                    <strong><bdi>${nf2.format(iraq[0].usd)}</bdi></strong>
-                    <span className="eco-unit">{P.perBarrel} · {nameOf(iraq[0])}</span>
+                    <strong><bdi>{market ? nf0.format(iraq[0].usd * market) : `$${nf2.format(iraq[0].usd)}`}</bdi></strong>
+                    <span className="eco-unit">{market ? P.iqdPerBarrelShort : P.perBarrel} · {flag(iraq[0])}{nameOf(iraq[0])}</span>
                     <span className={`id-chg ${iraq[0].pct > 0 ? 'is-up' : iraq[0].pct < 0 ? 'is-down' : 'is-flat'}`}><bdi>{iraq[0].pct > 0 ? '+' : ''}{iraq[0].pct.toFixed(2)}%</bdi></span>
                   </p>
+                  {market ? <p className="eco-hundred id-num">{P.usdLine(nf2.format(iraq[0].usd), nf0.format(market))}</p> : null}
+                  </>
                 ) : null}
                 <div className="id-stats id-num eco-stats">
                   {iraq.map((b) => (
-                    <div className="id-stat" key={b.key}><small>{nameOf(b)}</small><b><bdi>${nf2.format(b.usd)}</bdi></b><span className="id-cap">{market ? `${nf0.format(b.usd * market)} ${P.iqdPerBarrel}` : R.oil.noRate}</span></div>
+                    <div className="id-stat" key={b.key}><small>{flag(b)}{nameOf(b)}</small><b><bdi>{market ? nf0.format(b.usd * market) : `$${nf2.format(b.usd)}`}</bdi></b><span className="id-cap">{market ? `${P.iqdPerBarrel} · $${nf2.format(b.usd)}` : R.oil.noRate}</span></div>
                   ))}
-                  {brent ? <div className="id-stat"><small>{R.oil.brent}</small><b><bdi>${nf2.format(brent.usd)}</bdi></b><span className="id-cap">{iraq[0] ? `${P.colVsBrent}: ${iraq[0].usd - brent.usd > 0 ? '+' : ''}${nf2.format(iraq[0].usd - brent.usd)}` : ''}</span></div> : null}
+                  {brent ? <div className="id-stat"><small>{flag(brent)}{R.oil.brent}</small><b><bdi>{market ? nf0.format(brent.usd * market) : `$${nf2.format(brent.usd)}`}</bdi></b><span className="id-cap">{market ? `$${nf2.format(brent.usd)}` : ''}{iraq[0] ? ` · ${P.colVsBrent}: ${iraq[0].usd - brent.usd > 0 ? '+' : ''}${nf2.format(iraq[0].usd - brent.usd)}$` : ''}</span></div> : null}
                 </div>
               </>
             )}

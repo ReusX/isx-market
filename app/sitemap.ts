@@ -54,6 +54,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: absUrl('/gold'),       lastModified: now },
     { url: absUrl('/silver'),     lastModified: dataDate },
     { url: absUrl('/currencies'), lastModified: dataDate },
+    ...['try', 'sar', 'irr', 'eur', 'aed', 'kwd', 'jod', 'gbp'].map((c) => ({ url: absUrl(`/currencies/${c}`), lastModified: dataDate })),
     { url: absUrl('/oil'),        lastModified: now },
     { url: absUrl('/fx'),         lastModified: now },
     // Statistics hub + dedicated panels

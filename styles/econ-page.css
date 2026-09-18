@@ -59,3 +59,12 @@
 /* The English block on the Arabic dollar page. */
 .eco-en { margin: 8px 0 8px; text-align: left; }
 .eco-en .id-h3 { margin-bottom: 8px; }
+
+.oil-flag { margin-inline-end: 6px; font-size: 0.95em; }
+.oil-flag { margin: 0 5px; }
+
+/* /currencies/{code}: the two ready tables side by side, stacking on phones. */
+.eco-two { display: grid; grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); gap: 16px; }
+@media (max-width: 760px) { .eco-two { grid-template-columns: minmax(0, 1fr); } }
+.eco-others { margin: 24px 0 0; }
+.eco-others .id-pills { flex-wrap: wrap; margin-top: 8px; }

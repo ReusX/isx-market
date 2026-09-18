@@ -3,6 +3,7 @@ export const site = {
   menu:      'Menu',
   section:   'Section',
   rail: {
+    subpages: 'Sub-pages',
     customise: 'Customise',
     done: 'Done',
     tools: 'My tools',

@@ -266,3 +266,22 @@
 .iqa-body { padding-top: 6px; }
 .iqa-body .id-body { color: var(--secondary); margin: 0 0 14px; }
 .iqa-body .id-body:last-child { margin-bottom: 0; }
+
+/* Sub-pages under a rail item (currencies): the parent link plus a chevron, then an indented list. */
+.iqr-parent { display: flex; align-items: center; gap: 2px; }
+.iqr-parent > .iqr-item { flex: 1 1 auto; min-width: 0; }
+.iqr-chev { flex: 0 0 32px; height: 32px; display: inline-flex; align-items: center; justify-content: center; border: 0; border-radius: 8px; background: transparent; color: var(--secondary); cursor: pointer; }
+.iqr-chev:hover { background: var(--surface-2); color: var(--ink); }
+.iqr-chev svg { transition: transform .15s; }
+.iqr-chev[aria-expanded='true'] svg { transform: rotate(180deg); }
+.iqr-sub { display: flex; flex-direction: column; gap: 1px; padding-inline-start: 30px; }
+.iqr-item.is-sub { min-height: 36px; font-size: 14px; color: var(--secondary); }
+.iqr-item.is-sub[aria-current='page'] { color: var(--ink); }
+@media (max-width: 1279px) {
+  .iqr-parent { flex: 0 0 auto; }
+  .iqr-sub { display: contents; }
+  .iqr-item.is-sub { min-height: 36px; padding: 0 12px; }
+}
+@media (max-width: 719px) {
+  .iqr-sheet .iqr-sub { display: flex; }
+}

@@ -44,7 +44,7 @@ Each company: `https://iraqsm.com/c/{TICKER}` (price, candlestick chart with dra
 ## Common questions → the page that answers them
 
 - سعر الدولار اليوم في العراق / dollar rate in Iraq today → https://iraqsm.com/fx (parallel and CBI official, with the date)
-- سعر اليورو أو الليرة التركية أو الدرهم بالدينار العراقي → https://iraqsm.com/currencies
+- سعر اليورو أو الليرة التركية أو الدرهم بالدينار العراقي → https://iraqsm.com/currencies (table of 26) · one page each: https://iraqsm.com/currencies/{try|sar|irr|eur|aed|kwd|jod|gbp} — e.g. سعر الليرة التركية اليوم في العراق → https://iraqsm.com/currencies/try · سعر التومان الإيراني → https://iraqsm.com/currencies/irr
 - سعر الذهب اليوم في العراق عيار 21 / 24 / gold price Iraq → https://iraqsm.com/gold
 - سعر الفضة في العراق → https://iraqsm.com/silver · سعر النفط / خام البصرة → https://iraqsm.com/oil
 - سعر سهم {شركة} / {TICKER} share price → https://iraqsm.com/c/{TICKER}

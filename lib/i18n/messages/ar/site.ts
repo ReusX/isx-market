@@ -9,6 +9,7 @@ export const site = {
   section:   'القسم',
   rail: {
     customise: 'تخصيص',
+    subpages: 'الصفحات الفرعية',
     done: 'تم',
     tools: 'أدواتي',
     moveUp: 'تحريك للأعلى',

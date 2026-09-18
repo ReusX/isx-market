@@ -22,6 +22,8 @@ export type RailDef = {
   soon?: boolean
   /** Personal tools sit under their own small heading. */
   group?: 'tools'
+  /** Sub-pages shown under the item behind a chevron — never as rail rows of their own. */
+  children?: { route: string; label: (t: Messages) => string }[]
 }
 
 const m = (t: Messages) => t.market.page.rail
@@ -52,7 +54,12 @@ export const RAILS: Record<Door, RailDef[]> = {
   ],
   economy: [
     { route: '/fx', icon: 'fx', label: (t) => e(t).fx },
-    { route: '/currencies', icon: 'currencies', label: (t) => e(t).currencies },
+    {
+      route: '/currencies', icon: 'currencies', label: (t) => e(t).currencies,
+      children: (['try', 'sar', 'irr', 'eur', 'aed', 'kwd', 'jod', 'gbp'] as const).map((c) => ({
+        route: `/currencies/${c}`, label: (t: Messages) => t.rates.page.currencies.names[c.toUpperCase()] ?? c.toUpperCase(),
+      })),
+    },
     { route: '/gold', icon: 'gold', label: (t) => e(t).gold },
     { route: '/silver', icon: 'silver', label: (t) => e(t).silver },
     { route: '/oil', icon: 'oil', label: (t) => e(t).oil },

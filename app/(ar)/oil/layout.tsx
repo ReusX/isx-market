@@ -2,8 +2,8 @@ import type { Metadata } from 'next'
 import { absUrl, seoAlternates } from '@/lib/seo'
 
 export const metadata: Metadata = {
-  title: { absolute: 'سعر النفط اليوم · برميل برنت وخام البصرة بالدينار' },
-  description: 'سعر برميل النفط اليوم: برنت، غرب تكساس WTI، خام البصرة الثقيل والمتوسط وسلة أوبك — بالدولار وبالدينار العراقي، محدّثاً على مدار اليوم.',
+  title: { absolute: 'سعر النفط اليوم في العراق · برميل خام البصرة وبرنت بالدينار العراقي' },
+  description: 'اسعار النفط اليوم: سعر برميل خام البصرة الثقيل والمتوسط بالدينار العراقي والدولار، وبرنت وغرب تكساس WTI وسلة أوبك، مع التغيّر اليومي لكل خام.',
   alternates: seoAlternates('/oil'),
   keywords: [
     // Arabic — top Iraq oil searches

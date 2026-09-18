@@ -49,6 +49,9 @@ export function DoorRail({ door, items: _legacy }: { door: Door; items?: RailIte
   const [ready, setReady] = useState(false)
   const [editing, setEditing] = useState(false)
   const [picking, setPicking] = useState(false)
+  /* Which parents show their sub-pages. A parent whose child is the current page starts open. */
+  const [open, setOpen] = useState<string[]>([])
+  useEffect(() => { const p = RAILS[door].find((d) => d.children?.some((c) => c.route === route)); if (p) setOpen((o) => o.includes(p.route) ? o : [...o, p.route]) }, [door, route])
   useEffect(() => { setPrefs(readPrefs(door)); setReady(true) }, [door])
   const save = (p: RailPrefs) => { setPrefs(p); writePrefs(door, p) }
 
@@ -99,6 +102,22 @@ export function DoorRail({ door, items: _legacy }: { door: Door; items?: RailIte
               </div>
             ) : d.soon ? (
               <span className="iqr-item is-soon" aria-disabled="true">{body}<small>{t.home.landing.soon}</small></span>
+            ) : d.children?.length ? (
+              <>
+                <div className={`iqr-parent ${on ? 'is-on' : ''}`.trim()}>
+                  <Link href={L(d.route)} className="iqr-item" aria-current={route === d.route ? 'page' : undefined}>{body}</Link>
+                  <button type="button" className="iqr-chev" aria-expanded={open.includes(d.route)} aria-label={S.subpages} onClick={() => setOpen((o) => o.includes(d.route) ? o.filter((x) => x !== d.route) : [...o, d.route])}>
+                    <svg width="12" height="12" viewBox="0 0 12 12" aria-hidden="true"><path d="M2 4l4 4 4-4" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" /></svg>
+                  </button>
+                </div>
+                {open.includes(d.route) ? (
+                  <div className="iqr-sub">
+                    {d.children.filter((c) => existsIn(c.route, locale)).map((c) => (
+                      <Link key={c.route} href={L(c.route)} className="iqr-item is-sub" aria-current={route === c.route ? 'page' : undefined}><span className="iqr-label">{c.label(t)}</span></Link>
+                    ))}
+                  </div>
+                ) : null}
+              </>
             ) : (
               <Link href={L(d.route)} className="iqr-item" aria-current={on ? 'page' : undefined}>{body}</Link>
             )}
