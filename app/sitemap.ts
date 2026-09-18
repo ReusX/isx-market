@@ -57,6 +57,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     ...['try', 'sar', 'irr', 'eur', 'aed', 'kwd', 'jod', 'gbp'].map((c) => ({ url: absUrl(`/currencies/${c}`), lastModified: dataDate })),
     { url: absUrl('/oil'),        lastModified: now },
     { url: absUrl('/policy-rate'), lastModified: new Date('2024-10-24') },
+    { url: absUrl('/cbi-window'), lastModified: new Date('2025-02-27') },
     { url: absUrl('/inflation'),  lastModified: new Date('2026-07-01') },
     { url: absUrl('/fx'),         lastModified: now },
     // Statistics hub + dedicated panels

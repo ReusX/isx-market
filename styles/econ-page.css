@@ -79,3 +79,4 @@
 @media (max-width: 760px) { .eco-bar b { display: none; } .eco-bar small { font-size: 10px; } }
 .eco-table td.eco-wrap { white-space: normal; overflow: visible; text-overflow: clip; max-width: none; min-width: 160px; }
 .eco-table td.eco-wrap.id-cap { min-width: 120px; }
+.eco-status { font-weight: 300; font-size: clamp(32px, 4vw, 44px); line-height: 1.1; }

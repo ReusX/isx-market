@@ -341,6 +341,14 @@ export const rates: typeof ar = {
       basket: 'What the number measures', basketBody: [] as string[], faqTitle: 'Questions',
       faq: (v: { rate: string; month: string; prev: string; core: string; food: string; yearAvg: string; year: string; peakYear: string; peak: string }) => [{ q: 'Current inflation?', a: `${v.rate}% in ${v.month}.` }],
     },
+    window: {
+      title: 'CBI currency window', seoTitle: 'CBI currency window (dollar auction)', description: 'What the Central Bank of Iraq currency window was and how it ended.',
+      leadNote: 'How the CBI sold dollars to banks daily at the official rate; ended January 2025.', status: 'Discontinued', statusSince: 'since 1 January 2025',
+      lastTitle: 'Last published results', lastDate: 'Thursday 27 February 2025', transfers: 'Transfers abroad', cash: 'Cash withdrawals', total: 'Total sold', usd: 'USD',
+      timeline: 'Timeline', timelineNote: 'From a daily auction in 2004 to correspondent banking.', colDate: 'Date', colEvent: 'What happened',
+      steps: [] as { date: string; event: string }[], how: 'How it worked', howBody: [] as string[], after: 'What replaced it', afterBody: [] as string[],
+      faqTitle: 'Questions', faq: [] as { q: string; a: string }[],
+    },
     silver: {
       title: 'Silver price in Iraq today',
       leadNote: 'The source publishes silver in dollars only; the dinar equivalent here is computed at the parallel-market rate shown on the dollar page, not a local list price.',

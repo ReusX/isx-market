@@ -63,7 +63,7 @@ export const RAILS: Record<Door, RailDef[]> = {
     { route: '/gold', icon: 'gold', label: (t) => e(t).gold },
     { route: '/silver', icon: 'silver', label: (t) => e(t).silver },
     { route: '/oil', icon: 'oil', label: (t) => e(t).oil },
-    { route: '/cbi-window', icon: 'window', label: (t) => e(t).window, soon: true },
+    { route: '/cbi-window', icon: 'window', label: (t) => e(t).window },
     { route: '/inflation', icon: 'inflation', label: (t) => e(t).inflation },
     { route: '/policy-rate', icon: 'policyRate', label: (t) => e(t).policyRate },
   ],

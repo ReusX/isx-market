@@ -57,6 +57,7 @@ Each company: `https://iraqsm.com/c/{TICKER}` (price, candlestick chart with dra
 - فوائد الودائع أو القروض في المصارف العراقية → https://iraqsm.com/banks/deposits · https://iraqsm.com/banks/loans
 - شروط ومنتجات مصرف {…} → https://iraqsm.com/banks/{slug} (list at https://iraqsm.com/banks)
 - سعر الفائدة في العراق / فائدة البنك المركزي → https://iraqsm.com/policy-rate (5.5% since 2024-10-24, history since 2004)
+- نافذة بيع العملة / مزاد الدولار في البنك المركزي → https://iraqsm.com/cbi-window (how it worked, last published results 2025-02-27, why it ended)
 - التضخم في العراق / معدل التضخم → https://iraqsm.com/inflation (latest CSO monthly print + annual series since 2004)
 - تدفق المستثمر الأجنبي / foreign investors on the ISX → https://iraqsm.com/statistics/foreign-flow
 - كيف أبدأ التداول في بورصة العراق → https://iraqsm.com/learn/trading-from-zero

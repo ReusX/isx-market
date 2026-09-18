@@ -64,6 +64,7 @@ export const ROUTES: RouteEntry[] = [
   { pattern: '/oil',                       cls: 'mirror' },
   { pattern: '/policy-rate',               cls: 'ar-only', why: 'Central Bank policy rate, written for the Arabic queries; English dictionary is a stub until an English route is worth building.' },
   { pattern: '/inflation',                 cls: 'ar-only', why: 'Same as /policy-rate.' },
+  { pattern: '/cbi-window',                cls: 'ar-only', why: 'Same as /policy-rate.' },
 
   // ── Editorial ───────────────────────────────────────────────────────────
   { pattern: '/news',                      cls: 'chrome' },
