@@ -1,4 +1,4 @@
-import { getPosts, stripHtml, authorName } from '@/lib/cms'
+import { listArticles, stripHtml, articlePath } from '@/lib/articles'
 import { createPublicClient } from '@/lib/supabase/server'
 import { companyName } from '@/lib/market'
 import { usableName } from '@/lib/statistics'
@@ -36,45 +36,32 @@ type FilingRow = {
 }
 
 /**
- * The two streams load independently and on purpose.
- *
- * The editorial feed is headless WordPress on a different host from the filing
- * index in Supabase, so either can fail while the other is fine. Reporting one
- * outage as "no news" would be a lie about the other, and the approved design
- * has a state for exactly this — the page keeps what loaded and names what did
- * not. As of this writing the CMS host is returning 403 to every request,
- * which is what that state is for.
+ * Editorial articles come from content/articles/news — repo files, so this
+ * cannot fail the way the old headless CMS did; `ok` is kept because the page
+ * still has a state for a stream that did not load (filings, external feed).
  */
 async function loadArticles(locale: Locale): Promise<{ items: NewsItem[]; ok: boolean }> {
-  // Covers the full archive rather than the first page. This index is the only
-  // crawlable path to /news/[slug]; capping it left the rest orphaned.
-  const { posts } = await getPosts('news', { perPage: 100 })
-  if (!posts.length) return { items: [], ok: false }
+  const posts = listArticles('news')
   return {
     ok: true,
     items: posts.map(p => ({
-      id: `a${p.id}`,
+      id: `a${p.id || p.slug}`,
       kind: 'article' as const,
-      at: p.date,
-      headline: stripHtml(p.title.rendered),
-      excerpt: stripHtml(p.excerpt.rendered).slice(0, 180) || null,
-      // WordPress carries no company relationship here — no ticker field, and
-      // nothing reads the tags. An article is a market-wide item until that
-      // exists, rather than being guessed at from its title.
-      symbol: null, name: null, sector: null,
-      source: authorName(p) || messages(locale).news.sources.article,
+      at: p.evergreen ? p.modified : p.date,
+      headline: p.title,
+      excerpt: stripHtml(p.excerpt).slice(0, 180) || null,
+      // `tickers:` in the frontmatter names the companies an article is about;
+      // the feed shows the first one. Most exported pieces are market-wide.
+      symbol: p.tickers[0] ?? null, name: null, sector: null,
+      source: p.author || messages(locale).news.sources.article,
       doc: null,
       /*
-       * ⚠ ALWAYS the Arabic article URL, in both locales.
-       *
-       * The CMS holds one Arabic body per article and no English translation.
-       * `/en/news/[slug]` is deliberately not generated (lib/i18n/routes.ts),
-       * so on the English index each item links to its canonical Arabic
-       * article and is marked as Arabic. Pointing an English reader at a URL
-       * that does not exist, or minting one that serves an Arabic body under
-       * an English path, are the two failures this avoids.
+       * ⚠ ALWAYS the Arabic article URL, in both locales. Articles are written
+       * in Arabic only; `/en/news/[slug]` is deliberately not generated
+       * (lib/i18n/routes.ts), so the English index links to the canonical
+       * Arabic article and marks it as Arabic.
        */
-      href: `/news/${p.slug}`,
+      href: articlePath('news', p.slug),
       external: false,
       foreignLang: locale === 'en',
     })),

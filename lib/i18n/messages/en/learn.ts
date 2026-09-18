@@ -1,6 +1,7 @@
 import type { learn as ar } from '../ar/learn'
 
 export const learn: typeof ar = {
+  research: { title: 'Research', note: 'Market analysis & research reports' },
   article: {
     crumbs: 'Breadcrumb',
     articleNav: 'Article navigation',

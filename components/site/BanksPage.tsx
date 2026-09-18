@@ -46,6 +46,12 @@ function compact(v: number | null | undefined, u: Units): string {
   return new Intl.NumberFormat('en-US').format(a)
 }
 
+/* The evergreen guide; Arabic-only, so the English hub links to the Arabic URL. */
+const GUIDES = {
+  banks: '/news/%d8%a3%d9%81%d8%b6%d9%84-%d8%a7%d9%84%d8%a8%d9%86%d9%88%d9%83-%d9%81%d9%8a-%d8%a7%d9%84%d8%b9%d8%b1%d8%a7%d9%82',
+  cards: '/news/%d8%a3%d9%81%d8%b6%d9%84-%d8%a8%d8%b7%d8%a7%d9%82%d8%a7%d8%aa-%d8%a7%d9%84%d8%af%d9%81%d8%b9-%d8%a7%d9%84%d8%a5%d9%84%d9%83%d8%aa%d8%b1%d9%88%d9%86%d9%8a-%d9%81%d9%8a-%d8%a7%d9%84%d8%b9%d8%b1%d8%a7%d9%82',
+}
+
 export function BanksPage({ initial }: { initial: BanksInitial }) {
   const { t, locale, href: L } = useLocale()
   const B = t.banks
@@ -131,6 +137,7 @@ export function BanksPage({ initial }: { initial: BanksInitial }) {
               <div className="id-stat"><b>{c.guardianship + c.liquidation}</b><small>{H.counts.guardianship}</small></div>
               <div className="id-stat"><b>{c.publishing}</b><small>{H.counts.publishing}</small></div>
             </div>
+            <p className="bnk-guide"><span className="id-cap">{H.guides}</span> <Link href={GUIDES.banks} hrefLang="ar">{H.guideBanks}</Link> · <Link href={GUIDES.cards} hrefLang="ar">{H.guideCards}</Link></p>
           </header>
 
           {initial.deposits.length ? (

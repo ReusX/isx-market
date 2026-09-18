@@ -1,22 +1,18 @@
-import { getPost, getPosts, featuredImage, authorName, stripHtml, type Section } from '@/lib/cms'
+import { getArticle, listArticles, stripHtml, articlePath, type Section } from '@/lib/articles'
 import { outlineBody, plainText } from '@/lib/article'
 import { arDate } from '@/lib/date'
 type ArticleNeighbour = { slug: string; title: string; href: string }
 
 /**
- * The shared loader behind /news/[slug] and /learn/[slug].
+ * The shared loader behind /news/[slug], /research/[slug] and /learn/[slug].
  *
- * Both routes ask the CMS the same two questions — «this article» and «the
- * rest of this section» — and both need the same answers turned into the same
- * shape. Keeping it in one place is what stops the two article pages drifting
- * into two different sets of rules about what may be displayed.
+ * All three ask the library the same two questions — «this article» and «the
+ * rest of this section» — and need the same answers in the same shape. One
+ * place, so the article pages cannot drift into different display rules.
  *
- * ── Neighbours and related come from the real list ────────────────────────
- * `getPosts` returns the section newest-first, so previous/next are simply the
- * neighbours of this slug in that order and «مقالات ذات صلة» are the nearest
- * others. There is no relevance model behind it and none is implied: the label
- * on the News side says «المزيد من الأخبار», which is what the list actually
- * is. Nothing is shown at all if the section list could not be read.
+ * Neighbours and related come from the real section list (newest-first), so
+ * previous/next are simply the adjacent entries and «مقالات ذات صلة» are the
+ * nearest others — no relevance model is implied.
  */
 export type LoadedArticle = {
   title: string
@@ -41,56 +37,40 @@ const dateLine = (iso: string): string | null => {
 }
 
 export async function loadArticle(
-  section: Section, slug: string, base: string,
+  section: Section, slug: string,
 ): Promise<LoadedArticle | null> {
-  const post = await getPost(slug)
+  const post = getArticle(slug, section)
   if (!post) return null
 
-  const { html, headings } = outlineBody(post.content?.rendered ?? '')
-  const { posts, ok } = await getPosts(section, { perPage: 100 })
+  const { html, headings } = outlineBody(post.html)
+  const list = listArticles(section)
 
-  const asNeighbour = (p: { slug: string; title: { rendered: string } }): ArticleNeighbour => ({
+  const asNeighbour = (p: { slug: string; title: string }): ArticleNeighbour => ({
     slug: p.slug,
-    title: plainText(p.title.rendered),
-    href: `${base}/${p.slug}`,
+    title: plainText(p.title),
+    href: articlePath(section, p.slug),
   })
 
-  const list = ok ? posts : []
-  /**
-   * Matched on the post ID, never on the slug.
-   *
-   * WordPress stores an Arabic slug percent-ENCODED — `%d8%a3%d8%b3…` — while
-   * Next hands `params.slug` back DECODED, so `p.slug === slug` is false for
-   * every Arabic article. The visible symptom was quiet and wrong in both
-   * directions: previous/next disappeared, and the article listed ITSELF under
-   * «المزيد من الأخبار», because the filter that was meant to exclude it never
-   * matched either.
-   */
   const at = list.findIndex((p) => p.id === post.id)
-  const author = authorName(post).trim()
+  const author = post.author.trim()
 
   /**
-   * The standfirst is dropped when WordPress generated it.
-   *
-   * An editor-written excerpt is a real standfirst and earns its place under
-   * the headline. An AUTO excerpt is just the first ~55 words of the body with
-   * an ellipsis, so printing it above the body prints the same sentence twice
-   * — which is what this article does on the live CMS. Comparing the excerpt
-   * against the opening of the body is the only signal available: the REST API
-   * exposes no flag saying which one it is.
+   * The standfirst is dropped when it merely repeats the opening of the body
+   * (WordPress auto-excerpts were the first ~55 words plus an ellipsis, and
+   * printing that above the body printed the same sentence twice).
    */
-  const excerptRaw = plainText(stripHtml(post.excerpt?.rendered ?? ''))
-  const bodyOpening = plainText(stripHtml(post.content?.rendered ?? '')).slice(0, 400)
+  const excerptRaw = plainText(stripHtml(post.excerpt))
+  const bodyOpening = plainText(stripHtml(post.html)).slice(0, 400)
   const stem = excerptRaw.replace(/[….\s\[\]]+$/, '').slice(0, 90)
   const excerpt = stem && bodyOpening.startsWith(stem) ? '' : excerptRaw
 
   return {
-    title: plainText(post.title.rendered),
+    title: plainText(post.title),
     standfirst: excerpt || null,
     author: author || null,
     dateLabel: post.date ? dateLine(post.date) : null,
     dateTime: post.date || null,
-    image: featuredImage(post, 'large'),
+    image: post.image,
     bodyHtml: html,
     headings,
     // Newest-first, so the entry BEFORE this one is the newer article.

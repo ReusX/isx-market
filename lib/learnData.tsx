@@ -1,4 +1,4 @@
-import { getPosts, stripHtml } from '@/lib/cms'
+import { listArticles, stripHtml, articlePath } from '@/lib/articles'
 import { guideSections } from '@/lib/tradingFromZero'
 import { readingMinutes, type LearnItem, type LearnPath } from '@/lib/learn'
 import { LearnIndexPage } from '@/components/site/LearnPages'
@@ -33,20 +33,15 @@ function pathFor(locale: Locale): LearnPath {
 }
 
 export async function LearnPageBody({ locale }: { locale: Locale }) {
-  const { posts, ok } = await getPosts('learn', { perPage: 100 })
+  const items: LearnItem[] = listArticles('learn').map((p) => ({
+    slug: p.slug,
+    href: articlePath('learn', p.slug),
+    title: p.title,
+    summary: stripHtml(p.excerpt) || null,
+    // `modified` is set by hand in the frontmatter, so «آخر تحديث» is a real claim.
+    updated: p.modified || p.date || null,
+    minutes: readingMinutes(stripHtml(p.html)),
+  }))
 
-  const items: LearnItem[] = posts.map((p) => {
-    const summary = stripHtml(p.excerpt?.rendered ?? '').trim()
-    return {
-      slug: p.slug,
-      href: `/learn/${p.slug}`,
-      title: stripHtml(p.title.rendered),
-      summary: summary || null,
-      // `modified` is a real WordPress field, so «آخر تحديث» is a real claim.
-      updated: p.modified || p.date || null,
-      minutes: readingMinutes(stripHtml(p.content?.rendered ?? '')),
-    }
-  })
-
-  return <LearnIndexPage items={items} path={pathFor(locale)} libraryOk={ok} />
+  return <LearnIndexPage items={items} path={pathFor(locale)} libraryOk />
 }

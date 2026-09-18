@@ -110,14 +110,16 @@ ok('the python parser confirms the day from column A',
    old components in the row-19 sweep (2026-09-17); their checks went with them. */
 
 // TZNI stays eligible for market-cap ranking.
-const live = await (await fetch(O + '/api/chart/TZNI').catch(() => ({ ok: false }))).ok
 const cos = JSON.parse(execSync('cat public/data/companies.json').toString())
 const tzni = cos.find(c => c.sym === 'TZNI')
 ok('TZNI present in the register', Boolean(tzni), tzni ? `${tzni.en || tzni.ar}` : 'missing')
 
-// CMS degradation: getPosts still reports reachability separately.
-const cms = execSync('cat lib/cms.ts').toString()
-ok('CMS degradation preserved (ok flag)', /ok:\s*boolean/.test(cms) || /ok\b/.test(cms))
+// Articles are repo files (the WordPress CMS was retired 2026-09-18); every
+// exported post must still resolve at its original percent-encoded URL.
+const articles = execSync('cat lib/articles.ts').toString()
+ok('article URLs keep lowercase percent-encoding', /toLowerCase\(\)/.test(articles) && /articlePath/.test(articles))
+const exported = execSync('ls content/articles/news content/articles/research').toString().split('\n').filter(f => /^\d+\.md$/.test(f)).length
+ok('the 53 exported WordPress posts are still present', exported === 53, `${exported} numbered files`)
 
 // Legal substance.
 const en = execSync('cat lib/legalContentEn.ts').toString()

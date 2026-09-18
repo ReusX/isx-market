@@ -48,7 +48,7 @@
  * ── Processors, and what each one is ──────────────────────────────────────
  *   Supabase   auth + database. Receives account data and the synced lists.
  *   Vercel     hosting + the two measurement products above.
- *   WordPress  `cms.iraqsm.com` — SOURCE of articles. Receives no user data.
+ *   (Articles are repo files since 2026-09-18; the WordPress CMS is gone.)
  * The market-data origins (`api.isc.gov.iq`, `isx-iq.net`, Rabee, Mubasher,
  * `iraqgoldprice.com`, `oilprice.com`, Alsumaria) are PUBLIC SOURCES the
  * pipeline reads. They receive nothing about any user, and the policy says so

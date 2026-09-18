@@ -38,6 +38,7 @@ Each company: `https://iraqsm.com/c/{TICKER}` (price, candlestick chart with dra
 
 - [News](https://iraqsm.com/news): one feed — daily session wraps, company results, ISC filings, and headlines from Iraqi economy sources (ISC, Alsumaria, Rabee Securities, Central Bank of Iraq, Al Mada), each linking to its source.
 - [Daily session wraps](https://iraqsm.com/news/session): one generated article per trading day at `https://iraqsm.com/news/session/{YYYY-MM-DD}` — index close and move, breadth, turnover vs the 20-session average, gainers and losers, most traded, foreign net.
+- [Guides](https://iraqsm.com/news): evergreen Arabic guides written from the site's own data (bank rankings, payment cards …), listed in the news feed with «آخر تحديث» dates.
 - [Learn](https://iraqsm.com/learn) and [Trading from zero](https://iraqsm.com/learn/trading-from-zero): beginner guide to the ISX. [Research](https://iraqsm.com/research): analysis articles.
 
 ## Common questions → the page that answers them
@@ -50,6 +51,8 @@ Each company: `https://iraqsm.com/c/{TICKER}` (price, candlestick chart with dra
 - نتائج {شركة} للربع / السنة → https://iraqsm.com/c/{TICKER}/results/{year}-{q1|q2|q3|q4|annual}
 - القوائم المالية لشركة {…} → https://iraqsm.com/c/{TICKER}/financials
 - بورصة العراق اليوم / إغلاق جلسة {date} / ISX60 today → https://iraqsm.com/news/session/{YYYY-MM-DD} (latest listed at https://iraqsm.com/news/session)
+- أفضل البنوك في العراق / أكبر بنك في العراق / best banks in Iraq → https://iraqsm.com/news/%d8%a3%d9%81%d8%b6%d9%84-%d8%a7%d9%84%d8%a8%d9%86%d9%88%d9%83-%d9%81%d9%8a-%d8%a7%d9%84%d8%b9%d8%b1%d8%a7%d9%82 (listed banks ranked on their latest annual filing, refreshed automatically)
+- أفضل بطاقة دفع إلكتروني / ماستركارد في العراق / best payment card in Iraq → https://iraqsm.com/news/%d8%a3%d9%81%d8%b6%d9%84-%d8%a8%d8%b7%d8%a7%d9%82%d8%a7%d8%aa-%d8%a7%d9%84%d8%af%d9%81%d8%b9-%d8%a7%d9%84%d8%a5%d9%84%d9%83%d8%aa%d8%b1%d9%88%d9%86%d9%8a-%d9%81%d9%8a-%d8%a7%d9%84%d8%b9%d8%b1%d8%a7%d9%82 (Qi, TBI, Zain Cash, FIB — published fees and limits)
 - فوائد الودائع أو القروض في المصارف العراقية → https://iraqsm.com/banks/deposits · https://iraqsm.com/banks/loans
 - شروط ومنتجات مصرف {…} → https://iraqsm.com/banks/{slug} (list at https://iraqsm.com/banks)
 - تدفق المستثمر الأجنبي / foreign investors on the ISX → https://iraqsm.com/statistics/foreign-flow

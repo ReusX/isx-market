@@ -1,4 +1,4 @@
-import { getPost, stripHtml } from '@/lib/cms'
+import { getArticle, listArticles, stripHtml } from '@/lib/articles'
 import { ArticlePage } from '@/components/site/ArticlePage'
 import { loadArticle } from '@/lib/articleLoad'
 import { plainText } from '@/lib/article'
@@ -12,21 +12,31 @@ function buildDesc(raw: string): string {
   return clean + ' · تحليلات ومقالات بورصة العراق ·'
 }
 
-export const revalidate = 300
+export const revalidate = 3600
+
+export function generateStaticParams() {
+  return listArticles('research').map((a) => ({ slug: a.slug }))
+}
 
 export async function generateMetadata({ params }: { params: { slug: string } }): Promise<Metadata> {
-  const post = await getPost(params.slug)
+  const post = getArticle(params.slug, 'research')
   if (!post) return { title: 'Not found' }
   return {
-    title: `${stripHtml(post.title.rendered)}`,
-    description: buildDesc(stripHtml(post.excerpt?.rendered ?? '')),
+    title: stripHtml(post.title),
+    description: buildDesc(stripHtml(post.excerpt)),
     alternates: seoAlternates(`/research/${params.slug}`),
-    openGraph: { url: absUrl(`/research/${params.slug}`), images: [{ url: '/opengraph-image', width: 1200, height: 630 }] },
+    openGraph: {
+      url: absUrl(`/research/${params.slug}`),
+      type: 'article',
+      publishedTime: post.date || undefined,
+      modifiedTime: post.modified || undefined,
+      images: [{ url: '/opengraph-image', width: 1200, height: 630 }],
+    },
   }
 }
 
 export default async function ResearchArticle({ params }: { params: { slug: string } }) {
-  const article = await loadArticle('research', params.slug, '/research')
+  const article = await loadArticle('research', params.slug)
   if (!article) notFound()
   return (
     <ArticlePage

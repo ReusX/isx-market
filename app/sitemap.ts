@@ -2,7 +2,7 @@ import { MetadataRoute } from 'next'
 import companiesData from '@/public/data/companies.json'
 import { listBanks, listProducts, listServices, bankFinancials, indexability } from '@/lib/banks'
 import { editorialFor } from '@/lib/bankEditorial'
-import { getPosts, type Section } from '@/lib/cms'
+import { listArticles, articlePath, type Section } from '@/lib/articles'
 import { getLastSessionDate } from '@/lib/freshness'
 import { absUrl } from '@/lib/seo'
 import { loadSessions } from '@/lib/wrapServer'
@@ -10,25 +10,12 @@ import { loadResultsIndex, resultsSlug } from '@/lib/resultsServer'
 import { isPaired } from '@/lib/i18n/routes'
 
 
-// Regenerate the sitemap hourly so new articles/companies get picked up without
-// a redeploy (the WP fetches inside getPosts cache for 5 min on their own).
+// Regenerate the sitemap hourly so new sessions/filings get picked up without
+// a redeploy. Articles are repo files, so they change only with a deploy.
 export const revalidate = 3600
 
-// Pull every published post slug for a CMS section (news / research / learn),
-// paging through the WP REST API. Falls back to whatever we have if WP is down.
-async function allPosts(section: Section): Promise<{ slug: string; modified: string }[]> {
-  const out: { slug: string; modified: string }[] = []
-  try {
-    const first = await getPosts(section, { page: 1, perPage: 100 })
-    const take = (posts: typeof first.posts) =>
-      out.push(...posts.map(p => ({ slug: p.slug, modified: p.modified || p.date })))
-    take(first.posts)
-    for (let page = 2; page <= Math.min(first.totalPages, 10); page++) {
-      take((await getPosts(section, { page, perPage: 100 })).posts)
-    }
-  } catch { /* WP unavailable — ship the static + company URLs anyway */ }
-  return out
-}
+const allPosts = (section: Section) =>
+  listArticles(section).map((a) => ({ slug: a.slug, modified: a.modified || a.date }))
 
 /*
  * ⚠ No `<priority>` and no `<changefreq>`. Google ignores both and has said so
@@ -95,12 +82,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     lastModified:    dataDate,
   }))
 
-  // ── CMS articles (news / research / learn) ──
-  const [news, research, learn] = await Promise.all([
-    allPosts('news'), allPosts('research'), allPosts('learn'),
-  ])
+  // ── Articles (news / research / learn) ──
+  const [news, research, learn] = [allPosts('news'), allPosts('research'), allPosts('learn')]
   const article = (section: string, p: { slug: string; modified: string }): MetadataRoute.Sitemap[number] => ({
-    url:             absUrl(`/${section}/${p.slug}`),
+    url:             absUrl(articlePath(section as Section, p.slug)),
     lastModified:    p.modified ? new Date(p.modified) : now,
   })
   /* Daily session wraps: one URL per trading day, generated from the

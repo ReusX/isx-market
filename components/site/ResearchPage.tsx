@@ -3,7 +3,6 @@
 import Link from 'next/link'
 import { useLocale } from '@/context/LocaleContext'
 import { learnDate, readingMinutes } from '@/lib/learn'
-import { stripHtml, SECTIONS, type WPPost } from '@/lib/cms'
 import { SiteShell } from './SiteShell'
 import { DoorRail } from './DoorRail'
 import { PageTitle } from './PageTitle'
@@ -11,7 +10,9 @@ import '@/styles/news-page.css'
 import '@/styles/learn-page.css'
 
 /** /research · the analysis library from the CMS, Arabic-only, as cards. */
-export function ResearchPage({ posts }: { posts: WPPost[] }) {
+export type ResearchItem = { slug: string; href: string; title: string; summary: string; minutes: number; updated: string }
+
+export function ResearchPage({ posts }: { posts: ResearchItem[] }) {
   const { t, locale } = useLocale()
   return (
     <SiteShell>
@@ -20,19 +21,18 @@ export function ResearchPage({ posts }: { posts: WPPost[] }) {
         <div className="nws-body lrn">
           <header className="nws-head">
             <p className="id-eyebrow">{t.home.landing.doors.learn.name}</p>
-            <PageTitle title={locale === 'ar' ? SECTIONS.research.labelAr : SECTIONS.research.labelEn} note={locale === 'ar' ? SECTIONS.research.descAr : SECTIONS.research.descEn} />
+            <PageTitle title={t.learn.research.title} note={t.learn.research.note} />
           </header>
           {!posts.length ? <p className="id-note"><b>{t.learn.emptyTitle}</b> · {t.learn.emptyNote}</p> : (
             <ul className="lrn-grid">
               {posts.map((p) => {
-                const summary = stripHtml(p.excerpt?.rendered ?? '').trim()
-                const mins = readingMinutes(stripHtml(p.content?.rendered ?? ''))
+                const { summary, minutes: mins } = p
                 return (
-                  <li key={p.id}>
-                    <Link href={`/research/${p.slug}`} className="lrn-card">
-                      <strong className="id-name">{stripHtml(p.title.rendered)}</strong>
+                  <li key={p.slug}>
+                    <Link href={p.href} className="lrn-card">
+                      <strong className="id-name">{p.title}</strong>
                       {summary ? <span className="id-cap lrn-card-sum">{summary}</span> : null}
-                      <span className="id-cap">{t.learn.minutesPlural(String(mins))}{learnDate(p.modified || p.date, locale) ? ` · ${t.learn.lastUpdated(learnDate(p.modified || p.date, locale) as string)}` : ''}</span>
+                      <span className="id-cap">{t.learn.minutesPlural(String(mins))}{learnDate(p.updated, locale) ? ` · ${t.learn.lastUpdated(learnDate(p.updated, locale) as string)}` : ''}</span>
                     </Link>
                   </li>
                 )

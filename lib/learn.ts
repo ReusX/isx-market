@@ -20,7 +20,7 @@
  * أول» … «تصنيف رابع») that are marked in its own source as DESIGN
  * PLACEHOLDERS. `CATEGORY_IDS` defines exactly three categories, one per
  * SECTION — news 2, research 3, learn 4 — there is no sub-taxonomy inside
- * Learn, and `getPosts` cannot filter by tag. Shipping four invented topic
+ * Learn, and the article library carries no topic taxonomy. Shipping four invented topic
  * chips would decide the content strategy by default and would filter over a
  * field that does not exist. The filter is therefore omitted; the search,
  * which runs over real titles and excerpts, is kept.

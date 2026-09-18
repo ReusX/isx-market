@@ -141,3 +141,6 @@
 .bnk-table th[aria-sort] .bnk-th { color: var(--ink); }
 .bnk-table th[aria-sort] .bnk-th::after { content: '↓'; font-size: 11px; }
 .bnk-table th[aria-sort='ascending'] .bnk-th::after { content: '↑'; }
+
+.bnk-guide { margin: 14px 0 0; font-size: 15px; }
+.bnk-guide a { color: var(--blue); }

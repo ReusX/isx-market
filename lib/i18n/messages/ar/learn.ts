@@ -12,6 +12,7 @@
  * articles are Arabic-only and are not mirrored — see `lib/i18n/routes.ts`.
  */
 export const learn = {
+  research: { title: 'الأبحاث', note: 'تحليلات وتقارير السوق' },
   article: {
     crumbs: 'مسار التنقل',
     articleNav: 'التنقل بين المقالات',

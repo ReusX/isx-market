@@ -1,10 +1,12 @@
 import { notFound } from 'next/navigation'
 import type { Metadata } from 'next'
-import { getPost, stripHtml } from '@/lib/cms'
+import { getArticle, listArticles, stripHtml } from '@/lib/articles'
 import { plainText } from '@/lib/article'
 import { loadArticle } from '@/lib/articleLoad'
 import { ArticlePage } from '@/components/site/ArticlePage'
 import { absUrl, seoAlternates } from '@/lib/seo'
+import { BankRankingBlock } from '@/components/site/BankRankingBlock'
+import { articleJsonLd } from '@/lib/articleSeo'
 
 /**
  * /news/[slug] — the article detail, in the approved long-form chrome.
@@ -26,14 +28,18 @@ function buildDesc(raw: string): string {
   return clean + ' · أخبار بورصة العراق للأوراق المالية ·'
 }
 
-export const revalidate = 300
+export const revalidate = 3600
+
+export function generateStaticParams() {
+  return listArticles('news').map((a) => ({ slug: a.slug }))
+}
 
 export async function generateMetadata({ params }: { params: { slug: string } }): Promise<Metadata> {
-  const post = await getPost(params.slug)
+  const post = getArticle(params.slug, 'news')
   if (!post) return { title: 'Not found', robots: { index: false, follow: false } }
   return {
-    title: `${stripHtml(post.title.rendered)}`,
-    description: buildDesc(stripHtml(post.excerpt?.rendered ?? '')),
+    title: stripHtml(post.title),
+    description: buildDesc(stripHtml(post.excerpt)),
     alternates: seoAlternates(`/news/${params.slug}`),
     openGraph: {
       url: absUrl(`/news/${params.slug}`),
@@ -46,10 +52,13 @@ export async function generateMetadata({ params }: { params: { slug: string } })
 }
 
 export default async function NewsArticle({ params }: { params: { slug: string } }) {
-  const article = await loadArticle('news', params.slug, '/news')
-  if (!article) notFound()
+  const article = await loadArticle('news', params.slug)
+  const post = getArticle(params.slug, 'news')
+  if (!article || !post) notFound()
 
   return (
+    <>
+    <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(articleJsonLd(post, article.bodyHtml)) }} />
     <ArticlePage
       eyebrow="أخبار السوق"
       backHref="/news"
@@ -62,11 +71,13 @@ export default async function NewsArticle({ params }: { params: { slug: string }
       image={article.image}
       imageAlt={plainText(article.title)}
       bodyHtml={article.bodyHtml}
+      blocks={{ 'bank-ranking': <BankRankingBlock /> }}
       headings={article.headings}
       related={article.related}
       prev={article.prev}
       next={article.next}
       relatedLabel="المزيد من الأخبار"
     />
+    </>
   )
 }

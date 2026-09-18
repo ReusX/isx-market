@@ -69,3 +69,17 @@
 .art-related li { padding: 10px 0; border-bottom: 1px solid var(--border); font-size: 15px; }
 .art-related a { color: var(--ink); text-decoration: none; }
 .art-related a:hover { text-decoration: underline; }
+
+/* Live blocks spliced into a written article (`{{bank-ranking}}`). */
+.art-block { margin: 0 0 24px; }
+.bkr figcaption { margin: 0 0 8px; }
+.bkr-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+.bkr-table { width: 100%; min-width: 720px; border-collapse: collapse; font-size: 14px; font-variant-numeric: tabular-nums; }
+.bkr-table th, .bkr-table td { padding: 8px 6px; border-bottom: 1px solid var(--border); text-align: start; white-space: nowrap; vertical-align: top; }
+.bkr-table th { font-weight: 400; color: var(--secondary); font-size: 12px; }
+.bkr-table td.num { text-align: end; }
+.bkr-table td.is-neg { color: var(--down); }
+.bkr-name a { color: var(--ink); text-decoration: none; }
+.bkr-name a:hover { text-decoration: underline; }
+.bkr-tick { font-size: 12px; color: var(--blue) !important; }
+.bkr-note { margin: 10px 0 0; }

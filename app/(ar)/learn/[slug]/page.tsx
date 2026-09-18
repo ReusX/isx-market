@@ -1,6 +1,6 @@
 import { notFound } from 'next/navigation'
 import type { Metadata } from 'next'
-import { getPost, stripHtml } from '@/lib/cms'
+import { getArticle, listArticles, stripHtml } from '@/lib/articles'
 import { plainText } from '@/lib/article'
 import { loadArticle } from '@/lib/articleLoad'
 import { ArticlePage } from '@/components/site/ArticlePage'
@@ -9,10 +9,9 @@ import { absUrl, seoAlternates } from '@/lib/seo'
 /**
  * /learn/[slug] — the same approved long-form template as /news/[slug].
  *
- * WordPress category 4 currently holds zero posts, so this route resolves to
- * `notFound()` for every slug today. That is correct and is not papered over:
- * the library is empty by product decision, and an article page that invented
- * a lesson to have something to render would be the failure mode §20 names.
+ * content/articles/learn/ is empty today, so this route resolves to
+ * `notFound()` for every slug. That is correct and is not papered over: the
+ * library is empty by product decision.
  */
 function buildDesc(raw: string): string {
   const clean = raw.trim().slice(0, 140)
@@ -20,14 +19,18 @@ function buildDesc(raw: string): string {
   return clean + ' · تعلّم الاستثمار في بورصة العراق ·'
 }
 
-export const revalidate = 300
+export const revalidate = 3600
+
+export function generateStaticParams() {
+  return listArticles('learn').map((a) => ({ slug: a.slug }))
+}
 
 export async function generateMetadata({ params }: { params: { slug: string } }): Promise<Metadata> {
-  const post = await getPost(params.slug)
+  const post = getArticle(params.slug, 'learn')
   if (!post) return { title: 'Not found', robots: { index: false, follow: false } }
   return {
-    title: `${stripHtml(post.title.rendered)}`,
-    description: buildDesc(stripHtml(post.excerpt?.rendered ?? '')),
+    title: stripHtml(post.title),
+    description: buildDesc(stripHtml(post.excerpt)),
     alternates: seoAlternates(`/learn/${params.slug}`),
     openGraph: {
       url: absUrl(`/learn/${params.slug}`),
@@ -40,7 +43,7 @@ export async function generateMetadata({ params }: { params: { slug: string } })
 }
 
 export default async function LearnArticle({ params }: { params: { slug: string } }) {
-  const article = await loadArticle('learn', params.slug, '/learn')
+  const article = await loadArticle('learn', params.slug)
   if (!article) notFound()
 
   return (

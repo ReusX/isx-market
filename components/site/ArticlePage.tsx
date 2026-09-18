@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import type { ReactNode } from 'react'
 import { useLocale } from '@/context/LocaleContext'
 import { SiteShell } from './SiteShell'
 import { DoorRail } from './DoorRail'
@@ -19,7 +20,35 @@ type ArticleNeighbour = { slug: string; title: string; href: string }
  * headings, the body as the CMS renders it, then previous/next and more
  * from the section. Nothing here fetches; the route loads the article.
  */
-export function ArticlePage({ eyebrow, backHref, backLabel, title, standfirst, author, dateLabel, dateTime, image, imageAlt, bodyHtml, headings, related, prev, next, relatedLabel }: {
+/**
+ * Live blocks inside a written body.
+ *
+ * An article file says `{{bank-ranking}}` on a line of its own; Markdown
+ * renders that as `<p>{{bank-ranking}}</p>`, and the route hands the matching
+ * server-rendered element in `blocks`. The body is split around each marker
+ * so the table is real React (and real data), not a pasted snapshot that goes
+ * stale the day after it is written.
+ */
+const BLOCK = /<p>\{\{([a-z0-9-]+)\}\}<\/p>/g
+/* `matchAll` inherits a global regex's lastIndex, so the presence test must not touch it. */
+const HAS_BLOCK = /<p>\{\{[a-z0-9-]+\}\}<\/p>/
+
+function Body({ html, blocks }: { html: string; blocks?: Record<string, ReactNode> }) {
+  if (!blocks || !HAS_BLOCK.test(html)) return <div className="art-body id-body" dangerouslySetInnerHTML={{ __html: html }} />
+  const parts: ReactNode[] = []
+  let last = 0, i = 0
+  for (const m of Array.from(html.matchAll(BLOCK))) {
+    const before = html.slice(last, m.index)
+    if (before.trim()) parts.push(<div key={`h${i++}`} className="art-body id-body" dangerouslySetInnerHTML={{ __html: before }} />)
+    parts.push(<div key={`b${i++}`} className="art-block">{blocks[m[1]] ?? null}</div>)
+    last = (m.index ?? 0) + m[0].length
+  }
+  const rest = html.slice(last)
+  if (rest.trim()) parts.push(<div key={`h${i++}`} className="art-body id-body" dangerouslySetInnerHTML={{ __html: rest }} />)
+  return <>{parts}</>
+}
+
+export function ArticlePage({ eyebrow, backHref, backLabel, title, standfirst, author, dateLabel, dateTime, image, imageAlt, bodyHtml, blocks, headings, related, prev, next, relatedLabel }: {
   eyebrow: string
   backHref: string
   backLabel: string
@@ -31,6 +60,7 @@ export function ArticlePage({ eyebrow, backHref, backLabel, title, standfirst, a
   image: string | null
   imageAlt: string
   bodyHtml: string
+  blocks?: Record<string, ReactNode>
   headings: Heading[]
   related: ArticleNeighbour[]
   prev: ArticleNeighbour | null
@@ -75,8 +105,8 @@ export function ArticlePage({ eyebrow, backHref, backLabel, title, standfirst, a
             </nav>
           ) : null}
 
-          {/* The CMS body, as it arrives: its own headings, links, images and tables. */}
-          <div className="art-body id-body" dangerouslySetInnerHTML={{ __html: bodyHtml }} />
+          {/* The written body: its own headings, links, images and tables, with live blocks spliced in. */}
+          <Body html={bodyHtml} blocks={blocks} />
 
           {prev || next ? (
             <nav className="art-nav" aria-label={a.articleNav}>
