@@ -1,0 +1,3407 @@
+[
+ {
+  "op": "scale",
+  "report_id": 6714,
+  "line_key": "financing_income",
+  "from": 1595137541000,
+  "to": 1595137541.0,
+  "factor": 0.001
+ },
+ {
+  "op": "scale",
+  "report_id": 6714,
+  "line_key": "revenue_and_commissions",
+  "from": 1450972339000,
+  "to": 1450972339.0,
+  "factor": 0.001
+ },
+ {
+  "op": "scale",
+  "report_id": 6714,
+  "line_key": "ga_expenses",
+  "from": 2685687940000,
+  "to": 2685687940.0,
+  "factor": 0.001
+ },
+ {
+  "op": "scale",
+  "report_id": 6714,
+  "line_key": "pretax_income",
+  "from": 360788940000,
+  "to": 360788940.0,
+  "factor": 0.001
+ },
+ {
+  "op": "scale",
+  "report_id": 6714,
+  "line_key": "tax",
+  "from": 0,
+  "to": 0.0,
+  "factor": 0.001
+ },
+ {
+  "op": "scale",
+  "report_id": 6714,
+  "line_key": "net_income",
+  "from": 360788940000,
+  "to": 360788940.0,
+  "factor": 0.001
+ },
+ {
+  "op": "scale",
+  "report_id": 6714,
+  "line_key": "cash_and_cbi",
+  "from": 68652559237000,
+  "to": 68652559237.0,
+  "factor": 0.001
+ },
+ {
+  "op": "scale",
+  "report_id": 6714,
+  "line_key": "due_from_banks",
+  "from": 5305500352000,
+  "to": 5305500352.0,
+  "factor": 0.001
+ },
+ {
+  "op": "scale",
+  "report_id": 6714,
+  "line_key": "islamic_financing",
+  "from": 93332443803000,
+  "to": 93332443803.0,
+  "factor": 0.001
+ },
+ {
+  "op": "scale",
+  "report_id": 6714,
+  "line_key": "investments",
+  "from": 40352653207000,
+  "to": 40352653207.0,
+  "factor": 0.001
+ },
+ {
+  "op": "scale",
+  "report_id": 6714,
+  "line_key": "fixed_assets",
+  "from": 4232368000000,
+  "to": 4232368000.0,
+  "factor": 0.001
+ },
+ {
+  "op": "scale",
+  "report_id": 6714,
+  "line_key": "total_assets",
+  "from": 373783424700000,
+  "to": 373783424700.0,
+  "factor": 0.001
+ },
+ {
+  "op": "scale",
+  "report_id": 6714,
+  "line_key": "customer_deposits",
+  "from": 53705655974000,
+  "to": 53705655974.0,
+  "factor": 0.001
+ },
+ {
+  "op": "scale",
+  "report_id": 6714,
+  "line_key": "due_to_banks",
+  "from": 13236828102000,
+  "to": 13236828102.0,
+  "factor": 0.001
+ },
+ {
+  "op": "scale",
+  "report_id": 6714,
+  "line_key": "other_liabilities",
+  "from": 121933427621000,
+  "to": 121933427621.0,
+  "factor": 0.001
+ },
+ {
+  "op": "scale",
+  "report_id": 6714,
+  "line_key": "paid_capital",
+  "from": 250000000000000,
+  "to": 250000000000.0,
+  "factor": 0.001
+ },
+ {
+  "op": "scale",
+  "report_id": 6714,
+  "line_key": "reserves",
+  "from": 4340822599000,
+  "to": 4340822599.0,
+  "factor": 0.001
+ },
+ {
+  "op": "scale",
+  "report_id": 6714,
+  "line_key": "retained_earnings",
+  "from": -2490825519000,
+  "to": -2490825519.0,
+  "factor": 0.001
+ },
+ {
+  "op": "scale",
+  "report_id": 6714,
+  "line_key": "total_equity",
+  "from": 251849997080000,
+  "to": 251849997080.0,
+  "factor": 0.001
+ },
+ {
+  "op": "scale",
+  "report_id": 6714,
+  "line_key": "total_liabilities_and_equity",
+  "from": 373783424700000,
+  "to": 373783424700.0,
+  "factor": 0.001
+ },
+ {
+  "op": "scale",
+  "report_id": 6714,
+  "line_key": "operating_activities_net",
+  "from": 31595359456000,
+  "to": 31595359456.0,
+  "factor": 0.001
+ },
+ {
+  "op": "scale",
+  "report_id": 6714,
+  "line_key": "investing_activities_net",
+  "from": -28725931903000,
+  "to": -28725931903.0,
+  "factor": 0.001
+ },
+ {
+  "op": "scale",
+  "report_id": 6714,
+  "line_key": "financing_activities_net",
+  "from": 2951396221000,
+  "to": 2951396221.0,
+  "factor": 0.001
+ },
+ {
+  "op": "scale",
+  "report_id": 6766,
+  "line_key": "financing_income",
+  "from": 657073057000,
+  "to": 657073057.0,
+  "factor": 0.001
+ },
+ {
+  "op": "scale",
+  "report_id": 6766,
+  "line_key": "revenue_and_commissions",
+  "from": 676124283000,
+  "to": 676124283.0,
+  "factor": 0.001
+ },
+ {
+  "op": "scale",
+  "report_id": 6766,
+  "line_key": "ga_expenses",
+  "from": 1534878563000,
+  "to": 1534878563.0,
+  "factor": 0.001
+ },
+ {
+  "op": "scale",
+  "report_id": 6766,
+  "line_key": "pretax_income",
+  "from": -929919092000,
+  "to": -929919092.0,
+  "factor": 0.001
+ },
+ {
+  "op": "scale",
+  "report_id": 6766,
+  "line_key": "tax",
+  "from": 0,
+  "to": 0.0,
+  "factor": 0.001
+ },
+ {
+  "op": "scale",
+  "report_id": 6766,
+  "line_key": "net_income",
+  "from": -929919092000,
+  "to": -929919092.0,
+  "factor": 0.001
+ },
+ {
+  "op": "scale",
+  "report_id": 6766,
+  "line_key": "cash_and_cbi",
+  "from": 219091579012000,
+  "to": 219091579012.0,
+  "factor": 0.001
+ },
+ {
+  "op": "scale",
+  "report_id": 6766,
+  "line_key": "due_from_banks",
+  "from": 2772552883000,
+  "to": 2772552883.0,
+  "factor": 0.001
+ },
+ {
+  "op": "scale",
+  "report_id": 6766,
+  "line_key": "islamic_financing",
+  "from": 65718613819000,
+  "to": 65718613819.0,
+  "factor": 0.001
+ },
+ {
+  "op": "scale",
+  "report_id": 6766,
+  "line_key": "investments",
+  "from": 69669034016000,
+  "to": 69669034016.0,
+  "factor": 0.001
+ },
+ {
+  "op": "scale",
+  "report_id": 6766,
+  "line_key": "fixed_assets",
+  "from": 2058526085000,
+  "to": 2058526085.0,
+  "factor": 0.001
+ },
+ {
+  "op": "scale",
+  "report_id": 6766,
+  "line_key": "total_assets",
+  "from": 389273570620000,
+  "to": 389273570620.0,
+  "factor": 0.001
+ },
+ {
+  "op": "scale",
+  "report_id": 6766,
+  "line_key": "customer_deposits",
+  "from": 87628045039000,
+  "to": 87628045039.0,
+  "factor": 0.001
+ },
+ {
+  "op": "scale",
+  "report_id": 6766,
+  "line_key": "due_to_banks",
+  "from": 9492280130000,
+  "to": 9492280130.0,
+  "factor": 0.001
+ },
+ {
+  "op": "scale",
+  "report_id": 6766,
+  "line_key": "other_liabilities",
+  "from": 41918888865000,
+  "to": 41918888865.0,
+  "factor": 0.001
+ },
+ {
+  "op": "scale",
+  "report_id": 6766,
+  "line_key": "paid_capital",
+  "from": 250000000000000,
+  "to": 250000000000.0,
+  "factor": 0.001
+ },
+ {
+  "op": "scale",
+  "report_id": 6766,
+  "line_key": "reserves",
+  "from": 347697984000,
+  "to": 347697984.0,
+  "factor": 0.001
+ },
+ {
+  "op": "scale",
+  "report_id": 6766,
+  "line_key": "retained_earnings",
+  "from": -929919092000,
+  "to": -929919092.0,
+  "factor": 0.001
+ },
+ {
+  "op": "scale",
+  "report_id": 6766,
+  "line_key": "total_equity",
+  "from": 249984084205000,
+  "to": 249984084205.0,
+  "factor": 0.001
+ },
+ {
+  "op": "scale",
+  "report_id": 6766,
+  "line_key": "total_liabilities_and_equity",
+  "from": 389273570620000,
+  "to": 389273570620.0,
+  "factor": 0.001
+ },
+ {
+  "op": "scale",
+  "report_id": 6766,
+  "line_key": "pretax_income",
+  "from": -929919092000,
+  "to": -929919092.0,
+  "factor": 0.001
+ },
+ {
+  "op": "scale",
+  "report_id": 6766,
+  "line_key": "cash_from_operations",
+  "from": 42248785054000,
+  "to": 42248785054.0,
+  "factor": 0.001
+ },
+ {
+  "op": "scale",
+  "report_id": 6766,
+  "line_key": "cash_from_investing",
+  "from": -9562096000,
+  "to": -9562096.0,
+  "factor": 0.001
+ },
+ {
+  "op": "scale",
+  "report_id": 6766,
+  "line_key": "cash_from_financing",
+  "from": -2020450362000,
+  "to": -2020450362.0,
+  "factor": 0.001
+ },
+ {
+  "op": "scale",
+  "report_id": 6684,
+  "line_key": "financing_income",
+  "from": 971084217000,
+  "to": 971084217.0,
+  "factor": 0.001
+ },
+ {
+  "op": "scale",
+  "report_id": 6684,
+  "line_key": "revenue_and_commissions",
+  "from": 1896850400000,
+  "to": 1896850400.0,
+  "factor": 0.001
+ },
+ {
+  "op": "scale",
+  "report_id": 6684,
+  "line_key": "ga_expenses",
+  "from": -2371223475000,
+  "to": -2371223475.0,
+  "factor": 0.001
+ },
+ {
+  "op": "scale",
+  "report_id": 6684,
+  "line_key": "pretax_income",
+  "from": 2371223475000,
+  "to": 2371223475.0,
+  "factor": 0.001
+ },
+ {
+  "op": "scale",
+  "report_id": 6684,
+  "line_key": "tax",
+  "from": 0,
+  "to": 0.0,
+  "factor": 0.001
+ },
+ {
+  "op": "scale",
+  "report_id": 6684,
+  "line_key": "net_income",
+  "from": 2371223475000,
+  "to": 2371223475.0,
+  "factor": 0.001
+ },
+ {
+  "op": "scale",
+  "report_id": 6684,
+  "line_key": "cash_and_cbi",
+  "from": 164707999106000,
+  "to": 164707999106.0,
+  "factor": 0.001
+ },
+ {
+  "op": "scale",
+  "report_id": 6684,
+  "line_key": "due_from_banks",
+  "from": 34006215489000,
+  "to": 34006215489.0,
+  "factor": 0.001
+ },
+ {
+  "op": "scale",
+  "report_id": 6684,
+  "line_key": "islamic_financing",
+  "from": 82341179722000,
+  "to": 82341179722.0,
+  "factor": 0.001
+ },
+ {
+  "op": "scale",
+  "report_id": 6684,
+  "line_key": "investments",
+  "from": 91849622500000,
+  "to": 91849622500.0,
+  "factor": 0.001
+ },
+ {
+  "op": "scale",
+  "report_id": 6684,
+  "line_key": "fixed_assets",
+  "from": 36990992238000,
+  "to": 36990992238.0,
+  "factor": 0.001
+ },
+ {
+  "op": "scale",
+  "report_id": 6684,
+  "line_key": "total_assets",
+  "from": 559838733547000,
+  "to": 559838733547.0,
+  "factor": 0.001
+ },
+ {
+  "op": "scale",
+  "report_id": 6684,
+  "line_key": "customer_deposits",
+  "from": 180115602266000,
+  "to": 180115602266.0,
+  "factor": 0.001
+ },
+ {
+  "op": "scale",
+  "report_id": 6684,
+  "line_key": "due_to_banks",
+  "from": 2775089751000,
+  "to": 2775089751.0,
+  "factor": 0.001
+ },
+ {
+  "op": "scale",
+  "report_id": 6684,
+  "line_key": "other_liabilities",
+  "from": 35732252839000,
+  "to": 35732252839.0,
+  "factor": 0.001
+ },
+ {
+  "op": "scale",
+  "report_id": 6684,
+  "line_key": "paid_capital",
+  "from": 300000000000000,
+  "to": 300000000000.0,
+  "factor": 0.001
+ },
+ {
+  "op": "scale",
+  "report_id": 6684,
+  "line_key": "reserves",
+  "from": 9791651160000,
+  "to": 9791651160.0,
+  "factor": 0.001
+ },
+ {
+  "op": "scale",
+  "report_id": 6684,
+  "line_key": "retained_earnings",
+  "from": 28876445377000,
+  "to": 28876445377.0,
+  "factor": 0.001
+ },
+ {
+  "op": "scale",
+  "report_id": 6684,
+  "line_key": "total_equity",
+  "from": 338499311891000,
+  "to": 338499311891.0,
+  "factor": 0.001
+ },
+ {
+  "op": "scale",
+  "report_id": 6684,
+  "line_key": "total_liabilities_and_equity",
+  "from": 559838733547000,
+  "to": 559838733547.0,
+  "factor": 0.001
+ },
+ {
+  "op": "scale",
+  "report_id": 6391,
+  "line_key": "net_cash_operating",
+  "from": -39680472,
+  "to": -39680472000,
+  "factor": 1000
+ },
+ {
+  "op": "scale",
+  "report_id": 6391,
+  "line_key": "financing_income",
+  "from": 41994823,
+  "to": 41994823000,
+  "factor": 1000
+ },
+ {
+  "op": "scale",
+  "report_id": 6391,
+  "line_key": "revenue_and_commissions",
+  "from": 9144485,
+  "to": 9144485000,
+  "factor": 1000
+ },
+ {
+  "op": "scale",
+  "report_id": 6391,
+  "line_key": "ga_expenses",
+  "from": 29867435,
+  "to": 29867435000,
+  "factor": 1000
+ },
+ {
+  "op": "scale",
+  "report_id": 6391,
+  "line_key": "pretax_income",
+  "from": 17061388,
+  "to": 17061388000,
+  "factor": 1000
+ },
+ {
+  "op": "scale",
+  "report_id": 6391,
+  "line_key": "cash_and_cbi",
+  "from": 152831263,
+  "to": 152831263000,
+  "factor": 1000
+ },
+ {
+  "op": "scale",
+  "report_id": 6391,
+  "line_key": "due_from_banks",
+  "from": 12870222,
+  "to": 12870222000,
+  "factor": 1000
+ },
+ {
+  "op": "scale",
+  "report_id": 6391,
+  "line_key": "islamic_financing",
+  "from": 1219852052,
+  "to": 1219852052000,
+  "factor": 1000
+ },
+ {
+  "op": "scale",
+  "report_id": 6391,
+  "line_key": "investments",
+  "from": 310490759,
+  "to": 310490759000,
+  "factor": 1000
+ },
+ {
+  "op": "scale",
+  "report_id": 6391,
+  "line_key": "fixed_assets",
+  "from": 212951187,
+  "to": 212951187000,
+  "factor": 1000
+ },
+ {
+  "op": "scale",
+  "report_id": 6391,
+  "line_key": "total_assets",
+  "from": 3184172016,
+  "to": 3184172016000,
+  "factor": 1000
+ },
+ {
+  "op": "scale",
+  "report_id": 6391,
+  "line_key": "customer_deposits",
+  "from": 2395096752,
+  "to": 2395096752000,
+  "factor": 1000
+ },
+ {
+  "op": "scale",
+  "report_id": 6391,
+  "line_key": "due_to_banks",
+  "from": 160002392,
+  "to": 160002392000,
+  "factor": 1000
+ },
+ {
+  "op": "scale",
+  "report_id": 6391,
+  "line_key": "other_liabilities",
+  "from": 96482621,
+  "to": 96482621000,
+  "factor": 1000
+ },
+ {
+  "op": "scale",
+  "report_id": 6391,
+  "line_key": "paid_capital",
+  "from": 400000000,
+  "to": 400000000000,
+  "factor": 1000
+ },
+ {
+  "op": "scale",
+  "report_id": 6391,
+  "line_key": "reserves",
+  "from": 74708440,
+  "to": 74708440000,
+  "factor": 1000
+ },
+ {
+  "op": "scale",
+  "report_id": 6391,
+  "line_key": "retained_earnings",
+  "from": 57881811,
+  "to": 57881811000,
+  "factor": 1000
+ },
+ {
+  "op": "scale",
+  "report_id": 6391,
+  "line_key": "total_equity",
+  "from": 532590251,
+  "to": 532590251000,
+  "factor": 1000
+ },
+ {
+  "op": "scale",
+  "report_id": 6391,
+  "line_key": "total_liabilities_and_equity",
+  "from": 3184172016,
+  "to": 3184172016000,
+  "factor": 1000
+ },
+ {
+  "op": "scale",
+  "report_id": 6391,
+  "line_key": "operating_cashflow",
+  "from": -90086477,
+  "to": -90086477000,
+  "factor": 1000
+ },
+ {
+  "op": "scale",
+  "report_id": 6391,
+  "line_key": "investing_cashflow",
+  "from": -155440432,
+  "to": -155440432000,
+  "factor": 1000
+ },
+ {
+  "op": "scale",
+  "report_id": 6391,
+  "line_key": "financing_cashflow",
+  "from": -8945884,
+  "to": -8945884000,
+  "factor": 1000
+ },
+ {
+  "op": "scale",
+  "report_id": 6391,
+  "line_key": "net_change_in_cash",
+  "from": -254472793,
+  "to": -254472793000,
+  "factor": 1000
+ },
+ {
+  "op": "scale",
+  "report_id": 6391,
+  "line_key": "net_cash_investing",
+  "from": -195139497,
+  "to": -195139497000,
+  "factor": 1000
+ },
+ {
+  "op": "scale",
+  "report_id": 6391,
+  "line_key": "net_cash_financing",
+  "from": -27886013,
+  "to": -27886013000,
+  "factor": 1000
+ },
+ {
+  "op": "scale",
+  "report_id": 6391,
+  "line_key": "net_change_cash",
+  "from": 1279813565,
+  "to": 1279813565000,
+  "factor": 1000
+ },
+ {
+  "op": "scale",
+  "report_id": 6627,
+  "line_key": "financing_income",
+  "from": 13332932,
+  "to": 13332932000,
+  "factor": 1000
+ },
+ {
+  "op": "scale",
+  "report_id": 6627,
+  "line_key": "cash_and_cbi",
+  "from": 1245420874,
+  "to": 1245420874000,
+  "factor": 1000
+ },
+ {
+  "op": "scale",
+  "report_id": 6627,
+  "line_key": "due_from_banks",
+  "from": 648014170,
+  "to": 648014170000,
+  "factor": 1000
+ },
+ {
+  "op": "scale",
+  "report_id": 6627,
+  "line_key": "islamic_financing",
+  "from": 1341687469,
+  "to": 1341687469000,
+  "factor": 1000
+ },
+ {
+  "op": "scale",
+  "report_id": 6627,
+  "line_key": "investments",
+  "from": 363256093,
+  "to": 363256093000,
+  "factor": 1000
+ },
+ {
+  "op": "scale",
+  "report_id": 6627,
+  "line_key": "fixed_assets",
+  "from": 223650023,
+  "to": 223650023000,
+  "factor": 1000
+ },
+ {
+  "op": "scale",
+  "report_id": 6627,
+  "line_key": "total_assets",
+  "from": 3822028629,
+  "to": 3822028629000,
+  "factor": 1000
+ },
+ {
+  "op": "scale",
+  "report_id": 6627,
+  "line_key": "customer_deposits",
+  "from": 2654347854,
+  "to": 2654347854000,
+  "factor": 1000
+ },
+ {
+  "op": "scale",
+  "report_id": 6627,
+  "line_key": "due_to_banks",
+  "from": 509816253,
+  "to": 509816253000,
+  "factor": 1000
+ },
+ {
+  "op": "scale",
+  "report_id": 6627,
+  "line_key": "other_liabilities",
+  "from": 99320698,
+  "to": 99320698000,
+  "factor": 1000
+ },
+ {
+  "op": "scale",
+  "report_id": 6627,
+  "line_key": "paid_capital",
+  "from": 400000000,
+  "to": 400000000000,
+  "factor": 1000
+ },
+ {
+  "op": "scale",
+  "report_id": 6627,
+  "line_key": "reserves",
+  "from": 77576533,
+  "to": 77576533000,
+  "factor": 1000
+ },
+ {
+  "op": "scale",
+  "report_id": 6627,
+  "line_key": "retained_earnings",
+  "from": 80967291,
+  "to": 80967291000,
+  "factor": 1000
+ },
+ {
+  "op": "scale",
+  "report_id": 6627,
+  "line_key": "total_equity",
+  "from": 558543824,
+  "to": 558543824000,
+  "factor": 1000
+ },
+ {
+  "op": "scale",
+  "report_id": 6627,
+  "line_key": "total_liabilities_and_equity",
+  "from": 3822028629,
+  "to": 3822028629000,
+  "factor": 1000
+ },
+ {
+  "op": "scale",
+  "report_id": 6627,
+  "line_key": "operating_activities_net",
+  "from": -194676972,
+  "to": -194676972000,
+  "factor": 1000
+ },
+ {
+  "op": "scale",
+  "report_id": 6627,
+  "line_key": "investing_activities_net",
+  "from": -540812814,
+  "to": -540812814000,
+  "factor": 1000
+ },
+ {
+  "op": "scale",
+  "report_id": 6627,
+  "line_key": "financing_activities_net",
+  "from": 5035475,
+  "to": 5035475000,
+  "factor": 1000
+ },
+ {
+  "op": "scale",
+  "report_id": 6627,
+  "line_key": "cash_end_period",
+  "from": 1245420874,
+  "to": 1245420874000,
+  "factor": 1000
+ },
+ {
+  "op": "scale",
+  "report_id": 6778,
+  "line_key": "purchases_opex",
+  "from": -84044000000,
+  "to": -84044000000000,
+  "factor": 1000
+ },
+ {
+  "op": "scale",
+  "report_id": 6778,
+  "line_key": "taxes_fees",
+  "from": -55111000000,
+  "to": -55111000000000,
+  "factor": 1000
+ },
+ {
+  "op": "scale",
+  "report_id": 6778,
+  "line_key": "goods_supplies",
+  "from": -17282000000,
+  "to": -17282000000000,
+  "factor": 1000
+ },
+ {
+  "op": "scale",
+  "report_id": 6778,
+  "line_key": "service_supplies",
+  "from": -83373000000,
+  "to": -83373000000000,
+  "factor": 1000
+ },
+ {
+  "op": "scale",
+  "report_id": 6778,
+  "line_key": "interest_expense",
+  "from": -23362000000,
+  "to": -23362000000000,
+  "factor": 1000
+ },
+ {
+  "op": "scale",
+  "report_id": 6778,
+  "line_key": "revenue",
+  "from": 369384000,
+  "to": 369384000000,
+  "factor": 1000
+ },
+ {
+  "op": "scale",
+  "report_id": 6778,
+  "line_key": "salaries_wages",
+  "from": 17282000,
+  "to": 17282000000,
+  "factor": 1000
+ },
+ {
+  "op": "scale",
+  "report_id": 6778,
+  "line_key": "reserves",
+  "from": 404267000,
+  "to": 404267000000,
+  "factor": 1000
+ },
+ {
+  "op": "scale",
+  "report_id": 6778,
+  "line_key": "cfo",
+  "from": 119091000,
+  "to": 119091000000,
+  "factor": 1000
+ },
+ {
+  "op": "scale",
+  "report_id": 6778,
+  "line_key": "capex",
+  "from": -27259000,
+  "to": -27259000000,
+  "factor": 1000
+ },
+ {
+  "op": "scale",
+  "report_id": 6778,
+  "line_key": "cfi",
+  "from": -27259000,
+  "to": -27259000000,
+  "factor": 1000
+ },
+ {
+  "op": "scale",
+  "report_id": 6778,
+  "line_key": "cff",
+  "from": 0,
+  "to": 0,
+  "factor": 1000
+ },
+ {
+  "op": "scale",
+  "report_id": 6778,
+  "line_key": "contracts_services",
+  "from": 139155000,
+  "to": 139155000000,
+  "factor": 1000
+ },
+ {
+  "op": "scale",
+  "report_id": 6778,
+  "line_key": "depreciation_amortization",
+  "from": 7091000,
+  "to": 7091000000,
+  "factor": 1000
+ },
+ {
+  "op": "scale",
+  "report_id": 6778,
+  "line_key": "total_operating_expenses",
+  "from": 249299000,
+  "to": 249299000000,
+  "factor": 1000
+ },
+ {
+  "op": "scale",
+  "report_id": 6778,
+  "line_key": "operating_income",
+  "from": 48112000,
+  "to": 48112000000,
+  "factor": 1000
+ },
+ {
+  "op": "scale",
+  "report_id": 6778,
+  "line_key": "other_income",
+  "from": 1696000,
+  "to": 1696000000,
+  "factor": 1000
+ },
+ {
+  "op": "scale",
+  "report_id": 6778,
+  "line_key": "other_expenses",
+  "from": 28800000,
+  "to": 28800000000,
+  "factor": 1000
+ },
+ {
+  "op": "scale",
+  "report_id": 6778,
+  "line_key": "pretax_income",
+  "from": 21008000,
+  "to": 21008000000,
+  "factor": 1000
+ },
+ {
+  "op": "scale",
+  "report_id": 6778,
+  "line_key": "tax",
+  "from": 0,
+  "to": 0,
+  "factor": 1000
+ },
+ {
+  "op": "scale",
+  "report_id": 6778,
+  "line_key": "net_income",
+  "from": 21008000,
+  "to": 21008000000,
+  "factor": 1000
+ },
+ {
+  "op": "scale",
+  "report_id": 6778,
+  "line_key": "net_fixed_assets",
+  "from": 1103410000,
+  "to": 1103410000000,
+  "factor": 1000
+ },
+ {
+  "op": "scale",
+  "report_id": 6778,
+  "line_key": "total_fixed_assets",
+  "from": 1103410000,
+  "to": 1103410000000,
+  "factor": 1000
+ },
+ {
+  "op": "scale",
+  "report_id": 6778,
+  "line_key": "inventory",
+  "from": 29132000,
+  "to": 29132000000,
+  "factor": 1000
+ },
+ {
+  "op": "scale",
+  "report_id": 6778,
+  "line_key": "receivables",
+  "from": 859075000,
+  "to": 859075000000,
+  "factor": 1000
+ },
+ {
+  "op": "scale",
+  "report_id": 6778,
+  "line_key": "cash",
+  "from": 85380000,
+  "to": 85380000000,
+  "factor": 1000
+ },
+ {
+  "op": "scale",
+  "report_id": 6778,
+  "line_key": "total_current_assets",
+  "from": 3067190000,
+  "to": 3067190000000,
+  "factor": 1000
+ },
+ {
+  "op": "scale",
+  "report_id": 6778,
+  "line_key": "total_assets",
+  "from": 4577475000,
+  "to": 4577475000000,
+  "factor": 1000
+ },
+ {
+  "op": "scale",
+  "report_id": 6778,
+  "line_key": "paid_capital",
+  "from": 1829793000,
+  "to": 1829793000000,
+  "factor": 1000
+ },
+ {
+  "op": "scale",
+  "report_id": 6778,
+  "line_key": "retained_earnings",
+  "from": 2224480000,
+  "to": 2224480000000,
+  "factor": 1000
+ },
+ {
+  "op": "scale",
+  "report_id": 6778,
+  "line_key": "total_equity",
+  "from": 2224480000,
+  "to": 2224480000000,
+  "factor": 1000
+ },
+ {
+  "op": "scale",
+  "report_id": 6778,
+  "line_key": "long_term_payables",
+  "from": 1389796000,
+  "to": 1389796000000,
+  "factor": 1000
+ },
+ {
+  "op": "scale",
+  "report_id": 6778,
+  "line_key": "short_term_payables",
+  "from": 963199000,
+  "to": 963199000000,
+  "factor": 1000
+ },
+ {
+  "op": "scale",
+  "report_id": 6778,
+  "line_key": "total_equity_and_liabilities",
+  "from": 4577475000,
+  "to": 4577475000000,
+  "factor": 1000
+ },
+ {
+  "op": "scale",
+  "report_id": 6778,
+  "line_key": "dividends_paid",
+  "from": 0,
+  "to": 0,
+  "factor": 1000
+ },
+ {
+  "op": "scale",
+  "report_id": 6778,
+  "line_key": "net_change_in_cash",
+  "from": 91832000,
+  "to": 91832000000,
+  "factor": 1000
+ },
+ {
+  "op": "scale",
+  "report_id": 6778,
+  "line_key": "cash_beginning",
+  "from": -6452000,
+  "to": -6452000000,
+  "factor": 1000
+ },
+ {
+  "op": "scale",
+  "report_id": 6778,
+  "line_key": "cash_ending",
+  "from": 85380000,
+  "to": 85380000000,
+  "factor": 1000
+ },
+ {
+  "op": "insert",
+  "report_id": 6391,
+  "line_key": "net_income",
+  "to": 39701908000
+ },
+ {
+  "op": "insert",
+  "report_id": 6391,
+  "line_key": "revenue",
+  "to": 139380699000
+ },
+ {
+  "op": "insert",
+  "report_id": 6627,
+  "line_key": "net_income",
+  "to": 13332932000
+ },
+ {
+  "op": "insert",
+  "report_id": 6627,
+  "line_key": "revenue",
+  "to": 45750163000
+ },
+ {
+  "op": "set",
+  "report_id": 6778,
+  "line_key": "net_income",
+  "from": 21008000000,
+  "to": 38800000000
+ },
+ {
+  "op": "set",
+  "report_id": 6778,
+  "line_key": "revenue",
+  "from": 369384000000,
+  "to": 479651000000
+ },
+ {
+  "op": "set",
+  "report_id": 6778,
+  "line_key": "total_assets",
+  "from": 4577475000000,
+  "to": 4573475000000
+ },
+ {
+  "op": "set",
+  "report_id": 6778,
+  "line_key": "total_equity",
+  "from": 2224480000000,
+  "to": 2232480000000
+ },
+ {
+  "op": "delete",
+  "report_id": 6145,
+  "line_key": "salaries_wages",
+  "from": 648093907000
+ },
+ {
+  "op": "delete",
+  "report_id": 6145,
+  "line_key": "goods_supplies",
+  "from": 229022226000
+ },
+ {
+  "op": "delete",
+  "report_id": 6145,
+  "line_key": "service_supplies",
+  "from": 149769909000
+ },
+ {
+  "op": "delete",
+  "report_id": 6145,
+  "line_key": "depreciation_amortization",
+  "from": 990057153000
+ },
+ {
+  "op": "delete",
+  "report_id": 6145,
+  "line_key": "total_operating_expenses",
+  "from": 1158860245000
+ },
+ {
+  "op": "delete",
+  "report_id": 6145,
+  "line_key": "operating_income",
+  "from": 34791136000
+ },
+ {
+  "op": "delete",
+  "report_id": 6145,
+  "line_key": "net_fixed_assets",
+  "from": 711991273000
+ },
+ {
+  "op": "delete",
+  "report_id": 6145,
+  "line_key": "inventory",
+  "from": 1928176940000
+ },
+ {
+  "op": "delete",
+  "report_id": 6145,
+  "line_key": "receivables",
+  "from": 353214771000
+ },
+ {
+  "op": "delete",
+  "report_id": 6145,
+  "line_key": "cash",
+  "from": 532268991000
+ },
+ {
+  "op": "delete",
+  "report_id": 6145,
+  "line_key": "total_current_assets",
+  "from": 2814650312000
+ },
+ {
+  "op": "delete",
+  "report_id": 6145,
+  "line_key": "reserves",
+  "from": 226570598000
+ },
+ {
+  "op": "delete",
+  "report_id": 6145,
+  "line_key": "retained_earnings",
+  "from": 341768892000
+ },
+ {
+  "op": "delete",
+  "report_id": 6145,
+  "line_key": "short_term_payables",
+  "from": 183006081000
+ },
+ {
+  "op": "delete",
+  "report_id": 6145,
+  "line_key": "total_equity_and_liabilities",
+  "from": 1075449238000
+ },
+ {
+  "op": "delete",
+  "report_id": 6145,
+  "line_key": "other_expenses",
+  "from": 129210000.00000001
+ },
+ {
+  "op": "delete",
+  "report_id": 6145,
+  "line_key": "pretax_income",
+  "from": 807650000.0
+ },
+ {
+  "op": "delete",
+  "report_id": 6145,
+  "line_key": "cfo",
+  "from": 1234810000.0
+ },
+ {
+  "op": "delete",
+  "report_id": 6145,
+  "line_key": "cfi",
+  "from": -34050000.0
+ },
+ {
+  "op": "delete",
+  "report_id": 6145,
+  "line_key": "cff",
+  "from": -90000.0
+ },
+ {
+  "op": "delete",
+  "report_id": 6145,
+  "line_key": "net_change_in_cash",
+  "from": 1200680000.0
+ },
+ {
+  "op": "set",
+  "report_id": 6145,
+  "line_key": "total_assets",
+  "from": 1075449239000,
+  "to": 10183503284
+ },
+ {
+  "op": "set",
+  "report_id": 6145,
+  "line_key": "total_equity",
+  "from": 892443157000,
+  "to": 8504215518
+ },
+ {
+  "op": "set",
+  "report_id": 6145,
+  "line_key": "paid_capital",
+  "from": 292220000000,
+  "to": 2922200000
+ },
+ {
+  "op": "set",
+  "report_id": 6145,
+  "line_key": "net_income",
+  "from": 807650000.0,
+  "to": 807654681
+ },
+ {
+  "op": "set",
+  "report_id": 6145,
+  "line_key": "revenue",
+  "from": 1193651381000,
+  "to": 1936655189
+ },
+ {
+  "op": "delete",
+  "report_id": 6709,
+  "line_key": "salaries_wages",
+  "from": 648093907000
+ },
+ {
+  "op": "delete",
+  "report_id": 6709,
+  "line_key": "goods_supplies",
+  "from": 229022226000
+ },
+ {
+  "op": "delete",
+  "report_id": 6709,
+  "line_key": "service_supplies",
+  "from": 149769909000
+ },
+ {
+  "op": "delete",
+  "report_id": 6709,
+  "line_key": "depreciation_amortization",
+  "from": 990057153000
+ },
+ {
+  "op": "delete",
+  "report_id": 6709,
+  "line_key": "total_operating_expenses",
+  "from": 1158860545000
+ },
+ {
+  "op": "delete",
+  "report_id": 6709,
+  "line_key": "operating_income",
+  "from": 37459386000
+ },
+ {
+  "op": "delete",
+  "report_id": 6709,
+  "line_key": "net_fixed_assets",
+  "from": 711991273000
+ },
+ {
+  "op": "delete",
+  "report_id": 6709,
+  "line_key": "inventory",
+  "from": 1681870018000
+ },
+ {
+  "op": "delete",
+  "report_id": 6709,
+  "line_key": "receivables",
+  "from": 353146722000
+ },
+ {
+  "op": "delete",
+  "report_id": 6709,
+  "line_key": "cash",
+  "from": 471810792000
+ },
+ {
+  "op": "delete",
+  "report_id": 6709,
+  "line_key": "total_current_assets",
+  "from": 2507828612000
+ },
+ {
+  "op": "delete",
+  "report_id": 6709,
+  "line_key": "reserves",
+  "from": 226570598000
+ },
+ {
+  "op": "delete",
+  "report_id": 6709,
+  "line_key": "retained_earnings",
+  "from": 334768892000
+ },
+ {
+  "op": "delete",
+  "report_id": 6709,
+  "line_key": "short_term_payables",
+  "from": 109665000000
+ },
+ {
+  "op": "delete",
+  "report_id": 6709,
+  "line_key": "total_equity_and_liabilities",
+  "from": 1002148157000
+ },
+ {
+  "op": "set",
+  "report_id": 6709,
+  "line_key": "total_assets",
+  "from": 1002148157000,
+  "to": 10621482157
+ },
+ {
+  "op": "set",
+  "report_id": 6709,
+  "line_key": "total_equity",
+  "from": 892482157000,
+  "to": 8927763308
+ },
+ {
+  "op": "set",
+  "report_id": 6709,
+  "line_key": "paid_capital",
+  "from": 292220000000,
+  "to": 2922200000
+ },
+ {
+  "op": "insert",
+  "report_id": 6709,
+  "line_key": "net_income",
+  "to": -78857182
+ },
+ {
+  "op": "set",
+  "report_id": 6709,
+  "line_key": "revenue",
+  "from": 1196319981000,
+  "to": 1165631981
+ },
+ {
+  "op": "delete",
+  "report_id": 6103,
+  "line_key": "salaries_wages",
+  "from": 75886500000
+ },
+ {
+  "op": "delete",
+  "report_id": 6103,
+  "line_key": "goods_supplies",
+  "from": 74810500000
+ },
+ {
+  "op": "delete",
+  "report_id": 6103,
+  "line_key": "service_supplies",
+  "from": 101060000000
+ },
+ {
+  "op": "delete",
+  "report_id": 6103,
+  "line_key": "interest_expense",
+  "from": 225400000
+ },
+ {
+  "op": "delete",
+  "report_id": 6103,
+  "line_key": "other_expenses",
+  "from": 590600000
+ },
+ {
+  "op": "delete",
+  "report_id": 6103,
+  "line_key": "total_operating_expenses",
+  "from": 939398400000
+ },
+ {
+  "op": "delete",
+  "report_id": 6103,
+  "line_key": "operating_income",
+  "from": 268241600000
+ },
+ {
+  "op": "delete",
+  "report_id": 6103,
+  "line_key": "net_fixed_assets",
+  "from": 9047943527000
+ },
+ {
+  "op": "delete",
+  "report_id": 6103,
+  "line_key": "projects_under_construction",
+  "from": 1021226571000
+ },
+ {
+  "op": "delete",
+  "report_id": 6103,
+  "line_key": "inventory",
+  "from": 790055029000
+ },
+ {
+  "op": "delete",
+  "report_id": 6103,
+  "line_key": "investments",
+  "from": 741049552000
+ },
+ {
+  "op": "delete",
+  "report_id": 6103,
+  "line_key": "receivables",
+  "from": 1149134000000
+ },
+ {
+  "op": "delete",
+  "report_id": 6103,
+  "line_key": "cash",
+  "from": 4313370090000
+ },
+ {
+  "op": "delete",
+  "report_id": 6103,
+  "line_key": "total_current_assets",
+  "from": 9530196544000
+ },
+ {
+  "op": "delete",
+  "report_id": 6103,
+  "line_key": "reserves",
+  "from": 8229738131300000
+ },
+ {
+  "op": "delete",
+  "report_id": 6103,
+  "line_key": "retained_earnings",
+  "from": 31685268000
+ },
+ {
+  "op": "delete",
+  "report_id": 6103,
+  "line_key": "long_term_payables",
+  "from": 3418670140000
+ },
+ {
+  "op": "delete",
+  "report_id": 6103,
+  "line_key": "total_equity_and_liabilities",
+  "from": 9530196544000
+ },
+ {
+  "op": "delete",
+  "report_id": 6103,
+  "line_key": "cash_beginning",
+  "from": 4053450900000
+ },
+ {
+  "op": "delete",
+  "report_id": 6103,
+  "line_key": "cfo",
+  "from": 769177250000
+ },
+ {
+  "op": "delete",
+  "report_id": 6103,
+  "line_key": "cash_ending",
+  "from": 4313370090000
+ },
+ {
+  "op": "set",
+  "report_id": 6103,
+  "line_key": "total_assets",
+  "from": 9530196544000,
+  "to": 10013091566
+ },
+ {
+  "op": "set",
+  "report_id": 6103,
+  "line_key": "total_equity",
+  "from": 9530196544000,
+  "to": 9841109675
+ },
+ {
+  "op": "set",
+  "report_id": 6103,
+  "line_key": "paid_capital",
+  "from": 15000000000000,
+  "to": 1500000000
+ },
+ {
+  "op": "insert",
+  "report_id": 6103,
+  "line_key": "net_income",
+  "to": 27065600
+ },
+ {
+  "op": "set",
+  "report_id": 6103,
+  "line_key": "revenue",
+  "from": 1207640000000,
+  "to": 120764000
+ },
+ {
+  "op": "delete",
+  "report_id": 6621,
+  "line_key": "salaries_wages",
+  "from": 100717250000
+ },
+ {
+  "op": "delete",
+  "report_id": 6621,
+  "line_key": "goods_supplies",
+  "from": 208180000000
+ },
+ {
+  "op": "delete",
+  "report_id": 6621,
+  "line_key": "service_supplies",
+  "from": 328835000000
+ },
+ {
+  "op": "delete",
+  "report_id": 6621,
+  "line_key": "interest_expense",
+  "from": 596000000
+ },
+ {
+  "op": "delete",
+  "report_id": 6621,
+  "line_key": "other_expenses",
+  "from": 590600000
+ },
+ {
+  "op": "delete",
+  "report_id": 6621,
+  "line_key": "total_operating_expenses",
+  "from": 1603224750000
+ },
+ {
+  "op": "delete",
+  "report_id": 6621,
+  "line_key": "operating_income",
+  "from": 162131350000
+ },
+ {
+  "op": "delete",
+  "report_id": 6621,
+  "line_key": "net_fixed_assets",
+  "from": 9062840227000
+ },
+ {
+  "op": "delete",
+  "report_id": 6621,
+  "line_key": "projects_under_construction",
+  "from": 2021226571000
+ },
+ {
+  "op": "delete",
+  "report_id": 6621,
+  "line_key": "inventory",
+  "from": 790055029000
+ },
+ {
+  "op": "delete",
+  "report_id": 6621,
+  "line_key": "investments",
+  "from": 741049552000
+ },
+ {
+  "op": "delete",
+  "report_id": 6621,
+  "line_key": "receivables",
+  "from": 1149134000000
+ },
+ {
+  "op": "delete",
+  "report_id": 6621,
+  "line_key": "cash",
+  "from": 4053450900000
+ },
+ {
+  "op": "delete",
+  "report_id": 6621,
+  "line_key": "total_current_assets",
+  "from": 10242093588000
+ },
+ {
+  "op": "delete",
+  "report_id": 6621,
+  "line_key": "reserves",
+  "from": 8269738130600000
+ },
+ {
+  "op": "delete",
+  "report_id": 6621,
+  "line_key": "retained_earnings",
+  "from": 31685268000
+ },
+ {
+  "op": "delete",
+  "report_id": 6621,
+  "line_key": "long_term_payables",
+  "from": 3418670140000
+ },
+ {
+  "op": "delete",
+  "report_id": 6621,
+  "line_key": "total_equity_and_liabilities",
+  "from": 10242093588000
+ },
+ {
+  "op": "delete",
+  "report_id": 6621,
+  "line_key": "cash_beginning",
+  "from": 4053450900000
+ },
+ {
+  "op": "delete",
+  "report_id": 6621,
+  "line_key": "cfo",
+  "from": 769177250000
+ },
+ {
+  "op": "delete",
+  "report_id": 6621,
+  "line_key": "capex",
+  "from": -290250000000
+ },
+ {
+  "op": "delete",
+  "report_id": 6621,
+  "line_key": "cash_ending",
+  "from": 4053450900000
+ },
+ {
+  "op": "set",
+  "report_id": 6621,
+  "line_key": "total_assets",
+  "from": 10242093588000,
+  "to": 10240933588
+ },
+ {
+  "op": "set",
+  "report_id": 6621,
+  "line_key": "total_equity",
+  "from": 10240093588000,
+  "to": 9867381306
+ },
+ {
+  "op": "set",
+  "report_id": 6621,
+  "line_key": "paid_capital",
+  "from": 16000000000000,
+  "to": 1600000000
+ },
+ {
+  "op": "insert",
+  "report_id": 6621,
+  "line_key": "net_income",
+  "to": 13210850
+ },
+ {
+  "op": "set",
+  "report_id": 6621,
+  "line_key": "revenue",
+  "from": 1765356100000,
+  "to": 176535600
+ },
+ {
+  "op": "delete",
+  "report_id": 6188,
+  "line_key": "net_fixed_assets",
+  "from": 6171961441000
+ },
+ {
+  "op": "delete",
+  "report_id": 6188,
+  "line_key": "deferred_revenue_expenses",
+  "from": 2279213800000
+ },
+ {
+  "op": "delete",
+  "report_id": 6188,
+  "line_key": "projects_under_construction",
+  "from": 4953094750000
+ },
+ {
+  "op": "delete",
+  "report_id": 6188,
+  "line_key": "total_fixed_assets",
+  "from": 10642016928000
+ },
+ {
+  "op": "delete",
+  "report_id": 6188,
+  "line_key": "inventory",
+  "from": 4066000000
+ },
+ {
+  "op": "delete",
+  "report_id": 6188,
+  "line_key": "receivables",
+  "from": 6825950000
+ },
+ {
+  "op": "delete",
+  "report_id": 6188,
+  "line_key": "investments",
+  "from": 2189759892000
+ },
+ {
+  "op": "delete",
+  "report_id": 6188,
+  "line_key": "cash",
+  "from": 2876388424000
+ },
+ {
+  "op": "delete",
+  "report_id": 6188,
+  "line_key": "total_current_assets",
+  "from": 6776938427000
+ },
+ {
+  "op": "delete",
+  "report_id": 6188,
+  "line_key": "reserves",
+  "from": 2511794805000
+ },
+ {
+  "op": "delete",
+  "report_id": 6188,
+  "line_key": "retained_earnings",
+  "from": 3741974957000
+ },
+ {
+  "op": "delete",
+  "report_id": 6188,
+  "line_key": "short_term_payables",
+  "from": 5054222422000
+ },
+ {
+  "op": "delete",
+  "report_id": 6188,
+  "line_key": "total_equity_and_liabilities",
+  "from": 13519570422000
+ },
+ {
+  "op": "set",
+  "report_id": 6188,
+  "line_key": "total_assets",
+  "from": 13519570422000,
+  "to": 11194913692
+ },
+ {
+  "op": "set",
+  "report_id": 6188,
+  "line_key": "total_equity",
+  "from": 8192274507000,
+  "to": 8346123806
+ },
+ {
+  "op": "set",
+  "report_id": 6188,
+  "line_key": "paid_capital",
+  "from": 3000000000000,
+  "to": 3000000000
+ },
+ {
+  "op": "insert",
+  "report_id": 6188,
+  "line_key": "net_income",
+  "to": 649361759
+ },
+ {
+  "op": "insert",
+  "report_id": 6188,
+  "line_key": "revenue",
+  "to": 1123057337
+ },
+ {
+  "op": "delete",
+  "report_id": 6658,
+  "line_key": "net_fixed_assets",
+  "from": 6171961441000
+ },
+ {
+  "op": "delete",
+  "report_id": 6658,
+  "line_key": "deferred_revenue_expenses",
+  "from": 2279213800000
+ },
+ {
+  "op": "delete",
+  "report_id": 6658,
+  "line_key": "projects_under_construction",
+  "from": 4953094750000
+ },
+ {
+  "op": "delete",
+  "report_id": 6658,
+  "line_key": "total_fixed_assets",
+  "from": 10642016928000
+ },
+ {
+  "op": "delete",
+  "report_id": 6658,
+  "line_key": "inventory",
+  "from": 4066000000
+ },
+ {
+  "op": "delete",
+  "report_id": 6658,
+  "line_key": "receivables",
+  "from": 6825950000
+ },
+ {
+  "op": "delete",
+  "report_id": 6658,
+  "line_key": "investments",
+  "from": 2189759892000
+ },
+ {
+  "op": "delete",
+  "report_id": 6658,
+  "line_key": "cash",
+  "from": 3948388482000
+ },
+ {
+  "op": "delete",
+  "report_id": 6658,
+  "line_key": "total_current_assets",
+  "from": 7862847765000
+ },
+ {
+  "op": "delete",
+  "report_id": 6658,
+  "line_key": "reserves",
+  "from": 2512794805000
+ },
+ {
+  "op": "delete",
+  "report_id": 6658,
+  "line_key": "retained_earnings",
+  "from": 3741974957000
+ },
+ {
+  "op": "delete",
+  "report_id": 6658,
+  "line_key": "long_term_payables",
+  "from": 1929691990000
+ },
+ {
+  "op": "delete",
+  "report_id": 6658,
+  "line_key": "short_term_payables",
+  "from": 3950777776000
+ },
+ {
+  "op": "delete",
+  "report_id": 6658,
+  "line_key": "total_equity_and_liabilities",
+  "from": 14072744273000
+ },
+ {
+  "op": "delete",
+  "report_id": 6658,
+  "line_key": "salaries_wages",
+  "from": 119048789000
+ },
+ {
+  "op": "delete",
+  "report_id": 6658,
+  "line_key": "goods_supplies",
+  "from": 1967885000
+ },
+ {
+  "op": "delete",
+  "report_id": 6658,
+  "line_key": "service_supplies",
+  "from": 1581300000
+ },
+ {
+  "op": "delete",
+  "report_id": 6658,
+  "line_key": "contracts_services",
+  "from": 2984978000
+ },
+ {
+  "op": "delete",
+  "report_id": 6658,
+  "line_key": "depreciation_amortization",
+  "from": 924000000
+ },
+ {
+  "op": "delete",
+  "report_id": 6658,
+  "line_key": "total_operating_expenses",
+  "from": 176429152000
+ },
+ {
+  "op": "delete",
+  "report_id": 6658,
+  "line_key": "operating_income",
+  "from": -4365412000
+ },
+ {
+  "op": "delete",
+  "report_id": 6658,
+  "line_key": "other_income",
+  "from": 4269000000
+ },
+ {
+  "op": "delete",
+  "report_id": 6658,
+  "line_key": "pretax_income",
+  "from": -96412000
+ },
+ {
+  "op": "delete",
+  "report_id": 6658,
+  "line_key": "tax",
+  "from": 0
+ },
+ {
+  "op": "set",
+  "report_id": 6658,
+  "line_key": "total_assets",
+  "from": 14072844273000,
+  "to": 14072804273
+ },
+ {
+  "op": "set",
+  "report_id": 6658,
+  "line_key": "total_equity",
+  "from": 8192274507000,
+  "to": 10259770762
+ },
+ {
+  "op": "set",
+  "report_id": 6658,
+  "line_key": "paid_capital",
+  "from": 3000000000000,
+  "to": 3000000000
+ },
+ {
+  "op": "set",
+  "report_id": 6658,
+  "line_key": "net_income",
+  "from": -96412000,
+  "to": 1517311548
+ },
+ {
+  "op": "set",
+  "report_id": 6658,
+  "line_key": "revenue",
+  "from": 172063740000,
+  "to": 1720863740
+ },
+ {
+  "op": "delete",
+  "report_id": 6499,
+  "line_key": "salaries_wages",
+  "from": 443277734000
+ },
+ {
+  "op": "delete",
+  "report_id": 6499,
+  "line_key": "goods_supplies",
+  "from": 96000000
+ },
+ {
+  "op": "delete",
+  "report_id": 6499,
+  "line_key": "service_supplies",
+  "from": 8220000000
+ },
+ {
+  "op": "delete",
+  "report_id": 6499,
+  "line_key": "contracts_services",
+  "from": 150000000000
+ },
+ {
+  "op": "delete",
+  "report_id": 6499,
+  "line_key": "depreciation_amortization",
+  "from": 239749009000
+ },
+ {
+  "op": "delete",
+  "report_id": 6499,
+  "line_key": "taxes_fees",
+  "from": 29610000
+ },
+ {
+  "op": "delete",
+  "report_id": 6499,
+  "line_key": "total_operating_expenses",
+  "from": 1650282853000
+ },
+ {
+  "op": "delete",
+  "report_id": 6499,
+  "line_key": "cash",
+  "from": 2715781000
+ },
+ {
+  "op": "delete",
+  "report_id": 6499,
+  "line_key": "total_current_assets",
+  "from": 387374670000
+ },
+ {
+  "op": "delete",
+  "report_id": 6499,
+  "line_key": "reserves",
+  "from": 584133540000
+ },
+ {
+  "op": "delete",
+  "report_id": 6499,
+  "line_key": "retained_earnings",
+  "from": 662167553000
+ },
+ {
+  "op": "delete",
+  "report_id": 6499,
+  "line_key": "operating_income",
+  "from": -389147736000
+ },
+ {
+  "op": "delete",
+  "report_id": 6499,
+  "line_key": "pretax_income",
+  "from": 1490811
+ },
+ {
+  "op": "delete",
+  "report_id": 6499,
+  "line_key": "other_income",
+  "from": 1643000000
+ },
+ {
+  "op": "delete",
+  "report_id": 6499,
+  "line_key": "other_expenses",
+  "from": 1349610000
+ },
+ {
+  "op": "delete",
+  "report_id": 6499,
+  "line_key": "net_fixed_assets",
+  "from": 2076917153000
+ },
+ {
+  "op": "delete",
+  "report_id": 6499,
+  "line_key": "investments",
+  "from": 381863
+ },
+ {
+  "op": "delete",
+  "report_id": 6499,
+  "line_key": "long_term_provisions",
+  "from": 1037400
+ },
+ {
+  "op": "delete",
+  "report_id": 6499,
+  "line_key": "long_term_payables",
+  "from": 2231644530000
+ },
+ {
+  "op": "delete",
+  "report_id": 6499,
+  "line_key": "short_term_payables",
+  "from": 324243858000
+ },
+ {
+  "op": "delete",
+  "report_id": 6499,
+  "line_key": "total_equity_and_liabilities",
+  "from": 4694258810000
+ },
+ {
+  "op": "delete",
+  "report_id": 6499,
+  "line_key": "total_fixed_assets",
+  "from": 2079601598000
+ },
+ {
+  "op": "delete",
+  "report_id": 6499,
+  "line_key": "inventory",
+  "from": 28113930000
+ },
+ {
+  "op": "delete",
+  "report_id": 6499,
+  "line_key": "receivables",
+  "from": 381847058000
+ },
+ {
+  "op": "delete",
+  "report_id": 6499,
+  "line_key": "short_term_provisions",
+  "from": 1037869729000
+ },
+ {
+  "op": "set",
+  "report_id": 6499,
+  "line_key": "total_assets",
+  "from": 4694258810000,
+  "to": 40692585860
+ },
+ {
+  "op": "set",
+  "report_id": 6499,
+  "line_key": "total_equity",
+  "from": 1946301093000,
+  "to": 6231124311
+ },
+ {
+  "op": "set",
+  "report_id": 6499,
+  "line_key": "paid_capital",
+  "from": 700000000000,
+  "to": 7000000000
+ },
+ {
+  "op": "insert",
+  "report_id": 6499,
+  "line_key": "net_income",
+  "to": -377089731
+ },
+ {
+  "op": "set",
+  "report_id": 6499,
+  "line_key": "revenue",
+  "from": 1056000000,
+  "to": 105600000
+ },
+ {
+  "op": "delete",
+  "report_id": 6075,
+  "line_key": "salaries_wages",
+  "from": 484140000000
+ },
+ {
+  "op": "delete",
+  "report_id": 6075,
+  "line_key": "service_supplies",
+  "from": 170310000000
+ },
+ {
+  "op": "delete",
+  "report_id": 6075,
+  "line_key": "total_operating_expenses",
+  "from": 1448080000000
+ },
+ {
+  "op": "delete",
+  "report_id": 6075,
+  "line_key": "operating_income",
+  "from": 674420000000
+ },
+ {
+  "op": "delete",
+  "report_id": 6075,
+  "line_key": "net_fixed_assets",
+  "from": 10147363000
+ },
+ {
+  "op": "delete",
+  "report_id": 6075,
+  "line_key": "investments",
+  "from": 3130200059000
+ },
+ {
+  "op": "delete",
+  "report_id": 6075,
+  "line_key": "total_fixed_assets",
+  "from": 3223167422000
+ },
+ {
+  "op": "delete",
+  "report_id": 6075,
+  "line_key": "inventory",
+  "from": 4198245085000
+ },
+ {
+  "op": "delete",
+  "report_id": 6075,
+  "line_key": "receivables",
+  "from": 2403800000000
+ },
+ {
+  "op": "delete",
+  "report_id": 6075,
+  "line_key": "cash",
+  "from": 235100000000
+ },
+ {
+  "op": "delete",
+  "report_id": 6075,
+  "line_key": "total_current_assets",
+  "from": 2247518137000
+ },
+ {
+  "op": "delete",
+  "report_id": 6075,
+  "line_key": "reserves",
+  "from": 3255966252000
+ },
+ {
+  "op": "delete",
+  "report_id": 6075,
+  "line_key": "short_term_payables",
+  "from": 1642400000000
+ },
+ {
+  "op": "delete",
+  "report_id": 6075,
+  "line_key": "total_equity_and_liabilities",
+  "from": 5493311564000
+ },
+ {
+  "op": "delete",
+  "report_id": 6075,
+  "line_key": "cfo",
+  "from": 1350872009000
+ },
+ {
+  "op": "delete",
+  "report_id": 6075,
+  "line_key": "cfi",
+  "from": -300641207000
+ },
+ {
+  "op": "delete",
+  "report_id": 6075,
+  "line_key": "cff",
+  "from": -1425000000000
+ },
+ {
+  "op": "delete",
+  "report_id": 6075,
+  "line_key": "net_change_in_cash",
+  "from": -375769198000
+ },
+ {
+  "op": "delete",
+  "report_id": 6075,
+  "line_key": "cash_beginning",
+  "from": 610869000000
+ },
+ {
+  "op": "delete",
+  "report_id": 6075,
+  "line_key": "cash_ending",
+  "from": 235099802000
+ },
+ {
+  "op": "delete",
+  "report_id": 6075,
+  "line_key": "goods_supplies",
+  "from": 209500000000
+ },
+ {
+  "op": "delete",
+  "report_id": 6075,
+  "line_key": "other_expenses",
+  "from": 48410000.0
+ },
+ {
+  "op": "delete",
+  "report_id": 6075,
+  "line_key": "pretax_income",
+  "from": 1424251000000
+ },
+ {
+  "op": "set",
+  "report_id": 6075,
+  "line_key": "total_assets",
+  "from": 5493311564000,
+  "to": 5089351762
+ },
+ {
+  "op": "set",
+  "report_id": 6075,
+  "line_key": "total_equity",
+  "from": 3850911564000,
+  "to": 3647066179
+ },
+ {
+  "op": "set",
+  "report_id": 6075,
+  "line_key": "paid_capital",
+  "from": 500000000000,
+  "to": 500000000
+ },
+ {
+  "op": "set",
+  "report_id": 6075,
+  "line_key": "net_income",
+  "from": 1240595000000,
+  "to": 142425100
+ },
+ {
+  "op": "set",
+  "report_id": 6075,
+  "line_key": "revenue",
+  "from": 2122500000000,
+  "to": 212350000
+ },
+ {
+  "op": "delete",
+  "report_id": 6718,
+  "line_key": "salaries_wages",
+  "from": 538064000000
+ },
+ {
+  "op": "delete",
+  "report_id": 6718,
+  "line_key": "goods_supplies",
+  "from": 147500000000
+ },
+ {
+  "op": "delete",
+  "report_id": 6718,
+  "line_key": "service_supplies",
+  "from": 208245000000
+ },
+ {
+  "op": "delete",
+  "report_id": 6718,
+  "line_key": "total_operating_expenses",
+  "from": 1984166000000
+ },
+ {
+  "op": "delete",
+  "report_id": 6718,
+  "line_key": "operating_income",
+  "from": 758334000000
+ },
+ {
+  "op": "delete",
+  "report_id": 6718,
+  "line_key": "other_income",
+  "from": 125000000000
+ },
+ {
+  "op": "delete",
+  "report_id": 6718,
+  "line_key": "pretax_income",
+  "from": 1998761000000
+ },
+ {
+  "op": "delete",
+  "report_id": 6718,
+  "line_key": "tax",
+  "from": 183659000000
+ },
+ {
+  "op": "delete",
+  "report_id": 6718,
+  "line_key": "net_fixed_assets",
+  "from": 10147363000
+ },
+ {
+  "op": "delete",
+  "report_id": 6718,
+  "line_key": "investments",
+  "from": 3130200059000
+ },
+ {
+  "op": "delete",
+  "report_id": 6718,
+  "line_key": "total_fixed_assets",
+  "from": 3223167422000
+ },
+ {
+  "op": "delete",
+  "report_id": 6718,
+  "line_key": "inventory",
+  "from": 4198245085000
+ },
+ {
+  "op": "delete",
+  "report_id": 6718,
+  "line_key": "receivables",
+  "from": 2403800000000
+ },
+ {
+  "op": "delete",
+  "report_id": 6718,
+  "line_key": "cash",
+  "from": 235100000000
+ },
+ {
+  "op": "delete",
+  "report_id": 6718,
+  "line_key": "total_current_assets",
+  "from": 2247518137000
+ },
+ {
+  "op": "delete",
+  "report_id": 6718,
+  "line_key": "reserves",
+  "from": 3255966252000
+ },
+ {
+  "op": "delete",
+  "report_id": 6718,
+  "line_key": "retained_earnings",
+  "from": 1998872009000
+ },
+ {
+  "op": "delete",
+  "report_id": 6718,
+  "line_key": "short_term_payables",
+  "from": 2084911564000
+ },
+ {
+  "op": "delete",
+  "report_id": 6718,
+  "line_key": "total_equity_and_liabilities",
+  "from": 5493311564000
+ },
+ {
+  "op": "delete",
+  "report_id": 6718,
+  "line_key": "cfo",
+  "from": 1950872009000
+ },
+ {
+  "op": "delete",
+  "report_id": 6718,
+  "line_key": "cfi",
+  "from": -281641207000
+ },
+ {
+  "op": "delete",
+  "report_id": 6718,
+  "line_key": "cff",
+  "from": -2125000000000
+ },
+ {
+  "op": "delete",
+  "report_id": 6718,
+  "line_key": "net_change_in_cash",
+  "from": -455769198000
+ },
+ {
+  "op": "delete",
+  "report_id": 6718,
+  "line_key": "cash_beginning",
+  "from": 690659000000
+ },
+ {
+  "op": "delete",
+  "report_id": 6718,
+  "line_key": "cash_ending",
+  "from": 234889802000
+ },
+ {
+  "op": "set",
+  "report_id": 6718,
+  "line_key": "total_assets",
+  "from": 5493311564000,
+  "to": 5493311644
+ },
+ {
+  "op": "set",
+  "report_id": 6718,
+  "line_key": "total_equity",
+  "from": 4106090087000,
+  "to": 3952538261
+ },
+ {
+  "op": "set",
+  "report_id": 6718,
+  "line_key": "paid_capital",
+  "from": 500000000000,
+  "to": 500000000
+ },
+ {
+  "op": "set",
+  "report_id": 6718,
+  "line_key": "net_income",
+  "from": 1815072009000,
+  "to": 196872009
+ },
+ {
+  "op": "set",
+  "report_id": 6718,
+  "line_key": "revenue",
+  "from": 2742500000000,
+  "to": 274250000
+ },
+ {
+  "op": "delete",
+  "report_id": 6550,
+  "line_key": "revenue",
+  "from": 346155900000
+ },
+ {
+  "op": "delete",
+  "report_id": 6550,
+  "line_key": "salaries_wages",
+  "from": 2922051000
+ },
+ {
+  "op": "delete",
+  "report_id": 6550,
+  "line_key": "goods_supplies",
+  "from": 171242229000
+ },
+ {
+  "op": "delete",
+  "report_id": 6550,
+  "line_key": "service_supplies",
+  "from": 265151229000
+ },
+ {
+  "op": "delete",
+  "report_id": 6550,
+  "line_key": "contracts_services",
+  "from": 141223000000
+ },
+ {
+  "op": "delete",
+  "report_id": 6550,
+  "line_key": "total_operating_expenses",
+  "from": 800318509000
+ },
+ {
+  "op": "delete",
+  "report_id": 6550,
+  "line_key": "operating_income",
+  "from": -454162609000
+ },
+ {
+  "op": "delete",
+  "report_id": 6550,
+  "line_key": "other_expenses",
+  "from": -3128557202000
+ },
+ {
+  "op": "delete",
+  "report_id": 6550,
+  "line_key": "pretax_income",
+  "from": -3582719811000
+ },
+ {
+  "op": "delete",
+  "report_id": 6550,
+  "line_key": "net_fixed_assets",
+  "from": 24102392028000
+ },
+ {
+  "op": "delete",
+  "report_id": 6550,
+  "line_key": "projects_under_construction",
+  "from": 2451313911264000
+ },
+ {
+  "op": "delete",
+  "report_id": 6550,
+  "line_key": "total_fixed_assets",
+  "from": 28102392028000
+ },
+ {
+  "op": "delete",
+  "report_id": 6550,
+  "line_key": "inventory",
+  "from": 8062495281000
+ },
+ {
+  "op": "delete",
+  "report_id": 6550,
+  "line_key": "investments",
+  "from": 10019732494000
+ },
+ {
+  "op": "delete",
+  "report_id": 6550,
+  "line_key": "receivables",
+  "from": 550380235114000
+ },
+ {
+  "op": "delete",
+  "report_id": 6550,
+  "line_key": "cash",
+  "from": 612420550584000
+ },
+ {
+  "op": "delete",
+  "report_id": 6550,
+  "line_key": "total_current_assets",
+  "from": 588842558556000
+ },
+ {
+  "op": "delete",
+  "report_id": 6550,
+  "line_key": "reserves",
+  "from": 42672612477000
+ },
+ {
+  "op": "delete",
+  "report_id": 6550,
+  "line_key": "retained_earnings",
+  "from": -13784241202000
+ },
+ {
+  "op": "delete",
+  "report_id": 6550,
+  "line_key": "long_term_provisions",
+  "from": 13456271244000
+ },
+ {
+  "op": "delete",
+  "report_id": 6550,
+  "line_key": "long_term_payables",
+  "from": 559746238107000
+ },
+ {
+  "op": "delete",
+  "report_id": 6550,
+  "line_key": "short_term_payables",
+  "from": 8329674898000
+ },
+ {
+  "op": "delete",
+  "report_id": 6550,
+  "line_key": "total_equity_and_liabilities",
+  "from": 612420950584000
+ },
+ {
+  "op": "set",
+  "report_id": 6550,
+  "line_key": "total_assets",
+  "from": 612420950584000,
+  "to": 548769318181
+ },
+ {
+  "op": "set",
+  "report_id": 6550,
+  "line_key": "total_equity",
+  "from": 30888371275000,
+  "to": 49709009528
+ },
+ {
+  "op": "set",
+  "report_id": 6550,
+  "line_key": "paid_capital",
+  "from": 2000000000000,
+  "to": 20000000000
+ },
+ {
+  "op": "insert",
+  "report_id": 6550,
+  "line_key": "net_income",
+  "to": 13109632062
+ },
+ {
+  "op": "delete",
+  "report_id": 6563,
+  "line_key": "total_equity_and_liabilities",
+  "from": 1063135208.0000001
+ },
+ {
+  "op": "insert",
+  "report_id": 6563,
+  "line_key": "total_assets",
+  "to": 4256175468
+ },
+ {
+  "op": "set",
+  "report_id": 6563,
+  "line_key": "total_equity",
+  "from": 47331068.0,
+  "to": 4186490014
+ },
+ {
+  "op": "insert",
+  "report_id": 6563,
+  "line_key": "paid_capital",
+  "to": 3000000000
+ },
+ {
+  "op": "insert",
+  "report_id": 6563,
+  "line_key": "net_income",
+  "to": -132881889
+ },
+ {
+  "op": "insert",
+  "report_id": 6563,
+  "line_key": "revenue",
+  "to": 76485749
+ },
+ {
+  "op": "set",
+  "report_id": 6477,
+  "line_key": "total_equity",
+  "from": 51000000,
+  "to": 239056000000
+ },
+ {
+  "op": "set",
+  "report_id": 6477,
+  "line_key": "net_income",
+  "from": 548000000,
+  "to": 53000000
+ },
+ {
+  "op": "set",
+  "report_id": 6477,
+  "line_key": "paid_capital",
+  "from": 250000000000,
+  "to": 250000000000
+ },
+ {
+  "op": "set",
+  "report_id": 6288,
+  "line_key": "total_assets",
+  "from": 9451836878,
+  "to": 10096929490
+ },
+ {
+  "op": "scale+relabel",
+  "report_id": 6070,
+  "line_key": "net_income",
+  "from": 2028126650000,
+  "to": 2028126650.0,
+  "factor": 0.001,
+  "period": "Q3->ANNUAL"
+ },
+ {
+  "op": "scale+relabel",
+  "report_id": 6070,
+  "line_key": "total_assets",
+  "from": 555795700819000,
+  "to": 555795700819.0,
+  "factor": 0.001,
+  "period": "Q3->ANNUAL"
+ },
+ {
+  "op": "scale+relabel",
+  "report_id": 6070,
+  "line_key": "total_equity",
+  "from": 337958941971000,
+  "to": 337958941971.0,
+  "factor": 0.001,
+  "period": "Q3->ANNUAL"
+ },
+ {
+  "op": "scale+relabel",
+  "report_id": 6070,
+  "line_key": "financing_income",
+  "from": 2556675630000,
+  "to": 2556675630.0,
+  "factor": 0.001,
+  "period": "Q3->ANNUAL"
+ },
+ {
+  "op": "scale+relabel",
+  "report_id": 6070,
+  "line_key": "revenue_and_commissions",
+  "from": 3695604562000,
+  "to": 3695604562.0,
+  "factor": 0.001,
+  "period": "Q3->ANNUAL"
+ },
+ {
+  "op": "scale+relabel",
+  "report_id": 6070,
+  "line_key": "ga_expenses",
+  "from": 9741197104000,
+  "to": 9741197104.0,
+  "factor": 0.001,
+  "period": "Q3->ANNUAL"
+ },
+ {
+  "op": "scale+relabel",
+  "report_id": 6070,
+  "line_key": "pretax_income",
+  "from": 2440211650000,
+  "to": 2440211650.0,
+  "factor": 0.001,
+  "period": "Q3->ANNUAL"
+ },
+ {
+  "op": "scale+relabel",
+  "report_id": 6070,
+  "line_key": "tax",
+  "from": 412085000000,
+  "to": 412085000.0,
+  "factor": 0.001,
+  "period": "Q3->ANNUAL"
+ },
+ {
+  "op": "scale+relabel",
+  "report_id": 6070,
+  "line_key": "cash_and_cbi",
+  "from": 149072203640000,
+  "to": 149072203640.0,
+  "factor": 0.001,
+  "period": "Q3->ANNUAL"
+ },
+ {
+  "op": "scale+relabel",
+  "report_id": 6070,
+  "line_key": "due_from_banks",
+  "from": 49524352204000,
+  "to": 49524352204.0,
+  "factor": 0.001,
+  "period": "Q3->ANNUAL"
+ },
+ {
+  "op": "scale+relabel",
+  "report_id": 6070,
+  "line_key": "islamic_financing",
+  "from": 555795700819000,
+  "to": 555795700819.0,
+  "factor": 0.001,
+  "period": "Q3->ANNUAL"
+ },
+ {
+  "op": "scale+relabel",
+  "report_id": 6070,
+  "line_key": "investments",
+  "from": 50994117344000,
+  "to": 50994117344.0,
+  "factor": 0.001,
+  "period": "Q3->ANNUAL"
+ },
+ {
+  "op": "scale+relabel",
+  "report_id": 6070,
+  "line_key": "fixed_assets",
+  "from": 337958941971000,
+  "to": 337958941971.0,
+  "factor": 0.001,
+  "period": "Q3->ANNUAL"
+ },
+ {
+  "op": "scale+relabel",
+  "report_id": 6070,
+  "line_key": "customer_deposits",
+  "from": 199994941163000,
+  "to": 199994941163.0,
+  "factor": 0.001,
+  "period": "Q3->ANNUAL"
+ },
+ {
+  "op": "scale+relabel",
+  "report_id": 6070,
+  "line_key": "due_to_banks",
+  "from": 3213696709000,
+  "to": 3213696709.0,
+  "factor": 0.001,
+  "period": "Q3->ANNUAL"
+ },
+ {
+  "op": "scale+relabel",
+  "report_id": 6070,
+  "line_key": "other_liabilities",
+  "from": 12176776914000,
+  "to": 12176776914.0,
+  "factor": 0.001,
+  "period": "Q3->ANNUAL"
+ },
+ {
+  "op": "scale+relabel",
+  "report_id": 6070,
+  "line_key": "paid_capital",
+  "from": 300000000000000,
+  "to": 300000000000.0,
+  "factor": 0.001,
+  "period": "Q3->ANNUAL"
+ },
+ {
+  "op": "scale+relabel",
+  "report_id": 6070,
+  "line_key": "reserves",
+  "from": 9782601160000,
+  "to": 9782601160.0,
+  "factor": 0.001,
+  "period": "Q3->ANNUAL"
+ },
+ {
+  "op": "scale+relabel",
+  "report_id": 6070,
+  "line_key": "retained_earnings",
+  "from": 20637684872000,
+  "to": 20637684872.0,
+  "factor": 0.001,
+  "period": "Q3->ANNUAL"
+ },
+ {
+  "op": "scale+relabel",
+  "report_id": 6070,
+  "line_key": "total_liabilities_and_equity",
+  "from": 555795700819000,
+  "to": 555795700819.0,
+  "factor": 0.001,
+  "period": "Q3->ANNUAL"
+ },
+ {
+  "op": "scale+relabel",
+  "report_id": 6170,
+  "line_key": "total_assets",
+  "from": 3033023038,
+  "to": 3033023038000,
+  "factor": 1000,
+  "period": "Q3->ANNUAL"
+ },
+ {
+  "op": "scale+relabel",
+  "report_id": 6170,
+  "line_key": "total_equity",
+  "from": 554143422,
+  "to": 554143422000,
+  "factor": 1000,
+  "period": "Q3->ANNUAL"
+ },
+ {
+  "op": "scale+relabel",
+  "report_id": 6170,
+  "line_key": "total_liabilities_and_equity",
+  "from": 3033023038,
+  "to": 3033023038000,
+  "factor": 1000,
+  "period": "Q3->ANNUAL"
+ },
+ {
+  "op": "scale+relabel",
+  "report_id": 6170,
+  "line_key": "cash_and_cbi",
+  "from": 12870222,
+  "to": 12870222000,
+  "factor": 1000,
+  "period": "Q3->ANNUAL"
+ },
+ {
+  "op": "scale+relabel",
+  "report_id": 6170,
+  "line_key": "due_from_banks",
+  "from": 1132027903,
+  "to": 1132027903000,
+  "factor": 1000,
+  "period": "Q3->ANNUAL"
+ },
+ {
+  "op": "scale+relabel",
+  "report_id": 6170,
+  "line_key": "islamic_financing",
+  "from": 148133570,
+  "to": 148133570000,
+  "factor": 1000,
+  "period": "Q3->ANNUAL"
+ },
+ {
+  "op": "scale+relabel",
+  "report_id": 6170,
+  "line_key": "investments",
+  "from": 197471796,
+  "to": 197471796000,
+  "factor": 1000,
+  "period": "Q3->ANNUAL"
+ },
+ {
+  "op": "scale+relabel",
+  "report_id": 6170,
+  "line_key": "customer_deposits",
+  "from": 2208717068,
+  "to": 2208717068000,
+  "factor": 1000,
+  "period": "Q3->ANNUAL"
+ },
+ {
+  "op": "scale+relabel",
+  "report_id": 6170,
+  "line_key": "due_to_banks",
+  "from": 186287215,
+  "to": 186287215000,
+  "factor": 1000,
+  "period": "Q3->ANNUAL"
+ },
+ {
+  "op": "scale+relabel",
+  "report_id": 6170,
+  "line_key": "other_liabilities",
+  "from": 83875334,
+  "to": 83875334000,
+  "factor": 1000,
+  "period": "Q3->ANNUAL"
+ },
+ {
+  "op": "scale+relabel",
+  "report_id": 6170,
+  "line_key": "paid_capital",
+  "from": 400000000,
+  "to": 400000000000,
+  "factor": 1000,
+  "period": "Q3->ANNUAL"
+ },
+ {
+  "op": "scale+relabel",
+  "report_id": 6170,
+  "line_key": "reserves",
+  "from": 70642594,
+  "to": 70642594000,
+  "factor": 1000,
+  "period": "Q3->ANNUAL"
+ },
+ {
+  "op": "scale+relabel",
+  "report_id": 6170,
+  "line_key": "retained_earnings",
+  "from": 83500828,
+  "to": 83500828000,
+  "factor": 1000,
+  "period": "Q3->ANNUAL"
+ },
+ {
+  "op": "relabel",
+  "report_id": 6224,
+  "line_key": "financing_income",
+  "from": "2024 Q4",
+  "to": "2024 ANNUAL"
+ },
+ {
+  "op": "relabel",
+  "report_id": 6224,
+  "line_key": "tax",
+  "from": "2024 Q4",
+  "to": "2024 ANNUAL"
+ },
+ {
+  "op": "relabel",
+  "report_id": 6224,
+  "line_key": "fixed_assets",
+  "from": "2024 Q4",
+  "to": "2024 ANNUAL"
+ },
+ {
+  "op": "relabel",
+  "report_id": 6224,
+  "line_key": "total_assets",
+  "from": "2024 Q4",
+  "to": "2024 ANNUAL"
+ },
+ {
+  "op": "relabel",
+  "report_id": 6224,
+  "line_key": "customer_deposits",
+  "from": "2024 Q4",
+  "to": "2024 ANNUAL"
+ },
+ {
+  "op": "relabel",
+  "report_id": 6224,
+  "line_key": "due_to_banks",
+  "from": "2024 Q4",
+  "to": "2024 ANNUAL"
+ },
+ {
+  "op": "relabel",
+  "report_id": 6224,
+  "line_key": "other_liabilities",
+  "from": "2024 Q4",
+  "to": "2024 ANNUAL"
+ },
+ {
+  "op": "relabel",
+  "report_id": 6224,
+  "line_key": "paid_capital",
+  "from": "2024 Q4",
+  "to": "2024 ANNUAL"
+ },
+ {
+  "op": "relabel",
+  "report_id": 6224,
+  "line_key": "reserves",
+  "from": "2024 Q4",
+  "to": "2024 ANNUAL"
+ },
+ {
+  "op": "relabel",
+  "report_id": 6224,
+  "line_key": "retained_earnings",
+  "from": "2024 Q4",
+  "to": "2024 ANNUAL"
+ },
+ {
+  "op": "relabel",
+  "report_id": 6224,
+  "line_key": "total_equity",
+  "from": "2024 Q4",
+  "to": "2024 ANNUAL"
+ },
+ {
+  "op": "relabel",
+  "report_id": 6224,
+  "line_key": "total_liabilities_and_equity",
+  "from": "2024 Q4",
+  "to": "2024 ANNUAL"
+ },
+ {
+  "op": "relabel",
+  "report_id": 6224,
+  "line_key": "revenue_and_commissions",
+  "from": "2024 Q4",
+  "to": "2024 ANNUAL"
+ },
+ {
+  "op": "relabel",
+  "report_id": 6224,
+  "line_key": "ga_expenses",
+  "from": "2024 Q4",
+  "to": "2024 ANNUAL"
+ },
+ {
+  "op": "relabel",
+  "report_id": 6224,
+  "line_key": "pretax_income",
+  "from": "2024 Q4",
+  "to": "2024 ANNUAL"
+ },
+ {
+  "op": "relabel",
+  "report_id": 6224,
+  "line_key": "net_income",
+  "from": "2024 Q4",
+  "to": "2024 ANNUAL"
+ },
+ {
+  "op": "relabel",
+  "report_id": 6224,
+  "line_key": "cash_and_cbi",
+  "from": "2024 Q4",
+  "to": "2024 ANNUAL"
+ },
+ {
+  "op": "relabel",
+  "report_id": 6224,
+  "line_key": "due_from_banks",
+  "from": "2024 Q4",
+  "to": "2024 ANNUAL"
+ },
+ {
+  "op": "relabel",
+  "report_id": 6224,
+  "line_key": "islamic_financing",
+  "from": "2024 Q4",
+  "to": "2024 ANNUAL"
+ },
+ {
+  "op": "relabel",
+  "report_id": 6224,
+  "line_key": "investments",
+  "from": "2024 Q4",
+  "to": "2024 ANNUAL"
+ },
+ {
+  "op": "relabel",
+  "report_id": 6224,
+  "line_key": "cash_from_operating_activities",
+  "from": "2024 Q4",
+  "to": "2024 ANNUAL"
+ },
+ {
+  "op": "relabel",
+  "report_id": 6224,
+  "line_key": "cash_from_investing_activities",
+  "from": "2024 Q4",
+  "to": "2024 ANNUAL"
+ },
+ {
+  "op": "relabel",
+  "report_id": 6224,
+  "line_key": "cash_from_financing_activities",
+  "from": "2024 Q4",
+  "to": "2024 ANNUAL"
+ },
+ {
+  "op": "relabel",
+  "report_id": 6224,
+  "line_key": "net_change_in_cash",
+  "from": "2024 Q4",
+  "to": "2024 ANNUAL"
+ },
+ {
+  "op": "relabel",
+  "report_id": 6170,
+  "line_key": "tax",
+  "from": "2024 Q4",
+  "to": "2024 ANNUAL"
+ },
+ {
+  "op": "relabel",
+  "report_id": 6288,
+  "line_key": "total_assets",
+  "from": "2024 Q4",
+  "to": "2024 ANNUAL",
+  "why": "year-end balance on the annual filing"
+ }
+]

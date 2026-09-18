@@ -13,9 +13,10 @@ ok('ChartEngine only, no KChart', kchart === '', kchart.slice(0, 120))
 const nav = execSync('cat lib/navigation.ts').toString()
 ok('no Alerts navigation resurrection', !/alerts/i.test(nav.split('Active-route test')[0].replace(/\/\*[\s\S]*?\*\//g, '')))
 
-// The 13-ticker financial guard is intact.
+// The data-quality guard mechanism is intact (the 13-ticker list itself was
+// emptied on 2026-09-18 after every defective filing was corrected by hand).
 const fin = execSync('cat lib/financials.ts').toString()
-ok('financial unit guard present', /valuesWithheld/.test(fin) && /Data-quality guard/.test(fin))
+ok('financial data-quality guard present', /FINANCIAL_DATA_QUALITY/.test(fin) && /normalizedValuesTrusted/.test(fin) && /valuesWithheld/.test(fin))
 
 // noPrior is never folded into unchanged.
 const mk = execSync('cat lib/i18n/messages/en/market.ts').toString()
