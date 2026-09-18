@@ -1,44 +1,52 @@
 # IQWealth — iraqsm.com
 
-> Live prices, interactive charts, indices, and bilingual (Arabic/English) company profiles for every stock on the Iraq Stock Exchange (ISX). Tracks the RSISX index, market movers, trading volumes, and per-company history. اسعار الاسهم العراقية مباشرة، سوق الاسهم العراقي، بورصة العراق.
+> Prices, charts, statistics, financial statements and generated daily reports for every company on the Iraq Stock Exchange (ISX), plus Iraqi banks' published deposit and loan terms, the parallel-market dollar, currencies, gold, silver and oil in Iraqi dinars. Arabic first (default), English mirror for most pages. اسعار الاسهم العراقية، سوق الاسهم العراقي، بورصة العراق، سعر الدولار في العراق، اسعار الذهب في العراق.
 
-Iraqsm.com is a free Iraq Stock Exchange (ISX) market tracker. Prices and OHLC data originate from the ISX portal and Rabee Securities (RSISX); long-range historical closes are corporate-action adjusted (dividends, capital increases). Currency is the Iraqi Dinar (IQD). Content is available in Arabic (default) and English.
+iraqsm.com is a free, independent Iraq Stock Exchange (ISX) data site. Prices and OHLC data originate from the ISX daily bulletin; the RSISX index from Rabee Securities; company financial statements from filings with the Iraq Securities Commission (ISC), extracted and normalised to dinars; foreign-investor flow from the exchange's daily investor sheet. Currency is the Iraqi Dinar (IQD). No opinions, no recommendations: every generated page is written from the underlying figures and says so.
 
-Prices update once per trading session, from the official ISX daily bulletin — there is no intraday feed. Roughly a fifth of listed companies have not traded in over 60 days; the site marks those as suspended, shows the date of their last actual trade, and does not report a market cap for them, since market cap is last price x shares and that price can be years old.
+Prices update once per trading session after the close (ISX publishes one bulletin per session; there is no intraday feed). About a fifth of listed companies have not traded in 60+ days; the site marks them as untraded/suspended, shows the date of the last real trade, and does not report a market cap for them.
 
-## Main pages
+## Markets
 
-- [Home — market overview](https://iraqsm.com): RSISX index, gainers/losers, and the full list of ISX-listed companies with live prices.
-- [Market](https://iraqsm.com/market): Full searchable/sortable table of all ISX stocks by sector, price, change, and volume. Accepts a query via `?q=` (e.g. /market?q=TASC). Splits trading companies from suspended ones (no trade in 60+ days).
-- [Screener](https://iraqsm.com/screener): Filter and rank ISX stocks by performance (day/week/month/year), liquidity, P/E, foreign flow, and distance from the 52-week high.
-- [Companies](https://iraqsm.com/companies): Directory of all 104 listed companies grouped by sector, each linking to its price page.
-- [Statistics](https://iraqsm.com/statistics): Foreign investor buy/sell flow by company and sector, ownership split between Iraqi and foreign holders, and major shareholders.
-- [Heatmap](https://iraqsm.com/heatmap): Treemap of the whole market — tile size is market cap, colour is performance, grouped by sector.
-- [Pulse](https://iraqsm.com/pulse): Market breadth — advancers vs decliners, up/down volume, new highs/lows, advance-decline line.
-- [Charts](https://iraqsm.com/charts): Interactive index and stock charts (1W to 5Y and since-2015), with RSI and moving averages. There is no intraday view: ISX publishes one bulletin per trading session.
-- [Banks](https://iraqsm.com/banks): The ISX banking sector — the largest group of listed companies.
-- [Currency (IQD/USD)](https://iraqsm.com/fx): Iraqi Dinar to US Dollar rates and converter.
-- [Gold](https://iraqsm.com/gold): Gold prices in Iraq — per gram and mithqal, 24K/21K/18K.
-- [Oil](https://iraqsm.com/oil): Oil prices — Brent, WTI, Basrah Heavy/Medium, OPEC basket — in USD and IQD per barrel.
-- [News](https://iraqsm.com/news): Iraqi economy and market news.
-- [Research](https://iraqsm.com/research): Market research and analysis.
-- [Learn](https://iraqsm.com/learn): Educational guides on investing in the Iraq Stock Exchange.
-- [About](https://iraqsm.com/about): About iraqsm.com.
+- [Home — the last session](https://iraqsm.com): ISX60 and RSISX index chart, foreign-flow ring, session summary, the 30 most active companies.
+- [Market — the full board](https://iraqsm.com/market): every company, every column, any past session via `?date=YYYY-MM-DD`.
+- [Companies directory](https://iraqsm.com/companies): all 104 listed companies by sector.
+- [Screener («رادار الأسهم»)](https://iraqsm.com/screener): filter by performance, liquidity, market cap, foreign flow, P/E, distance from the 52-week band.
+- [Heatmap](https://iraqsm.com/heatmap): treemap by market cap and performance, grouped by sector.
+- [Statistics](https://iraqsm.com/statistics), [Foreign flow](https://iraqsm.com/statistics/foreign-flow), [Foreign ownership](https://iraqsm.com/statistics/ownership), [Major shareholders](https://iraqsm.com/statistics/shareholders).
+- [Pulse](https://iraqsm.com/pulse): market breadth — advancers/decliners, up/down value, new highs and lows.
+- [Analysis](https://iraqsm.com/analysis): per-company generated analysis pages (Arabic).
 
 ## Company pages
 
-Each listed company has its own page at `https://iraqsm.com/c/{TICKER}` with a live price, OHLC candlestick chart (multiple timeframes), trading volume, market cap, and a bilingual company profile. Examples:
+Each company: `https://iraqsm.com/c/{TICKER}` (price, candlestick chart with drawing tools, session figures, 52-week range, financial facts and ratios, foreign flow, ownership, holders, a generated profile and FAQ), `https://iraqsm.com/c/{TICKER}/financials` (income statement, balance sheet, ratios by year and quarter), and `https://iraqsm.com/c/{TICKER}/results/{YEAR}-{q1|q2|q3|q4|annual}` (a filing written out: net profit vs the same period a year earlier, income lines, balance sheet, derived ratios, the original ISC PDF). Examples: [BBOB](https://iraqsm.com/c/BBOB), [BBOB Q1 2026 results](https://iraqsm.com/c/BBOB/results/2026-q1), [TASC](https://iraqsm.com/c/TASC), [IBSD](https://iraqsm.com/c/IBSD).
 
-- [TASC — Asiacell Communications (Telecom)](https://iraqsm.com/c/TASC)
-- [TZNI — Al-Khatem Telecommunication / Zain Iraq · زين العراق (Telecom)](https://iraqsm.com/c/TZNI)
-- [BBOB — Bank of Baghdad](https://iraqsm.com/c/BBOB)
-- [BMNS — Al-Mansour Bank](https://iraqsm.com/c/BMNS)
-- [IBSD — Baghdad Soft Drinks (Industry)](https://iraqsm.com/c/IBSD)
-- [BNOI — National Bank of Iraq](https://iraqsm.com/c/BNOI)
+## Banking
 
-The complete ticker list (104 companies across Banks, Industry, Services, Hotels & Tourism, Telecom, Agriculture, Insurance, and Investment sectors) is in:
+- [Banks](https://iraqsm.com/banks): every Iraqi bank — type, ownership, listing status, assets, rating, whether it publishes product terms. Profiles at `https://iraqsm.com/banks/{slug}` with verified products, terms and services, each with its source and check date.
+- [Deposit rates](https://iraqsm.com/banks/deposits) and [loan rates](https://iraqsm.com/banks/loans): the published rates compared across banks.
+
+## Iraqi economy
+
+- [Dollar («سعر الدولار اليوم في العراق»)](https://iraqsm.com/fx): parallel-market rate (Baghdad), CBI official rate, the gap, converter, history since 2003.
+- [Currencies](https://iraqsm.com/currencies): 26 currencies in dinars at the parallel and official dollar rates, converter.
+- [Gold](https://iraqsm.com/gold): gram and mithqal by carat (24/21/18), ounce, calculator.
+- [Silver](https://iraqsm.com/silver): gram by purity, ounce, bars.
+- [Oil](https://iraqsm.com/oil): Brent, WTI, Basrah Heavy/Medium, OPEC basket, in USD and IQD per barrel.
+
+## News and generated reports
+
+- [News](https://iraqsm.com/news): one feed — daily session wraps, company results, ISC filings, and headlines from Iraqi economy sources (ISC, Alsumaria, Rabee Securities, Central Bank of Iraq, Al Mada), each linking to its source.
+- [Daily session wraps](https://iraqsm.com/news/session): one generated article per trading day at `https://iraqsm.com/news/session/{YYYY-MM-DD}` — index close and move, breadth, turnover vs the 20-session average, gainers and losers, most traded, foreign net.
+- [Learn](https://iraqsm.com/learn) and [Trading from zero](https://iraqsm.com/learn/trading-from-zero): beginner guide to the ISX. [Research](https://iraqsm.com/research): analysis articles.
+
+## Other
+
+- [About](https://iraqsm.com/about), [Contact](https://iraqsm.com/contact), [Terms](https://iraqsm.com/legal), [Privacy](https://iraqsm.com/privacy).
+- English mirror: prefix `/en` (e.g. https://iraqsm.com/en/c/BBOB). Arabic-only: `/analysis`, `/research`, `/news/session/*`, `/c/*/results/*`, CMS articles.
+- Retired: `/charts` (redirects to the home page; the index chart expands in place).
 
 ## Optional
 
-- [Full company index (llms-full.txt)](https://iraqsm.com/llms-full.txt): Every ISX ticker with its name, sector, and page URL.
-- [Sitemap](https://iraqsm.com/sitemap.xml): Machine-readable list of all pages.
+- [Full company index (llms-full.txt)](https://iraqsm.com/llms-full.txt): every ISX ticker with its name, sector, and page URL.
+- [Sitemap](https://iraqsm.com/sitemap.xml): every indexable page, including all session wraps and results pages.
