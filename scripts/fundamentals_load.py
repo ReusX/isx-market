@@ -118,6 +118,41 @@ def run_identities(template, norm):
     return out
 
 
+# ── continuity against the company's own history ────────────────────────────
+#
+# Every filing prints last period's column beside this one, and a balance-sheet
+# total does not move three orders of magnitude between filings. The thirteen
+# unit defects corrected by hand on 2026-09-18 were all a factor of 1,000 (or
+# 100) against the previous filing of the same company; this check would have
+# failed every one of them before publication. It compares the point-in-time
+# anchors (total_assets, total_equity, paid_capital) with the most recent
+# published values for the ticker and fails the set when any anchor is more
+# than 20x away in either direction. A company that genuinely revalues by that
+# much publishes it as a capital event; that case is reviewed by hand.
+CONTINUITY_ANCHORS = ("total_assets", "total_equity", "paid_capital")
+CONTINUITY_MAX_RATIO = 20.0
+
+def run_continuity(ticker, report_id, norm):
+    getv = lambda k: _val(norm, k)
+    out = []
+    prev = rest("GET", "financial_facts",
+                f"?ticker=eq.{ticker}&report_id=neq.{report_id}&line_key=in.({','.join(CONTINUITY_ANCHORS)})"
+                f"&select=line_key,value_iqd,fiscal_year,period&order=fiscal_year.desc&limit=60")
+    last = {}
+    for r in prev or []:
+        if r["line_key"] not in last and r["value_iqd"]:
+            last[r["line_key"]] = r["value_iqd"]
+    for k in CONTINUITY_ANCHORS:
+        v, p = getv(k), last.get(k)
+        if not v or not p:
+            out.append({"name": f"continuity:{k}", "status": "skip", "lhs": v, "rhs": p})
+            continue
+        ratio = max(abs(v), abs(p)) / max(min(abs(v), abs(p)), 1.0)
+        out.append({"name": f"continuity:{k}", "status": "pass" if ratio <= CONTINUITY_MAX_RATIO else "FAIL",
+                    "lhs": v, "rhs": p, "diff": ratio})
+    return out
+
+
 # ── load one statement-set ───────────────────────────────────────────────────
 def load_set(s):
     template = s["template"]
@@ -152,6 +187,7 @@ def load_set(s):
                 "confidence": rec.get("conf"),
             })
     checks = run_identities(template, norm)
+    checks += run_continuity(s["ticker"], s["report_id"], norm)
     failed = [c for c in checks if c["status"] == "FAIL"]
     status = "failed" if failed else "reviewed"
 
