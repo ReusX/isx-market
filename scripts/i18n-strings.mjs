@@ -41,6 +41,7 @@ const ALLOW_FILES = [
   'lib/date.ts',                // the one Arabic month table
   'lib/marketTools.ts',         // SOURCES notes (Arabic-source provenance)
   'lib/fxCopy.ts',              // Arabic FX FAQ prose for JSON-LD
+  'lib/macro.ts',               // policy-rate history notes + CSO source line (Arabic-only pages)
   'lib/auth.ts',                // AUTH_ERRORS ar + ERROR_EN pair
   'lib/pulse.ts',               // Arabic identifiers in comments only
   'lib/infoData.ts',            // no Arabic left; kept for the reply-time note

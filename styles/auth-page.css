@@ -45,3 +45,8 @@
 .ath-resend { margin: 4px 0 0; }
 .ath-linkbtn { border: 0; background: none; padding: 0; font: inherit; color: var(--blue); cursor: pointer; }
 .ath-linkbtn:disabled { opacity: .5; cursor: default; }
+
+/* A row's value and its note stack: the note is a second line, never glued
+   to the value (the page had «orxbar@gmail.comتغيير البريد…» as one run). */
+.ath-row dd .id-sub { display: block; margin-top: 4px; }
+.ath-row dd > bdi, .ath-row dd > strong { display: inline-block; }

@@ -325,6 +325,22 @@ export const rates: typeof ar = {
         { q: `How much is the ${v.name} in Iraq today?`, a: `About ${v.iqd} IQD at the parallel rate (${v.date}).` },
       ],
     },
+    policyRate: {
+      title: 'Interest rate in Iraq', seoTitle: (r: string) => `Iraq policy rate ${r}%`, description: (r: string, since: string) => `Central Bank of Iraq policy rate ${r}% since ${since}.`,
+      leadNote: 'The Central Bank of Iraq policy rate.', unit: 'per year · policy rate', since: (d: string) => `since ${d}`, prev: (r: string) => `previous ${r}%`,
+      cdTitle: 'Other CBI instruments', cd14: '14-day CD', cd182: '182-day CD', reserve: 'Reserve requirement',
+      history: 'Rate history', historyNote: 'Milestones since 2004; ≈ marks a documented step without an exact day.', colDate: 'Date', colRate: 'Rate', colNote: 'Decision', colSource: 'Source',
+      meaning: 'What it means', meaningBody: [] as string[], faqTitle: 'Questions',
+      faq: (v: { rate: string; since: string; prev: string; prevDate: string; cd14: string; cd182: string }) => [{ q: 'Current policy rate?', a: `${v.rate}% since ${v.since}.` }],
+    },
+    inflation: {
+      title: 'Inflation in Iraq', seoTitle: (r: string, m: string) => `Iraq inflation ${r}% in ${m}`, description: (r: string, m: string, y: string, yr: string) => `Iraq CPI inflation ${r}% y/y in ${m}; ${y}% average in ${yr}.`,
+      leadNote: 'CPI year-on-year, Central Statistical Organization.', unit: (m: string) => `year on year · ${m}`, prev: (r: string) => `previous month ${r}%`,
+      core: 'Core inflation', coreNote: 'ex food & energy', food: 'Food inflation', yearAvg: (y: string) => `${y} average`,
+      annual: 'Annual inflation since 2004', annualNote: 'Average annual change in consumer prices.', colYear: 'Year', colRate: 'Inflation',
+      basket: 'What the number measures', basketBody: [] as string[], faqTitle: 'Questions',
+      faq: (v: { rate: string; month: string; prev: string; core: string; food: string; yearAvg: string; year: string; peakYear: string; peak: string }) => [{ q: 'Current inflation?', a: `${v.rate}% in ${v.month}.` }],
+    },
     silver: {
       title: 'Silver price in Iraq today',
       leadNote: 'The source publishes silver in dollars only; the dinar equivalent here is computed at the parallel-market rate shown on the dollar page, not a local list price.',

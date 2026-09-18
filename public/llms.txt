@@ -56,6 +56,8 @@ Each company: `https://iraqsm.com/c/{TICKER}` (price, candlestick chart with dra
 - تحديث بيانات المتقاعدين / رابط هيئة التقاعد الوطنية → https://iraqsm.com/news/%d8%aa%d8%ad%d8%af%d9%8a%d8%ab-%d8%a8%d9%8a%d8%a7%d9%86%d8%a7%d8%aa-%d8%a7%d9%84%d9%85%d8%aa%d9%82%d8%a7%d8%b9%d8%af%d9%8a%d9%86 (official link, required documents, 90-day deadline from 14 Sep 2026)
 - فوائد الودائع أو القروض في المصارف العراقية → https://iraqsm.com/banks/deposits · https://iraqsm.com/banks/loans
 - شروط ومنتجات مصرف {…} → https://iraqsm.com/banks/{slug} (list at https://iraqsm.com/banks)
+- سعر الفائدة في العراق / فائدة البنك المركزي → https://iraqsm.com/policy-rate (5.5% since 2024-10-24, history since 2004)
+- التضخم في العراق / معدل التضخم → https://iraqsm.com/inflation (latest CSO monthly print + annual series since 2004)
 - تدفق المستثمر الأجنبي / foreign investors on the ISX → https://iraqsm.com/statistics/foreign-flow
 - كيف أبدأ التداول في بورصة العراق → https://iraqsm.com/learn/trading-from-zero
 
