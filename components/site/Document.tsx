@@ -91,15 +91,14 @@ function graph(locale: Locale) {
           'https://www.facebook.com/Iraqstockmarket/',
           'https://www.instagram.com/iqwealthh/',
         ],
-      },
-      {
-        '@type': 'FinancialService',
-        '@id': absUrl('/#service'),
-        name: 'Iraq Stock Exchange Market Tracker',
-        description: 'Stock market data for the Iraq Stock Exchange (ISX) · prices, charts, indices and company analysis.',
-        url: absUrl('/'),
+        /* A data publisher, not a place of business: there used to be a
+           separate `FinancialService` (LocalBusiness) node here, which Google
+           read as a local business missing an address and phone. The site
+           has neither; what it has is a market and a subject, and those
+           belong on the Organization. */
+        description: 'Market data and guides for the Iraq Stock Exchange (ISX) and the Iraqi economy · prices, indices, filings, bank rates, dollar and gold.',
         areaServed: { '@type': 'Country', name: 'Iraq' },
-        serviceType: 'Stock Market Data',
+        knowsAbout: ['Iraq Stock Exchange', 'ISX60', 'Iraqi dinar', 'Iraqi banks'],
       },
     ],
   }
