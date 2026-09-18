@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import { SessionWrapPage } from '@/components/site/SessionWrapPage'
-import { loadSessionWrap, loadSessions } from '@/lib/wrapServer'
+import { loadSessionWrap, loadSessions, sessionIndexable } from '@/lib/wrapServer'
 import { wrapVars } from '@/lib/wrapText'
 import { messages } from '@/lib/i18n'
 import { absUrl, seoAlternates } from '@/lib/seo'
@@ -29,6 +29,8 @@ export async function generateMetadata({ params }: { params: { date: string } })
     title: { absolute: title },
     description: t.wrap.seoDescription(v),
     alternates: seoAlternates(`/news/session/${s.date}`),
+    /* Older than SESSION_INDEX_DAYS: online, linked, but not offered to the index. */
+    ...(sessionIndexable(s.date) ? {} : { robots: { index: false, follow: true } }),
     openGraph: { url: absUrl(`/news/session/${s.date}`), type: 'article', title, publishedTime: `${s.date}T14:00:00+03:00`, images: [{ url: '/opengraph-image', width: 1200, height: 630 }] },
   }
 }

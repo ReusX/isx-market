@@ -115,3 +115,17 @@ export const loadSessionWrap = cache(async (date: string): Promise<SessionWrap |
     gainers, losers, active, foreign,
   }
 })
+
+/**
+ * Which session wraps Google is asked to index.
+ *
+ * Six hundred near-identical daily pages were being offered at once; Google
+ * would index the recent ones and leave the rest queued forever, which reads
+ * as a quality signal against the whole section. So the sitemap carries, and
+ * the pages allow indexing for, the last SESSION_INDEX_DAYS only. Older wraps
+ * stay online and linked from the archive (a reader with the date still finds
+ * them), they just carry noindex.
+ */
+export const SESSION_INDEX_DAYS = 90
+export const sessionIndexable = (date: string) =>
+  Date.now() - Date.parse(date) <= SESSION_INDEX_DAYS * 86_400_000

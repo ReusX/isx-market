@@ -5,7 +5,7 @@ import { editorialFor } from '@/lib/bankEditorial'
 import { listArticles, articlePath, type Section } from '@/lib/articles'
 import { getLastSessionDate } from '@/lib/freshness'
 import { absUrl } from '@/lib/seo'
-import { loadSessions } from '@/lib/wrapServer'
+import { loadSessions, sessionIndexable } from '@/lib/wrapServer'
 import { loadResultsIndex, resultsSlug } from '@/lib/resultsServer'
 import { isPaired } from '@/lib/i18n/routes'
 
@@ -101,7 +101,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     ...research.map(p => article('research', p)),
     ...learn.map(p => article('learn', p)),
     { url: absUrl('/news/session'), lastModified: sessions[0] ? new Date(sessions[0]) : now },
-    ...sessions.map((d) => ({ url: absUrl(`/news/session/${d}`), lastModified: new Date(d) })),
+    /* Recent wraps only — the older ones carry noindex (lib/wrapServer). */
+    ...sessions.filter(sessionIndexable).map((d) => ({ url: absUrl(`/news/session/${d}`), lastModified: new Date(d) })),
     /* Company results: one URL per trusted filing. */
     ...filings.map((k) => ({ url: absUrl(`/c/${k.sym}/results/${resultsSlug(k)}`), lastModified: k.addedAt ? new Date(k.addedAt) : now })),
   ]
