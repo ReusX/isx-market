@@ -1,4 +1,5 @@
 import type { Messages } from '@/lib/i18n'
+import { CURRENCY_FLAGS, type CurrencyCode } from '@/lib/currencies'
 
 /**
  * The one list of the site's pages, as the rails see them: route, icon,
@@ -23,7 +24,7 @@ export type RailDef = {
   /** Personal tools sit under their own small heading. */
   group?: 'tools'
   /** Sub-pages shown under the item behind a chevron — never as rail rows of their own. */
-  children?: { route: string; label: (t: Messages) => string }[]
+  children?: { route: string; label: (t: Messages) => string; icon?: string }[]
 }
 
 const m = (t: Messages) => t.market.page.rail
@@ -57,7 +58,7 @@ export const RAILS: Record<Door, RailDef[]> = {
     {
       route: '/currencies', icon: 'currencies', label: (t) => e(t).currencies,
       children: (['try', 'sar', 'irr', 'eur', 'aed', 'kwd', 'jod', 'gbp'] as const).map((c) => ({
-        route: `/currencies/${c}`, label: (t: Messages) => t.rates.page.currencies.names[c.toUpperCase()] ?? c.toUpperCase(),
+        route: `/currencies/${c}`, icon: CURRENCY_FLAGS[c.toUpperCase() as CurrencyCode], label: (t: Messages) => t.rates.page.currencies.names[c.toUpperCase()] ?? c.toUpperCase(),
       })),
     },
     { route: '/gold', icon: 'gold', label: (t) => e(t).gold },

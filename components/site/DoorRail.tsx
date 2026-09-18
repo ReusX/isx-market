@@ -113,7 +113,7 @@ export function DoorRail({ door, items: _legacy }: { door: Door; items?: RailIte
                 {open.includes(d.route) ? (
                   <div className="iqr-sub">
                     {d.children.filter((c) => existsIn(c.route, locale)).map((c) => (
-                      <Link key={c.route} href={L(c.route)} className="iqr-item is-sub" aria-current={route === c.route ? 'page' : undefined}><span className="iqr-label">{c.label(t)}</span></Link>
+                      <Link key={c.route} href={L(c.route)} className="iqr-item is-sub" aria-current={route === c.route ? 'page' : undefined}>{c.icon ? <span className="iqr-emoji" aria-hidden="true">{c.icon}</span> : null}<span className="iqr-label">{c.label(t)}</span></Link>
                     ))}
                   </div>
                 ) : null}

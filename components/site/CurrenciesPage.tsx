@@ -9,7 +9,7 @@ import { SiteShell } from './SiteShell'
 import { EconRail } from './EconRail'
 import { PageTitle } from './PageTitle'
 import { AboutSection } from './AboutSection'
-import { CURRENCY_CODES, type CurrenciesData, type CurrencyCode } from '@/lib/currencies'
+import { CURRENCY_CODES, CURRENCY_FLAGS, type CurrenciesData, type CurrencyCode } from '@/lib/currencies'
 import type { FxData } from '@/lib/rates'
 import { currenciesFaqFigures } from '@/lib/ratesFaq'
 import '@/styles/econ-page.css'
@@ -70,7 +70,7 @@ export function CurrenciesPage({ cur, fx }: { cur: CurrenciesData | null; fx: Fx
                 <p className="id-cap eco-when">{R.tools.observedOn(localeDate(cur.updatedAt.slice(0, 10), locale))} · {R.gold.atMarketRate} {nf0.format(market)} {R.gold.iqd}</p>
                 <div className="id-stats id-num eco-stats">
                   {(['GBP', 'TRY', 'AED', 'SAR', 'KWD'] as CurrencyCode[]).map((c) => (
-                    <div key={c} className="id-stat"><small>{P.names[c]}</small><b><bdi>{fmtIqd(iqdPer(c, market))}</bdi></b><span className="id-cap">{R.gold.iqd}</span></div>
+                    <div key={c} className="id-stat"><small><span className="oil-flag" aria-hidden="true">{CURRENCY_FLAGS[c]}</span>{P.names[c]}</small><b><bdi>{fmtIqd(iqdPer(c, market))}</bdi></b><span className="id-cap">{R.gold.iqd}</span></div>
                   ))}
                 </div>
               </>
@@ -88,7 +88,7 @@ export function CurrenciesPage({ cur, fx }: { cur: CurrenciesData | null; fx: Fx
                       const m = mult(c)
                       return (
                         <tr key={c} className={c === 'EUR' ? 'is-lead' : undefined}>
-                          <td><span className="id-name">{PAGES[c] && locale === 'ar' ? <Link href={`/currencies/${PAGES[c]}`}>{P.names[c] ?? c}</Link> : (P.names[c] ?? c)}</span><span className="id-sub"><bdi>{c}</bdi>{m > 1 ? ` · ${P.thousand}` : ''}</span></td>
+                          <td><span className="id-name"><span className="oil-flag" aria-hidden="true">{CURRENCY_FLAGS[c]}</span>{PAGES[c] && locale === 'ar' ? <Link href={`/currencies/${PAGES[c]}`}>{P.names[c] ?? c}</Link> : (P.names[c] ?? c)}</span><span className="id-sub"><bdi>{c}</bdi>{m > 1 ? ` · ${P.thousand}` : ''}</span></td>
                           <td className="is-end"><bdi>{fmtIqd((iqdPer(c, market) ?? 0) * m || null)}</bdi></td>
                           <td className="is-end"><bdi>{fmtIqd((iqdPer(c, CBI_OFFICIAL_RATE) ?? 0) * m || null)}</bdi></td>
                           <td className="is-end"><bdi>{nf4.format(perUsd(c) as number)}</bdi></td>

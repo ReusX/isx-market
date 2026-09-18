@@ -285,3 +285,4 @@
 @media (max-width: 719px) {
   .iqr-sheet .iqr-sub { display: flex; }
 }
+.iqr-emoji { flex: 0 0 18px; font-size: 14px; text-align: center; }

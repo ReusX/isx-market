@@ -9,7 +9,7 @@ import { EconRail } from './EconRail'
 import { PageTitle } from './PageTitle'
 import { AboutSection } from './AboutSection'
 import { SeriesChart, type ChartRange } from './SeriesChart'
-import type { CurrenciesData, CurrencyCode } from '@/lib/currencies'
+import { CURRENCY_FLAGS, type CurrenciesData, type CurrencyCode } from '@/lib/currencies'
 import type { FxData } from '@/lib/rates'
 import { faqVars, fmtIqd, fmtX, nf0, nf2, currencyFigures } from '@/lib/currencyFigures'
 import '@/styles/econ-page.css'
@@ -69,7 +69,7 @@ export function CurrencyPage({ code, peg, toman, cur, fx, history, others }: Cur
         <div className="eco-body">
           <header className="eco-head">
             <p className="id-eyebrow">{R.page.eyebrow}</p>
-            <PageTitle title={P.title(name)} note={P.leadNote(name)} />
+            <PageTitle title={`${CURRENCY_FLAGS[code]} ${P.title(name)}`} note={P.leadNote(name)} />
             {iqdUnit == null || !f.market ? <p className="id-note">{R.tools.unavailable}</p> : (
               <>
                 <p className="eco-lead id-num">
@@ -145,7 +145,7 @@ export function CurrencyPage({ code, peg, toman, cur, fx, history, others }: Cur
           <nav className="eco-others" aria-label={P.others}>
             <p className="id-cap">{P.others}</p>
             <div className="id-pills">
-              {others.map((o) => <Link key={o.code} href={`/currencies/${o.slug}`} className="id-pill">{R.page.currencies.names[o.code] ?? o.code}</Link>)}
+              {others.map((o) => <Link key={o.code} href={`/currencies/${o.slug}`} className="id-pill">{CURRENCY_FLAGS[o.code]} {R.page.currencies.names[o.code] ?? o.code}</Link>)}
               <Link href="/currencies" className="id-pill">{P.allCurrencies}</Link>
             </div>
           </nav>

@@ -15,3 +15,9 @@ export interface CurrenciesData {
   source: string
   sourceUrl: string
 }
+
+/** Flag emoji per currency — the issuing country; the euro gets the EU flag. */
+export const CURRENCY_FLAGS: Record<CurrencyCode, string> = {
+  EUR: '🇪🇺', GBP: '🇬🇧', TRY: '🇹🇷', AED: '🇦🇪', SAR: '🇸🇦', KWD: '🇰🇼', JOD: '🇯🇴', QAR: '🇶🇦', BHD: '🇧🇭', OMR: '🇴🇲', EGP: '🇪🇬', IRR: '🇮🇷', SYP: '🇸🇾', LBP: '🇱🇧',
+  CNY: '🇨🇳', JPY: '🇯🇵', INR: '🇮🇳', PKR: '🇵🇰', RUB: '🇷🇺', CHF: '🇨🇭', CAD: '🇨🇦', AUD: '🇦🇺', SEK: '🇸🇪', NOK: '🇳🇴', MYR: '🇲🇾', KRW: '🇰🇷',
+}
