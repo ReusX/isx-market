@@ -183,6 +183,7 @@ export const rates: typeof ar = {
     source: 'Source',
     fx: {
       title: 'Dollar rate in Iraq today',
+      hundred: (v: string) => `100 dollars today: ${v} Iraqi dinars · Baghdad (Kifah) market close`,
       perDollar: 'dinars per dollar',
       market: 'Parallel market',
       official: 'Official rate',
@@ -280,7 +281,7 @@ export const rates: typeof ar = {
         ],
       },
       faqTitle: 'Questions about currency rates in Iraq',
-      faq: (v: { eur: string; gbp: string; try: string; aed: string; sar: string; kwd: string; jod: string; usd: string; date: string }) => [
+      faq: (v: { eur: string; gbp: string; try: string; aed: string; sar: string; kwd: string; jod: string; usd: string; usdTry: string; date: string }) => [
         { q: 'What is the euro rate in Iraq today?', a: `The euro is about ${v.eur} Iraqi dinars at the parallel-market rate (updated ${v.date}), computed from the euro\'s dollar rate and the market dollar (${v.usd} dinars).` },
         { q: 'What is the Turkish lira in Iraqi dinars?', a: `The lira is about ${v.try} dinars at the parallel rate. It moves a lot against the dollar, so the figure changes daily.` },
         { q: 'What are the UAE dirham and Saudi riyal in dinars?', a: `The dirham is about ${v.aed} dinars and the riyal about ${v.sar} dinars at the parallel rate. Both are pegged to the dollar, so they track the dollar rate directly.` },

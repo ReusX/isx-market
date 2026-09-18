@@ -305,6 +305,7 @@ export const banks: typeof ar = {
     },
     guideBanks: 'The best banks in Iraq, 2026 — ranked by the numbers',
     guideCards: 'The best payment cards in Iraq, 2026',
+    guidePension: 'Pensioner data update 2026: link and steps',
     soon: 'Soon',
     counts: { total: 'banks in the CBI directory', listed: 'listed on the exchange', usd: 'USD-restricted', guardianship: 'under guardianship or liquidation', publishing: 'publish product terms' },
     depositsTitle: 'Highest published term-deposit rates',

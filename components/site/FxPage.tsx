@@ -77,6 +77,8 @@ export function FxPage({ fx, parallel, official, faq }: { fx: FxData | null; par
               <strong>{market == null ? '—' : nf0.format(market)}</strong>
               <span className="eco-unit">{P.perDollar} · {P.market}</span>
             </p>
+            {/* «سعر الورق» — the $100 note is how the street quotes the rate. */}
+            {market != null ? <p className="eco-hundred id-num">{P.hundred(nf0.format(market * 100))}</p> : null}
             <p className="id-cap eco-when">
               {fx?.stale ? `${C.staleNotice} · ` : ''}{fx?.date ? R.tools.observedOn(localeDate(fx.date, locale)) : R.tools.noObserved}
             </p>

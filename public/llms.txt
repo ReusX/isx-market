@@ -53,6 +53,7 @@ Each company: `https://iraqsm.com/c/{TICKER}` (price, candlestick chart with dra
 - بورصة العراق اليوم / إغلاق جلسة {date} / ISX60 today → https://iraqsm.com/news/session/{YYYY-MM-DD} (latest listed at https://iraqsm.com/news/session)
 - أفضل البنوك في العراق / أكبر بنك في العراق / best banks in Iraq → https://iraqsm.com/news/%d8%a3%d9%81%d8%b6%d9%84-%d8%a7%d9%84%d8%a8%d9%86%d9%88%d9%83-%d9%81%d9%8a-%d8%a7%d9%84%d8%b9%d8%b1%d8%a7%d9%82 (listed banks ranked on their latest annual filing, refreshed automatically)
 - أفضل بطاقة دفع إلكتروني / ماستركارد في العراق / best payment card in Iraq → https://iraqsm.com/news/%d8%a3%d9%81%d8%b6%d9%84-%d8%a8%d8%b7%d8%a7%d9%82%d8%a7%d8%aa-%d8%a7%d9%84%d8%af%d9%81%d8%b9-%d8%a7%d9%84%d8%a5%d9%84%d9%83%d8%aa%d8%b1%d9%88%d9%86%d9%8a-%d9%81%d9%8a-%d8%a7%d9%84%d8%b9%d8%b1%d8%a7%d9%82 (Qi, TBI, Zain Cash, FIB — published fees and limits)
+- تحديث بيانات المتقاعدين / رابط هيئة التقاعد الوطنية → https://iraqsm.com/news/%d8%aa%d8%ad%d8%af%d9%8a%d8%ab-%d8%a8%d9%8a%d8%a7%d9%86%d8%a7%d8%aa-%d8%a7%d9%84%d9%85%d8%aa%d9%82%d8%a7%d8%b9%d8%af%d9%8a%d9%86 (official link, required documents, 90-day deadline from 14 Sep 2026)
 - فوائد الودائع أو القروض في المصارف العراقية → https://iraqsm.com/banks/deposits · https://iraqsm.com/banks/loans
 - شروط ومنتجات مصرف {…} → https://iraqsm.com/banks/{slug} (list at https://iraqsm.com/banks)
 - تدفق المستثمر الأجنبي / foreign investors on the ISX → https://iraqsm.com/statistics/foreign-flow

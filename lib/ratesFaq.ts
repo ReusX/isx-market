@@ -74,6 +74,7 @@ export function currenciesFaqFigures(cur: CurrenciesData | null, fx: FxData | nu
   return {
     eur: iqd('EUR'), gbp: iqd('GBP'), try: iqd('TRY'), aed: iqd('AED'), sar: iqd('SAR'), kwd: iqd('KWD'), jod: iqd('JOD'),
     usd: market ? n0.format(market) : "—",
+    usdTry: cur?.perUsd.TRY ? n0.format(cur.perUsd.TRY * 100) : "—",
     date: cur?.updatedAt ? localeDate(cur.updatedAt.slice(0, 10), locale) : '—',
   }
 }

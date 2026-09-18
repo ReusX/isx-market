@@ -2,8 +2,10 @@ import type { Metadata } from 'next'
 import { absUrl, seoAlternates } from '@/lib/seo'
 
 export const metadata: Metadata = {
-  title: { absolute: 'سعر الذهب اليوم في العراق · مثقال وغرام عيار 21 و24' },
-  description: 'سعر الذهب اليوم في العراق بالدينار العراقي: سعر المثقال والغرام لعيار 24 و21 و18، مع السعر العالمي للأونصة وحاسبة تحوّل أي وزن إلى قيمته الحالية.',
+  /* The year is in the title on purpose: «سعر مثقال الذهب اليوم في العراق 2026» is a
+     query in its own right (Trends, Sep 2026, +300%). Bump it each January. */
+  title: { absolute: 'سعر الذهب اليوم في العراق 2026 · مثقال وغرام عيار 21 و24' },
+  description: 'سعر مثقال الذهب اليوم في العراق 2026 بالدينار العراقي: المثقال والغرام لعيار 24 و21 و18، وسعر اونصة الذهب عالمياً، مع حاسبة تحوّل أي وزن إلى قيمته الحالية.',
   alternates: seoAlternates('/gold'),
   keywords: [
     'gold price in iraq', 'iraq gold price today', 'gold price iraq 2026',
@@ -14,7 +16,7 @@ export const metadata: Metadata = {
     'سعر الذهب اليوم', 'سعر الذهب اليوم في العراق',
     'اسعار الذهب عالميا', 'اسعار الذهب اليوم في العراق', 'سعر مثقال الذهب عيار 21',
     'سعر غرام الذهب في العراق', 'اسعار الذهب العراق اليوم',
-    'سعر الذهب بالدينار العراقي',
+    'سعر الذهب بالدينار العراقي', 'سعر مثقال الذهب اليوم في العراق 2026', 'اونصة الذهب', 'سعر اونصة الذهب',
   ],
   openGraph: {
     url: absUrl('/gold'),
@@ -22,7 +24,7 @@ export const metadata: Metadata = {
        search term people type, not a claim the card makes — the source
        publishes one daily price list and this product re-reads it every three
        hours, which is not a live feed. */
-    title: 'سعر الذهب اليوم في العراق · مثقال وغرام عيار 21 و24',
+    title: 'سعر الذهب اليوم في العراق 2026 · مثقال وغرام عيار 21 و24',
     description: 'سعر الذهب اليوم في العراق لكل غرام ومثقال بالدينار العراقي والدولار، مع السعر العالمي للأونصة. Iraq gold price per gram and mithqal.',
     images: [{ url: '/opengraph-image', width: 1200, height: 630 }],
   },
