@@ -23,6 +23,7 @@
   "/contact": "○",
   "/currencies": "○",
   "/currencies/[code]": "●",
+  "/data/fx-history.json": "ƒ",
   "/data/fx.json": "○",
   "/data/gold.json": "○",
   "/data/index.json": "○",

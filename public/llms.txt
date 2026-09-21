@@ -76,6 +76,7 @@ All answers carry `asOf` (the session or reading date), `source`, `page`, `publi
 - https://iraqsm.com/data/quotes.json — every listed company's last session: close, change %, value, volume, trades, traded/untraded and last trade date.
 - https://iraqsm.com/data/companies.json — the company list (ticker, names, sector, shares).
 - https://iraqsm.com/sitemap.xml — every indexable page.
+- https://iraqsm.com/data/fx-history.json — daily dollar series: our Baghdad parallel record (open/high/low/close/buy/sell, since 2026-08-27) and the CBI official rate since 2003; `?from=YYYY-MM-DD` to trim.
 
 Refresh: quotes/index hourly, the dollar every 15 minutes, gold hourly; all update after the ISX session closes (~13:00 Baghdad) and the sources publish.
 
