@@ -14,6 +14,50 @@ import { marked } from 'marked'
  * Frontmatter is deliberately tiny — `key: value` lines, strings in JSON quotes
  * when they need it — so no YAML dependency is pulled into the server bundle.
  */
+/**
+ * Callout directives, for guides that are read in a hurry.
+ *
+ * A guide can wrap part of its body in `:::cta` … `:::` (or `check`, `steps`,
+ * `warn`, `info`, `qa`) and the loader turns that region into a styled box.
+ * Markdown inside is rendered normally — the directive only wraps it — so the
+ * prose stays plain text in the file and a heading keeps its place in the
+ * outline. `:::qa` is the exception: each `h3` inside it becomes a collapsed
+ * `<details>`, which is what turns a wall of troubleshooting into something a
+ * reader can scan on a phone (the FAQ structured data reads `summary` too).
+ */
+const CALLOUTS = ['cta', 'check', 'steps', 'warn', 'info', 'qa'] as const
+
+const md = (src: string) => marked.parse(src, { async: false, gfm: true }) as string
+
+function qaAccordion(inner: string): string {
+  return inner.split(/(?=<h3[^>]*>)/).map((part) => {
+    const m = /^<h3[^>]*>([\s\S]*?)<\/h3>([\s\S]*)$/.exec(part)
+    return m ? `<details class="qa"><summary>${m[1]}</summary><div class="qa-body">${m[2]}</div></details>` : part
+  }).join('')
+}
+
+/**
+ * Render Markdown, turning `:::kind` regions into callout boxes.
+ *
+ * The split happens on the SOURCE, not the rendered HTML: Markdown folds a
+ * marker line into the paragraph that follows it, so by the time it is HTML the
+ * boundary is gone. Each region is rendered on its own and wrapped.
+ */
+const REGION = /^:::([a-z]+)[ \t]*\r?\n([\s\S]*?)\r?\n:::[ \t]*$/gm
+
+function renderBody(src: string): string {
+  let out = '', last = 0
+  for (const m of Array.from(src.matchAll(REGION))) {
+    const kind = m[1]
+    if (!(CALLOUTS as readonly string[]).includes(kind)) continue
+    out += md(src.slice(last, m.index))
+    const inner = md(m[2])
+    out += `<div class="cal cal-${kind}">${kind === 'qa' ? qaAccordion(inner) : inner}</div>`
+    last = (m.index ?? 0) + m[0].length
+  }
+  return out + md(src.slice(last))
+}
+
 export type Section = 'news' | 'research' | 'learn'
 export const SECTIONS: Section[] = ['news', 'research', 'learn']
 
@@ -34,6 +78,8 @@ export interface Article {
   tickers: string[]
   /** Evergreen guides are refreshed in place; the feed treats them differently from dated news. */
   evergreen: boolean
+  /** `guide` opts into the larger, boxed reading layout (see styles/news-page.css). */
+  layout: 'article' | 'guide'
 }
 
 const ROOT = path.join(process.cwd(), 'content', 'articles')
@@ -59,9 +105,7 @@ function load(section: Section, file: string): Article | null {
   const raw = readFileSync(path.join(ROOT, section, file), 'utf8')
   const { meta, body } = parseFrontmatter(raw)
   if (!meta.slug || !meta.title || !meta.date) return null
-  const html = meta.format === 'html'
-    ? body.trim()
-    : (marked.parse(body, { async: false, gfm: true }) as string)
+  const html = meta.format === 'html' ? body.trim() : renderBody(body)
   const image = meta.image || html.match(/<img[^>]*\ssrc="([^"]+)"/)?.[1] || null
   return {
     id: Number(meta.id) || 0,
@@ -77,6 +121,7 @@ function load(section: Section, file: string): Article | null {
     tags: list(meta.tags),
     tickers: list(meta.tickers).map((t) => t.toUpperCase()),
     evergreen: meta.evergreen === 'true',
+    layout: meta.layout === 'guide' ? 'guide' : 'article',
   }
 }
 

@@ -33,22 +33,22 @@ const BLOCK = /<p>\{\{([a-z0-9-]+)\}\}<\/p>/g
 /* `matchAll` inherits a global regex's lastIndex, so the presence test must not touch it. */
 const HAS_BLOCK = /<p>\{\{[a-z0-9-]+\}\}<\/p>/
 
-function Body({ html, blocks }: { html: string; blocks?: Record<string, ReactNode> }) {
-  if (!blocks || !HAS_BLOCK.test(html)) return <div className="art-body id-body" dangerouslySetInnerHTML={{ __html: html }} />
+function Body({ html, blocks, cls }: { html: string; blocks?: Record<string, ReactNode>; cls: string }) {
+  if (!blocks || !HAS_BLOCK.test(html)) return <div className={cls} dangerouslySetInnerHTML={{ __html: html }} />
   const parts: ReactNode[] = []
   let last = 0, i = 0
   for (const m of Array.from(html.matchAll(BLOCK))) {
     const before = html.slice(last, m.index)
-    if (before.trim()) parts.push(<div key={`h${i++}`} className="art-body id-body" dangerouslySetInnerHTML={{ __html: before }} />)
+    if (before.trim()) parts.push(<div key={`h${i++}`} className={cls} dangerouslySetInnerHTML={{ __html: before }} />)
     parts.push(<div key={`b${i++}`} className="art-block">{blocks[m[1]] ?? null}</div>)
     last = (m.index ?? 0) + m[0].length
   }
   const rest = html.slice(last)
-  if (rest.trim()) parts.push(<div key={`h${i++}`} className="art-body id-body" dangerouslySetInnerHTML={{ __html: rest }} />)
+  if (rest.trim()) parts.push(<div key={`h${i++}`} className={cls} dangerouslySetInnerHTML={{ __html: rest }} />)
   return <>{parts}</>
 }
 
-export function ArticlePage({ eyebrow, backHref, backLabel, title, standfirst, author, dateLabel, dateTime, image, imageAlt, bodyHtml, blocks, headings, related, prev, next, relatedLabel }: {
+export function ArticlePage({ eyebrow, backHref, backLabel, title, standfirst, author, dateLabel, dateTime, image, imageAlt, bodyHtml, blocks, layout = 'article', headings, related, prev, next, relatedLabel }: {
   eyebrow: string
   backHref: string
   backLabel: string
@@ -61,6 +61,7 @@ export function ArticlePage({ eyebrow, backHref, backLabel, title, standfirst, a
   imageAlt: string
   bodyHtml: string
   blocks?: Record<string, ReactNode>
+  layout?: 'article' | 'guide'
   headings: Heading[]
   related: ArticleNeighbour[]
   prev: ArticleNeighbour | null
@@ -106,7 +107,7 @@ export function ArticlePage({ eyebrow, backHref, backLabel, title, standfirst, a
           ) : null}
 
           {/* The written body: its own headings, links, images and tables, with live blocks spliced in. */}
-          <Body html={bodyHtml} blocks={blocks} />
+          <Body html={bodyHtml} blocks={blocks} cls={`art-body id-body${layout === 'guide' ? ' art-guide' : ''}`} />
 
           {prev || next ? (
             <nav className="art-nav" aria-label={a.articleNav}>

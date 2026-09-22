@@ -43,9 +43,12 @@ function faqPairs(html: string): [string, string][] {
   if (start < 0) return []
   const tail = html.slice(start)
   const out: [string, string][] = []
-  for (const m of Array.from(tail.matchAll(/<h3[^>]*>([\s\S]*?)<\/h3>\s*((?:<p>[\s\S]*?<\/p>\s*)+)/g))) {
-    const q = plainText(m[1]), ans = plainText(m[2])
-    if (q && ans) out.push([q, ans])
+  /* Two shapes, same FAQ: a guide renders each question as a <details>
+     accordion, an article as an h3 followed by paragraphs. */
+  const push = (q: string, a: string) => { const qq = plainText(q), aa = plainText(a); if (qq && aa) out.push([qq, aa]) }
+  for (const m of Array.from(tail.matchAll(/<summary>([\s\S]*?)<\/summary>\s*<div class="qa-body">([\s\S]*?)<\/div>\s*<\/details>/g))) push(m[1], m[2])
+  if (!out.length) {
+    for (const m of Array.from(tail.matchAll(/<h3[^>]*>([\s\S]*?)<\/h3>\s*((?:<p>[\s\S]*?<\/p>\s*)+)/g))) push(m[1], m[2])
   }
   return out
 }

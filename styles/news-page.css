@@ -60,6 +60,12 @@
 .art-body th, .art-body td { padding: 8px 6px; border-bottom: 1px solid var(--border); text-align: start; }
 .art-body blockquote { margin: 0 0 18px; padding-inline-start: 16px; border-inline-start: 2px solid var(--border); color: var(--secondary); }
 .art-body ul, .art-body ol { margin: 0 0 18px; padding-inline-start: 22px; }
+/* `.site :where(ul,ol)` clears markers site-wide (it is a reset for nav lists);
+   an article body is prose and needs them back. */
+.art-body ul { list-style: disc; }
+.art-body ol { list-style: decimal; }
+.art-body li::marker { color: var(--secondary); }
+.cal-check ul, .cal-steps ol { list-style: none; }
 .art-nav { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 36px 0 0; padding-top: 20px; border-top: 1px solid var(--border); }
 .art-nav-a { display: grid; gap: 4px; color: var(--ink); text-decoration: none; font-size: 15px; }
 .art-nav-a.is-next { text-align: end; }
@@ -89,3 +95,91 @@
 .pen-dl.is-over { border-inline-start-color: var(--down); }
 .pen-dl-n { margin: 0; font-size: clamp(26px, 4vw, 34px); font-weight: 300; line-height: 1.1; }
 .pen-dl-s { margin: 6px 0 0; font-size: 15px; color: var(--secondary); line-height: 1.6; }
+
+/* ── Guide layout (`layout: guide`) ────────────────────────────────────────
+   Written for the reader this page actually gets: an older phone user who
+   arrived from Google, wants one link, and will not read a wall. Bigger type,
+   clear section rules, and every instruction in a box of its own. */
+.art-guide { font-size: 18px; line-height: 1.9; }
+.art-guide h2 { margin: 40px 0 14px; padding-top: 18px; border-top: 1px solid var(--border); font-size: 25px; }
+.art-guide h2:first-child { border-top: 0; padding-top: 0; }
+.art-guide p { margin: 0 0 16px; }
+.art-guide ul, .art-guide ol { padding-inline-start: 24px; }
+.art-guide li { margin: 0 0 10px; }
+.art-guide table { font-size: 16px; }
+.art-guide strong { font-weight: 600; }
+
+/* Callout boxes shared shell. */
+.cal { margin: 0 0 22px; padding: 18px 20px; border: 1px solid var(--border); border-radius: var(--r-md); background: var(--surface-2); }
+.cal > :first-child { margin-top: 0; }
+.cal > :last-child { margin-bottom: 0; }
+
+/* The one thing the reader came for: the official link, as a button. */
+.cal-cta { background: var(--surface); border-inline-start: 3px solid var(--blue); }
+.cal-cta p { margin: 0 0 12px; }
+.cal-cta a[href^="https://pension-update"], .cal-cta a.is-go {
+  display: flex; align-items: center; justify-content: center; gap: 10px; min-height: 56px; padding: 0 22px;
+  background: var(--primary-bg); color: var(--primary-ink); border: 1px solid var(--primary-bg); border-radius: var(--r-pill);
+  font-size: 18px; font-weight: 600; text-decoration: none; text-align: center; word-break: break-word;
+}
+.cal-cta a[href^="https://pension-update"]:hover, .cal-cta a.is-go:hover { background: var(--primary-hover); border-color: var(--primary-hover); }
+.cal-cta .cal-hint { margin: 10px 0 0; font-size: 14px; color: var(--secondary); text-align: center; }
+
+/* What to prepare: a checklist, not a bullet list. */
+.cal-check ul { list-style: none; margin: 0; padding: 0; }
+.cal-check li { position: relative; padding-inline-start: 30px; margin: 0 0 12px; }
+.cal-check li::before {
+  content: ""; position: absolute; inset-inline-start: 0; top: 7px; width: 16px; height: 16px;
+  border: 1.5px solid var(--blue); border-radius: 4px;
+}
+.cal-check li::after {
+  content: ""; position: absolute; inset-inline-start: 5px; top: 11px; width: 6px; height: 10px;
+  border-inline-end: 2px solid var(--blue); border-bottom: 2px solid var(--blue); transform: rotate(45deg);
+}
+
+/* The steps, as numbered cards. */
+.cal-steps { padding: 0; border: 0; background: transparent; }
+.cal-steps ol { list-style: none; margin: 0; padding: 0; counter-reset: st; display: grid; gap: 12px; }
+.cal-steps li {
+  counter-increment: st; position: relative; margin: 0; padding: 16px 20px 16px 20px; padding-inline-start: 64px;
+  border: 1px solid var(--border); border-radius: var(--r-md); background: var(--surface-2);
+}
+.cal-steps li::before {
+  content: counter(st); position: absolute; inset-inline-start: 18px; top: 14px;
+  width: 30px; height: 30px; display: flex; align-items: center; justify-content: center;
+  border-radius: 50%; background: var(--sel-bg); color: var(--ink); font-size: 15px; font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+/* A real warning reads differently from a note. */
+.cal-warn { border-inline-start: 3px solid var(--down); background: color-mix(in srgb, var(--down) 7%, var(--surface-2)); }
+.cal-info { border-inline-start: 3px solid var(--border); }
+
+/* Questions as accordions: the reader finds their own case and opens it. */
+.cal-qa { padding: 0; border: 0; background: transparent; display: grid; gap: 8px; }
+details.qa { border: 1px solid var(--border); border-radius: var(--r-md); background: var(--surface-2); }
+details.qa > summary {
+  list-style: none; cursor: pointer; padding: 15px 18px; font-size: 17px; font-weight: 500;
+  display: flex; align-items: center; gap: 10px; min-height: 56px;
+}
+details.qa > summary::-webkit-details-marker { display: none; }
+/* Physical borders, not logical: the arrow must point DOWN when collapsed in
+   both directions, and `border-inline-end` flips it under RTL. */
+details.qa > summary::after {
+  content: ""; margin-inline-start: auto; width: 9px; height: 9px; flex: 0 0 9px; margin-bottom: 4px;
+  border-right: 2px solid var(--secondary); border-bottom: 2px solid var(--secondary);
+  transform: rotate(45deg); transition: transform .15s;
+}
+details.qa[open] > summary::after { transform: rotate(-135deg); margin-bottom: 0; }
+details.qa[open] > summary { border-bottom: 1px solid var(--border); }
+details.qa > summary:hover { background: var(--surface); }
+.qa-body { padding: 14px 18px 4px; font-size: 17px; }
+.qa-body > :last-child { margin-bottom: 14px; }
+
+@media (max-width: 560px) {
+  .art-guide { font-size: 17px; }
+  .art-guide h2 { font-size: 22px; margin-top: 32px; }
+  .cal { padding: 15px 16px; }
+  .cal-steps li { padding-inline-start: 56px; }
+  .cal-steps li::before { inset-inline-start: 14px; }
+}

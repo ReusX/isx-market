@@ -73,6 +73,7 @@ export default async function NewsArticle({ params }: { params: { slug: string }
       imageAlt={plainText(article.title)}
       bodyHtml={article.bodyHtml}
       blocks={{ 'bank-ranking': <BankRankingBlock />, 'pension-deadline': <DeadlineBlock /> }}
+      layout={article.layout}
       headings={article.headings}
       related={article.related}
       prev={article.prev}

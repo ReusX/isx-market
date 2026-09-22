@@ -22,6 +22,7 @@ export type LoadedArticle = {
   dateTime: string | null
   image: string | null
   bodyHtml: string
+  layout: 'article' | 'guide'
   headings: ReturnType<typeof outlineBody>['headings']
   related: ArticleNeighbour[]
   prev: ArticleNeighbour | null
@@ -72,6 +73,7 @@ export async function loadArticle(
     dateTime: post.date || null,
     image: post.image,
     bodyHtml: html,
+    layout: post.layout,
     headings,
     // Newest-first, so the entry BEFORE this one is the newer article.
     prev: at > 0 ? asNeighbour(list[at - 1]) : null,
