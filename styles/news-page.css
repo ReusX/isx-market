@@ -83,3 +83,9 @@
 .bkr-name a:hover { text-decoration: underline; }
 .bkr-tick { font-size: 12px; color: var(--blue) !important; }
 .bkr-note { margin: 10px 0 0; }
+
+/* `{{pension-deadline}}` — days left in an official window. */
+.pen-dl { margin: 0; padding: 16px 18px; border: 1px solid var(--border); border-inline-start: 3px solid var(--blue); border-radius: var(--r-md); background: var(--surface-2); }
+.pen-dl.is-over { border-inline-start-color: var(--down); }
+.pen-dl-n { margin: 0; font-size: clamp(26px, 4vw, 34px); font-weight: 300; line-height: 1.1; }
+.pen-dl-s { margin: 6px 0 0; font-size: 15px; color: var(--secondary); line-height: 1.6; }

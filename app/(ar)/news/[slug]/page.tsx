@@ -6,6 +6,7 @@ import { loadArticle } from '@/lib/articleLoad'
 import { ArticlePage } from '@/components/site/ArticlePage'
 import { absUrl, seoAlternates } from '@/lib/seo'
 import { BankRankingBlock } from '@/components/site/BankRankingBlock'
+import { DeadlineBlock } from '@/components/site/DeadlineBlock'
 import { articleJsonLd } from '@/lib/articleSeo'
 
 /**
@@ -71,7 +72,7 @@ export default async function NewsArticle({ params }: { params: { slug: string }
       image={article.image}
       imageAlt={plainText(article.title)}
       bodyHtml={article.bodyHtml}
-      blocks={{ 'bank-ranking': <BankRankingBlock /> }}
+      blocks={{ 'bank-ranking': <BankRankingBlock />, 'pension-deadline': <DeadlineBlock /> }}
       headings={article.headings}
       related={article.related}
       prev={article.prev}
