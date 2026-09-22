@@ -59,6 +59,7 @@ export const ROUTES: RouteEntry[] = [
 
   // ── Rates tools ─────────────────────────────────────────────────────────
   { pattern: '/fx',                        cls: 'mirror' },
+  { pattern: '/fx/100-dollar',             cls: 'ar-only', why: 'One question — «كم سعر 100 دولار في العراق اليوم» and its slang form «سعر الورق» — written for the Arabic queries that ask it; /en/fx already carries the rate and a converter.' },
   { pattern: '/currencies/[code]',         cls: 'ar-only', why: 'One page per major currency, written for the Arabic queries («سعر اليورو اليوم في العراق»); the English table at /en/currencies already carries the figures.' },
   { pattern: '/gold',                      cls: 'mirror' },
   { pattern: '/gold/[unit]',               cls: 'ar-only', why: 'One page per unit and per karat, written for the Arabic queries («سعر مثقال الذهب اليوم في العراق عيار 21»); the English table at /en/gold already carries every figure.' },

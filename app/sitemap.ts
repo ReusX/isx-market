@@ -61,6 +61,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: absUrl('/cbi-window'), lastModified: new Date('2025-02-27') },
     { url: absUrl('/inflation'),  lastModified: new Date('2026-07-01') },
     { url: absUrl('/fx'),         lastModified: now },
+    { url: absUrl('/fx/100-dollar'), lastModified: now },
     // Statistics hub + dedicated panels
     { url: absUrl('/statistics'),              lastModified: dataDate },
     { url: absUrl('/statistics/foreign-flow'), lastModified: dataDate },

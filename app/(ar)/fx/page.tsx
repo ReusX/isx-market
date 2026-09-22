@@ -13,9 +13,10 @@ export const revalidate = 900
 export const dynamic = 'force-static'
 
 /*
- * Metadata lives here rather than in ./layout.tsx because it carries the live
- * rate, which means it has to be built from the fetch. `fetchFx` is the same
- * call the page body makes and Next dedupes it, so this is free.
+ * Metadata carries the live rate, so it has to be built from the fetch.
+ * `getFx` is the memoized accessor the page body also calls, so this is free —
+ * calling the raw scrape twice is what once made a 90-second build run past
+ * ten minutes (see lib/fxCopy.ts).
  *
  * The rate goes in the title and the description for the same reason it went
  * into the company pages: "كم سعر الدولار اليوم" is a question about a number,
@@ -54,7 +55,7 @@ export async function generateMetadata(): Promise<Metadata> {
       'الدينار العراقي مقابل الدولار', 'سعر الدولار في بغداد اليوم',
       // Dropped in the rewrite and restored for completeness. Google has
       // ignored this tag since 2009, so this changes nothing on its own —
-      // the coverage that matters is the body copy in ./layout.tsx.
+      // the coverage that matters is the body copy on the page itself.
       'دولار مقابل دينار عراقي', 'العملة العراقية مقابل الدولار',
       'سعر صرف الدينار العراقي مقابل الدولار',
       'usd to iqd', 'iqd to usd', 'iraqi dinar to dollar', 'dollar to iraqi dinar rate',
@@ -72,6 +73,49 @@ export async function generateMetadata(): Promise<Metadata> {
   }
 }
 
+/*
+ * The page's own WebPage + FAQPage nodes. These used to sit in ./layout.tsx,
+ * which put the @id of /fx — and a second FAQPage — onto every route nested
+ * under it. A child route would then have shipped two WebPage nodes and two
+ * FAQPage nodes for one URL.
+ */
+function fxSchema(fx: Awaited<ReturnType<typeof getFx>>) {
+  const faq = buildFxFaq(fx)
+  return {
+    '@context': 'https://schema.org',
+    '@graph': [
+      {
+        '@type': 'WebPage',
+        '@id': absUrl('/fx'),
+        url: absUrl('/fx'),
+        name: 'سعر الدولار اليوم في العراق · الدولار مقابل الدينار العراقي',
+        description: 'سعر صرف الدولار الأمريكي مقابل الدينار العراقي اليوم، السعر الرسمي وسعر السوق الموازية، ومحول العملات IQD/USD.',
+        inLanguage: ['ar-IQ', 'en'],
+        // The rate's own date, so the SERP can show when this was last true.
+        ...(fx?.date ? { dateModified: fx.date } : {}),
+        breadcrumb: {
+          '@type': 'BreadcrumbList',
+          itemListElement: [
+            { '@type': 'ListItem', position: 1, name: 'IQWealth', item: absUrl('/') },
+            { '@type': 'ListItem', position: 2, name: 'سعر الدولار في العراق', item: absUrl('/fx') },
+          ],
+        },
+      },
+      {
+        // Same `faq` array the page renders · structured data that disagrees
+        // with the visible copy is worse than none, and these two had already
+        // drifted apart when they were maintained separately.
+        '@type': 'FAQPage',
+        mainEntity: faq.map((item) => ({
+          '@type': 'Question',
+          name: item.q,
+          acceptedAnswer: { '@type': 'Answer', text: item.a },
+        })),
+      },
+    ],
+  }
+}
+
 export default async function FxPage() {
   /* The two series are read here, on the server, so the page stays static and
      the client never learns the anon key. `official` reaches back to 2003
@@ -83,5 +127,10 @@ export default async function FxPage() {
   ])
 
   const fx = await getFx()
-  return <FxSurface fx={fx} parallel={parallel} official={official} faq={buildFxFaq(fx)} />
+  return (
+    <>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(fxSchema(fx)) }} />
+      <FxSurface fx={fx} parallel={parallel} official={official} faq={buildFxFaq(fx)} />
+    </>
+  )
 }

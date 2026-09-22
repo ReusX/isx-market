@@ -249,6 +249,44 @@ export const rates: typeof ar = {
     },
     /* /gold/{slug} is Arabic-only; these keep the dictionaries structurally
        identical and give the shared component English labels if it is ever paired. */
+    /* /fx/100-dollar is Arabic-only; this keeps the dictionaries in parity. */
+    hundred: {
+      h1: 'How much is 100 dollars in Iraq today?',
+      lead: 'The 100-dollar note — «الورق» in the market — at the published Kifah exchange close in Baghdad, next to the Central Bank official rate.',
+      unit: 'Iraqi dinars for 100 dollars',
+      seoTitle: (v: string) => `How much is 100 dollars in Iraq today? ${v} IQD`,
+      description: (v: string, official: string, d: string) => `100 US dollars is ${v} IQD at the parallel rate (Kifah close, ${d}) and ${official} IQD at the Central Bank official rate, with every denomination from 5 to 1,000 dollars.`,
+      market: 'Parallel rate',
+      official: 'Official rate',
+      gap: 'Gap',
+      notes: 'Every denomination in dinars',
+      notesNote: 'At the parallel rate and the official rate side by side. The difference is what someone pays when the official rate is out of reach.',
+      colUsd: 'USD',
+      colMarket: 'At the market rate',
+      colOfficial: 'At the official rate',
+      reverse: 'Dinars to dollars',
+      reverseNote: 'What a dinar amount buys at the parallel rate.',
+      colIqd: 'IQD',
+      colBack: 'USD',
+      waraq: 'Why it is called «الورق»',
+      waraqBody: [
+        'In Iraqi markets «الورق» means the 100-dollar note specifically — the denomination the Kifah exchange quotes and changers deal in. So «بيش الورق اليوم» asks the price of 100 dollars in dinars, not the price of one dollar.',
+        'That is why the daily published figure looks like 157,800: it is the price of a hundred dollars, i.e. 1,578 dinars to the dollar. The two numbers are the same rate at two scales.',
+        'The 100-dollar note is also the most in demand for remittances and household saving, and often fetches a little more at a changer than smaller notes because it moves more easily.',
+      ],
+      faqTitle: '100 dollars in Iraqi dinars · common questions',
+      faq: (v: { hundred: string; hundredOfficial: string; rate: string; official: string; gap: string; date: string }) => [
+        { q: 'How much is 100 dollars in Iraq today?', a: `100 US dollars is ${v.hundred} IQD at the parallel rate, per the Kifah exchange close in Baghdad on ${v.date}. At the Central Bank official rate it is ${v.hundredOfficial} IQD.` },
+        { q: 'Is this an executable price?', a: 'No — it is a reference. This is a published closing price; it moves during the day, differs between provinces, and every changer has its own buy/sell spread.' },
+      ],
+      aboutTitle: '100 US dollars in Iraqi dinars',
+      about: [
+        'The market figure here is a published closing price from the Kifah exchange in Baghdad, quoted per 100 dollars — what Iraqis call «سعر الورق» — re-read daily from its source. The official rate is the rate at which the Central Bank of Iraq sells dollars to banks: a policy rate, not a market price, and we state when it was last confirmed.',
+        'The gap between the two is the real cost to anyone who cannot buy at the official rate. The currency-window page explains how official distribution changed in 2025.',
+        'These figures are reference, not an offer: we do not sell currency or guarantee a rate, and a changer may quote above or below.',
+      ],
+      seeFx: 'Dollar rate today · chart and converter',
+    },
     goldUnit: {
       meta: {
         mithqal: {

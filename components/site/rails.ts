@@ -55,7 +55,10 @@ export const RAILS: Record<Door, RailDef[]> = {
     { route: '/banks/cards', icon: 'cards', label: (t) => b(t).cards, soon: true },
   ],
   economy: [
-    { route: '/fx', icon: 'fx', label: (t) => e(t).fx },
+    {
+      route: '/fx', icon: 'fx', label: (t) => e(t).fx,
+      children: [{ route: '/fx/100-dollar', label: (t: Messages) => t.rates.page.hundred.h1 }],
+    },
     {
       route: '/currencies', icon: 'currencies', label: (t) => e(t).currencies,
       children: (['try', 'sar', 'irr', 'eur', 'aed', 'kwd', 'jod', 'gbp'] as const).map((c) => ({
