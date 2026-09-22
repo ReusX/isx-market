@@ -52,6 +52,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: absUrl('/news'),       lastModified: now },
     // Rates tools — high-traffic SEO landing pages
     { url: absUrl('/gold'),       lastModified: now },
+    ...['mithqal', 'gram', '21', 'ounce'].map((u) => ({ url: absUrl(`/gold/${u}`), lastModified: now })),
     { url: absUrl('/silver'),     lastModified: dataDate },
     { url: absUrl('/currencies'), lastModified: dataDate },
     ...['try', 'sar', 'irr', 'eur', 'aed', 'kwd', 'jod', 'gbp'].map((c) => ({ url: absUrl(`/currencies/${c}`), lastModified: dataDate })),

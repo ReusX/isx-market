@@ -69,6 +69,7 @@
   "/forgot-password": "○",
   "/fx": "○",
   "/gold": "○",
+  "/gold/[unit]": "●",
   "/heatmap": "○",
   "/inflation": "○",
   "/learn": "○",

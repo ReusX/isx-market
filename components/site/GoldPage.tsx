@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import Link from 'next/link'
 import { useLocale } from '@/context/LocaleContext'
 import { localeDate } from '@/lib/date'
 import { SiteShell } from './SiteShell'
@@ -9,6 +10,7 @@ import { PageTitle } from './PageTitle'
 import { AboutSection } from './AboutSection'
 import type { GoldData, FxData } from '@/lib/rates'
 import { goldFaqFigures } from '@/lib/ratesFaq'
+import { GOLD_PAGES } from '@/lib/goldPages'
 import '@/styles/econ-page.css'
 
 /**
@@ -67,6 +69,16 @@ export function GoldPage({ gold, fx }: { gold: GoldData | null; fx: FxData | nul
               </>
             )}
           </header>
+
+          {/* The four cuts people actually search for, each on its own page.
+              Listed first so a reader who came for «المثقال» sees that page
+              immediately rather than scrolling a table of every unit. */}
+          <nav className="eco-others" aria-label={R.page.goldUnit.others}>
+            <p className="id-cap">{R.page.goldUnit.others}</p>
+            <div className="id-pills">
+              {GOLD_PAGES.map((g) => <Link key={g.slug} href={`/gold/${g.slug}`} className="id-pill">{R.page.goldUnit.meta[g.slug].short}</Link>)}
+            </div>
+          </nav>
 
           {grams.length ? (
             <section className="id-panel eco-panel" aria-label={P.byKarat}>

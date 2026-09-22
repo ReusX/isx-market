@@ -1,4 +1,5 @@
 import type { Messages } from '@/lib/i18n'
+import { GOLD_PAGES } from '@/lib/goldPages'
 import { CURRENCY_FLAGS, type CurrencyCode } from '@/lib/currencies'
 
 /**
@@ -61,7 +62,12 @@ export const RAILS: Record<Door, RailDef[]> = {
         route: `/currencies/${c}`, icon: CURRENCY_FLAGS[c.toUpperCase() as CurrencyCode], label: (t: Messages) => t.rates.page.currencies.names[c.toUpperCase()] ?? c.toUpperCase(),
       })),
     },
-    { route: '/gold', icon: 'gold', label: (t) => e(t).gold },
+    {
+      route: '/gold', icon: 'gold', label: (t) => e(t).gold,
+      children: GOLD_PAGES.map((g) => ({
+        route: `/gold/${g.slug}`, label: (t: Messages) => t.rates.page.goldUnit.meta[g.slug].short,
+      })),
+    },
     { route: '/silver', icon: 'silver', label: (t) => e(t).silver },
     { route: '/oil', icon: 'oil', label: (t) => e(t).oil },
     { route: '/cbi-window', icon: 'window', label: (t) => e(t).window },
