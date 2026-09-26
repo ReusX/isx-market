@@ -95,6 +95,8 @@ def rs() -> list[Item]:
                     "lang": "ar" if re.search(r"[\u0600-\u06FF]", title) else "en", "ticker": None, "published_at": f"{x.get('date', NOW.isoformat())[:19]}+03:00"})
     return out
 
+CBI_RECENT = 60  # the current listing spans ~25 consecutive ids
+
 def cbi() -> list[Item]:
     s = get("https://cbi.iq/news")
     if not s: return []
@@ -104,7 +106,12 @@ def cbi() -> list[Item]:
         if u in seen or len(title) < 12: continue
         seen.add(u)
         out.append({"url": u, "source": "cbi", "title": title[:300], "summary": None, "lang": "ar" if re.search(r"[؀-ۿ]", title) else "en", "ticker": None, "published_at": NOW.isoformat()})
-    return out
+    # The page also carries a rotating box of random OLD stories (ids like 94,
+    # 770, 2278 beside a current run of 3313–3338). The listing gives no dates,
+    # so every item is stamped "now" — keep only ids near the newest, or a
+    # years-old story lands at the top of /news as today's.
+    newest = max((int(x["url"].rsplit("/", 1)[1]) for x in out), default=0)
+    return [x for x in out if int(x["url"].rsplit("/", 1)[1]) >= newest - CBI_RECENT]
 
 def rss(url: str, source: str, econ_only: bool) -> list[Item]:
     s = get(url)
@@ -120,14 +127,19 @@ def rss(url: str, source: str, econ_only: bool) -> list[Item]:
         out.append({"url": link, "source": source, "title": title[:300], "summary": (desc[:280] or None), "lang": "ar", "ticker": None, "published_at": when})
     return out
 
-SOURCES = [isc, alsumaria, rs, cbi, lambda: rss("https://almadapaper.net/?cat=economy&feed=rss2", "almada", True)]
+def almada() -> list[Item]: return rss("https://almadapaper.net/?cat=economy&feed=rss2", "almada", True)
+
+SOURCES = [isc, alsumaria, rs, cbi, almada]
 
 def existing(urls: list[str]) -> set[str]:
     if not urls: return set()
     have = set()
     for i in range(0, len(urls), 100):
         chunk = ",".join(f'"{u}"' for u in urls[i:i + 100])
-        r = requests.get(f"{SB_URL}/rest/v1/news_feed?select=url&url=in.({chunk})",
+        # Passed as params so requests escapes it: RS.iq URLs carry %xx sequences,
+        # and pasted raw into the query string they were decoded on the way in and
+        # never matched the stored (encoded) URL — every one looked new every run.
+        r = requests.get(f"{SB_URL}/rest/v1/news_feed", params={"select": "url", "url": f"in.({chunk})"},
                          headers={"apikey": SB_KEY, "Authorization": f"Bearer {SB_KEY}"}, timeout=30)
         if r.ok: have |= {x["url"] for x in r.json()}
     return have
@@ -148,7 +160,9 @@ def main():
     # listing-scraped item to "now" on every run. Only new URLs are written.
     new = [it for u, it in by_url.items() if u not in have]
     if new:
-        r = requests.post(f"{SB_URL}/rest/v1/news_feed", json=new,
+        # on_conflict=url: without it "ignore-duplicates" targets the primary key
+        # (id), so a repeated URL hit the unique constraint and failed the batch.
+        r = requests.post(f"{SB_URL}/rest/v1/news_feed?on_conflict=url", json=new,
                           headers={"apikey": SB_KEY, "Authorization": f"Bearer {SB_KEY}", "Prefer": "resolution=ignore-duplicates,return=minimal", "Content-Type": "application/json"}, timeout=60)
         if not r.ok: sys.exit(f"insert failed: {r.status_code} {r.text[:200]}")
     cutoff = (NOW - timedelta(days=60)).isoformat()
