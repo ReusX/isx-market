@@ -1,10 +1,20 @@
-import { getArticle, listArticles, stripHtml } from '@/lib/articles'
+import { getArticle, listArticles, stripHtml, articlePath } from '@/lib/articles'
 import { ArticlePage } from '@/components/site/ArticlePage'
 import { loadArticle } from '@/lib/articleLoad'
 import { plainText } from '@/lib/article'
 import { notFound } from 'next/navigation'
 import type { Metadata } from 'next'
 import { absUrl, seoAlternates } from '@/lib/seo'
+
+/* The canonical is built with articlePath — lowercase percent-encoding, the form
+   the sitemap, every internal link and the original WordPress URLs use. Next
+   hands `params.slug` over decoded and would re-encode it in UPPERCASE, so the
+   page used to canonicalise to a URL the sitemap never lists. */
+function canonicalPath(section: 'news' | 'research' | 'learn', slug: string) {
+  let s = slug
+  try { s = decodeURIComponent(slug) } catch { /* already decoded */ }
+  return articlePath(section, s)
+}
 
 function buildDesc(raw: string): string {
   const clean = raw.trim().slice(0, 140)
@@ -24,9 +34,9 @@ export async function generateMetadata({ params }: { params: { slug: string } })
   return {
     title: stripHtml(post.title),
     description: buildDesc(stripHtml(post.excerpt)),
-    alternates: seoAlternates(`/research/${params.slug}`),
+    alternates: seoAlternates(canonicalPath('research', params.slug)),
     openGraph: {
-      url: absUrl(`/research/${params.slug}`),
+      url: absUrl(canonicalPath('research', params.slug)),
       type: 'article',
       publishedTime: post.date || undefined,
       modifiedTime: post.modified || undefined,
