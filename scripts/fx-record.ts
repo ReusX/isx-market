@@ -49,9 +49,11 @@ async function parallel(): Promise<boolean> {
     observedAt: new Date().toISOString(),
     observedDate: fx.date || baghdadDate(new Date()),
     origin: 'recorded',
-    sourceKey: 'alsumaria',
+    // Kifah channel posts are recorded as themselves (one event per post), so
+    // the record shows which source every reading came from.
+    sourceKey: fx.sourceKey ?? 'alsumaria',
     sourceUrl: fx.sourceUrl,
-    sourceEvent: alsumariaEvent(fx.sourceUrl),
+    sourceEvent: fx.event ?? alsumariaEvent(fx.sourceUrl),
     sourceTs: fx.publishedAt ?? null,
     rawExcerpt: fx.excerpt ?? null,
   })

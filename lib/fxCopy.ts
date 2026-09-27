@@ -109,7 +109,7 @@ export function buildFxFaq(fx: FxData | null): FxQa[] {
       q: 'بيش سعر الورق اليوم في العراق؟',
       a: hundredMarket
         ? `«الورق» هو ورقة المئة دولار، وسعرها اليوم في السوق نحو ${hundredMarket} ديناراً عراقياً ` +
-          `(أي ${ar(market as number)} ديناراً للدولار الواحد). هذا سعر الإغلاق المنشور لبورصة الكفاح في بغداد، ` +
+          `(أي ${ar(market as number)} ديناراً للدولار الواحد). هذا آخر سعر منشور لبورصة الكفاح في بغداد، ` +
           `ويختلف قليلاً بين صيرفة وأخرى وبين المحافظات.`
         : `«الورق» هو ورقة المئة دولار، وسعرها بالسعر الرسمي ${hundredOfficial} ديناراً عراقياً، ` +
           `أما سعر السوق فيتحدد يومياً في بورصة الكفاح في بغداد ويكون عادة أعلى.`,
@@ -119,9 +119,9 @@ export function buildFxFaq(fx: FxData | null): FxQa[] {
       a: market
         ? `سعر الدولار في بورصة الكفاح اليوم نحو ${ar(market)} ديناراً للدولار، أي ${hundredMarket} ديناراً لكل 100 دولار. ` +
           `بورصة الكفاح في بغداد هي السوق الرئيسية التي يتحدد فيها سعر الدولار الموازي في العراق، ` +
-          `وسعر إغلاقها هو الرقم المعروض في أعلى هذه الصفحة، ويُحدَّث كل 15 دقيقة من مصدره.`
+          `وآخر أسعارها هو الرقم المعروض في أعلى هذه الصفحة، ويتحدّث كل بضع دقائق خلال يوم التداول.`
         : `بورصة الكفاح في بغداد هي السوق الرئيسية التي يتحدد فيها سعر الدولار الموازي في العراق، ` +
-          `وسعر إغلاقها هو الرقم المعروض في أعلى هذه الصفحة عند توفره.`,
+          `وآخر أسعارها هو الرقم المعروض في أعلى هذه الصفحة عند توفره.`,
     },
     {
       q: 'بيش الدولار اليوم في العراق؟',
@@ -133,8 +133,8 @@ export function buildFxFaq(fx: FxData | null): FxQa[] {
     {
       q: 'لماذا يختلف سعر الدولار بين محال الصرافة؟',
       a: `يتغيّر سعر السوق الموازية خلال اليوم وبين محافظة وأخرى تبعاً للعرض والطلب المحلي، ` +
-         `وللفارق بين سعر الشراء وسعر البيع لدى كل صيرفة. السعر المعروض هنا هو سعر الإغلاق ` +
-         `المنشور لسوق بغداد، ويصلح كمرجع لا كسعر تنفيذ.`,
+         `وللفارق بين سعر الشراء وسعر البيع لدى كل صيرفة. السعر المعروض هنا هو آخر سعر ` +
+         `منشور لبورصة الكفاح في بغداد، ويصلح كمرجع لا كسعر تنفيذ.`,
     },
     {
       q: 'How much is the US Dollar to Iraqi Dinar today?',
@@ -151,11 +151,11 @@ export function buildFxFaq(fx: FxData | null): FxQa[] {
 /**
  * The English one-line rate sentence.
  *
- * ⚠ No «today». The source publishes a daily CLOSING rate and this product
- * stores no history, so the sentence says what it is — the latest published
- * closing rate — rather than implying a live intraday quote. The Arabic
- * equivalent keeps «اليوم» in the SEARCH phrasing of its title only, and its
- * body carries the same qualification.
+ * ⚠ No «today». The figure is the latest published Kifah quote — intraday in
+ * trading hours, the last quote of the session outside them — so the sentence
+ * says what it is rather than implying a live tick. The Arabic equivalent keeps
+ * «اليوم» in the SEARCH phrasing of its title only, and its body carries the
+ * same qualification.
  */
 export function describeFxRateEn(fx: { buy?: number | null; sell?: number | null } | null): string | null {
   const market = fx?.sell ?? fx?.buy ?? null

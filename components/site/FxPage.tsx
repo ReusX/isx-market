@@ -30,6 +30,17 @@ import '@/styles/econ-page.css'
  * scraped market — see lib/fxOfficial.
  */
 const nf0 = new Intl.NumberFormat('en-US', { maximumFractionDigits: 0 })
+/* The bid/ask pair is quoted in half-dinars (1,558.5 / 1,559); rounding both
+   to whole dinars made them read as the same number. */
+const nfQ = new Intl.NumberFormat('en-US', { maximumFractionDigits: 2 })
+
+/* The quote's own time in Baghdad — the Kifah channel posts through the day, so
+   the time is what tells a reader how fresh the figure is. Latin digits, as
+   everywhere on the site; «ص/م» in Arabic. */
+function baghdadTime(iso: string, locale: string) {
+  const t = new Intl.DateTimeFormat('en-US', { timeZone: 'Asia/Baghdad', hour: 'numeric', minute: '2-digit', hour12: true }).format(new Date(iso))
+  return locale === 'ar' ? t.replace('AM', 'ص').replace('PM', 'م') : t
+}
 const nf2 = new Intl.NumberFormat('en-US', { maximumFractionDigits: 2 })
 
 export function FxPage({ fx, parallel, official, faq }: { fx: FxData | null; parallel: FxDay[]; official: FxDay[]; faq: FxQa[] }) {
@@ -81,11 +92,13 @@ export function FxPage({ fx, parallel, official, faq }: { fx: FxData | null; par
             {/* «سعر الورق» — the $100 note is how the street quotes the rate. */}
             {market != null ? <p className="eco-hundred id-num">{P.hundred(nf0.format(market * 100))}{locale === 'ar' ? <> · <Link href="/fx/100-dollar">{R.page.hundred.h1}</Link></> : null}</p> : null}
             <p className="id-cap eco-when">
-              {fx?.stale ? `${C.staleNotice} · ` : ''}{fx?.date ? R.tools.observedOn(localeDate(fx.date, locale)) : R.tools.noObserved}
+              {fx?.stale ? `${C.staleNotice} · ` : ''}{fx?.date ? (fx.publishedAt && fx.sourceKey === 'kifah-tg'
+                ? R.tools.updatedAt(baghdadTime(fx.publishedAt, locale), localeDate(fx.date, locale))
+                : R.tools.observedOn(localeDate(fx.date, locale))) : R.tools.noObserved}
             </p>
             <div className="id-stats id-num eco-stats">
-              <div className="id-stat"><small>{C.buy}</small><b><bdi>{fx?.buy == null ? '—' : nf0.format(fx.buy)}</bdi></b></div>
-              <div className="id-stat"><small>{C.sell}</small><b><bdi>{fx?.sell == null ? '—' : nf0.format(fx.sell)}</bdi></b></div>
+              <div className="id-stat"><small>{C.buy}</small><b><bdi>{fx?.buy == null ? '—' : nfQ.format(fx.buy)}</bdi></b></div>
+              <div className="id-stat"><small>{C.sell}</small><b><bdi>{fx?.sell == null ? '—' : nfQ.format(fx.sell)}</bdi></b></div>
               <div className="id-stat"><small>{P.official}</small><b><bdi>{nf0.format(officialRate)}</bdi></b><span className="id-cap">{P.officialNote(localeDate(officialDate, locale))}</span></div>
               <div className="id-stat"><small>{P.gap}</small><b>{gap ? <bdi>{gap.abs > 0 ? '+' : ''}{nf0.format(gap.abs)} · {gap.pct.toFixed(1)}%</bdi> : '—'}</b><span className="id-cap">{P.gapNote}</span></div>
             </div>

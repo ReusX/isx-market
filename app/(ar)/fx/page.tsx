@@ -6,7 +6,7 @@ import { fxSeries } from '@/lib/fxHistory'
 
 // Regenerated every 15 minutes: the dollar story lands at no fixed hour and
 // readers come the moment it does (lib/rates re-reads Alsumaria every 10).
-export const revalidate = 900
+export const revalidate = 300
 // Serve from the static ISR cache so tab switches are instant; the scrape
 // refreshes in the background on the interval. Without this, the no-cache
 // headers from the sources force the route dynamic (~2.5s render every click).

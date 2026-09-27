@@ -15,9 +15,10 @@ name: FX Record
 
 on:
   schedule:
-    # 08:00, 11:00, 14:00, 17:00 and 20:00 Baghdad (UTC+3, no DST) — through
-    # the trading day, with a close-of-day reading after the exchanges settle.
-    - cron: '0 5,8,11,14,17 * * *'
+    # Hourly at :15 from 09:15 to 16:15 Baghdad (UTC+3, no DST) — the Kifah
+    # channel posts 5–10 quotes through the trading day, and each run records
+    # the latest as its own observation — plus 20:15 for the settled close.
+    - cron: '15 6-13,17 * * *'
   workflow_dispatch:
 
 concurrency:

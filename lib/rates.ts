@@ -13,7 +13,7 @@ const REVALIDATE = 60 * 60 * 3 // 3 hours · picks up the daily update reliably
    its story at no fixed time, so the listing and the article are re-read every
    10 minutes; a 3-hour data-cache TTL here meant production kept serving
    yesterday's figure for hours after today's story was up (17 Sep 2026). */
-const FX_REVALIDATE = 60 * 10
+const FX_REVALIDATE = 60 * 5
 
 const intNum = (s: string) => parseInt(s.replace(/[^\d]/g, ''), 10)
 const floatNum = (s: string | undefined | null) =>
@@ -83,9 +83,107 @@ export interface FxData {
      the numbers and is fingerprinted on the way into fx_observations. */
   excerpt?: string | null
   publishedAt?: string | null   // the source's own timestamp, where it states one
+  /** data_sources.key of where this came from, and the event id the record dedupes on. */
+  sourceKey?: 'kifah-tg' | 'alsumaria'
+  event?: string
+  /** Kifah only: the latest bid/ask of every market the channel posts (Erbil, Basra…). */
+  markets?: MarketQuote[]
+}
+
+export interface MarketQuote {
+  market: KifahMarket
+  bid: number        // مطلوب
+  ask: number        // معروض
+  at: string         // the post's own timestamp (ISO)
+  post: number       // Telegram post id
 }
 
 const jina = (url: string) => 'https://r.jina.ai/' + url
+
+// ── Primary source: the «بورصة الكفاح» Telegram channel ─────────────────────
+// The channel posts live bid/ask quotes from the Kifah exchange floor — and six
+// other markets — 5 to 10 times a trading day, where Alsumaria publishes one
+// article a day, hours later. Read from Telegram's public web preview
+// (t.me/s/…): static HTML, no account, no API key.
+//
+// Each post reads like «🔒 كفاح 🟢 مطلوب: 1558.50 🔴 معروض: 1559.00».
+// مطلوب is the bid (what changers pay for a dollar → `buy`), معروض the ask
+// (what they sell one for → `sell`), both per ONE dollar.
+//
+// Checked only against the channel's own recent posts, never against another
+// source: a quote is used if it is well-formed, its spread is a real spread,
+// and it has not jumped more than 3% from the channel's previous Kifah quote —
+// which catches a slipped digit or a stray post without second-guessing the
+// market. If nothing usable is found, fetchFx falls back to Alsumaria.
+const KIFAH_URL = 'https://t.me/s/borsat_alkfah'
+
+export type KifahMarket = 'kifah' | 'harthiya' | 'samawal' | 'basra' | 'erbil' | 'sulaymaniyah' | 'duhok'
+const KIFAH_LABELS: [RegExp, KifahMarket][] = [
+  [/كفاح/, 'kifah'], [/حارثي/, 'harthiya'], [/سمو[أا]ل/, 'samawal'], [/بصرة/, 'basra'],
+  [/[أا]ربيل/, 'erbil'], [/سليماني/, 'sulaymaniyah'], [/دهوك/, 'duhok'],
+]
+
+/** Every well-formed quote on the page, oldest first. Exported for the parser test. */
+export function parseKifahChannel(raw: string): MarketQuote[] {
+  const out: MarketQuote[] = []
+  const blocks = raw.split(/(?=<div class="tgme_widget_message_wrap)/)
+  for (const b of blocks) {
+    const post = Number(b.match(/data-post="[^"/]+\/(\d+)"/)?.[1])
+    const at = b.match(/<time[^>]*datetime="([^"]+)"/)?.[1]
+    const text = (b.match(/<div class="tgme_widget_message_text[^"]*"[^>]*>([\s\S]*?)<\/div>/)?.[1] ?? '')
+      .replace(/<br\s*\/?>/g, '\n').replace(/<[^>]+>/g, ' ').replace(/&nbsp;/g, ' ')
+    if (!post || !at || !text) continue
+    /* One post may carry one market or several; read every «label … مطلوب … معروض»
+       run. The label may share the line with the prices («🔒 كفاح 🟢 مطلوب: …»)
+       or sit on the line above («🔹 دهوك» / «• مطلوب: …» — the layout the
+       channel switched to on 28 September), so the gap may cross line breaks;
+       it can never cross a DIGIT, so a run cannot swallow the previous quote. */
+    for (const m of Array.from(text.matchAll(/([^\d]{1,60}?)مطلوب\s*:?\s*([\d.,]+)[^\d]{0,30}?معروض\s*:?\s*([\d.,]+)/g))) {
+      const market = KIFAH_LABELS.find(([re]) => re.test(m[1]))?.[1]
+      const bid = parseFloat(m[2].replace(/,/g, '')), ask = parseFloat(m[3].replace(/,/g, ''))
+      if (!market || !(bid >= 1000 && bid <= 2500) || !(ask >= bid) || ask - bid > 25) continue
+      out.push({ market, bid, ask, at, post })
+    }
+  }
+  return out.sort((x, y) => x.at.localeCompare(y.at) || x.post - y.post)
+}
+
+const KIFAH_MAX_AGE_DAYS = 4       // a long weekend or holiday, and no more
+const KIFAH_MAX_JUMP = 0.03
+
+export function pickKifahQuote(quotes: MarketQuote[], now = Date.now()): MarketQuote | null {
+  const k = quotes.filter((q) => q.market === 'kifah')
+  for (let i = k.length - 1; i >= 0; i -= 1) {
+    const q = k[i], prev = k[i - 1]
+    if (now - Date.parse(q.at) > KIFAH_MAX_AGE_DAYS * 86_400_000) return null
+    if (prev && Math.abs(q.ask - prev.ask) / prev.ask > KIFAH_MAX_JUMP) continue // an outlier; try the one before
+    return q
+  }
+  return null
+}
+
+const baghdadDay = (iso: string) => new Date(Date.parse(iso) + 3 * 3_600_000).toISOString().slice(0, 10)
+
+async function fetchKifah(): Promise<FxData | null> {
+  const raw = await fetchText(KIFAH_URL)
+  if (!raw) return null
+  const quotes = parseKifahChannel(raw)
+  const q = pickKifahQuote(quotes)
+  if (!q) return null
+  // The latest quote per market, for the city pages.
+  const latest = new Map<KifahMarket, MarketQuote>()
+  for (const x of quotes) latest.set(x.market, x)
+  return {
+    buy: q.bid, sell: q.ask, change: null,
+    date: baghdadDay(q.at),
+    source: 't.me/borsat_alkfah', sourceUrl: `https://t.me/borsat_alkfah/${q.post}`,
+    fetchedAt: new Date().toISOString(),
+    excerpt: `كفاح · مطلوب ${q.bid} · معروض ${q.ask}`,
+    publishedAt: q.at,
+    sourceKey: 'kifah-tg', event: `kifah-tg:${q.post}`,
+    markets: Array.from(latest.values()),
+  }
+}
 
 // ── Primary source: Alsumaria daily dollar article ──────────────────────────
 // Alsumaria posts a "أسعار الدولار مع إغلاق التداولات" article every day. The
@@ -222,7 +320,8 @@ export function parseAlsumaria(raw: string, url: string): FxData | null {
     ?? null
   const publishedAt = raw.match(/"datePublished":\s*"([^"]+)"/)?.[1] ?? null
   return {
-    buy, sell, change: null, date, source: 'alsumaria.tv', sourceUrl: url,
+    buy, sell, change: null, date, source: 'alsumaria.tv', sourceUrl: url, sourceKey: 'alsumaria',
+    event: `alsumaria:${url.match(/\/news\/[a-z]+\/(\d+)/)?.[1] ?? url.slice(-40)}`,
     fetchedAt: new Date().toISOString(),
     excerpt: seen.length ? seen.join(' · ').slice(0, 600) : null,
     publishedAt,
@@ -270,6 +369,10 @@ async function writeFxCache(fx: FxData): Promise<void> {
 }
 
 export async function fetchFx(): Promise<FxData | null> {
+  /* Kifah channel first (live floor quotes); Alsumaria only when the channel
+     can't be read or has nothing usable. */
+  const kifah = await fetchKifah()
+  if (kifah) { await writeFxCache(kifah); return kifah }
   const article = await discoverDollarArticle()
   if (article) {
     // NOT encodeURI(article): the listing already hands us a percent-encoded

@@ -177,6 +177,7 @@ export async function recordParallel(fx: {
   excerpt?: string | null
   publishedAt?: string | null
   event: string
+  sourceKey?: 'kifah-tg' | 'alsumaria'
 }): Promise<RecordResult> {
   if (fx.buy == null && fx.sell == null) return { outcome: 'error', inserted: false, reason: 'no value' }
   const now = new Date()
@@ -193,7 +194,7 @@ export async function recordParallel(fx: {
     observedAt: now.toISOString(),
     observedDate: fx.date || baghdadDate(now),
     origin: 'recorded',
-    sourceKey: 'alsumaria',
+    sourceKey: fx.sourceKey ?? 'alsumaria',
     sourceUrl: fx.sourceUrl ?? null,
     sourceEvent: fx.event,
     sourceTs: fx.publishedAt ?? null,

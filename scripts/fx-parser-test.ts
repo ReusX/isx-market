@@ -18,7 +18,7 @@
  * fixtures are the real published sentences, so the next drift breaks a test
  * here instead of quietly freezing the page.
  */
-import { parseAlsumaria, pickDollarArticle } from '../lib/rates'
+import { parseAlsumaria, pickDollarArticle, parseKifahChannel, pickKifahQuote } from '../lib/rates'
 
 const HEADLINES = [
   // slug, should be picked
@@ -76,9 +76,39 @@ for (const [why, body, want] of BODIES) {
   if (fx?.sell != null) bad.push(`spread guard: promoted ${fx.sell} to sell although it is below the buy price`)
 }
 
+/* ── The Kifah Telegram channel (primary source since 28 September 2026) ──
+   Both post layouts the channel has used, as the public preview serves them. */
+const tgPost = (id: number, at: string, html: string) =>
+  `<div class="tgme_widget_message_wrap js-widget_message_wrap"><div class="tgme_widget_message" data-post="borsat_alkfah/${id}">` +
+  `<div class="tgme_widget_message_text js-message_text" dir="auto">${html}</div>` +
+  `<a class="tgme_widget_message_date"><time datetime="${at}" class="time">3:30</time></a></div></div>`
+const now = Date.parse('2026-09-28T09:00:00+00:00')
+{
+  const page =
+    // 27 Sep: label and prices on one line
+    tgPost(101, '2026-09-27T12:30:24+00:00', '🔒 كفاح 🟢 مطلوب: 1558.50 🔴 معروض: 1559.00') +
+    tgPost(102, '2026-09-27T12:30:30+00:00', 'أربيل 🟢 مطلوب: 1561.00 🔴 معروض: 1561.50') +
+    // 28 Sep: label on its own line
+    tgPost(103, '2026-09-28T07:40:00+00:00', '<b>🔹 كفاح</b><br/><b>• مطلوب: 1560.00</b><br/><b>• معروض: 1560.50</b>') +
+    tgPost(104, '2026-09-28T07:41:00+00:00', '<b>🔹 دهوك</b><br/><b>• مطلوب: 1559.00</b><br/><b>• معروض: 1559.50</b>') +
+    tgPost(105, '2026-09-28T07:42:00+00:00', 'واكو جوائز للمشتركين داخل التطبيق')
+  const q = parseKifahChannel(page)
+  const kinds = q.map((x) => x.market).join(',')
+  if (kinds !== 'kifah,erbil,kifah,duhok') bad.push(`kifah: parsed markets ${kinds}, expected kifah,erbil,kifah,duhok`)
+  const pick = pickKifahQuote(q, now)
+  if (pick?.ask !== 1560.5 || pick?.bid !== 1560) bad.push(`kifah: picked ${pick?.bid}/${pick?.ask}, expected the 28 Sep 1560/1560.5`)
+  // a slipped digit on the newest post is skipped, not published
+  const typo = parseKifahChannel(page + tgPost(106, '2026-09-28T08:00:00+00:00', '🔒 كفاح 🟢 مطلوب: 1650.00 🔴 معروض: 1650.50'))
+  if (pickKifahQuote(typo, now)?.ask !== 1560.5) bad.push('kifah: a 6% jump on the newest post was not skipped')
+  // a channel silent for more than four days yields nothing → Alsumaria takes over
+  if (pickKifahQuote(q, Date.parse('2026-10-05T09:00:00+00:00')) !== null) bad.push('kifah: a week-old quote was still used')
+  // bid above ask is not a quote
+  if (parseKifahChannel(tgPost(107, '2026-09-28T08:00:00+00:00', 'كفاح مطلوب: 1561 معروض: 1560')).length) bad.push('kifah: accepted bid > ask')
+}
+
 if (bad.length) {
   console.error(`✗ fx parser: ${bad.length} failure(s)`)
   bad.forEach(b => console.error('  ·', b))
   process.exit(1)
 }
-console.log(`✓ fx parser: ${HEADLINES.length} headline shapes + ${BODIES.length} body shapes + the spread guard`)
+console.log(`✓ fx parser: ${HEADLINES.length} headline shapes + ${BODIES.length} body shapes + the spread guard + 5 Kifah channel checks`)

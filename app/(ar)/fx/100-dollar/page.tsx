@@ -8,7 +8,7 @@ import { faqLd } from '@/lib/ratesFaq'
 import { localeDate } from '@/lib/date'
 
 /** Same cadence as /fx: the parallel close is published once a day. */
-export const revalidate = 10800
+export const revalidate = 300
 export const dynamic = 'force-static'
 
 const nf0 = new Intl.NumberFormat('en-US', { maximumFractionDigits: 0 })

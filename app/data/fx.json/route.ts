@@ -4,7 +4,7 @@ import { CBI_OFFICIAL_RATE, CBI_RATE_CONFIRMED } from '@/lib/fxOfficial'
 import { envelope, JSON_HEADERS } from '@/lib/openData'
 
 /** GET /data/fx.json · the dollar in Baghdad: parallel buy/sell, the CBI official rate, the gap. */
-export const revalidate = 900
+export const revalidate = 300
 export async function GET() {
   const fx = await fetchFx()
   const sell = fx?.sell ?? null, buy = fx?.buy ?? null
