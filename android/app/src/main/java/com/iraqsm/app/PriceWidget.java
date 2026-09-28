@@ -88,10 +88,25 @@ public class PriceWidget extends AppWidgetProvider {
         SharedPreferences.Editor e = ctx.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit();
         boolean any = false;
         try {
-            JSONObject p = new JSONObject(get("fx.json")).getJSONObject("parallel");
+            JSONObject fx = new JSONObject(get("fx.json"));
+            JSONObject p = fx.getJSONObject("parallel");
             double sell = p.optDouble("sell", Double.NaN);
             if (Double.isNaN(sell)) sell = p.optDouble("buy", Double.NaN);
-            if (!Double.isNaN(sell)) { e.putFloat("fx", (float) sell); any = true; }
+            if (!Double.isNaN(sell)) {
+                e.putFloat("fx", (float) sell);
+                any = true;
+                /* The change is against the last recorded close before today's date. */
+                try {
+                    String asOf = fx.optString("asOf", "");
+                    JSONArray rows = new JSONObject(get("fx-history.json")).getJSONObject("parallel").getJSONArray("rows");
+                    double prev = Double.NaN;
+                    for (int i = 0; i < rows.length(); i++) {
+                        JSONObject r = rows.getJSONObject(i);
+                        if (r.optString("date").compareTo(asOf) < 0) prev = r.optDouble("sell", r.optDouble("close", Double.NaN));
+                    }
+                    if (!Double.isNaN(prev)) e.putFloat("fxChg", (float) (sell - prev)); else e.remove("fxChg");
+                } catch (Exception ignored) { }
+            }
         } catch (Exception ignored) { }
         try {
             JSONArray g = new JSONObject(get("gold.json")).getJSONArray("gramByCarat");
@@ -116,27 +131,44 @@ public class PriceWidget extends AppWidgetProvider {
         e.apply();
     }
 
+    static final int GOOD = 0xFF7CEBB0, BAD = 0xFFFFA3A3, DIM = 0xCCFFFFFF;
+
+    static String arrow(float v) { return v > 0 ? "▲ " : v < 0 ? "▼ " : ""; }
+
     void draw(Context ctx, AppWidgetManager mgr, int[] ids) {
         SharedPreferences sp = ctx.getSharedPreferences(PREFS, Context.MODE_PRIVATE);
         float fx = sp.getFloat("fx", -1), gold = sp.getFloat("gold", -1), isx = sp.getFloat("isx", -1);
-        float chg = sp.getFloat("isxChg", Float.NaN);
+        float fxChg = sp.getFloat("fxChg", Float.NaN), isxChg = sp.getFloat("isxChg", Float.NaN);
         long at = sp.getLong("at", 0);
+        String time = "";
+        if (at > 0) {
+            SimpleDateFormat f = new SimpleDateFormat("HH:mm", Locale.US);
+            f.setTimeZone(TimeZone.getTimeZone("Asia/Baghdad"));
+            time = f.format(new Date(at));
+        }
 
         RemoteViews v = new RemoteViews(ctx.getPackageName(), layout());
         v.setTextViewText(R.id.w_fx, fx > 0 ? NF0.format(Math.round(fx)) : "—");
-        v.setTextViewText(R.id.w_fx_sub, fx > 0 ? ctx.getString(R.string.w_per_hundred, NF0.format(Math.round(fx * 100))) : "");
+        /* A rising dollar is a falling dinar: coloured the way the app colours it. */
+        if (!Float.isNaN(fxChg) && fx > 0) {
+            String amt = Math.abs(fxChg) >= 1 ? NF0.format(Math.round(Math.abs(fxChg))) : NF2.format(Math.abs(fxChg));
+            v.setTextViewText(R.id.w_fx_chg, ctx.getString(R.string.w_vs_yesterday, arrow(fxChg) + amt));
+            v.setTextColor(R.id.w_fx_chg, fxChg > 0 ? BAD : fxChg < 0 ? GOOD : DIM);
+        } else {
+            v.setTextViewText(R.id.w_fx_chg, fx > 0 ? ctx.getString(R.string.w_hundred, NF0.format(Math.round(fx * 100))) : "");
+        }
+
         if (wide()) {
             v.setTextViewText(R.id.w_gold, gold > 0 ? NF0.format(Math.round(gold)) : "—");
             v.setTextViewText(R.id.w_isx, isx > 0 ? NF2.format(isx) : "—");
-            if (!Float.isNaN(chg)) {
-                v.setTextViewText(R.id.w_isx_sub, "ISX60 · " + (chg > 0 ? "▲ " : chg < 0 ? "▼ " : "") + NF2.format(Math.abs(chg)) + "%");
-                v.setTextColor(R.id.w_isx_sub, chg > 0 ? 0xFF6EE7A8 : chg < 0 ? 0xFFFF9C9C : 0xB3FFFFFF);
+            if (!Float.isNaN(isxChg)) {
+                v.setTextViewText(R.id.w_isx_sub, "ISX60 · " + arrow(isxChg) + NF2.format(Math.abs(isxChg)) + "%");
+                v.setTextColor(R.id.w_isx_sub, isxChg > 0 ? GOOD : isxChg < 0 ? BAD : DIM);
             }
-        }
-        if (at > 0) {
-            SimpleDateFormat f = new SimpleDateFormat("h:mm a", new Locale("ar"));
-            f.setTimeZone(TimeZone.getTimeZone("Asia/Baghdad"));
-            v.setTextViewText(R.id.w_time, "IQWealth · " + ctx.getString(R.string.w_updated, toLatin(f.format(new Date(at)))));
+            v.setTextViewText(R.id.w_time, time.isEmpty() ? ctx.getString(R.string.w_loading) : ctx.getString(R.string.w_updated, time));
+        } else {
+            String hundred = fx > 0 ? ctx.getString(R.string.w_hundred, NF0.format(Math.round(fx * 100))) : "";
+            v.setTextViewText(R.id.w_fx_sub, time.isEmpty() ? hundred : hundred + "  ·  " + time);
         }
 
         Intent open = new Intent(ctx, MainActivity.class).setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
@@ -144,10 +176,4 @@ public class PriceWidget extends AppWidgetProvider {
         mgr.updateAppWidget(ids, v);
     }
 
-    /** The design uses Latin digits everywhere, the time included. */
-    private static String toLatin(String s) {
-        StringBuilder b = new StringBuilder(s.length());
-        for (char ch : s.toCharArray()) b.append(ch >= '٠' && ch <= '٩' ? (char) ('0' + (ch - '٠')) : ch);
-        return b.toString();
-    }
 }
