@@ -65,6 +65,9 @@ export interface HeroProps {
   sparkLabel?: string
   foot?: string
   tone?: 'gold'
+  /** Formats the headline and the change; default: sensible digits for the size. */
+  format?: (v: number) => string
+  deltaFormat?: (v: number) => string
 }
 
 export function RateHero(p: HeroProps) {
@@ -86,12 +89,12 @@ export function RateHero(p: HeroProps) {
         <span className="rk-hero-label">{p.flag ? <span className="rk-flag" aria-hidden="true">{p.flag}</span> : null}{p.label}</span>
         {p.source ? <span className="rk-chip">{p.source}</span> : null}
       </div>
-      <p className="rk-hero-num id-num"><bdi>{p.value == null ? '—' : fmtAny(p.value)}</bdi></p>
+      <p className="rk-hero-num id-num"><bdi>{p.value == null ? '—' : (p.format ?? fmtAny)(p.value)}</bdi></p>
       <p className="rk-hero-unit">{p.unit}</p>
       <div className="rk-hero-meta">
         {d != null && isFinite(d) ? (
           <span className={`rk-delta ${d === 0 ? '' : good ? 'is-good' : 'is-bad'}`}>
-            <bdi>{d > 0 ? '▲' : d < 0 ? '▼' : '•'} {fmtAny(Math.abs(d))}</bdi>{p.deltaLabel ? ` ${p.deltaLabel}` : ''}
+            <bdi>{d > 0 ? '▲' : d < 0 ? '▼' : '•'} {(p.deltaFormat ?? fmtAny)(Math.abs(d))}</bdi>{p.deltaLabel ? ` ${p.deltaLabel}` : ''}
           </span>
         ) : null}
         {p.updatedAt || p.stale ? (

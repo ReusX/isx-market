@@ -38,11 +38,11 @@ export const INTERESTS: { id: Interest; tab: string; pages: string[]; owns: stri
   { id: 'fx', tab: '/app/fx', pages: ['/app/fx', '/app/currencies'], owns: ['/app/fx', '/app/currencies', '/fx', '/currencies'] },
   { id: 'gold', tab: '/app/gold', pages: ['/app/gold', '/silver'], owns: ['/app/gold', '/gold', '/silver'] },
   {
-    id: 'market', tab: '/market',
-    pages: ['/market', '/watchlist', '/portfolio', '/companies', '/screener', '/heatmap', '/statistics', '/pulse'],
-    owns: ['/market', '/companies', '/c', '/screener', '/heatmap', '/statistics', '/pulse', '/portfolio', '/watchlist', '/alerts', '/analysis'],
+    id: 'market', tab: '/app/market',
+    pages: ['/app/market', '/app/companies', '/watchlist', '/portfolio', '/heatmap', '/screener', '/statistics', '/pulse'],
+    owns: ['/app/market', '/app/companies', '/market', '/companies', '/c', '/screener', '/heatmap', '/statistics', '/pulse', '/portfolio', '/watchlist', '/alerts', '/analysis'],
   },
-  { id: 'banks', tab: '/banks', pages: ['/banks', '/banks/deposits', '/banks/loans'], owns: ['/banks'] },
+  { id: 'banks', tab: '/app/banks', pages: ['/app/banks', '/banks/deposits', '/banks/loans'], owns: ['/app/banks', '/banks'] },
   { id: 'economy', tab: '/oil', pages: ['/oil', '/cbi-window', '/inflation', '/policy-rate'], owns: ['/oil', '/cbi-window', '/inflation', '/policy-rate'] },
   { id: 'learn', tab: '/learn', pages: ['/learn', '/learn/trading-from-zero', '/research'], owns: ['/learn', '/research'] },
   { id: 'news', tab: '/news', pages: ['/news'], owns: ['/news'] },
@@ -87,6 +87,9 @@ export function appRoute(route: string): string | null {
   if (route === '/fx' || route === '/fx/100-dollar') return '/app/fx'
   if (route === '/currencies') return '/app/currencies'
   if (route === '/gold' || route.startsWith('/gold/')) return '/app/gold'
+  if (route === '/market') return '/app/market'
+  if (route === '/companies') return '/app/companies'
+  if (route === '/banks') return '/app/banks'
   const m = /^\/currencies\/([a-z]{3})$/.exec(route)
   return m ? `/app/currencies/${m[1]}` : null
 }
@@ -96,6 +99,9 @@ export function publicRoute(route: string): string {
   if (route === '/app/fx') return '/fx'
   if (route === '/app/currencies') return '/currencies'
   if (route === '/app/gold') return '/gold'
+  if (route === '/app/market') return '/market'
+  if (route === '/app/companies') return '/companies'
+  if (route === '/app/banks') return '/banks'
   const m = /^\/app\/currencies\/([a-z]{3})$/.exec(route)
   if (m) return ['try', 'sar', 'irr', 'eur', 'aed', 'kwd', 'jod', 'gbp'].includes(m[1]) ? `/currencies/${m[1]}` : '/currencies'
   return route.startsWith('/app') ? '/' : route

@@ -123,7 +123,7 @@ export function AppHome() {
     market: () => {
       const [s, p] = idx?.sessions ?? []
       return (
-        <Card key="market" title={H.market.title} href={L('/market')} open={H.open} icon="market">
+        <Card key="market" title={H.market.title} href={L('/app/market')} open={H.open} icon="market">
           {s ? (
             <>
               <p className="app-big id-num"><bdi>{nf2.format(s.isx60)}</bdi> <Delta v={p ? ((s.isx60 - p.isx60) / p.isx60) * 100 : null} pct /></p>
@@ -179,7 +179,7 @@ export function AppHome() {
         </div>
       ) : null
       return (
-        <Card key="movers" title={H.movers.title} href={L('/market')} open={H.open} icon="pulse">
+        <Card key="movers" title={H.movers.title} href={L('/app/market')} open={H.open} icon="pulse">
           {!quotes ? fail : up.length || down.length ? <>{list(up, H.movers.up)}{list(down, H.movers.down)}</> : <p className="app-empty">{H.movers.none}</p>}
         </Card>
       )
