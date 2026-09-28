@@ -4,6 +4,7 @@ import { CurrenciesPage } from '@/components/site/CurrenciesPage'
 import { absUrl, seoAlternates } from '@/lib/seo'
 import { messages } from '@/lib/i18n'
 import { currenciesFaqFigures, faqLd } from '@/lib/ratesFaq'
+import { serializeLd } from '@/lib/jsonLd'
 
 /* Cross rates change once a day at the source; the dollar every few hours.
    Regenerated every 3h from the static cache, like the other rate pages. */
@@ -35,7 +36,7 @@ export default async function Page() {
   }
   return (
     <>
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(ld) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeLd(ld) }} />
       <CurrenciesPage cur={cur} fx={fx} />
     </>
   )

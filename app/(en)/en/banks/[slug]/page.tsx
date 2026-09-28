@@ -15,6 +15,7 @@ import {
 } from '@/lib/banks'
 import { editorialFor, canonicalSlug } from '@/lib/bankEditorial'
 import { permanentRedirect } from 'next/navigation'
+import { serializeLd } from '@/lib/jsonLd'
 
 export const revalidate = 3600
 export const dynamicParams = true
@@ -86,7 +87,7 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
       />
       {/* Structured data only where the page is indexable: markup on a noindex
           page is a request to be treated as a result. */}
-      {ld ? <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(ld) }} /> : null}
+      {ld ? <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeLd(ld) }} /> : null}
       <BankProfilePage initial={profile} />
     </>
   )

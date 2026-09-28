@@ -6,6 +6,7 @@ import NativeBridge from '@/components/NativeBridge'
 import { AppChrome } from '@/components/app/AppChrome'
 import { SITE, absUrl } from '@/lib/seo'
 import { dirOf, langOf, type Locale } from '@/lib/i18n/locale'
+import { serializeLd } from '@/lib/jsonLd'
 
 /**
  * The served document, for both languages.
@@ -135,7 +136,7 @@ export function Document({ locale, children }: { locale: Locale; children: React
       <body>
         <script
           type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(graph(locale)) }}
+          dangerouslySetInnerHTML={{ __html: serializeLd(graph(locale)) }}
         />
         <AppProvider>
           <LocaleProvider locale={locale}>

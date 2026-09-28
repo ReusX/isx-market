@@ -4,6 +4,7 @@ import { SilverPage } from '@/components/site/SilverPage'
 import { absUrl, seoAlternates } from '@/lib/seo'
 import { messages } from '@/lib/i18n'
 import { silverFaqFigures, faqLd } from '@/lib/ratesFaq'
+import { serializeLd } from '@/lib/jsonLd'
 
 /** `/en/silver` — see the Arabic route. */
 export const revalidate = 10800
@@ -34,7 +35,7 @@ export default async function Page() {
   }
   return (
     <>
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(ld) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeLd(ld) }} />
       <SilverPage silver={silver} fx={fx} />
     </>
   )

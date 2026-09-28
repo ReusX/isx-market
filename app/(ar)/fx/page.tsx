@@ -3,6 +3,7 @@ import { describeFxRate, getFx, buildFxFaq } from '@/lib/fxCopy'
 import { FxPage as FxSurface } from '@/components/site/FxPage'
 import { absUrl, seoAlternates } from '@/lib/seo'
 import { fxSeries } from '@/lib/fxHistory'
+import { serializeLd } from '@/lib/jsonLd'
 
 // Regenerated every 15 minutes: the dollar story lands at no fixed hour and
 // readers come the moment it does (lib/rates re-reads Alsumaria every 10).
@@ -129,7 +130,7 @@ export default async function FxPage() {
   const fx = await getFx()
   return (
     <>
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(fxSchema(fx)) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeLd(fxSchema(fx)) }} />
       <FxSurface fx={fx} parallel={parallel} official={official} faq={buildFxFaq(fx)} />
     </>
   )

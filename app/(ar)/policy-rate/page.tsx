@@ -5,6 +5,7 @@ import { absUrl, seoAlternates } from '@/lib/seo'
 import { messages } from '@/lib/i18n'
 import { faqLd } from '@/lib/ratesFaq'
 import { localeDate } from '@/lib/date'
+import { serializeLd } from '@/lib/jsonLd'
 
 /* Changes by decision, a few times a decade; a daily rebuild is plenty. */
 export const revalidate = 86400
@@ -30,7 +31,7 @@ export default function Page() {
   ] }
   return (
     <>
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(ld) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeLd(ld) }} />
       <PolicyRatePage rate={CURRENT_POLICY_RATE} since={POLICY_RATE_SINCE} history={POLICY_RATE_HISTORY} />
     </>
   )

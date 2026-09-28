@@ -4,6 +4,7 @@ import { fetchGold, fetchFx } from '@/lib/rates'
 import { GoldPage } from '@/components/site/GoldPage'
 import type { Metadata } from 'next'
 import { absUrl, seoAlternates } from '@/lib/seo'
+import { serializeLd } from '@/lib/jsonLd'
 
 // Re-scrape at most every 3h (lib sets the data-cache TTL); the page itself
 // is statically regenerated on this interval.
@@ -74,8 +75,8 @@ export default async function Page() {
   const faq = messages('ar').rates.page.gold.faq(goldFaqFigures(gold, 'ar'))
   return (
     <>
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(pageSchema) }} />
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({ '@context': 'https://schema.org', ...faqLd(faq) }) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeLd(pageSchema) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeLd({ '@context': 'https://schema.org', ...faqLd(faq) }) }} />
       <GoldPage gold={gold} fx={fx} />
     </>
   )

@@ -2,6 +2,7 @@ import { messages } from '@/lib/i18n'
 import { oilFaqFigures, faqLd } from '@/lib/ratesFaq'
 import { fetchOil, fetchFx } from '@/lib/rates'
 import { OilPage } from '@/components/site/OilPage'
+import { serializeLd } from '@/lib/jsonLd'
 
 // Re-scrape at most every 3h (lib sets the data-cache TTL); the page itself
 // is statically regenerated on this interval.
@@ -17,7 +18,7 @@ export default async function Page() {
   const faq = messages('ar').rates.page.oil.faq(oilFaqFigures(oil, fx, 'ar'))
   return (
     <>
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({ '@context': 'https://schema.org', ...faqLd(faq) }) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeLd({ '@context': 'https://schema.org', ...faqLd(faq) }) }} />
       <OilPage oil={oil} fx={fx} />
     </>
   )

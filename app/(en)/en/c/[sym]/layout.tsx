@@ -5,6 +5,7 @@ import { buildCompanySeoEn } from '@/lib/companySeo'
 import { getQuote, describeQuote } from '@/lib/quote'
 import Breadcrumbs from '@/components/seo/Breadcrumbs'
 import { absUrl, seoAlternates } from '@/lib/seo'
+import { serializeLd } from '@/lib/jsonLd'
 
 interface Props {
   params: Promise<{ sym: string }>
@@ -101,7 +102,7 @@ export default async function EnCompanyLayout(props: Props) {
     <>
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        dangerouslySetInnerHTML={{ __html: serializeLd(jsonLd) }}
       />
 
       {children}

@@ -5,6 +5,7 @@ import { loadSessionWrap, loadSessions, sessionIndexable } from '@/lib/wrapServe
 import { wrapVars } from '@/lib/wrapText'
 import { messages } from '@/lib/i18n'
 import { absUrl, seoAlternates } from '@/lib/seo'
+import { serializeLd } from '@/lib/jsonLd'
 
 /**
  * /news/session/[date] · the daily session wrap, one page per trading day.
@@ -58,7 +59,7 @@ export default async function Page(props: { params: Promise<{ date: string }> })
   }
   return (
     <>
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeLd(jsonLd) }} />
       <SessionWrapPage initial={s} />
     </>
   )

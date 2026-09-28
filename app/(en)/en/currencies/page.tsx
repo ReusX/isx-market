@@ -4,6 +4,7 @@ import { CurrenciesPage } from '@/components/site/CurrenciesPage'
 import { absUrl, seoAlternates } from '@/lib/seo'
 import { messages } from '@/lib/i18n'
 import { currenciesFaqFigures, faqLd } from '@/lib/ratesFaq'
+import { serializeLd } from '@/lib/jsonLd'
 
 export const revalidate = 10800
 export const dynamic = 'force-static'
@@ -33,7 +34,7 @@ export default async function Page() {
   }
   return (
     <>
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(ld) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeLd(ld) }} />
       <CurrenciesPage cur={cur} fx={fx} />
     </>
   )

@@ -1,6 +1,7 @@
 import { DirectoryPage } from '@/components/site/DirectoryPage'
 import { loadDirectory } from '@/lib/marketServer'
 import { absUrl } from '@/lib/seo'
+import { serializeLd } from '@/lib/jsonLd'
 
 export const revalidate = 3600
 
@@ -23,7 +24,7 @@ export default async function Page() {
   }
   return (
     <>
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(ld) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeLd(ld) }} />
       <DirectoryPage rows={rows} session={session} />
     </>
   )

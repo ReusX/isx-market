@@ -3,6 +3,7 @@ import { MarketPage } from '@/components/site/MarketPage'
 import { loadMarketInitial } from '@/lib/marketServer'
 import { absUrl, seoAlternates } from '@/lib/seo'
 import { localeDate } from '@/lib/date'
+import { serializeLd } from '@/lib/jsonLd'
 
 /**
  * /market · the full board — every listed company, every column. Its title
@@ -80,7 +81,7 @@ export default async function Page({ searchParams }: Params) {
   const initial = await loadMarketInitial(date)
   return (
     <>
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(datasetLd(initial.session, initial.sessions, LOCALE)) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeLd(datasetLd(initial.session, initial.sessions, LOCALE)) }} />
       <MarketPage variant="full" initial={initial} />
     </>
   )

@@ -5,6 +5,7 @@ import { buildCompanySeo } from '@/lib/companySeo'
 import { getQuote, describeQuote } from '@/lib/quote'
 import Breadcrumbs from '@/components/seo/Breadcrumbs'
 import { absUrl, seoAlternates } from '@/lib/seo'
+import { serializeLd } from '@/lib/jsonLd'
 
 // Passed to the name shortener so it can reject a core two companies share.
 const ARABIC_NAMES = (companiesData as { ar: string }[]).map(c => c.ar).filter(Boolean)
@@ -90,7 +91,7 @@ export default async function CompanyLayout(props: Props) {
     <>
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        dangerouslySetInnerHTML={{ __html: serializeLd(jsonLd) }}
       />
 
       {/* Server-rendered H1 · visible to crawlers, visually hidden. Arabic-first

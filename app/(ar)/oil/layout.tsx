@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import { absUrl, seoAlternates } from '@/lib/seo'
+import { serializeLd } from '@/lib/jsonLd'
 
 export const metadata: Metadata = {
   title: { absolute: 'سعر النفط اليوم في العراق · برميل خام البصرة وبرنت بالدينار العراقي' },
@@ -50,7 +51,7 @@ const faqSchema = {
 export default function OilLayout({ children }: { children: React.ReactNode }) {
   return (
     <>
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeLd(faqSchema) }} />
 
 
       {children}

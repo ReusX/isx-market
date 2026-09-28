@@ -6,6 +6,7 @@ import { absUrl, seoAlternates } from '@/lib/seo'
 import { messages } from '@/lib/i18n'
 import { faqLd } from '@/lib/ratesFaq'
 import { localeDate } from '@/lib/date'
+import { serializeLd } from '@/lib/jsonLd'
 
 /** Same cadence as /fx: the parallel close is published once a day. */
 export const revalidate = 300
@@ -79,7 +80,7 @@ export default async function Page() {
   }
   return (
     <>
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(ld) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeLd(ld) }} />
       <HundredPage fx={fx} />
     </>
   )

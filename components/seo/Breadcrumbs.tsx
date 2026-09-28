@@ -1,5 +1,6 @@
 import { absUrl } from '@/lib/seo'
 import { DEFAULT_LOCALE, type Locale } from '@/lib/i18n/locale'
+import { serializeLd } from '@/lib/jsonLd'
 
 /**
  * BreadcrumbList structured data.
@@ -46,7 +47,7 @@ export default function Breadcrumbs({
   return (
     <script
       type="application/ld+json"
-      dangerouslySetInnerHTML={{ __html: JSON.stringify(json) }}
+      dangerouslySetInnerHTML={{ __html: serializeLd(json) }}
     />
   )
 }

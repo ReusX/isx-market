@@ -7,6 +7,7 @@ import { currencyFigures, faqVars, fmtIqd, fmtX } from '@/lib/currencyFigures'
 import { absUrl, seoAlternates } from '@/lib/seo'
 import { messages } from '@/lib/i18n'
 import { faqLd } from '@/lib/ratesFaq'
+import { serializeLd } from '@/lib/jsonLd'
 
 /**
  * /currencies/{code} — «سعر اليورو اليوم في العراق» and its seven siblings.
@@ -60,7 +61,7 @@ export default async function Page(props: { params: Promise<{ code: string }> })
   const others = CURRENCY_PAGES.filter((c) => c.code !== def.code).map((c) => ({ code: c.code, slug: c.slug }))
   return (
     <>
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(ld) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeLd(ld) }} />
       <CurrencyPage code={def.code} peg={def.peg} toman={!!def.toman} cur={cur} fx={fx} history={history} others={others} />
     </>
   )

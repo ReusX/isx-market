@@ -7,6 +7,7 @@ import { absUrl, seoAlternates } from '@/lib/seo'
 import { messages } from '@/lib/i18n'
 import { faqLd } from '@/lib/ratesFaq'
 import { localeDate } from '@/lib/date'
+import { serializeLd } from '@/lib/jsonLd'
 
 /**
  * /gold/{slug} — «سعر مثقال الذهب اليوم في العراق عيار 21» and its three
@@ -94,7 +95,7 @@ export default async function Page(props: { params: Promise<{ unit: string }> })
   }
   return (
     <>
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(ld) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeLd(ld) }} />
       <GoldUnitPage def={def} gold={gold} fx={fx} />
     </>
   )

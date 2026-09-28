@@ -3,6 +3,7 @@ import { WindowPage } from '@/components/site/WindowPage'
 import { absUrl, seoAlternates } from '@/lib/seo'
 import { messages } from '@/lib/i18n'
 import { faqLd } from '@/lib/ratesFaq'
+import { serializeLd } from '@/lib/jsonLd'
 
 /* An explainer of a mechanism that ended in 2025; nothing here moves daily. */
 export const revalidate = 86400
@@ -24,7 +25,7 @@ export default function Page() {
   ] }
   return (
     <>
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(ld) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeLd(ld) }} />
       <WindowPage />
     </>
   )

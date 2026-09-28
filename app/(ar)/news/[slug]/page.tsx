@@ -8,6 +8,7 @@ import { absUrl, seoAlternates } from '@/lib/seo'
 import { BankRankingBlock } from '@/components/site/BankRankingBlock'
 import { DeadlineBlock } from '@/components/site/DeadlineBlock'
 import { articleJsonLd } from '@/lib/articleSeo'
+import { serializeLd } from '@/lib/jsonLd'
 
 /* The canonical is built with articlePath — lowercase percent-encoding, the form
    the sitemap, every internal link and the original WordPress URLs use. Next
@@ -71,7 +72,7 @@ export default async function NewsArticle(props: { params: Promise<{ slug: strin
 
   return (
     <>
-    <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(articleJsonLd(post, article.bodyHtml)) }} />
+    <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeLd(articleJsonLd(post, article.bodyHtml)) }} />
     <ArticlePage
       eyebrow="أخبار السوق"
       backHref="/news"

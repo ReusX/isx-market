@@ -1,6 +1,7 @@
 import { getLastSessionDate, freshnessJsonLd } from '@/lib/freshness'
 import { localeDate } from '@/lib/date'
 import { DEFAULT_LOCALE, hreflangOf, type Locale } from '@/lib/i18n/locale'
+import { serializeLd } from '@/lib/jsonLd'
 
 /**
  * Emits both halves of the freshness signal for a data page: schema.org
@@ -38,7 +39,7 @@ export default async function Freshness({
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
-          __html: JSON.stringify({
+          __html: serializeLd({
             ...freshnessJsonLd({ url, name, description, modified }),
             inLanguage: hreflangOf(locale),
           }),

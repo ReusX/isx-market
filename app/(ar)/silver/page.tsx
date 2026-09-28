@@ -4,6 +4,7 @@ import { SilverPage } from '@/components/site/SilverPage'
 import { absUrl, seoAlternates } from '@/lib/seo'
 import { messages } from '@/lib/i18n'
 import { silverFaqFigures, faqLd } from '@/lib/ratesFaq'
+import { serializeLd } from '@/lib/jsonLd'
 
 /* Re-read the source every 3h; served from the static cache in between,
    like /gold. `force-static`: the source's no-cache headers would otherwise
@@ -36,7 +37,7 @@ export default async function Page() {
   }
   return (
     <>
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(ld) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeLd(ld) }} />
       <SilverPage silver={silver} fx={fx} />
     </>
   )

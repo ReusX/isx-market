@@ -5,6 +5,7 @@ import { absUrl, seoAlternates } from '@/lib/seo'
 import { messages } from '@/lib/i18n'
 import { faqLd } from '@/lib/ratesFaq'
 import { localeDate } from '@/lib/date'
+import { serializeLd } from '@/lib/jsonLd'
 
 /* One CSO print a month; the annual series from the World Bank moves yearly. */
 export const revalidate = 86400
@@ -35,7 +36,7 @@ export default async function Page() {
   ] }
   return (
     <>
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(ld) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeLd(ld) }} />
       <InflationPage latest={INFLATION_LATEST} annual={annual} />
     </>
   )
