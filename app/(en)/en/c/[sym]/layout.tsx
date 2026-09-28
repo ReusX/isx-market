@@ -7,7 +7,7 @@ import Breadcrumbs from '@/components/seo/Breadcrumbs'
 import { absUrl, seoAlternates } from '@/lib/seo'
 
 interface Props {
-  params:   { sym: string }
+  params: Promise<{ sym: string }>
   children: React.ReactNode
 }
 
@@ -25,7 +25,8 @@ interface Props {
  * years old, and publishing it as a current price would be a lie in the SERP
  * itself.
  */
-export async function generateMetadata({ params }: { params: { sym: string } }): Promise<Metadata> {
+export async function generateMetadata(props: { params: Promise<{ sym: string }> }): Promise<Metadata> {
+  const params = await props.params;
   const sym     = params.sym.toUpperCase()
   const company = (companiesData as { sym: string; ar: string; en: string; sec?: string }[])
     .find(c => c.sym === sym)
@@ -61,7 +62,13 @@ export async function generateMetadata({ params }: { params: { sym: string } }):
   }
 }
 
-export default async function EnCompanyLayout({ children, params }: Props) {
+export default async function EnCompanyLayout(props: Props) {
+  const params = await props.params;
+
+  const {
+    children
+  } = props;
+
   const sym     = params.sym.toUpperCase()
   const company = (companiesData as { sym: string; ar: string; en: string; sec?: string; mcap?: number }[])
     .find(c => c.sym === sym)

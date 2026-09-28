@@ -27,7 +27,7 @@ const safePath = (url?: string) => (url && url.startsWith('/') && !url.startsWit
 export default function NativeBridge() {
   const router = useRouter()
   const [banner, setBanner] = useState<Banner | null>(null)
-  const timer = useRef<ReturnType<typeof setTimeout>>()
+  const timer = useRef<ReturnType<typeof setTimeout>>(undefined)
 
   useEffect(() => {
     if (!isNativeApp()) return

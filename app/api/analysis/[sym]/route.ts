@@ -311,10 +311,8 @@ async function callGroq(prompt: string): Promise<{ en: any; ar: any }> {
 }
 
 // ── GET: cached ───────────────────────────────────────────────────────────────
-export async function GET(
-  _req: NextRequest,
-  { params }: { params: { sym: string } },
-) {
+export async function GET(_req: NextRequest, props: { params: Promise<{ sym: string }> }) {
+  const params = await props.params;
   const sym = params.sym.toUpperCase()
   try {
     const { data, error } = await supabase
@@ -382,10 +380,8 @@ function sameOrigin(req: NextRequest): boolean {
 }
 
 // ── POST: generate + cache ────────────────────────────────────────────────────
-export async function POST(
-  req: NextRequest,
-  { params }: { params: { sym: string } },
-) {
+export async function POST(req: NextRequest, props: { params: Promise<{ sym: string }> }) {
+  const params = await props.params;
   const sym = params.sym.toUpperCase()
 
   // Cost guard: this endpoint is browser-triggered and unauthenticated, and each

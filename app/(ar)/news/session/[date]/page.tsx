@@ -20,7 +20,8 @@ export async function generateStaticParams() {
   return (await loadSessions(15)).map((date) => ({ date }))
 }
 
-export async function generateMetadata({ params }: { params: { date: string } }): Promise<Metadata> {
+export async function generateMetadata(props: { params: Promise<{ date: string }> }): Promise<Metadata> {
+  const params = await props.params;
   const s = await loadSessionWrap(params.date)
   if (!s) return { title: 'Not found', robots: { index: false, follow: false } }
   const t = messages('ar'), v = wrapVars(s, t, 'ar')
@@ -35,7 +36,8 @@ export async function generateMetadata({ params }: { params: { date: string } })
   }
 }
 
-export default async function Page({ params }: { params: { date: string } }) {
+export default async function Page(props: { params: Promise<{ date: string }> }) {
+  const params = await props.params;
   const s = await loadSessionWrap(params.date)
   if (!s) notFound()
   const t = messages('ar'), v = wrapVars(s, t, 'ar')

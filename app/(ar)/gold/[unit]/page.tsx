@@ -36,7 +36,8 @@ const KEYWORDS: Record<string, string[]> = {
   ],
 }
 
-export async function generateMetadata({ params }: { params: { unit: string } }): Promise<Metadata> {
+export async function generateMetadata(props: { params: Promise<{ unit: string }> }): Promise<Metadata> {
+  const params = await props.params;
   const def = goldPage(params.unit)
   if (!def) return { title: 'Not found', robots: { index: false, follow: false } }
   const P = messages('ar').rates.page.goldUnit
@@ -57,7 +58,8 @@ export async function generateMetadata({ params }: { params: { unit: string } })
   }
 }
 
-export default async function Page({ params }: { params: { unit: string } }) {
+export default async function Page(props: { params: Promise<{ unit: string }> }) {
+  const params = await props.params;
   const def = goldPage(params.unit)
   if (!def) notFound()
   const [gold, fx] = await Promise.all([fetchGold(), fetchFx()])

@@ -21,7 +21,8 @@ export function generateStaticParams() {
   return (companiesData as { sym: string }[]).map((c) => ({ sym: c.sym }))
 }
 
-export default async function Page({ params }: { params: { sym: string } }) {
+export default async function Page(props: { params: Promise<{ sym: string }> }) {
+  const params = await props.params;
   /* Tickers are upper-case; a lower-case URL is the same page. Google had
      indexed both shapes, so this is a 301, not a canonical hint. */
   if (params.sym !== params.sym.toUpperCase()) permanentRedirect(`/c/${params.sym.toUpperCase()}`)

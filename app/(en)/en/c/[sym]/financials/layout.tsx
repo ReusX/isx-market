@@ -5,7 +5,8 @@ import Breadcrumbs from '@/components/seo/Breadcrumbs'
 import { absUrl, seoAlternates } from '@/lib/seo'
 
 /** `/en/c/[sym]/financials`. See the Arabic layout for why this file exists. */
-export async function generateMetadata({ params }: { params: { sym: string } }): Promise<Metadata> {
+export async function generateMetadata(props: { params: Promise<{ sym: string }> }): Promise<Metadata> {
+  const params = await props.params;
   const sym     = params.sym.toUpperCase()
   const company = (companiesData as { sym: string; ar: string; en: string }[]).find(c => c.sym === sym)
   const seo     = buildCompanySeoEn(sym, company?.ar ?? '', company?.en ?? sym)
@@ -26,7 +27,13 @@ export async function generateMetadata({ params }: { params: { sym: string } }):
   }
 }
 
-export default function EnFinancialsLayout({ children, params }: { children: React.ReactNode; params: { sym: string } }) {
+export default async function EnFinancialsLayout(props: { children: React.ReactNode; params: Promise<{ sym: string }> }) {
+  const params = await props.params;
+
+  const {
+    children
+  } = props;
+
   const sym = params.sym.toUpperCase()
   const company = (companiesData as { sym: string; ar: string; en: string }[]).find(c => c.sym === sym)
   const seo = buildCompanySeoEn(sym, company?.ar ?? '', company?.en ?? sym)

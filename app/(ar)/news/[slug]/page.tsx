@@ -45,7 +45,8 @@ export function generateStaticParams() {
   return listArticles('news').map((a) => ({ slug: a.slug }))
 }
 
-export async function generateMetadata({ params }: { params: { slug: string } }): Promise<Metadata> {
+export async function generateMetadata(props: { params: Promise<{ slug: string }> }): Promise<Metadata> {
+  const params = await props.params;
   const post = getArticle(params.slug, 'news')
   if (!post) return { title: 'Not found', robots: { index: false, follow: false } }
   return {
@@ -62,7 +63,8 @@ export async function generateMetadata({ params }: { params: { slug: string } })
   }
 }
 
-export default async function NewsArticle({ params }: { params: { slug: string } }) {
+export default async function NewsArticle(props: { params: Promise<{ slug: string }> }) {
+  const params = await props.params;
   const article = await loadArticle('news', params.slug)
   const post = getArticle(params.slug, 'news')
   if (!article || !post) notFound()

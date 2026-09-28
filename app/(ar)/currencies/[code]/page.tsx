@@ -19,7 +19,8 @@ export function generateStaticParams() {
   return CURRENCY_PAGES.map((c) => ({ code: c.slug }))
 }
 
-export async function generateMetadata({ params }: { params: { code: string } }): Promise<Metadata> {
+export async function generateMetadata(props: { params: Promise<{ code: string }> }): Promise<Metadata> {
+  const params = await props.params;
   const def = currencyPage(params.code)
   if (!def) return { title: 'Not found', robots: { index: false, follow: false } }
   const P = messages('ar').rates.page.currency
@@ -40,7 +41,8 @@ export async function generateMetadata({ params }: { params: { code: string } })
   }
 }
 
-export default async function Page({ params }: { params: { code: string } }) {
+export default async function Page(props: { params: Promise<{ code: string }> }) {
+  const params = await props.params;
   const def = currencyPage(params.code)
   if (!def) notFound()
   const [cur, fx, history] = await Promise.all([fetchCurrencies(), fetchFx(), currencyHistory(def)])

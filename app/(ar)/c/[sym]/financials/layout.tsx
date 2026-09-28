@@ -18,7 +18,8 @@ const ARABIC_NAMES = (companiesData as { ar: string }[]).map(c => c.ar).filter(B
  * No «اليوم» and no price line: this page is a set of published filings, not a
  * quote, and its snippet should not compete with the overview page's.
  */
-export async function generateMetadata({ params }: { params: { sym: string } }): Promise<Metadata> {
+export async function generateMetadata(props: { params: Promise<{ sym: string }> }): Promise<Metadata> {
+  const params = await props.params;
   const sym     = params.sym.toUpperCase()
   const company = (companiesData as { sym: string; ar: string; en: string }[]).find(c => c.sym === sym)
   const seo     = buildCompanySeo(sym, company?.ar ?? sym, company?.en ?? sym, undefined, ARABIC_NAMES)
@@ -38,7 +39,13 @@ export async function generateMetadata({ params }: { params: { sym: string } }):
   }
 }
 
-export default function FinancialsLayout({ children, params }: { children: React.ReactNode; params: { sym: string } }) {
+export default async function FinancialsLayout(props: { children: React.ReactNode; params: Promise<{ sym: string }> }) {
+  const params = await props.params;
+
+  const {
+    children
+  } = props;
+
   const sym = params.sym.toUpperCase()
   const company = (companiesData as { sym: string; ar: string; en: string }[]).find(c => c.sym === sym)
   const seo = buildCompanySeo(sym, company?.ar ?? sym, company?.en ?? sym, undefined, ARABIC_NAMES)

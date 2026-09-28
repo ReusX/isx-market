@@ -17,7 +17,8 @@ export async function generateStaticParams() {
   return (await loadResultsIndex()).slice(0, 40).map((k) => ({ sym: k.sym, period: resultsSlug(k) }))
 }
 
-export async function generateMetadata({ params }: { params: { sym: string; period: string } }): Promise<Metadata> {
+export async function generateMetadata(props: { params: Promise<{ sym: string; period: string }> }): Promise<Metadata> {
+  const params = await props.params;
   const x = await loadResults(params.sym, params.period)
   if (!x) return { title: 'Not found', robots: { index: false, follow: false } }
   const t = messages('ar'), v = resultsVars(x, t, 'ar')
@@ -31,7 +32,8 @@ export async function generateMetadata({ params }: { params: { sym: string; peri
   }
 }
 
-export default async function Page({ params }: { params: { sym: string; period: string } }) {
+export default async function Page(props: { params: Promise<{ sym: string; period: string }> }) {
+  const params = await props.params;
   if (params.sym !== params.sym.toUpperCase() || params.period !== params.period.toLowerCase()) permanentRedirect(`/c/${params.sym.toUpperCase()}/results/${params.period.toLowerCase()}`)
   const x = await loadResults(params.sym, params.period)
   if (!x) notFound()

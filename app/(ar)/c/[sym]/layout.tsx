@@ -10,11 +10,12 @@ import { absUrl, seoAlternates } from '@/lib/seo'
 const ARABIC_NAMES = (companiesData as { ar: string }[]).map(c => c.ar).filter(Boolean)
 
 interface Props {
-  params:   { sym: string }
+  params: Promise<{ sym: string }>
   children: React.ReactNode
 }
 
-export async function generateMetadata({ params }: { params: { sym: string } }): Promise<Metadata> {
+export async function generateMetadata(props: { params: Promise<{ sym: string }> }): Promise<Metadata> {
+  const params = await props.params;
   const sym     = params.sym.toUpperCase()
   const company = (companiesData as { sym: string; ar: string; en: string; sec?: string }[])
     .find(c => c.sym === sym)
@@ -57,7 +58,13 @@ export async function generateMetadata({ params }: { params: { sym: string } }):
   }
 }
 
-export default async function CompanyLayout({ children, params }: Props) {
+export default async function CompanyLayout(props: Props) {
+  const params = await props.params;
+
+  const {
+    children
+  } = props;
+
   const sym     = params.sym.toUpperCase()
   const company = (companiesData as { sym: string; ar: string; en: string; sec?: string; mcap?: number }[])
     .find(c => c.sym === sym)

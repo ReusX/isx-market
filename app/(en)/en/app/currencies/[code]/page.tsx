@@ -10,12 +10,14 @@ import { messages } from '@/lib/i18n'
 export const revalidate = 3600
 export const dynamicParams = false
 export function generateStaticParams() { return currencyCodes().map((code) => ({ code })) }
-export function generateMetadata({ params }: { params: { code: string } }): Metadata {
+export async function generateMetadata(props: { params: Promise<{ code: string }> }): Promise<Metadata> {
+  const params = await props.params;
   const name = (messages('en').rates.page.currencies.names as Record<string, string>)[params.code.toUpperCase()] ?? params.code.toUpperCase()
   return { title: { absolute: `${name} · IQWealth` }, robots: { index: false, follow: false }, alternates: seoAlternates(`/app/currencies/${params.code}`, 'en') }
 }
 
-export default async function Page({ params }: { params: { code: string } }) {
+export default async function Page(props: { params: Promise<{ code: string }> }) {
+  const params = await props.params;
   const d = await currencyScreen(params.code)
   if (!d) notFound()
   return <SiteShell><AppCurrency d={d} /></SiteShell>

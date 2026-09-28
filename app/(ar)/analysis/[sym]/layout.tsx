@@ -7,9 +7,8 @@ import { absUrl, seoAlternates } from '@/lib/seo'
  * shared the root canonical — every one declaring itself a duplicate of the
  * homepage. They also all shared the homepage's title.
  */
-export async function generateMetadata(
-  { params }: { params: { sym: string } },
-): Promise<Metadata> {
+export async function generateMetadata(props: { params: Promise<{ sym: string }> }): Promise<Metadata> {
+  const params = await props.params;
   const sym = params.sym.toUpperCase()
   const meta = (companies as { sym: string; ar?: string; en?: string }[]).find(c => c.sym === sym)
   const name = meta?.ar?.trim() || meta?.en?.trim() || sym
