@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 4×2 · dollar, gold (21K mithqal) and ISX60 side by side. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/w_root"
+    android:layout_width="match_parent" android:layout_height="match_parent"
+    android:orientation="vertical" android:layoutDirection="rtl"
+    android:background="@drawable/widget_bg" android:padding="12dp">
+    <LinearLayout android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1" android:orientation="horizontal">
+        <LinearLayout android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1"
+            android:orientation="vertical" android:gravity="center_vertical" android:background="@drawable/widget_cell" android:padding="10dp">
+            <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/w_dollar_short"
+                android:textColor="#CCFFFFFF" android:textSize="12sp" android:maxLines="1" />
+            <TextView android:id="@+id/w_fx" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="—"
+                android:textColor="#FFFFFF" android:textSize="24sp" android:fontFamily="sans-serif-light" android:maxLines="1"
+                android:autoSizeTextType="uniform" android:autoSizeMinTextSize="14sp" />
+            <TextView android:id="@+id/w_fx_sub" android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:textColor="#B3FFFFFF" android:textSize="10sp" android:maxLines="1" />
+        </LinearLayout>
+        <Space android:layout_width="8dp" android:layout_height="match_parent" />
+        <LinearLayout android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1"
+            android:orientation="vertical" android:gravity="center_vertical" android:background="@drawable/widget_cell" android:padding="10dp">
+            <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/w_gold"
+                android:textColor="#F0CD6E" android:textSize="12sp" android:maxLines="1" />
+            <TextView android:id="@+id/w_gold" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="—"
+                android:textColor="#FFFFFF" android:textSize="24sp" android:fontFamily="sans-serif-light" android:maxLines="1"
+                android:autoSizeTextType="uniform" android:autoSizeMinTextSize="14sp" />
+            <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/w_gold_sub"
+                android:textColor="#B3FFFFFF" android:textSize="10sp" android:maxLines="1" />
+        </LinearLayout>
+        <Space android:layout_width="8dp" android:layout_height="match_parent" />
+        <LinearLayout android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1"
+            android:orientation="vertical" android:gravity="center_vertical" android:background="@drawable/widget_cell" android:padding="10dp">
+            <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/w_isx"
+                android:textColor="#CCFFFFFF" android:textSize="12sp" android:maxLines="1" />
+            <TextView android:id="@+id/w_isx" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="—"
+                android:textColor="#FFFFFF" android:textSize="24sp" android:fontFamily="sans-serif-light" android:maxLines="1"
+                android:autoSizeTextType="uniform" android:autoSizeMinTextSize="14sp" />
+            <TextView android:id="@+id/w_isx_sub" android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:text="@string/w_isx_sub" android:textColor="#B3FFFFFF" android:textSize="10sp" android:maxLines="1" />
+        </LinearLayout>
+    </LinearLayout>
+    <TextView android:id="@+id/w_time" android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:layout_marginTop="6dp" android:text="@string/w_loading" android:textColor="#99FFFFFF" android:textSize="11sp" android:maxLines="1" />
+</LinearLayout>

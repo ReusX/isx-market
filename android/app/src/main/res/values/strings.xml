@@ -4,4 +4,16 @@
     <string name="title_activity_main">IQWealth</string>
     <string name="package_name">com.iraqsm.app</string>
     <string name="custom_url_scheme">com.iraqsm.app</string>
+    <!-- Home-screen widgets (PriceWidget / PriceWidgetWide). Arabic, like the app. -->
+    <string name="widget_small_label">سعر الدولار في العراق</string>
+    <string name="widget_wide_label">الدولار والذهب والبورصة</string>
+    <string name="w_dollar">الدولار · الكفاح</string>
+    <string name="w_dollar_short">الدولار</string>
+    <string name="w_per_hundred">لكل 100$: %1$s</string>
+    <string name="w_gold">الذهب</string>
+    <string name="w_gold_sub">مثقال عيار 21</string>
+    <string name="w_isx">البورصة</string>
+    <string name="w_isx_sub">ISX60</string>
+    <string name="w_updated">تحديث %1$s</string>
+    <string name="w_loading">جارٍ التحميل…</string>
 </resources>

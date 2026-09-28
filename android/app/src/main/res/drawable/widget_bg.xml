@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The app's hero card: brand blue into navy, rounded like the system widgets. -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle">
+    <gradient android:angle="315" android:startColor="#0F56D1" android:endColor="#1A2035" android:type="linear" />
+    <corners android:radius="22dp" />
+</shape>

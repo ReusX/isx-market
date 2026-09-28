@@ -147,7 +147,13 @@ type CapPlugins = {
   Haptics?: { impact: (o: { style: string }) => Promise<void> }
   Share?: { share: (o: { title?: string; url?: string }) => Promise<unknown> }
 }
-const plugins = (): CapPlugins => ((window as unknown as { Capacitor?: { Plugins?: CapPlugins } }).Capacitor?.Plugins ?? {})
+type Cap = { Plugins?: Record<string, unknown>; isPluginAvailable?: (n: string) => boolean; registerPlugin?: (n: string) => unknown }
+/** Native plugins exist only in app builds that ship them (1.1+); older installs fall back. */
+const plugins = (): CapPlugins => {
+  const C = (window as unknown as { Capacitor?: Cap }).Capacitor
+  const one = (n: string) => (C?.isPluginAvailable?.(n) ? (C.Plugins?.[n] ?? C.registerPlugin?.(n)) : undefined)
+  return { Haptics: one('Haptics') as CapPlugins['Haptics'], Share: one('Share') as CapPlugins['Share'] }
+}
 
 /** A light tick under the finger: the native haptics plugin when the app has it, else the vibration API. */
 export function haptic() {

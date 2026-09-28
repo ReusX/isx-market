@@ -44,6 +44,10 @@ const config: CapacitorConfig = {
     },
   },
 
+  // Lets the site recognise the app before its JavaScript runs (Document.tsx
+  // pre-paint script), so the website chrome never flashes on launch.
+  appendUserAgent: 'IQWealthApp',
+
   android: {
     backgroundColor: '#F5F2EC',
     allowMixedContent: false,
