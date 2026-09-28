@@ -12,6 +12,7 @@ import { usePortfolio } from '@/lib/portfolio'
 import { SiteShell } from './SiteShell'
 import { PageTitle } from './PageTitle'
 import { ToolsRail } from './tools'
+import { useCaptcha } from './Captcha'
 import '@/styles/auth-page.css'
 
 /**
@@ -55,6 +56,7 @@ export function ProfilePage() {
   const [saved, setSaved] = useState(false)
   const [nameError, setNameError] = useState<string | null>(null)
   const [resetSent, setResetSent] = useState(false)
+  const captcha = useCaptcha()
   const [copied, setCopied] = useState(false)
   useEffect(() => { setName(profile?.username ?? '') }, [profile?.username])
   const positions = useMemo(() => new Set(lots.map((l) => l.sym)).size, [lots])
@@ -76,7 +78,8 @@ export function ProfilePage() {
   async function sendReset() {
     if (!email) return
     const { createClient } = await import('@/lib/supabase/client')
-    await createClient().auth.resetPasswordForEmail(email, { redirectTo: `${window.location.origin}/auth/reset` })
+    const captchaToken = await captcha.token()
+    await createClient().auth.resetPasswordForEmail(email, { redirectTo: `${window.location.origin}/auth/reset`, captchaToken })
     setResetSent(true)
   }
 
@@ -118,6 +121,7 @@ export function ProfilePage() {
               <dt>{ac.password}</dt>
               <dd>{resetSent ? ac.resetSentTo(email) : ac.passwordViaEmail}<span className="id-sub id-cap">{ac.noCurrentPassword}</span></dd>
               <button type="button" className="id-btn is-sm" onClick={sendReset} disabled={resetSent}>{resetSent ? ac.resetSent : ac.sendResetLink}</button>
+              {captcha.el}
             </div>
           ) : null}
         </dl>

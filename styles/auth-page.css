@@ -56,3 +56,8 @@
 .ath-danger { color: var(--down); border-color: color-mix(in srgb, var(--down) 45%, transparent); }
 .ath-confirm { display: grid; gap: 10px; padding: 14px; border-radius: var(--r-md); background: color-mix(in srgb, var(--down) 8%, transparent); }
 .ath-err { color: var(--down); }
+
+/* Turnstile (components/site/Captcha.tsx): empty unless a check is needed. */
+.ath-captcha:empty { display: none; }
+.ath-captcha { justify-self: center; min-height: 0; }
+.ath-row > .ath-captcha { grid-column: 1 / -1; }

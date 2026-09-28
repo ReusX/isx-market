@@ -21,7 +21,7 @@ export const RETURN_TARGETS: Record<string, readonly [string, string]> = {
 
 /* ── Fields · exactly the real ones ──────────────────────────────────────── */
 /** The product's only password rule. */
-export const MIN_PASSWORD = 6;
+export const MIN_PASSWORD = 8;
 /** `maxLength={8}` on the real input. */
 export const REFERRAL_MAX = 8;
 
@@ -69,6 +69,12 @@ export function identityKind(v: string): "email" | "phone" | null {
 export function checkCode(v: string, l: L = "ar"): FieldError {
   if (!/^\d{6}$/.test(v.trim())) return l === "ar" ? "الرمز ستة أرقام." : "The code is six digits.";
   return null;
+}
+
+/** Sign-in: only that something was typed. Accounts made under the old
+ *  six-character minimum must still be able to sign in. */
+export function checkPasswordEntered(v: string, l: L = "ar"): FieldError {
+  return v ? null : l === "ar" ? "أدخل كلمة المرور." : "Enter your password.";
 }
 
 export function checkPassword(v: string, l: L = "ar"): FieldError {

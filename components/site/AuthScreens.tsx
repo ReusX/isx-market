@@ -6,11 +6,12 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useApp } from '@/context/AppContext'
 import { createClient } from '@/lib/supabase/client'
+import { useCaptcha } from './Captcha'
 import {
   AuthShell, Field, PasswordField, AuthError, Submit, Outcome,
 } from './AuthKit'
 import {
-  checkEmail, checkPassword, checkConfirm, checkPhone, checkCode, normalizePhone, identityKind,
+  checkEmail, checkPassword, checkPasswordEntered, checkConfirm, checkPhone, checkCode, normalizePhone, identityKind,
   authErrorId, RESEND_COOLDOWN, BENEFITS, BENEFITS_EN, type AuthErrorId, type FieldError,
 } from '@/lib/auth'
 
@@ -52,6 +53,7 @@ export function CodeStep({ email, phone, onDone }: { email?: string; phone?: str
     return () => clearTimeout(t)
   }, [cooldown])
   const target = phone ?? email ?? ''
+  const captcha = useCaptcha()
 
   async function submit(e: React.FormEvent) {
     e.preventDefault()
@@ -71,9 +73,10 @@ export function CodeStep({ email, phone, onDone }: { email?: string; phone?: str
     setBusy(true); setFormError(null); setResent(false)
     try {
       const sb = createClient()
+      const captchaToken = await captcha.token()
       const { error } = phone
-        ? await sb.auth.resend({ type: 'sms', phone })
-        : await sb.auth.resend({ type: 'signup', email: email as string, options: { emailRedirectTo: `${window.location.origin}/auth/callback` } })
+        ? await sb.auth.resend({ type: 'sms', phone, options: { captchaToken } })
+        : await sb.auth.resend({ type: 'signup', email: email as string, options: { emailRedirectTo: `${window.location.origin}/auth/callback`, captchaToken } })
       if (error) { setFormError(authErrorId(error)); return }
       setResent(true); setCooldown(RESEND_COOLDOWN)
     } catch (err) { setFormError(authErrorId(err)) } finally { setBusy(false) }
@@ -93,6 +96,7 @@ export function CodeStep({ email, phone, onDone }: { email?: string; phone?: str
             ? (isAr ? `يمكنك طلب رمز جديد بعد ${cooldown} ثانية.` : `You can request a new code in ${cooldown}s.`)
             : <button type="button" className="id-link ath-linkbtn" onClick={resend} disabled={busy}>{isAr ? 'إرسال رمز جديد' : 'Send a new code'}</button>}
         </p>
+        {captcha.el}
       </form>
     </AuthShell>
   )
@@ -110,6 +114,7 @@ export function LoginScreen() {
   const [pwErr, setPwErr] = useState<FieldError>(null)
   const [formError, setFormError] = useState<AuthErrorId | null>(null)
   const [busy, setBusy] = useState(false)
+  const captcha = useCaptcha()
 
   // Already signed in? This page has nothing to offer.
   useEffect(() => { if (user) router.replace(L('/profile')) }, [user, router])
@@ -123,14 +128,15 @@ export function LoginScreen() {
   }
   async function submit(e: React.FormEvent) {
     e.preventDefault()
-    const ee = checkIdentity(email), pe = checkPassword(password, locale)
+    const ee = checkIdentity(email), pe = checkPasswordEntered(password, locale)
     setEmailErr(ee); setPwErr(pe)
     if (ee || pe) return
     setBusy(true); setFormError(null)
     try {
+      const captchaToken = await captcha.token()
       const { error } = identityKind(email) === 'phone'
-        ? await createClient().auth.signInWithPassword({ phone: normalizePhone(email), password })
-        : await createClient().auth.signInWithPassword({ email: email.trim(), password })
+        ? await createClient().auth.signInWithPassword({ phone: normalizePhone(email), password, options: { captchaToken } })
+        : await createClient().auth.signInWithPassword({ email: email.trim(), password, options: { captchaToken } })
       if (error) { setFormError(authErrorId(error)); return }
       router.replace(L('/profile'))
     } catch (err) {
@@ -168,6 +174,7 @@ export function LoginScreen() {
           value={password} onChange={setPassword} error={pwErr}
           autoComplete="current-password" disabled={busy} locale={locale}
           hint={<Link href={L("/forgot-password")}>{isAr ? 'نسيت كلمة المرور؟' : 'Forgot your password?'}</Link>} />
+        {captcha.el}
         <Submit busy={busy} busyLabel={isAr ? 'جارٍ الدخول' : 'Signing in…'}>
           {isAr ? 'تسجيل الدخول' : 'Sign in'}
         </Submit>
@@ -194,6 +201,7 @@ export function SignUpScreen() {
   const [method, setMethod] = useState<'email' | 'phone'>('email')
   const [phone, setPhone] = useState('')
   const [phoneErr, setPhoneErr] = useState<FieldError>(null)
+  const captcha = useCaptcha()
 
   useEffect(() => { if (user && !sent) router.replace(L('/profile')) }, [user, sent, router])
 
@@ -206,11 +214,12 @@ export function SignUpScreen() {
     if (ee || fe || pe || ce) return
     setBusy(true); setFormError(null)
     try {
+      const captchaToken = await captcha.token()
       const { data, error } = byPhone
-        ? await createClient().auth.signUp({ phone: normalizePhone(phone), password })
+        ? await createClient().auth.signUp({ phone: normalizePhone(phone), password, options: { captchaToken } })
         : await createClient().auth.signUp({
             email, password,
-            options: { emailRedirectTo: `${window.location.origin}/auth/callback` },
+            options: { emailRedirectTo: `${window.location.origin}/auth/callback`, captchaToken },
           })
       if (error) { setFormError(authErrorId(error)); return }
       /* The project may not require email confirmation (Supabase Auth →
@@ -266,10 +275,11 @@ export function SignUpScreen() {
           <PasswordField id="password" label={isAr ? 'كلمة المرور' : 'Password'}
             value={password} onChange={setPassword} error={pwErr}
             autoComplete="new-password" disabled={busy} locale={locale}
-            hint={isAr ? 'ستة أحرف على الأقل.' : 'At least six characters.'} />
+            hint={isAr ? 'ثمانية أحرف على الأقل.' : 'At least eight characters.'} />
           <PasswordField id="confirm" label={isAr ? 'تأكيد كلمة المرور' : 'Confirm password'}
             value={confirm} onChange={setConfirm} error={cErr}
             autoComplete="new-password" disabled={busy} locale={locale} />
+          {captcha.el}
           <Submit busy={busy} busyLabel={isAr ? 'جارٍ الإنشاء' : 'Creating'}>
             {isAr ? 'إنشاء الحساب' : 'Create account'}
           </Submit>
@@ -318,6 +328,7 @@ export function ForgotPasswordScreen() {
   const [emailErr, setEmailErr] = useState<FieldError>(null)
   const [busy, setBusy] = useState(false)
   const [sent, setSent] = useState(false)
+  const captcha = useCaptcha()
 
   async function submit(e: React.FormEvent) {
     e.preventDefault()
@@ -329,8 +340,9 @@ export function ForgotPasswordScreen() {
       // Deliberately not surfacing the outcome: telling a stranger whether an
       // address is registered is an account-enumeration leak. The message is
       // the same either way.
+      const captchaToken = await captcha.token()
       await createClient().auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/auth/reset`,
+        redirectTo: `${window.location.origin}/auth/reset`, captchaToken,
       })
     } finally {
       setBusy(false); setSent(true)
@@ -355,6 +367,7 @@ export function ForgotPasswordScreen() {
             autoComplete="email" autoFocus disabled={busy}
             onBlur={() => setEmailErr(checkEmail(email, locale))}
             hint={isAr ? 'سنرسل رابطاً لتعيين كلمة مرور جديدة.' : "We'll email a link to set a new password."} />
+          {captcha.el}
           <Submit busy={busy} busyLabel={isAr ? 'جارٍ الإرسال' : 'Sending'}>
             {isAr ? 'إرسال الرابط' : 'Send the link'}
           </Submit>
