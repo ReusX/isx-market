@@ -107,15 +107,15 @@
     --border: rgb(255 255 255 / .18); --up: #7cebb0; --down: #ffa3a3;
     position: relative; overflow: hidden; isolation: isolate;
     margin: 4px 0 18px; padding: 18px 18px 16px; border-radius: 24px; color: #fff;
-    background: radial-gradient(120% 90% at 100% 0%, #2d7bff 0%, transparent 60%), linear-gradient(160deg, var(--blue-deep) 0%, var(--navy) 78%);
-    box-shadow: 0 12px 32px -14px rgb(15 86 209 / .55);
+    background: radial-gradient(120% 90% at 100% 0%, rgb(45 123 255 / .35) 0%, transparent 60%), linear-gradient(160deg, #10326e 0%, var(--navy) 70%);
+    box-shadow: 0 12px 28px -16px rgb(8 30 70 / .5);
   }
   html:not(.is-app) .is-gold .eco-head {
-    --ink: #2b1d02; --muted: rgb(43 29 2 / .7); --secondary: rgb(43 29 2 / .78);
-    --border: rgb(43 29 2 / .16); --up: #0a6b3b; --down: #a11b1b;
-    color: #2b1d02;
-    background: radial-gradient(120% 90% at 100% 0%, #fff1bf 0%, transparent 55%), linear-gradient(160deg, #f0cd6e 0%, #b8862a 85%);
-    box-shadow: 0 12px 32px -14px rgb(184 134 42 / .6);
+    --ink: #fff8e6; --muted: rgb(255 248 230 / .75); --secondary: rgb(255 248 230 / .82);
+    --border: rgb(255 248 230 / .2); --up: #9ff0c4; --down: #ffb3a8;
+    color: #fff8e6;
+    background: radial-gradient(120% 90% at 100% 0%, rgb(255 236 180 / .35) 0%, transparent 55%), linear-gradient(160deg, #a8802f 0%, #6b4a14 85%);
+    box-shadow: 0 12px 28px -16px rgb(120 85 25 / .5);
   }
   html:not(.is-app) .eco-head :is(h1, .id-h1, .id-eyebrow, strong, b, .id-cap, a) { color: inherit; }
   html:not(.is-app) .eco-head .id-h1 { font-size: 22px; line-height: 1.35; }
@@ -125,6 +125,6 @@
   html:not(.is-app) .eco-head a { text-decoration: underline; text-underline-offset: 3px; }
   html:not(.is-app) .eco-head .eco-stats { gap: 8px; }
   html:not(.is-app) .eco-head .id-stat { padding: 10px 12px; border-radius: 14px; background: rgb(255 255 255 / .1); border: 0; }
-  html:not(.is-app) .is-gold .eco-head .id-stat { background: rgb(43 29 2 / .1); }
+  html:not(.is-app) .is-gold .eco-head .id-stat { background: rgb(0 0 0 / .16); }
   html:not(.is-app) .eco-head .id-stat small { color: var(--muted); }
 }
