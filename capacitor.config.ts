@@ -38,6 +38,12 @@ const config: CapacitorConfig = {
       splashFullScreen: false,
       splashImmersive: false,
     },
+    // Edge to edge: the page draws under the status and navigation bars and
+    // gets their sizes as --safe-area-inset-* (styles/app.css).
+    SystemBars: {
+      insetsHandling: 'css',
+      initialViewportFitValueHint: 'cover',
+    },
     PushNotifications: {
       // iOS: still show a notification that arrives while the app is open.
       presentationOptions: ['badge', 'sound', 'alert'],

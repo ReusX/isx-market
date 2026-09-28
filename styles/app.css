@@ -4,7 +4,13 @@
    its place; the page content between them is untouched. Everything here
    uses the site tokens, so both themes follow for free. */
 
-:root { --app-top: calc(52px + env(safe-area-inset-top, 0px)); --app-tabs: calc(62px + env(safe-area-inset-bottom, 0px)); }
+:root {
+  /* Capacitor's SystemBars plugin injects --safe-area-inset-* (the WebView's
+     own env() values are unreliable on older Chromium); env() is the fallback. */
+  --sat: var(--safe-area-inset-top, env(safe-area-inset-top, 0px));
+  --sab: var(--safe-area-inset-bottom, env(safe-area-inset-bottom, 0px));
+}
+:root { --app-top: calc(52px + var(--sat)); --app-tabs: calc(62px + var(--sab)); }
 
 /* What the app does not show: top nav, footer, section rails, the long copy
    written for search engines, and the website's welcome card. */
@@ -25,7 +31,7 @@ html.is-app .site > main { padding-top: 8px; }
 /* ── Top bar ──────────────────────────────────────────────────────────── */
 .app-top {
   position: fixed; z-index: 800; inset-inline: 0; top: 0;
-  padding: env(safe-area-inset-top, 0px) 16px 0; background: var(--page); border-bottom: 1px solid var(--border);
+  padding: var(--sat) 16px 0; background: var(--page); border-bottom: 1px solid var(--border);
 }
 .app-top-row { display: flex; align-items: center; gap: 8px; height: 52px; }
 .app-title { flex: 1; margin: 0; font-size: 18px; font-weight: 500; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -50,7 +56,7 @@ html.is-app .site > main { padding-top: 8px; }
 /* ── Bottom tab bar ───────────────────────────────────────────────────── */
 .app-tabs {
   position: fixed; z-index: 900; inset-inline: 0; bottom: 0; display: flex;
-  padding-bottom: env(safe-area-inset-bottom, 0px); background: var(--surface); border-top: 1px solid var(--border);
+  padding-bottom: var(--sab); background: var(--surface); border-top: 1px solid var(--border);
 }
 .app-tab {
   flex: 1 1 0; min-width: 0; display: flex; flex-direction: column; align-items: center; gap: 2px;
@@ -67,7 +73,7 @@ html.is-app .site > main { padding-top: 8px; }
 .app-sheet-wrap { position: fixed; z-index: 950; inset: 0; background: rgb(0 0 0 / .38); display: flex; align-items: flex-end; }
 .app-sheet {
   width: 100%; max-height: 82svh; overflow-y: auto; display: grid; gap: 18px;
-  padding: 10px 16px calc(16px + env(safe-area-inset-bottom, 0px));
+  padding: 10px 16px calc(16px + var(--sab));
   background: var(--surface); border-radius: 22px 22px 0 0; animation: app-up .22s ease-out;
 }
 .app-sheet-grip { width: 40px; height: 4px; margin: 0 auto; border-radius: 2px; background: var(--border); }
@@ -103,7 +109,7 @@ html.is-app .site > main { padding-top: 8px; }
 .app-onb {
   position: fixed; z-index: 1000; inset: 0; overflow-y: auto; background: var(--page); color: var(--ink);
   display: flex; flex-direction: column; gap: 10px;
-  padding: calc(28px + env(safe-area-inset-top, 0px)) 18px calc(18px + env(safe-area-inset-bottom, 0px));
+  padding: calc(28px + var(--sat)) 18px calc(18px + var(--sab));
 }
 .app-onb-kicker { margin: 0; font-size: 14px; color: var(--nav-active); }
 .app-onb-h { margin: 0; font-size: 28px; font-weight: 400; line-height: 1.3; text-wrap: balance; }

@@ -44,10 +44,12 @@ export default function NativeBridge() {
           const bg = getComputedStyle(document.body).backgroundColor
           const dark = document.documentElement.dataset.theme === 'dark' ||
             (!document.documentElement.dataset.theme && matchMedia('(prefers-color-scheme: dark)').matches)
+          /* Edge to edge: the page draws under the status and navigation bars
+             (viewport-fit=cover, set pre-paint in Document.tsx) and the app's
+             own top bar and tab bar colour them; only the icon tone is set here. */
           await StatusBar.setStyle({ style: dark ? Style.Dark : Style.Light })
-          if (platform === 'android') {
+          if (platform === 'android' && !document.documentElement.classList.contains('is-app')) {
             await StatusBar.setBackgroundColor({ color: rgbToHex(bg) ?? (dark ? '#0B0E14' : '#FFFFFF') })
-            await StatusBar.setOverlaysWebView({ overlay: false })
           }
         }
         await paint()

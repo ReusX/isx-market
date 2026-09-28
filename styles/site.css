@@ -289,7 +289,7 @@
 
 /* In-app notification banner (components/NativeBridge.tsx) */
 .nb-banner {
-  position: fixed; z-index: 1000; inset-inline: 12px; top: calc(env(safe-area-inset-top, 0px) + 10px);
+  position: fixed; z-index: 1000; inset-inline: 12px; top: calc(var(--safe-area-inset-top, env(safe-area-inset-top, 0px)) + 10px);
   display: grid; gap: 2px; padding: 12px 16px; text-align: start; font: inherit; line-height: 1.5;
   color: var(--ink); background: var(--surface); border: 1px solid var(--border); border-radius: 14px;
   box-shadow: 0 8px 24px rgb(0 0 0 / 0.18); cursor: pointer; animation: nb-in 0.25s ease-out;
