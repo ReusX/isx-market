@@ -86,7 +86,7 @@ export function AppHome() {
     fx: () => {
       const sell = fx?.parallel.sell
       return (
-        <Card key="fx" title={H.fx.title} href={L('/fx')} open={H.open} icon="fx">
+        <Card key="fx" title={H.fx.title} href={L('/app/fx')} open={H.open} icon="fx">
           {sell ? (
             <>
               <p className="app-big id-num"><bdi>{nf0.format(sell * 100)}</bdi> <Delta v={fxPrev ? (sell - fxPrev) * 100 : null} invert /></p>
@@ -106,7 +106,7 @@ export function AppHome() {
       const k21 = gold?.gramByCarat.find((g) => g.karat === 21)
       const k24 = gold?.gramByCarat.find((g) => g.karat === 24)
       return (
-        <Card key="gold" title={H.gold.title} href={L('/gold')} open={H.open} icon="gold">
+        <Card key="gold" title={H.gold.title} href={L('/app/gold')} open={H.open} icon="gold">
           {k21 ? (
             <>
               <p className="app-big id-num"><bdi>{nf0.format(k21.mithqalIqd)}</bdi></p>

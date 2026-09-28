@@ -35,8 +35,8 @@ export const PREVIEW_KEY = 'iq.app.preview'
 
 /** Each interest: its tab, the pages it owns (in chip order) and the route prefixes it claims. */
 export const INTERESTS: { id: Interest; tab: string; pages: string[]; owns: string[] }[] = [
-  { id: 'fx', tab: '/fx', pages: ['/fx', '/fx/100-dollar', '/currencies'], owns: ['/fx', '/currencies'] },
-  { id: 'gold', tab: '/gold', pages: ['/gold', '/silver'], owns: ['/gold', '/silver'] },
+  { id: 'fx', tab: '/app/fx', pages: ['/app/fx', '/app/currencies'], owns: ['/app/fx', '/app/currencies', '/fx', '/currencies'] },
+  { id: 'gold', tab: '/app/gold', pages: ['/app/gold', '/silver'], owns: ['/app/gold', '/gold', '/silver'] },
   {
     id: 'market', tab: '/market',
     pages: ['/market', '/watchlist', '/portfolio', '/companies', '/screener', '/heatmap', '/statistics', '/pulse'],
@@ -76,6 +76,29 @@ export function readPrefs(): AppPrefs | null {
 export function writePrefs(p: AppPrefs) {
   try { localStorage.setItem(PREFS_KEY, JSON.stringify(p)) } catch { /* private mode: this session only */ }
   window.dispatchEvent(new Event('iq:prefs'))
+}
+
+/**
+ * Website pages that have an app screen of their own. Inside the app a link
+ * to one of these (a notification, a card) opens the app screen instead; the
+ * pre-paint script in Document.tsx applies the same map before first paint.
+ */
+export function appRoute(route: string): string | null {
+  if (route === '/fx' || route === '/fx/100-dollar') return '/app/fx'
+  if (route === '/currencies') return '/app/currencies'
+  if (route === '/gold' || route.startsWith('/gold/')) return '/app/gold'
+  const m = /^\/currencies\/([a-z]{3})$/.exec(route)
+  return m ? `/app/currencies/${m[1]}` : null
+}
+
+/** The public page to share for an app screen: links sent to friends should open the website. */
+export function publicRoute(route: string): string {
+  if (route === '/app/fx') return '/fx'
+  if (route === '/app/currencies') return '/currencies'
+  if (route === '/app/gold') return '/gold'
+  const m = /^\/app\/currencies\/([a-z]{3})$/.exec(route)
+  if (m) return ['try', 'sar', 'irr', 'eur', 'aed', 'kwd', 'jod', 'gbp'].includes(m[1]) ? `/currencies/${m[1]}` : '/currencies'
+  return route.startsWith('/app') ? '/' : route
 }
 
 /** The interest that owns a locale-free route, if any. */

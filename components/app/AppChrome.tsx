@@ -10,7 +10,7 @@ import type { Messages } from '@/lib/i18n'
 import { isNativeApp, enablePush, pushApi, type Topic } from '@/lib/nativePush'
 import {
   HOME, SETTINGS, NATIVE_KEY, INTERESTS, interestDef, interestOf, readPrefs, writePrefs, defaultPrefs,
-  startRoute, tabsFor, haptic, sharePage, type AppPrefs, type Interest, type Tab,
+  startRoute, tabsFor, haptic, sharePage, appRoute, publicRoute, type AppPrefs, type Interest, type Tab,
 } from '@/lib/appMode'
 import { RAILS, railDef, type Door, type RailIcon as IconName } from '@/components/site/rails'
 import { RailIcon } from '@/components/site/RailIcon'
@@ -104,6 +104,8 @@ export function AppChrome() {
   /* ── Per navigation: remember the tab, animate the page in ────────────── */
   useEffect(() => {
     if (!on) return
+    const alt = appRoute(route)
+    if (alt) { router.replace(L(alt)); return }
     setMore(false)
     const p = readPrefs()
     if (p && (route === HOME || interestOf(route))) {
@@ -114,7 +116,7 @@ export function AppChrome() {
       main.animate([{ opacity: 0, transform: 'translateY(8px)' }, { opacity: 1, transform: 'none' }], { duration: 200, easing: 'ease-out' })
     }
     window.scrollTo(0, 0)
-  }, [on, route])
+  }, [on, route]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // The page is padded by the bar's real height (it grows by the chip row).
   useEffect(() => {
@@ -148,7 +150,7 @@ export function AppChrome() {
   const chips = section ? section.pages.filter((p) => existsIn(p, locale)) : []
   const chipOn = chips.filter((p) => route === p || route.startsWith(`${p}/`)).sort((a, b) => b.length - a.length)[0]
   const title = route === HOME ? A.brand
-    : here ? A.tabs[here]
+    : here ? (chipOn ? A.pages[chipOn] : null) ?? A.tabs[here]
     : route === SETTINGS ? A.settings.title
     : route === '/notifications' ? A.tabs.notify
     : A.brand
@@ -160,7 +162,7 @@ export function AppChrome() {
           <p className="app-title">{title}</p>
           <button
             type="button" className="app-icon-btn" aria-label={A.share.label}
-            onClick={async () => { haptic(); if ((await sharePage(document.title, location.href)) === 'copied') flash(A.share.copied) }}
+            onClick={async () => { haptic(); if ((await sharePage(document.title, location.origin + L(publicRoute(route)))) === 'copied') flash(A.share.copied) }}
           >
             <Icon name="share" />
           </button>
