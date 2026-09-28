@@ -18,5 +18,9 @@
     <string name="w_kifah">بورصة الكفاح</string>
     <string name="w_vs_yesterday">%1$s عن أمس</string>
     <string name="w_hundred">100$ = %1$s</string>
+    <string name="w_settings">إعدادات الويدجت</string>
+    <string name="w_not_traded">لم يُتداول اليوم</string>
+    <string name="w_per_dollar">دينار للدولار</string>
+    <string name="w_mithqal_karat">مثقال عيار %1$d</string>
     <string name="w_loading">جارٍ التحميل…</string>
 </resources>

@@ -10,7 +10,7 @@ import type { Messages } from '@/lib/i18n'
 import { isNativeApp, enablePush, pushApi, type Topic } from '@/lib/nativePush'
 import {
   HOME, SETTINGS, NATIVE_KEY, INTERESTS, interestDef, interestOf, readPrefs, writePrefs, defaultPrefs,
-  startRoute, tabsFor, haptic, sharePage, appRoute, publicRoute, type AppPrefs, type Interest, type Tab,
+  startRoute, tabsFor, haptic, shareScreen, appRoute, publicRoute, type AppPrefs, type Interest, type Tab,
 } from '@/lib/appMode'
 import { RAILS, railDef, type Door, type RailIcon as IconName } from '@/components/site/rails'
 import { RailIcon } from '@/components/site/RailIcon'
@@ -71,6 +71,7 @@ export function AppChrome() {
   const [ready, setReady] = useState(false)
   const [more, setMore] = useState(false)
   const [toast, setToast] = useState<string | null>(null)
+  const [sharing, setSharing] = useState(false)
 
   /* ── Mode, prefs, and the launch redirect ─────────────────────────────── */
   useEffect(() => {
@@ -152,30 +153,36 @@ export function AppChrome() {
   const title = route === HOME ? A.brand
     : here ? (chipOn ? A.pages[chipOn] : null) ?? A.tabs[here]
     : route === SETTINGS ? A.settings.title
+    : route === '/app/widgets' ? A.widgets.title
     : route === '/notifications' ? A.tabs.notify
     : A.brand
 
   return (
     <>
       <header className="app-top">
+        {/* One row: the section's pages as chips when it has them, else the title. */}
         <div className="app-top-row">
-          <p className="app-title">{title}</p>
+          {chips.length > 1 ? (
+            <nav className="app-chips" aria-label={title}>
+              {chips.map((p) => (
+                <Link key={p} href={L(p)} className="app-chip" aria-current={p === chipOn ? 'page' : undefined} onClick={haptic}>
+                  {A.pages[p] ?? pageLabel(p, t) ?? p}
+                </Link>
+              ))}
+            </nav>
+          ) : <p className="app-title">{title}</p>}
           <button
-            type="button" className="app-icon-btn" aria-label={A.share.label}
-            onClick={async () => { haptic(); if ((await sharePage(document.title, location.origin + L(publicRoute(route)))) === 'copied') flash(A.share.copied) }}
+            type="button" className="app-icon-btn" aria-label={A.share.label} disabled={sharing}
+            onClick={async () => {
+              haptic(); setSharing(true)
+              const r = await shareScreen(document.title, location.origin + L(publicRoute(route)), locale === 'ar')
+              setSharing(false)
+              if (r === 'copied') flash(A.share.copied)
+            }}
           >
             <Icon name="share" />
           </button>
         </div>
-        {chips.length > 1 ? (
-          <nav className="app-chips" aria-label={title}>
-            {chips.map((p) => (
-              <Link key={p} href={L(p)} className="app-chip" aria-current={p === chipOn ? 'page' : undefined} onClick={haptic}>
-                {A.pages[p] ?? pageLabel(p, t) ?? p}
-              </Link>
-            ))}
-          </nav>
-        ) : null}
       </header>
 
       <PullToRefresh labels={A.ptr} onRefresh={() => { window.dispatchEvent(new Event('iq:refresh')); router.refresh() }} />
@@ -225,6 +232,7 @@ function MoreSheet({ prefs, onClose }: { prefs: AppPrefs; onClose: () => void })
           <ul className="app-sheet-list">
             <li><Link href={L('/notifications')} onClick={haptic}><RailIcon name="notify" />{A.tabs.notify}</Link></li>
             <li><Link href={L(SETTINGS)} onClick={haptic}><Icon name="more" />{A.more.settings}</Link></li>
+            <li><Link href={L('/app/widgets')} onClick={haptic}><RailIcon name="heatmap" />{A.widgets.title}</Link></li>
             <li><Link href={L('/about')}>{A.more.about}</Link></li>
             <li><Link href={L('/privacy')}>{A.more.privacy}</Link></li>
             <li><Link href={L('/contact')}>{A.more.contact}</Link></li>

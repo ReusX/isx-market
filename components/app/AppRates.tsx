@@ -37,6 +37,8 @@ export function AppFx({ d }: { d: FxScreenData }) {
         delta={rate && d.prev ? rate - d.prev : null} invert deltaLabel={R.vsYesterday}
         updatedAt={d.publishedAt ?? (d.date ? `${d.date}T12:00:00+03:00` : null)} stale={d.stale}
         source={d.kifah ? R.kifah : undefined} spark={d.spark} sparkLabel={R.days30}
+        shareTitle={t.app.share.fxTitle}
+        shareLines={rate ? t.app.share.fxLines(d.buy == null ? '—' : nfQ.format(d.buy), d.sell == null ? '—' : nfQ.format(d.sell), nf0.format(rate * 100)) : undefined}
       />
       <Converter market={rate} official={d.official} code="USD" name={R.dollar} flag="🇺🇸" quick={[100, 1000, 10000]} />
       <Tiles items={[

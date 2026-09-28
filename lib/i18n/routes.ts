@@ -109,6 +109,7 @@ export const ROUTES: RouteEntry[] = [
   { pattern: '/app',                       cls: 'private', why: 'The app\u2019s home screen: this phone\u2019s own cards.' },
   { pattern: '/app/settings',              cls: 'private', why: 'The app\u2019s interests and launch page for this phone.' },
   { pattern: '/app/fx',                    cls: 'private', why: 'The app\u2019s dollar screen; /fx is the indexed page.' },
+  { pattern: '/app/widgets',               cls: 'private', why: 'Settings for this phone\u2019s home-screen widgets.' },
   { pattern: '/app/market',                cls: 'private', why: 'The app\u2019s market screen; /market is the indexed page.' },
   { pattern: '/app/companies',             cls: 'private', why: 'The app\u2019s company list; /companies is the indexed page.' },
   { pattern: '/app/banks',                 cls: 'private', why: 'The app\u2019s banks screen; /banks is the indexed page.' },

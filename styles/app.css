@@ -6,9 +6,12 @@
 
 :root {
   /* Capacitor's SystemBars plugin injects --safe-area-inset-* (the WebView's
-     own env() values are unreliable on older Chromium); env() is the fallback. */
-  --sat: var(--safe-area-inset-top, env(safe-area-inset-top, 0px));
-  --sab: var(--safe-area-inset-bottom, env(safe-area-inset-bottom, 0px));
+     own env() values are unreliable on older Chromium) as inline styles on <html>,
+   which override these env() defaults. */
+  --safe-area-inset-top: env(safe-area-inset-top, 0px);
+  --safe-area-inset-bottom: env(safe-area-inset-bottom, 0px);
+  --sat: var(--safe-area-inset-top);
+  --sab: var(--safe-area-inset-bottom);
 }
 :root { --app-top: calc(52px + var(--sat)); --app-tabs: calc(62px + var(--sab)); }
 
@@ -31,9 +34,10 @@ html.is-app .site > main { padding-top: 8px; }
 /* ── Top bar ──────────────────────────────────────────────────────────── */
 .app-top {
   position: fixed; z-index: 800; inset-inline: 0; top: 0;
-  padding: var(--sat) 16px 0; background: var(--page); border-bottom: 1px solid var(--border);
+  /* The larger of the two readings: never tuck under the clock. */
+  padding: max(var(--sat), env(safe-area-inset-top, 0px)) 12px 0 16px; background: var(--page); border-bottom: 1px solid var(--border);
 }
-.app-top-row { display: flex; align-items: center; gap: 8px; height: 52px; }
+.app-top-row { display: flex; align-items: center; gap: 6px; height: 54px; }
 .app-title { flex: 1; margin: 0; font-size: 18px; font-weight: 500; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .app-icon-btn {
   display: inline-grid; place-items: center; width: 40px; height: 40px; flex: 0 0 40px;
@@ -43,7 +47,8 @@ html.is-app .site > main { padding-top: 8px; }
 .app-icon-btn:disabled { opacity: .3; }
 .app-icon-btn:focus-visible, .app-tab:focus-visible, .app-chip:focus-visible { outline: 2px solid var(--nav-active); outline-offset: 2px; }
 .app-chips {
-  display: flex; gap: 8px; margin-inline: -16px; padding: 2px 16px 10px; overflow-x: auto; scrollbar-width: none;
+  flex: 1; min-width: 0; display: flex; gap: 8px; margin-inline-start: -16px; padding: 0 16px; overflow-x: auto; scrollbar-width: none;
+  mask-image: linear-gradient(to left, transparent, #000 16px, #000 calc(100% - 16px), transparent);
 }
 .app-chips::-webkit-scrollbar { display: none; }
 .app-chip {
@@ -305,7 +310,7 @@ html.is-app :is([class$="-faq"], [class*="-faq "], .eco-hundred) { display: none
 .rk-li-x > .rk-row { flex: 1; min-width: 0; padding-inline-end: 6px; }
 .rk-star { display: grid; place-items: center; width: 44px; height: 44px; flex: 0 0 44px; margin-inline-end: 6px; border: 0; background: none; color: var(--muted); cursor: pointer; }
 .rk-star.is-on { color: #e8b21a; }
-.app-chips.is-inline { margin-inline: -16px; padding-bottom: 0; }
+.app-chips.is-inline { flex: none; margin-inline: -16px; padding: 2px 16px; mask-image: none; }
 button.app-chip { font: inherit; font-size: 14px; cursor: pointer; }
 button.app-chip[aria-pressed='true'] { background: var(--nav-active-bg); border-color: transparent; color: var(--nav-active); font-weight: 500; }
 .rk-rate { font-size: 18px; color: var(--up); }
@@ -313,3 +318,37 @@ button.app-chip[aria-pressed='true'] { background: var(--nav-active-bg); border-
 .rk-badge.is-warn { background: color-mix(in srgb, #f0a020 18%, transparent); color: #b87400; }
 .rk-badge.is-bad { background: color-mix(in srgb, var(--down) 16%, transparent); color: var(--down); }
 .rk-hero-link { text-decoration: none; }
+
+/* ── Widget settings (components/app/AppWidgets) ──────────────────────────
+   The preview mirrors android/…/widget_*.xml and PriceWidget.theme(). */
+.rk-lead, .rk-note { margin: 0; padding: 0 4px; font-size: 14px; line-height: 1.7; color: var(--secondary); }
+.rk-note { padding: 12px 14px; border-radius: 14px; background: var(--nav-active-bg); color: var(--ink); }
+.wg-how { margin: 0; padding-inline-start: 22px; display: grid; gap: 6px; font-size: 14px; line-height: 1.6; }
+.wg-prev { --ink: #fff; --soft: rgb(255 255 255 / .72); --cell: rgb(255 255 255 / .1);
+  border-radius: 24px; padding: 14px 16px; color: var(--ink); display: grid; gap: 4px;
+  background: radial-gradient(140% 100% at 85% 0%, #1f6bff 0%, rgb(20 80 214 / .6) 35%, transparent 70%), #111a33; }
+.wg-prev.is-small { width: 170px; aspect-ratio: 1; justify-self: center; align-content: space-between; }
+.wg-prev.th-blue { background: linear-gradient(135deg, #2d7bff, #0f56d1); }
+.wg-prev.th-black { background: #0b0d12; border: 1px solid #2a2d33; }
+.wg-prev.th-light { --ink: #1a2035; --soft: #5b6475; --cell: #f2f4f8; background: #fff; border: 1px solid #e3e6ee; }
+.wg-prev.th-gold { --ink: #2b1d02; --soft: rgb(43 29 2 / .75); --cell: rgb(43 29 2 / .12); background: linear-gradient(135deg, #f3d27a, #b8862a); }
+.wg-prev .wg-l { font-size: 13px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.wg-prev .wg-v { font-size: 34px; font-weight: 300; line-height: 1.1; }
+.wg-prev .wg-s { font-size: 11px; color: var(--soft); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.wg-head { font-size: 13px; }
+.wg-cells { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin-top: 6px; }
+.wg-cell { display: grid; gap: 4px; padding: 10px; border-radius: 16px; background: var(--cell); min-width: 0; }
+.wg-cell .wg-v { font-size: 20px; overflow: hidden; text-overflow: ellipsis; }
+.wg-themes { display: flex; gap: 10px; flex-wrap: wrap; }
+.wg-swatch { display: grid; justify-items: center; gap: 4px; padding: 0; border: 0; background: none; color: var(--secondary); font: inherit; font-size: 12px; cursor: pointer; }
+.wg-swatch::before { content: ''; width: 40px; height: 40px; border-radius: 50%; border: 2px solid var(--border); background: #111a33; }
+.wg-swatch.th-blue::before { background: linear-gradient(135deg, #2d7bff, #0f56d1); }
+.wg-swatch.th-black::before { background: #0b0d12; }
+.wg-swatch.th-light::before { background: #fff; }
+.wg-swatch.th-gold::before { background: linear-gradient(135deg, #f3d27a, #b8862a); }
+.wg-swatch[aria-checked='true'] { color: var(--nav-active); font-weight: 500; }
+.wg-swatch[aria-checked='true']::before { border-color: var(--nav-active); box-shadow: 0 0 0 3px var(--nav-active-bg); }
+.wg-slot { margin: 0; padding: 0; border: 0; display: grid; gap: 8px; min-width: 0; }
+.rk-seg.is-5 { grid-template-columns: repeat(5, 1fr); }
+.rk-seg.is-5 button { font-size: 12px; }
+.wg-select { width: 100%; min-height: 46px; padding: 0 12px; border-radius: 14px; border: 1px solid var(--border); background: var(--surface-2); color: var(--ink); font: inherit; font-size: 15px; }

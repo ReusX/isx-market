@@ -1,5 +1,7 @@
 'use client'
 
+import { drawShareCard, shareCard } from '@/lib/shareCard'
+
 /**
  * App mode · what the IQWealth app (the Capacitor shell) shows instead of the
  * website's own navigation.
@@ -145,14 +147,15 @@ export function isAppMode(): boolean {
 
 type CapPlugins = {
   Haptics?: { impact: (o: { style: string }) => Promise<void> }
-  Share?: { share: (o: { title?: string; url?: string }) => Promise<unknown> }
+  Share?: { share: (o: { title?: string; text?: string; url?: string; files?: string[] }) => Promise<unknown> }
+  Filesystem?: { writeFile: (o: { path: string; data: string; directory: string }) => Promise<{ uri: string }> }
 }
 type Cap = { Plugins?: Record<string, unknown>; isPluginAvailable?: (n: string) => boolean; registerPlugin?: (n: string) => unknown }
 /** Native plugins exist only in app builds that ship them (1.1+); older installs fall back. */
 const plugins = (): CapPlugins => {
   const C = (window as unknown as { Capacitor?: Cap }).Capacitor
   const one = (n: string) => (C?.isPluginAvailable?.(n) ? (C.Plugins?.[n] ?? C.registerPlugin?.(n)) : undefined)
-  return { Haptics: one('Haptics') as CapPlugins['Haptics'], Share: one('Share') as CapPlugins['Share'] }
+  return { Haptics: one('Haptics') as CapPlugins['Haptics'], Share: one('Share') as CapPlugins['Share'], Filesystem: one('Filesystem') as CapPlugins['Filesystem'] }
 }
 
 /** A light tick under the finger: the native haptics plugin when the app has it, else the vibration API. */
@@ -162,6 +165,24 @@ export function haptic() {
     if (h) { h.impact({ style: 'LIGHT' }).catch(() => {}); return }
     navigator.vibrate?.(8)
   } catch { /* cosmetic */ }
+}
+
+/**
+ * Share what is on screen: the screen's price card as an image with the link
+ * as its text (app builds with Share + Filesystem, 1.4+), else the link.
+ */
+export async function shareScreen(title: string, url: string, rtl: boolean): Promise<'shared' | 'copied' | 'failed'> {
+  const { Share, Filesystem } = plugins()
+  const card = shareCard()
+  if (card && Share && Filesystem) {
+    try {
+      const data = await drawShareCard(card, rtl)
+      const { uri } = await Filesystem.writeFile({ path: `iqwealth-${Date.now()}.png`, data, directory: 'CACHE' })
+      await Share.share({ title, text: `${card.title} · ${url}`, files: [uri] })
+      return 'shared'
+    } catch { /* cancelled or unsupported: fall through to the link */ }
+  }
+  return sharePage(title, url)
 }
 
 /** The system share sheet; falls back to copying the link. Resolves 'copied' when it copied. */

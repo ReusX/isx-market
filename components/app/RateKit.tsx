@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { useLocale } from '@/context/LocaleContext'
 import { StarMark } from '@/components/brand/StarMark'
 import { haptic } from '@/lib/appMode'
+import { setShareCard } from '@/lib/shareCard'
 
 /**
  * The app's rate screens are built from these three pieces: the hero price
@@ -68,11 +69,15 @@ export interface HeroProps {
   /** Formats the headline and the change; default: sensible digits for the size. */
   format?: (v: number) => string
   deltaFormat?: (v: number) => string
+  /** The share image: its headline (default: the label) and extra lines. */
+  shareTitle?: string
+  shareLines?: string[]
 }
 
 export function RateHero(p: HeroProps) {
   const { t, locale } = useLocale()
   const R = t.app.rate
+  const R2 = t.app.share
   const [when, setWhen] = useState<string | null>(null)
   useEffect(() => {
     const tick = () => setWhen(ago(p.updatedAt, locale))
@@ -82,6 +87,23 @@ export function RateHero(p: HeroProps) {
   }, [p.updatedAt, locale])
   const d = p.delta
   const good = d != null && (p.invert ? d < 0 : d > 0)
+  const fmt = p.format ?? fmtAny
+  const dfmt = p.deltaFormat ?? fmtAny
+  /* What this screen's share image says (lib/shareCard). */
+  useEffect(() => {
+    if (p.value == null) return
+    const at = p.updatedAt ? new Date(p.updatedAt) : null
+    const when = at && !isNaN(+at)
+      ? new Intl.DateTimeFormat(locale === 'ar' ? 'ar-u-nu-latn' : 'en-GB', { timeZone: 'Asia/Baghdad', day: 'numeric', month: 'long', year: 'numeric', hour: 'numeric', minute: '2-digit' }).format(at)
+      : undefined
+    setShareCard({
+      title: p.shareTitle ?? p.label, value: fmt(p.value), unit: p.unit, tone: p.tone,
+      delta: d != null && isFinite(d) ? { text: `${d > 0 ? '▲' : d < 0 ? '▼' : '•'} ${dfmt(Math.abs(d))}${p.deltaLabel ? ` ${p.deltaLabel}` : ''}`, tone: d === 0 ? 'flat' : good ? 'good' : 'bad' } : undefined,
+      lines: [...(p.shareLines ?? []), ...(p.source ? [R2.source(p.source)] : []), ...(p.foot ? [p.foot] : [])],
+      when, foot: { site: R2.site, cta: R2.cta },
+    })
+    return () => setShareCard(null)
+  }, [p.value, p.unit, p.label, d, p.updatedAt, locale]) // eslint-disable-line react-hooks/exhaustive-deps
   return (
     <section className={`rk-hero ${p.tone ? `is-${p.tone}` : ''}`} aria-label={p.label}>
       <StarMark size={180} color="currentColor" />
@@ -89,12 +111,12 @@ export function RateHero(p: HeroProps) {
         <span className="rk-hero-label">{p.flag ? <span className="rk-flag" aria-hidden="true">{p.flag}</span> : null}{p.label}</span>
         {p.source ? <span className="rk-chip">{p.source}</span> : null}
       </div>
-      <p className="rk-hero-num id-num"><bdi>{p.value == null ? '—' : (p.format ?? fmtAny)(p.value)}</bdi></p>
+      <p className="rk-hero-num id-num"><bdi>{p.value == null ? '—' : fmt(p.value)}</bdi></p>
       <p className="rk-hero-unit">{p.unit}</p>
       <div className="rk-hero-meta">
         {d != null && isFinite(d) ? (
           <span className={`rk-delta ${d === 0 ? '' : good ? 'is-good' : 'is-bad'}`}>
-            <bdi>{d > 0 ? '▲' : d < 0 ? '▼' : '•'} {(p.deltaFormat ?? fmtAny)(Math.abs(d))}</bdi>{p.deltaLabel ? ` ${p.deltaLabel}` : ''}
+            <bdi>{d > 0 ? '▲' : d < 0 ? '▼' : '•'} {dfmt(Math.abs(d))}</bdi>{p.deltaLabel ? ` ${p.deltaLabel}` : ''}
           </span>
         ) : null}
         {p.updatedAt || p.stale ? (

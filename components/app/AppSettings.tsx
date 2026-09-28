@@ -121,6 +121,10 @@ export function AppSettings() {
           <RailIcon name="notify" />
           <span className="app-set-txt"><b>{S.notify}</b><small>{S.notifyNote}</small></span>
         </Link>
+        <Link href={L('/app/widgets')} className="app-set-row is-link">
+          <RailIcon name="heatmap" />
+          <span className="app-set-txt"><b>{t.app.widgets.title}</b><small>{t.app.widgets.lead}</small></span>
+        </Link>
       </section>
 
       <section className="app-card">
