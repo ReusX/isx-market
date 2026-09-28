@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { isNativeApp, permission, enablePush } from '@/lib/nativePush'
 
@@ -16,10 +16,18 @@ import { isNativeApp, permission, enablePush } from '@/lib/nativePush'
  *  4. re-registers for push on every launch when permission is already granted,
  *     so a token Firebase has rotated reaches the server (it never PROMPTS —
  *     asking is left to a user's tap on /notifications);
- *  5. opens the page a notification points to when it is tapped.
+ *  5. opens the page a notification points to when it is tapped;
+ *  6. shows a notification that arrives while the app is open as a banner —
+ *     Android hands those to the app instead of the notification shade.
  */
+interface Banner { title: string; body: string; url?: string }
+
+const safePath = (url?: string) => (url && url.startsWith('/') && !url.startsWith('//') ? url : undefined)
+
 export default function NativeBridge() {
   const router = useRouter()
+  const [banner, setBanner] = useState<Banner | null>(null)
+  const timer = useRef<ReturnType<typeof setTimeout>>()
 
   useEffect(() => {
     if (!isNativeApp()) return
@@ -63,19 +71,36 @@ export default function NativeBridge() {
           })
         }
         await PushNotifications.addListener('pushNotificationActionPerformed', (a) => {
-          const url = (a.notification.data as { url?: string } | undefined)?.url
           // Only ever a path on this site — never a URL a payload could point elsewhere.
-          if (url && url.startsWith('/') && !url.startsWith('//')) router.push(url)
+          const url = safePath((a.notification.data as { url?: string } | undefined)?.url)
+          if (url) router.push(url)
+        })
+        await PushNotifications.addListener('pushNotificationReceived', (n) => {
+          if (!n.title && !n.body) return
+          setBanner({ title: n.title ?? '', body: n.body ?? '', url: safePath((n.data as { url?: string } | undefined)?.url) })
+          clearTimeout(timer.current)
+          timer.current = setTimeout(() => setBanner(null), 8000)
         })
         if (!cancelled && (await permission()) === 'granted') await enablePush()
       } catch { /* push is optional; the site works without it */ }
     }
 
     init()
-    return () => { cancelled = true }
+    return () => { cancelled = true; clearTimeout(timer.current) }
   }, [router])
 
-  return null
+  if (!banner) return null
+  return (
+    <button
+      type="button"
+      className="nb-banner"
+      role="status"
+      onClick={() => { setBanner(null); if (banner.url) router.push(banner.url) }}
+    >
+      <strong>{banner.title}</strong>
+      <span>{banner.body}</span>
+    </button>
+  )
 }
 
 function rgbToHex(rgb: string): string | null {
