@@ -3,6 +3,7 @@ import { AppProvider } from '@/context/AppContext'
 import { LocaleProvider } from '@/context/LocaleContext'
 import { Analytics } from '@vercel/analytics/react'
 import NativeBridge from '@/components/NativeBridge'
+import { AppChrome } from '@/components/app/AppChrome'
 import { SITE, absUrl } from '@/lib/seo'
 import { dirOf, langOf, type Locale } from '@/lib/i18n/locale'
 
@@ -119,6 +120,14 @@ export function Document({ locale, children }: { locale: Locale; children: React
             attribute is ALWAYS stamped, because every stylesheet — the new
             tokens and the not-yet-rebuilt ones alike — keys on it; leaving it
             off would split the page between two themes. */}
+        {/* App mode (lib/appMode.ts), also pre-paint: inside the IQWealth app
+            the website chrome must never flash, and the launch URL (/) goes
+            straight to the reader's start page. `?app=1` / `?app=0` turn a
+            browser preview of the app frame on and off. The start-page rule
+            mirrors startRoute() in lib/appMode.ts. */}
+        <script
+          dangerouslySetInnerHTML={{ __html: `(function(){try{var d=document.documentElement,q=location.search,ls=localStorage;if(/[?&]app=1/.test(q))ls.setItem('iq.app.preview','1');if(/[?&]app=0/.test(q))ls.removeItem('iq.app.preview');var C=window.Capacitor;if(!((C&&C.isNativePlatform&&C.isNativePlatform())||/IQWealthApp/.test(navigator.userAgent)||ls.getItem('iq.app.native')==='1'||ls.getItem('iq.app.preview')==='1'))return;d.classList.add('is-app');var p=location.pathname,en=p==='/en'||p.indexOf('/en/')===0,r=en?(p.slice(3)||'/'):p;if(r!=='/'||sessionStorage.getItem('iq.app.started')==='1')return;sessionStorage.setItem('iq.app.started','1');var P=JSON.parse(ls.getItem('iq.app')||'null'),T={fx:'/fx',gold:'/gold',market:'/market',banks:'/banks',economy:'/oil',learn:'/learn',news:'/news'},s='/app';if(P&&P.interests&&P.interests.length){if(P.start==='last')s=P.last||'/app';else if(P.start==='auto')s=P.interests.length===1?T[P.interests[0]]:'/app';else if(P.start!=='home'&&T[P.start]&&P.interests.indexOf(P.start)>=0)s=T[P.start];}location.replace((en?'/en':'')+s);}catch(e){}})();` }}
+        />
         <script
           dangerouslySetInnerHTML={{ __html: `(function(){try{var t=localStorage.getItem('theme');if(t!=='dark'&&t!=='light')t=matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';document.documentElement.setAttribute('data-theme',t);if(localStorage.getItem('iq-welcome')==='off')document.documentElement.setAttribute('data-welcome','off');}catch(e){}})();` }}
         />
@@ -132,6 +141,7 @@ export function Document({ locale, children }: { locale: Locale; children: React
           <LocaleProvider locale={locale}>
             {children}
             <NativeBridge />
+            <AppChrome />
           </LocaleProvider>
           {/* Web Analytics only. Speed Insights (real-user Core Web
               Vitals) was removed: it fired ~1 event per page view against a

@@ -1,0 +1,177 @@
+/* ── App mode (components/app, lib/appMode.ts) ─────────────────────────────
+   Inside the IQWealth app, <html> carries .is-app (set pre-paint by
+   Document.tsx). The website's chrome steps aside and the app frame takes
+   its place; the page content between them is untouched. Everything here
+   uses the site tokens, so both themes follow for free. */
+
+:root { --app-top: calc(52px + env(safe-area-inset-top, 0px)); --app-tabs: calc(62px + env(safe-area-inset-bottom, 0px)); }
+
+/* What the app does not show: top nav, footer, section rails, the long copy
+   written for search engines, and the website's welcome card. */
+html.is-app :is(.iqn, .iqf, .iqr, .iqr-sheet, .iqa, .ld-card, .eco-faq, .eco-en, .iqm-faq, .iqm-about,
+  .dr-about, .scr-about, .bnk-faq, .bnk-guide, .art-related, .id-eyebrow) { display: none !important; }
+
+html.is-app body {
+  padding-top: var(--app-top); padding-bottom: calc(var(--app-tabs) + 12px);
+  -webkit-user-select: none; user-select: none; -webkit-tap-highlight-color: transparent;
+  overscroll-behavior-y: none; -webkit-touch-callout: none;
+}
+html.is-app :is(input, textarea, [contenteditable]) { -webkit-user-select: text; user-select: text; }
+html.is-app .site { min-height: calc(100svh - var(--app-top) - var(--app-tabs)); }
+html.is-app .iq-door { display: block; }
+html.is-app .id-full { padding-inline: 16px; }
+html.is-app .site > main { padding-top: 8px; }
+
+/* ── Top bar ──────────────────────────────────────────────────────────── */
+.app-top {
+  position: fixed; z-index: 800; inset-inline: 0; top: 0;
+  padding: env(safe-area-inset-top, 0px) 16px 0; background: var(--page); border-bottom: 1px solid var(--border);
+}
+.app-top-row { display: flex; align-items: center; gap: 8px; height: 52px; }
+.app-title { flex: 1; margin: 0; font-size: 18px; font-weight: 500; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.app-icon-btn {
+  display: inline-grid; place-items: center; width: 40px; height: 40px; flex: 0 0 40px;
+  border: 0; border-radius: 50%; background: none; color: var(--ink); cursor: pointer;
+}
+.app-icon-btn:active { background: var(--hover-tint); }
+.app-icon-btn:disabled { opacity: .3; }
+.app-icon-btn:focus-visible, .app-tab:focus-visible, .app-chip:focus-visible { outline: 2px solid var(--nav-active); outline-offset: 2px; }
+.app-chips {
+  display: flex; gap: 8px; margin-inline: -16px; padding: 2px 16px 10px; overflow-x: auto; scrollbar-width: none;
+}
+.app-chips::-webkit-scrollbar { display: none; }
+.app-chip {
+  flex: 0 0 auto; display: inline-flex; align-items: center; min-height: 34px; padding: 0 14px;
+  border-radius: var(--r-pill); border: 1px solid var(--border); background: var(--surface);
+  color: var(--ink); font-size: 14px; text-decoration: none; white-space: nowrap;
+}
+.app-chip[aria-current='page'] { background: var(--nav-active-bg); border-color: transparent; color: var(--nav-active); font-weight: 500; }
+
+/* ── Bottom tab bar ───────────────────────────────────────────────────── */
+.app-tabs {
+  position: fixed; z-index: 900; inset-inline: 0; bottom: 0; display: flex;
+  padding-bottom: env(safe-area-inset-bottom, 0px); background: var(--surface); border-top: 1px solid var(--border);
+}
+.app-tab {
+  flex: 1 1 0; min-width: 0; display: flex; flex-direction: column; align-items: center; gap: 2px;
+  padding: 7px 2px 8px; border: 0; background: none; font: inherit; font-size: 11px; line-height: 1.3;
+  color: var(--secondary); text-decoration: none; cursor: pointer;
+}
+.app-tab-ico { display: grid; place-items: center; width: 56px; height: 30px; border-radius: var(--r-pill); transition: background .15s; }
+.app-tab-ico svg { width: 22px; height: 22px; }
+.app-tab[aria-current='page'] { color: var(--nav-active); font-weight: 500; }
+.app-tab[aria-current='page'] .app-tab-ico { background: var(--nav-active-bg); }
+.app-tab-txt { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* ── «المزيد» sheet ───────────────────────────────────────────────────── */
+.app-sheet-wrap { position: fixed; z-index: 950; inset: 0; background: rgb(0 0 0 / .38); display: flex; align-items: flex-end; }
+.app-sheet {
+  width: 100%; max-height: 82svh; overflow-y: auto; display: grid; gap: 18px;
+  padding: 10px 16px calc(16px + env(safe-area-inset-bottom, 0px));
+  background: var(--surface); border-radius: 22px 22px 0 0; animation: app-up .22s ease-out;
+}
+.app-sheet-grip { width: 40px; height: 4px; margin: 0 auto; border-radius: 2px; background: var(--border); }
+.app-sheet-sec { display: grid; gap: 6px; }
+.app-sheet-h { margin: 0; font-size: 13px; font-weight: 400; color: var(--secondary); }
+.app-sheet-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; }
+.app-sheet-list a {
+  display: flex; align-items: center; gap: 12px; min-height: 46px; padding: 0 10px; border-radius: 12px;
+  color: var(--ink); font-size: 15px; text-decoration: none;
+}
+.app-sheet-list a:active { background: var(--hover-tint); }
+.app-sheet-list svg { width: 20px; height: 20px; color: var(--secondary); flex: 0 0 20px; }
+.app-sheet-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.app-sheet-close { justify-self: stretch; }
+@keyframes app-up { from { transform: translateY(40px); opacity: .4; } }
+
+/* ── Pull to refresh, toast ───────────────────────────────────────────── */
+.app-ptr {
+  position: fixed; z-index: 850; top: calc(var(--app-top) - 40px); left: 50%; margin-left: -80px; width: 160px;
+  display: flex; align-items: center; justify-content: center; gap: 8px; height: 34px;
+  border-radius: var(--r-pill); background: var(--surface); border: 1px solid var(--border);
+  box-shadow: var(--shadow-sm); font-size: 13px; color: var(--secondary); pointer-events: none;
+}
+.app-ptr-spin { width: 14px; height: 14px; border-radius: 50%; border: 2px solid var(--border); border-top-color: var(--nav-active); }
+.app-ptr-spin.is-on { animation: app-spin .7s linear infinite; }
+@keyframes app-spin { to { transform: rotate(360deg); } }
+.app-toast {
+  position: fixed; z-index: 960; left: 50%; transform: translateX(-50%); bottom: calc(var(--app-tabs) + 14px);
+  margin: 0; padding: 10px 18px; border-radius: var(--r-pill); background: var(--ink); color: var(--page); font-size: 14px;
+}
+
+/* ── Onboarding ───────────────────────────────────────────────────────── */
+.app-onb {
+  position: fixed; z-index: 1000; inset: 0; overflow-y: auto; background: var(--page); color: var(--ink);
+  display: flex; flex-direction: column; gap: 10px;
+  padding: calc(28px + env(safe-area-inset-top, 0px)) 18px calc(18px + env(safe-area-inset-bottom, 0px));
+}
+.app-onb-kicker { margin: 0; font-size: 14px; color: var(--nav-active); }
+.app-onb-h { margin: 0; font-size: 28px; font-weight: 400; line-height: 1.3; text-wrap: balance; }
+.app-onb-lead { margin: 0 0 8px; font-size: 15px; line-height: 1.7; color: var(--secondary); max-width: 52ch; }
+.app-onb-grid { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.app-onb-opt {
+  width: 100%; height: 100%; display: grid; align-content: start; gap: 4px; padding: 14px; text-align: start;
+  border: 1.5px solid var(--border); border-radius: var(--r-md); background: var(--surface); color: var(--ink);
+  font: inherit; cursor: pointer; transition: border-color .12s, background .12s;
+}
+.app-onb-opt svg { width: 26px; height: 26px; color: var(--secondary); margin-bottom: 6px; }
+.app-onb-opt[aria-pressed='true'] { border-color: var(--nav-active); background: var(--nav-active-bg); }
+.app-onb-opt[aria-pressed='true'] svg { color: var(--nav-active); }
+.app-onb-name { font-size: 15px; font-weight: 500; }
+.app-onb-note { font-size: 12.5px; line-height: 1.55; color: var(--secondary); }
+.app-onb-foot { position: sticky; bottom: 0; margin-top: auto; padding-top: 14px; background: linear-gradient(transparent, var(--page) 30%); display: grid; gap: 8px; }
+.app-onb-next, .app-onb-skip { width: 100%; min-height: 50px; justify-content: center; }
+.app-onb-next:disabled { opacity: .55; }
+
+/* ── Home cards ───────────────────────────────────────────────────────── */
+.app-home, .app-set { display: grid; grid-template-columns: minmax(0, 1fr); gap: 12px; padding: 12px 16px 8px; max-width: 720px; margin-inline: auto; width: 100%; }
+.app-home-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.app-home-h { margin: 0; font-size: 24px; font-weight: 400; }
+.app-card {
+  display: grid; grid-template-columns: minmax(0, 1fr); gap: 8px; padding: 14px 16px; min-width: 0;
+  background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-md);
+}
+.app-card-head { display: flex; align-items: center; gap: 10px; color: var(--ink); text-decoration: none; }
+.app-card-head svg { width: 20px; height: 20px; color: var(--nav-active); flex: 0 0 20px; }
+.app-card-h { flex: 1; margin: 0; font-size: 15px; font-weight: 500; }
+.app-card-open { font-size: 13px; color: var(--nav-active); }
+.app-big { margin: 2px 0 0; font-size: 34px; font-weight: 300; line-height: 1.15; display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+.app-sub { margin: 0; font-size: 13px; color: var(--secondary); }
+.app-delta { font-size: 14px; font-weight: 400; white-space: nowrap; }
+.app-kv { margin: 4px 0 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(90px, 1fr)); gap: 8px; }
+.app-kv div { padding: 8px 10px; border-radius: 10px; background: var(--surface-2); }
+.app-kv dt { font-size: 12px; color: var(--secondary); }
+.app-kv dd { margin: 2px 0 0; font-size: 16px; }
+.app-rows { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: minmax(0, 1fr); }
+.app-movers-col { min-width: 0; }
+.app-rows li + li { border-top: 1px solid var(--border); }
+.app-rows a { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 48px; color: var(--ink); text-decoration: none; }
+.app-row-name { display: grid; min-width: 0; flex: 1 1 auto; font-size: 14px; }
+.app-row-name, .app-row-name small { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.app-row-name small { font-size: 12px; color: var(--secondary); }
+.app-row-val { display: grid; justify-items: end; font-size: 15px; }
+.app-row-val .app-delta { font-size: 12px; }
+.app-mini-h { margin: 6px 0 0; font-size: 12px; font-weight: 400; color: var(--secondary); }
+.app-empty { margin: 0; font-size: 14px; line-height: 1.7; color: var(--secondary); }
+.app-empty a { color: var(--nav-active); }
+.app-links { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.app-links a {
+  display: flex; align-items: center; gap: 10px; min-height: 52px; padding: 0 12px; border-radius: 12px;
+  background: var(--surface-2); color: var(--ink); font-size: 14px; text-decoration: none;
+}
+.app-links svg { width: 20px; height: 20px; color: var(--nav-active); flex: 0 0 20px; }
+
+/* ── Settings ─────────────────────────────────────────────────────────── */
+.app-set-list { list-style: none; margin: 0; padding: 0; display: grid; }
+.app-set-list li + li { border-top: 1px solid var(--border); }
+.app-set-list li.is-off { opacity: .55; }
+.app-set-row { display: flex; align-items: center; gap: 10px; min-height: 56px; padding: 6px 0; color: var(--ink); text-decoration: none; cursor: pointer; }
+.app-set-row > svg { width: 22px; height: 22px; color: var(--secondary); flex: 0 0 22px; }
+.app-set-txt { flex: 1; display: grid; gap: 2px; min-width: 0; }
+.app-set-txt b { font-size: 15px; font-weight: 400; }
+.app-set-txt small { font-size: 12.5px; line-height: 1.5; color: var(--secondary); }
+.app-switch, .app-radio { width: 22px; height: 22px; flex: 0 0 22px; accent-color: var(--nav-active); }
+.app-set-replay { justify-self: center; margin-top: 4px; }
+
+@media (min-width: 560px) { .app-onb-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+@media (prefers-reduced-motion: reduce) { .app-sheet { animation: none; } .app-ptr-spin.is-on { animation: none; } }

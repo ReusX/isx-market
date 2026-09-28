@@ -106,6 +106,8 @@ export const ROUTES: RouteEntry[] = [
   { pattern: '/portfolio',                 cls: 'private' },
   { pattern: '/watchlist',                 cls: 'private' },
   { pattern: '/notifications',             cls: 'private', why: 'The app\u2019s notification settings for this phone; nothing to index.' },
+  { pattern: '/app',                       cls: 'private', why: 'The app\u2019s home screen: this phone\u2019s own cards.' },
+  { pattern: '/app/settings',              cls: 'private', why: 'The app\u2019s interests and launch page for this phone.' },
   { pattern: '/profile',                   cls: 'private' },
   { pattern: '/login',                     cls: 'private' },
   { pattern: '/signup',                    cls: 'private' },
