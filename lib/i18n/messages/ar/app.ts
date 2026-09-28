@@ -82,7 +82,7 @@ export const app = {
     saved: 'تم الحفظ',
     appOnly: 'هذه إعدادات تطبيق IQWealth للهاتف.',
   },
-  more: { title: 'المزيد', settings: 'إعدادات التطبيق', about: 'عن IQWealth', privacy: 'الخصوصية', contact: 'تواصل معنا', close: 'إغلاق' },
+  more: { account: 'حسابي', title: 'المزيد', settings: 'إعدادات التطبيق', about: 'عن IQWealth', privacy: 'الخصوصية', contact: 'تواصل معنا', close: 'إغلاق' },
   rate: {
     kifah: 'بورصة الكفاح',
     live: 'مباشر',

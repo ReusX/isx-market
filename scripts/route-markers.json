@@ -6,6 +6,7 @@
   "/alerts": "○",
   "/analysis": "○",
   "/analysis/[sym]": "ƒ",
+  "/api/account/delete": "ƒ",
   "/api/analysis/[sym]": "ƒ",
   "/api/cron/daily-prices": "ƒ",
   "/api/cron/push": "ƒ",

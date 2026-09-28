@@ -28,6 +28,22 @@ export function ProfilePage() {
   const ac = t.personal.account
   const pathname = usePathname() ?? '/'
   const { theme, toggleTheme, user, profile, authLoading, refreshProfile, signOut, openAuth, watchlist } = useApp()
+  const [delState, setDelState] = useState<'idle' | 'confirm' | 'busy' | 'done'>('idle')
+  const [delErr, setDelErr] = useState(false)
+  const deleteAccount = async () => {
+    setDelState('busy'); setDelErr(false)
+    try {
+      const { createClient } = await import('@/lib/supabase/client')
+      const sb = createClient()
+      const token = (await sb.auth.getSession()).data.session?.access_token
+      const res = await fetch('/api/account/delete', { method: 'POST', headers: { Authorization: `Bearer ${token ?? ''}` } })
+      if (!res.ok) throw new Error(String(res.status))
+      await sb.auth.signOut().catch(() => {})
+      setDelState('done')
+    } catch {
+      setDelErr(true); setDelState('confirm')
+    }
+  }
   const { lots } = usePortfolio()
   const email = user?.email ?? ''
   /* A phone account has no address: the identity row shows the number and
@@ -143,6 +159,26 @@ export function ProfilePage() {
 
       <p className="id-cap ath-sec">{ac.notSupported}</p>
       <p className="ath-sec"><button type="button" className="id-btn is-sm" onClick={signOut}>{ac.signOut}</button></p>
+
+      {/* Account deletion, as Google Play and the privacy policy require: two taps, immediate. */}
+      <section className="ath-sec ath-delete" id="delete" aria-label={ac.deleteTitle}>
+        <h2 className="id-h3">{ac.deleteTitle}</h2>
+        <p className="id-cap">{ac.deleteNote}</p>
+        {delState === 'idle' ? (
+          <button type="button" className="id-btn is-sm ath-danger" onClick={() => setDelState('confirm')}>{ac.deleteBtn}</button>
+        ) : delState === 'done' ? (
+          <p className="id-body">{ac.deleted}</p>
+        ) : (
+          <div className="ath-confirm" role="alertdialog" aria-label={ac.deleteConfirm}>
+            <p className="id-body">{ac.deleteConfirm}</p>
+            <div className="id-pills">
+              <button type="button" className="id-btn is-sm ath-danger" disabled={delState === 'busy'} onClick={deleteAccount}>{ac.deleteYes}</button>
+              <button type="button" className="id-btn is-sm" disabled={delState === 'busy'} onClick={() => setDelState('idle')}>{ac.cancel}</button>
+            </div>
+            {delErr ? <p className="id-cap ath-err" role="alert">{ac.deleteFailed}</p> : null}
+          </div>
+        )}
+      </section>
     </>
   )
 

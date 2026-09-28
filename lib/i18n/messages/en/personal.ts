@@ -153,10 +153,17 @@ export const personal: typeof ar = {
   },
 
   account: {
+    deleteTitle: 'Delete account',
+    deleteNote: 'Permanently deletes your account: email, phone number, password, username, and the watchlist, portfolio and alerts saved to it. This cannot be undone.',
+    deleteBtn: 'Delete my account',
+    deleteConfirm: 'Are you sure? The account and all its data are deleted immediately and permanently.',
+    deleteYes: 'Yes, delete my account permanently',
+    deleteFailed: 'The account could not be deleted. Try again, or contact us from the Contact page.',
+    deleted: 'Your account and its data are deleted. The copy of your portfolio and watchlist on this device stays until you clear the browser or app data.',
     /* ⚠ States what the account does NOT have, by name. The brief forbids
        advertising unsupported 2FA, session management or exports; saying so
        outright is stronger than staying silent about them. */
-    notSupported: 'The account does not currently support: deleting your account in-product, signing in with external accounts, two-factor authentication, session management, or data export. None of them is shown here, because none of them exists in the product.',
+    notSupported: 'The account does not currently support: signing in with external accounts, two-factor authentication, session management, or data export. None of them is shown here, because none of them exists in the product.',
     settingsSections: 'Settings sections',
     allSettings: 'All settings',
     cancel: 'Cancel',

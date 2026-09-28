@@ -230,6 +230,7 @@ function MoreSheet({ prefs, onClose }: { prefs: AppPrefs; onClose: () => void })
         ))}
         <section className="app-sheet-sec">
           <ul className="app-sheet-list">
+            <li><Link href={L('/profile')} onClick={haptic}><RailIcon name="portfolio" />{A.more.account}</Link></li>
             <li><Link href={L('/notifications')} onClick={haptic}><RailIcon name="notify" />{A.tabs.notify}</Link></li>
             <li><Link href={L(SETTINGS)} onClick={haptic}><Icon name="more" />{A.more.settings}</Link></li>
             <li><Link href={L('/app/widgets')} onClick={haptic}><RailIcon name="heatmap" />{A.widgets.title}</Link></li>

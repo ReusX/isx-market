@@ -50,3 +50,9 @@
    to the value (the page had «orxbar@gmail.comتغيير البريد…» as one run). */
 .ath-row dd .id-sub { display: block; margin-top: 4px; }
 .ath-row dd > bdi, .ath-row dd > strong { display: inline-block; }
+
+/* Account deletion (ProfilePage «حذف الحساب»): quiet until asked, then unmistakable. */
+.ath-delete { display: grid; gap: 10px; justify-items: start; padding-top: 16px; border-top: 1px solid var(--border); }
+.ath-danger { color: var(--down); border-color: color-mix(in srgb, var(--down) 45%, transparent); }
+.ath-confirm { display: grid; gap: 10px; padding: 14px; border-radius: var(--r-md); background: color-mix(in srgb, var(--down) 8%, transparent); }
+.ath-err { color: var(--down); }

@@ -78,7 +78,7 @@ export const app: typeof ar = {
     saved: 'Saved',
     appOnly: 'These are settings for the IQWealth phone app.',
   },
-  more: { title: 'More', settings: 'App settings', about: 'About IQWealth', privacy: 'Privacy', contact: 'Contact us', close: 'Close' },
+  more: { account: 'My account', title: 'More', settings: 'App settings', about: 'About IQWealth', privacy: 'Privacy', contact: 'Contact us', close: 'Close' },
   rate: {
     kifah: 'Kifah exchange',
     live: 'Live',

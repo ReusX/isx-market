@@ -127,7 +127,8 @@ const en = execSync('cat lib/legalContentEn.ts').toString()
 ok('no general indemnity (en)', /include no general obligation on the user to indemnify/.test(en))
 ok('Iraqi governing law (en)', /laws in force in the Republic of Iraq/.test(en))
 ok('18\\+ (en)', /aged 18 or over/.test(en))
-ok('manual deletion (en)', /no in-product button to delete an account/.test(en))
+// Google Play: in-app, self-service account deletion (ProfilePage → /api/account/delete).
+ok('self-service deletion (en)', /choose «Delete account» and confirm/.test(en) && /deleted immediately and permanently/.test(en))
 
 console.log(out.join('\n'))
 if (out.some(l => l.startsWith('✗'))) process.exit(1)

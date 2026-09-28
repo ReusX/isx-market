@@ -22,8 +22,9 @@ import type { LegalSection } from '@/lib/legalContent'
  *   · Hosting location is explicitly uncertain — inside or outside Iraq
  *     depending on the provider — and no country or data centre is promised.
  *   · Retention is by CRITERIA, never a fixed number of days.
- *   · Account deletion is MANUAL, by email, with no promised turnaround, and
- *     the absence of an in-product delete button is stated.
+ *   · Account deletion is self-service (My account → Delete account, via
+ *     /api/account/delete, immediate), with email as the fallback for anyone
+ *     who can no longer sign in — Google Play's account-deletion policy.
  *   · IQWealth is a financial information and data platform, not a broker,
  *     exchange, adviser, custodian or bank; no legal entity and no registered
  *     address is asserted.
@@ -149,8 +150,9 @@ export const PRIVACY_DOC_EN: LegalSection[] = [
     blocks: [
       { kind: 'p', text: 'You can delete anything you added at any time: a portfolio row, a ticker from your watchlist, or an alert. It is removed immediately from the browser and from your account.' },
       { kind: 'p', text: 'Phone-app notification data is deleted from the Notifications page in the app: remove any alert and turn off any topic. When the app is uninstalled its notification token stops working, and we delete the phone and its alerts from our records the first time a delivery to it fails.' },
-      { kind: 'p', text: 'To delete the account in full, together with the data attached to it, write to us from the email address registered on the account. We process the request manually and confirm to you when it is done.' },
-      { kind: 'note', text: 'There is currently no in-product button to delete an account, and for that reason we do not promise a specific turnaround time. This will be stated here explicitly when the feature exists.' },
+      { kind: 'p', text: 'To delete your account in full, sign in and open My account (iraqsm.com/profile, or in the IQWealth app: More → My account), then choose «Delete account» and confirm. The account is deleted immediately and permanently: your email, phone number, password, username, and the watchlist, portfolio and alerts saved to it.' },
+      { kind: 'p', text: 'If you can no longer sign in, write to us using the contact method on the Contact page from the email address registered on the account, and we will delete it for you and confirm when it is done.' },
+      { kind: 'note', text: 'The copy of your portfolio and watchlist kept on your own device is not on our servers; clearing the browser or app data removes it. Limited copies may remain in backups or security logs until those systems’ retention cycles end, as described under data retention.' },
     ],
   },
   {
