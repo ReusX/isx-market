@@ -18,7 +18,10 @@ const nextConfig = {
   // Next.js will 308-redirect /foo/ → /foo automatically.
   trailingSlash: false,
 
+  /* No page uses next/image, so the optimizer (/_next/image) only added
+     attack surface: several Next advisories live in it. Off. */
   images: {
+    unoptimized: true,
     remotePatterns: [
       { protocol: 'https', hostname: 'isc.gov.iq' },
       { protocol: 'https', hostname: 'qmedwacwicutqojngqhi.supabase.co' },
