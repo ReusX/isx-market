@@ -105,6 +105,7 @@ export const ROUTES: RouteEntry[] = [
   // ── Personal & auth · usability mirrors, never search surfaces ──────────
   { pattern: '/portfolio',                 cls: 'private' },
   { pattern: '/watchlist',                 cls: 'private' },
+  { pattern: '/notifications',             cls: 'private', why: 'The app\u2019s notification settings for this phone; nothing to index.' },
   { pattern: '/profile',                   cls: 'private' },
   { pattern: '/login',                     cls: 'private' },
   { pattern: '/signup',                    cls: 'private' },

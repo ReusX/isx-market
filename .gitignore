@@ -30,7 +30,8 @@ yarn-error.log*
 next-env.d.ts
 
 # Capacitor native projects (generated — run `bash scripts/setup-mobile.sh` to recreate)
-android/
+# android/ is tracked: the icon, manifest and notification setup are the app.
+# Its own android/.gitignore keeps build output and local.properties out.
 ios/
 
 # ISX data pipeline (local artifacts — never commit)
@@ -43,3 +44,11 @@ scripts/.env
 
 # isolated build dir for the verification loop (see next.config.mjs distDir)
 .next-check
+
+# Android release signing — the upload key must never be committed.
+*.jks
+*.keystore
+keystore.properties
+
+# Firebase CLI debug logs can contain access tokens
+firebase-debug.log

@@ -56,7 +56,7 @@ export const PRIVACY_DOC_EN: LegalSection[] = [
     id: 'collect',
     title: 'The information we collect',
     blocks: [
-      { kind: 'p', text: 'We collect four categories only, and nothing else:' },
+      { kind: 'p', text: 'We collect five categories only, and nothing else:' },
       {
         kind: 'ul',
         items: [
@@ -64,6 +64,7 @@ export const PRIVACY_DOC_EN: LegalSection[] = [
           'Your data inside the platform: your watchlist, the portfolio contents you enter yourself (ticker, quantity, purchase price, and an optional date or note), and the price alerts you create.',
           'Your preferences: language, light or dark appearance, and the sidebar state.',
           'Technical data: our infrastructure processes your IP address, browser and device data, request logs and performance measurements, as described in the service-providers section.',
+          'Phone-app data (if you use the IQWealth app and turn on notifications): a notification token the phone generates for this app, the topics you choose (dollar rate, gold, market close) and the price alerts you set. This is tied to the phone, not to an account, and includes neither your name nor your phone number.',
         ],
       },
       { kind: 'p', text: 'If you email us, your message and its sender address remain in our mailbox. There is no contact form on the site, and we do not store messages in our database.' },
@@ -114,6 +115,7 @@ export const PRIVACY_DOC_EN: LegalSection[] = [
         items: [
           'Supabase — authentication and the database. Account data, watchlists, portfolios and alerts are stored there, and passwords, confirmation emails and password resets are handled there.',
           'Vercel — hosting and running the site. Browsing requests and the technical data that accompanies them pass through it.',
+          'Google Firebase Cloud Messaging — delivering the phone app\'s notifications. It receives only the notification token and the text of the notification.',
           'Vercel Analytics and Vercel Speed Insights — measurement of general usage and page performance. Both run on every page.',
         ],
       },
@@ -146,6 +148,7 @@ export const PRIVACY_DOC_EN: LegalSection[] = [
     title: 'Deleting your account and data',
     blocks: [
       { kind: 'p', text: 'You can delete anything you added at any time: a portfolio row, a ticker from your watchlist, or an alert. It is removed immediately from the browser and from your account.' },
+      { kind: 'p', text: 'Phone-app notification data is deleted from the Notifications page in the app: remove any alert and turn off any topic. When the app is uninstalled its notification token stops working, and we delete the phone and its alerts from our records the first time a delivery to it fails.' },
       { kind: 'p', text: 'To delete the account in full, together with the data attached to it, write to us from the email address registered on the account. We process the request manually and confirm to you when it is done.' },
       { kind: 'note', text: 'There is currently no in-product button to delete an account, and for that reason we do not promise a specific turnaround time. This will be stated here explicitly when the feature exists.' },
     ],
@@ -370,4 +373,4 @@ export const TERMS_DOC_EN: LegalSection[] = [
 ]
 
 /** The same date as the Arabic draft — this is a translation of that draft. */
-export const DOC_UPDATED_EN = '25 August 2026'
+export const DOC_UPDATED_EN = '28 September 2026'

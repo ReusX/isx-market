@@ -14,7 +14,7 @@ export type RailIcon =
   | 'banks' | 'deposits' | 'loans' | 'cards'
   | 'fx' | 'currencies' | 'gold' | 'silver' | 'oil' | 'window' | 'inflation' | 'policyRate'
   | 'learn' | 'zero' | 'research'
-  | 'portfolio' | 'watchlist' | 'alerts'
+  | 'portfolio' | 'watchlist' | 'alerts' | 'notify'
 
 export type RailDef = {
   route: string
@@ -47,6 +47,7 @@ export const RAILS: Record<Door, RailDef[]> = {
     { route: '/portfolio', icon: 'portfolio', label: (t) => p(t).portfolio, group: 'tools' },
     { route: '/watchlist', icon: 'watchlist', label: (t) => p(t).watchlist, group: 'tools' },
     { route: '/alerts', icon: 'alerts', label: (t) => p(t).alerts, group: 'tools' },
+    { route: '/notifications', icon: 'notify', label: (t) => p(t).notify, group: 'tools' },
   ],
   banking: [
     { route: '/banks', icon: 'banks', label: (t) => b(t).banks },

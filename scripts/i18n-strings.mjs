@@ -47,6 +47,8 @@ const ALLOW_FILES = [
   'lib/infoData.ts',            // no Arabic left; kept for the reply-time note
   'app/(ar)/',                  // the ARABIC route group's own metadata
   'components/site/DeadlineBlock.tsx',    // Arabic-only article block (a live counter inside /news/[slug])
+  'lib/push/check.ts',                     // push notification copy, sent server-side to the (Arabic) app audience; devices carry no locale
+  'components/NativeBridge.tsx',           // the Android notification-channel name, registered once per install in the app's language
   'components/site/AuthScreens.tsx',      // the same screens on the site shell
   'components/site/AuthKit.tsx',          // show/hide password labels, both languages
   'components/site/ResetPasswordPage.tsx',// isAr ternaries, both languages present

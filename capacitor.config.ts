@@ -1,44 +1,59 @@
-import { CapacitorConfig } from '@capacitor/cli'
+import type { CapacitorConfig } from '@capacitor/cli'
 
+/**
+ * The IQWealth app: a native shell around the live site.
+ *
+ * `server.url` loads iraqsm.com itself, so every page, API route and data
+ * refresh is the website's — an app release is only needed when the SHELL
+ * changes (icon, permissions, plugins), never for content. What the shell
+ * adds is what a browser cannot do: push notifications (see
+ * components/NativeBridge.tsx and lib/nativePush.ts).
+ *
+ * Links to any other host (the pension portal, WhatsApp, the ISC) leave the
+ * app and open in the phone's browser — Capacitor's default for navigation
+ * outside `server.url`.
+ *
+ * `webDir` is a one-page fallback bundled into the app, required by the
+ * Capacitor CLI; the site replaces it as soon as it loads.
+ */
 const config: CapacitorConfig = {
   appId: 'com.iraqsm.app',
-  appName: 'ISX Market',
-  webDir: 'out',
+  appName: 'IQWealth',
+  webDir: 'native-shell',
 
-  // Load live site — all API routes, auth, and data stay on Vercel
   server: {
     url: 'https://iraqsm.com',
     cleartext: false,
     androidScheme: 'https',
+    // Shown instead of the WebView's own error page when the site can't load (no connection).
+    errorPath: 'offline.html',
   },
 
   plugins: {
     SplashScreen: {
-      launchShowDuration: 1800,
+      launchShowDuration: 1500,
       launchAutoHide: true,
-      backgroundColor: '#0B0E14',
-      androidSplashResourceName: 'splash',
+      backgroundColor: '#1A2035',
       showSpinner: false,
-      splashFullScreen: true,
-      splashImmersive: true,
+      splashFullScreen: false,
+      splashImmersive: false,
     },
-    StatusBar: {
-      style: 'Dark',            // light text on dark background
-      backgroundColor: '#0B0E14',
-      overlaysWebView: false,
+    PushNotifications: {
+      // iOS: still show a notification that arrives while the app is open.
+      presentationOptions: ['badge', 'sound', 'alert'],
     },
   },
 
   android: {
-    backgroundColor: '#0B0E14',
+    backgroundColor: '#F5F2EC',
     allowMixedContent: false,
     captureInput: true,
-    webContentsDebuggingEnabled: false, // set to true while developing
+    webContentsDebuggingEnabled: false,
   },
 
   ios: {
     contentInset: 'automatic',
-    backgroundColor: '#0B0E14',
+    backgroundColor: '#F5F2EC',
     preferredContentMode: 'mobile',
     scrollEnabled: true,
     limitsNavigationsToAppBoundDomains: true,

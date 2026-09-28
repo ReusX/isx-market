@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "640702005476",
+    "project_id": "iqwealth-app",
+    "storage_bucket": "iqwealth-app.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:640702005476:android:1a923cabbbd096cfec6cf1",
+        "android_client_info": {
+          "package_name": "com.iraqsm.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB0pLrEndvOAou6IWb412BkrpMm-U-xW-k"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

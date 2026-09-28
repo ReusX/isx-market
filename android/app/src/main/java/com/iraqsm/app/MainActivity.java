@@ -1,0 +1,5 @@
+package com.iraqsm.app;
+
+import com.getcapacitor.BridgeActivity;
+
+public class MainActivity extends BridgeActivity {}

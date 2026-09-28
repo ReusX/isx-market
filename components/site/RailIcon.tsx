@@ -29,6 +29,7 @@ const P: Record<Name, React.ReactNode> = {
   portfolio:  <><rect x="3" y="7" width="18" height="13" rx="2" /><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M3 12h18" /></>,
   watchlist:  <><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z" /><circle cx="12" cy="12" r="3" /></>,
   alerts:     <><path d="M6 16V11a6 6 0 0 1 12 0v5l2 2H4z" /><path d="M10 21h4" /></>,
+  notify:     <><rect x="6" y="3" width="11" height="18" rx="2" /><path d="M10.5 18h2" /><circle cx="18" cy="5" r="2.5" fill="currentColor" stroke="none" /></>,
 }
 
 export function RailIcon({ name }: { name: Name }) {
