@@ -4,6 +4,7 @@ import { LocaleProvider } from '@/context/LocaleContext'
 import { Analytics } from '@vercel/analytics/react'
 import NativeBridge from '@/components/NativeBridge'
 import { AppChrome } from '@/components/app/AppChrome'
+import { TesterInvite } from '@/components/site/TesterInvite'
 import { SITE, absUrl } from '@/lib/seo'
 import { dirOf, langOf, type Locale } from '@/lib/i18n/locale'
 import { serializeLd } from '@/lib/jsonLd'
@@ -143,6 +144,7 @@ export function Document({ locale, children }: { locale: Locale; children: React
             {children}
             <NativeBridge />
             <AppChrome />
+            <TesterInvite />
           </LocaleProvider>
           {/* Web Analytics only. Speed Insights (real-user Core Web
               Vitals) was removed: it fired ~1 event per page view against a

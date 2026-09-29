@@ -298,3 +298,37 @@
 .nb-banner span { font-size: 14px; color: var(--muted); }
 @keyframes nb-in { from { transform: translateY(-12px); opacity: 0; } }
 @media (prefers-reduced-motion: reduce) { .nb-banner { animation: none; } }
+
+/* Closed-test invite for Android visitors (components/site/TesterInvite.tsx) */
+.tsi {
+  position: fixed; z-index: 900; inset-inline: 12px; bottom: calc(var(--safe-area-inset-bottom, env(safe-area-inset-bottom, 0px)) + 12px);
+  max-width: 460px; margin-inline: auto; display: grid; gap: 12px; padding: 14px 14px 14px 16px;
+  color: var(--ink); background: var(--surface); border: 1px solid var(--border); border-radius: 18px;
+  box-shadow: 0 14px 36px -10px rgb(10 20 45 / 0.35); animation: tsi-in 0.3s ease-out;
+}
+.tsi-head { display: flex; align-items: center; gap: 12px; padding-inline-end: 22px; }
+.tsi.is-open .tsi-head { padding-inline-end: 26px; }
+.tsi-mark {
+  flex: 0 0 40px; height: 40px; display: grid; place-items: center; border-radius: 12px;
+  background: linear-gradient(160deg, var(--blue-deep), var(--navy));
+}
+.tsi-txt { flex: 1; min-width: 0; display: grid; gap: 2px; line-height: 1.45; }
+.tsi-txt strong { font-size: 15px; }
+.tsi-txt span { font-size: 13px; color: var(--muted); }
+.tsi-go { flex: 0 0 auto; }
+.tsi-x {
+  position: absolute; inset-inline-end: 8px; top: 8px; width: 28px; height: 28px; display: grid; place-items: center;
+  color: var(--muted); background: none; border: 0; border-radius: 8px; cursor: pointer;
+}
+.tsi-x:focus-visible { outline: 2px solid var(--blue); outline-offset: 1px; }
+.tsi-steps { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.tsi-steps li { display: flex; align-items: center; gap: 10px; }
+.tsi-n {
+  flex: 0 0 26px; height: 26px; display: grid; place-items: center; border-radius: 50%;
+  font-size: 13px; font-weight: 600; color: var(--blue); background: color-mix(in srgb, var(--blue) 14%, transparent);
+}
+.tsi-step { flex: 1; min-width: 0; display: grid; line-height: 1.4; }
+.tsi-step b { font-size: 14px; font-weight: 600; }
+.tsi-step small { font-size: 12px; color: var(--muted); }
+@keyframes tsi-in { from { transform: translateY(16px); opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { .tsi { animation: none; } }
