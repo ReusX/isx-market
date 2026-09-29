@@ -15,7 +15,9 @@ import { StarMark } from '@/components/brand/StarMark'
  *
  * Joining is self-serve: the Google Group is a tester list on the closed
  * track (Play Console → Closed testing → Testers), so a member can opt in
- * without anyone adding their address by hand.
+ * without anyone adding their address by hand. The card goes away for good
+ * only once step 3 (install) is tapped; opting in without installing is not
+ * the point.
  *
  * Remove this component (Document.tsx) once the app is in production.
  */
@@ -76,7 +78,7 @@ export function TesterInvite() {
               <span className="tsi-n id-num" aria-hidden="true">{s.n}</span>
               <span className="tsi-step"><b>{s.title}</b><small>{s.note}</small></span>
               <a className="id-btn is-sm" href={s.href} target="_blank" rel="noopener noreferrer"
-                onClick={() => { if (s.n === 2) remember('joined') }}>{T.open}</a>
+                onClick={() => { if (s.n === 3) remember('joined') }}>{T.open}</a>
             </li>
           ))}
         </ol>
