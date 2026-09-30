@@ -137,8 +137,10 @@ export function parseKifahChannel(raw: string): MarketQuote[] {
        run. The label may share the line with the prices («🔒 كفاح 🟢 مطلوب: …»)
        or sit on the line above («🔹 دهوك» / «• مطلوب: …» — the layout the
        channel switched to on 28 September), so the gap may cross line breaks;
-       it can never cross a DIGIT, so a run cannot swallow the previous quote. */
-    for (const m of Array.from(text.matchAll(/([^\d]{1,60}?)مطلوب\s*:?\s*([\d.,]+)[^\d]{0,30}?معروض\s*:?\s*([\d.,]+)/g))) {
+       it can never cross a DIGIT, so a run cannot swallow the previous quote.
+       «معروض» or «عروض»: the channel dropped the م on 30 September and the
+       rate froze on the 28th's last quote until this matched both. */
+    for (const m of Array.from(text.matchAll(/([^\d]{1,60}?)مطلوب\s*:?\s*([\d.,]+)[^\d]{0,30}?م?عروض\s*:?\s*([\d.,]+)/g))) {
       const market = KIFAH_LABELS.find(([re]) => re.test(m[1]))?.[1]
       const bid = parseFloat(m[2].replace(/,/g, '')), ask = parseFloat(m[3].replace(/,/g, ''))
       if (!market || !(bid >= 1000 && bid <= 2500) || !(ask >= bid) || ask - bid > 25) continue

@@ -104,6 +104,9 @@ const now = Date.parse('2026-09-28T09:00:00+00:00')
   if (pickKifahQuote(q, Date.parse('2026-10-05T09:00:00+00:00')) !== null) bad.push('kifah: a week-old quote was still used')
   // bid above ask is not a quote
   if (parseKifahChannel(tgPost(107, '2026-09-28T08:00:00+00:00', 'كفاح مطلوب: 1561 معروض: 1560')).length) bad.push('kifah: accepted bid > ask')
+  // 30 Sep layout: «عروض» without the م
+  const noMeem = parseKifahChannel(tgPost(108, '2026-09-30T12:08:00+00:00', '🔴 كفاح 🔹 مطلوب: 1569.00 عروض: 1569.50'))
+  if (noMeem.length !== 1 || noMeem[0].market !== 'kifah' || noMeem[0].ask !== 1569.5) bad.push('kifah: missed the «عروض» spelling')
 }
 
 if (bad.length) {
