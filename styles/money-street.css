@@ -3,7 +3,7 @@
    the title, a pavement running down the page with a star lamp at each stop,
    and a gate at the end for what comes next. Prefix: ms-. */
 
-.ms, .lrn-street {
+.ms {
   --ms-wall: #ecdcc0;   --ms-wall-2: #dcc39c;  --ms-kerb: #cfc6b8;   --ms-road: #e4dccd;
   --ms-sign: #1a2035;   --ms-sign-ink: #fff8e6;
   --ms-frame: #6b4a2f;  --ms-door: #7a4f2c;    --ms-metal: #8a8f99;
@@ -23,7 +23,7 @@
 
 }
 .ms { color: var(--ink); background: var(--page); overflow-x: clip; padding-block-end: 40px; }
-:root[data-theme='dark'] .ms, :root[data-theme='dark'] .lrn-street {
+:root[data-theme='dark'] .ms {
   --ms-wall: #3b3327;   --ms-wall-2: #4a3f30;  --ms-kerb: #2a2620;   --ms-road: #221f1a;
   --ms-sign: #0c1a38;   --ms-sign-ink: #f3e7c9;
   --ms-frame: #2f2418;  --ms-door: #4a311c;    --ms-metal: #6c717a;
@@ -38,9 +38,9 @@
   --ms-up-bg: rgb(124 235 176 / .08); --ms-down-bg: rgb(255 163 163 / .08);
   --ms-gate: #0a1c40;   --ms-gate-2: #143068;
 }
-:is(.ms, .lrn-street) .is-sarraf { --ms-awn: #1f6b45; }
-:is(.ms, .lrn-street) .is-gold   { --ms-awn: #b8862a; --ms-awn-2: #f6e7c1; }
-:root[data-theme='dark'] :is(.ms, .lrn-street) .is-gold { --ms-awn: #8a6420; --ms-awn-2: #3d3321; }
+.ms .is-sarraf { --ms-awn: #1f6b45; }
+.ms .is-gold   { --ms-awn: #b8862a; --ms-awn-2: #f6e7c1; }
+:root[data-theme='dark'] .ms .is-gold { --ms-awn: #8a6420; --ms-awn-2: #3d3321; }
 
 /* ── Type inside the drawings ─────────────────────────────────────────── */
 .ms-sign-text { font: 700 22px/1 var(--font-sans), system-ui, sans-serif; }
@@ -287,20 +287,3 @@
 /* Inside the app the tab bar owns the bottom edge. */
 html.is-app .ms { padding-block-end: 24px; }
 
-/* ── The card on /learn that leads here ───────────────────────────────── */
-.lrn-street {
-  display: grid; gap: 18px; align-items: center; margin-block-end: 20px; padding: clamp(18px, 3vw, 28px);
-  border-radius: 22px; text-decoration: none; color: var(--ink);
-  background: var(--surface); border: 1px solid var(--border);
-  grid-template-columns: minmax(0, 1fr);
-}
-@media (min-width: 820px) { .lrn-street { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); } }
-.lrn-street-copy { display: grid; gap: 10px; justify-items: start; }
-.lrn-street-plate {
-  display: inline-block; padding: 6px 16px 9px; font-size: clamp(26px, 3.4vw, 38px); font-weight: 800; line-height: 1.1;
-  color: var(--ms-plate-ink); background: var(--ms-plate); border-radius: 10px; outline: 2px solid var(--ms-plate-ink); outline-offset: -6px;
-}
-.lrn-street-go { margin-block-start: 4px; }
-.lrn-street-art { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); border-block-end: 8px solid var(--ms-road); border-radius: 0 0 6px 6px; }
-.lrn-street:hover .lrn-street-go { border-color: var(--ink); }
-.lrn-street:focus-visible { outline: 2px solid var(--blue); outline-offset: 3px; }
