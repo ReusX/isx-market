@@ -65,7 +65,7 @@ function Hero() {
         <p className="lx-kicker">{H.kicker}</p>
         <h1 id="lx-hero-h" className="lx-h1">
           <span>{H.title}</span>
-          <span>{H.title2} <span className="lx-mark">{H.mark}<Scribble kind="underline" color="var(--lx-red)" width={4} /></span>.</span>
+          <span>{H.title2} <span className="lx-mark">{H.mark}<Scribble kind="underline" color="var(--lx-red)" width={4} /></span></span>
         </h1>
         <p className="lx-lead">{H.lead}</p>
         <div className="lx-acts">
