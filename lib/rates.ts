@@ -349,8 +349,11 @@ const CACHE_KEY = 'fx'
 
 async function readFxCache(): Promise<FxData | null> {
   try {
-    const { createClient } = await import('@/lib/supabase/server')
-    const sb = await createClient()
+    /* Cookie-less: the cookie client awaits cookies(), which throws inside a
+       cached (ISR) route under Next 15 — the catch below swallowed it, and
+       /data/fx.json served «unavailable» the first time Kifah blinked. */
+    const { createPublicClient } = await import('@/lib/supabase/server')
+    const sb = createPublicClient()
     const { data } = await sb.from('rates_cache').select('data').eq('key', CACHE_KEY).single()
     return (data?.data as FxData) ?? null
   } catch { return null }
