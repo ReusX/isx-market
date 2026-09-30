@@ -12,6 +12,7 @@ export const learn: typeof ar = {
   tickerSearch: 'Search for a company…',
   title: 'Learn',
   startHere: 'Start here',
+  street: { eyebrow: 'New · for beginners', title: 'Money Street', note: 'A walk with a million dinars past the house, the changer, the goldsmith, the bank and the exchange, with real numbers.', cta: 'Take the walk' },
   start: 'Start',
   latest: 'Latest guides',
   allArticles: 'All guides',

@@ -64,6 +64,7 @@ const ALLOW_FILES = [
   'lib/rates.ts',               // Arabic SCRAPE selectors — «شراء»/«بيع» as they
                                 // appear in the source article, not as UI copy
   'lib/tradingFromZero.ts',     // the guide, ar + en side by side
+  'lib/moneyStreetCopy.ts',     // «شارع المال» (/learn/invest), an ar-only route (lib/i18n/routes.ts)
 ]
 
 /*

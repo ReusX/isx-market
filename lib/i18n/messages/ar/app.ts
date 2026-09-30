@@ -19,7 +19,7 @@ export const app = {
     '/screener': 'الفرز', '/heatmap': 'الخريطة', '/statistics': 'الإحصاءات', '/pulse': 'النبض',
     '/banks': 'المصارف', '/banks/deposits': 'الودائع', '/banks/loans': 'القروض',
     '/oil': 'النفط', '/cbi-window': 'نافذة البنك المركزي', '/inflation': 'التضخم', '/policy-rate': 'سعر الفائدة',
-    '/learn': 'الدروس', '/learn/trading-from-zero': 'من الصفر', '/research': 'الأبحاث', '/news': 'الأخبار',
+    '/learn': 'الدروس', '/learn/invest': 'شارع المال', '/learn/trading-from-zero': 'من الصفر', '/research': 'الأبحاث', '/news': 'الأخبار',
   } as Record<string, string>,
   interests: {
     fx: { name: 'الدولار والعملات', note: 'سعر الدولار في بورصة الكفاح، سعر الورق، ومحوّل العملات' },

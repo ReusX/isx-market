@@ -81,6 +81,7 @@ export const RAILS: Record<Door, RailDef[]> = {
   learn: [
     { route: '/news', icon: 'news', label: (t) => l(t).news },
     { route: '/learn', icon: 'learn', label: (t) => l(t).learn },
+    { route: '/learn/invest', icon: 'gold', label: (t) => l(t).street },
     { route: '/learn/trading-from-zero', icon: 'zero', label: (t) => l(t).zero },
     { route: '/research', icon: 'research', label: (t) => l(t).research },
   ],

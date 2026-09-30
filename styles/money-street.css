@@ -1,0 +1,306 @@
+/* «شارع المال» · /learn/invest (components/learn/MoneyStreet.tsx, StreetArt.tsx)
+   A Baghdad street: sandstone shopfronts, a blue enamel street-name plate for
+   the title, a pavement running down the page with a star lamp at each stop,
+   and a gate at the end for what comes next. Prefix: ms-. */
+
+.ms, .lrn-street {
+  --ms-wall: #ecdcc0;   --ms-wall-2: #dcc39c;  --ms-kerb: #cfc6b8;   --ms-road: #e4dccd;
+  --ms-sign: #1a2035;   --ms-sign-ink: #fff8e6;
+  --ms-frame: #6b4a2f;  --ms-door: #7a4f2c;    --ms-metal: #8a8f99;
+  --ms-glass: #d6e7f0;  --ms-glass-2: #9fc3d6;
+  --ms-wood: #8a5a33;   --ms-wood-2: #6e4526;  --ms-brick: #b5673f;  --ms-leaf: #4f8a4a;
+  --ms-ink-soft: #6b5a44;
+  --ms-board: #10202e;  --ms-board-dim: #6f8597; --ms-led-up: #5fe39a; --ms-led-down: #ff8f7a;
+  --ms-note: #7fb08a;   --ms-note-band: #e9dcb8;
+  --ms-gold: #d4a53a;   --ms-gold-deep: #9a6d12; --ms-gold-lite: #f0cd6e;
+  --ms-stone: #e9e3d7;  --ms-stone-2: #d3cab9;
+  --ms-lamp: #f2c14e;   --ms-lamp-glow: rgb(242 193 78 / .28);
+  --ms-plate: #1f4fa3;  --ms-plate-ink: #ffffff;
+  --ms-awn: #1f6b45;    --ms-awn-2: #f3ead7;
+  --ms-up-bg: rgb(31 107 69 / .09);  --ms-down-bg: rgb(164 64 47 / .08);
+  --ms-card: var(--surface);
+  --ms-gate: #0f2a5c;   --ms-gate-2: #1a3f86;  --ms-gate-ink: #f5f1e8;
+
+}
+.ms { color: var(--ink); background: var(--page); overflow-x: clip; padding-block-end: 40px; }
+:root[data-theme='dark'] .ms, :root[data-theme='dark'] .lrn-street {
+  --ms-wall: #3b3327;   --ms-wall-2: #4a3f30;  --ms-kerb: #2a2620;   --ms-road: #221f1a;
+  --ms-sign: #0c1a38;   --ms-sign-ink: #f3e7c9;
+  --ms-frame: #2f2418;  --ms-door: #4a311c;    --ms-metal: #6c717a;
+  --ms-glass: #1e3346;  --ms-glass-2: #2c4a63;
+  --ms-wood: #5e3d22;   --ms-wood-2: #4a2f19;  --ms-brick: #7d4429;  --ms-leaf: #3f6e3b;
+  --ms-ink-soft: #c9b89a;
+  --ms-note: #4f7a5a;   --ms-note-band: #8f8466;
+  --ms-stone: #2e2c28;  --ms-stone-2: #3c3934;
+  --ms-lamp-glow: rgb(242 193 78 / .4);
+  --ms-plate: #1d4a9a;
+  --ms-awn-2: #3a3326;
+  --ms-up-bg: rgb(124 235 176 / .08); --ms-down-bg: rgb(255 163 163 / .08);
+  --ms-gate: #0a1c40;   --ms-gate-2: #143068;
+}
+:is(.ms, .lrn-street) .is-sarraf { --ms-awn: #1f6b45; }
+:is(.ms, .lrn-street) .is-gold   { --ms-awn: #b8862a; --ms-awn-2: #f6e7c1; }
+:root[data-theme='dark'] :is(.ms, .lrn-street) .is-gold { --ms-awn: #8a6420; --ms-awn-2: #3d3321; }
+
+/* ── Type inside the drawings ─────────────────────────────────────────── */
+.ms-sign-text { font: 700 22px/1 var(--font-sans), system-ui, sans-serif; }
+.ms-sign-text.is-small { font-size: 16px; }
+.ms-sign-text.is-plaque { font-size: 13px; }
+.ms-board-v { font: 700 19px/1 ui-monospace, 'SF Mono', Menlo, monospace; font-variant-numeric: tabular-nums; }
+.ms-board-k { font: 600 12px/1 ui-monospace, Menlo, monospace; }
+.ms-ticker { font: 600 13px/1 ui-monospace, 'SF Mono', Menlo, monospace; animation: ms-tick 16s linear infinite; }
+@keyframes ms-tick { from { transform: translateX(0); } to { transform: translateX(-620px); } }
+.ms-shine { animation: ms-shine 3.2s ease-in-out infinite; }
+@keyframes ms-shine { 50% { opacity: .55; } }
+.ms-glow { animation: ms-glow 2.6s ease-in-out infinite; transform-origin: 20px 20px; }
+@keyframes ms-glow { 50% { transform: scale(1.25); opacity: .6; } }
+@media (prefers-reduced-motion: reduce) { .ms-ticker, .ms-shine, .ms-glow { animation: none; } }
+
+.ms-art { display: block; inline-size: 100%; block-size: auto; }
+
+/* ── Hero: the street-name plate and the row of shops ─────────────────── */
+.ms-hero {
+  display: grid; gap: 28px; align-items: center;
+  padding: clamp(24px, 5vw, 56px) clamp(16px, 4vw, 56px) 8px;
+  grid-template-columns: minmax(0, 1fr);
+}
+@media (min-width: 980px) { .ms-hero { grid-template-columns: minmax(0, 5fr) minmax(0, 6fr); } }
+.ms-eyebrow { margin: 0 0 12px; font-size: 13px; font-weight: 600; color: var(--secondary); }
+.ms-eyebrow.is-light { color: var(--ms-lamp); }
+.ms-title {
+  display: inline-block; margin: 0 0 18px; padding: 10px 26px 14px;
+  font-size: clamp(44px, 8vw, 92px); font-weight: 800; line-height: 1.05;
+  color: var(--ms-plate-ink); background: var(--ms-plate);
+  border-radius: 14px; outline: 3px solid var(--ms-plate-ink); outline-offset: -9px;
+  box-shadow: 0 14px 30px -18px rgb(15 42 92 / .7);
+}
+.ms-lead { margin: 0 0 22px; max-width: 54ch; font-size: clamp(16px, 1.6vw, 19px); line-height: 1.75; color: var(--secondary); }
+.ms-hero-acts { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 16px; }
+.ms-wallet {
+  display: inline-flex; align-items: baseline; gap: 8px; padding: 10px 16px; border-radius: 999px;
+  background: var(--ms-card); border: 1px dashed var(--ms-gold); font-size: 15px;
+}
+.ms-wallet-k { font-size: 12px; color: var(--muted); }
+.ms-wallet b { font-size: 20px; font-variant-numeric: tabular-nums; }
+.ms-mins { font-size: 13px; color: var(--muted); }
+
+.ms-panorama {
+  display: flex; gap: 0; overflow-x: auto; scroll-snap-type: x mandatory; padding-block-end: 6px;
+  border-block-end: 10px solid var(--ms-road); border-radius: 0 0 6px 6px;
+  scrollbar-width: none;
+}
+.ms-panorama::-webkit-scrollbar { display: none; }
+.ms-pano {
+  flex: 0 0 38%; min-inline-size: 132px; scroll-snap-align: start;
+  display: grid; justify-items: center; gap: 4px; text-decoration: none; color: var(--secondary); font-size: 13px;
+  transition: transform .2s ease;
+}
+@media (min-width: 640px) { .ms-pano { flex-basis: 20%; min-inline-size: 0; } }
+.ms-pano:hover, .ms-pano:focus-visible { transform: translateY(-4px); color: var(--ink); }
+.ms-pano:focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; border-radius: 8px; }
+
+/* ── Year picker ──────────────────────────────────────────────────────── */
+.ms-yearbar { margin: 28px clamp(16px, 4vw, 56px) 8px; display: grid; gap: 6px; justify-items: center; text-align: center; }
+.ms-years { border: 0; margin: 0; padding: 0; min-inline-size: 0; max-inline-size: 100%; display: grid; gap: 10px; justify-items: center; }
+.ms-years-q { padding: 0; font-size: 18px; font-weight: 700; }
+.ms-years-row { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; max-inline-size: 100%; padding: 2px; }
+.ms-end .ms-years-row { justify-content: flex-start; }
+.ms-year { position: relative; flex: 0 0 auto; }
+.ms-year input { position: absolute; opacity: 0; inset: 0; margin: 0; cursor: pointer; }
+.ms-year span {
+  display: block; padding: 8px 12px; border-radius: 10px; font-size: 14px; font-weight: 600;
+  border: 1px solid var(--border); background: var(--ms-card); color: var(--secondary);
+}
+.ms-year.is-on span { background: var(--ms-plate); border-color: var(--ms-plate); color: var(--ms-plate-ink); }
+.ms-year input:focus-visible + span { outline: 2px solid var(--blue); outline-offset: 2px; }
+.ms-years-hint { margin: 0; font-size: 13px; color: var(--muted); max-inline-size: 64ch; }
+
+/* ── The street: pavement down the middle, shops either side ──────────── */
+.ms-street { position: relative; display: grid; gap: clamp(36px, 6vw, 72px); padding: 36px clamp(16px, 4vw, 56px); }
+.ms-street::before {
+  content: ''; position: absolute; inset-block: 0; inset-inline-start: 50%; inline-size: 14px; translate: 50% 0;
+  background: var(--ms-road);
+  background-image: repeating-linear-gradient(to bottom, var(--ms-lamp) 0 18px, transparent 18px 44px);
+  background-size: 3px 100%; background-repeat: no-repeat; background-position: center;
+  border-radius: 7px;
+}
+.ms-stop { position: relative; display: grid; gap: 20px 72px; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: center; scroll-margin-block-start: 80px; }
+.ms-stop:nth-child(even) .ms-stop-art { order: 2; }
+.ms-stop-art { position: relative; }
+.ms-stop-art .ms-art { max-inline-size: 420px; margin-inline: auto; filter: drop-shadow(0 18px 22px rgb(40 30 15 / .16)); }
+.ms-lamp { position: absolute; inline-size: 30px; inset-block-start: 10px; inset-inline-end: -52px; }
+.ms-stop:nth-child(even) .ms-lamp { inset-inline-end: auto; inset-inline-start: -52px; }
+
+.ms-stop-card {
+  position: relative; z-index: 1; display: grid; gap: 12px; padding: clamp(18px, 2.4vw, 28px);
+  background: var(--ms-card); border: 1px solid var(--border); border-radius: 22px;
+}
+.ms-stop-n { display: flex; align-items: center; gap: 8px; margin: 0; font-size: 13px; font-weight: 600; color: var(--secondary); }
+.ms-stop-n span {
+  display: grid; place-items: center; inline-size: 26px; block-size: 26px; border-radius: 50%;
+  color: var(--ms-sign-ink); background: var(--ms-sign); font-size: 13px;
+}
+.ms-stop-h { margin: 0; font-size: clamp(24px, 2.8vw, 32px); font-weight: 700; line-height: 1.25; text-wrap: balance; }
+.ms-p { margin: 0; font-size: 16px; line-height: 1.8; }
+.ms-aside { margin: 0; font-size: 13.5px; line-height: 1.75; color: var(--secondary); }
+.ms-aside a { color: var(--blue); }
+.ms-lesson { margin: 0; padding-inline-start: 26px; position: relative; font-size: 16px; font-weight: 600; line-height: 1.75; }
+.ms-lesson::before {
+  content: ''; position: absolute; inset-inline-start: 0; inset-block-start: 6px; inline-size: 16px; block-size: 16px;
+  background: var(--ms-gold);
+  clip-path: polygon(50% 0, 61% 39%, 100% 50%, 61% 61%, 50% 100%, 39% 61%, 0 50%, 39% 39%);
+}
+.ms-since { margin: 0; padding: 12px 14px; border-radius: 14px; font-size: 15.5px; line-height: 1.75; background: var(--surface-2); }
+.ms-since.is-up { background: var(--ms-up-bg); }
+.ms-since.is-down { background: var(--ms-down-bg); }
+.ms-link { justify-self: start; font-size: 14px; font-weight: 600; color: var(--blue); text-decoration: none; }
+.ms-link:hover { text-decoration: underline; text-underline-offset: 3px; }
+.ms-links { display: flex; flex-wrap: wrap; gap: 8px 20px; }
+.ms-mini-h { margin: 0 0 6px; font-size: 13px; font-weight: 700; color: var(--secondary); }
+.ms-price { margin: 0; font-size: 18px; font-weight: 700; color: var(--gold-deep); }
+:root[data-theme='dark'] .ms-price { color: var(--ms-gold-lite); }
+
+/* house: then → now */
+.ms-pair { display: flex; align-items: center; gap: 14px; }
+.ms-fig { display: grid; gap: 2px; padding: 10px 16px; border-radius: 14px; background: var(--surface-2); min-inline-size: 110px; }
+.ms-fig small { font-size: 12px; color: var(--muted); }
+.ms-fig b { font-size: clamp(24px, 3vw, 32px); font-weight: 700; direction: ltr; text-align: start; font-variant-numeric: tabular-nums; }
+.ms-fig.is-down b { color: var(--down); }
+.ms-arrow { font-size: 22px; color: var(--muted); }
+
+/* the changer's board */
+.ms-board {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 6px 12px; padding: 14px 16px; border-radius: 14px;
+  background: var(--ms-board); color: #d8e2ea;
+}
+.ms-board div { display: grid; gap: 2px; }
+.ms-board small { font-size: 12px; color: var(--ms-board-dim); }
+.ms-board b { font: 700 28px/1.1 ui-monospace, 'SF Mono', Menlo, monospace; font-variant-numeric: tabular-nums; }
+.ms-board b.is-up { color: var(--ms-led-up); }
+.ms-board b.is-down { color: var(--ms-led-down); }
+.ms-board-per { grid-column: 1 / -1; margin: 0; font-size: 12px; color: var(--ms-board-dim); }
+
+/* karat purity */
+.ms-karats { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.ms-karats li { display: grid; grid-template-columns: 72px minmax(0, 1fr); gap: 4px 12px; align-items: center; }
+.ms-karat-k { font-size: 14px; color: var(--secondary); }
+.ms-karat-k b { font-size: 18px; color: var(--ink); }
+.ms-karat-bar { block-size: 12px; border-radius: 6px; background: var(--surface-2); overflow: hidden; }
+.ms-karat-bar i { display: block; block-size: 100%; border-radius: 6px; background: linear-gradient(90deg, var(--ms-gold-lite), var(--ms-gold)); }
+.ms-karat-v { grid-column: 2; font-size: 12.5px; color: var(--muted); }
+.ms-karat-v b { color: var(--secondary); }
+
+/* bank */
+.ms-rates ol { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.ms-rate {
+  inline-size: 100%; display: flex; align-items: baseline; gap: 12px; padding: 10px 14px; text-align: start;
+  font: inherit; color: var(--ink); background: var(--surface-2); border: 1px solid transparent; border-radius: 12px; cursor: pointer;
+}
+.ms-rate b { font-size: 20px; min-inline-size: 58px; font-variant-numeric: tabular-nums; }
+.ms-rate span { font-size: 13.5px; color: var(--secondary); }
+.ms-rate.is-on { border-color: var(--ms-plate); background: var(--ms-card); }
+.ms-rate:focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; }
+.ms-calc { display: grid; gap: 10px; padding: 14px; border-radius: 14px; border: 1px dashed var(--border); }
+.ms-calc-row { display: grid; grid-template-columns: 108px minmax(0, 1fr) 52px; gap: 10px; align-items: center; font-size: 14px; color: var(--secondary); }
+.ms-calc-row input { inline-size: 100%; accent-color: var(--ms-plate); }
+.ms-calc-row b { font-size: 16px; color: var(--ink); text-align: end; font-variant-numeric: tabular-nums; }
+
+/* exchange: the slice you own */
+.ms-share { display: grid; gap: 10px; }
+.ms-slice { position: relative; block-size: 18px; border-radius: 9px; background: var(--surface-2); overflow: hidden; }
+.ms-slice-you {
+  position: absolute; inset-block: 0; inset-inline-start: 0; inline-size: 3px;
+  background: var(--blue); box-shadow: 0 0 0 3px rgb(20 107 253 / .25);
+}
+
+/* ── End of the street: the comparison ────────────────────────────────── */
+.ms-end {
+  display: grid; gap: 16px; margin: 20px clamp(16px, 4vw, 56px) 0; padding: clamp(22px, 4vw, 44px);
+  border-radius: 28px; background: var(--ms-card); border: 1px solid var(--border);
+}
+.ms-end-h { margin: 0; font-size: clamp(30px, 4vw, 46px); font-weight: 800; line-height: 1.15; text-wrap: balance; }
+.ms-end .ms-years { justify-items: start; }
+.ms-end .ms-years-q { font-size: 15px; font-weight: 600; color: var(--secondary); }
+.ms-race { list-style: none; margin: 8px 0 0; padding: 0; display: grid; gap: 14px; }
+.ms-race li { display: grid; grid-template-columns: minmax(0, 170px) minmax(0, 1fr) auto; gap: 12px; align-items: center; }
+.ms-race-name { font-size: 15px; font-weight: 600; }
+.ms-race-track { position: relative; block-size: 26px; border-radius: 8px; background: var(--surface-2); }
+.ms-race-track i { display: block; block-size: 100%; border-radius: 8px; transition: inline-size .5s cubic-bezier(.2, .7, .2, 1); }
+.ms-race-track i.is-up { background: var(--up); }
+.ms-race-track i.is-down { background: var(--down); }
+.ms-race-track i.is-flat { background: var(--muted); }
+.ms-race-name small { display: block; font-size: 12px; font-weight: 400; color: var(--muted); }
+.ms-race-track em { position: absolute; inset-block: -4px; inline-size: 2px; background: var(--ink); opacity: .55; }
+.ms-race-v { font-size: 16px; font-weight: 700; font-variant-numeric: tabular-nums; min-inline-size: 96px; text-align: end; }
+.ms-race-key { display: flex; align-items: center; gap: 8px; margin: 0; font-size: 12.5px; color: var(--muted); }
+.ms-race-key em { display: inline-block; inline-size: 2px; block-size: 14px; background: var(--ink); opacity: .55; }
+@media (prefers-reduced-motion: reduce) { .ms-race-track i { transition: none; } }
+@media (max-width: 640px) {
+  .ms-race li { grid-template-columns: minmax(0, 1fr) auto; }
+  .ms-race-track { grid-column: 1 / -1; grid-row: 2; }
+}
+.ms-ideas-h { margin: 18px 0 0; font-size: 20px; font-weight: 700; }
+.ms-ideas { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
+.ms-ideas li { display: grid; gap: 6px; align-content: start; padding: 16px; border-radius: 16px; background: var(--surface-2); }
+.ms-ideas b { font-size: 16px; }
+.ms-ideas li > span:last-child { font-size: 14px; line-height: 1.7; color: var(--secondary); }
+.ms-idea-n { display: grid; place-items: center; inline-size: 28px; block-size: 28px; border-radius: 50%; background: var(--ms-gold); color: #2b1d02; font-weight: 700; }
+
+/* ── The gate: the academy teaser ─────────────────────────────────────── */
+.ms-next {
+  display: grid; gap: 24px; margin: 28px clamp(16px, 4vw, 56px) 0; padding: clamp(40px, 7vw, 88px) clamp(22px, 5vw, 56px) clamp(24px, 4vw, 44px);
+  color: var(--ms-gate-ink);
+  background: radial-gradient(90% 70% at 50% 0%, var(--ms-gate-2), transparent 70%), var(--ms-gate);
+  border-radius: 50% 50% 28px 28px / clamp(90px, 16vw, 200px) clamp(90px, 16vw, 200px) 28px 28px;
+  grid-template-columns: minmax(0, 1fr);
+}
+@media (min-width: 900px) { .ms-next { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: center; } }
+.ms-next .ms-p { color: rgb(245 241 232 / .86); }
+.ms-next .ms-aside { color: rgb(245 241 232 / .7); }
+.ms-next .ms-aside a { color: var(--ms-lamp); }
+.ms-next-txt { display: grid; gap: 14px; justify-items: start; }
+.ms .ms-next-cta { background: var(--ms-lamp); color: #1a1405; border-color: var(--ms-lamp); }
+.ms .ms-next-cta:hover { filter: brightness(1.06); }
+.ms-next-ok { margin: 0; padding: 10px 14px; border-radius: 12px; background: rgb(255 255 255 / .08); }
+.ms-locked { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.ms-locked li {
+  display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 12px; align-items: center;
+  padding: 14px 16px; border-radius: 14px; background: rgb(255 255 255 / .07); border: 1px solid rgb(255 255 255 / .12);
+}
+.ms-locked svg { color: var(--ms-lamp); }
+.ms-locked small { font-size: 12px; padding: 3px 8px; border-radius: 999px; background: rgb(242 193 78 / .16); color: var(--ms-lamp); }
+
+.ms-foot { margin: 28px auto 0; padding-inline: 16px; max-inline-size: 72ch; display: grid; gap: 6px; font-size: 12.5px; line-height: 1.7; color: var(--muted); text-align: center; }
+.ms-foot p { margin: 0; }
+
+/* ── Phone: one column, the pavement moves to the edge ────────────────── */
+@media (max-width: 860px) {
+  .ms-street { padding-inline: 16px 16px; gap: 44px; }
+  .ms-street::before { inset-inline-start: 22px; translate: 0; inline-size: 8px; }
+  .ms-stop { grid-template-columns: minmax(0, 1fr); gap: 12px; padding-inline-start: 34px; }
+  .ms-stop:nth-child(even) .ms-stop-art { order: 0; }
+  .ms-stop-art .ms-art { max-inline-size: 300px; margin-inline: 0; }
+  .ms-lamp, .ms-stop:nth-child(even) .ms-lamp { inset-inline-start: -40px; inset-inline-end: auto; inline-size: 24px; }
+  .ms-title { outline-offset: -7px; padding: 8px 20px 12px; }
+  .ms-calc-row { grid-template-columns: 90px minmax(0, 1fr) 44px; }
+}
+/* Inside the app the tab bar owns the bottom edge. */
+html.is-app .ms { padding-block-end: 24px; }
+
+/* ── The card on /learn that leads here ───────────────────────────────── */
+.lrn-street {
+  display: grid; gap: 18px; align-items: center; margin-block-end: 20px; padding: clamp(18px, 3vw, 28px);
+  border-radius: 22px; text-decoration: none; color: var(--ink);
+  background: var(--surface); border: 1px solid var(--border);
+  grid-template-columns: minmax(0, 1fr);
+}
+@media (min-width: 820px) { .lrn-street { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); } }
+.lrn-street-copy { display: grid; gap: 10px; justify-items: start; }
+.lrn-street-plate {
+  display: inline-block; padding: 6px 16px 9px; font-size: clamp(26px, 3.4vw, 38px); font-weight: 800; line-height: 1.1;
+  color: var(--ms-plate-ink); background: var(--ms-plate); border-radius: 10px; outline: 2px solid var(--ms-plate-ink); outline-offset: -6px;
+}
+.lrn-street-go { margin-block-start: 4px; }
+.lrn-street-art { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); border-block-end: 8px solid var(--ms-road); border-radius: 0 0 6px 6px; }
+.lrn-street:hover .lrn-street-go { border-color: var(--ink); }
+.lrn-street:focus-visible { outline: 2px solid var(--blue); outline-offset: 3px; }

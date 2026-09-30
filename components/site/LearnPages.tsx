@@ -6,11 +6,14 @@ import { useLocale } from '@/context/LocaleContext'
 import { filterLearn, learnDate, type LearnItem, type LearnPath } from '@/lib/learn'
 import { guideSections, sectionId } from '@/lib/tradingFromZero'
 import { existsIn } from '@/lib/i18n/routes'
+import { Shopfront } from '@/components/learn/StreetArt'
+import { street } from '@/lib/moneyStreetCopy'
 import { SiteShell } from './SiteShell'
 import { DoorRail } from './DoorRail'
 import { PageTitle } from './PageTitle'
 import '@/styles/news-page.css'
 import '@/styles/learn-page.css'
+import '@/styles/money-street.css'
 
 /**
  * The learn door on the site shell — the last routes off the old stack.
@@ -23,6 +26,8 @@ import '@/styles/learn-page.css'
  * normal state, and an outage is reported as an outage, not as emptiness.
  */
 const LEARN_HOME: Record<string, string | null> = { ar: '/learn', en: '/learn' }
+
+const STREET = '/learn/invest'
 
 export function LearnIndexPage({ items, path, libraryOk }: { items: LearnItem[]; path: LearnPath; libraryOk: boolean }) {
   const { t, locale, href: L } = useLocale()
@@ -41,6 +46,22 @@ export function LearnIndexPage({ items, path, libraryOk }: { items: LearnItem[];
             <p className="id-eyebrow">{t.home.landing.doors.learn.name}</p>
             <PageTitle title={ln.title} />
           </header>
+
+          {/* The street is ar-only (lib/i18n/routes.ts), so the card renders only where
+              the route exists; existsIn is the guard scripts/i18n-links.mjs asks for. */}
+          {existsIn(STREET, locale) ? (
+            <Link className="lrn-street" href={L(STREET)}>
+              <span className="lrn-street-copy">
+                <span className="id-cap">{ln.street.eyebrow}</span>
+                <strong className="lrn-street-plate">{ln.street.title}</strong>
+                <span className="id-body">{ln.street.note}</span>
+                <span className="id-btn is-sm lrn-street-go">{ln.street.cta}</span>
+              </span>
+              <span className="lrn-street-art" aria-hidden="true">
+                {(['sarraf', 'gold', 'bourse'] as const).map((id) => <Shopfront key={id} shop={id} sign={street.shops[id].sign} />)}
+              </span>
+            </Link>
+          ) : null}
 
           <section className="id-panel lrn-start" aria-label={ln.startHere}>
             <p className="id-cap">{ln.startHere}</p>

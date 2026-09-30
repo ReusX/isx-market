@@ -15,7 +15,7 @@ export const app: typeof ar = {
     '/screener': 'Screener', '/heatmap': 'Heatmap', '/statistics': 'Statistics', '/pulse': 'Pulse',
     '/banks': 'Banks', '/banks/deposits': 'Deposits', '/banks/loans': 'Loans',
     '/oil': 'Oil', '/cbi-window': 'CBI window', '/inflation': 'Inflation', '/policy-rate': 'Policy rate',
-    '/learn': 'Lessons', '/learn/trading-from-zero': 'From zero', '/research': 'Research', '/news': 'News',
+    '/learn': 'Lessons', '/learn/invest': 'Money Street', '/learn/trading-from-zero': 'From zero', '/research': 'Research', '/news': 'News',
   },
   interests: {
     fx: { name: 'Dollar & currencies', note: 'The Kifah exchange dollar rate, the $100 note and a currency converter' },

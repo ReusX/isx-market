@@ -152,7 +152,7 @@ export const home: typeof ar = {
       learn: {
         name: 'Learn',
         lede: 'From a first share to reading financial statements. In Arabic, without the jargon.',
-        links: { learn: 'Learning guide', zero: 'Trading from zero', news: 'News', research: 'Research' },
+        links: { learn: 'Learning guide', zero: 'Trading from zero', street: 'Money Street', news: 'News', research: 'Research' },
       },
     },
   },

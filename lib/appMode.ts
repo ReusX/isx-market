@@ -46,7 +46,7 @@ export const INTERESTS: { id: Interest; tab: string; pages: string[]; owns: stri
   },
   { id: 'banks', tab: '/app/banks', pages: ['/app/banks', '/banks/deposits', '/banks/loans'], owns: ['/app/banks', '/banks'] },
   { id: 'economy', tab: '/oil', pages: ['/oil', '/cbi-window', '/inflation', '/policy-rate'], owns: ['/oil', '/cbi-window', '/inflation', '/policy-rate'] },
-  { id: 'learn', tab: '/learn', pages: ['/learn', '/learn/trading-from-zero', '/research'], owns: ['/learn', '/research'] },
+  { id: 'learn', tab: '/learn', pages: ['/learn', '/learn/invest', '/learn/trading-from-zero', '/research'], owns: ['/learn', '/research'] },
   { id: 'news', tab: '/news', pages: ['/news'], owns: ['/news'] },
 ]
 export const INTEREST_IDS = INTERESTS.map((i) => i.id)

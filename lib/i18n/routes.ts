@@ -88,6 +88,12 @@ export const ROUTES: RouteEntry[] = [
   { pattern: '/learn',                     cls: 'mirror' },
   { pattern: '/learn/trading-from-zero',   cls: 'mirror' },
   {
+    pattern: '/learn/invest',
+    cls: 'ar-only',
+    why: 'Money Street is written for Iraqi savers (the changer, the goldsmith, the mithqal); '
+       + 'its copy lives in lib/moneyStreetCopy.ts and has no English translation yet.',
+  },
+  {
     pattern: '/learn/[slug]',
     cls: 'ar-only',
     why: 'Same as /news/[slug] — CMS-authored Arabic with no English translation. '
