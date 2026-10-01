@@ -202,6 +202,11 @@ body {
 [data-level='calm'] .id-print.is-key { box-shadow: calc(var(--off) * -1) var(--off) 0 0 var(--w-lapis); }
 [dir='ltr'] [data-level='calm'] .id-print.is-key { box-shadow: var(--off) var(--off) 0 0 var(--w-lapis); }
 [data-level='calm'] .id-print.is-fill { background: var(--surface); color: var(--ink); }
+/* The calm level's one key card is the session summary (.id-block.is-navy):
+   neutral surface, lapis offset. Everything else on a stock page is a quiet
+   panel. */
+[data-level='calm'] .id-block.is-navy { background: var(--surface); color: var(--ink); border: 1.5px solid var(--border); box-shadow: -4px 4px 0 0 var(--w-lapis); }
+[dir='ltr'] [data-level='calm'] .id-block.is-navy { box-shadow: 4px 4px 0 0 var(--w-lapis); }
 
 /* ── Focus ──────────────────────────────────────────────────────────────── */
 :is(a, button, input, select, textarea, [tabindex]):focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; }

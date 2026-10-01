@@ -170,7 +170,7 @@ export function HeatmapPage({ initial }: { initial: ScreenerInitial }) {
 
   return (
     <SiteShell>
-      <main className="hm2 id-full iq-door">
+      <main className="hm2 id-full iq-door" data-world="lapis" data-level="calm">
         <DoorRail door="markets" />
         <div className="hm2-body">
           <header className="hm2-head">

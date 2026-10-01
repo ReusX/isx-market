@@ -97,7 +97,7 @@ export function FinancialsPage({ initial }: { initial: FinancialsInitial }) {
   if (!initial.found) {
     return (
       <SiteShell>
-        <main className="fin id-full iq-door">{rail}<div className="fin-body"><p className="id-note">{C.page.notFound}</p></div></main>
+        <main className="fin id-full iq-door" data-world="lapis" data-level="calm">{rail}<div className="fin-body"><p className="id-note">{C.page.notFound}</p></div></main>
       </SiteShell>
     )
   }
@@ -119,7 +119,7 @@ export function FinancialsPage({ initial }: { initial: FinancialsInitial }) {
   if (!fin) {
     return (
       <SiteShell>
-        <main className="fin id-full iq-door">{rail}<div className="fin-body">
+        <main className="fin id-full iq-door" data-world="lapis" data-level="calm">{rail}<div className="fin-body">
           {head}
           <p className="id-note">{F.none(name)}</p>
           <p><Link className="id-btn is-sm" href={L(`/c/${initial.sym}`)}>{F.backToCompany}</Link></p>
@@ -155,7 +155,7 @@ export function FinancialsPage({ initial }: { initial: FinancialsInitial }) {
   if (fin.valuesWithheld) {
     return (
       <SiteShell>
-        <main className="fin id-full iq-door">{rail}<div className="fin-body">
+        <main className="fin id-full iq-door" data-world="lapis" data-level="calm">{rail}<div className="fin-body">
           {head}
           <p className="id-note fin-withheld">{F.withheld(name)}</p>
           {sources}
@@ -171,7 +171,7 @@ export function FinancialsPage({ initial }: { initial: FinancialsInitial }) {
 
   return (
     <SiteShell>
-      <main className="fin id-full iq-door">
+      <main className="fin id-full iq-door" data-world="lapis" data-level="calm">
         {rail}
         <div className="fin-body">
           {head}

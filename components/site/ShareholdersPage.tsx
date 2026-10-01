@@ -62,7 +62,7 @@ export function ShareholdersPage({ initial }: { initial: HoldersInitial }) {
 
   return (
     <SiteShell>
-      <main className="own id-full iq-door">
+      <main className="own id-full iq-door" data-world="lapis" data-level="calm">
         <DoorRail door="markets" />
         <div className="own-body">
           <header className="stx-head">

@@ -105,7 +105,7 @@ export function StatisticsPage({ initial }: { initial: StatisticsInitial }) {
 
   return (
     <SiteShell>
-      <main className="stx id-full iq-door">
+      <main className="stx id-full iq-door" data-world="lapis" data-level="calm">
         <DoorRail door="markets" />
         <div className="stx-body">
           <header className="stx-head">

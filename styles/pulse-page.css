@@ -13,7 +13,7 @@
 /* ── The reading: the page's thesis, in display weight ──────────────────── */
 .plz-lead { padding: 32px 24px; margin-bottom: 20px; }
 .plz-verdict {
-  margin: 10px 0 0; font-weight: 200; line-height: 1.05; letter-spacing: 0;
+  margin: 10px 0 0; font-family: var(--font-display); font-weight: 700; line-height: 1.35; letter-spacing: 0;
   font-size: clamp(38px, 5.6vw, 68px); text-wrap: balance;
 }
 .plz-lead.is-up .plz-verdict { color: var(--up); }
@@ -55,7 +55,7 @@
 /* The readout above the chart: says something before you touch it, and
    tracks the hovered session once you do. */
 .plz-readout { display: flex; align-items: baseline; gap: 12px; margin: 16px 0 0; flex-wrap: wrap; }
-.plz-readout strong { font-weight: 300; font-size: clamp(26px, 3vw, 36px); line-height: 1; }
+.plz-readout strong { font-family: var(--font-numeric); font-weight: 500; font-size: clamp(26px, 3vw, 36px); line-height: 1; }
 .plz-hl { fill: var(--surface-2); }
 .plz-bar.is-on { opacity: 1; }
 .plz-cum { fill: none; stroke: var(--ink); stroke-width: 1.4; opacity: .75; }

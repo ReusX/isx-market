@@ -70,7 +70,7 @@ export function DirectoryPage({ rows, session }: { rows: DirectoryRow[]; session
 
   return (
     <SiteShell>
-      <main className="dr id-full iq-door">
+      <main className="dr id-full iq-door" data-world="lapis" data-level="calm">
         <DoorRail door="markets" />
         <div className="dr-body">
           <header className="dr-head">

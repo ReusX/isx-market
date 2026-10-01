@@ -9,7 +9,7 @@
 .stx-activity-head .id-cap { margin: 4px 0 0; }
 .stx-pills { display: flex; gap: 12px; flex-wrap: wrap; justify-content: flex-end; }
 .stx-reading { display: flex; align-items: baseline; gap: 12px; margin: 16px 0 6px; flex-wrap: wrap; }
-.stx-reading strong { font-weight: 300; font-size: clamp(28px, 3vw, 40px); line-height: 1; }
+.stx-reading strong { font-family: var(--font-numeric); font-weight: 500; font-size: clamp(28px, 3vw, 40px); line-height: 1; }
 .stx-chart svg { width: 100%; height: auto; display: block; }
 .stx-grid { stroke: var(--border); stroke-width: 1; }
 .stx-tick { fill: var(--muted); font-size: 11px; dominant-baseline: middle; text-anchor: start; }
@@ -23,7 +23,7 @@
 .stx-figures > div { border-inline-start: 1px solid var(--border); padding-inline-start: 16px; }
 .stx-figures > div:first-child { border: 0; padding-inline-start: 0; }
 .stx-figures small { display: block; font-size: 12px; color: var(--secondary); margin-bottom: 6px; }
-.stx-figures strong { display: block; font-weight: 300; font-size: 24px; line-height: 1; }
+.stx-figures strong { display: block; font-family: var(--font-numeric); font-weight: 500; font-size: 24px; line-height: 1; }
 .stx-figures em { display: block; font-style: normal; font-size: 12px; color: var(--muted); margin-top: 6px; }
 @media (max-width: 760px) { .stx-figures { grid-template-columns: 1fr 1fr; } .stx-figures > div:nth-child(odd) { border: 0; padding-inline-start: 0; } }
 
@@ -38,7 +38,7 @@
 .stx-bar-track { display: block; height: 10px; border-radius: 5px; background: var(--surface-2); overflow: hidden; }
 .stx-bar-track i { display: block; height: 100%; background: var(--nav-active); opacity: .85; border-radius: 5px; }
 .stx-bar-val { text-align: end; color: var(--secondary); }
-.stx-big { margin: 0 0 12px; font-weight: 300; font-size: clamp(24px, 2.6vw, 32px); line-height: 1.1; }
+.stx-big { margin: 0 0 12px; font-family: var(--font-numeric); font-weight: 500; font-size: clamp(24px, 2.6vw, 32px); line-height: 1.1; }
 .stx-sep { color: var(--muted); margin: 0 6px; }
 .stx-split { display: flex; gap: 2px; height: 8px; margin-bottom: 16px; }
 .stx-split i { display: block; border-radius: 4px; }

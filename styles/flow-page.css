@@ -19,7 +19,7 @@
 .ffl-ring-panel.is-iraqi .ffl-iraqi, .ffl-ring-panel.is-foreign .ffl-foreign { stroke-width: 20; }
 .ffl-ring-panel.is-iraqi .ffl-foreign, .ffl-ring-panel.is-foreign .ffl-iraqi { opacity: .4; }
 .ffl-ring-panel.is-iraqi .ffl-legend .is-foreign, .ffl-ring-panel.is-foreign .ffl-legend .is-iraqi { opacity: .5; }
-.ffl-center { text-anchor: middle; font-size: 26px; font-weight: 300; fill: var(--ink); }
+.ffl-center { text-anchor: middle; font-size: 26px; font-family: var(--font-numeric); font-weight: 500; fill: var(--ink); }
 .ffl-center-label { text-anchor: middle; font-size: 11px; fill: var(--muted); }
 .ffl-legend { min-width: 0; }
 .ffl-legend > .id-cap { margin: 0 0 10px; }
@@ -28,13 +28,13 @@
 .ffl-legend dt { display: flex; align-items: center; gap: 8px; }
 .ffl-legend dt i { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
 .ffl-legend .is-iraqi dt i { background: var(--moss-ink); } .ffl-legend .is-foreign dt i { background: var(--nav-active); }
-.ffl-legend dd { display: flex; gap: 10px; align-items: baseline; font-size: 18px; font-weight: 300; }
+.ffl-legend dd { display: flex; gap: 10px; align-items: baseline; font-size: 18px; font-family: var(--font-numeric); font-weight: 500; }
 .ffl-legend > div { transition: opacity .18s; }
 .ffl-legend dd { margin: 0; }
 .ffl-figs { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
 @media (max-width: 720px) { .ffl-figs { grid-template-columns: 1fr 1fr; } }
 .ffl-figs small { display: block; font-size: 12px; color: var(--secondary); margin-bottom: 4px; }
-.ffl-figs b { display: block; font-weight: 300; font-size: 20px; }
+.ffl-figs b { display: block; font-family: var(--font-numeric); font-weight: 500; font-size: 20px; }
 .ffl-held > div { flex-direction: column; align-items: flex-start; gap: 2px; }
 .ffl-held .is-total dd { font-weight: 500; }
 

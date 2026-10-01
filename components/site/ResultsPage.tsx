@@ -36,7 +36,7 @@ export function ResultsPage({ initial }: { initial: Results }) {
 
   return (
     <SiteShell>
-      <main className="nws id-full iq-door">
+      <main className="nws id-full iq-door" data-world="lapis" data-level="calm">
         <DoorRail door="markets" />
         <article className="art id-read wrp">
           <nav className="id-eyebrow art-crumbs">

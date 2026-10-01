@@ -129,7 +129,7 @@ export function PulsePage({ initial }: { initial: PulseInitial }) {
 
   return (
     <SiteShell>
-      <main className="plz id-full iq-door">
+      <main className="plz id-full iq-door" data-world="lapis" data-level="calm">
         <DoorRail door="markets" />
         <div className="plz-body">
           <header className="stx-head">

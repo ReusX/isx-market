@@ -53,7 +53,7 @@ export function SessionWrapPage({ initial }: { initial: SessionWrap }) {
 
   return (
     <SiteShell>
-      <main className="nws id-full iq-door">
+      <main className="nws id-full iq-door" data-world="lapis" data-level="calm">
         <DoorRail door="markets" />
         <article className="art id-read wrp">
           <nav className="id-eyebrow art-crumbs" aria-label={t.news.title}>
@@ -105,7 +105,7 @@ export function SessionArchivePage({ rows }: { rows: { date: string; close: numb
   const w = t.wrap
   return (
     <SiteShell>
-      <main className="nws id-full iq-door">
+      <main className="nws id-full iq-door" data-world="lapis" data-level="calm">
         <DoorRail door="markets" />
         <article className="art id-read wrp">
           <nav className="id-eyebrow art-crumbs"><Link href={L('/news')}>{t.news.title}</Link> · <span>{w.eyebrow}</span></nav>

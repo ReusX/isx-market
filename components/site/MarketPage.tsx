@@ -294,7 +294,7 @@ export function MarketPage({ variant = 'root', initial, worlds = null }: { varia
   return (
     <SiteShell>
       {full ? null : <HomeWorlds worlds={worlds} index={index} />}
-      <main className="iqm id-full iq-door" id="market">
+      <main className="iqm id-full iq-door" id="market" data-world="lapis" data-level="calm">
         <DoorRail door="markets" />
         <div className="iqm-body">
         <header className="iqm-head">

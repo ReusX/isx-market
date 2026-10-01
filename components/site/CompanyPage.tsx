@@ -100,7 +100,7 @@ export function CompanyPage({ initial }: { initial: CompanyInitial }) {
   if (!initial.found) {
     return (
       <SiteShell>
-        <main className="cmp id-full iq-door">
+        <main className="cmp id-full iq-door" data-world="lapis" data-level="calm">
           <DoorRail door="markets" />
           <div className="cmp-body"><p className="id-note">{P.notFound}</p></div>
         </main>
@@ -110,7 +110,7 @@ export function CompanyPage({ initial }: { initial: CompanyInitial }) {
 
   return (
     <SiteShell>
-      <main className="cmp id-full iq-door">
+      <main className="cmp id-full iq-door" data-world="lapis" data-level="calm">
         <DoorRail door="markets" />
         <div className="cmp-body">
           <header>

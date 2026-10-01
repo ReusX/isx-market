@@ -13,13 +13,13 @@
 .cmp-id { display: flex; align-items: center; gap: 14px; min-width: 0; }
 .cmp-logo { width: 44px; height: 44px; border-radius: 10px; object-fit: contain; background: var(--surface); border: 1px solid var(--border); flex: 0 0 auto; }
 .cmp-names { min-width: 0; }
-.cmp-names h1 { font-size: clamp(26px, 3.4vw, 38px); font-weight: 300; line-height: 1.1; margin: 0; }
+.cmp-names h1 { font-family: var(--font-display); font-size: clamp(24px, 3.2vw, 36px); font-weight: 700; line-height: 1.4; margin: 0; }
 .cmp-sub { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin: 6px 0 0; font-size: 13px; color: var(--secondary); }
 .cmp-sym { border: 1px solid var(--border); border-radius: var(--r-pill); padding: 2px 10px; font-size: 12px; }
 .cmp-actions { display: flex; gap: 8px; flex-wrap: wrap; }
 
 .cmp-price { display: flex; align-items: baseline; gap: 16px; flex-wrap: wrap; margin: 18px 0 0; }
-.cmp-price strong { font-weight: 200; font-size: clamp(44px, 6vw, 72px); line-height: 1; }
+.cmp-price strong { font-family: var(--font-numeric); font-weight: 500; font-size: clamp(44px, 6vw, 72px); line-height: 1; }
 .cmp-price .cmp-cur { font-size: 15px; color: var(--muted); }
 .cmp-when { margin: 10px 0 0; font-size: 13px; color: var(--muted); }
 .cmp-warn { margin: 10px 0 0; }

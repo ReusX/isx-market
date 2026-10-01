@@ -140,7 +140,7 @@ export function ForeignFlowPage({ initial }: { initial: FlowInitial }) {
 
   return (
     <SiteShell>
-      <main className="ffl id-full iq-door">
+      <main className="ffl id-full iq-door" data-world="lapis" data-level="calm">
         <DoorRail door="markets" />
         <div className="ffl-body">
           <header className="stx-head">

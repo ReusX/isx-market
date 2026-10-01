@@ -168,7 +168,7 @@ export function ScreenerPage({ initial, marketSession }: { initial: ScreenerInit
 
   return (
     <SiteShell>
-      <main className="scr id-full iq-door">
+      <main className="scr id-full iq-door" data-world="lapis" data-level="calm">
         <DoorRail door="markets" />
         <div className="scr-body">
           <header className="scr-head">
