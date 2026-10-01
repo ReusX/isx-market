@@ -1,0 +1,36 @@
+/* The homepage top · identity v3, loud level (components/site/HomeWorlds).
+   Prefix `hw-`. Cards are .id-print from styles/identity.css. */
+.hw { display: grid; gap: 22px; padding-block: 28px 8px; }
+.hw-head { display: grid; gap: 4px; }
+.hw-title { font-size: clamp(30px, 4.6vw, 54px); }
+.hw-head .id-lede { margin-top: 6px; }
+
+/* «مانشيت اليوم»: a newspaper banner line between two rules. */
+.hw-manchette { display: grid; gap: 4px; padding-block: 14px; border-block: 1.5px solid var(--line-strong); }
+.hw-manchette .id-eyebrow { margin: 0; }
+.hw-manchette p { margin: 0; font-family: var(--font-display); font-weight: 700; font-size: clamp(19px, 2.4vw, 26px); line-height: 1.45; text-wrap: balance; }
+
+.hw-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 26px; padding-bottom: 10px; }
+.hw-card { display: grid; gap: 10px; align-content: start; color: var(--ink); text-decoration: none; transition: transform .16s ease; }
+.hw-card:hover { transform: translate(2px, -2px); }
+.hw-row { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+.hw-val { font-family: var(--font-numeric); font-weight: 500; font-size: clamp(26px, 2.6vw, 32px); line-height: 1.1; }
+
+.hw-learn { color: var(--on-world); align-content: space-between; }
+.hw-learn-tag { font-size: 13px; font-weight: 600; opacity: .92; }
+.hw-learn-title { font-family: var(--font-display); font-weight: 700; font-size: 20px; line-height: 1.45; }
+.hw-learn-cta { font-size: 14px; font-weight: 600; }
+
+@media (max-width: 1100px) { .hw-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+/* Phones: compact cards, as on the board's phone mock. The comparison
+   caption goes (the chip already says the move; its tooltip names the day)
+   so the market below starts within the first screen. */
+@media (max-width: 520px) {
+  .hw { padding-block: 18px 4px; gap: 16px; }
+  .hw-grid { grid-template-columns: 1fr; gap: 16px; }
+  .hw-card { padding: 14px 16px; gap: 6px; }
+  .hw-card > .id-cap { display: none; }
+  .hw-val { font-size: 26px; }
+  .hw-learn-title { font-size: 17px; }
+}
+@media (prefers-reduced-motion: reduce) { .hw-card { transition: none; } .hw-card:hover { transform: none; } }

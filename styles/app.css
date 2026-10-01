@@ -17,7 +17,7 @@
 
 /* What the app does not show: top nav, footer, section rails, the long copy
    written for search engines, and the website's welcome card. */
-html.is-app :is(.iqn, .iqf, .iqr, .iqr-sheet, .iqa, .ld-card, .eco-faq, .eco-en, .iqm-faq, .iqm-about,
+html.is-app :is(.iqn, .iqf, .iqr, .iqr-sheet, .iqa, .hw, .eco-faq, .eco-en, .iqm-faq, .iqm-about,
   .dr-about, .scr-about, .bnk-faq, .bnk-guide, .art-related, .id-eyebrow) { display: none !important; }
 
 html.is-app body {

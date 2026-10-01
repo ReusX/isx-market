@@ -13,11 +13,11 @@ import { DoorRail } from './DoorRail'
 import { PageTitle } from './PageTitle'
 import { IndexChart, type IndexPoint, type IndexSeries } from './IndexChart'
 import { FlowRing, type FlowRow } from './FlowRing'
-import { WelcomeCard } from './WelcomeCard'
+import { HomeWorlds } from './HomeWorlds'
 import '@/styles/markets.css'
-import '@/styles/landing.css'
 import type { Company } from '@/types'
 import type { MarketInitial } from '@/lib/marketServer'
+import type { HomeWorlds as Worlds } from '@/lib/homeWorlds'
 
 /**
  * The market · the root of the site, and the الأسواق door.
@@ -76,11 +76,11 @@ function Pct({ v }: { v: number }) {
 
 
 /**
- * `root`: the overview — welcome card for first visits, thirty rows, and a
+ * `root`: the overview — today's world cards (HomeWorlds), thirty rows, and a
  * link to /market for the rest. `full`: /market — every company, every
  * column, no card.
  */
-export function MarketPage({ variant = 'root', initial }: { variant?: 'root' | 'full'; initial?: MarketInitial }) {
+export function MarketPage({ variant = 'root', initial, worlds = null }: { variant?: 'root' | 'full'; initial?: MarketInitial; worlds?: Worlds | null }) {
   const full = variant === 'full'
   const { t, locale, href: L } = useLocale()
   const m = t.market
@@ -293,7 +293,7 @@ export function MarketPage({ variant = 'root', initial }: { variant?: 'root' | '
 
   return (
     <SiteShell>
-      {full ? null : <WelcomeCard />}
+      {full ? null : <HomeWorlds worlds={worlds} index={index} />}
       <main className="iqm id-full iq-door" id="market">
         <DoorRail door="markets" />
         <div className="iqm-body">

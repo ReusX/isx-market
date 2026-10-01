@@ -20,6 +20,33 @@ export const home: typeof ar = {
   evening:      'Good evening',
   summaryLabel: 'Iraqi market summary',
 
+  worlds: {
+    label:    "Today's numbers",
+    title:    'All your money numbers, in one place',
+    lead:     'The dollar, gold and the stock exchange, with today’s move and what it means for your pocket.',
+    manchette: "Today's headline",
+    dollar:   { tag: 'Dollar · Kifah exchange', unit: (d: string) => `dinars per dollar · vs ${d}` },
+    gold:     { tag: 'Gold · 21K mithqal', unit: (d: string) => `dinars · vs ${d}` },
+    isx:      { tag: 'Stock exchange · ISX60', unit: (d: string) => `points · session of ${d}` },
+    learn:    { tag: 'Learn · lesson one', title: 'A million dinars: where do you keep it?', cta: 'Learn the basics' },
+    line: {
+      dinars: (n: number, s: string) => (n === 1 ? '1 dinar' : `${s} dinars`),
+      dollarUp:   (amount: string) => `The dollar rose ${amount}`,
+      dollarDown: (amount: string) => `The dollar fell ${amount}`,
+      dollarFlat: 'The dollar held steady',
+      goldUp:   'gold rose',
+      goldDown: 'gold fell',
+      goldFlat: 'gold held steady',
+      isxUp:    'the market rose',
+      isxDown:  'the market fell',
+      isxQuiet: 'the market was quiet',
+      join: (parts: string[]) => {
+        const p = parts.map((s, i) => (i === 0 ? s.charAt(0).toUpperCase() + s.slice(1) : s))
+        return (p.length < 2 ? p.join('') : `${p.slice(0, -1).join(', ')} and ${p[p.length - 1]}`) + '.'
+      },
+    },
+  },
+
   index: {
     eyebrow:  'Iraq market index',
     periods:  'Time period',

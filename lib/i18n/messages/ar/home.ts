@@ -26,6 +26,35 @@ export const home = {
   evening:      'مساء الخير',
   summaryLabel: 'ملخص السوق العراقي',
 
+  /* ── The top of the homepage (identity v3): today's numbers as world
+     cards, and «مانشيت اليوم», one newspaper line written from the moves.
+     The line only states directions the data supports: a move needs a
+     previous close, and a missing one drops that clause, never «ثابت». */
+  worlds: {
+    label:    'أرقام اليوم',
+    title:    'كل أرقام فلوسك، بمكان واحد',
+    lead:     'الدولار والذهب والبورصة، مع تغيّر اليوم وشنو يعني لجيبك.',
+    manchette: 'مانشيت اليوم',
+    dollar:   { tag: 'الدولار · الكفاح', unit: (d: string) => `دينار للدولار · مقارنة بـ ${d}` },
+    gold:     { tag: 'الذهب · مثقال عيار 21', unit: (d: string) => `دينار · مقارنة بـ ${d}` },
+    isx:      { tag: 'البورصة · ISX60', unit: (d: string) => `نقطة · جلسة ${d}` },
+    learn:    { tag: 'تعلّم · الدرس الأول', title: 'عندك مليون دينار… وين تخلّيه؟', cta: 'شارع المال، بخمس دقايق' },
+    line: {
+      /* Dinars agree with the number: 1 دينار، 2 دينارين، 3–10 دنانير، 11+ ديناراً. */
+      dinars: (n: number, s: string) => (n === 1 ? 'ديناراً واحداً' : n === 2 ? 'دينارين' : Number.isInteger(n) && n >= 3 && n <= 10 ? `${s} دنانير` : `${s} ديناراً`),
+      dollarUp:   (amount: string) => `الدولار صعد ${amount}`,
+      dollarDown: (amount: string) => `الدولار نزل ${amount}`,
+      dollarFlat: 'الدولار ثابت',
+      goldUp:   'الذهب صعد',
+      goldDown: 'الذهب نزل',
+      goldFlat: 'الذهب ثابت',
+      isxUp:    'البورصة صاعدة',
+      isxDown:  'البورصة نازلة',
+      isxQuiet: 'البورصة هادئة',
+      join: (parts: string[]) => (parts.length < 2 ? parts.join('') : `${parts.slice(0, -1).join('، ')}، و${parts[parts.length - 1]}`) + '.',
+    },
+  },
+
   index: {
     eyebrow:  'مؤشر السوق العراقي',
     periods:  'الفترة الزمنية',
