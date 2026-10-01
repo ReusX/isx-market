@@ -81,12 +81,12 @@ body {
 /* ── Controls ───────────────────────────────────────────────────────────── */
 .id-btn {
   display: inline-flex; align-items: center; justify-content: center; gap: 8px;
-  min-height: 44px; padding: 10px 22px; border-radius: var(--r-pill);
-  border: 1px solid var(--border); background: var(--surface); color: var(--ink);
-  font: inherit; font-size: 14px; font-weight: 500; line-height: 1; cursor: pointer;
+  min-height: 40px; padding: 9px 18px; border-radius: var(--r-pill);
+  border: 1.5px solid var(--border); background: transparent; color: var(--ink);
+  font: inherit; font-size: 14px; font-weight: 600; line-height: 1; cursor: pointer;
   text-decoration: none; white-space: nowrap;
 }
-.id-btn:hover { border-color: var(--ink); }
+.id-btn:hover { border-color: var(--line-strong); }
 .id-btn.is-primary { background: var(--primary-bg); color: var(--primary-ink); border-color: var(--primary-bg); }
 .id-btn.is-primary:hover { background: var(--primary-hover); }
 .id-btn.is-blue { background: var(--blue); color: var(--white); border-color: var(--blue); }
@@ -97,22 +97,25 @@ body {
 .is-blue .id-btn.is-light { background: var(--white); color: var(--navy); border-color: var(--white); }
 
 .id-pills { display: flex; gap: 8px; flex-wrap: wrap; }
+/* Filter chips, as on the board: quiet outline, muted text; the chosen one
+   takes the ink outline and a raised surface. No coloured fills. */
 .id-pill {
-  display: inline-flex; align-items: center; min-height: 36px; padding: 6px 16px;
-  border-radius: var(--r-pill); border: 1px solid var(--border); background: var(--surface);
-  color: var(--ink); font: inherit; font-size: 13px; font-weight: 500; line-height: 1;
+  display: inline-flex; align-items: center; min-height: 34px; padding: 7px 13px;
+  border-radius: var(--r-pill); border: 1.5px solid var(--border); background: transparent;
+  color: var(--secondary); font: inherit; font-size: 13px; font-weight: 600; line-height: 1;
   cursor: pointer; text-decoration: none;
 }
-.id-pill:hover { border-color: var(--ink); }
-.id-pill.is-on, .id-pill[aria-current], .id-pill[aria-pressed='true'] { background: var(--sel-bg); color: var(--sel-ink); border-color: transparent; box-shadow: inset 0 0 0 1px var(--sel-edge); }
+.id-pill:hover { border-color: var(--muted); color: var(--ink); }
+.id-pill.is-on, .id-pill[aria-current], .id-pill[aria-pressed='true'] { background: var(--surface-2); color: var(--ink); border-color: var(--line-strong); box-shadow: none; }
+.id-pill:disabled { opacity: .45; cursor: default; }
 
 .id-input {
-  min-height: 44px; padding: 10px 18px; border-radius: var(--r-pill);
-  border: 1px solid var(--border); background: var(--surface); color: var(--ink);
+  min-height: 42px; padding: 9px 14px; border-radius: 12px;
+  border: 1.5px solid var(--border); background: var(--surface); color: var(--ink);
   font: inherit; font-size: 15px; width: 100%;
 }
 .id-input::placeholder { color: var(--muted); }
-.id-input:focus { outline: none; border-color: var(--ink); }
+.id-input:focus { outline: none; border-color: var(--line-strong); }
 
 .id-go { width: 36px; height: 36px; border-radius: 50%; border: 1px solid var(--border); display: inline-grid; place-items: center; color: var(--ink); text-decoration: none; }
 .id-go:hover { border-color: var(--ink); }

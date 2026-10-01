@@ -3,34 +3,62 @@
 .iqm-body { min-width: 0; }
 .iqm-head { margin-bottom: 28px; }
 
-.iqm-session { padding: 28px 32px 32px; }
-.iqm-session-head { display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; font-size: 13px; opacity: .8; margin-bottom: 20px; }
-.iqm-figures { display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; }
-.iqm-figures > div { border-inline-start: 1px solid var(--block-line); padding-inline-start: 18px; }
-.iqm-figures > div:first-child { border: 0; padding-inline-start: 0; }
-.iqm-figures small { display: block; font-size: 12px; opacity: .75; margin-bottom: 8px; }
-.iqm-figures strong { display: block; font-family: var(--font-numeric); font-weight: 500; font-size: clamp(26px, 3vw, 36px); line-height: 1; }
-.iqm-figures em { font-style: normal; font-size: 12px; opacity: .7; display: block; margin-top: 8px; }
-.iqm-figures .id-chg { margin-top: 8px; }
-.iqm-breadth strong { font-size: clamp(20px, 2.2vw, 26px); white-space: nowrap; }
-.iqm-breadth .is-up { color: var(--up); } .iqm-breadth .is-down { color: var(--down); }
-.iqm-breadth .iqm-dot { margin: 0 8px; opacity: .5; }
-.iqm-breadth em { color: var(--muted); opacity: 1; }
-.iqm-bar { display: flex; gap: 2px; height: 5px; margin: 12px 0 8px; max-width: 220px; }
-.iqm-bar i { display: block; border-radius: 3px; min-width: 3px; }
-.iqm-bar .is-up { background: var(--up); } .iqm-bar .is-flat { background: var(--muted); opacity: .45; } .iqm-bar .is-down { background: var(--down); }
-.iqm-delta { display: block; font-style: normal; font-size: 12px; margin-top: 6px; color: var(--muted); opacity: 1; }
-.iqm-delta.is-up { color: var(--up); } .iqm-delta.is-down { color: var(--down); }
-.iqm-part { display: inline-flex; flex-direction: column; gap: 6px; align-items: flex-end; }
-.iqm-part-bar { display: block; width: 160px; height: 4px; border-radius: 2px; background: var(--border); overflow: hidden; }
-.iqm-part-bar i { display: block; height: 100%; background: var(--nav-active); border-radius: 2px; }
-@media (max-width: 760px) {
-  .iqm-session { padding: 20px; }
-  .iqm-figures { grid-template-columns: 1fr 1fr; }
-  .iqm-figures > div:nth-child(odd) { border: 0; padding-inline-start: 0; }
+/* ── The session strip · identity v3, the approved board (page 1) ─────────
+   ISX60 is the one key card (calm level: neutral, lapis offset); four calm
+   figures follow, each over a hairline. */
+.mb-session { display: grid; gap: 10px; margin-bottom: 28px; }
+.mb-when { margin: 0; }
+.mb-strip { display: grid; grid-template-columns: minmax(200px, 1.3fr) repeat(4, minmax(0, 1fr)); gap: 18px; align-items: stretch; }
+.mb-key { display: grid; gap: 6px; align-content: start; padding: 16px 18px; }
+.mb-key small, .mb-stat small { color: var(--muted); font-size: 12px; }
+.mb-key strong { font-family: var(--font-numeric); font-weight: 600; font-size: clamp(30px, 3vw, 36px); line-height: 1.1; }
+.mb-key .id-chg { justify-self: start; }
+.mb-stat { display: grid; gap: 4px; align-content: end; border-top: 1.5px solid var(--border); padding-top: 10px; min-width: 0; }
+.mb-stat strong { font-family: var(--font-numeric); font-weight: 600; font-size: 22px; line-height: 1.2; white-space: nowrap; }
+.mb-stat em { font-style: normal; font-size: 12px; color: var(--muted); }
+.mb-breadth strong { font-size: 18px; }
+.mb-dot { margin: 0 6px; color: var(--muted); }
+.mb-mood { display: flex; gap: 2px; height: 5px; max-width: 200px; }
+.mb-mood i { display: block; border-radius: 3px; min-width: 3px; }
+.mb-mood .is-up { background: var(--up); } .mb-mood .is-flat { background: var(--muted); opacity: .45; } .mb-mood .is-down { background: var(--down); }
+.mb-part { display: block; height: 5px; max-width: 200px; border-radius: 3px; background: var(--border); overflow: hidden; }
+.mb-part i { display: block; height: 100%; background: var(--w-lapis); border-radius: 3px; }
+@media (max-width: 900px) {
+  .mb-strip { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+  .mb-key { grid-column: 1 / -1; }
 }
 
-.iqm-session { margin-bottom: 40px; }
+/* ── The board table · same source ───────────────────────────────────────── */
+.mb-scroll { min-width: 0; }
+.mb-table { width: 100%; border-collapse: collapse; font-size: 14px; }
+.mb-table th { text-align: start; font-size: 12px; font-weight: 600; color: var(--muted); padding: 10px; border-bottom: 1.5px solid var(--line-strong); white-space: nowrap; position: sticky; top: var(--iqn-h); background: var(--page); z-index: 2; }
+.mb-table td { padding: 11px 10px; border-bottom: 1px solid var(--border); white-space: nowrap; font-variant-numeric: tabular-nums; vertical-align: middle; }
+.mb-table tbody tr:hover td { background: var(--surface); }
+.mb-table th .iqm-sort { color: inherit; font-size: 12px; font-weight: 600; }
+.mb-table th .iqm-sort.is-on { color: var(--ink); }
+.mb-co { display: flex; align-items: center; gap: 10px; color: inherit; text-decoration: none; min-width: 0; }
+.mb-co-text { display: grid; gap: 1px; min-width: 0; white-space: normal; }
+.mb-name { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; min-width: 0; }
+.mb-co-text b { font-weight: 600; font-size: 14px; line-height: 1.35; }
+.mb-co-text small { font-family: var(--font-numeric); font-weight: 500; font-size: 11px; color: var(--muted); letter-spacing: .03em; }
+.mb-flag { display: inline-block; font-size: 10px; font-weight: 600; color: var(--muted); border: 1px solid var(--border); border-radius: 999px; padding: 3px 7px; vertical-align: middle; }
+.mb-table th:first-child { width: 34%; }
+.mb-col-bar { width: 18%; }
+.mb-bar { display: block; height: 8px; border-radius: 4px; background: var(--border); overflow: hidden; }
+.mb-bar i { display: block; height: 100%; background: var(--w-lapis); border-radius: 4px; }
+.mb-untraded { white-space: normal; }
+.mb-note { margin: 12px 0 0; }
+.mb-table .iqm-logo { width: 32px; height: 32px; flex-basis: 32px; border-radius: 9px; }
+@media (max-width: 1100px) { .mb-hide-md { display: none; } }
+@media (max-width: 760px) {
+  .mb-hide-sm { display: none; }
+  .mb-table td, .mb-table th { padding-inline: 6px; }
+  .mb-table .iqm-logo { display: none; }
+  .mb-table th:first-child { width: auto; }
+  /* Long legal names («المنصور للصناعات الدوائية والمستلزمات…») ran to five
+     lines on a phone; two lines and the ticker below are enough to know it. */
+  .mb-co-text b { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+}
 
 .iqm-controls { display: flex; gap: 16px; align-items: center; flex-wrap: wrap; margin-bottom: 20px; }
 .iqm-controls .id-input { max-width: 340px; }

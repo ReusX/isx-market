@@ -13,11 +13,10 @@ import { DoorRail } from './DoorRail'
 import { PageTitle } from './PageTitle'
 import { IndexChart, type IndexPoint, type IndexSeries } from './IndexChart'
 import { FlowRing, type FlowRow } from './FlowRing'
-import { HomeWorlds } from './HomeWorlds'
+import { DayChip } from './DayChip'
 import '@/styles/markets.css'
 import type { Company } from '@/types'
 import type { MarketInitial } from '@/lib/marketServer'
-import type { HomeWorlds as Worlds } from '@/lib/homeWorlds'
 
 /**
  * The market · the root of the site, and the الأسواق door.
@@ -61,13 +60,6 @@ function compact(v: number | null | undefined, u: Units): string {
   return int.format(v)
 }
 
-function Change({ pct, stale, untraded, noChange }: { pct: number; stale?: boolean; untraded: string; noChange: string }) {
-  if (stale) return <span className="id-chg is-flat">{untraded}</span>
-  if (!pct) return <span className="id-chg is-flat">{noChange}</span>
-  const up = pct > 0
-  return <span className={`id-chg ${up ? 'is-up' : 'is-down'}`}>{up ? '▲' : '▼'} {Math.abs(pct).toFixed(2)}%</span>
-}
-
 /* A percentage as coloured text: mint up, coral down, muted flat. */
 function Pct({ v }: { v: number }) {
   const cls = v > 0 ? 'id-up' : v < 0 ? 'id-down' : 'id-cap'
@@ -76,11 +68,11 @@ function Pct({ v }: { v: number }) {
 
 
 /**
- * `root`: the overview — today's world cards (HomeWorlds), thirty rows, and a
+ * `root`: the overview — session strip, ISX60 and foreign flow, thirty rows, and a
  * link to /market for the rest. `full`: /market — every company, every
  * column, no card.
  */
-export function MarketPage({ variant = 'root', initial, worlds = null }: { variant?: 'root' | 'full'; initial?: MarketInitial; worlds?: Worlds | null }) {
+export function MarketPage({ variant = 'root', initial }: { variant?: 'root' | 'full'; initial?: MarketInitial }) {
   const full = variant === 'full'
   const { t, locale, href: L } = useLocale()
   const m = t.market
@@ -113,8 +105,8 @@ export function MarketPage({ variant = 'root', initial, worlds = null }: { varia
      sorts by that column, a second click flips it. Untraded companies
      always sink below traded ones when sorting by a change column, because
      their change is not a number. */
-  type SortKey = 'mcap' | 'name' | 'price' | 'd1' | 'd7' | 'd30' | 'volume' | 'shares'
-  const [sort, setSort] = useState<{ key: SortKey; dir: 'asc' | 'desc' }>({ key: 'volume', dir: 'desc' })
+  type SortKey = 'mcap' | 'name' | 'price' | 'd1' | 'd7' | 'd30' | 'volume' | 'shares' | 'value' | 'deals'
+  const [sort, setSort] = useState<{ key: SortKey; dir: 'asc' | 'desc' }>({ key: 'value', dir: 'desc' })
   const sortBy = (key: SortKey) => setSort((s) => s.key === key ? { key, dir: s.dir === 'desc' ? 'asc' : 'desc' } : { key, dir: key === 'name' ? 'asc' : 'desc' })
   /* Closes per ticker for the last ~45 days, for the 7- and 30-day changes. */
   const [hist, setHist] = useState<Record<string, { date: string; close: number }[]>>(initial?.hist ?? {})
@@ -236,6 +228,8 @@ export function MarketPage({ variant = 'root', initial, worlds = null }: { varia
         case 'd7': return c.stale ? null : changeOver(c, 7)
         case 'd30': return c.stale ? null : changeOver(c, 30)
         case 'volume': return c.stale ? null : c.shares_traded || 0
+        case 'value': return c.stale ? null : c.vol || 0
+        case 'deals': return c.stale ? null : c.deals || 0
         case 'shares': return c.shares || null
         default: return liveMcap(c)
       }
@@ -293,7 +287,6 @@ export function MarketPage({ variant = 'root', initial, worlds = null }: { varia
 
   return (
     <SiteShell>
-      {full ? null : <HomeWorlds worlds={worlds} index={index} />}
       <main className="iqm id-full iq-door" id="market" data-world="lapis" data-level="calm">
         <DoorRail door="markets" />
         <div className="iqm-body">
@@ -314,44 +307,53 @@ export function MarketPage({ variant = 'root', initial, worlds = null }: { varia
             {at > 0 ? <button type="button" className="id-pill is-sm" onClick={() => goTo(null)}>{p.full.latest}</button> : null}
             <button type="button" className="id-pill is-sm iqm-csv" onClick={exportCsv}>{p.full.csv}</button>
           </div>
-        ) : (
-          <div className="iqm-openers">
-            <IndexChart series={series} />
-            <FlowRing rows={flowRows} session={index?.latest.date ?? null} compact={(v) => compact(v, u)} />
-          </div>
-        )}
+        ) : null}
 
-        <section className="iqm-session id-block is-navy id-num" aria-label={m.summaryLabel}>
-          <div className="iqm-session-head">
-            <span>{session ? p.sessionOf(sessionDate(session, locale)) : ' '}</span>
-            {index?.latest.traded_companies != null && index.latest.listed_companies != null ? (
-              <span className="iqm-part">
-                {p.tradedOf(String(index.latest.traded_companies), String(index.latest.listed_companies))}
-                <span className="iqm-part-bar" aria-hidden="true"><i style={{ width: `${(index.latest.traded_companies / index.latest.listed_companies) * 100}%` }} /></span>
-              </span>
-            ) : null}
-          </div>
-          <div className="iqm-figures">
-            <div className="iqm-breadth">
+        {/* The session strip (identity v3, the approved board): ISX60 as the
+            one key card, then four calm figures. Summary before detail. */}
+        <section className="mb-session id-num" aria-label={m.summaryLabel}>
+          <p className="id-eyebrow mb-when">{session ? p.sessionOf(sessionDate(session, locale)) : ' '}</p>
+          <div className="mb-strip">
+            <div className="id-print is-key mb-key">
+              <small>ISX60</small>
+              <strong><bdi>{index?.latest.isx60 != null ? price.format(index.latest.isx60) : '—'}</bdi></strong>
+              {index?.latest && index.prev?.isx60 ? (
+                <DayChip pct={((index.latest.isx60 - index.prev.isx60) / index.prev.isx60) * 100} abs={index.latest.isx60 - index.prev.isx60} fmt={(v) => price.format(v)}
+                  label={t.rates.tools.vsPrev(sessionDate(index.prev.date, locale))} />
+              ) : null}
+            </div>
+            <div className="mb-stat mb-breadth">
               <small>{p.breadth.label}</small>
               <strong>
-                <span className="is-up">{int.format(breadth.up)}</span> {p.breadth.up}
-                <span className="iqm-dot">·</span>
-                <span className="is-down">{int.format(breadth.down)}</span> {p.breadth.down}
+                <span className="id-up">{int.format(breadth.up)}</span> {p.breadth.up}
+                <span className="mb-dot">·</span>
+                <span className="id-down">{int.format(breadth.down)}</span> {p.breadth.down}
               </strong>
-              {/* The mood as a bar: mint / grey / coral, to scale. */}
               {breadth.up + breadth.down + breadth.flat > 0 ? (
-                <span className="iqm-bar" aria-hidden="true">
+                <span className="mb-mood" aria-hidden="true">
                   <i className="is-up" style={{ flex: breadth.up }} /><i className="is-flat" style={{ flex: breadth.flat }} /><i className="is-down" style={{ flex: breadth.down }} />
                 </span>
               ) : null}
               <em>{p.breadth.flat(int.format(breadth.flat))}</em>
             </div>
-            <div><small>{m.tradedValue}</small><strong>{compact(index?.latest.total_value, u)}</strong><em>{u.iqd}</em><Delta v={vsAvg('total_value')} /></div>
-            <div><small>{m.volume}</small><strong>{compact(index?.latest.total_volume, u)}</strong><em>{u.shares}</em><Delta v={vsAvg('total_volume')} /></div>
-            <div><small>{m.trades}</small><strong>{index?.latest.total_trades != null ? int.format(index.latest.total_trades) : '—'}</strong><Delta v={vsAvg('total_trades')} /></div>
+            <div className="mb-stat"><small>{m.tradedValue}</small><strong>{compact(index?.latest.total_value, u)}</strong><em>{u.iqd}</em><Delta v={vsAvg('total_value')} /></div>
+            <div className="mb-stat"><small>{m.trades}</small><strong>{index?.latest.total_trades != null ? int.format(index.latest.total_trades) : '—'}</strong><Delta v={vsAvg('total_trades')} /></div>
+            <div className="mb-stat">
+              <small>{p.board.traded}</small>
+              <strong>{index?.latest.traded_companies != null && index.latest.listed_companies != null ? `${int.format(index.latest.traded_companies)} / ${int.format(index.latest.listed_companies)}` : '—'}</strong>
+              {index?.latest.traded_companies != null && index.latest.listed_companies ? (
+                <span className="mb-part" aria-hidden="true"><i style={{ width: `${(index.latest.traded_companies / index.latest.listed_companies) * 100}%` }} /></span>
+              ) : null}
+            </div>
           </div>
         </section>
+
+        {full ? null : (
+          <div className="iqm-openers">
+            <IndexChart series={series} />
+            <FlowRing rows={flowRows} session={index?.latest.date ?? null} compact={(v) => compact(v, u)} />
+          </div>
+        )}
 
         <section className="iqm-board" aria-label={m.tableLabel}>
           <div className="iqm-controls">
@@ -375,66 +377,78 @@ export function MarketPage({ variant = 'root', initial, worlds = null }: { varia
 
           {failed ? <p className="id-note">{p.loadFailed}</p> : null}
 
-          <div className="id-table-scroll">
-            <table className="id-table id-num iqm-table" aria-label={p.board.title}>
-              <colgroup><col /><col className="iqm-c-price" /><col className="iqm-c-chg" /><col className="iqm-c-chg iqm-hide-sm" /><col className="iqm-c-chg iqm-hide-sm" /><col className="iqm-c-val iqm-hide-sm" /><col className="iqm-c-val iqm-hide-sm" /><col className="iqm-c-val iqm-hide-md" /></colgroup>
+          {/* The board (identity v3): name over «ticker · sector», close, the
+              move as coloured text, value, trades and each company's share of
+              the session's traded value. One or two giant trades are flagged
+              «صفقة خاصة» so they do not read as the market. */}
+          <div className="mb-scroll">
+            <table className="mb-table id-num" aria-label={p.board.title}>
               <thead>
                 <tr>
                   {([
-                    ['name', m.colCompany, ''], ['price', p.board.price, 'is-end'], ['d1', p.board.d1, 'is-end'],
-                    ['d7', p.board.d7, 'is-end iqm-hide-sm'], ['d30', p.board.d30, 'is-end iqm-hide-sm'],
-                    ['volume', p.board.volume, 'is-end iqm-hide-sm'], ['mcap', p.board.mcap, 'is-end iqm-hide-sm'], ['shares', p.board.shares, 'is-end iqm-hide-md'],
+                    ['name', m.colCompany, ''], ['price', p.board.price, ''], ['d1', p.board.d1, ''],
+                    ...(full ? [['d7', p.board.d7, 'mb-hide-sm'], ['d30', p.board.d30, 'mb-hide-sm']] : []),
+                    ['value', p.board.value, ''], ['deals', p.board.deals, 'mb-hide-sm'],
+                    ...(full ? [['mcap', p.board.mcap, 'mb-hide-md']] : []),
                   ] as [SortKey, string, string][]).map(([key, label, cls]) => {
                     const on = sort.key === key
                     return (
-                      <th key={key} className={cls} aria-sort={on ? (sort.dir === 'asc' ? 'ascending' : 'descending') : 'none'}>
+                      <th key={key} className={cls || undefined} aria-sort={on ? (sort.dir === 'asc' ? 'ascending' : 'descending') : 'none'}>
                         <button type="button" className={`iqm-sort ${on ? 'is-on' : ''}`.trim()} onClick={() => sortBy(key)}>
                           {label}<span className="iqm-sort-arrow" aria-hidden="true">{on ? (sort.dir === 'asc' ? '↑' : '↓') : '↕'}</span>
                         </button>
                       </th>
                     )
                   })}
+                  <th className="mb-col-bar mb-hide-sm">{p.board.share}</th>
                 </tr>
               </thead>
               <tbody>
                 {rows.map((c) => {
                   const streak = c.stale ? streakOf(c) : 0
                   const d7 = c.stale ? null : changeOver(c, 7), d30 = c.stale ? null : changeOver(c, 30)
+                  const total = index?.latest.total_value ?? 0
+                  const share = !c.stale && total > 0 && c.vol ? (c.vol / total) * 100 : null
+                  const special = !c.stale && (c.deals ?? 0) > 0 && c.deals <= 2 && share != null && share >= 10
                   return (
                     <tr key={c.sym} className={c.stale ? 'is-untraded' : undefined}>
                       <td>
-                        <Link href={L(`/c/${c.sym}`)} className="iqm-co">
+                        <Link href={L(`/c/${c.sym}`)} className="mb-co">
                           <CompanyLogo sym={c.sym} logo={c.logo} color={c.color} className="iqm-logo" />
-                          <span className="iqm-co-text">
-                            <span className="id-name">{companyName(c, c.sym, locale)}</span>
-                            <span className="id-sub">{c.sym} · {SECTORS.find((s) => s.id === c.sec)?.[ar ? 'ar' : 'en'] ?? c.sec}</span>
+                          <span className="mb-co-text">
+                            <span className="mb-name"><b>{companyName(c, c.sym, locale)}</b>{special ? <span className="mb-flag">{p.board.special}</span> : null}</span>
+                            <small>{c.sym} · {SECTORS.find((s) => s.id === c.sec)?.[ar ? 'ar' : 'en'] ?? c.sec}</small>
                           </span>
                         </Link>
                       </td>
-                      <td className="is-end iqm-price">{c.close ? price.format(c.close) : '—'}</td>
+                      <td>{c.close ? price.format(c.close) : '—'}</td>
                       {c.stale ? (
-                        <>
-                          <td className="is-end iqm-untraded"><span className={`iqm-untraded-chip ${suspended(c) ? 'is-suspended' : ''}`.trim()}>
-                            {suspended(c) && c.lastTrade ? p.full.suspended(shortDate(c.lastTrade, locale)) : streak > 1 ? p.board.streak(streak) : p.board.untraded}
-                          </span></td>
-                          <td className="iqm-hide-sm" /><td className="iqm-hide-sm" />
-                        </>
+                        <td colSpan={full ? 3 : 1} className="mb-untraded"><span className={`iqm-untraded-chip ${suspended(c) ? 'is-suspended' : ''}`.trim()}>
+                          {suspended(c) && c.lastTrade ? p.full.suspended(shortDate(c.lastTrade, locale)) : streak > 1 ? p.board.streak(streak) : p.board.untraded}
+                        </span></td>
                       ) : (
                         <>
-                          <td className="is-end"><Change pct={c.pct} untraded={p.untraded} noChange={p.noChange} /></td>
-                          <td className="is-end iqm-hide-sm">{d7 == null ? <span className="id-cap">—</span> : <Pct v={d7} />}</td>
-                          <td className="is-end iqm-hide-sm">{d30 == null ? <span className="id-cap">—</span> : <Pct v={d30} />}</td>
+                          <td>{c.noPrior || !c.pct ? <span className="id-cap">{c.noPrior ? '—' : '0.00%'}</span> : <Pct v={c.pct} />}</td>
+                          {full ? <td className="mb-hide-sm">{d7 == null ? <span className="id-cap">—</span> : <Pct v={d7} />}</td> : null}
+                          {full ? <td className="mb-hide-sm">{d30 == null ? <span className="id-cap">—</span> : <Pct v={d30} />}</td> : null}
                         </>
                       )}
-                      <td className="is-end iqm-hide-sm">{c.stale ? '—' : compact(c.shares_traded, u)}</td>
-                      <td className="is-end iqm-hide-sm">{liveMcap(c) ? compact(liveMcap(c), u) : '—'}</td>
-                      <td className="is-end iqm-hide-md">{c.shares ? compact(c.shares, u) : '—'}</td>
+                      <td>{c.stale ? '—' : compact(c.vol, u)}</td>
+                      <td className="mb-hide-sm">{c.stale ? '—' : int.format(c.deals || 0)}</td>
+                      {full ? <td className="mb-hide-md">{liveMcap(c) ? compact(liveMcap(c), u) : '—'}</td> : null}
+                      <td className="mb-col-bar mb-hide-sm">
+                        {share != null ? (
+                          <span className="mb-bar" title={p.board.shareOf(`${share.toFixed(1)}%`)}><i style={{ width: `${Math.max(1.5, Math.min(100, share))}%` }} /></span>
+                        ) : null}
+                      </td>
                     </tr>
                   )
                 })}
               </tbody>
             </table>
           </div>
+          {rows.some((c) => !c.stale && c.deals > 0 && c.deals <= 2 && (index?.latest.total_value ?? 0) > 0 && c.vol / (index?.latest.total_value ?? 1) >= 0.1)
+            ? <p className="id-cap mb-note">{p.board.specialNote}</p> : null}
           {!full && filtered.length > 30 && !q.trim() ? (
             <div className="iqm-more">
               {/* The rest lives on /market — a page, not a toggle, so the full
@@ -445,7 +459,7 @@ export function MarketPage({ variant = 'root', initial, worlds = null }: { varia
           {!loading && !rows.length && !failed ? (
             <div className="iqm-empty"><p className="id-h3">{p.emptyTitle}</p><p className="id-cap">{p.emptyNote}</p></div>
           ) : null}
-          {rows.length ? <p className="id-cap iqm-count">{p.showing(int.format(filtered.length))}{sort.key === 'volume' ? ` · ${p.board.sortNote}` : ''}</p> : null}
+          {rows.length ? <p className="id-cap iqm-count">{p.showing(int.format(filtered.length))}{sort.key === 'value' ? ` · ${p.board.sortValue}` : sort.key === 'volume' ? ` · ${p.board.sortNote}` : ''}</p> : null}
         </section>
 
         {full ? (
