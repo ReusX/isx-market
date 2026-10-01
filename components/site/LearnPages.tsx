@@ -24,7 +24,7 @@ export function LearnGuidePage() {
   const sections = guideSections(locale)
   return (
     <SiteShell>
-      <main className="nws id-full iq-door">
+      <main className="nws id-full iq-door" data-world="tile" data-level="accent">
         <DoorRail door="learn" />
         <article className="art id-read">
           <nav className="id-eyebrow art-crumbs" aria-label={ln.crumbsLabel}>

@@ -43,7 +43,7 @@ export function AnalysisIndexPage() {
 
   return (
     <SiteShell>
-      <main className="tl id-full iq-door">
+      <main className="tl id-full iq-door" data-world="lapis" data-level="calm">
         <DoorRail door="markets" />
         <div className="tl-body">
           <header className="tl-head">
@@ -99,7 +99,7 @@ export function AnalysisPage({ sym }: { sym: string }) {
 
   return (
     <SiteShell>
-      <main className="tl id-full iq-door">
+      <main className="tl id-full iq-door" data-world="lapis" data-level="calm">
         <DoorRail door="markets" />
         <article className="tl-body id-read">
           <p className="id-eyebrow">{ANALYSIS_HOME[locale] ? <><Link href={L(ANALYSIS_HOME[locale]!)}>{A.back}</Link> · </> : null}<Link href={L(`/c/${sym}`)}>{A.companyPage}</Link></p>

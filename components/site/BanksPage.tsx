@@ -125,7 +125,7 @@ export function BanksPage({ initial }: { initial: BanksInitial }) {
 
   return (
     <SiteShell>
-      <main className="bnk id-full iq-door">
+      <main className="bnk id-full iq-door" data-world="tile" data-level="accent">
         <DoorRail door="banking" />
         <div className="bnk-body">
           <header className="bnk-head">

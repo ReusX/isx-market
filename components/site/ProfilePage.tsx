@@ -188,7 +188,7 @@ export function ProfilePage() {
 
   return (
     <SiteShell>
-      <main className="tl id-full iq-door">
+      <main className="tl id-full iq-door" data-world="lapis" data-level="accent">
         <ToolsRail />
         <div className="tl-body ath-profile">
           <header className="tl-head">

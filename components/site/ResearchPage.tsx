@@ -16,7 +16,7 @@ export function ResearchPage({ posts }: { posts: ResearchItem[] }) {
   const { t, locale } = useLocale()
   return (
     <SiteShell>
-      <main className="nws id-full iq-door">
+      <main className="nws id-full iq-door" data-world="tile" data-level="accent">
         <DoorRail door="learn" />
         <div className="nws-body lrn">
           <header className="nws-head">

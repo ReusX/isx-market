@@ -101,7 +101,7 @@ export function NotificationsPage() {
 
   return (
     <SiteShell>
-      <main className="tl id-full iq-door">
+      <main className="tl id-full iq-door" data-world="lapis" data-level="accent">
         <ToolsRail />
         <div className="tl-body">
           <header className="tl-head">

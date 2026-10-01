@@ -44,7 +44,7 @@ export function NewsPage({ initial }: { initial: NewsInitial }) {
 
   return (
     <SiteShell>
-      <main className="nws id-full iq-door">
+      <main className="nws id-full iq-door" data-world="tile" data-level="accent">
         <DoorRail door="learn" />
         <div className="nws-body">
           <header className="nws-head">
