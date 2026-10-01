@@ -1,11 +1,10 @@
 import type { Metadata } from 'next'
-import { SiteShell } from '@/components/site/SiteShell'
 import { MoneyStreet } from '@/components/learn/MoneyStreet'
 import { loadStreet } from '@/lib/moneyStreet'
 import { street } from '@/lib/moneyStreetCopy'
 import { absUrl, seoAlternates } from '@/lib/seo'
 
-/** «شارع المال» · the beginner's walk through where Iraqi money can go. */
+/** «شارع المال» · Lesson 1 of the Learn platform. */
 export const revalidate = 3600
 
 export const metadata: Metadata = {
@@ -21,9 +20,5 @@ export const metadata: Metadata = {
 }
 
 export default async function Page() {
-  return (
-    <SiteShell>
-      <MoneyStreet data={await loadStreet()} />
-    </SiteShell>
-  )
+  return <MoneyStreet data={await loadStreet()} />
 }

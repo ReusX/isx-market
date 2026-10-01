@@ -258,3 +258,4 @@ html.is-app .lx-top { display: none; }
   .lx-level { padding-block-end: 20px; min-block-size: 0; }
   .lx-level-art { position: static; justify-self: end; max-block-size: 170px; margin-block-start: 6px; }
 }
+.lx-soon .lx-h2 { line-height: 1.45; }

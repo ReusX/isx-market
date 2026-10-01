@@ -1,10 +1,6 @@
 import 'server-only'
 import { fetchFx, fetchGold } from '@/lib/rates'
-import { getQuote } from '@/lib/quote'
-import { loadBanksHub } from '@/lib/banksServer'
 import { GOLD_USD_JAN } from '@/lib/goldHistory'
-import { MITHQAL_G } from '@/lib/goldPages'
-import companiesData from '@/public/data/companies.json'
 
 /**
  * «شارع المال» (/learn/invest) · every number the street shows, real.
@@ -21,9 +17,8 @@ import companiesData from '@/public/data/companies.json'
  *   ISX60          first session of that year, then the latest session.
  *                  A price index: dividends are not in it, and the page says so.
  *
- * Nothing is simulated that we do not hold: bank deposits have no rate
- * history here, so the bank stop shows today's published rates and a plain
- * calculator, and it is left out of the time machine rather than guessed.
+ * Nothing is simulated that we do not hold: there is no deposit-rate
+ * history, so the lesson has no bank door rather than a guessed one.
  */
 const URL_BASE = process.env.NEXT_PUBLIC_SUPABASE_URL
 const ANON = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
@@ -62,24 +57,17 @@ export interface StreetData {
     usdOfficial: number | null
     usdDate: string | null
     goldOunceUsd: number | null
-    /** Dinars per mithqal, 21 and 24 karat, from the /gold source. */
-    mithqal21: number | null
-    mithqal24: number | null
     goldDate: string | null
     isx60: number | null
     isx60Date: string | null
   }
-  /** Asiacell, the company every Iraqi phone knows, for the «what is a share» stop. */
-  share: { sym: string; nameAr: string; price: number | null; date: string | null; shares: number } | null
-  /** Published dinar term-deposit rates, best first. */
-  deposits: { bank: string; slug: string; rate: number; months: number | null }[]
 }
 
 export async function loadStreet(): Promise<StreetData> {
   const last = new Date().getUTCFullYear() - 1
   const years = Array.from({ length: last - FIRST_YEAR + 1 }, (_, i) => FIRST_YEAR + i)
 
-  const [fxRows, idxRows, latestIdx, officialNow, fx, gold, quote, hub] = await Promise.all([
+  const [fxRows, idxRows, latestIdx, officialNow, fx, gold] = await Promise.all([
     Promise.all(years.map((y) => rest<{ mid: number | null; sell: number | null; buy: number | null }>(
       `fx_observations?select=mid,sell,buy&series=eq.official_cbi&observed_date=gte.${y}-01-01&observed_date=lt.${y}-02-01`))),
     Promise.all(years.map((y) => rest<{ isx60: number }>(
@@ -89,8 +77,6 @@ export async function loadStreet(): Promise<StreetData> {
       'fx_observations?select=mid,sell,observed_date&series=eq.official_cbi&order=observed_date.desc&limit=1'),
     fetchFx(),
     fetchGold(),
-    getQuote('TASC'),
-    loadBanksHub().catch(() => null),
   ])
 
   const rows: StreetYear[] = []
@@ -103,8 +89,6 @@ export async function loadStreet(): Promise<StreetData> {
   })
 
   const karat = (k: number) => gold?.grams.find((g) => g.karat === k)?.iqd ?? null
-  const perMithqal = (k: number) => { const g = karat(k); return g ? Math.round(g * MITHQAL_G) : null }
-  const tasc = (companiesData as { sym: string; ar: string; shares?: number }[]).find((c) => c.sym === 'TASC')
   const off = officialNow[0]
 
   return {
@@ -115,18 +99,9 @@ export async function loadStreet(): Promise<StreetData> {
       usdOfficial: off ? (off.mid ?? off.sell) : null,
       usdDate: fx?.publishedAt ?? fx?.date ?? null,
       goldOunceUsd: gold?.ounceSell?.usd ?? (karat(24) && fx?.sell ? Math.round((karat(24)! * OZ_G) / fx.sell) : null),
-      mithqal21: perMithqal(21),
-      mithqal24: perMithqal(24),
       goldDate: gold?.date ?? null,
       isx60: latestIdx[0]?.isx60 ?? null,
       isx60Date: latestIdx[0]?.date ?? null,
     },
-    share: tasc?.shares ? {
-      sym: 'TASC', nameAr: tasc.ar, shares: tasc.shares,
-      price: quote && !quote.suspended ? quote.close : null, date: quote?.date ?? null,
-    } : null,
-    deposits: (hub?.deposits ?? [])
-      .filter((d) => d.currency === 'IQD' && !d.rateTo)
-      .map((d) => ({ bank: d.ar, slug: d.slug, rate: d.rate, months: d.termMonths })),
   }
 }

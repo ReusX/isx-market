@@ -1,0 +1,76 @@
+/* «شارع المال» lesson (components/learn/MoneyStreet.tsx). Prefix: lxs-.
+   Builds on the Learn platform's ink kit in styles/learn-home.css. */
+
+.lxs-hero { align-items: end; }
+@media (min-width: 980px) { .lxs-hero { grid-template-columns: minmax(0, 7fr) minmax(0, 4fr); } }
+.lxs-hero-art { position: relative; margin: 0; display: grid; justify-items: center; gap: 4px; }
+.lxs-hero-art img { max-block-size: 380px; inline-size: auto; }
+
+/* The span control: two chips, said in words */
+.lxs-span { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 12px; }
+.lxs-span-k { font: 700 19px/1.2 var(--lx-display); }
+.lxs-span-row { display: flex; gap: 8px; }
+.lxs-span-since { font-size: 14px; color: var(--lx-muted); }
+.lxs-result-sec .lxs-span { justify-content: center; margin-block-end: 22px; }
+
+/* The four doors: wide comic panels, art and words side by side */
+.lxs-doors { list-style: none; margin: 0 auto; padding: 0 clamp(16px, 4vw, 48px); display: grid; gap: 40px; max-inline-size: 1100px; }
+.lxs-door {
+  display: grid; gap: 18px 32px; align-items: center; padding: 22px clamp(18px, 3vw, 34px);
+  grid-template-columns: minmax(0, 1fr);
+}
+@media (min-width: 820px) {
+  .lxs-door { grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); }
+  .lxs-door:nth-child(even) .lxs-door-art { order: 2; }
+}
+.lxs-door:nth-child(odd) { transform: rotate(-.6deg); }
+.lxs-door:nth-child(even) { transform: rotate(.5deg); }
+.lxs-door.is-mattress { --lx-fill: #fbf1ee; }
+.lxs-door.is-dollar { --lx-fill: #f1f6ee; }
+.lxs-door.is-gold { --lx-fill: #fbf5e3; }
+.lxs-door.is-shares { --lx-fill: #eef3f8; }
+.lxs-door-art { display: grid; justify-items: center; gap: 6px; }
+.lxs-door-art img { max-block-size: 270px; inline-size: auto; }
+.lxs-door-txt { display: grid; gap: 12px; justify-items: start; }
+.lxs-of { margin: 0; font-size: 13px; font-weight: 700; color: var(--lx-muted); }
+.lxs-door-h { font-size: clamp(32px, 4vw, 44px); }
+.lxs-today { margin: 6px 0 -6px; font: 700 18px/1 var(--lx-display); color: var(--lx-ink-2); }
+.lxs-big { font-size: clamp(30px, 4.2vw, 44px); padding: 8px 22px 10px; }
+.lxs-big small { font-size: .5em; }
+.lxs-result { font-weight: 600; color: var(--lx-ink); }
+.lxs-lesson { margin: 2px 0 0; font: 400 21px/1.5 var(--lx-display); color: var(--lx-green); }
+.lxs-door.is-mattress .lxs-lesson { color: var(--lx-red); }
+
+/* The result: hand-drawn bars against a dashed «start» line */
+.lxs-bars { list-style: none; margin: 0 auto; padding: 0; display: grid; gap: 18px; max-inline-size: 900px; }
+.lxs-bars li { display: grid; grid-template-columns: minmax(0, 150px) minmax(0, 1fr) auto; gap: 14px; align-items: center; }
+.lxs-bar-name { font: 700 21px/1.2 var(--lx-display); }
+.lxs-bar-name small { display: block; font: 500 12px/1.4 var(--font-sans), sans-serif; color: var(--lx-muted); }
+.lxs-bar-track { position: relative; block-size: 34px; }
+.lxs-bar-track i {
+  display: block; block-size: 100%; border: 3px solid var(--lx-ink); border-radius: var(--lx-hand-2);
+  filter: url(#lx-boil); transition: inline-size .6s cubic-bezier(.2, .7, .2, 1);
+}
+.lxs-bar-track i.is-up { background: var(--lx-green); }
+.lxs-bar-track i.is-down { background: var(--lx-red); }
+.lxs-bar-track i.is-flat { background: repeating-linear-gradient(-45deg, var(--lx-paper-2) 0 6px, var(--lx-paper-3) 6px 12px); }
+.lxs-bar-track em { position: absolute; inset-block: -8px; border-inline-start: 2.5px dashed var(--lx-ink); }
+.lxs-bar-v { font: 700 20px/1 var(--font-sans), sans-serif; font-variant-numeric: tabular-nums; min-inline-size: 110px; text-align: end; }
+.lxs-key { display: flex; justify-content: center; align-items: center; gap: 8px; margin: 16px 0 0; font-size: 13px; color: var(--lx-muted); }
+.lxs-key em { display: inline-block; block-size: 18px; border-inline-start: 2.5px dashed var(--lx-ink); }
+@media (max-width: 640px) {
+  .lxs-bars li { grid-template-columns: minmax(0, 1fr) auto; }
+  .lxs-bar-track { grid-column: 1 / -1; grid-row: 2; }
+}
+@media (prefers-reduced-motion: reduce) { .lxs-bar-track i { transition: none; } }
+
+/* Three ideas, each said by one of the cast */
+.lxs-ideas { list-style: none; margin: 0 auto; padding: 0; display: grid; gap: 28px; max-inline-size: 1100px; grid-template-columns: minmax(0, 1fr); }
+@media (min-width: 820px) { .lxs-ideas { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+.lxs-ideas li { display: grid; justify-items: center; align-content: end; gap: 6px; }
+.lxs-ideas img { max-block-size: 230px; inline-size: auto; }
+.lxs-ideas .lx-bubble { max-inline-size: 300px; }
+
+.lxs-next .lxs-next-back { display: grid; justify-items: center; }
+.lxs-how { max-inline-size: 70ch; margin: -40px auto 0; padding-inline: 16px; }
+.lx-h1 > .lx-mark { justify-self: start; }
