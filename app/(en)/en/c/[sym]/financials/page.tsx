@@ -4,7 +4,7 @@ import { FinancialsPage } from '@/components/site/FinancialsPage'
 import { loadFinancials } from '@/lib/marketServer'
 
 /** `/en/c/[sym]/financials` — see the Arabic route. */
-export const revalidate = 3600
+export const revalidate = 86400
 export const dynamicParams = true
 
 export function generateStaticParams() {

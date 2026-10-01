@@ -31,9 +31,11 @@ export type MarketInitial = {
   hist: Record<string, { date: string; close: number }[]>
 }
 
-function client() {
+/* A route rebuilds at the shortest interval of anything it fetches, so a
+   loader for slow data (filings) passes its own, longer one. */
+function client(revalidate = 60) {
   return createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!, {
-    global: { fetch: (u, i) => fetch(u, { ...i, next: { revalidate: 60 } }) },
+    global: { fetch: (u, i) => fetch(u, { ...i, next: { revalidate } }) },
     auth: { persistSession: false },
   })
 }
@@ -854,7 +856,7 @@ export const loadFinancials = cache(async (symRaw: string): Promise<FinancialsIn
   }
   if (!meta) return out
   try {
-    const sb = client()
+    const sb = client(86_400)
     const { buildFinancials } = await import('@/lib/financials')
     const [f, r, p] = await Promise.all([
       sb.from('financial_facts_public').select('fiscal_year,period,statement,line_key,value_iqd,unit_reported,source_label_ar').eq('ticker', sym).limit(3000),

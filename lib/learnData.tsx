@@ -1,5 +1,5 @@
 import { LearnHome, type LearnHomeData } from '@/components/learn/LearnHome'
-import { loadStreet } from '@/lib/moneyStreet'
+import { loadStripFigures } from '@/lib/moneyStreet'
 import type { Locale } from '@/lib/i18n/locale'
 
 // Title/description live in ./layout.tsx · a page-level `metadata` export wins
@@ -15,9 +15,5 @@ export async function LearnPageBody({ locale }: { locale: Locale }) {
 /** The comic strip's two real numbers: what a million dinars bought in the
  *  street's first year (CBI official rate) and what it buys today (market). */
 async function stripData(): Promise<LearnHomeData> {
-  try {
-    const d = await loadStreet()
-    const first = d.years[0]
-    return first && d.now.usdSell ? { then: { year: first.year, usd: first.usd }, nowUsd: d.now.usdSell } : null
-  } catch { return null }
+  try { return await loadStripFigures() } catch { return null }
 }

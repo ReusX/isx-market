@@ -12,7 +12,7 @@ import { serializeLd } from '@/lib/jsonLd'
  * للربع الأول 2026». One page per trusted filing; the newest 150 are
  * prerendered, the rest on demand. Arabic-only for now.
  */
-export const revalidate = 3600
+export const revalidate = 86400
 export const dynamicParams = true
 export async function generateStaticParams() {
   return (await loadResultsIndex()).slice(0, 40).map((k) => ({ sym: k.sym, period: resultsSlug(k) }))

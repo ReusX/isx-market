@@ -43,9 +43,12 @@ export function parseResultsSlug(slug: string): { year: number; period: Period }
   return PERIODS.includes(period) ? { year: +m[1], period } : null
 }
 
-function client() {
+/* Hourly by default: the index feeds the sitemap, news and company pages,
+   where a new filing should appear within the hour. One filing's own page
+   passes a day, since a published filing does not change. */
+function client(revalidate = 3600) {
   return createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!, {
-    global: { fetch: (u, i) => fetch(u, { ...i, next: { revalidate: 3600 } }) },
+    global: { fetch: (u, i) => fetch(u, { ...i, next: { revalidate } }) },
     auth: { persistSession: false },
   })
 }
@@ -74,7 +77,7 @@ export const loadResults = cache(async (symRaw: string, slug: string): Promise<R
   const meta = META.get(sym)
   const key = parseResultsSlug(slug)
   if (!meta || !key || !normalizedValuesTrusted(sym)) return null
-  const sb = client()
+  const sb = client(86_400)
   const [repRes, factRes, ratioRes] = await Promise.all([
     sb.from('financial_reports_public').select('ticker,fiscal_year,period,template,pdf_url,source_added_date,unit_reported').eq('ticker', sym),
     sb.from('financial_facts_public').select('ticker,fiscal_year,period,statement,line_key,value_iqd').eq('ticker', sym).in('fiscal_year', [key.year, key.year - 1]).eq('period', key.period),

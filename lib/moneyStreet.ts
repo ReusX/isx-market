@@ -27,12 +27,12 @@ const DAY = 86_400
 export const FIRST_YEAR = 2016
 const OZ_G = 31.1035
 
-async function rest<T>(path: string): Promise<T[]> {
+async function rest<T>(path: string, revalidate = DAY): Promise<T[]> {
   if (!URL_BASE || !ANON) return []
   try {
     const res = await fetch(`${URL_BASE}/rest/v1/${path}`, {
       headers: { apikey: ANON, Authorization: `Bearer ${ANON}` },
-      next: { revalidate: DAY },
+      next: { revalidate },
     })
     return res.ok ? ((await res.json()) as T[]) : []
   } catch { return [] }
@@ -104,4 +104,26 @@ export async function loadStreet(): Promise<StreetData> {
       isx60Date: latestIdx[0]?.date ?? null,
     },
   }
+}
+
+/**
+ * Just the two figures the /learn home's comic strip prints: the first
+ * year's January CBI rate and the latest recorded market sell.
+ *
+ * Not `loadStreet()`: that calls `fetchFx()`, whose 5-minute fetch made the
+ * whole /learn route regenerate every 5 minutes (a route rebuilds at the
+ * shortest interval of anything it fetches), for a strip where an hour-old
+ * rate is plenty. Reads the recorded close instead, hourly.
+ */
+export async function loadStripFigures(): Promise<{ then: { year: number; usd: number }; nowUsd: number } | null> {
+  const [jan, last] = await Promise.all([
+    rest<{ mid: number | null; sell: number | null; buy: number | null }>(
+      `fx_observations?select=mid,sell,buy&series=eq.official_cbi&observed_date=gte.${FIRST_YEAR}-01-01&observed_date=lt.${FIRST_YEAR}-02-01`),
+    rest<{ sell_close: number | null; close: number | null }>(
+      'fx_daily?select=sell_close,close&series=eq.parallel&location=eq.baghdad&order=observed_date.desc&limit=1', 3600),
+  ])
+  const vals = jan.map((r) => r.mid ?? r.sell ?? r.buy).filter((v): v is number => v != null && v > 0)
+  const nowUsd = last[0]?.sell_close ?? last[0]?.close ?? null
+  if (!vals.length || !nowUsd) return null
+  return { then: { year: FIRST_YEAR, usd: Math.round((vals.reduce((x, y) => x + y, 0) / vals.length) * 10) / 10 }, nowUsd }
 }

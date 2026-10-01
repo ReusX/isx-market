@@ -5,10 +5,12 @@ import { loadFinancials } from '@/lib/marketServer'
 
 /**
  * Prerendered per ticker like `/c/[sym]`; a filing changes a few times a
- * year, so an hour is generous. The old page was a client component that
+ * year, so the page and its loader both ask for a day. The [sym] layout's
+ * quote (30 min) still sets the real floor; before, the loader's 60-second
+ * fetch did, and crawlers walking every ticker made that an ISR-write bill. The old page was a client component that
  * queried three tables from the browser on every view.
  */
-export const revalidate = 3600
+export const revalidate = 86400
 export const dynamicParams = true
 
 export function generateStaticParams() {
