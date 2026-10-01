@@ -190,6 +190,28 @@ export function statsFrom(days: FxDay[]): FxStats {
   }
 }
 
+/** A move since the previous close, for the up/down chip beside a headline price. */
+export interface DayMove { abs: number; pct: number; prevDate: string }
+
+/**
+ * The dollar since the last recorded close BEFORE the quote's own day.
+ *
+ * Compared like with like: `fx_daily.close` is the buy/sell midpoint, so the
+ * live quote is reduced to its midpoint too, not to the sell side the headline
+ * prints. Null when there is no earlier close (rule 1 above: never a zero).
+ */
+export function fxDayMove(fx: { buy: number | null; sell: number | null; date: string | null } | null, days: FxDay[]): DayMove | null {
+  if (!fx) return null
+  const now = fx.buy != null && fx.sell != null ? (fx.buy + fx.sell) / 2 : (fx.sell ?? fx.buy)
+  const today = fx.date ?? days[days.length - 1]?.date
+  if (now == null || !today) return null
+  let prev: FxDay | null = null
+  for (const d of days) if (d.close != null && d.date < today) prev = d
+  if (!prev || prev.close == null) return null
+  const abs = now - prev.close
+  return { abs, pct: (abs / prev.close) * 100, prevDate: prev.date }
+}
+
 /**
  * The headline spread, on the one definition in lib/fxSeries.ts: parallel
  * midpoint against the CBI-published rate.

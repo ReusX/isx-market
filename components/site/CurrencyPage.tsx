@@ -12,6 +12,8 @@ import { SeriesChart, type ChartRange } from './SeriesChart'
 import { CURRENCY_FLAGS, type CurrenciesData, type CurrencyCode } from '@/lib/currencies'
 import type { FxData } from '@/lib/rates'
 import { faqVars, fmtIqd, fmtX, nf0, nf2, currencyFigures } from '@/lib/currencyFigures'
+import type { CurrencyMoves } from '@/lib/currencyMoves'
+import { DayChip } from './DayChip'
 import '@/styles/econ-page.css'
 
 /**
@@ -30,6 +32,7 @@ export type CurrencyPageProps = {
   fx: FxData | null
   history: { date: string; value: number }[]
   others: { code: CurrencyCode; slug: string }[]
+  moves?: CurrencyMoves | null
 }
 
 const AMOUNTS = [1, 5, 10, 50, 100, 500, 1000, 5000]
@@ -37,7 +40,7 @@ const AMOUNTS = [1, 5, 10, 50, 100, 500, 1000, 5000]
 const TOMAN_AMOUNTS = [10000, 50000, 100000, 500000, 1000000, 5000000, 10000000]
 const IQD_AMOUNTS = [10000, 50000, 100000, 250000, 500000, 1000000]
 
-export function CurrencyPage({ code, peg, toman, cur, fx, history, others }: CurrencyPageProps) {
+export function CurrencyPage({ code, peg, toman, cur, fx, history, others, moves }: CurrencyPageProps) {
   const { t, locale } = useLocale()
   const R = t.rates
   const P = R.page.currency
@@ -48,6 +51,7 @@ export function CurrencyPage({ code, peg, toman, cur, fx, history, others }: Cur
   const unit = toman ? 1_000_000 : 1
   const iqdUnit = f.iqd != null ? f.iqd * unit : null
   const iqdOfficialUnit = f.iqdOfficial != null ? f.iqdOfficial * unit : null
+  const vsPrev = moves?.pct[code] != null ? R.tools.vsPrev(localeDate(moves.prevDate, locale)) : null
 
   const ranges: ChartRange[] = [
     { id: '1M', label: R.fx.period['1M'], days: 31 }, { id: '3M', label: R.fx.period['3M'], days: 92 },
@@ -75,13 +79,14 @@ export function CurrencyPage({ code, peg, toman, cur, fx, history, others }: Cur
                 <p className="eco-lead id-num">
                   <strong><bdi>{fmtIqd(iqdUnit)}</bdi></strong>
                   <span className="eco-unit">{meta?.unit ?? R.gold.iqd}</span>
+                  {vsPrev ? <DayChip pct={moves?.pct[code]} invert label={vsPrev} /> : null}
                 </p>
                 <p className="eco-hundred id-num">
                   {P.perUsd(fmtX(toman ? (f.perUsd as number) / 10 : (f.perUsd as number)), toman ? (meta?.short ?? name) : name)} · {P.officialAt(fmtIqd(iqdOfficialUnit))}
                 </p>
                 {toman && f.iqd != null ? <p className="eco-hundred id-num">{P.tomanNote(fmtIqd(f.iqd * 1_000_000))}</p> : null}
                 {peg ? <p className="id-cap eco-when">{P.pegNote(name, fmtX(peg))}</p> : null}
-                <p className="id-cap eco-when">{f.date ? R.tools.observedOn(localeDate(f.date, locale)) : R.tools.noObserved} · {R.gold.atMarketRate} {nf0.format(f.market)} {R.gold.iqd}</p>
+                <p className="id-cap eco-when">{f.date ? R.tools.observedOn(localeDate(f.date, locale)) : R.tools.noObserved} · {R.gold.atMarketRate} {nf0.format(f.market)} {R.gold.iqd}{vsPrev ? ` · ${vsPrev}` : ''}</p>
               </>
             )}
           </header>

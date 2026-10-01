@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import { fetchCurrencies, fetchFx } from '@/lib/rates'
+import { currencyMoves } from '@/lib/currencyMoves'
 import { CURRENCY_PAGES, currencyPage, currencyHistory } from '@/lib/currencyPages'
 import { CurrencyPage } from '@/components/site/CurrencyPage'
 import { currencyFigures, faqVars, fmtIqd, fmtX } from '@/lib/currencyFigures'
@@ -47,6 +48,7 @@ export default async function Page(props: { params: Promise<{ code: string }> })
   const def = currencyPage(params.code)
   if (!def) notFound()
   const [cur, fx, history] = await Promise.all([fetchCurrencies(), fetchFx(), currencyHistory(def)])
+  const moves = await currencyMoves(fx)
   const M = messages('ar').rates.page
   const name = M.currency.meta[def.code]?.page ?? M.currencies.names[def.code] ?? def.code
   const faq = M.currency.faq(faqVars(def.code, name, M.currency.meta[def.code]?.short ?? def.code, cur, fx, !!def.toman, !!def.peg, 'ar'))
@@ -62,7 +64,7 @@ export default async function Page(props: { params: Promise<{ code: string }> })
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeLd(ld) }} />
-      <CurrencyPage code={def.code} peg={def.peg} toman={!!def.toman} cur={cur} fx={fx} history={history} others={others} />
+      <CurrencyPage code={def.code} peg={def.peg} toman={!!def.toman} cur={cur} fx={fx} history={history} others={others} moves={moves} />
     </>
   )
 }

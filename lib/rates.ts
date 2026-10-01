@@ -30,6 +30,11 @@ export interface GoldData {
   grams: GoldKarat[]
   ounceSell: { iqd: number; usd: number } | null
   ounceBuy:  { iqd: number; usd: number } | null
+  /** The ounce's move as the source prints it under the price («ارتفاع 14 $»), USD. */
+  ounceChange: number | null
+  /** The source's own previous-day close per karat, dinars per gram: the
+   *  latest row of its «الايام السابقة» table dated before `date`. */
+  prev: { date: string; grams: { karat: number; iqd: number }[] } | null
   source: string
   sourceUrl: string
   fetchedAt: string
@@ -55,10 +60,32 @@ export async function fetchGold(): Promise<GoldData | null> {
     }
     const date = t.match(/\((\d{4}\/\d{2}\/\d{2})\)/)?.[1] ?? null
 
+    const chg = t.match(/أونصة\s*الذهب\s*اليوم\s*[\d.,]+\s*دولار\s*(ارتفاع|صعود|هبوط|انخفاض)?\s*([-+]?[\d.,]+)\s*\$/)
+    const ounceChange = chg ? (() => { const v = floatNum(chg[2]); return v == null ? null : (/هبوط|انخفاض/.test(chg[1] ?? '') ? -Math.abs(v) : v) })() : null
+
+    /* «الايام السابقة»: a header of karats, then one dated row per day,
+       newest first. The column order is read from the header, not assumed. */
+    let prev: GoldData['prev'] = null
+    const hi = t.indexOf('السابقة')
+    if (hi > 0 && date) {
+      const seg = t.slice(hi, hi + 1500)
+      const firstRow = seg.search(/\d{4}-\d{2}-\d{2}/)
+      const karats = firstRow > 0 ? Array.from(seg.slice(0, firstRow).matchAll(/عيار\s*(\d{2})/g), (k) => +k[1]) : []
+      const today = date.replace(/\//g, '-')
+      const rowRe = new RegExp('(\\d{4}-\\d{2}-\\d{2})' + '\\s+([\\d,]+)'.repeat(karats.length), 'g')
+      let r: RegExpExecArray | null
+      while (karats.length && (r = rowRe.exec(seg))) {
+        if (r[1] >= today) continue
+        if (prev && prev.date >= r[1]) continue
+        prev = { date: r[1], grams: karats.map((k, i) => ({ karat: k, iqd: intNum(r![i + 2]) })) }
+      }
+    }
+
     return {
       date, grams,
       ounceSell: ounce('بيع'),
       ounceBuy:  ounce('شراء'),
+      ounceChange, prev,
       source: 'iraqgoldprice.com',
       sourceUrl: GOLD_URL,
       fetchedAt: new Date().toISOString(),

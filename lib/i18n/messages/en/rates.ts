@@ -163,6 +163,8 @@ export const rates: typeof ar = {
     noObserved: 'The source gives no observation date',
     confirmedOn: (d: string) => `Last confirmed ${d}`,
     observedOn: (d: string) => `Observed ${d}`,
+    /** Beside the up/down chip: what the move is measured against. */
+    vsPrev: (d: string) => `Change vs ${d}`,
     updatedAt: (t: string, d: string) => `Updated ${t} · ${d}`,
     observedYesterday: (d: string) => `Observed ${d} · yesterday’s reading`,
     observedAge: (d: string, age: string) => `Observed ${d} · ${age}`,
@@ -367,6 +369,7 @@ export const rates: typeof ar = {
       colMarket: 'IQD (market)',
       colOfficial: 'IQD (official)',
       colPerUsd: 'per US dollar',
+      colChange: 'vs yesterday',
       thousand: 'per 1,000',
       calc: 'Currency converter',
       calcNote: 'Conversions go through the dollar at the parallel-market rate.',

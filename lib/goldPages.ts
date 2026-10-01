@@ -75,6 +75,18 @@ export function goldFigures(def: GoldPageDef, gold: GoldData | null, fx: FxData 
   }
 }
 
+/**
+ * One karat's move per gram since the source's previous day, from its own
+ * «الايام السابقة» table, so both sides are the same publisher's figures.
+ * Null when that table didn't parse or has no earlier row.
+ */
+export function goldMove(gold: GoldData | null, karat: number): { abs: number; pct: number; prevDate: string } | null {
+  const now = gold?.grams.find((g) => g.karat === karat)?.iqd
+  const prev = gold?.prev?.grams.find((g) => g.karat === karat)?.iqd
+  if (!now || !prev || !gold?.prev) return null
+  return { abs: now - prev, pct: ((now - prev) / prev) * 100, prevDate: gold.prev.date }
+}
+
 const nf0 = new Intl.NumberFormat('en-US', { maximumFractionDigits: 0 })
 const f0 = (v: number | null | undefined) => (v == null ? '—' : nf0.format(v))
 

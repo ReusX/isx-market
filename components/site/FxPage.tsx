@@ -11,7 +11,8 @@ import { AboutSection } from './AboutSection'
 import { SeriesChart, type ChartRange } from './SeriesChart'
 import type { FxData } from '@/lib/rates'
 import type { FxDay } from '@/lib/fxHistory'
-import { statsFrom } from '@/lib/fxHistory'
+import { fxDayMove, statsFrom } from '@/lib/fxHistory'
+import { DayChip } from './DayChip'
 import { CBI_OFFICIAL_RATE, CBI_RATE_CONFIRMED } from '@/lib/fxOfficial'
 import type { FxQa } from '@/lib/fxCopy'
 import '@/styles/econ-page.css'
@@ -65,6 +66,8 @@ export function FxPage({ fx, parallel, official, faq }: { fx: FxData | null; par
     { key: 'official', label: C.legendOfficial, points: official.filter((d) => d.close != null).map((d) => ({ date: d.date, value: d.close as number })), dashed: true, muted: true },
   ], [parallel, official, C])
   const stats = useMemo(() => statsFrom(parallel), [parallel])
+  const move = useMemo(() => fxDayMove(fx, parallel), [fx, parallel])
+  const vsPrev = move ? R.tools.vsPrev(localeDate(move.prevDate, locale)) : null
 
   /* Converter: one amount, two directions, the rate you choose. */
   const [amount, setAmount] = useState('100')
@@ -88,6 +91,7 @@ export function FxPage({ fx, parallel, official, faq }: { fx: FxData | null; par
             <p className="eco-lead id-num">
               <strong>{market == null ? '—' : nf0.format(market)}</strong>
               <span className="eco-unit">{P.perDollar} · {P.market}</span>
+              {move && vsPrev ? <DayChip pct={move.pct} abs={move.abs} fmt={(v) => nfQ.format(v)} invert label={vsPrev} /> : null}
             </p>
             {/* «سعر الورق» — the $100 note is how the street quotes the rate. */}
             {market != null ? <p className="eco-hundred id-num">{P.hundred(nf0.format(market * 100))}{locale === 'ar' ? <> · <Link href="/fx/100-dollar">{R.page.hundred.h1}</Link></> : null}</p> : null}
@@ -95,6 +99,7 @@ export function FxPage({ fx, parallel, official, faq }: { fx: FxData | null; par
               {fx?.stale ? `${C.staleNotice} · ` : ''}{fx?.date ? (fx.publishedAt && fx.sourceKey === 'kifah-tg'
                 ? R.tools.updatedAt(baghdadTime(fx.publishedAt, locale), localeDate(fx.date, locale))
                 : R.tools.observedOn(localeDate(fx.date, locale))) : R.tools.noObserved}
+              {vsPrev ? ` · ${vsPrev}` : ''}
             </p>
             <div className="id-stats id-num eco-stats">
               <div className="id-stat"><small>{C.buy}</small><b><bdi>{fx?.buy == null ? '—' : nfQ.format(fx.buy)}</bdi></b></div>

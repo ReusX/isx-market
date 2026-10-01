@@ -12,6 +12,8 @@ import { AboutSection } from './AboutSection'
 import { CURRENCY_CODES, CURRENCY_FLAGS, type CurrenciesData, type CurrencyCode } from '@/lib/currencies'
 import type { FxData } from '@/lib/rates'
 import { currenciesFaqFigures } from '@/lib/ratesFaq'
+import type { CurrencyMoves } from '@/lib/currencyMoves'
+import { DayChip } from './DayChip'
 import '@/styles/econ-page.css'
 
 /**
@@ -30,7 +32,7 @@ const nf0 = new Intl.NumberFormat('en-US', { maximumFractionDigits: 0 })
 const nf2 = new Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
 const nf4 = new Intl.NumberFormat('en-US', { maximumFractionDigits: 4 })
 
-export function CurrenciesPage({ cur, fx }: { cur: CurrenciesData | null; fx: FxData | null }) {
+export function CurrenciesPage({ cur, fx, moves }: { cur: CurrenciesData | null; fx: FxData | null; moves?: CurrencyMoves | null }) {
   const { t, locale } = useLocale()
   const R = t.rates
   const P = R.page.currencies
@@ -42,6 +44,8 @@ export function CurrenciesPage({ cur, fx }: { cur: CurrenciesData | null; fx: Fx
   const fmtIqd = (v: number | null) => (v == null ? '—' : v >= 100 ? nf0.format(v) : nf2.format(v))
   const eur = iqdPer('EUR', market)
   const codes = CURRENCY_CODES.filter((c) => perUsd(c))
+  const vsPrev = moves ? R.tools.vsPrev(localeDate(moves.prevDate, locale)) : ''
+  const chip = (c: CurrencyCode) => (moves?.pct[c] != null ? <DayChip pct={moves.pct[c]} invert label={vsPrev} /> : null)
 
   /* Converter: amount in `from` → `to`, both via the dollar at the market rate. */
   const [amount, setAmount] = useState('100')
@@ -66,11 +70,12 @@ export function CurrenciesPage({ cur, fx }: { cur: CurrenciesData | null; fx: Fx
                 <p className="eco-lead id-num">
                   <strong><bdi>{fmtIqd(eur)}</bdi></strong>
                   <span className="eco-unit">{P.perUnit} · {P.headline}</span>
+                  {chip('EUR')}
                 </p>
-                <p className="id-cap eco-when">{R.tools.observedOn(localeDate(cur.updatedAt.slice(0, 10), locale))} · {R.gold.atMarketRate} {nf0.format(market)} {R.gold.iqd}</p>
+                <p className="id-cap eco-when">{R.tools.observedOn(localeDate(cur.updatedAt.slice(0, 10), locale))} · {R.gold.atMarketRate} {nf0.format(market)} {R.gold.iqd}{moves ? ` · ${vsPrev}` : ''}</p>
                 <div className="id-stats id-num eco-stats">
                   {(['GBP', 'TRY', 'AED', 'SAR', 'KWD'] as CurrencyCode[]).map((c) => (
-                    <div key={c} className="id-stat"><small><span className="oil-flag" aria-hidden="true">{CURRENCY_FLAGS[c]}</span>{P.names[c]}</small><b><bdi>{fmtIqd(iqdPer(c, market))}</bdi></b><span className="id-cap">{R.gold.iqd}</span></div>
+                    <div key={c} className="id-stat"><small><span className="oil-flag" aria-hidden="true">{CURRENCY_FLAGS[c]}</span>{P.names[c]}</small><b><bdi>{fmtIqd(iqdPer(c, market))}</bdi></b>{chip(c) ?? <span className="id-cap">{R.gold.iqd}</span>}</div>
                   ))}
                 </div>
               </>
@@ -82,7 +87,7 @@ export function CurrenciesPage({ cur, fx }: { cur: CurrenciesData | null; fx: Fx
               <PageTitle as="h2" className="id-h3" title={P.table} note={P.tableNote} />
               <div className="id-table-scroll">
                 <table className="id-table eco-table id-num">
-                  <thead><tr><th>{P.colCurrency}</th><th className="is-end">{P.colMarket}</th><th className="is-end">{P.colOfficial}</th><th className="is-end">{P.colPerUsd}</th></tr></thead>
+                  <thead><tr><th>{P.colCurrency}</th><th className="is-end">{P.colMarket}</th><th className="is-end">{P.colOfficial}</th><th className="is-end">{P.colPerUsd}</th>{moves ? <th className="is-end">{P.colChange}</th> : null}</tr></thead>
                   <tbody>
                     {codes.map((c) => {
                       const m = mult(c)
@@ -92,6 +97,7 @@ export function CurrenciesPage({ cur, fx }: { cur: CurrenciesData | null; fx: Fx
                           <td className="is-end"><bdi>{fmtIqd((iqdPer(c, market) ?? 0) * m || null)}</bdi></td>
                           <td className="is-end"><bdi>{fmtIqd((iqdPer(c, CBI_OFFICIAL_RATE) ?? 0) * m || null)}</bdi></td>
                           <td className="is-end"><bdi>{nf4.format(perUsd(c) as number)}</bdi></td>
+                          {moves ? <td className="is-end">{chip(c) ?? '—'}</td> : null}
                         </tr>
                       )
                     })}

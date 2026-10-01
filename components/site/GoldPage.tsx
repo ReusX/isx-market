@@ -10,7 +10,8 @@ import { PageTitle } from './PageTitle'
 import { AboutSection } from './AboutSection'
 import type { GoldData, FxData } from '@/lib/rates'
 import { goldFaqFigures } from '@/lib/ratesFaq'
-import { GOLD_PAGES } from '@/lib/goldPages'
+import { GOLD_PAGES, goldMove } from '@/lib/goldPages'
+import { DayChip } from './DayChip'
 import '@/styles/econ-page.css'
 
 /**
@@ -33,6 +34,7 @@ export function GoldPage({ gold, fx }: { gold: GoldData | null; fx: FxData | nul
   const G = R.gold
   const grams = (gold?.grams ?? []).slice().sort((a, b) => b.karat - a.karat)
   const k21 = grams.find((g) => g.karat === 21) ?? grams[0]
+  const move = goldMove(gold, 21)
   const market = fx?.sell ?? fx?.buy ?? null
 
   const [w, setW] = useState('1')
@@ -56,9 +58,11 @@ export function GoldPage({ gold, fx }: { gold: GoldData | null; fx: FxData | nul
                 <p className="eco-lead id-num">
                   <strong><bdi>{nf0.format(k21.iqd * MITHQAL_G)}</bdi></strong>
                   <span className="eco-unit">{G.iqd} · {P.mithqal21}</span>
+                  {move ? <DayChip pct={move.pct} abs={move.abs * MITHQAL_G} fmt={(v) => nf0.format(v)} label={R.tools.vsPrev(localeDate(move.prevDate, locale))} /> : null}
                 </p>
                 <p className="id-cap eco-when">
                   {gold?.date ? R.tools.observedOn(localeDate(gold.date.replace(/\//g, '-'), locale)) : R.tools.noObserved}
+                  {move ? ` · ${R.tools.vsPrev(localeDate(move.prevDate, locale))}` : ''}
                 </p>
                 <div className="id-stats id-num eco-stats">
                   <div className="id-stat"><small>{P.gram21}</small><b><bdi>{nf0.format(k21.iqd)}</bdi></b></div>

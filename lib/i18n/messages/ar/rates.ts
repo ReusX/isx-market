@@ -173,6 +173,8 @@ export const rates = {
     noObserved: 'لا يوجد تاريخ رصد من المصدر',
     confirmedOn: (d: string) => `آخر تأكيد ${d}`,
     observedOn: (d: string) => `رصد ${d}`,
+    /** Beside the up/down chip: what the move is measured against. */
+    vsPrev: (d: string) => `التغيّر مقارنة بـ ${d}`,
     updatedAt: (t: string, d: string) => `آخر تحديث ${t} · ${d}`,
     observedYesterday: (d: string) => `رصد ${d} · قراءة الأمس`,
     observedAge: (d: string, age: string) => `رصد ${d} · ${age}`,
@@ -415,6 +417,7 @@ export const rates = {
       colMarket: 'بالدينار (السوق)',
       colOfficial: 'بالدينار (الرسمي)',
       colPerUsd: 'مقابل الدولار',
+      colChange: 'عن أمس',
       thousand: 'لكل 1000',
       calc: 'محوّل العملات',
       calcNote: 'التحويل يمر عبر الدولار بسعر السوق الموازية.',

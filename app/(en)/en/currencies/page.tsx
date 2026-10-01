@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import { fetchCurrencies, fetchFx } from '@/lib/rates'
+import { currencyMoves } from '@/lib/currencyMoves'
 import { CurrenciesPage } from '@/components/site/CurrenciesPage'
 import { absUrl, seoAlternates } from '@/lib/seo'
 import { messages } from '@/lib/i18n'
@@ -24,6 +25,7 @@ export const metadata: Metadata = {
 
 export default async function Page() {
   const [cur, fx] = await Promise.all([fetchCurrencies(), fetchFx()])
+  const moves = await currencyMoves(fx)
   const faq = messages('en').rates.page.currencies.faq(currenciesFaqFigures(cur, fx, 'en'))
   const ld = {
     '@context': 'https://schema.org',
@@ -35,7 +37,7 @@ export default async function Page() {
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeLd(ld) }} />
-      <CurrenciesPage cur={cur} fx={fx} />
+      <CurrenciesPage cur={cur} fx={fx} moves={moves} />
     </>
   )
 }

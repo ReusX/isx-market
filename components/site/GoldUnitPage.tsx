@@ -10,8 +10,9 @@ import { AboutSection } from './AboutSection'
 import type { GoldData, FxData } from '@/lib/rates'
 import {
   GOLD_PAGES, GOLD_WEIGHTS, MITHQAL_G, OUNCE_G,
-  goldFigures, goldUnitVars, unitGrams, type GoldPageDef, type GoldUnit,
+  goldFigures, goldMove, goldUnitVars, unitGrams, type GoldPageDef, type GoldUnit,
 } from '@/lib/goldPages'
+import { DayChip } from './DayChip'
 import '@/styles/econ-page.css'
 
 /**
@@ -43,6 +44,14 @@ export function GoldUnitPage({ def, gold, fx }: { def: GoldPageDef; gold: GoldDa
   const karatRow = def.kind === 'karat' ? f.byKarat.find((g) => g.karat === def.karat) ?? row21 : row21
   const weights = GOLD_WEIGHTS[def.slug] ?? []
   const others = GOLD_PAGES.filter((g) => g.slug !== def.slug)
+  /* The ounce is a dollar price, so it moves by the source's own dollar
+     change; every other page by its karat's dinar move from the source's
+     previous-day table (karat pages per mithqal, unit pages per their unit). */
+  const ounceUsd = f.ounceUsd, ounceChg = gold?.ounceChange ?? null
+  const move = def.slug === 'ounce'
+    ? (ounceUsd != null && ounceChg != null && ounceUsd - ounceChg > 0 ? { abs: ounceChg, pct: (ounceChg / (ounceUsd - ounceChg)) * 100, prevDate: gold?.prev?.date ?? null } : null)
+    : (() => { const m = goldMove(gold, def.kind === 'karat' ? (def.karat as number) : 21); return m ? { ...m, abs: m.abs * mult } : null })()
+  const vsPrev = move?.prevDate ? R.tools.vsPrev(localeDate(move.prevDate, locale)) : null
 
   return (
     <SiteShell>
@@ -57,9 +66,11 @@ export function GoldUnitPage({ def, gold, fx }: { def: GoldPageDef; gold: GoldDa
                 <p className="eco-lead id-num">
                   <strong><bdi>{def.slug === 'ounce' ? `$${nf0.format(f.ounceUsd ?? 0)}` : nf0.format(f.lead)}</bdi></strong>
                   <span className="eco-unit">{def.slug === 'ounce' ? G.unitOunce : meta.unit}</span>
+                  {move ? <DayChip pct={move.pct} abs={move.abs} fmt={(v) => nf0.format(v)} unit={def.slug === 'ounce' ? ' $' : ''} label={vsPrev ?? ''} /> : null}
                 </p>
                 <p className="id-cap eco-when">
                   {f.date ? R.tools.observedOn(localeDate(f.date, locale)) : R.tools.noObserved}
+                  {vsPrev ? ` · ${vsPrev}` : ''}
                 </p>
                 <div className="id-stats id-num eco-stats">
                   {def.kind === 'karat' && karatRow ? (
