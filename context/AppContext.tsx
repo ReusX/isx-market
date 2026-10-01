@@ -37,8 +37,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   // Stable client — created once, never recreated
   const supabase = useMemo(() => createClient(), [])
 
-  // Light until mounted; the effect below reads the stored choice, else the OS.
-  const [theme, setThemeState] = useState<Theme>('light')
+  // Dark is the default (identity v3); the effect below honours a stored «light».
+  const [theme, setThemeState] = useState<Theme>('dark')
   const [user, setUser]         = useState<any | null>(null)
   const [profile, setProfile]   = useState<UserProfile | null>(null)
   const [watchlist, setWatchlist] = useState<string[]>([])
@@ -48,8 +48,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   // Init theme + watchlist from localStorage
   useEffect(() => {
     const stored = localStorage.getItem('theme')
-    const system: Theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
-    const initial: Theme = stored === 'dark' || stored === 'light' ? stored : system
+    const initial: Theme = stored === 'light' ? 'light' : 'dark'
     setThemeState(initial)
     document.documentElement.setAttribute('data-theme', initial)
     try {

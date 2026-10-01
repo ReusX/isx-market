@@ -1,4 +1,4 @@
-import { Readex_Pro } from 'next/font/google'
+import { Readex_Pro, Noto_Kufi_Arabic, IBM_Plex_Sans_Arabic } from 'next/font/google'
 import { AppProvider } from '@/context/AppContext'
 import { LocaleProvider } from '@/context/LocaleContext'
 import { Analytics } from '@vercel/analytics/react'
@@ -37,6 +37,22 @@ const readex = Readex_Pro({
   weight: 'variable',
   axes: ['HEXP'],
   variable: '--font-sans',
+  display: 'swap',
+})
+
+/* Identity v3: Noto Kufi for headlines (two heavy weights only, so the page
+   carries no light Kufi it never uses), IBM Plex Sans Arabic for text.
+   Readex Pro above stays the face of every figure. */
+const kufi = Noto_Kufi_Arabic({
+  subsets: ['arabic'],
+  weight: ['600', '700'],
+  variable: '--font-kufi',
+  display: 'swap',
+})
+const plex = IBM_Plex_Sans_Arabic({
+  subsets: ['arabic', 'latin'],
+  weight: ['400', '500', '600'],
+  variable: '--font-plex',
   display: 'swap',
 })
 
@@ -115,11 +131,11 @@ export function Document({ locale, children }: { locale: Locale; children: React
     <html
       lang={langOf(locale)}
       dir={dirOf(locale)}
-      className={readex.variable}
+      className={`${readex.variable} ${kufi.variable} ${plex.variable}`}
       suppressHydrationWarning
     >
       <head>
-        {/* Pre-paint: a stored choice wins, else the OS preference. The
+        {/* Pre-paint: a stored «light» wins, else DARK, the identity's default. The
             attribute is ALWAYS stamped, because every stylesheet — the new
             tokens and the not-yet-rebuilt ones alike — keys on it; leaving it
             off would split the page between two themes. */}
@@ -132,7 +148,7 @@ export function Document({ locale, children }: { locale: Locale; children: React
           dangerouslySetInnerHTML={{ __html: `(function(){try{var d=document.documentElement,q=location.search,ls=localStorage;if(/[?&]app=1/.test(q))ls.setItem('iq.app.preview','1');if(/[?&]app=0/.test(q))ls.removeItem('iq.app.preview');var C=window.Capacitor;if(!((C&&C.isNativePlatform&&C.isNativePlatform())||/IQWealthApp/.test(navigator.userAgent)||ls.getItem('iq.app.native')==='1'||ls.getItem('iq.app.preview')==='1'))return;window.__iqApp=1;d.classList.add('is-app');var vf=function(){var m=document.querySelector('meta[name=viewport]');if(m&&m.content.indexOf('viewport-fit')<0)m.content+=', viewport-fit=cover'};vf();document.addEventListener('DOMContentLoaded',vf);var p=location.pathname,en=p==='/en'||p.indexOf('/en/')===0,r=en?(p.slice(3)||'/'):p,E=en?'/en':'',m=/^\\/currencies\\/([a-z]{3})$/.exec(r);if(r==='/fx'||r==='/fx/100-dollar')return location.replace(E+'/app/fx');if(r==='/currencies')return location.replace(E+'/app/currencies');if(r==='/gold'||r.indexOf('/gold/')===0)return location.replace(E+'/app/gold');var A={'/market':'/app/market','/companies':'/app/companies','/banks':'/app/banks'};if(A[r])return location.replace(E+A[r]);if(m)return location.replace(E+'/app/currencies/'+m[1]);if(r!=='/'||sessionStorage.getItem('iq.app.started')==='1')return;sessionStorage.setItem('iq.app.started','1');var P=JSON.parse(ls.getItem('iq.app')||'null'),T={fx:'/app/fx',gold:'/app/gold',market:'/app/market',banks:'/app/banks',economy:'/oil',learn:'/learn',news:'/news'},s='/app';if(P&&P.interests&&P.interests.length){if(P.start==='last')s=P.last||'/app';else if(P.start==='auto')s=P.interests.length===1?T[P.interests[0]]:'/app';else if(P.start!=='home'&&T[P.start]&&P.interests.indexOf(P.start)>=0)s=T[P.start];}location.replace(E+s);}catch(e){}})();` }}
         />
         <script
-          dangerouslySetInnerHTML={{ __html: `window.__iqFlags=function(){try{var d=document.documentElement,t=localStorage.getItem('theme');if(t!=='dark'&&t!=='light')t=matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';d.setAttribute('data-theme',t);if(localStorage.getItem('iq-welcome')==='off')d.setAttribute('data-welcome','off');if(window.__iqApp)d.classList.add('is-app');}catch(e){}};window.__iqFlags();` }}
+          dangerouslySetInnerHTML={{ __html: `window.__iqFlags=function(){try{var d=document.documentElement,t=localStorage.getItem('theme');if(t!=='light')t='dark';d.setAttribute('data-theme',t);if(localStorage.getItem('iq-welcome')==='off')d.setAttribute('data-welcome','off');if(window.__iqApp)d.classList.add('is-app');}catch(e){}};window.__iqFlags();` }}
         />
       </head>
       <body>

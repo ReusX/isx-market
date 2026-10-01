@@ -8,7 +8,8 @@
  *      label that vanishes in light)
  *   3. every `var(--x)` used in the live stylesheets resolves to a token
  *      declared somewhere in globals.css
- *   4. the one brand constant is pinned
+ *   4. the identity's constants are pinned: the five world inks (v3, Oct 2026),
+ *      as printed on paper. Changing one is a brand decision, not a tweak.
  *
  *   node scripts/token-parity.mjs
  */
@@ -16,7 +17,7 @@ import { readFileSync, readdirSync } from 'node:fs'
 import { readThemes, resolve } from './lib/themeTokens.mjs'
 
 const ROLES = ['--page', '--surface', '--surface-2', '--ink', '--secondary', '--muted', '--accent', '--nav-active', '--up', '--down', '--border', '--sel-bg', '--sel-ink']
-const PINNED = { '--blue': '#146bfd' }
+const PINNED = { '--w-dinar': '#2f7d4f', '--w-ochre': '#a87a14', '--w-lapis': '#2f4f9e', '--w-tile': '#1d8682', '--w-brick': '#c8472d' }
 
 const { css, light, dark, system } = readThemes()
 const errors = []
