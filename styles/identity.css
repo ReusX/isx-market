@@ -74,7 +74,10 @@ body {
 .id-block { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-lg); padding: 40px; }
 .id-block.is-blue { background: var(--blue); color: var(--white); border-color: transparent; }
 .id-block.is-navy { background: var(--block-bg); color: var(--block-ink); border-color: var(--block-line); }
-.id-panel { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-md); padding: 20px; }
+.id-panel { background: var(--surface); border: 1.5px solid var(--border); border-radius: var(--r-md); padding: 20px; box-shadow: -4px 4px 0 0 var(--border); }
+[dir='ltr'] .id-panel { box-shadow: 4px 4px 0 0 var(--border); }
+/* Every panel is a calm print (identity v3): the neutral offset says "a
+   sheet", the world-coloured offset is kept for the one key card. */
 .id-well  { background: var(--surface-2); border-radius: var(--r-md); padding: 20px; }
 @media (max-width: 760px) { .id-block { padding: 24px 20px; border-radius: 24px; } }
 

@@ -322,7 +322,7 @@ export function MarketPage({ variant = 'root', initial }: { variant?: 'root' | '
                   label={t.rates.tools.vsPrev(sessionDate(index.prev.date, locale))} />
               ) : null}
             </div>
-            <div className="mb-stat mb-breadth">
+            <div className="id-print mb-stat mb-breadth">
               <small>{p.breadth.label}</small>
               <strong>
                 <span className="id-up">{int.format(breadth.up)}</span> {p.breadth.up}
@@ -336,9 +336,9 @@ export function MarketPage({ variant = 'root', initial }: { variant?: 'root' | '
               ) : null}
               <em>{p.breadth.flat(int.format(breadth.flat))}</em>
             </div>
-            <div className="mb-stat"><small>{m.tradedValue}</small><strong>{compact(index?.latest.total_value, u)}</strong><em>{u.iqd}</em><Delta v={vsAvg('total_value')} /></div>
-            <div className="mb-stat"><small>{m.trades}</small><strong>{index?.latest.total_trades != null ? int.format(index.latest.total_trades) : '—'}</strong><Delta v={vsAvg('total_trades')} /></div>
-            <div className="mb-stat">
+            <div className="id-print mb-stat"><small>{m.tradedValue}</small><strong>{compact(index?.latest.total_value, u)}</strong><em>{u.iqd}</em><Delta v={vsAvg('total_value')} /></div>
+            <div className="id-print mb-stat"><small>{m.trades}</small><strong>{index?.latest.total_trades != null ? int.format(index.latest.total_trades) : '—'}</strong><Delta v={vsAvg('total_trades')} /></div>
+            <div className="id-print mb-stat">
               <small>{p.board.traded}</small>
               <strong>{index?.latest.traded_companies != null && index.latest.listed_companies != null ? `${int.format(index.latest.traded_companies)} / ${int.format(index.latest.listed_companies)}` : '—'}</strong>
               {index?.latest.traded_companies != null && index.latest.listed_companies ? (

@@ -8,20 +8,27 @@
    figures follow, each over a hairline. */
 .mb-session { display: grid; gap: 10px; margin-bottom: 28px; }
 .mb-when { margin: 0; }
-.mb-strip { display: grid; grid-template-columns: minmax(200px, 1.3fr) repeat(4, minmax(0, 1fr)); gap: 18px; align-items: stretch; }
-.mb-key { display: grid; gap: 6px; align-content: start; padding: 16px 18px; }
-.mb-key small, .mb-stat small { color: var(--muted); font-size: 12px; }
-.mb-key strong { font-family: var(--font-numeric); font-weight: 600; font-size: clamp(30px, 3vw, 36px); line-height: 1.1; }
-.mb-key .id-chg { justify-self: start; }
-.mb-stat { display: grid; gap: 4px; align-content: end; border-top: 1.5px solid var(--border); padding-top: 10px; min-width: 0; }
-.mb-stat strong { font-family: var(--font-numeric); font-weight: 600; font-size: 22px; line-height: 1.2; white-space: nowrap; }
+.mb-strip { display: grid; grid-template-columns: minmax(200px, 1.25fr) repeat(4, minmax(0, 1fr)); gap: 20px; align-items: stretch; }
+/* Every figure is a card (identity v3): ISX60 is the key one (lapis offset,
+   from identity.css), the four others calm (neutral offset). Same structure
+   in each: label, figure, then the supporting line pinned to the bottom, so
+   the five line up whatever their content. */
+.mb-key, .mb-stat { display: flex; flex-direction: column; gap: 6px; padding: 16px 18px; min-width: 0; }
+.mb-key small, .mb-stat small { color: var(--muted); font-size: 12px; font-weight: 600; }
+.mb-key strong { font-family: var(--font-numeric); font-weight: 600; font-size: clamp(30px, 3vw, 38px); line-height: 1.1; }
+.mb-key .id-chg { align-self: flex-start; margin-top: auto; }
+.mb-stat strong { font-family: var(--font-numeric); font-weight: 600; font-size: 24px; line-height: 1.2; white-space: nowrap; }
 .mb-stat em { font-style: normal; font-size: 12px; color: var(--muted); }
-.mb-breadth strong { font-size: 18px; }
+.mb-stat > :last-child { margin-top: auto; }
+.iqm-delta { display: block; font-style: normal; font-size: 12px; color: var(--muted); }
+.iqm-delta.is-up { color: var(--up); } .iqm-delta.is-down { color: var(--down); }
+.mb-stat .iqm-delta { margin-top: auto; }
+.mb-breadth strong { font-size: 19px; white-space: normal; line-height: 1.35; }
 .mb-dot { margin: 0 6px; color: var(--muted); }
-.mb-mood { display: flex; gap: 2px; height: 5px; max-width: 200px; }
+.mb-mood { display: flex; gap: 2px; height: 5px; }
 .mb-mood i { display: block; border-radius: 3px; min-width: 3px; }
 .mb-mood .is-up { background: var(--up); } .mb-mood .is-flat { background: var(--muted); opacity: .45; } .mb-mood .is-down { background: var(--down); }
-.mb-part { display: block; height: 5px; max-width: 200px; border-radius: 3px; background: var(--border); overflow: hidden; }
+.mb-part { display: block; height: 5px; border-radius: 3px; background: var(--border); overflow: hidden; margin-top: auto; }
 .mb-part i { display: block; height: 100%; background: var(--w-lapis); border-radius: 3px; }
 @media (max-width: 900px) {
   .mb-strip { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
