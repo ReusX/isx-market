@@ -18,9 +18,6 @@ import '@/styles/learn-street.css'
  * comes from lib/moneyStreet.ts. Kept deliberately short: the owner found the
  * first version (five stops, a year picker, a deposit calculator, karat and
  * ownership maths) too much for a beginner.
- *
- * Cast stand-ins until their sheets are redrawn: the goldsmith's door uses
- * Abu Ali at his counter, the exchange's door uses Sara on her phone.
  */
 const CAST = '/learn/cast'
 const MILLION = 1_000_000
@@ -29,8 +26,8 @@ const DOORS: DoorId[] = ['mattress', 'dollar', 'gold', 'shares']
 const ART: Record<DoorId, { src: string; w: number; h: number }> = {
   mattress: { src: `${CAST}/abu-salim-mattress.webp`, w: 536, h: 506 },
   dollar: { src: `${CAST}/abu-ali-count.webp`, w: 519, h: 507 },
-  gold: { src: `${CAST}/abu-ali-counter.webp`, w: 607, h: 513 },
-  shares: { src: `${CAST}/sara-phone.webp`, w: 412, h: 516 },
+  gold: { src: `${CAST}/hajji-scale.webp`, w: 592, h: 484 },
+  shares: { src: `${CAST}/ahmed-tablet.webp`, w: 360, h: 504 },
 }
 const FACE: Record<string, { src: string; w: number; h: number }> = {
   sara: { src: `${CAST}/sara-think.webp`, w: 508, h: 519 },

@@ -53,3 +53,6 @@ keystore.properties
 # Firebase CLI debug logs can contain access tokens
 firebase-debug.log
 store/android/*.aab
+
+# Internal brand/Instagram kit: local only, never pushed (public repo)
+marketing/
