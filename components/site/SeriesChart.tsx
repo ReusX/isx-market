@@ -17,7 +17,9 @@ import '@/styles/series-chart.css'
  * that date, which is what "the official rate on that day" means.
  */
 export type SeriesPoint = { date: string; value: number }
-export type ChartSeries = { key: string; label: string; points: SeriesPoint[]; dashed?: boolean; muted?: boolean }
+/** One day's open/high/low/close, for the lead series' candlestick mode. */
+export type Candle = { date: string; o: number; h: number; l: number; c: number }
+export type ChartSeries = { key: string; label: string; points: SeriesPoint[]; dashed?: boolean; muted?: boolean; ohlc?: Candle[] }
 export type ChartRange = { id: string; label: string; days: number | null }
 
 const PT = 18, PB = 28, PL = 8, PR = 72
@@ -36,6 +38,25 @@ function niceTicks(lo: number, hi: number): number[] {
 }
 
 /** Latest value at or before `date`, by binary search. */
+/* Candles stay readable: daily up to 150 in view, then weekly, then monthly
+   (a 5-year range of daily candles would be hairlines). A bucket keeps the
+   first open, the last close and the extremes between. */
+function bucketed(cs: Candle[]): Candle[] {
+  if (cs.length <= 150) return cs
+  const key = cs.length <= 900
+    ? (d: string) => { const t = new Date(d + 'T00:00:00Z'); const day = (t.getUTCDay() + 6) % 7; return new Date(t.getTime() - day * 86400_000).toISOString().slice(0, 10) }
+    : (d: string) => d.slice(0, 7)
+  const out: Candle[] = []
+  let cur: Candle | null = null, k = ''
+  for (const c of cs) {
+    const ck = key(c.date)
+    if (!cur || ck !== k) { if (cur) out.push(cur); cur = { ...c }; k = ck }
+    else { cur.h = Math.max(cur.h, c.h); cur.l = Math.min(cur.l, c.l); cur.c = c.c; cur.date = c.date }
+  }
+  if (cur) out.push(cur)
+  return out
+}
+
 function at(points: SeriesPoint[], date: string): number | null {
   let lo = 0, hi = points.length - 1, best = -1
   while (lo <= hi) {
@@ -55,8 +76,11 @@ export function SeriesChart({ series, ranges, defaultRange, format, label, heigh
   height?: number
   mark?: boolean
 }) {
-  const { locale } = useLocale()
+  const { locale, t } = useLocale()
   const [rangeId, setRangeId] = useState(defaultRange)
+  const hasOhlc = !!series[0]?.ohlc?.length
+  const [mode, setMode] = useState<'candle' | 'line'>('candle')
+  const candleMode = hasOhlc && mode === 'candle'
   const [hover, setHover] = useState<number | null>(null)
   const plotRef = useRef<HTMLDivElement>(null)
   const [[W, H], setSize] = useState<[number, number]>([800, height])
@@ -86,9 +110,11 @@ export function SeriesChart({ series, ranges, defaultRange, format, label, heigh
   const view = useMemo(() => series.map((s) => ({ ...s, points: s.points.filter((p) => p.date >= since) })), [series, since])
   const main = useMemo(() => view[0]?.points ?? [], [view])
 
+  const candles = useMemo(() => (candleMode ? bucketed((series[0].ohlc ?? []).filter((c) => c.date >= since)) : []), [candleMode, series, since])
+
   const geo = useMemo(() => {
     if (main.length < 2) return null
-    const vals = view.flatMap((s) => s.points.map((p) => p.value))
+    const vals = view.flatMap((s) => s.points.map((p) => p.value)).concat(candles.flatMap((c) => [c.h, c.l]))
     const lo = Math.min(...vals), hi = Math.max(...vals)
     const pad = (hi - lo) * 0.12 || Math.max(1, hi * 0.02)
     const y0 = lo - pad, y1 = hi + pad
@@ -111,8 +137,9 @@ export function SeriesChart({ series, ranges, defaultRange, format, label, heigh
     const mid = Math.floor(main.length / 2)
     const mean = (a: SeriesPoint[]) => a.reduce((t, p) => t + p.value, 0) / Math.max(1, a.length)
     const markX = mean(main.slice(0, mid)) <= mean(main.slice(mid)) ? x(main[Math.floor(mid / 2)].date) : x(main[mid + Math.floor(mid / 2)].date)
-    return { x, y, lines, ticks: niceTicks(y0, y1), labels: labels.map((l) => ({ ...l, text: fmt(l.date) })), markX, markY: PT + (H - PT - PB) * 0.28 }
-  }, [view, main, W, H, range, locale])
+    const bw = candles.length ? Math.max(1.5, Math.min(12, ((W - PL - PR) / candles.length) * 0.62)) : 0
+    return { x, y, lines, bw, ticks: niceTicks(y0, y1), labels: labels.map((l) => ({ ...l, text: fmt(l.date) })), markX, markY: PT + (H - PT - PB) * 0.28 }
+  }, [view, main, candles, W, H, range, locale])
 
   const onMove = (e: React.PointerEvent<SVGSVGElement>) => {
     if (!geo) return
@@ -139,10 +166,18 @@ export function SeriesChart({ series, ranges, defaultRange, format, label, heigh
             </span>
           ))}
         </p>
+        <div className="lch-tools">
+        {hasOhlc ? (
+          <div className="id-pills lch-modes" role="group" aria-label={t.site.chartMode.label}>
+            <button type="button" className="id-pill is-sm" aria-pressed={mode === 'candle'} onClick={() => setMode('candle')}>{t.site.chartMode.candles}</button>
+            <button type="button" className="id-pill is-sm" aria-pressed={mode === 'line'} onClick={() => setMode('line')}>{t.site.chartMode.line}</button>
+          </div>
+        ) : null}
         <div className="id-pills lch-ranges" role="group">
           {ranges.map((r) => (
             <button key={r.id} type="button" className="id-pill is-sm" aria-pressed={range.id === r.id} onClick={() => { setRangeId(r.id); setHover(null) }}>{r.label}</button>
           ))}
+        </div>
         </div>
       </div>
       <div ref={plotRef} className="lch-plot" style={{ height }}>
@@ -156,7 +191,17 @@ export function SeriesChart({ series, ranges, defaultRange, format, label, heigh
               </g>
             ))}
             {mark ? <text x={geo.markX} y={geo.markY} className="lch-mark" aria-hidden="true">IRAQSM.COM</text> : null}
-            {geo.lines.map((s) => <path key={s.key} d={s.d} className={`lch-line ${s.dashed ? 'is-dashed' : ''} ${s.muted ? 'is-muted' : ''}`.trim()} />)}
+            {geo.lines.map((s, i) => (candleMode && i === 0 ? null : <path key={s.key} d={s.d} className={`lch-line ${i === 0 ? 'is-lead' : ''} ${s.dashed ? 'is-dashed' : ''} ${s.muted ? 'is-muted' : ''}`.trim()} />))}
+            {candles.map((c) => {
+              const cx = geo.x(c.date), cls = c.c > c.o ? 'is-up' : c.c < c.o ? 'is-down' : 'is-flat'
+              const top = geo.y(Math.max(c.o, c.c)), hgt = Math.max(1.5, Math.abs(geo.y(c.o) - geo.y(c.c)))
+              return (
+                <g key={c.date} className={`lch-candle ${cls}`}>
+                  <line x1={cx} x2={cx} y1={geo.y(c.h)} y2={geo.y(c.l)} />
+                  <rect x={cx - geo.bw / 2} y={top} width={geo.bw} height={hgt} rx={geo.bw > 4 ? 1.5 : 0} />
+                </g>
+              )
+            })}
             {geo.labels.map((l) => <text key={l.date} x={geo.x(l.date)} y={H - 8} className="lch-xlabel" style={{ textAnchor: l.k === 0 ? 'start' : l.k === geo.labels.length - 1 ? 'end' : 'middle' }}>{l.text}</text>)}
             {hover != null && main[hover] ? (
               <g>

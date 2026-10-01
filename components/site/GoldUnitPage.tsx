@@ -55,7 +55,7 @@ export function GoldUnitPage({ def, gold, fx }: { def: GoldPageDef; gold: GoldDa
 
   return (
     <SiteShell>
-      <main className="eco id-full iq-door is-gold">
+      <main className="eco id-full iq-door is-gold" data-world="ochre" data-level="accent">
         <EconRail />
         <div className="eco-body">
           <header className="eco-head">

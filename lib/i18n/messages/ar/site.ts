@@ -70,4 +70,6 @@ export const site = {
     '/portfolio': 'محفظتي', '/watchlist': 'قائمة المتابعة', '/alerts': 'التنبيهات',
   } as Record<string, string>,
   units:     { tn: 'ترليون', bn: 'مليار', mn: 'مليون', k: 'ألف', iqd: 'دينار', shares: 'سهم' },
+  /** Chart shape switch (SeriesChart): candlesticks are the default where open/high/low/close exist. */
+  chartMode: { label: 'شكل الرسم', candles: 'شموع', line: 'خط' },
 }

@@ -26,7 +26,7 @@ export function WindowPage() {
   const P = R.page.window
   return (
     <SiteShell>
-      <main className="eco id-full iq-door">
+      <main className="eco id-full iq-door" data-world="tile" data-level="accent">
         <EconRail />
         <div className="eco-body">
           <header className="eco-head">

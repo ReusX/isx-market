@@ -49,4 +49,5 @@ export const site = {
     '/portfolio': 'Portfolio', '/watchlist': 'Watchlist', '/alerts': 'Alerts',
   } as Record<string, string>,
   units:     { tn: 'T', bn: 'B', mn: 'M', k: 'K', iqd: 'IQD', shares: 'shares' },
+  chartMode: { label: 'Chart type', candles: 'Candles', line: 'Line' },
 }

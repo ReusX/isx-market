@@ -66,7 +66,7 @@ export function OilPage({ oil, fx }: { oil: OilData | null; fx: FxData | null })
 
   return (
     <SiteShell>
-      <main className="eco id-full iq-door">
+      <main className="eco id-full iq-door" data-world="tile" data-level="accent">
         <EconRail />
         <div className="eco-body">
           <header className="eco-head">

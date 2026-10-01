@@ -68,7 +68,7 @@ export function CurrencyPage({ code, peg, toman, cur, fx, history, others, moves
 
   return (
     <SiteShell>
-      <main className="eco id-full iq-door">
+      <main className="eco id-full iq-door" data-world="dinar" data-level="accent">
         <EconRail />
         <div className="eco-body">
           <header className="eco-head">

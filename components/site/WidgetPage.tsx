@@ -55,7 +55,7 @@ export function WidgetPage() {
 
   return (
     <SiteShell>
-      <main className="eco id-full">
+      <main className="eco id-full" data-world="dinar" data-level="accent">
         <div className="eco-body wdg">
           <header className="eco-head">
             <p className="id-eyebrow">{W.eyebrow}</p>

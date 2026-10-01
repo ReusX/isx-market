@@ -62,7 +62,9 @@ export function FxPage({ fx, parallel, official, faq }: { fx: FxData | null; par
     { id: '5Y', label: C.period['5Y'], days: 5 * 366 }, { id: 'MAX', label: C.period.MAX, days: null },
   ]
   const series = useMemo(() => [
-    { key: 'parallel', label: C.legendParallel, points: parallel.filter((d) => d.close != null).map((d) => ({ date: d.date, value: d.close as number })) },
+    { key: 'parallel', label: C.legendParallel, points: parallel.filter((d) => d.close != null).map((d) => ({ date: d.date, value: d.close as number })),
+      /* Candles: a day with one recorded quote is a flat tick, which is the truth. */
+      ohlc: parallel.filter((d) => d.close != null).map((d) => ({ date: d.date, o: d.open ?? (d.close as number), h: d.high ?? (d.close as number), l: d.low ?? (d.close as number), c: d.close as number })) },
     { key: 'official', label: C.legendOfficial, points: official.filter((d) => d.close != null).map((d) => ({ date: d.date, value: d.close as number })), dashed: true, muted: true },
   ], [parallel, official, C])
   const stats = useMemo(() => statsFrom(parallel), [parallel])
@@ -82,7 +84,7 @@ export function FxPage({ fx, parallel, official, faq }: { fx: FxData | null; par
 
   return (
     <SiteShell>
-      <main className="eco id-full iq-door">
+      <main className="eco id-full iq-door" data-world="dinar" data-level="accent">
         <EconRail />
         <div className="eco-body">
           <header className="eco-head">

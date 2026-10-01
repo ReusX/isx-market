@@ -10,7 +10,7 @@
 .eco-body { min-width: 0; }
 .eco-head { margin-bottom: 24px; }
 .eco-lead { display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap; margin: 14px 0 0; }
-.eco-lead strong { font-weight: 200; font-size: clamp(44px, 6vw, 72px); line-height: 1; }
+.eco-lead strong { font-family: var(--font-numeric); font-weight: 500; font-size: clamp(48px, 6.6vw, 84px); line-height: 1; }
 .eco-unit { font-size: 15px; color: var(--muted); }
 .eco-hundred { margin: 8px 0 0; font-size: 17px; color: var(--secondary); }
 .eco-when { margin: 10px 0 0; }
@@ -24,22 +24,30 @@
 .eco-panel > .id-cap { margin: 12px 0 0; }
 .eco-panel .eco-stats { margin-top: 14px; }
 
+/* Identity v3, accent level: the page's world ink marks the eyebrow, and the
+   one interactive surface (converter / calculator) is printed: ink outline,
+   world offset. Every other panel stays calm. */
+.eco-head .id-eyebrow { display: inline-flex; align-items: center; gap: 8px; }
+.eco-head .id-eyebrow::before { content: ''; width: 10px; height: 10px; border-radius: 3px; background: var(--world, var(--muted)); }
+.eco-panel:is(:has(.eco-conv), :has(.eco-calc)) { border: 1.5px solid var(--line-strong); box-shadow: -6px 6px 0 0 var(--world, var(--border)); }
+[dir='ltr'] .eco-panel:is(:has(.eco-conv), :has(.eco-calc)) { box-shadow: 6px 6px 0 0 var(--world, var(--border)); }
+
 /* ── Tables: the lead rows (Iraq's grades, the 21K row) are ruled ───────── */
 .eco-table td { padding: 13px 0; font-size: 14px; }
 .eco-table th + th, .eco-table td + td { padding-inline-start: 16px; }
-.eco-table tr.is-lead td { border-bottom-color: var(--ink); }
+.eco-table tr.is-lead td { border-bottom-color: var(--world, var(--ink)); }
 
 /* ── Converter / calculator ─────────────────────────────────────────────── */
 .eco-conv { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); gap: 16px; align-items: end; }
 .eco-conv-in { display: grid; gap: 6px; }
-.eco-conv-in .id-input { width: 100%; font-size: 22px; font-weight: 300; }
+.eco-conv-in .id-input { width: 100%; font-size: 22px; font-weight: 500; }
 .eco-swap { align-self: end; margin-bottom: 4px; }
 .eco-conv-out { margin: 0; display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
-.eco-conv-out strong { font-weight: 200; font-size: clamp(30px, 4vw, 44px); line-height: 1; }
+.eco-conv-out strong { font-family: var(--font-numeric); font-weight: 500; font-size: clamp(30px, 4vw, 44px); line-height: 1; }
 .eco-conv-rate { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-top: 16px; }
 .eco-calc { display: grid; grid-template-columns: 160px auto auto minmax(0, 1fr); gap: 16px 24px; align-items: end; }
 .eco-calc > label, .eco-calc > div { display: grid; gap: 6px; }
-.eco-calc .id-input { width: 100%; font-size: 22px; font-weight: 300; }
+.eco-calc .id-input { width: 100%; font-size: 22px; font-weight: 500; }
 @media (max-width: 900px) {
   .eco-conv { grid-template-columns: 1fr; }
   .eco-swap { justify-self: start; }
@@ -72,14 +80,14 @@
 /* Small bar charts for slow series (policy rate steps, annual inflation). */
 .eco-bars { direction: ltr; display: flex; align-items: flex-end; gap: 6px; height: 160px; margin: 8px 0 18px; padding-bottom: 34px; position: relative; }
 .eco-bar { flex: 1 1 0; min-width: 0; height: 100%; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; position: relative; }
-.eco-bar span { display: block; width: 100%; max-width: 34px; background: var(--blue); opacity: .75; border-radius: 3px 3px 0 0; }
+.eco-bar span { display: block; width: 100%; max-width: 34px; background: var(--world, var(--blue)); opacity: .85; border-radius: 3px 3px 0 0; }
 .eco-bar.is-neg span { background: var(--down); }
 .eco-bar small { position: absolute; top: 100%; margin-top: 4px; font-size: 11px; color: var(--secondary); }
 .eco-bar b { position: absolute; top: 100%; margin-top: 18px; font-size: 11px; font-weight: 400; color: var(--ink); }
 @media (max-width: 760px) { .eco-bar b { display: none; } .eco-bar small { font-size: 10px; } }
 .eco-table td.eco-wrap { white-space: normal; overflow: visible; text-overflow: clip; max-width: none; min-width: 160px; }
 .eco-table td.eco-wrap.id-cap { min-width: 120px; }
-.eco-status { font-weight: 300; font-size: clamp(32px, 4vw, 44px); line-height: 1.1; }
+.eco-status { font-weight: 500; font-size: clamp(32px, 4vw, 44px); line-height: 1.1; }
 
 /* /widget configurator */
 .wdg-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 16px; }
@@ -102,29 +110,22 @@
   html:not(.is-app) .eco-body > .eco-head { order: 0; }
   html:not(.is-app) .eco-body > .eco-panel:is(:has(.eco-conv), :has(.eco-calc)) { order: 1; }
 
+  /* The price card is an offset print in the page's world ink (identity
+     v3), not a gradient: same colours as the rest of the page, in both themes. */
   html:not(.is-app) .eco-head {
-    --ink: #fff; --muted: rgb(255 255 255 / .72); --secondary: rgb(255 255 255 / .78);
-    --border: rgb(255 255 255 / .18); --up: #7cebb0; --down: #ffa3a3;
-    position: relative; overflow: hidden; isolation: isolate;
-    margin: 4px 0 18px; padding: 18px 18px 16px; border-radius: 24px; color: #fff;
-    background: radial-gradient(120% 90% at 100% 0%, rgb(45 123 255 / .35) 0%, transparent 60%), linear-gradient(160deg, #10326e 0%, var(--navy) 70%);
-    box-shadow: 0 12px 28px -16px rgb(8 30 70 / .5);
+    position: relative;
+    margin: 4px 0 22px; padding: 18px 18px 16px; border-radius: var(--r-md);
+    background: var(--surface); border: 1.5px solid var(--line-strong);
+    box-shadow: -6px 6px 0 0 var(--world, var(--border));
   }
-  html:not(.is-app) .is-gold .eco-head {
-    --ink: #fff8e6; --muted: rgb(255 248 230 / .75); --secondary: rgb(255 248 230 / .82);
-    --border: rgb(255 248 230 / .2); --up: #9ff0c4; --down: #ffb3a8;
-    color: #fff8e6;
-    background: radial-gradient(120% 90% at 100% 0%, rgb(255 236 180 / .35) 0%, transparent 55%), linear-gradient(160deg, #a8802f 0%, #6b4a14 85%);
-    box-shadow: 0 12px 28px -16px rgb(120 85 25 / .5);
-  }
-  html:not(.is-app) .eco-head :is(h1, .id-h1, .id-eyebrow, strong, b, .id-cap, a) { color: inherit; }
-  html:not(.is-app) .eco-head .id-h1 { font-size: 22px; line-height: 1.35; }
-  html:not(.is-app) .eco-head .id-eyebrow { opacity: .8; margin-bottom: 6px; }
-  html:not(.is-app) .eco-head .eco-lead strong { font-size: 56px; font-weight: 300; }
-  html:not(.is-app) .eco-head .eco-unit, html:not(.is-app) .eco-head .eco-hundred, html:not(.is-app) .eco-head .eco-when { color: var(--secondary); }
+  html:not(.is-app)[dir='ltr'] .eco-head, html[dir='ltr']:not(.is-app) .eco-head { box-shadow: 6px 6px 0 0 var(--world, var(--border)); }
+  html:not(.is-app) .eco-head .id-h1 { font-size: 22px; line-height: 1.45; }
+  html:not(.is-app) .eco-head .id-eyebrow { margin-bottom: 6px; }
+  html:not(.is-app) .eco-head .eco-lead strong { font-size: 52px; }
   html:not(.is-app) .eco-head a { text-decoration: underline; text-underline-offset: 3px; }
-  html:not(.is-app) .eco-head .eco-stats { gap: 8px; }
-  html:not(.is-app) .eco-head .id-stat { padding: 10px 12px; border-radius: 14px; background: rgb(255 255 255 / .1); border: 0; }
-  html:not(.is-app) .is-gold .eco-head .id-stat { background: rgb(0 0 0 / .16); }
-  html:not(.is-app) .eco-head .id-stat small { color: var(--muted); }
+  html:not(.is-app) .eco-head .eco-stats { gap: 8px; border-top: 0; }
+  html:not(.is-app) .eco-head .id-stat { padding: 10px 12px; border-radius: 12px; background: var(--surface-2); border: 0; }
+  /* A figure is one unit: «+263 · 20.0%» must not break across lines. */
+  html:not(.is-app) .eco-head .id-stat b { font-size: 19px; }
+  html:not(.is-app) .eco-head .id-stat b bdi { white-space: nowrap; }
 }
