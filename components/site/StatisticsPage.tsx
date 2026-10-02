@@ -15,6 +15,8 @@ import type { StatisticsInitial } from '@/lib/marketServer'
 import { shortDate } from '@/lib/date'
 import '@/styles/markets.css'
 import '@/styles/statistics-page.css'
+import '@/styles/econ-page.css'
+import '@/styles/company-page.css'
 
 /**
  * /statistics · the hub. Four questions, top to bottom:
@@ -111,107 +113,104 @@ export function StatisticsPage({ initial }: { initial: StatisticsInitial }) {
           <header className="stx-head">
             <p className="id-eyebrow">{pg.eyebrow}</p>
             <PageTitle title={st.title} note={pg.lede} />
-            <nav className="id-pills stx-sub" aria-label={st.tabsLabel}>
-              {SUB.map((s) => <Link key={s.key} href={L(s.route)} className="id-pill" aria-current={s.key === 'overview' ? 'page' : undefined}>{pg.sub[s.key]}</Link>)}
+            <nav className="fx-quick stx-sub" aria-label={st.tabsLabel}>
+              {SUB.map((s) => <Link key={s.key} href={L(s.route)} className="fx-qbtn" aria-current={s.key === 'overview' ? 'page' : undefined} aria-pressed={s.key === 'overview'}>{pg.sub[s.key]}</Link>)}
             </nav>
           </header>
 
-          {/* ── How much trades ── */}
-          <section className="stx-activity id-panel" aria-label={pg.activity}>
-            <div className="stx-activity-head">
-              <div>
-                <h2 className="id-h3">{pg.activity}</h2>
-                <p className="id-cap">{pg.activityNote(pg.grain[grain])}</p>
-              </div>
-              <div className="stx-pills">
-                <div className="id-pills" role="group" aria-label={st.metricLabel}>
-                  {METRICS.map((m) => <button key={m.id} type="button" className="id-pill is-sm" aria-pressed={metric === m.id} onClick={() => setMetric(m.id)}>{ar ? m.ar : m.en}</button>)}
+          {/* Identity v3, as /statistics/foreign-flow: the activity chart in the
+              frame with its period's totals as the key card, then where it
+              trades, who is buying and who owns it as three story cards. */}
+          <div className="fx-frame stx-frame">
+            <div className="fx-board">
+              <section className="stx-activity" aria-label={pg.activity}>
+                <div className="stx-activity-head">
+                  <div>
+                    <h2 className="fx-calc-title">{pg.activity}</h2>
+                    <p className="id-cap">{pg.activityNote(pg.grain[grain])}</p>
+                  </div>
                 </div>
-                <div className="id-pills" role="group" aria-label={st.periodLabel}>
-                  {PERIODS.map((p) => <button key={p.id} type="button" className="id-pill is-sm" aria-pressed={period === p.id} onClick={() => { setPeriod(p.id); setHover(null) }}>{ar ? p.ar : p.en}</button>)}
+                <div className="stx-pills">
+                  <div className="fx-quick" role="group" aria-label={st.metricLabel}>
+                    {METRICS.map((m) => <button key={m.id} type="button" className="fx-qbtn" aria-pressed={metric === m.id} onClick={() => setMetric(m.id)}>{ar ? m.ar : m.en}</button>)}
+                  </div>
+                  <div className="fx-quick" role="group" aria-label={st.periodLabel}>
+                    {PERIODS.map((p) => <button key={p.id} type="button" className="fx-qbtn" aria-pressed={period === p.id} onClick={() => { setPeriod(p.id); setHover(null) }}>{ar ? p.ar : p.en}</button>)}
+                  </div>
                 </div>
-              </div>
+
+                <p className="stx-reading id-num">
+                  <strong>{shown ? compact(shown[metric], u) : totals ? compact(totals.sum, u) : '—'}</strong>
+                  <span className="id-cap">{unit} · {shown ? bucketLabel(shown, grain, locale) : totals ? `${shortDate(totals.from, locale)} – ${shortDate(totals.to, locale)}` : ''}</span>
+                </p>
+
+                <div ref={boxRef} className="stx-chart">
+                  <svg viewBox={`0 0 ${W} ${H}`} className="id-num" role="img" aria-label={pg.activity} onPointerLeave={() => setHover(null)}>
+                    {ticks.map((v) => (
+                      <g key={v}><line x1={PL} x2={W - PR} y1={y(v)} y2={y(v)} className="stx-grid" /><text x={W - PR + 8} y={y(v)} className="stx-tick">{compact(v, u)}</text></g>
+                    ))}
+                    {buckets.map((b, i) => {
+                      const v = b[metric]
+                      const x = PL + i * bw
+                      return (
+                        <g key={b.key} onPointerEnter={() => setHover(i)}>
+                          <rect x={x} y={PT} width={bw} height={H - PT - PB} fill="transparent" />
+                          {v == null
+                            ? <rect x={x + bw * 0.15} y={H - PB - 3} width={bw * 0.7} height={3} className="stx-gap" />
+                            : <rect x={x + bw * 0.15} y={y(v)} width={Math.max(1, bw * 0.7)} height={H - PB - y(v)} rx={Math.min(3, bw * 0.2)} className={`stx-bar ${hover === i ? 'is-on' : ''}`.trim()} />}
+                          {i % labelEvery === 0 ? <text x={x + bw / 2} y={H - 8} className="stx-x">{bucketLabel(b, grain, locale)}</text> : null}
+                        </g>
+                      )
+                    })}
+                    {totals ? <line x1={PL} x2={W - PR} y1={y(totals.mean * (grain === 'session' ? 1 : (win.length / Math.max(1, buckets.length))))} y2={y(totals.mean * (grain === 'session' ? 1 : (win.length / Math.max(1, buckets.length))))} className="stx-mean" /> : null}
+                  </svg>
+                </div>
+              </section>
+
+              {totals ? (
+                <section className="id-print is-key fx-calc" aria-label={pg.total}>
+                  <h2 className="fx-calc-title">{pg.total} · {ar ? PERIODS.find((p) => p.id === period)!.ar : PERIODS.find((p) => p.id === period)!.en}</h2>
+                  <p className="fx-calc-out id-num"><bdi>{compact(totals.sum, u)}</bdi> <span>{unit}</span></p>
+                  <p className="fx-calc-note">{vsPrev == null ? pg.noPrev : <bdi className={`iqm-pct ${vsPrev > 0 ? 'id-up' : vsPrev < 0 ? 'id-down' : ''}`.trim()}>{pg.vsPrev(`${vsPrev > 0 ? '+' : ''}${Math.round(vsPrev)}%`)}</bdi>}</p>
+                  <div className="cmp-mstats id-num">
+                    <div><small>{pg.perSession}</small><b>{compact(totals.mean, u)}</b></div>
+                    <div><small>{pg.best}</small><b>{best ? compact(best.v, u) : '—'}</b></div>
+                    <div><small>{pg.sessions}</small><b>{int.format(totals.sessions)}</b></div>
+                  </div>
+                  <p className="fx-calc-note">{best ? `${pg.best} · ${shortDate(best.date, locale)}` : ''}{totals.meanTraded != null ? ` · ${st.meanTraded} ${Math.round(totals.meanTraded)}` : ''}</p>
+                </section>
+              ) : null}
             </div>
+          </div>
 
-            <p className="stx-reading id-num">
-              <strong>{shown ? compact(shown[metric], u) : totals ? compact(totals.sum, u) : '—'}</strong>
-              <span className="id-cap">{unit} · {shown ? bucketLabel(shown, grain, locale) : totals ? `${shortDate(totals.from, locale)} – ${shortDate(totals.to, locale)}` : ''}</span>
-            </p>
-
-            <div ref={boxRef} className="stx-chart">
-              <svg viewBox={`0 0 ${W} ${H}`} className="id-num" role="img" aria-label={pg.activity} onPointerLeave={() => setHover(null)}>
-                {ticks.map((v) => (
-                  <g key={v}><line x1={PL} x2={W - PR} y1={y(v)} y2={y(v)} className="stx-grid" /><text x={W - PR + 8} y={y(v)} className="stx-tick">{compact(v, u)}</text></g>
-                ))}
-                {buckets.map((b, i) => {
-                  const v = b[metric]
-                  const x = PL + i * bw
-                  return (
-                    <g key={b.key} onPointerEnter={() => setHover(i)}>
-                      <rect x={x} y={PT} width={bw} height={H - PT - PB} fill="transparent" />
-                      {v == null
-                        ? <rect x={x + bw * 0.15} y={H - PB - 3} width={bw * 0.7} height={3} className="stx-gap" />
-                        : <rect x={x + bw * 0.15} y={y(v)} width={Math.max(1, bw * 0.7)} height={H - PB - y(v)} rx={Math.min(3, bw * 0.2)} className={`stx-bar ${hover === i ? 'is-on' : ''}`.trim()} />}
-                      {i % labelEvery === 0 ? <text x={x + bw / 2} y={H - 8} className="stx-x">{bucketLabel(b, grain, locale)}</text> : null}
-                    </g>
-                  )
+          <div className="fx-facts stx-facts id-num">
+            <section className="id-print is-calm fx-fact" aria-label={pg.sectors}>
+              <svg className="fx-ill" viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="32" r="22" fill="var(--fill)" stroke="currentColor" strokeWidth="2.5"/><path d="M32 32V10M32 32l18 12" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"/></svg>
+              <h3 className="fx-fact-head">{pg.sectors}</h3>
+              <p className="fx-pocket">{sectorMonth ? pg.sectorsNote(monthLabel(sectorMonth, locale)) : st.noSectorData}</p>
+              <div className="fx-bars is-wide" aria-hidden="false">
+                {sectors.sectors.slice().sort((a, b) => b.value - a.value).filter((x) => x.value > 0).slice(0, 7).map((x, i) => {
+                  const share = sectorTotal ? (x.value / sectorTotal) * 100 : 0
+                  return <div key={x.key}><span>{SECTOR_LABELS[x.key]?.[locale] ?? x.label ?? x.key}</span><i style={{ width: `${share}%` }} className={i === 0 ? 'is-market' : ''} /><b>{share.toFixed(1)}%</b></div>
                 })}
-                {totals ? <line x1={PL} x2={W - PR} y1={y(totals.mean * (grain === 'session' ? 1 : (win.length / Math.max(1, buckets.length))))} y2={y(totals.mean * (grain === 'session' ? 1 : (win.length / Math.max(1, buckets.length))))} className="stx-mean" /> : null}
-              </svg>
-            </div>
-
-            {totals ? (
-              <div className="stx-figures id-num">
-                <div><small>{pg.total}</small><strong>{compact(totals.sum, u)}</strong><em>{vsPrev == null ? pg.noPrev : <bdi className={`iqm-pct ${vsPrev > 0 ? 'id-up' : vsPrev < 0 ? 'id-down' : ''}`.trim()}>{pg.vsPrev(`${vsPrev > 0 ? '+' : ''}${Math.round(vsPrev)}%`)}</bdi>}</em></div>
-                <div><small>{pg.perSession}</small><strong>{compact(totals.mean, u)}</strong><em>{st.ofSessions(int.format(totals.coverage))}</em></div>
-                <div><small>{pg.best}</small><strong>{best ? compact(best.v, u) : '—'}</strong><em>{best ? shortDate(best.date, locale) : ''}</em></div>
-                <div><small>{pg.sessions}</small><strong>{int.format(totals.sessions)}</strong><em>{totals.meanTraded != null ? `${st.meanTraded} ${Math.round(totals.meanTraded)}` : ''}</em></div>
               </div>
-            ) : null}
-          </section>
-
-          {/* ── Where · who is buying · who owns ── */}
-          <div className="stx-grid">
-            <section className="id-panel stx-sectors" aria-label={pg.sectors}>
-              <h2 className="id-h3">{pg.sectors}</h2>
-              <p className="id-cap">{sectorMonth ? pg.sectorsNote(monthLabel(sectorMonth, locale)) : st.noSectorData}</p>
-              <ul className="stx-bars id-num">
-                {sectors.sectors.slice().sort((a, b) => b.value - a.value).filter((s) => s.value > 0).map((s) => {
-                  const share = sectorTotal ? (s.value / sectorTotal) * 100 : 0
-                  return (
-                    <li key={s.key}>
-                      <span className="stx-bar-label">{SECTOR_LABELS[s.key]?.[locale] ?? s.label ?? s.key}</span>
-                      <span className="stx-bar-track"><i style={{ width: `${share}%` }} /></span>
-                      <span className="stx-bar-val">{share.toFixed(1)}%</span>
-                    </li>
-                  )
-                })}
-              </ul>
             </section>
 
-            <div className="stx-stack">
-              <section className="id-panel stx-door" aria-label={pg.foreign}>
-                <h2 className="id-h3">{pg.foreign}</h2>
-                <p className="id-cap">{pg.foreignNote(int.format(flow.n))}</p>
-                <p className={`stx-big id-num ${flow.net > 0 ? 'id-up' : flow.net < 0 ? 'id-down' : ''}`.trim()}>
-                  <bdi>{flow.net > 0 ? '+' : flow.net < 0 ? '−' : ''}{compact(Math.abs(flow.net), u)}</bdi> <span className="id-cap">{u.iqd} · {flow.net >= 0 ? pg.netBuy : pg.netSell}</span>
-                </p>
-                <span className="stx-split" aria-hidden="true"><i className="is-buy" style={{ flex: flow.buy || 1 }} /><i className="is-sell" style={{ flex: flow.sell || 1 }} /></span>
-                <Link href={L('/statistics/foreign-flow')} className="id-btn is-sm">{pg.more} →</Link>
-              </section>
+            <section className="id-print is-calm fx-fact" aria-label={pg.foreign}>
+              <svg className="fx-ill" viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="32" r="22" fill="var(--fill)" stroke="currentColor" strokeWidth="2.5"/><path d="M10 32h44M32 10c-8 7-8 37 0 44M32 10c8 7 8 37 0 44" fill="none" stroke="currentColor" strokeWidth="2.2"/></svg>
+              <h3 className={`fx-fact-head ${flow.net > 0 ? 'is-up' : flow.net < 0 ? 'is-down' : ''}`.trim()}>{pg.foreign}: <em><bdi dir="ltr">{flow.net > 0 ? '+' : flow.net < 0 ? '−' : ''}{compact(Math.abs(flow.net), u).split(' ')[0]}</bdi> {compact(Math.abs(flow.net), u).split(' ').slice(1).join(' ')}</em></h3>
+              <p className="fx-pocket">{pg.foreignNote(int.format(flow.n))} · {flow.net >= 0 ? pg.netBuy : pg.netSell}</p>
+              <span className="stx-split" aria-hidden="true"><i className="is-buy" style={{ flex: flow.buy || 1 }} /><i className="is-sell" style={{ flex: flow.sell || 1 }} /></span>
+              <Link href={L('/statistics/foreign-flow')} className="fx-qbtn stx-go">{pg.more} {ar ? '←' : '→'}</Link>
+            </section>
 
-              <section className="id-panel stx-door" aria-label={pg.ownership}>
-                <h2 className="id-h3">{pg.ownership}</h2>
-                <p className="id-cap">{own ? pg.ownershipNote(monthLabel(own.month, locale)) : st.noSectorData}</p>
-                {own && ownTotal ? (
-                  <>
-                    <p className="stx-big id-num"><bdi>{((own.iraqi / ownTotal) * 100).toFixed(1)}%</bdi> <span className="id-cap">{pg.iraqis}</span> <span className="stx-sep">·</span> <bdi>{((own.foreign / ownTotal) * 100).toFixed(1)}%</bdi> <span className="id-cap">{pg.foreigners}</span></p>
-                    <span className="stx-split" aria-hidden="true"><i className="is-iraqi" style={{ flex: own.iraqi }} /><i className="is-foreign" style={{ flex: own.foreign }} /></span>
-                  </>
-                ) : null}
-                <Link href={L('/statistics/ownership')} className="id-btn is-sm">{pg.more} →</Link>
-              </section>
-            </div>
+            <section className="id-print is-calm fx-fact" aria-label={pg.ownership}>
+              <svg className="fx-ill" viewBox="0 0 64 64" aria-hidden="true"><circle cx="24" cy="22" r="8" fill="var(--fill)" stroke="currentColor" strokeWidth="2.5"/><circle cx="42" cy="26" r="6" fill="none" stroke="currentColor" strokeWidth="2.5"/><path d="M8 52c2-10 9-16 16-16s14 6 16 16M34 50c1-7 5-11 9-11s8 4 10 11" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"/></svg>
+              <h3 className="fx-fact-head">{pg.ownership}{own && ownTotal ? <>: <em><bdi>{((own.foreign / ownTotal) * 100).toFixed(1)}%</bdi></em> {pg.foreigners}</> : null}</h3>
+              <p className="fx-pocket">{own ? pg.ownershipNote(monthLabel(own.month, locale)) : st.noSectorData}</p>
+              {own && ownTotal ? <span className="stx-split" aria-hidden="true"><i className="is-iraqi" style={{ flex: own.iraqi }} /><i className="is-foreign" style={{ flex: own.foreign }} /></span> : null}
+              <Link href={L('/statistics/ownership')} className="fx-qbtn stx-go">{pg.more} {ar ? '←' : '→'}</Link>
+            </section>
           </div>
 
           <AboutSection title={pg.about.title} body={pg.about.body} />

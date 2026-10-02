@@ -14,7 +14,7 @@
 .stx-grid { stroke: var(--border); stroke-width: 1; }
 .stx-tick { fill: var(--muted); font-size: 11px; dominant-baseline: middle; text-anchor: start; }
 .stx-x { fill: var(--muted); font-size: 11px; text-anchor: middle; }
-.stx-bar { fill: var(--nav-active); opacity: .55; transition: opacity .12s; }
+.stx-bar { fill: var(--world); opacity: .55; transition: opacity .12s; }
 .stx-bar.is-on { opacity: 1; }
 .stx-gap { fill: var(--muted); opacity: .4; }
 .stx-mean { stroke: var(--ink); stroke-width: 1; stroke-dasharray: 3 5; opacity: .6; }
@@ -36,15 +36,24 @@
 .stx-bars li { display: grid; grid-template-columns: 150px minmax(0, 1fr) 56px; gap: 12px; align-items: center; font-size: 14px; }
 .stx-bar-label { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .stx-bar-track { display: block; height: 10px; border-radius: 5px; background: var(--surface-2); overflow: hidden; }
-.stx-bar-track i { display: block; height: 100%; background: var(--nav-active); opacity: .85; border-radius: 5px; }
+.stx-bar-track i { display: block; height: 100%; background: var(--world); opacity: .85; border-radius: 5px; }
 .stx-bar-val { text-align: end; color: var(--secondary); }
 .stx-big { margin: 0 0 12px; font-family: var(--font-numeric); font-weight: 500; font-size: clamp(24px, 2.6vw, 32px); line-height: 1.1; }
 .stx-sep { color: var(--muted); margin: 0 6px; }
 .stx-split { display: flex; gap: 2px; height: 8px; margin-bottom: 16px; }
 .stx-split i { display: block; border-radius: 4px; }
-.stx-split .is-buy, .stx-split .is-iraqi { background: var(--moss-ink); opacity: .8; }
-.stx-split .is-sell { background: var(--sand-ink); opacity: .8; }
-.stx-split .is-foreign { background: var(--nav-active); opacity: .8; }
+.stx-split .is-buy { background: var(--up); opacity: .85; }
+.stx-split .is-iraqi { background: var(--w-dinar); opacity: .85; }
+.stx-split .is-sell { background: var(--down); opacity: .8; }
+.stx-split .is-foreign { background: var(--w-lapis); opacity: .8; }
 .stx-about { margin-top: 48px; padding-inline: 0; margin-inline: 0; }
 .stx-about .id-h2 { margin-bottom: 12px; }
 .stx-about .id-body { color: var(--secondary); margin: 0 0 12px; }
+
+/* ── Identity v3 (as /statistics/foreign-flow) ───────────────────────────── */
+.stx-frame .fx-board { grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr); align-items: start; }
+@media (max-width: 1000px) { .stx-frame .fx-board { grid-template-columns: 1fr; } }
+.stx-frame .stx-activity { margin: 0; padding: 0; border: 0; background: none; box-shadow: none; }
+.stx-frame .stx-pills { justify-content: flex-start; margin: 10px 0 4px; }
+.stx-go { margin-top: auto; align-self: flex-start; text-decoration: none; }
+.stx-facts .fx-fact-head em { font-style: normal; }

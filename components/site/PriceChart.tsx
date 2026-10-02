@@ -135,13 +135,13 @@ function Icon({ name }: { name: string }) {
   )
 }
 
-export function PriceChart({ bars, label, sym }: { bars: Bar[]; label: string; sym: string }) {
+export function PriceChart({ bars, label, sym, defaultRange = 'y1' }: { bars: Bar[]; label: string; sym: string; defaultRange?: Range }) {
   const { t, locale } = useLocale()
   const C = t.company.chart
   const K = C.chartTools
   const len = bars.length
 
-  const [range, setRange] = useState<Range>('y1')
+  const [range, setRange] = useState<Range>(defaultRange)
   const [view, setView] = useState<View>('candles')
   const [logScale, setLogScale] = useState(false)
   const [mas, setMas] = useState<number[]>([])
@@ -153,6 +153,8 @@ export function PriceChart({ bars, label, sym }: { bars: Bar[]; label: string; s
   const [sel, setSel] = useState<string | null>(null)
   const [draft, setDraft] = useState<Drawing | null>(null)
   const draftRef = useRef<Drawing | null>(null)
+  /** A shape started with a click, waiting for the click that ends it. */
+  const pendingRef = useRef(false)
   const [msg, setMsg] = useState<string | null>(null)
   const [size, setSize] = useState({ w: DEFAULT_W, h: DEFAULT_H })
   const [zone, setZone] = useState<Zone>('plot')
@@ -176,7 +178,7 @@ export function PriceChart({ bars, label, sym }: { bars: Bar[]; label: string; s
     }
     return { a, b: len + (len - a) * 0.04 }
   }, [bars, len])
-  const [win, setWin] = useState<Win>(() => windowFor('y1'))
+  const [win, setWin] = useState<Win>(() => windowFor(defaultRange))
   /** Manual price scale in TRANSFORMED space (log or linear); null = fit. */
   const [pr, setPr] = useState<{ lo: number; hi: number } | null>(null)
   const winRef = useRef(win); winRef.current = win
@@ -187,7 +189,7 @@ export function PriceChart({ bars, label, sym }: { bars: Bar[]; label: string; s
   }, [windowFor])
   const pickRange = (r: Range) => { setRange(r); resetView(r) }
   /* A different symbol's bars: start over. */
-  useEffect(() => { resetView('y1'); setRange('y1') }, [sym, resetView])
+  useEffect(() => { resetView(defaultRange); setRange(defaultRange) }, [sym, resetView, defaultRange])
   useEffect(() => { if (tool === 'cursor') setCross(null) }, [tool])
   /* A manual scale means nothing across a log/linear switch. */
   useEffect(() => { setPr(null) }, [logScale])
@@ -425,21 +427,32 @@ export function PriceChart({ bars, label, sym }: { bars: Bar[]; label: string; s
     setDraft(next)
   }
 
-  function endDraw() {
-    const cur = draftRef.current
+  /* Two ways to draw: press-drag-release, or click the start and click the
+     end. A release that has not moved is the first click: the shape stays
+     live, follows the pointer, and the next click on the plot fixes it. */
+  function commitDraw(cur: Drawing) {
     draftRef.current = null
     setDraft(null)
-    if (!cur) return
-    /* Discard a shape that is really just a click: a zero-length trend line
-       is invisible and un-selectable, so it would be litter. */
-    if (cur.kind !== 'hline') {
-      const dx = Math.abs(x(cur.b.i) - x(cur.a.i))
-      const dy = Math.abs(y(cur.b.p) - y(cur.a.p))
-      if (dx < 4 && dy < 4) return
-    }
+    pendingRef.current = false
     setDraws((list) => [...list, cur])
     setSel(cur.id)
     setTool('cursor')
+  }
+  function endDraw() {
+    const cur = draftRef.current
+    if (!cur) return
+    if (cur.kind !== 'hline') {
+      const dx = Math.abs(x(cur.b.i) - x(cur.a.i))
+      const dy = Math.abs(y(cur.b.p) - y(cur.a.p))
+      if (dx < 4 && dy < 4) {
+        /* Just a click: wait for the second one (a second plain click on
+           the same spot drops the shape rather than leaving litter). */
+        if (!pendingRef.current) { pendingRef.current = true; return }
+        draftRef.current = null; setDraft(null); pendingRef.current = false
+        return
+      }
+    }
+    commitDraw(cur)
   }
 
   /* ── Gestures ─────────────────────────────────────────────────────────── */
@@ -476,7 +489,10 @@ export function PriceChart({ bars, label, sym }: { bars: Bar[]; label: string; s
     const z = zoneAt(px, py)
     if (z === 'paxis') { gest.current = { kind: 'paxis', y0: py, lo0: yLo, hi0: yHi }; setGrabbing(true); return }
     if (z === 'taxis') { gest.current = { kind: 'taxis', x0: px, a0: win.a, b0: win.b }; setGrabbing(true); return }
-    if (tool !== 'cursor') { startDraw(px, py); return }
+    if (tool !== 'cursor') {
+      if (pendingRef.current && draftRef.current) { moveDraw(px, py); endDraw(); return }
+      startDraw(px, py); return
+    }
     /* Cursor tool: a click either selects a shape or begins a pan. */
     const near = draws
       .map((d) => ({ d, dist: hitDist(d, px, py) }))
@@ -602,10 +618,19 @@ export function PriceChart({ bars, label, sym }: { bars: Bar[]; label: string; s
   return (
     <div className={`cmp-chart ${full ? 'is-full' : ''} ${tool !== 'cursor' ? 'is-drawing' : ''}`.replace(/\s+/g, ' ').trim()}>
       <div className="cmp-tools">
-        <div className="id-pills" role="group" aria-label={C.range}>
-          {(['m1', 'm3', 'y1', 'y3', 'all'] as const).map((r) => (
-            <button key={r} type="button" className="id-pill is-sm" aria-pressed={range === r} onClick={() => pickRange(r)}>{C.ranges[r]}</button>
-          ))}
+        {/* The board's chips (identity v3): the range, then candles or line
+            up front; area, averages and scale stay behind the settings. */}
+        <div className="cmp-chips">
+          <div className="fx-quick" role="group" aria-label={C.range}>
+            {(['m1', 'm3', 'y1', 'y3', 'all'] as const).map((r) => (
+              <button key={r} type="button" className="fx-qbtn" aria-pressed={range === r} onClick={() => pickRange(r)}>{C.ranges[r]}</button>
+            ))}
+          </div>
+          <div className="fx-quick" role="group" aria-label={K.view}>
+            {(['candles', 'line'] as const).map((v) => (
+              <button key={v} type="button" className="fx-qbtn" aria-pressed={view === v} onClick={() => setView(v)}>{K[v]}</button>
+            ))}
+          </div>
         </div>
         <div className="cmp-tools-end">
           {/* View, averages and scale live behind one control: eight pills

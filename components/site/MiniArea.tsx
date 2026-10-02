@@ -30,7 +30,7 @@ function ticksFor(lo: number, hi: number): number[] {
   return out
 }
 
-export function MiniArea({ points, format, label, tone = 'world', dateLabel, step = false }: {
+export function MiniArea({ points, format, label, tone = 'world', dateLabel, step = false, ohlc, candles = false }: {
   points: { date: string; value: number }[]
   format: (v: number) => string
   label: string
@@ -39,6 +39,9 @@ export function MiniArea({ points, format, label, tone = 'world', dateLabel, ste
   dateLabel?: (date: string) => string
   /** Draw as steps (a rate that holds until the next decision), not a slope. */
   step?: boolean
+  /** Each point's open/high/low (its close is `value`); with `candles`, drawn as candlesticks. */
+  ohlc?: { open: number; high: number; low: number }[]
+  candles?: boolean
 }) {
   const { locale } = useLocale()
   const svgRef = useRef<SVGSVGElement>(null)
@@ -46,8 +49,9 @@ export function MiniArea({ points, format, label, tone = 'world', dateLabel, ste
   if (points.length < 2) return null
 
   const rtl = locale === 'ar'
+  const asCandles = candles && !!ohlc && ohlc.length === points.length
   const vals = points.map((p) => p.value)
-  const min = Math.min(...vals), max = Math.max(...vals)
+  const min = Math.min(...vals, ...(asCandles ? ohlc!.map((o) => o.low) : [])), max = Math.max(...vals, ...(asCandles ? ohlc!.map((o) => o.high) : []))
   const pad = (max - min) * 0.12 || Math.max(1, max * 0.004)
   const ticks = ticksFor(min - pad, max + pad)
   const lo = Math.min(ticks[0], min - pad), hi = Math.max(ticks[ticks.length - 1], max + pad)
@@ -84,8 +88,27 @@ export function MiniArea({ points, format, label, tone = 'world', dateLabel, ste
             <text className="mna-tick" x={rtl ? W - 2 : 2} y={y(v) + 4} textAnchor={rtl ? 'end' : 'start'}>{format(v)}</text>
           </g>
         ))}
-        <path className="mna-area" d={area} />
-        <path className="mna-line" d={line} />
+        {asCandles ? (
+          /* A session's candle: wick from low to high, body from open to
+             close, green when it closed up on its open, red when down. */
+          <g className="mna-candles">
+            {points.map((p, i) => {
+              const o = ohlc![i], up = p.value >= o.open, bw = Math.max(2, Math.min(14, ((W - L - R) / points.length) * 0.62))
+              const top = y(Math.max(o.open, p.value)), bot = y(Math.min(o.open, p.value))
+              return (
+                <g key={p.date} className={up ? 'is-up' : 'is-down'}>
+                  <line x1={x(i)} x2={x(i)} y1={y(o.high)} y2={y(o.low)} />
+                  <rect x={x(i) - bw / 2} y={top} width={bw} height={Math.max(1.5, bot - top)} rx={1} />
+                </g>
+              )
+            })}
+          </g>
+        ) : (
+          <>
+            <path className="mna-area" d={area} />
+            <path className="mna-line" d={line} />
+          </>
+        )}
         {hover != null ? <line className="mna-cross" x1={tipX} x2={tipX} y1={PT} y2={H - PB} /> : null}
         <circle className="mna-dot" cx={tipX} cy={y(points[at].value)} r="6" />
         {marks.map((i) => (

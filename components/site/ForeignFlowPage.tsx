@@ -15,6 +15,8 @@ import type { CompanyMeta } from '@/types'
 import '@/styles/markets.css'
 import '@/styles/statistics-page.css'
 import '@/styles/flow-page.css'
+import '@/styles/econ-page.css'
+import '@/styles/company-page.css'
 
 /**
  * /statistics/foreign-flow · two tabs, one question each.
@@ -47,6 +49,14 @@ function compact(v: number | null | undefined, u: Units): string {
   return `${sign}${int.format(a)}`
 }
 const R = 74, SW = 16, C = 2 * Math.PI * R
+/* A signed figure and its unit, kept apart: inside one isolate the Arabic
+   unit made the run right-to-left and printed «مليار 12-». */
+function Signed({ v, u, plus = true }: { v: number; u: Units; plus?: boolean }) {
+  const txt = compact(v, u)
+  const sp = txt.indexOf(' ')
+  const num = sp < 0 ? txt : txt.slice(0, sp), unit = sp < 0 ? '' : txt.slice(sp + 1)
+  return <><bdi dir="ltr">{plus && v > 0 ? '+' : ''}{num}</bdi>{unit ? ` ${unit}` : ''}</>
+}
 
 export function ForeignFlowPage({ initial }: { initial: FlowInitial }) {
   const { t, locale, href: L } = useLocale()
@@ -115,16 +125,14 @@ export function ForeignFlowPage({ initial }: { initial: FlowInitial }) {
   const cumPath = cum.map((v, i) => `${i ? 'L' : 'M'}${(i + 0.5) * bw},${yc(v)}`).join(' ')
   const shown = hover != null ? win[hover] : null
 
-  /* Most bought / sold by net over the last N sessions of company rows. */
   const meta = useMemo(() => new Map((companiesData as CompanyMeta[]).map((m) => [m.sym, m])), [])
-  const top = useMemo(() => {
-    const dates = Array.from(new Set(initial.companies.map((r) => r.date))).sort().reverse().slice(0, 40)
-    const keep = new Set(dates)
+  /* The board's table: each company's net over the chosen window. */
+  const winNet = useMemo(() => {
+    const keep = new Set(win.map((x) => x.date))
     const net = new Map<string, number>()
     for (const r of initial.companies) if (keep.has(r.date)) net.set(r.ticker, (net.get(r.ticker) ?? 0) + (r.side === 'buy' ? r.value : -r.value))
-    const list = Array.from(net.entries()).map(([sym, v]) => ({ sym, v }))
-    return { n: dates.length, bought: list.filter((x) => x.v > 0).sort((a, b) => b.v - a.v).slice(0, 5), sold: list.filter((x) => x.v < 0).sort((a, b) => a.v - b.v).slice(0, 5) }
-  }, [initial.companies])
+    return Array.from(net.entries()).map(([sym, v]) => ({ sym, v })).filter((x) => x.v !== 0).sort((a, b) => Math.abs(b.v) - Math.abs(a.v)).slice(0, 12)
+  }, [win, initial.companies])
   const nameOf = (sym: string) => { const m = meta.get(sym); return m ? (ar ? m.ar : m.en || m.ar) : sym }
 
   /* Accounts. */
@@ -146,14 +154,14 @@ export function ForeignFlowPage({ initial }: { initial: FlowInitial }) {
           <header className="stx-head">
             <p className="id-eyebrow">{pg.eyebrow}</p>
             <PageTitle title={pg.title} note={pg.lede} />
-            <nav className="id-pills stx-sub" aria-label={t.statistics.tabsLabel}>
-              {SUB.map((s) => <Link key={s.key} href={L(s.route)} className="id-pill" aria-current={s.key === 'flow' ? 'page' : undefined}>{t.statistics.page.sub[s.key]}</Link>)}
+            <nav className="fx-quick stx-sub" aria-label={t.statistics.tabsLabel}>
+              {SUB.map((s) => <Link key={s.key} href={L(s.route)} className="fx-qbtn" aria-current={s.key === 'flow' ? 'page' : undefined} aria-pressed={s.key === 'flow'}>{t.statistics.page.sub[s.key]}</Link>)}
             </nav>
           </header>
 
           <div className="ffl-tabs" role="tablist">
             {(['trading', 'accounts'] as const).map((k) => (
-              <button key={k} type="button" role="tab" className={`ffl-tab ${tab === k ? 'is-on' : ''}`.trim()} aria-selected={tab === k} onClick={() => setTab(k)}>{pg.tabs[k]}</button>
+              <button key={k} type="button" role="tab" className={`fx-qbtn ffl-tab ${tab === k ? 'is-on' : ''}`.trim()} aria-selected={tab === k} onClick={() => setTab(k)}>{pg.tabs[k]}</button>
             ))}
           </div>
 
@@ -162,68 +170,100 @@ export function ForeignFlowPage({ initial }: { initial: FlowInitial }) {
               conditional this replaces kept the whole accounts tab out of the
               page a crawler sees. */}
           <div role="tabpanel" aria-label={pg.tabs.trading} hidden={tab !== 'trading'}>
-              {/* 1 · Net flow, session by session, with the timeframe on the chart. */}
-              <section className="id-panel ffl-net" aria-label={pg.netTitle}>
-                <div className="ffl-net-head">
-                  <div><h2 className="id-h3">{pg.netTitle}</h2><p className="id-cap">{pg.netNote}</p></div>
-                  <div className="id-pills" role="group" aria-label={f.periodGroup}>
-                    {(['month', 'quarter', 'year', 'all'] as const).map((p) => <button key={p} type="button" className="id-pill is-sm" aria-pressed={period === p} onClick={() => { setPeriod(p); setHover(null) }}>{pg.periods[p]}</button>)}
-                  </div>
-                </div>
-                <p className="stx-reading id-num">
-                  <strong className={shown ? (shown.buy - shown.sell > 0 ? 'id-up' : shown.buy - shown.sell < 0 ? 'id-down' : '') : (cum[cum.length - 1] > 0 ? 'id-up' : cum[cum.length - 1] < 0 ? 'id-down' : '')}>
-                    <bdi>{shown ? `${shown.buy - shown.sell > 0 ? '+' : ''}${compact(shown.buy - shown.sell, u)}` : `${cum[cum.length - 1] > 0 ? '+' : ''}${compact(cum[cum.length - 1] ?? 0, u)}`}</bdi>
-                  </strong>
-                  <span className="id-cap">{shown ? `${localeDate(shown.date, locale)} · ${pg.figures.buy} ${compact(shown.buy, u)} · ${pg.figures.sell} ${compact(shown.sell, u)}` : `${pg.cumulative} · ${rangeText}`}</span>
-                </p>
-                {win.length > 1 ? (
-                  <svg viewBox={`0 0 ${W} ${H}`} className="ffl-svg id-num" onPointerLeave={() => setHover(null)} role="img" aria-label={pg.netTitle}>
-                    <line x1={0} x2={W - PR} y1={y0} y2={y0} className="ffl-zero" />
-                    <text x={W - PR + 8} y={PT + 4} className="stx-tick">{compact(cumMax, u)}</text>
-                    <text x={W - PR + 8} y={H - PB - 4} className="stx-tick">{compact(-cumMax, u)}</text>
-                    {win.map((s, i) => { const v = s.buy - s.sell; return (
-                      <g key={s.date} onPointerEnter={() => setHover(i)}>
-                        <rect x={i * bw} y={PT} width={bw} height={H - PT - PB} fill="transparent" />
-                        {hover === i ? <rect x={i * bw} y={PT} width={bw} height={H - PT - PB} className="ffl-hl" /> : null}
-                        <rect x={i * bw + bw * 0.18} y={Math.min(y0, y(v))} width={Math.max(1.5, bw * 0.64)} height={Math.max(1.5, Math.abs(y(v) - y0))} rx={Math.min(3, bw * 0.25)} className={`ffl-bar ${v >= 0 ? 'is-buy' : 'is-sell'} ${hover === i ? 'is-on' : ''}`.trim()} />
-                      </g>) })}
-                    <path d={cumPath} className="ffl-cum" />
-                    {hover != null ? <circle cx={(hover + 0.5) * bw} cy={yc(cum[hover])} r="4" className="ffl-cum-dot" /> : null}
-                  </svg>
-                ) : null}
-                <div className="ffl-figs id-num ffl-figs-row">
-                  <div><small>{pg.figures.buy}</small><b>{compact(sum.buy, u)}</b></div>
-                  <div><small>{pg.figures.sell}</small><b>{compact(sum.sell, u)}</b></div>
-                  <div><small>{pg.figures.net}</small><b className={sum.buy - sum.sell > 0 ? 'id-up' : sum.buy - sum.sell < 0 ? 'id-down' : ''}><bdi>{sum.buy - sum.sell > 0 ? '+' : ''}{compact(sum.buy - sum.sell, u)}</bdi></b></div>
-                  <div><small>{pg.figures.buyDays}</small><b>{int.format(sum.buyDays)} <span className="id-cap">/ {int.format(win.length)}</span></b></div>
-                </div>
-              </section>
+              {/* Identity v3 (board 2, «تداول الأجانب»): the answer as the key
+                  card, the net session by session beside it, then the
+                  companies as the board, then Iraqis vs foreigners. */}
+              {(() => {
+                const B = pg.board
+                const net = sum.buy - sum.sell
+                const sold = net < 0
+                const even = Math.abs(net) < 0.02 * Math.max(1, sum.buy + sum.sell)
+                const lead = winNet.find((x) => (sold ? x.v < 0 : x.v > 0))
+                const one = lead && Math.abs(lead.v) > 0.5 * Math.abs(net) ? nameOf(lead.sym) : null
+                /* Square-root scale, as the session bars: one giant trade keeps
+                   the biggest bar without flattening every other row. */
+                const maxAbsCo = Math.max(1, ...winNet.map((x) => Math.abs(x.v)))
+                return (
+                  <>
+                    <div className="fx-frame ffl-frame">
+                      <div className="fx-board">
+                        <section className="ffl-net" aria-label={pg.netTitle}>
+                          <div className="ffl-net-head">
+                            <div><h2 className="fx-calc-title">{B.chart}</h2><p className="id-cap">{pg.netNote}</p></div>
+                            <div className="fx-quick" role="group" aria-label={f.periodGroup}>
+                              {(['month', 'quarter', 'year', 'all'] as const).map((p) => <button key={p} type="button" className="fx-qbtn" aria-pressed={period === p} onClick={() => { setPeriod(p); setHover(null) }}>{pg.periods[p]}</button>)}
+                            </div>
+                          </div>
+                          <p className="stx-reading id-num">
+                            <strong className={shown ? (shown.buy - shown.sell > 0 ? 'id-up' : shown.buy - shown.sell < 0 ? 'id-down' : '') : (cum[cum.length - 1] > 0 ? 'id-up' : cum[cum.length - 1] < 0 ? 'id-down' : '')}>
+                              <Signed v={shown ? shown.buy - shown.sell : (cum[cum.length - 1] ?? 0)} u={u} />
+                            </strong>
+                            <span className="id-cap">{shown ? `${localeDate(shown.date, locale)} · ${pg.figures.buy} ${compact(shown.buy, u)} · ${pg.figures.sell} ${compact(shown.sell, u)}` : `${pg.cumulative} · ${rangeText}`}</span>
+                          </p>
+                          {win.length > 1 ? (
+                            <svg viewBox={`0 0 ${W} ${H}`} className="ffl-svg id-num" onPointerLeave={() => setHover(null)} role="img" aria-label={pg.netTitle}>
+                              <line x1={0} x2={W - PR} y1={y0} y2={y0} className="ffl-zero" />
+                              <text x={W - PR + 8} y={PT + 4} className="stx-tick">{compact(cumMax, u)}</text>
+                              <text x={W - PR + 8} y={H - PB - 4} className="stx-tick">{compact(-cumMax, u)}</text>
+                              {win.map((x, i) => { const v = x.buy - x.sell; return (
+                                <g key={x.date} onPointerEnter={() => setHover(i)}>
+                                  <rect x={i * bw} y={PT} width={bw} height={H - PT - PB} fill="transparent" />
+                                  {hover === i ? <rect x={i * bw} y={PT} width={bw} height={H - PT - PB} className="ffl-hl" /> : null}
+                                  <rect x={i * bw + bw * 0.18} y={Math.min(y0, y(v))} width={Math.max(1.5, bw * 0.64)} height={Math.max(1.5, Math.abs(y(v) - y0))} rx={Math.min(3, bw * 0.25)} className={`ffl-bar ${v >= 0 ? 'is-buy' : 'is-sell'} ${hover === i ? 'is-on' : ''}`.trim()} />
+                                </g>) })}
+                              <path d={cumPath} className="ffl-cum" />
+                              {hover != null ? <circle cx={(hover + 0.5) * bw} cy={yc(cum[hover])} r="4" className="ffl-cum-dot" /> : null}
+                            </svg>
+                          ) : null}
+                        </section>
 
-              {/* 2 · Side by side: who foreigners bought and sold · Iraqis vs foreigners as a ring. */}
-              <div className="ffl-row">
-                <section className="id-panel ffl-top" aria-label={pg.top}>
-                  <h2 className="id-h3">{pg.top}</h2>
-                  <p className="id-cap">{pg.topNote(int.format(top.n))}</p>
-                  <div className="ffl-top-grid">
-                    {([['bought', top.bought], ['sold', top.sold]] as const).map(([k, list]) => (
-                      <div key={k}>
-                        <p className={`ffl-top-h ${k === 'bought' ? 'id-up' : 'id-down'}`}>{k === 'bought' ? pg.bought : pg.sold}</p>
-                        <ol className="ffl-top-list id-num">
-                          {list.map((x) => (
-                            <li key={x.sym}><Link href={L(`/c/${x.sym}`)}><span className="id-name">{nameOf(x.sym)}</span><span className="id-sub">{x.sym}</span></Link><bdi className={k === 'bought' ? 'id-up' : 'id-down'}>{k === 'bought' ? '+' : ''}{compact(x.v, u)}</bdi></li>
-                          ))}
-                          {!list.length ? <li className="id-cap">—</li> : null}
-                        </ol>
+                        <section className="id-print is-key fx-calc ffl-answer" aria-label={even ? B.even(B.when[period]) : B.answer(B.when[period], sold)}>
+                          <h2 className="fx-calc-title">{even ? B.even(B.when[period]) : B.answer(B.when[period], sold)}</h2>
+                          <p className={`fx-calc-out id-num ${net > 0 ? 'id-up' : net < 0 ? 'id-down' : ''}`.trim()}><Signed v={net} u={u} /> <span>{B.netUnit}</span></p>
+                          <p className="fx-calc-note">{B.note(compact(sum.buy, u), compact(sum.sell, u))}{one ? ` ${B.oneShare(one, sold)}` : ''}</p>
+                          <div className="cmp-mstats id-num">
+                            <div><small>{pg.figures.buy}</small><b>{compact(sum.buy, u)}</b></div>
+                            <div><small>{pg.figures.sell}</small><b>{compact(sum.sell, u)}</b></div>
+                            <div><small>{pg.figures.buyDays}</small><b>{int.format(sum.buyDays)} <span className="id-cap">/ {int.format(win.length)}</span></b></div>
+                          </div>
+                        </section>
                       </div>
-                    ))}
-                  </div>
-                </section>
+                    </div>
 
-                <section className={`id-panel ffl-ring-panel ${ringSide ? `is-${ringSide}` : ''}`.trim()} aria-label={pg.shareOf(pg.side[side])}>
+                    {winNet.length ? (
+                      <section className="ffl-board" aria-label={B.companies(B.when[period])}>
+                        <h2 className="id-h3">{B.companies(B.when[period])}</h2>
+                        <div className="mb-scroll id-table-scroll">
+                          <table className="mb-table id-num ffl-table">
+                            <thead><tr><th>{B.colCompany}</th><th className="is-end">{B.colNet}</th><th className="ffl-dir-col">{B.colDir}</th></tr></thead>
+                            <tbody>
+                              {winNet.map((x) => (
+                                <tr key={x.sym}>
+                                  <td><Link href={L(`/c/${x.sym}`)} className="mb-co"><span className="mb-co-text"><b>{nameOf(x.sym)}</b><small>{x.sym}</small></span></Link></td>
+                                  <td className="is-end"><span className={x.v > 0 ? 'id-up' : 'id-down'}><Signed v={x.v} u={u} /></span></td>
+                                  <td className="ffl-dir-col">
+                                    <div className="ffl-dir" aria-hidden="true">
+                                      <span className="is-sell">{x.v < 0 ? <i style={{ width: `${Math.max(2, Math.sqrt(Math.abs(x.v) / maxAbsCo) * 100)}%` }} /> : null}</span>
+                                      <span className="is-buy">{x.v > 0 ? <i style={{ width: `${Math.max(2, Math.sqrt(x.v / maxAbsCo) * 100)}%` }} /> : null}</span>
+                                    </div>
+                                  </td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                      </section>
+                    ) : null}
+                  </>
+                )
+              })()}
+
+              <div className="ffl-row">
+                <section className={`id-print is-calm ffl-ring-panel ${ringSide ? `is-${ringSide}` : ''}`.trim()} aria-label={pg.shareOf(pg.side[side])}>
                   <div className="ffl-ring-head">
                     <div><h2 className="id-h3">{pg.iraqis} · {pg.foreigners}</h2><p className="id-cap">{pg.shareOf(pg.side[side])} · {periodLabel}</p></div>
-                    <div className="id-pills" role="group">
-                      {(['buy', 'sell'] as const).map((sd) => <button key={sd} type="button" className="id-pill is-sm" aria-pressed={side === sd} onClick={() => setSide(sd)}>{pg.side[sd]}</button>)}
+                    <div className="fx-quick" role="group">
+                      {(['buy', 'sell'] as const).map((sd) => <button key={sd} type="button" className="fx-qbtn" aria-pressed={side === sd} onClick={() => setSide(sd)}>{pg.side[sd]}</button>)}
                     </div>
                   </div>
                   <div className="ffl-ring-body">
@@ -247,7 +287,7 @@ export function ForeignFlowPage({ initial }: { initial: FlowInitial }) {
           </div>
           <div role="tabpanel" aria-label={pg.tabs.accounts} hidden={tab !== 'accounts'}>
               {held && heldTotal ? (
-                <section className="ffl-ring-panel id-panel" aria-label={pg.accounts.held}>
+                <section className="ffl-ring-panel id-print is-calm" aria-label={pg.accounts.held}>
                   <div className="ffl-ring-head"><div><h2 className="id-h3">{pg.accounts.held}</h2><p className="id-cap">{pg.accounts.heldNote(monthLabel(latestHeld!.ym, locale))}</p></div></div>
                   <div className="ffl-ring-body">
                     <svg className="ffl-ring" viewBox="0 0 180 180" role="img" aria-label={pg.accounts.held}>
@@ -270,7 +310,7 @@ export function ForeignFlowPage({ initial }: { initial: FlowInitial }) {
               ) : null}
 
               {latestNew ? (
-                <section className="id-panel ffl-new" aria-label={pg.accounts.newTitle}>
+                <section className="id-print is-calm ffl-new" aria-label={pg.accounts.newTitle}>
                   <h2 className="id-h3">{pg.accounts.newTitle}</h2>
                   <p className="id-cap">{pg.accounts.note(monthLabel(latestNew.ym, locale))}</p>
                   <div className="ffl-figs id-num">

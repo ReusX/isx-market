@@ -174,6 +174,22 @@ export const flow = {
   },
   /** The rebuilt /statistics/foreign-flow (redesign). */
   page: {
+    /* Identity v3 (board 2, «تداول الأجانب»). */
+    board: {
+      when:      { month: 'هذا الشهر', quarter: 'آخر 3 أشهر', year: 'هذه السنة', all: 'منذ بداية سجلّنا' } as Record<'month' | 'quarter' | 'year' | 'all', string>,
+      answer:    (when: string, sold: boolean): string => (sold ? `الأجانب ${when}: باعوا أكثر مما اشتروا` : `الأجانب ${when}: اشتروا أكثر مما باعوا`),
+      even:      (when: string) => `الأجانب ${when}: الشراء والبيع متقاربان`,
+      netUnit:   'دينار صافي',
+      note:      (buy: string, sell: string) => `اشتروا بـ ${buy} وباعوا بـ ${sell}.`,
+      oneShare:  (name: string, sold: boolean): string => (sold ? `أغلب البيع بسهم واحد: ${name}.` : `أغلب الشراء بسهم واحد: ${name}.`),
+      chart:     'صافي كل جلسة',
+      companies: (when: string) => `الشركات · صافي ${when}`,
+      colCompany: 'الشركة',
+      colNet:    'الصافي',
+      colDir:    'الاتجاه',
+      sellSide:  'بيع',
+      buySide:   'شراء',
+    },
     eyebrow: 'الإحصاءات',
     title:   'التدفق الأجنبي',
     lede:    'من يتداول في بورصة العراق ومن يدخلها: حصة المستثمرين غير العراقيين من الشراء والبيع، ومن يفتح حساباً جديداً في مركز الإيداع.',

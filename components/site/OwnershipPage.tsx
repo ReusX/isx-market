@@ -11,6 +11,9 @@ import type { OwnershipInitial } from '@/lib/marketServer'
 import { monthLabel } from '@/lib/statistics'
 import '@/styles/statistics-page.css'
 import '@/styles/ownership-page.css'
+import '@/styles/markets.css'
+import '@/styles/econ-page.css'
+import '@/styles/company-page.css'
 
 /**
  * /statistics/ownership · الملكية الأجنبية — who owns the deposited capital.
@@ -75,8 +78,8 @@ export function OwnershipPage({ initial }: { initial: OwnershipInitial }) {
           <header className="stx-head">
             <p className="id-eyebrow">{P.eyebrow}</p>
             <PageTitle title={O.title} note={O.lede} />
-            <nav className="id-pills stx-sub" aria-label={t.statistics.tabsLabel}>
-              {SUB.map((s) => <Link key={s.key} href={L(s.route)} className="id-pill" aria-current={s.key === 'ownership' ? 'page' : undefined}>{t.statistics.page.sub[s.key]}</Link>)}
+            <nav className="fx-quick stx-sub" aria-label={t.statistics.tabsLabel}>
+              {SUB.map((s) => <Link key={s.key} href={L(s.route)} className="fx-qbtn" aria-current={s.key === 'ownership' ? 'page' : undefined} aria-pressed={s.key === 'ownership'}>{t.statistics.page.sub[s.key]}</Link>)}
             </nav>
           </header>
 
@@ -84,28 +87,43 @@ export function OwnershipPage({ initial }: { initial: OwnershipInitial }) {
             <p className="id-note">{P.empty}</p>
           ) : (
             <>
-              <section className="id-panel own-lead" aria-label={O.headline}>
-                <div className="own-lead-head">
-                  <div><h2 className="id-h3">{O.headline}</h2><p className="id-cap">{P.filing(month)}</p></div>
+              {/* Identity v3, as the other statistics tabs: the market's foreign
+                  share as the figure, its split, the filing's figures as the
+                  key card; the companies below as the board. */}
+              <div className="fx-frame">
+                <div className="fx-board">
+                  <section className="fx-lead" aria-label={O.headline}>
+                    <h2 className="fx-title own-h">{O.headline} · {P.filing(month)}</h2>
+                    <p className="fx-huge id-num">
+                      <span className="fx-huge-num"><bdi>{foreignPct.toFixed(2)}%</bdi>
+                    <svg className="fx-swoosh" viewBox="0 0 200 40" preserveAspectRatio="none" aria-hidden="true">
+                      <path d="M4 30 C 50 10, 110 4, 196 20" pathLength={1} fill="none" stroke="currentColor" strokeWidth={5} strokeLinecap="round" vectorEffect="non-scaling-stroke" />
+                    </svg>
+                      </span>
+                    </p>
+                    <p className="fx-line"><span>{O.foreignShare}</span></p>
+                    <div className="own-split" aria-hidden="true">
+                      <i className="is-iraqi" style={{ flexBasis: `${iraqiPct}%` }} />
+                      <i className="is-foreign" style={{ flexBasis: `${foreignPct}%` }} />
+                    </div>
+                    <dl className="own-legend id-num">
+                      <div className="is-iraqi"><dt><i />{O.iraqiShare}</dt><dd><bdi>{iraqiPct.toFixed(2)}%</bdi></dd></div>
+                      <div className="is-foreign"><dt><i />{O.foreignShare}</dt><dd><bdi>{foreignPct.toFixed(2)}%</bdi></dd></div>
+                    </dl>
+                  </section>
+                  <section className="id-print is-key fx-calc" aria-label={O.headline}>
+                    <h2 className="fx-calc-title">{P.filing(month)}</h2>
+                    <div className="cmp-mstats own-kfigs id-num">
+                      <div><small>{O.figures.companies}</small><b>{int.format(m.companies)}</b></div>
+                      <div><small>{O.figures.foreignShares}</small><b>{compact(m.foreign, u)}</b></div>
+                      <div><small>{O.figures.holders}</small><b>{int.format(m.holders)}</b></div>
+                      <div><small>{O.figures.matched}</small><b>{int.format(initial.coverage.matched)}</b></div>
+                    </div>
+                  </section>
                 </div>
-                <p className="own-big id-num"><strong><bdi>{foreignPct.toFixed(2)}%</bdi></strong><span>{O.foreignShare}</span></p>
-                <div className="own-split" aria-hidden="true">
-                  <i className="is-iraqi" style={{ flexBasis: `${iraqiPct}%` }} />
-                  <i className="is-foreign" style={{ flexBasis: `${foreignPct}%` }} />
-                </div>
-                <dl className="own-legend id-num">
-                  <div className="is-iraqi"><dt><i />{O.iraqiShare}</dt><dd><bdi>{iraqiPct.toFixed(2)}%</bdi></dd></div>
-                  <div className="is-foreign"><dt><i />{O.foreignShare}</dt><dd><bdi>{foreignPct.toFixed(2)}%</bdi></dd></div>
-                </dl>
-                <div className="own-figs id-num">
-                  <div><small>{O.figures.companies}</small><b>{int.format(m.companies)}</b></div>
-                  <div><small>{O.figures.foreignShares}</small><b>{compact(m.foreign, u)}</b></div>
-                  <div><small>{O.figures.holders}</small><b>{int.format(m.holders)}</b></div>
-                  <div><small>{O.figures.matched}</small><b>{int.format(initial.coverage.matched)}</b></div>
-                </div>
-              </section>
+              </div>
 
-              <section className="id-panel own-panel" aria-label={O.tableTitle}>
+              <section className="own-panel own-board" aria-label={O.tableTitle}>
                 <div className="own-head">
                   <div>
                     <h2 className="id-h3">{O.tableTitle}</h2>
@@ -114,7 +132,7 @@ export function OwnershipPage({ initial }: { initial: OwnershipInitial }) {
                   <div className="own-search">
                     <label>
                       <span className="sr-only">{P.searchLabel}</span>
-                      <input type="search" className="id-input" value={q} dir="auto" placeholder={O.search}
+                      <input type="search" className="cur-search-in" value={q} dir="auto" placeholder={O.search}
                         onChange={(e) => { setQ(e.target.value); setLimit(PAGE) }} />
                     </label>
                   </div>
@@ -127,7 +145,7 @@ export function OwnershipPage({ initial }: { initial: OwnershipInitial }) {
                 ) : (
                   <>
                     <div className="own-scroll id-table-scroll">
-                      <table className="id-table own-table id-num">
+                      <table className="mb-table own-table id-num">
                         <caption className="sr-only">{P.tableCaption}</caption>
                         <thead>
                           <tr>
@@ -163,7 +181,7 @@ export function OwnershipPage({ initial }: { initial: OwnershipInitial }) {
                     </div>
                     {rows.length > limit ? (
                       <div className="own-more">
-                        <button type="button" className="id-btn is-sm" onClick={() => setLimit((n) => n + PAGE)}>{P.showMore(int.format(Math.min(PAGE, rows.length - limit)))}</button>
+                        <button type="button" className="fx-qbtn" onClick={() => setLimit((n) => n + PAGE)}>{P.showMore(int.format(Math.min(PAGE, rows.length - limit)))}</button>
                       </div>
                     ) : null}
                   </>

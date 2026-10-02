@@ -11,6 +11,9 @@ import type { HoldersInitial } from '@/lib/marketServer'
 import { monthLabel } from '@/lib/statistics'
 import '@/styles/statistics-page.css'
 import '@/styles/ownership-page.css'
+import '@/styles/markets.css'
+import '@/styles/econ-page.css'
+import '@/styles/company-page.css'
 
 /**
  * /statistics/shareholders · كبار المساهمين — the largest disclosed stakes.
@@ -68,8 +71,8 @@ export function ShareholdersPage({ initial }: { initial: HoldersInitial }) {
           <header className="stx-head">
             <p className="id-eyebrow">{P.eyebrow}</p>
             <PageTitle title={H.title} note={H.lede} />
-            <nav className="id-pills stx-sub" aria-label={t.statistics.tabsLabel}>
-              {SUB.map((s) => <Link key={s.key} href={L(s.route)} className="id-pill" aria-current={s.key === 'holders' ? 'page' : undefined}>{t.statistics.page.sub[s.key]}</Link>)}
+            <nav className="fx-quick stx-sub" aria-label={t.statistics.tabsLabel}>
+              {SUB.map((s) => <Link key={s.key} href={L(s.route)} className="fx-qbtn" aria-current={s.key === 'holders' ? 'page' : undefined} aria-pressed={s.key === 'holders'}>{t.statistics.page.sub[s.key]}</Link>)}
             </nav>
           </header>
 
@@ -77,23 +80,35 @@ export function ShareholdersPage({ initial }: { initial: HoldersInitial }) {
             <p className="id-note">{P.empty}</p>
           ) : (
             <>
-              <section className="id-panel own-lead" aria-label={H.headline}>
-                <div className="own-lead-head">
-                  <div><h2 className="id-h3">{H.headline}</h2><p className="id-cap">{P.filing(month)}</p></div>
+              {/* Identity v3, as the other statistics tabs: the largest stake as
+                  the figure, who and where under it, the filing's figures as
+                  the key card; the stakes below as the board. */}
+              <div className="fx-frame">
+                <div className="fx-board">
+                  <section className="fx-lead" aria-label={H.headline}>
+                    <h2 className="fx-title own-h">{H.headline} · {P.filing(month)}</h2>
+                    <p className="fx-huge id-num">
+                      <span className="fx-huge-num"><bdi>{top ? `${top.pct.toFixed(2)}%` : '—'}</bdi>
+                    <svg className="fx-swoosh" viewBox="0 0 200 40" preserveAspectRatio="none" aria-hidden="true">
+                      <path d="M4 30 C 50 10, 110 4, 196 20" pathLength={1} fill="none" stroke="currentColor" strokeWidth={5} strokeLinecap="round" vectorEffect="non-scaling-stroke" />
+                    </svg>
+                      </span>
+                    </p>
+                    {top ? <p className="fx-line"><span dir="auto"><bdi>{top.holder}</bdi> · {top.company}</span></p> : null}
+                  </section>
+                  <section className="id-print is-key fx-calc" aria-label={H.headline}>
+                    <h2 className="fx-calc-title">{P.filing(month)}</h2>
+                    <div className="cmp-mstats own-kfigs id-num">
+                      <div><small>{H.figures.stakes}</small><b>{int.format(initial.rows.length)}</b></div>
+                      <div><small>{H.figures.companies}</small><b>{int.format(initial.companies)}</b></div>
+                      <div><small>{H.figures.over50}</small><b>{int.format(over50)}</b></div>
+                      <div><small>{H.figures.matched}</small><b>{int.format(initial.coverage.matched)}</b></div>
+                    </div>
+                  </section>
                 </div>
-                <p className="own-big id-num">
-                  <strong><bdi>{top ? `${top.pct.toFixed(2)}%` : '—'}</bdi></strong>
-                  {top ? <span dir="auto"><bdi>{top.holder}</bdi> · {top.company}</span> : null}
-                </p>
-                <div className="own-figs id-num">
-                  <div><small>{H.figures.stakes}</small><b>{int.format(initial.rows.length)}</b></div>
-                  <div><small>{H.figures.companies}</small><b>{int.format(initial.companies)}</b></div>
-                  <div><small>{H.figures.over50}</small><b>{int.format(over50)}</b></div>
-                  <div><small>{H.figures.matched}</small><b>{int.format(initial.coverage.matched)}</b></div>
-                </div>
-              </section>
+              </div>
 
-              <section className="id-panel own-panel" aria-label={H.tableTitle}>
+              <section className="own-panel own-board" aria-label={H.tableTitle}>
                 <div className="own-head">
                   <div>
                     <h2 className="id-h3">{H.tableTitle}</h2>
@@ -102,7 +117,7 @@ export function ShareholdersPage({ initial }: { initial: HoldersInitial }) {
                   <div className="own-search">
                     <label>
                       <span className="sr-only">{P.searchLabel}</span>
-                      <input type="search" className="id-input" value={q} dir="auto" placeholder={H.search}
+                      <input type="search" className="cur-search-in" value={q} dir="auto" placeholder={H.search}
                         onChange={(e) => { setQ(e.target.value); setLimit(PAGE) }} />
                     </label>
                   </div>
@@ -115,7 +130,7 @@ export function ShareholdersPage({ initial }: { initial: HoldersInitial }) {
                 ) : (
                   <>
                     <div className="own-scroll id-table-scroll">
-                      <table className="id-table own-table id-num">
+                      <table className="mb-table own-table id-num">
                         <caption className="sr-only">{P.tableCaption}</caption>
                         <thead>
                           <tr>
@@ -154,7 +169,7 @@ export function ShareholdersPage({ initial }: { initial: HoldersInitial }) {
                     </div>
                     {rows.length > limit ? (
                       <div className="own-more">
-                        <button type="button" className="id-btn is-sm" onClick={() => setLimit((n) => n + PAGE)}>{P.showMore(int.format(Math.min(PAGE, rows.length - limit)))}</button>
+                        <button type="button" className="fx-qbtn" onClick={() => setLimit((n) => n + PAGE)}>{P.showMore(int.format(Math.min(PAGE, rows.length - limit)))}</button>
                       </div>
                     ) : null}
                   </>

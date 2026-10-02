@@ -22,14 +22,14 @@
    numbers below carry the meaning, so this is never colour-only. */
 .own-split { display: flex; gap: 3px; height: 10px; margin-bottom: 14px; }
 .own-split i { display: block; border-radius: 5px; min-width: 3px; }
-.own-split .is-iraqi { background: var(--moss-ink); opacity: .8; }
-.own-split .is-foreign { background: var(--nav-active); opacity: .85; }
+.own-split .is-iraqi { background: var(--w-dinar); opacity: .8; }
+.own-split .is-foreign { background: var(--w-lapis); opacity: .85; }
 .own-legend { display: flex; gap: 24px; flex-wrap: wrap; margin: 0 0 18px; font-size: 14px; }
 .own-legend > div { display: flex; align-items: baseline; gap: 8px; }
 .own-legend dt { display: flex; align-items: center; gap: 8px; color: var(--secondary); }
 .own-legend dt i { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
-.own-legend .is-iraqi dt i { background: var(--moss-ink); }
-.own-legend .is-foreign dt i { background: var(--nav-active); }
+.own-legend .is-iraqi dt i { background: var(--w-dinar); }
+.own-legend .is-foreign dt i { background: var(--w-lapis); }
 .own-legend dd { margin: 0; font-family: var(--font-numeric); font-weight: 500; font-size: 18px; }
 
 .own-figs { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; padding-top: 16px; border-top: 1px solid var(--border); }
@@ -71,7 +71,7 @@
 .own-pct { display: flex; align-items: center; gap: 10px; justify-content: flex-end; }
 .own-pct bdi { flex: 0 0 auto; min-width: 58px; text-align: end; }
 .own-pct-track { display: block; flex: 1 1 auto; max-width: 130px; height: 8px; border-radius: 4px; background: var(--surface-2); overflow: hidden; }
-.own-pct-track i { display: block; height: 100%; background: var(--nav-active); opacity: .85; border-radius: 4px; }
+.own-pct-track i { display: block; height: 100%; background: var(--world); opacity: .85; border-radius: 4px; }
 
 /* Rows past the visible cap are RENDERED AND HIDDEN, not withheld. The cap
    keeps the first paint short; withholding the rows would keep them out of
@@ -84,3 +84,14 @@
 .own-empty strong { display: block; font-weight: 400; font-size: 17px; margin-bottom: 6px; color: var(--ink); }
 .own-note { margin: 14px 0 0; }
 .own-more { margin: 16px 0 0; display: flex; justify-content: center; }
+
+/* ── Identity v3 (as /statistics/foreign-flow) ───────────────────────────── */
+.own-h { margin: 0 0 4px; }
+.own-kfigs { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.own-board { margin: 0 0 28px; }
+.own-board .own-head { display: flex; justify-content: space-between; align-items: flex-end; gap: 14px; flex-wrap: wrap; margin-bottom: 12px; }
+.own-board .own-search { min-width: min(100%, 320px); }
+.own-board .mb-table th { position: static; }
+.own-table td a { display: grid; gap: 1px; color: inherit; text-decoration: none; min-width: 0; }
+.own-table td a .id-name { font-weight: 600; font-size: 14px; line-height: 1.35; }
+.own-table td a .id-sub { font-family: var(--font-numeric); font-size: 11px; color: var(--muted); }

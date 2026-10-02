@@ -1,10 +1,6 @@
 /* /statistics/foreign-flow · layout only; shares statistics-page.css furniture. */
 .ffl { padding-block: 24px 0; }
 .ffl-body { min-width: 0; }
-.ffl-tabs { display: flex; gap: 0; border-bottom: 1px solid var(--border); margin-bottom: 20px; }
-.ffl-tab { border: 0; background: none; padding: 12px 18px; margin-bottom: -1px; font: inherit; font-size: 15px; font-weight: 500; color: var(--secondary); cursor: pointer; border-bottom: 2px solid transparent; }
-.ffl-tab.is-on { color: var(--ink); border-bottom-color: var(--nav-active); }
-.ffl-tab:hover { color: var(--ink); }
 
 .ffl-ring-panel { padding: 20px; margin-bottom: 20px; }
 .ffl-ring-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; flex-wrap: wrap; margin-bottom: 12px; }
@@ -14,8 +10,8 @@
 .ffl-ring { width: 200px; height: 200px; }
 .ffl-track { fill: none; stroke: var(--surface-2); }
 .ffl-iraqi, .ffl-foreign { fill: none; stroke-linecap: round; cursor: pointer; transition: stroke-dasharray .9s cubic-bezier(.2,.7,.2,1), stroke-dashoffset .9s cubic-bezier(.2,.7,.2,1), stroke-width .18s, opacity .18s; }
-.ffl-iraqi { stroke: var(--moss-ink); }
-.ffl-foreign { stroke: var(--nav-active); }
+.ffl-iraqi { stroke: var(--w-dinar); }
+.ffl-foreign { stroke: var(--w-lapis); }
 .ffl-ring-panel.is-iraqi .ffl-iraqi, .ffl-ring-panel.is-foreign .ffl-foreign { stroke-width: 20; }
 .ffl-ring-panel.is-iraqi .ffl-foreign, .ffl-ring-panel.is-foreign .ffl-iraqi { opacity: .4; }
 .ffl-ring-panel.is-iraqi .ffl-legend .is-foreign, .ffl-ring-panel.is-foreign .ffl-legend .is-iraqi { opacity: .5; }
@@ -27,7 +23,7 @@
 .ffl-legend dl > div { display: flex; justify-content: space-between; gap: 12px; align-items: baseline; border-bottom: 1px solid var(--border); padding-bottom: 8px; font-size: 15px; }
 .ffl-legend dt { display: flex; align-items: center; gap: 8px; }
 .ffl-legend dt i { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
-.ffl-legend .is-iraqi dt i { background: var(--moss-ink); } .ffl-legend .is-foreign dt i { background: var(--nav-active); }
+.ffl-legend .is-iraqi dt i { background: var(--up); } .ffl-legend .is-foreign dt i { background: var(--w-lapis); }
 .ffl-legend dd { display: flex; gap: 10px; align-items: baseline; font-size: 18px; font-family: var(--font-numeric); font-weight: 500; }
 .ffl-legend > div { transition: opacity .18s; }
 .ffl-legend dd { margin: 0; }
@@ -50,7 +46,6 @@
 .ffl-svg { width: 100%; height: auto; display: block; margin-top: 8px; min-height: 260px; }
 .ffl-zero { stroke: var(--border); stroke-width: 1; }
 .ffl-bar { opacity: .7; transition: opacity .12s; } .ffl-bar.is-on { opacity: 1; }
-.ffl-bar.is-buy { fill: var(--moss-ink); } .ffl-bar.is-sell { fill: var(--sand-ink); }
 .ffl-cum { fill: none; stroke: var(--ink); stroke-width: 1.4; opacity: .8; }
 [dir='rtl'] .ffl-svg text { direction: ltr; }
 
@@ -73,7 +68,31 @@
 .ffl-col { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; height: 100%; min-width: 0; }
 .ffl-stack { flex: 1; width: 100%; display: flex; flex-direction: column; justify-content: flex-end; }
 .ffl-stack i { display: block; width: 100%; }
-.ffl-stack .is-natural { background: var(--moss-ink); opacity: .8; border-radius: 3px 3px 0 0; }
-.ffl-stack .is-legal { background: var(--nav-active); opacity: .8; border-radius: 3px 3px 0 0; }
+.ffl-stack .is-natural { background: var(--up); opacity: .8; border-radius: 3px 3px 0 0; }
+.ffl-stack .is-legal { background: var(--world); opacity: .8; border-radius: 3px 3px 0 0; }
 .ffl-col .id-cap { font-size: 10px; }
 .ffl-caveat { margin: 0 0 8px; }
+
+/* ── Identity v3 (board 2, «تداول الأجانب») ─────────────────────────────── */
+.ffl-row { grid-template-columns: minmax(0, 1fr); }
+.ffl-row .ffl-ring-panel { max-width: 640px; }
+.ffl-frame .fx-board { grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr); align-items: start; }
+@media (max-width: 1000px) { .ffl-frame .fx-board { grid-template-columns: 1fr; } }
+.ffl-frame .ffl-net { margin: 0; padding: 0; border: 0; background: none; box-shadow: none; }
+.ffl-frame .ffl-net-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; flex-wrap: wrap; }
+.ffl-answer .fx-calc-out { font-size: clamp(34px, 3.6vw, 46px); }
+.ffl-tabs { display: flex; gap: 8px; margin: 0 0 16px; }
+.ffl-tab.is-on { background: var(--world); border-color: var(--world); color: var(--page); }
+.ffl-board { margin: 0 0 28px; }
+.ffl-board .id-h3 { margin-bottom: 12px; }
+.ffl-table th { position: static; }
+.ffl-dir-col { width: 36%; }
+.ffl-dir { display: grid; grid-template-columns: 1fr 1fr; gap: 2px; align-items: center; height: 10px; direction: ltr; }
+.ffl-dir > span { display: flex; height: 100%; }
+.ffl-dir .is-sell { justify-content: flex-end; border-right: 1px solid var(--line-strong); }
+.ffl-dir .is-buy { justify-content: flex-start; }
+.ffl-dir i { display: block; height: 100%; border-radius: 4px; }
+.ffl-dir .is-sell i { background: var(--down); }
+.ffl-dir .is-buy i { background: var(--up); }
+.ffl-row .ffl-ring-panel, .ffl-new { --fill: color-mix(in srgb, var(--world) 4%, var(--surface)); background: var(--fill); padding: 20px 22px; }
+.ffl-bar.is-buy { fill: var(--up); } .ffl-bar.is-sell { fill: var(--down); }

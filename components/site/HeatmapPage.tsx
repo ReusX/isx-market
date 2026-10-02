@@ -17,6 +17,7 @@ import type { ScreenerInitial } from '@/lib/marketServer'
 import { shortDate, localeDate } from '@/lib/date'
 import { downloadImage, copyImage } from '@/lib/watermark'
 import '@/styles/markets.css'
+import '@/styles/econ-page.css'
 import '@/styles/heatmap-page.css'
 
 /**
@@ -173,15 +174,17 @@ export function HeatmapPage({ initial }: { initial: ScreenerInitial }) {
       <main className="hm2 id-full iq-door" data-world="lapis" data-level="calm">
         <DoorRail door="markets" />
         <div className="hm2-body">
+          {/* Identity v3 (board 2, «خريطة السوق»): the map and its controls
+              in the frame; the chosen company as the key print card. */}
+          <div className="fx-frame hm2-frame">
           <header className="hm2-head">
-            <p className="id-eyebrow">{pg.eyebrow}</p>
             <PageTitle title={h.title} note={pg.lede} />
             <p className="id-cap hm2-summary id-num">{pg.summary(int.format(summary.up), int.format(summary.down), int.format(summary.flat), int.format(summary.none), periodLabel)}</p>
           </header>
 
           <div className="hm2-controls">
-            <div className="id-pills" role="group" aria-label={h.periodLabel}>
-              {PERIODS.map((p) => <button key={p.id} type="button" className="id-pill" aria-pressed={period === p.id} onClick={() => setPeriod(p.id)}>{ar ? p.ar : p.en}</button>)}
+            <div className="fx-quick" role="group" aria-label={h.periodLabel}>
+              {PERIODS.map((p) => <button key={p.id} type="button" className="fx-qbtn" aria-pressed={period === p.id} onClick={() => setPeriod(p.id)}>{ar ? p.ar : p.en}</button>)}
             </div>
             {/* One quiet scale: coral … grey … mint, with the period's cap at the ends. */}
             <div className="hm2-scale id-num" role="group" aria-label={h.bandsLabel} onPointerLeave={() => setBand(null)}>
@@ -197,7 +200,7 @@ export function HeatmapPage({ initial }: { initial: ScreenerInitial }) {
           <div className="hm2-stage">
             {zoom ? (
               <div className="hm2-crumb">
-                <button type="button" className="id-pill is-sm" onClick={() => setZoom(null)}>← {h.allSectors}</button>
+                <button type="button" className="fx-qbtn" onClick={() => setZoom(null)}>← {h.allSectors}</button>
                 <span className="id-cap">{sectors.find((s) => s.id === zoom)?.label}</span>
               </div>
             ) : null}
@@ -237,33 +240,34 @@ export function HeatmapPage({ initial }: { initial: ScreenerInitial }) {
             </div>
 
             {sel ? (
-              <aside className="hm2-card id-panel" aria-live="polite">
+              <aside className="hm2-card id-print is-key" aria-live="polite">
                 <div className="hm2-side-head">
                   <CompanyLogo sym={sel.ticker} logo={sel.logo} color={sel.color} className="iqm-logo" />
                   <div><p className="id-h3">{sel.name}</p><p className="id-cap">{sel.ticker} · {sectorLabel(sel.sector, locale)}</p></div>
-                  <button type="button" className="id-pill is-sm" onClick={() => setSelected(null)} aria-label={h.close}>×</button>
+                  <button type="button" className="fx-qbtn" onClick={() => setSelected(null)} aria-label={h.close}>×</button>
                 </div>
                 <dl className="hm2-facts id-num">
                   <div><dt>{h.lastPrice}</dt><dd>{price.format(sel.last_close)} <span className="id-cap">{h.currency}</span></dd></div>
                   <div><dt>{h.changeIn(periodLabel)}</dt><dd className={periodChange(sel, period) == null ? '' : periodChange(sel, period)! > 0 ? 'id-up' : periodChange(sel, period)! < 0 ? 'id-down' : ''}><bdi>{pctText(periodChange(sel, period))}</bdi></dd></div>
                   <div><dt>{h.marketCap}</dt><dd>{sel.mcap != null ? `${(sel.mcap / 1e9).toFixed(1)} ${u.bn}` : '—'}</dd></div>
                 </dl>
-                <Link href={L(`/c/${sel.ticker}`)} className="id-btn is-sm">{h.openCompany} →</Link>
+                <Link href={L(`/c/${sel.ticker}`)} className="fx-qbtn">{h.openCompany} →</Link>
               </aside>
             ) : null}
           </div>
 
+          </div>
           <div className="hm2-foot">
-            <div className="id-pills hm2-export">
-              <button type="button" className="id-btn is-sm" onClick={onShare}>{pg.share}</button>
-              <button type="button" className="id-pill is-sm" onClick={onCopy}>{pg.copy}</button>
-              <button type="button" className="id-pill is-sm" onClick={onDownload}>{pg.download}</button>
+            <div className="fx-quick hm2-export">
+              <button type="button" className="fx-qbtn" onClick={onShare}>{pg.share}</button>
+              <button type="button" className="fx-qbtn" onClick={onCopy}>{pg.copy}</button>
+              <button type="button" className="fx-qbtn" onClick={onDownload}>{pg.download}</button>
               {msg ? <span className="id-cap" role="status">{msg}</span> : null}
             </div>
-            <div className="id-pills" role="group" aria-label={pg.sizeBy}>
+            <div className="fx-quick" role="group" aria-label={pg.sizeBy}>
               <span className="id-cap">{pg.sizeBy}</span>
-              <button type="button" className="id-pill is-sm" aria-pressed={sizeBy === 'cap'} onClick={() => setSizeBy('cap')}>{pg.sizeCap}</button>
-              <button type="button" className="id-pill is-sm" aria-pressed={sizeBy === 'value'} onClick={() => setSizeBy('value')}>{pg.sizeValue}</button>
+              <button type="button" className="fx-qbtn" aria-pressed={sizeBy === 'cap'} onClick={() => setSizeBy('cap')}>{pg.sizeCap}</button>
+              <button type="button" className="fx-qbtn" aria-pressed={sizeBy === 'value'} onClick={() => setSizeBy('value')}>{pg.sizeValue}</button>
             </div>
             <p className="id-cap">{pg.excluded(int.format(uni.excludedNoCap.length + uni.excludedStale.length + uni.excludedUnknownAge.length))}</p>
           </div>

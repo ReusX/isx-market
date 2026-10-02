@@ -15,6 +15,7 @@ import {
 import type { ScreenerInitial } from '@/lib/marketServer'
 import { shortDate } from '@/lib/date'
 import '@/styles/markets.css'
+import '@/styles/econ-page.css'
 import '@/styles/screener-page.css'
 
 /**
@@ -171,16 +172,20 @@ export function ScreenerPage({ initial, marketSession }: { initial: ScreenerInit
       <main className="scr id-full iq-door" data-world="lapis" data-level="calm">
         <DoorRail door="markets" />
         <div className="scr-body">
+          {/* Identity v3 (board 2, «الفلتر»): the presets, the conditions and
+              the search sit in the frame as the board's chips, with the
+              number of matches as the figure; the results are the board. */}
+          <div className="fx-frame scr-frame">
           <header className="scr-head">
-            <p className="id-eyebrow">{pg.eyebrow}</p>
             <PageTitle title={s.title} note={pg.lede} />
+            <p className="scr-count id-num"><b>{int.format(rows.length)}</b> <span>{s.matchingOf} {int.format(all.filter((r) => suspended || !r.suspended).length)}</span></p>
           </header>
 
           {/* Presets: each writes a condition. The hint under the row says what the active one means. */}
           <section className="scr-presets" aria-label={pg.presets}>
-            <div className="id-pills">
+            <div className="fx-quick">
               {PRESETS.map((p) => (
-                <button key={p.id} type="button" className="id-pill" aria-pressed={preset === p.id} onClick={() => applyPreset(p.id)}>{ar ? p.ar : p.en}</button>
+                <button key={p.id} type="button" className="fx-qbtn" aria-pressed={preset === p.id} onClick={() => applyPreset(p.id)}>{ar ? p.ar : p.en}</button>
               ))}
             </div>
             <p className="id-cap scr-hint id-num">
@@ -203,11 +208,11 @@ export function ScreenerPage({ initial, marketSession }: { initial: ScreenerInit
               </span>
             ))}
             {activeIds.some((id) => id === 'change') || preset === 'gainers' || preset === 'losers' ? (
-              <span className="id-pills scr-period" role="group" aria-label={s.periodLabel}>
-                {PERIODS.map((p) => <button key={p.id} type="button" className="id-pill is-sm" aria-pressed={period === p.id} onClick={() => setPeriod(p.id)}>{ar ? p.ar : p.en}</button>)}
+              <span className="fx-quick scr-period" role="group" aria-label={s.periodLabel}>
+                {PERIODS.map((p) => <button key={p.id} type="button" className="fx-qbtn" aria-pressed={period === p.id} onClick={() => setPeriod(p.id)}>{ar ? p.ar : p.en}</button>)}
               </span>
             ) : null}
-            <button type="button" className="id-pill is-sm" aria-expanded={builder} onClick={() => setBuilder((v) => !v)}>{s.advanced} {builder ? '▴' : '▾'}</button>
+            <button type="button" className="fx-qbtn" aria-expanded={builder} onClick={() => setBuilder((v) => !v)}>{s.advanced} {builder ? '▴' : '▾'}</button>
           </div>
           {invalid.length ? <p className="id-note">{s.invalidRange(invalid.map((id) => (ar ? metricDef(id).ar : metricDef(id).en)).join(s.listSeparator))}</p> : null}
 
@@ -224,7 +229,7 @@ export function ScreenerPage({ initial, marketSession }: { initial: ScreenerInit
                     <span className="id-cap">–</span>
                     <input type="number" step={m.step} className="id-input" placeholder={s.max} aria-label={s.maxOf(ar ? m.ar : m.en)}
                       value={r?.max == null ? '' : +(r.max / m.scale).toFixed(4)} onChange={(e) => setBound(m.id, 'max', e.target.value)} />
-                    {rangeIsSet(r) ? <button type="button" className="id-pill is-sm" onClick={() => clear(m.id)}>{s.clearFilterOf('')}</button> : <span />}
+                    {rangeIsSet(r) ? <button type="button" className="fx-qbtn" onClick={() => clear(m.id)}>{s.clearFilterOf('')}</button> : <span />}
                   </div>
                 )
               })}
@@ -234,20 +239,21 @@ export function ScreenerPage({ initial, marketSession }: { initial: ScreenerInit
 
           <div className="scr-controls">
             <input id="scr-q" type="search" className="id-input" value={q} onChange={(e) => setQ(e.target.value)} placeholder={s.searchPlaceholder} aria-label={s.searchLabel} />
-            <div className="id-pills" role="group" aria-label={s.sectorLabel}>
-              <button type="button" className="id-pill is-sm" aria-pressed={sector === 'ALL'} onClick={() => setSector('ALL')}>{s.allSectors}</button>
-              {sectors.map((k) => <button key={k} type="button" className="id-pill is-sm" aria-pressed={sector === k} onClick={() => setSector(k)}>{sectorLabel(k, locale)}</button>)}
+            <div className="fx-quick" role="group" aria-label={s.sectorLabel}>
+              <button type="button" className="fx-qbtn" aria-pressed={sector === 'ALL'} onClick={() => setSector('ALL')}>{s.allSectors}</button>
+              {sectors.map((k) => <button key={k} type="button" className="fx-qbtn" aria-pressed={sector === k} onClick={() => setSector(k)}>{sectorLabel(k, locale)}</button>)}
             </div>
             <label className="scr-toggle id-cap"><input type="checkbox" checked={suspended} onChange={(e) => setSuspended(e.target.checked)} /> {pg.showSuspended}</label>
             <span className="scr-actions">
-              <button type="button" className="id-pill is-sm" onClick={share}>{copied ? pg.copied : pg.share}</button>
-              <button type="button" className="id-pill is-sm" onClick={exportCsv}>{pg.csv}</button>
+              <button type="button" className="fx-qbtn" onClick={share}>{copied ? pg.copied : pg.share}</button>
+              <button type="button" className="fx-qbtn" onClick={exportCsv}>{pg.csv}</button>
             </span>
+          </div>
           </div>
 
           <section className="scr-results" aria-label={s.resultsLabel}>
-            <div className="id-table-scroll">
-              <table className="id-table id-num iqm-table scr-table">
+            <div className="mb-scroll id-table-scroll">
+              <table className="mb-table id-num scr-table">
                 <colgroup><col /><col className="iqm-c-price" />{COLS.map((id) => <col key={id} className={`iqm-c-chg ${id === 'band' || id === 'pe' ? 'iqm-hide-sm' : ''}`.trim()} />)}</colgroup>
                 <thead>
                   <tr>
@@ -289,7 +295,7 @@ export function ScreenerPage({ initial, marketSession }: { initial: ScreenerInit
             </div>
             {!rows.length ? (
               <div className="iqm-empty"><p className="id-h3">{s.emptyTitle}</p><p className="id-cap">{s.emptyNote}</p>
-                <button type="button" className="id-btn is-sm" onClick={() => { setRanges({}); setSector('ALL'); setQ('') }}>{s.emptyReset}</button></div>
+                <button type="button" className="fx-qbtn" onClick={() => { setRanges({}); setSector('ALL'); setQ('') }}>{s.emptyReset}</button></div>
             ) : <p className="id-cap iqm-count">{int.format(rows.length)} {s.matchingOf} {int.format(all.filter((r) => suspended || !r.suspended).length)}{initial.peFailed ? ` · ${s.peFailed}` : ''}</p>}
           </section>
 

@@ -15,10 +15,14 @@
    larger moves (calm level: no pastel fills on the dark page). Plain rgba,
    not color-mix(): the canvas map reads these back with getComputedStyle. */
 .is-b0  { background: var(--surface-2); color: var(--secondary); }
-.is-b1  { background: rgba(42, 111, 70, .22); } .is-b2 { background: rgba(42, 111, 70, .45); } .is-b3 { background: #2a6f46; color: #fbf6ec; }
-.is-b-1 { background: rgba(178, 62, 38, .20); } .is-b-2 { background: rgba(178, 62, 38, .42); } .is-b-3 { background: #b23e26; color: #fbf6ec; }
-[data-theme='dark'] .is-b1  { background: rgba(92, 196, 136, .18); } [data-theme='dark'] .is-b2 { background: rgba(92, 196, 136, .34); } [data-theme='dark'] .is-b3 { background: rgba(92, 196, 136, .56); color: #e9e7e3; }
-[data-theme='dark'] .is-b-1 { background: rgba(226, 119, 92, .18); } [data-theme='dark'] .is-b-2 { background: rgba(226, 119, 92, .34); } [data-theme='dark'] .is-b-3 { background: rgba(226, 119, 92, .56); color: #e9e7e3; }
+/* Identity v3 (board 2): each band mixed from the board's own up/down inks
+   into the surface, deeper for a bigger move; the same rule in both themes. */
+.is-b1  { background: color-mix(in srgb, var(--up) 30%, var(--surface-2)); }
+.is-b2  { background: color-mix(in srgb, var(--up) 55%, var(--surface-2)); }
+.is-b3  { background: color-mix(in srgb, var(--up) 85%, var(--surface-2)); color: var(--page); }
+.is-b-1 { background: color-mix(in srgb, var(--down) 30%, var(--surface-2)); }
+.is-b-2 { background: color-mix(in srgb, var(--down) 55%, var(--surface-2)); }
+.is-b-3 { background: color-mix(in srgb, var(--down) 85%, var(--surface-2)); color: var(--page); }
 .is-none { background: repeating-linear-gradient(135deg, var(--surface-2) 0 6px, transparent 6px 12px); color: var(--muted); }
 
 /* Stage: the map and the side card. */
@@ -53,3 +57,11 @@
 .hm2-foot { display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap; margin-top: 12px; }
 .hm2-foot .id-pills { align-items: center; gap: 8px; }
 .hm2-export { order: -1; }
+
+/* ── Identity v3 board ───────────────────────────────────────────────────── */
+.hm2-frame .hm2-head { margin-bottom: 14px; }
+.hm2-frame .hm2-map { background: var(--page); border-color: var(--line-strong); }
+.hm2-frame .hm2-sector { background: var(--surface); }
+.hm2-card { background: var(--page); }
+.hm2-step.is-on { outline-color: var(--ink); }
+.hm2-foot { margin-top: 4px; }

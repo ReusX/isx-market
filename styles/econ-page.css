@@ -272,6 +272,9 @@
 .eco-years { grid-template-columns: repeat(auto-fill, minmax(min(100%, 150px), 1fr)); }
 .eco-years li { grid-template-columns: minmax(0, 1fr) auto; }
 .eco-years li > span:last-child { display: none; }
+.mna-candles line { stroke-width: 1.5; }
+.mna-candles .is-up line { stroke: var(--up); } .mna-candles .is-up rect { fill: var(--up); }
+.mna-candles .is-down line { stroke: var(--down); } .mna-candles .is-down rect { fill: var(--down); }
 .fx-quick { display: flex; gap: 8px; flex-wrap: wrap; }
 .fx-qbtn { font: 600 13px/1 var(--font-numeric); padding: 9px 13px; border-radius: 999px; border: 1.5px solid var(--border); background: transparent; color: var(--ink); cursor: pointer; }
 .fx-qbtn[aria-pressed='true'] { background: var(--world); border-color: var(--world); color: var(--page); }
