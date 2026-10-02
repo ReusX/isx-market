@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useId, useMemo, useRef, useState } from 'react'
 import { useLocale } from '@/context/LocaleContext'
 import { shortDate, localeDate } from '@/lib/date'
 import '@/styles/series-chart.css'
@@ -77,9 +77,14 @@ export function SeriesChart({ series, ranges, defaultRange, format, label, heigh
   mark?: boolean
 }) {
   const { locale, t } = useLocale()
+  const clipId = `lch-clip-${useId().replace(/[^a-zA-Z0-9]/g, '')}`
   const [rangeId, setRangeId] = useState(defaultRange)
   const hasOhlc = !!series[0]?.ohlc?.length
-  const [mode, setMode] = useState<'candle' | 'line'>('candle')
+  /* Candles only lead when the days have real ranges (stocks do). A series
+     recorded once a day (the dollar, mostly) draws flat dashes as candles,
+     so it opens as a filled line; the switch still offers candles. */
+  const ohlcMeaningful = hasOhlc && (series[0].ohlc as Candle[]).filter((c) => c.h > c.l).length >= (series[0].ohlc as Candle[]).length * 0.4
+  const [mode, setMode] = useState<'candle' | 'line'>(ohlcMeaningful ? 'candle' : 'line')
   const candleMode = hasOhlc && mode === 'candle'
   const [hover, setHover] = useState<number | null>(null)
   const plotRef = useRef<HTMLDivElement>(null)
@@ -114,7 +119,11 @@ export function SeriesChart({ series, ranges, defaultRange, format, label, heigh
 
   const geo = useMemo(() => {
     if (main.length < 2) return null
-    const vals = view.flatMap((s) => s.points.map((p) => p.value)).concat(candles.flatMap((c) => [c.h, c.l]))
+    /* Candles scale to themselves: a far-off comparison line (the dollar's
+       official 1,310 under a 1,560 market) would squash every candle into a
+       flat dash. That line is clipped to the plot; its value stays in the
+       readout. */
+    const vals = candles.length ? candles.flatMap((c) => [c.h, c.l]) : view.filter((s, i) => i === 0 || !s.muted).flatMap((s) => s.points.map((p) => p.value))
     const lo = Math.min(...vals), hi = Math.max(...vals)
     const pad = (hi - lo) * 0.12 || Math.max(1, hi * 0.02)
     const y0 = lo - pad, y1 = hi + pad
@@ -125,7 +134,9 @@ export function SeriesChart({ series, ranges, defaultRange, format, label, heigh
     const lines = view.map((s) => ({ ...s, d: path(s.points) }))
     /* Date labels: about six, on real points of the lead series. */
     const n = Math.min(6, main.length)
-    const long = range.days == null || range.days > 200
+    /* The label format follows the data actually on screen, not the range
+       button: a «1 year» view of a month of records is a month. */
+    const long = (t1 - t0) / 86400_000 > 200
     const labels: { date: string; k: number }[] = []
     for (let k = 0; k < n; k++) {
       const i = Math.round((k / (n - 1)) * (main.length - 1))
@@ -138,8 +149,14 @@ export function SeriesChart({ series, ranges, defaultRange, format, label, heigh
     const mean = (a: SeriesPoint[]) => a.reduce((t, p) => t + p.value, 0) / Math.max(1, a.length)
     const markX = mean(main.slice(0, mid)) <= mean(main.slice(mid)) ? x(main[Math.floor(mid / 2)].date) : x(main[mid + Math.floor(mid / 2)].date)
     const bw = candles.length ? Math.max(1.5, Math.min(12, ((W - PL - PR) / candles.length) * 0.62)) : 0
-    return { x, y, lines, bw, ticks: niceTicks(y0, y1), labels: labels.map((l) => ({ ...l, text: fmt(l.date) })), markX, markY: PT + (H - PT - PB) * 0.28 }
-  }, [view, main, candles, W, H, range, locale])
+    /* No two labels with the same text, and none closer than ~90px. */
+    const shown: { date: string; k: number; text: string }[] = []
+    for (const l of labels.map((l) => ({ ...l, text: fmt(l.date) }))) {
+      if (shown.some((o) => o.text === l.text || Math.abs(x(o.date) - x(l.date)) < 90)) continue
+      shown.push(l)
+    }
+    return { x, y, lines, bw, ticks: niceTicks(y0, y1), labels: shown, markX, markY: PT + (H - PT - PB) * 0.28 }
+  }, [view, main, candles, W, H, locale])
 
   const onMove = (e: React.PointerEvent<SVGSVGElement>) => {
     if (!geo) return
@@ -191,7 +208,13 @@ export function SeriesChart({ series, ranges, defaultRange, format, label, heigh
               </g>
             ))}
             {mark ? <text x={geo.markX} y={geo.markY} className="lch-mark" aria-hidden="true">IRAQSM.COM</text> : null}
+            <defs><clipPath id={clipId}><rect x={PL} y={PT} width={Math.max(0, W - PL - PR)} height={Math.max(0, H - PT - PB)} /></clipPath></defs>
+            <g clipPath={`url(#${clipId})`}>
+            {!candleMode && main.length > 1 ? (
+              <path className="lch-area" d={`${geo.lines[0].d} L${geo.x(main[main.length - 1].date).toFixed(1)},${H - PB} L${geo.x(main[0].date).toFixed(1)},${H - PB} Z`} />
+            ) : null}
             {geo.lines.map((s, i) => (candleMode && i === 0 ? null : <path key={s.key} d={s.d} className={`lch-line ${i === 0 ? 'is-lead' : ''} ${s.dashed ? 'is-dashed' : ''} ${s.muted ? 'is-muted' : ''}`.trim()} />))}
+            </g>
             {candles.map((c) => {
               const cx = geo.x(c.date), cls = c.c > c.o ? 'is-up' : c.c < c.o ? 'is-down' : 'is-flat'
               const top = geo.y(Math.max(c.o, c.c)), hgt = Math.max(1.5, Math.abs(geo.y(c.o) - geo.y(c.c)))
@@ -202,7 +225,7 @@ export function SeriesChart({ series, ranges, defaultRange, format, label, heigh
                 </g>
               )
             })}
-            {geo.labels.map((l) => <text key={l.date} x={geo.x(l.date)} y={H - 8} className="lch-xlabel" style={{ textAnchor: l.k === 0 ? 'start' : l.k === geo.labels.length - 1 ? 'end' : 'middle' }}>{l.text}</text>)}
+            {geo.labels.map((l) => <text key={l.date} x={geo.x(l.date)} y={H - 8} className="lch-xlabel" style={{ textAnchor: geo.x(l.date) < PL + 50 ? 'start' : geo.x(l.date) > W - PR - 50 ? 'end' : 'middle' }}>{l.text}</text>)}
             {hover != null && main[hover] ? (
               <g>
                 <line x1={geo.x(main[hover].date)} x2={geo.x(main[hover].date)} y1={PT} y2={H - PB} className="lch-cross" />

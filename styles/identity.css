@@ -129,9 +129,11 @@ body {
   border-radius: var(--r-pill); font-size: 13px; font-weight: 500; line-height: 1.3;
   font-variant-numeric: tabular-nums;
 }
-.id-chg.is-up   { background: var(--moss); color: var(--moss-ink); }
-.id-chg.is-down { background: var(--sand); color: var(--sand-ink); }
-.id-chg.is-flat { background: var(--surface-2); color: var(--secondary); }
+/* The board's chip: an outline in the move's colour, no fill. */
+.id-chg { border: 1.5px solid currentColor; background: transparent; font-weight: 600; }
+.id-chg.is-up   { color: var(--up); }
+.id-chg.is-down { color: var(--down); }
+.id-chg.is-flat { color: var(--secondary); border-color: var(--border); }
 .id-up   { color: var(--up); }
 .id-down { color: var(--down); }
 
@@ -198,6 +200,10 @@ body {
 [dir='ltr'] .id-print { box-shadow: var(--off) var(--off) 0 0 var(--world, var(--border)); }
 .id-print.is-fill { background: var(--world); color: var(--on-world); border-color: var(--line-strong); box-shadow: calc(var(--off) * -1) var(--off) 0 0 var(--line-strong); }
 .id-print.is-hand { border-radius: var(--r-hand); }
+/* A calm print at any level: neutral outline and offset, for supporting
+   figures that sit beside a key card. */
+.id-print.is-calm { border-color: var(--border); box-shadow: calc(var(--off) * -1) var(--off) 0 0 var(--border); --off: 4px; }
+[dir='ltr'] .id-print.is-calm { box-shadow: var(--off) var(--off) 0 0 var(--border); }
 [dir='ltr'] .id-print.is-fill { box-shadow: var(--off) var(--off) 0 0 var(--line-strong); }
 .id-tag { display: inline-flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 600; color: var(--secondary); }
 .id-tag::before { content: ''; width: 10px; height: 10px; border-radius: 3px; background: var(--world, var(--muted)); }

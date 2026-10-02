@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import { fetchFx } from '@/lib/rates'
+import { fxSeries } from '@/lib/fxHistory'
 import { HundredPage } from '@/components/site/HundredPage'
 import { CBI_OFFICIAL_RATE } from '@/lib/fxOfficial'
 import { absUrl, seoAlternates } from '@/lib/seo'
@@ -51,6 +52,8 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function Page() {
+  /* The board's month chart and the move both read the recorded Baghdad closes. */
+  const parallel = await fxSeries('parallel', { from: new Date(Date.now() - 45 * 86_400_000).toISOString().slice(0, 10) })
   const P = messages('ar').rates.page.hundred
   const { fx, v } = await figures()
   /* The visible FAQ and this markup are the same call on the same figures. */
@@ -81,7 +84,7 @@ export default async function Page() {
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeLd(ld) }} />
-      <HundredPage fx={fx} />
+      <HundredPage fx={fx} parallel={parallel} />
     </>
   )
 }

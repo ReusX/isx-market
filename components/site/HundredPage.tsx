@@ -9,6 +9,8 @@ import { PageTitle } from './PageTitle'
 import { AboutSection } from './AboutSection'
 import { CBI_OFFICIAL_RATE, CBI_RATE_CONFIRMED } from '@/lib/fxOfficial'
 import type { FxData } from '@/lib/rates'
+import type { FxDay } from '@/lib/fxHistory'
+import { FxBlocks } from './FxBlocks'
 import '@/styles/econ-page.css'
 
 /**
@@ -26,7 +28,7 @@ const IQD_AMOUNTS = [25_000, 50_000, 100_000, 250_000, 500_000, 1_000_000]
 const nf0 = new Intl.NumberFormat('en-US', { maximumFractionDigits: 0 })
 const nf2 = new Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
 
-export function HundredPage({ fx }: { fx: FxData | null }) {
+export function HundredPage({ fx, parallel }: { fx: FxData | null; parallel: FxDay[] }) {
   const { t, locale } = useLocale()
   const R = t.rates
   const P = R.page.hundred
@@ -39,26 +41,11 @@ export function HundredPage({ fx }: { fx: FxData | null }) {
       <main className="eco id-full iq-door" data-world="dinar" data-level="accent">
         <EconRail />
         <div className="eco-body">
-          <header className="eco-head">
-            <p className="id-eyebrow">{R.page.eyebrow}</p>
-            <PageTitle title={P.h1} note={P.lead} />
-            {hundred == null ? <p className="id-note">{R.tools.unavailable}</p> : (
-              <>
-                <p className="eco-lead id-num">
-                  <strong><bdi>{nf0.format(hundred)}</bdi></strong>
-                  <span className="eco-unit">{P.unit}</span>
-                </p>
-                <p className="id-cap eco-when">
-                  {fx?.date ? R.tools.observedOn(localeDate(fx.date, locale)) : R.tools.noObserved}
-                </p>
-                <div className="id-stats id-num eco-stats">
-                  <div className="id-stat"><small>{P.market}</small><b><bdi>{nf0.format(hundred)}</bdi></b><span className="id-cap">{nf0.format(rate as number)} / $1</span></div>
-                  <div className="id-stat"><small>{P.official}</small><b><bdi>{nf0.format(hundredOfficial)}</bdi></b><span className="id-cap">{R.page.fx.officialNote(localeDate(CBI_RATE_CONFIRMED, locale))}</span></div>
-                  <div className="id-stat"><small>{P.gap}</small><b><bdi>{nf0.format(hundred - hundredOfficial)}</bdi></b><span className="id-cap">{nf0.format(((hundred - hundredOfficial) / hundredOfficial) * 100)}%</span></div>
-                </div>
-              </>
-            )}
-          </header>
+          {/* The approved dollar block (shared with /fx) at ×100: «الورقة». */}
+          {hundred == null ? <p className="id-note">{R.tools.unavailable}</p> : (
+            <FxBlocks fx={fx} parallel={parallel} officialRate={CBI_OFFICIAL_RATE} officialDate={CBI_RATE_CONFIRMED}
+              title={P.h1} titleNote={P.lead} unitLabel={P.unit} mult={100} />
+          )}
 
           {rate != null ? (
             <section className="id-panel eco-panel" aria-label={P.notes}>
@@ -98,7 +85,7 @@ export function HundredPage({ fx }: { fx: FxData | null }) {
             {P.waraqBody.map((p) => <p key={p} className="id-body">{p}</p>)}
           </section>
 
-          <section className="eco-faq" aria-label={P.faqTitle}>
+          <section className="eco-faq id-panel" aria-label={P.faqTitle}>
             <h2 className="id-h3">{P.faqTitle}</h2>
             {P.faq({
               hundred: hundred != null ? nf0.format(hundred) : '—',

@@ -2,9 +2,9 @@
  * The up/down chip beside a headline price: the move since the previous
  * close, in the same `id-chg` pill the oil and silver heroes use.
  *
- * `invert` is for exchange rates. A dearer dollar (or euro) is a weaker
- * dinar, so a rise takes the "down" colour, as the /fx history panel
- * already shows it. Gold and the commodities keep rise = up.
+ * Colour follows the figure: up is green, down is red, for every price
+ * including the dollar (owner's call, 2026-10-02). `invert` stays for a
+ * caller that ever needs the dinar's point of view; none does today.
  */
 export function DayChip({ pct, abs, fmt, unit = '', invert = false, label }: {
   pct: number | null | undefined

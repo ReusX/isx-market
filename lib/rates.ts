@@ -35,6 +35,9 @@ export interface GoldData {
   /** The source's own previous-day close per karat, dinars per gram: the
    *  latest row of its «الايام السابقة» table dated before `date`. */
   prev: { date: string; grams: { karat: number; iqd: number }[] } | null
+  /** Every dated row of that same table, oldest first (the source keeps about
+   *  a week): the gold pages' chart and weekly figures. */
+  history: { date: string; grams: { karat: number; iqd: number }[] }[]
   source: string
   sourceUrl: string
   fetchedAt: string
@@ -66,6 +69,7 @@ export async function fetchGold(): Promise<GoldData | null> {
     /* «الايام السابقة»: a header of karats, then one dated row per day,
        newest first. The column order is read from the header, not assumed. */
     let prev: GoldData['prev'] = null
+    const history: GoldData['history'] = []
     const hi = t.indexOf('السابقة')
     if (hi > 0 && date) {
       const seg = t.slice(hi, hi + 1500)
@@ -75,6 +79,8 @@ export async function fetchGold(): Promise<GoldData | null> {
       const rowRe = new RegExp('(\\d{4}-\\d{2}-\\d{2})' + '\\s+([\\d,]+)'.repeat(karats.length), 'g')
       let r: RegExpExecArray | null
       while (karats.length && (r = rowRe.exec(seg))) {
+        const row = { date: r[1], grams: karats.map((k, i) => ({ karat: k, iqd: intNum(r![i + 2]) })) }
+        if (r[1] <= today && !history.some((h) => h.date === r![1])) history.push(row)
         if (r[1] >= today) continue
         if (prev && prev.date >= r[1]) continue
         prev = { date: r[1], grams: karats.map((k, i) => ({ karat: k, iqd: intNum(r![i + 2]) })) }
@@ -86,6 +92,7 @@ export async function fetchGold(): Promise<GoldData | null> {
       ounceSell: ounce('بيع'),
       ounceBuy:  ounce('شراء'),
       ounceChange, prev,
+      history: history.sort((a, b) => a.date.localeCompare(b.date)),
       source: 'iraqgoldprice.com',
       sourceUrl: GOLD_URL,
       fetchedAt: new Date().toISOString(),
