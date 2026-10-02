@@ -1,0 +1,62 @@
+import type { pro as ar } from '../ar/pro'
+
+/** «IQWealth Pro» · /pro, /pro/done, and the lock shown on paid sections. */
+export const pro: typeof ar = {
+  eyebrow: 'IQWealth Pro',
+  title: 'The full data on every company on the Iraq Stock Exchange',
+  standfirst: 'Every year of financial statements, the full ratios, and foreign investor flow company by company. Daily prices stay free for everyone.',
+  plans: 'Choose a pass',
+  month: '1 month', year: '1 year',
+  iqd: (n: string) => `${n} IQD`,
+  perMonth: (n: string) => `${n} IQD a month`,
+  save: (n: string) => `Save ${n} IQD`,
+  buy: { month: 'Get a month', year: 'Get a year' },
+  signIn: 'Sign in to subscribe',
+  busy: 'Opening the payment page…',
+  failed: 'Couldn’t open the payment page. Please try again.',
+  paidWith: 'Paid through Wayl, the Iraqi payment gateway, in dinars. No auto-renewal: you buy a period and it ends; nothing is charged after it.',
+  testMode: 'Test mode: no real money is taken.',
+  active: (d: string) => `Your Pro pass runs until ${d}`,
+  extend: 'Buying now adds the time to your current pass.',
+  paidHeading: 'What does Pro give you?',
+  paid: [
+    'The dollar on the Harthiya, Al-Samawal, Basra, Erbil, Sulaymaniyah and Duhok exchanges',
+    'Every published year and quarter of financial statements, not just the latest year',
+    'The full ratios: profitability, leverage, liquidity and returns',
+    'Foreign investor flow for each company, over its whole history',
+  ],
+  freeHeading: 'What stays free forever?',
+  free: [
+    'The dollar, gold and currency rates, and the market live',
+    'The latest two financial years and two quarters of every company',
+    'Market-wide foreign flow, and each company’s last 5 sessions',
+  ],
+  done: {
+    title: 'Payment',
+    checking: 'Checking the payment with Wayl…',
+    paid: (d: string) => `Done! Your Pro pass runs until ${d}`,
+    pending: 'The payment isn’t complete yet. If you just paid, wait a minute and refresh.',
+    failed: 'The payment didn’t go through, and nothing was charged.',
+    signIn: 'Sign in with the account you paid with so we can check the payment.',
+    back: 'Back to Pro',
+    go: 'Open the financials',
+  },
+  markets: {
+    title: 'The dollar on the other exchanges',
+    note: 'Buy and sell on each exchange as the Kifah exchange channel posts them, per one dollar.',
+    names: { harthiya: 'Harthiya', samawal: 'Al-Samawal', basra: 'Basra', erbil: 'Erbil', sulaymaniyah: 'Sulaymaniyah', duhok: 'Duhok' },
+    bid: 'Buy', ask: 'Sell', at: 'Updated',
+    vsKifah: 'vs Kifah',
+    locked: 'The six exchanges\u2019 rates are for Pro members',
+    none: 'No recent rates from these exchanges right now.',
+  },
+  flow: {
+    windows: { w5: '5 sessions', w20: '1 month', w60: '3 months', all: 'All' },
+    more: 'Full history with Pro',
+  },
+  lock: {
+    title: 'This part is for Pro members',
+    body: 'The latest two years and two quarters are free. Older years and quarters are part of IQWealth Pro.',
+    cta: 'Pro from 5,000 IQD',
+  },
+}

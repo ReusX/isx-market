@@ -107,6 +107,8 @@ export const ROUTES: RouteEntry[] = [
   { pattern: '/contact',                   cls: 'mirror' },
   { pattern: '/privacy',                   cls: 'mirror' },
   { pattern: '/legal',                     cls: 'mirror' },
+  { pattern: '/pro',                       cls: 'mirror' },
+  { pattern: '/pro/done',                  cls: 'private', why: 'Wayl\u2019s return page after a payment; nothing to index.' },
 
   // ── Personal & auth · usability mirrors, never search surfaces ──────────
   { pattern: '/portfolio',                 cls: 'private' },

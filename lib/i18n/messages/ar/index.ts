@@ -23,6 +23,7 @@ import { site } from './site'
 import { wrap } from './wrap'
 import { results } from './results'
 import { app } from './app'
+import { pro } from './pro'
 
 /**
  * The Arabic dictionary — and, because `en` is typed as `typeof ar`, the
@@ -34,4 +35,4 @@ import { app } from './app'
  * key removed here but left in `en` fails too, so the dictionaries cannot
  * drift apart in either direction.
  */
-export const ar = { nav, shell, system, glossary, info, data, home, market, screener, heatmap, pulse, statistics, flow, company, financials, news, learn, rates, personal, ownership, banks, site, wrap, results, app }
+export const ar = { nav, shell, system, glossary, info, data, home, market, screener, heatmap, pulse, statistics, flow, company, financials, news, learn, rates, personal, ownership, banks, site, wrap, results, app, pro }

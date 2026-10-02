@@ -1,7 +1,7 @@
 import companiesData from '@/public/data/companies.json'
 import { permanentRedirect } from 'next/navigation'
 import { CompanyPage } from '@/components/site/CompanyPage'
-import { loadCompany } from '@/lib/marketServer'
+import { freeFlow, loadCompany } from '@/lib/marketServer'
 
 /**
  * ⚠ THE CACHING HERE IS THE POINT, not an afterthought.
@@ -26,5 +26,7 @@ export default async function Page(props: { params: Promise<{ sym: string }> }) 
   /* Tickers are upper-case; a lower-case URL is the same page. Google had
      indexed both shapes, so this is a 301, not a canonical hint. */
   if (params.sym !== params.sym.toUpperCase()) permanentRedirect(`/c/${params.sym.toUpperCase()}`)
-  return <CompanyPage initial={await loadCompany(params.sym)} />
+  /* Foreign flow: the last sessions are free; «برو» readers load the history (/api/pro/flow). */
+  const initial = await loadCompany(params.sym)
+  return <CompanyPage initial={{ ...initial, flow: freeFlow(initial.flow) }} />
 }

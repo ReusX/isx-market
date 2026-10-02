@@ -622,6 +622,28 @@ const SEC_CODE: Record<string, string> = {
   INS: 'Insurance', SVC: 'Services', AGR: 'Agriculture', INV: 'Investment',
 }
 
+/** The free part of a company's foreign flow («IQWealth برو»): its last five sessions. */
+export const FREE_FLOW_SESSIONS = 5
+export function freeFlow<T extends { date: string }>(rows: T[]): T[] {
+  const dates = Array.from(new Set(rows.map((r) => r.date))).sort().slice(-FREE_FLOW_SESSIONS)
+  const keep = new Set(dates)
+  return rows.filter((r) => keep.has(r.date))
+}
+
+/** A company's whole foreign-flow history, newest first (for «برو» readers only: /api/pro/flow). */
+export async function companyFlowHistory(symRaw: string): Promise<{ date: string; side: string; value: number }[]> {
+  const sym = symRaw.toUpperCase()
+  const sb = client(3600)
+  const out: { date: string; side: string; value: number }[] = []
+  for (let f = 0; f < 20_000; f += 1000) {
+    const { data, error } = await sb.from('foreign_flow_company_daily').select('date,side,value').eq('ticker', sym).order('date', { ascending: false }).range(f, f + 999)
+    if (error || !data?.length) break
+    for (const r of data as { date: string; side: string; value: number | null }[]) out.push({ date: r.date, side: r.side, value: Number(r.value ?? 0) })
+    if (data.length < 1000) break
+  }
+  return out
+}
+
 export const loadCompany = cache(async (symRaw: string): Promise<CompanyInitial> => {
   const sym = symRaw.toUpperCase()
   const meta = (companiesData as CompanyMeta[]).find((m) => m.sym === sym)
@@ -811,6 +833,28 @@ export const loadCompany = cache(async (symRaw: string): Promise<CompanyInitial>
 /* ── /c/[sym]/financials ────────────────────────────────────────────────── */
 
 /**
+ * The free part of the financials («IQWealth برو», lib/pro.ts): the latest
+ * financial year and the year it is compared with (the filing itself prints
+ * both), and the two latest quarters. Everything older reaches the browser
+ * only through /api/pro/financials/[sym], for a reader with a running pass.
+ */
+export const FREE_ANNUAL = 2
+export const FREE_QUARTERS = 2
+export function freeFinancials(fin: FinancialsJson): FinancialsJson {
+  const annual = fin.annualCols.slice(0, FREE_ANNUAL)
+  const quarter = fin.quarterCols.slice(0, FREE_QUARTERS)
+  const keep = new Set([...annual, ...quarter].map((c) => `${c.col.y}:${c.col.p}`))
+  const years = new Set(annual.map((c) => c.col.y))
+  const facts = Object.fromEntries(Object.entries(fin.facts).filter(([k]) => keep.has(k.split(':').slice(2).join(':'))))
+  const ratios = Object.fromEntries(Object.entries(fin.ratios).filter(([k]) => years.has(Number(k.split(':').pop()))))
+  return {
+    ...fin, annualCols: annual, quarterCols: quarter, facts, ratios,
+    years: fin.years.filter((y) => years.has(y)),
+    locked: { annual: fin.annualCols.length - annual.length, quarter: fin.quarterCols.length - quarter.length },
+  }
+}
+
+/**
  * The financials model, built on the server and flattened for the wire.
  *
  * `buildFinancials` returns Maps; a client component's props must be JSON,
@@ -831,6 +875,8 @@ export type FinancialsJson = {
   reportedUnits: string[]
   conflicts: number
   valuesWithheld: boolean
+  /** Set when the model was cut to the free part (lib/marketServer freeFinancials): what «برو» adds. */
+  locked?: { annual: number; quarter: number }
 }
 
 export type FinancialsInitial = {

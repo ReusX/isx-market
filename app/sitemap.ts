@@ -79,6 +79,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: absUrl('/contact'),    lastModified: staticDate },
     { url: absUrl('/privacy'),    lastModified: staticDate },
     { url: absUrl('/legal'),      lastModified: staticDate },
+    { url: absUrl('/pro'),        lastModified: new Date('2026-10-03') },
   ]
 
   // ── Per-company pages (server-rendered SEO content + live price) ──

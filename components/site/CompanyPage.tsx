@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useLocale } from '@/context/LocaleContext'
 import { periodLabel } from '@/lib/news'
 import { useApp } from '@/context/AppContext'
@@ -14,6 +14,8 @@ import { latestRatios, earningsSeries } from '@/lib/companyView'
 import { sectorLabel } from '@/lib/screener'
 import { buildCompanyProfile } from '@/lib/companyProfile'
 import { localeDate } from '@/lib/date'
+import { proFetch, usePro } from '@/lib/proClient'
+import '@/styles/pro.css'
 import '@/styles/econ-page.css'
 import '@/styles/company-page.css'
 
@@ -79,11 +81,23 @@ export function CompanyPage({ initial }: { initial: CompanyInitial }) {
   const ratios = useMemo(() => latestRatios(initial.ratios), [initial.ratios])
   const earnings = useMemo(() => earningsSeries(initial.facts, 'annual').slice(-5), [initial.facts])
 
+  /* Foreign flow: the page carries the last five sessions; a «برو» reader
+     loads the whole history and picks a window. */
+  const pro = usePro()
+  const [flowAll, setFlowAll] = useState<typeof initial.flow | null>(null)
+  const [win, setWin] = useState<'w5' | 'w20' | 'w60' | 'all'>('w5')
+  useEffect(() => {
+    if (!pro.until) return
+    proFetch(`/api/pro/flow/${initial.sym}`).then((r) => (r.ok ? r.json() : null)).then((j: { flow?: typeof initial.flow } | null) => { if (j?.flow) setFlowAll(j.flow) }).catch(() => {})
+  }, [pro.until, initial.sym])
   const flow = useMemo(() => {
+    const rows = flowAll ?? initial.flow
+    const n = win === 'w5' ? 5 : win === 'w20' ? 20 : win === 'w60' ? 60 : Infinity
+    const keep = new Set(Array.from(new Set(rows.map((r) => r.date))).sort().slice(-n))
     let buy = 0, sell = 0
-    for (const r of initial.flow) { if (r.side === 'buy') buy += r.value; else if (r.side === 'sell') sell += r.value }
-    return { buy, sell, net: buy - sell, sessions: new Set(initial.flow.map((r) => r.date)).size }
-  }, [initial.flow])
+    for (const r of rows) { if (!keep.has(r.date)) continue; if (r.side === 'buy') buy += r.value; else if (r.side === 'sell') sell += r.value }
+    return { buy, sell, net: buy - sell, sessions: keep.size }
+  }, [initial.flow, flowAll, win])
 
   /* ⚠ buildReturns yields FRACTIONS (0.157), not percentages. Formatting one
      straight to `toFixed(1)` printed a 15.7% move as «0.2%». */
@@ -293,6 +307,11 @@ export function CompanyPage({ initial }: { initial: CompanyInitial }) {
                   </>
                 )
               })()}
+              {flowAll ? (
+                <div className="fx-quick pro-wins" role="group" aria-label={C.foreignTrading}>
+                  {(['w5', 'w20', 'w60', 'all'] as const).map((k) => <button key={k} type="button" className="fx-qbtn" aria-pressed={win === k} onClick={() => setWin(k)}>{t.pro.flow.windows[k]}</button>)}
+                </div>
+              ) : !pro.loading && flow.sessions ? <Link className="pro-more" href={L('/pro')}>{t.pro.flow.more}</Link> : null}
               <details className="fx-more"><summary aria-label={R.page.fx.facts.more}>+</summary><p>{B.flowMore}</p></details>
             </section>
 

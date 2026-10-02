@@ -24,6 +24,7 @@ import { site } from './site'
 import { wrap } from './wrap'
 import { results } from './results'
 import { app } from './app'
+import { pro } from './pro'
 
 /** The English dictionary. Typed against Arabic — see `../ar/index.ts`. */
-export const en: typeof ar = { nav, shell, system, glossary, info, data, home, market, screener, heatmap, pulse, statistics, flow, company, financials, news, learn, rates, personal, ownership, banks, site, wrap, results, app }
+export const en: typeof ar = { nav, shell, system, glossary, info, data, home, market, screener, heatmap, pulse, statistics, flow, company, financials, news, learn, rates, personal, ownership, banks, site, wrap, results, app, pro }

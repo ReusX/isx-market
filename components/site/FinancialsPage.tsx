@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { Fragment, useMemo, useState } from 'react'
+import { Fragment, useEffect, useMemo, useState } from 'react'
 import { useLocale } from '@/context/LocaleContext'
 import { SiteShell } from './SiteShell'
 import { DoorRail } from './DoorRail'
@@ -13,6 +13,8 @@ import {
   reportedUnitLabel, colLabel, colKey, type StatementId, type ColMeta, type PeriodMode,
 } from '@/lib/financials'
 import { sectorLabel } from '@/lib/screener'
+import { proFetch, usePro } from '@/lib/proClient'
+import { ProLock } from './ProLock'
 import '@/styles/econ-page.css'
 import '@/styles/company-page.css'
 import '@/styles/financials-page.css'
@@ -49,7 +51,16 @@ export function FinancialsPage({ initial }: { initial: FinancialsInitial }) {
   const F = C.fin
   const ar = locale === 'ar'
   const name = ar ? initial.ar : initial.en || initial.ar
-  const fin = initial.fin
+  /* The page carries the free part (latest years); a «برو» reader loads the rest. */
+  const pro = usePro()
+  const [full, setFull] = useState<FinancialsJson | null>(null)
+  useEffect(() => {
+    const l = initial.fin?.locked
+    if (!pro.until || !l || l.annual + l.quarter === 0) return
+    proFetch(`/api/pro/financials/${initial.sym}`).then((r) => (r.ok ? r.json() : null)).then((j: { fin?: FinancialsJson } | null) => { if (j?.fin) setFull(j.fin) }).catch(() => {})
+  }, [pro.until, initial.sym, initial.fin?.locked])
+  const fin = full ?? initial.fin
+  const lockedN = full ? 0 : (initial.fin?.locked?.annual ?? 0) + (initial.fin?.locked?.quarter ?? 0)
   const [mode, setMode] = useState<PeriodMode>('ANNUAL')
 
   const rail = <DoorRail door="markets" />
@@ -324,6 +335,7 @@ export function FinancialsPage({ initial }: { initial: FinancialsInitial }) {
             )
           })}
 
+          {lockedN > 0 && !pro.loading ? <ProLock /> : null}
           {fin.years.length && Object.keys(fin.ratios).length ? (
             <section className="cur-all fin-sec" aria-label={F.ratios}>
               <h2 className="id-h3">{F.ratios}</h2>

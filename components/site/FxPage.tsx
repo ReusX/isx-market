@@ -7,6 +7,7 @@ import { AboutSection } from './AboutSection'
 import type { FxData } from '@/lib/rates'
 import type { FxDay } from '@/lib/fxHistory'
 import { FxBlocks } from './FxBlocks'
+import { OtherMarkets } from './OtherMarkets'
 import { CBI_OFFICIAL_RATE, CBI_RATE_CONFIRMED } from '@/lib/fxOfficial'
 import type { FxQa } from '@/lib/fxCopy'
 import '@/styles/econ-page.css'
@@ -45,6 +46,7 @@ export function FxPage({ fx, parallel, official, faq }: { fx: FxData | null; par
         <div className="eco-body">
           <FxBlocks fx={fx} parallel={parallel} officialRate={officialRate} officialDate={officialDate}
             title={P.title} titleNote={C.referenceCaveat} unitLabel={P.perDollar} />
+          <OtherMarkets />
 
           {faq.length ? (
             <section className="eco-faq id-panel" aria-label={P.faqTitle}>

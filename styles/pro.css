@@ -1,0 +1,60 @@
+/* «IQWealth برو» · /pro and /pro/done (components/site/ProPage). Board
+   vocabulary: the year pass is the key print in gold's ochre, the month a
+   calm print; figures in the numeric face; lists with a square tag. */
+.pro-body { display: grid; gap: 18px; padding-block: 8px 40px; }
+.pro-plans { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr)); gap: 18px; }
+.pro-plan { display: grid; gap: 6px; align-content: start; padding: 20px; margin-inline-start: 6px; }
+.pro-plan-h { margin: 0; font: 700 18px/1.4 var(--font-display); }
+.pro-price { margin: 0; font: 700 clamp(34px, 8vw, 44px)/1.1 var(--font-numeric); }
+.pro-price small { font: 600 14px/1 var(--font-body); color: var(--muted); }
+.pro-note { margin: 0; font-size: 13px; color: var(--secondary); min-height: 1.5em; }
+.pro-note b { color: var(--up); }
+.pro-buy {
+  display: inline-flex; align-items: center; justify-content: center; min-height: 46px; padding: 0 18px; margin-top: 8px;
+  border: 1.5px solid var(--ink); border-radius: 999px; background: var(--ink); color: var(--page);
+  font: 700 15px/1 var(--font-body); text-decoration: none; cursor: pointer;
+}
+.pro-plan.is-calm .pro-buy { background: transparent; color: var(--ink); }
+.pro-buy:disabled { opacity: .6; cursor: default; }
+.pro-buy:focus-visible { outline: 3px solid var(--world); outline-offset: 2px; }
+.pro-err { margin: 0; color: var(--down); font-weight: 600; }
+.pro-small { margin: 0; font-size: 13px; line-height: 1.7; color: var(--muted); }
+.pro-small b { color: var(--ink); }
+.pro-active { margin: 0; padding: 14px 16px; font-weight: 600; }
+.pro-lists { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr)); gap: 18px 28px; }
+.pro-list { list-style: none; margin: 8px 0 0; padding: 0; display: grid; gap: 10px; }
+.pro-list li { position: relative; padding-inline-start: 20px; line-height: 1.7; }
+.pro-list li::before { content: ''; position: absolute; inset-inline-start: 0; top: .6em; width: 10px; height: 10px; border-radius: 3px; background: var(--border); }
+.pro-list.is-paid li::before { background: var(--world); }
+.pro-done { margin: 0; padding: 18px; font: 700 18px/1.6 var(--font-display); }
+.pro-actions { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin: 0; }
+.pro-actions .fx-qbtn { text-decoration: none; font-family: var(--font-body); }
+/* The lock on a paid section. */
+.pro-lock { display: grid; gap: 6px; justify-items: start; padding: 18px 20px; margin-block: 8px; margin-inline-start: 4px; border-style: dashed; }
+.pro-lock-h { margin: 0; display: flex; align-items: center; gap: 8px; font: 700 17px/1.4 var(--font-display); }
+.pro-lock-h i { width: 10px; height: 10px; border-radius: 3px; background: var(--world); }
+.pro-lock-b { margin: 0; color: var(--secondary); line-height: 1.7; }
+.pro-lock .pro-buy { margin-top: 6px; }
+/* Company page: the flow card's windows (Pro) or the way in. */
+.pro-wins { margin-top: 10px; flex-wrap: wrap; }
+.pro-wins .fx-qbtn { font-family: var(--font-body); padding: 7px 11px; font-size: 12px; }
+.pro-more { display: inline-block; margin-top: 10px; font-size: 13px; font-weight: 700; color: var(--w-ochre); text-decoration: none; }
+.pro-more::before { content: ''; display: inline-block; width: 8px; height: 8px; margin-inline-end: 6px; border-radius: 2px; background: var(--w-ochre); }
+/* The other exchanges (components/site/OtherMarkets). */
+.pro-mk { display: grid; gap: 8px; padding: 18px 20px; margin-inline-start: 4px; min-width: 0; }
+.pro-mk-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+.pro-mk-h { margin: 0; display: flex; align-items: center; gap: 8px; font: 700 18px/1.4 var(--font-display); }
+.pro-mk-h i { width: 10px; height: 10px; border-radius: 3px; background: var(--world); flex: 0 0 auto; }
+.pro-tag { font-size: 12px; font-weight: 700; color: var(--world); border: 1.5px solid var(--world); border-radius: 999px; padding: 2px 10px; }
+.pro-mk-note { margin: 0; font-size: 13px; color: var(--muted); line-height: 1.6; }
+.pro-mk-table { width: 100%; border-collapse: collapse; font-size: 15px; }
+.pro-mk-table th, .pro-mk-table td { padding: 10px 6px; border-top: 1.5px solid var(--border); text-align: start; }
+.pro-mk-table thead th { border-top: 0; font-size: 12px; font-weight: 600; color: var(--muted); }
+.pro-mk-table tbody th { font-weight: 700; display: grid; gap: 2px; }
+.pro-mk-table tbody th small { font-size: 11px; font-weight: 500; color: var(--muted); }
+.pro-mk-table td { font: 600 16px/1.2 var(--font-numeric); }
+.pro-mk-table .is-up { color: var(--up); } .pro-mk-table .is-down { color: var(--down); }
+.pro-blur { filter: blur(6px); user-select: none; color: var(--secondary); }
+.pro-mk-lock { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; padding-top: 6px; }
+.pro-mk-lock p { margin: 0; font-weight: 700; }
+.pro-mk-lock .pro-buy { margin-top: 0; }

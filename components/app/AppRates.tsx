@@ -6,6 +6,7 @@ import { useLocale } from '@/context/LocaleContext'
 import { CURRENCY_FLAGS, type CurrencyCode } from '@/lib/currencies'
 import { haptic } from '@/lib/appMode'
 import { RateHero, Converter, Tiles, nf0, nfQ, fmtAny } from './RateKit'
+import { OtherMarkets } from '@/components/site/OtherMarkets'
 import '@/styles/app.css'
 
 /**
@@ -42,6 +43,7 @@ export function AppFx({ d }: { d: FxScreenData }) {
         shareLines={rate ? t.app.share.fxLines(d.buy == null ? '—' : nfQ.format(d.buy), d.sell == null ? '—' : nfQ.format(d.sell), nf0.format(rate * 100)) : undefined}
       />
       <Converter market={rate} official={d.official} code="USD" name={R.dollar} flag="🇺🇸" quick={[100, 1000, 10000]} />
+      <OtherMarkets compact />
       <Tiles items={[
         { label: R.buy, value: d.buy == null ? '—' : nfQ.format(d.buy) },
         { label: R.sell, value: d.sell == null ? '—' : nfQ.format(d.sell) },

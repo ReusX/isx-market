@@ -1,7 +1,7 @@
 import companiesData from '@/public/data/companies.json'
 import { permanentRedirect } from 'next/navigation'
 import { FinancialsPage } from '@/components/site/FinancialsPage'
-import { loadFinancials } from '@/lib/marketServer'
+import { freeFinancials, loadFinancials } from '@/lib/marketServer'
 
 /** `/en/c/[sym]/financials` — see the Arabic route. */
 export const revalidate = 86400
@@ -16,5 +16,7 @@ export default async function Page(props: { params: Promise<{ sym: string }> }) 
   /* Tickers are upper-case; a lower-case URL is the same page. Google had
      indexed both shapes, so this is a 301, not a canonical hint. */
   if (params.sym !== params.sym.toUpperCase()) permanentRedirect(`/en/c/${params.sym.toUpperCase()}/financials`)
-  return <FinancialsPage initial={await loadFinancials(params.sym)} />
+  /* Only the free part goes into the page; Pro readers load the rest (/api/pro/financials). */
+  const initial = await loadFinancials(params.sym)
+  return <FinancialsPage initial={initial.fin ? { ...initial, fin: freeFinancials(initial.fin) } : initial} />
 }
