@@ -11,8 +11,11 @@ const flags = () => ({
   setup: { key: !!process.env.WAYL_API_KEY?.trim(), envSet: !!process.env.WAYL_ENV, live: waylEnv() === 'live', prod: process.env.VERCEL_ENV === 'production' },
 })
 
+/* Never cached: a stale «closed» answer kept the buy buttons disabled after payments opened. */
+const NO_STORE = { 'Cache-Control': 'private, no-store' }
+
 export async function GET(req: Request) {
   const user = await userFromRequest(req)
-  if (!user) return NextResponse.json({ proUntil: null, ...flags() })
-  return NextResponse.json({ proUntil: await proUntil(user.id), ...flags() }, { headers: { 'Cache-Control': 'private, no-store' } })
+  if (!user) return NextResponse.json({ proUntil: null, ...flags() }, { headers: NO_STORE })
+  return NextResponse.json({ proUntil: await proUntil(user.id), ...flags() }, { headers: NO_STORE })
 }
