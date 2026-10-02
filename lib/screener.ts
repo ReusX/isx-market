@@ -270,6 +270,12 @@ export const SECTOR_LABELS: Record<string, { ar: string; en: string }> = {
   'Money Transfer': { ar: 'التحويل المالي', en: 'Money Transfer' },
   Other: { ar: 'أخرى', en: 'Other' },
 }
+/* The short codes public/data/companies.json uses (`sec`), read by the
+   portfolio and watchlist pages. */
+Object.assign(SECTOR_LABELS, {
+  BANK: SECTOR_LABELS.Banks, TEL: SECTOR_LABELS.Telecom, IND: SECTOR_LABELS.Industry, HTL: SECTOR_LABELS.Tourism,
+  INS: SECTOR_LABELS.Insurance, AGR: SECTOR_LABELS.Agriculture, INV: SECTOR_LABELS.Investment, SVC: SECTOR_LABELS.Services,
+})
 
 export function sectorLabel(key: string, locale: 'ar' | 'en'): string {
   const s = SECTOR_LABELS[key]

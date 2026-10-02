@@ -212,6 +212,10 @@ export const RATIO_GROUPS: { ar: string; en: string; keys: string[] }[] = [
    On 2026-09-18 every one of those filings was checked against its PDF and
    corrected by hand (supabase/corrections/20260918_unit_defects.json holds
    each change with the value before and after); the list is now empty.
+   2026-10-02: four more filings (BZII 2026 Q1, AISP 2024 Q1 + 2025 Q2, BGUC
+   2025 Q3) read in thousands but printed in dinars were scaled the same way,
+   checked against the company's neighbouring filings
+   (supabase/corrections/20261002_unit_defects.json).
 
    The rule stays: a ticker is listed here only when a known defect has been
    confirmed and not yet corrected. Nothing is inferred at runtime. */

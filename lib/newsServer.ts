@@ -1,47 +1,28 @@
-import { listArticles, stripHtml, articlePath } from '@/lib/articles'
-import { createPublicClient } from '@/lib/supabase/server'
-import { companyName } from '@/lib/market'
-import { usableName } from '@/lib/statistics'
-import companiesData from '@/public/data/companies.json'
-import { sectorLabel } from '@/lib/screener'
-import { PERIOD_LABEL, type NewsItem } from '@/lib/news'
+import { listArticles, stripHtml, articlePath, isOwnArticle } from '@/lib/articles'
+import { articleFigures, coverTopic } from '@/lib/articleFigures'
+import type { NewsItem } from '@/lib/news'
 import { messages } from '@/lib/i18n'
 import type { Locale } from '@/lib/i18n/locale'
-import { compactIqd } from '@/lib/wrapText'
-import { loadResultsIndex, resultsSlug } from '@/lib/resultsServer'
-import { money, cmp } from '@/lib/resultsText'
-import { localeDate } from '@/lib/date'
-import { periodLabel } from '@/lib/news'
 
 /**
- * /news · the feed: CMS articles and ISC filings, merged newest first.
- * Lifted unchanged from the old route's server component so the rebuilt
- * page reads the same rows.
+ * /news · the feed: our own articles only, newest first (user, 2026-10-02).
+ *
+ * The feed used to merge ISC filings, the outside-news repost feed, the
+ * daily session wraps and company results. Those pages still exist where
+ * they belong (the wraps under /news/session, linked from the markets rail;
+ * results on each company page); the feed is only what IQWealth writes.
  */
 export type NewsInitial = {
   items: NewsItem[]
-  sectors: { id: string; label: string }[]
   articlesOk: boolean
-  filingsOk: boolean
-  filingCoverage: { count: number; oldest: string; newest: string } | null
-}
-
-type FilingRow = {
-  id: number
-  ticker: string
-  fiscal_year: number
-  period: string
-  pdf_url: string
-  source_added_date: string
 }
 
 /**
  * Editorial articles come from content/articles/news — repo files, so this
- * cannot fail the way the old headless CMS did; `ok` is kept because the page
- * still has a state for a stream that did not load (filings, external feed).
+ * cannot fail the way the old headless CMS did.
  */
 async function loadArticles(locale: Locale): Promise<{ items: NewsItem[]; ok: boolean }> {
-  const posts = listArticles('news')
+  const posts = listArticles('news').filter(isOwnArticle)
   return {
     ok: true,
     items: posts.map(p => ({
@@ -63,164 +44,13 @@ async function loadArticles(locale: Locale): Promise<{ items: NewsItem[]; ok: bo
        */
       href: articlePath('news', p.slug),
       external: false,
+      cover: { image: p.image || null, topic: coverTopic(articleFigures(`${p.title} ${p.excerpt} ${p.tags.join(' ')}`, p.tickers)) },
       foreignLang: locale === 'en',
     })),
   }
 }
 
-async function loadFilings(locale: Locale): Promise<{ items: NewsItem[]; ok: boolean; oldest: string | null; newest: string | null }> {
-  try {
-    const sb = createPublicClient()
-    const { data } = await sb.from('financial_reports_public')
-      .select('id,ticker,fiscal_year,period,pdf_url,source_added_date')
-      .order('source_added_date', { ascending: false })
-      .limit(1000)
-    const rows = (data ?? []) as FilingRow[]
-    if (!rows.length) return { items: [], ok: false, oldest: null, newest: null }
-
-    const { data: mData } = await sb.from('company_metrics').select('ticker,sector,name_ar,name_en').limit(2000)
-    const metrics = (mData ?? []) as { ticker: string; sector: string | null; name_ar: string | null; name_en: string | null }[]
-    const byTicker = new Map(metrics.map(m => [m.ticker, m]))
-    // `companies.json` is the canonical name source and beats
-    // `company_metrics.name_ar`, whose Arabic is mangled for a good number of
-    // tickers — «الخاتم لالتصاالت» where the canonical file has «الخاتم
-    // للاتصالات». lib/market's fetchCompanyMeta cannot be used here: it
-    // requests the relative path `/data/companies.json`, which has no base URL
-    // on the server and throws every time, so this loader was silently falling
-    // back to the broken column. The rest of the app imports the file directly
-    // on the server; so does this.
-    const metaMap = new Map(companiesData.map(x => [x.sym, x]))
-
-    const items = rows.map(r => {
-      const m = byTicker.get(r.ticker)
-      const mt = metaMap.get(r.ticker)
-      const period = PERIOD_LABEL[r.period] ?? r.period
-      return {
-        id: `f${r.id}`,
-        kind: 'filing' as const,
-        at: r.source_added_date,
-        // Composed from the four fields the source actually has. Nothing is
-        // claimed about what the document says.
-        headline: `${period} ${r.fiscal_year}`,
-        excerpt: null,
-        symbol: r.ticker,
-        // `usableName` keeps numeric and placeholder junk out of the feed.
-        name: companyName({
-          ar: usableName(mt?.ar) ? mt!.ar : null,
-          en: usableName(mt?.en) ? mt!.en : null,
-          name_ar: usableName(m?.name_ar) ? m!.name_ar : null,
-          name_en: usableName(m?.name_en) ? m!.name_en : null,
-        }, r.ticker, locale),
-        sector: m?.sector ?? null,
-        source: messages(locale).news.sources.filing,
-        doc: { type: messages(locale).news.financialStatements, period: r.period, year: r.fiscal_year },
-        href: r.pdf_url,
-        external: true,
-      }
-    })
-    const stamps = rows.map(r => r.source_added_date).sort()
-    return { items, ok: true, oldest: stamps[0], newest: stamps[stamps.length - 1] }
-  } catch {
-    return { items: [], ok: false, oldest: null, newest: null }
-  }
-}
-
-
-/* The daily session wraps as feed rows — from daily_index alone (one
-   query): the headline needs only the close and the move. Loading thirty
-   full wraps here cost ninety queries per render of /news. */
-async function loadWraps(locale: Locale): Promise<NewsItem[]> {
-  try {
-    const t = messages(locale)
-    const sb = createPublicClient()
-    const { data } = await sb.from('daily_index').select('date,isx60,total_value,total_trades,traded_companies')
-      .gt('isx60', 0).order('date', { ascending: false }).limit(31)
-    const rows = (data ?? []) as { date: string; isx60: number; total_value: number; total_trades: number; traded_companies: number }[]
-    const n2 = new Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
-    return rows.slice(0, 30).map((r, k) => {
-      const prev = rows[k + 1]
-      const pct = prev ? ((r.isx60 - prev.isx60) / prev.isx60) * 100 : 0
-      const dir = pct > 0.005 ? 'up' : pct < -0.005 ? 'down' : 'flat'
-      const dateShort = localeDate(r.date, locale)
-      const w = t.wrap
-      return {
-        id: `w${r.date}`, kind: 'wrap' as const, at: `${r.date}T14:00:00+03:00`,
-        headline: w.feedHeadline(dateShort, n2.format(r.isx60), n2.format(Math.abs(pct)), dir),
-        excerpt: `${compactIqd(r.total_value, w)} · ${new Intl.NumberFormat('en-US').format(r.total_trades)} · ${r.traded_companies}`,
-        symbol: null, name: null, sector: null, source: w.source, doc: null,
-        href: `/news/session/${r.date}`, external: false, foreignLang: locale !== 'ar',
-      }
-    })
-  } catch { return [] }
-}
-
-/* Company results as feed rows — the forty newest trusted filings, with
-   net income and its prior-year figure from ONE facts query. */
-async function loadResultRows(locale: Locale): Promise<NewsItem[]> {
-  try {
-    const t = messages(locale)
-    const keys = (await loadResultsIndex()).slice(0, 40)
-    if (!keys.length) return []
-    const sb = createPublicClient()
-    const { data } = await sb.from('financial_facts_public').select('ticker,fiscal_year,period,value_iqd')
-      .eq('line_key', 'net_income').in('ticker', Array.from(new Set(keys.map((k) => k.sym))))
-    const facts = (data ?? []) as { ticker: string; fiscal_year: number; period: string; value_iqd: number | null }[]
-    const net = (sym: string, y: number, p: string) => facts.find((f) => f.ticker === sym && f.fiscal_year === y && f.period === p && f.value_iqd != null)?.value_iqd ?? null
-    const r = t.results
-    return keys.flatMap((k) => {
-      const now = net(k.sym, k.year, k.period)
-      if (now == null) return []
-      const meta = (companiesData as { sym: string; ar: string; en: string; sec?: string }[]).find((c) => c.sym === k.sym)
-      if (!meta) return []
-      const prior = net(k.sym, k.year - 1, k.period)
-      const c = cmp(now, prior ?? undefined)
-      const full = locale === 'ar' ? meta.ar : meta.en
-      const words = full.split(/\s+/)
-      const v = { company: words.length > 6 ? words.slice(0, 4).join(' ') : full, sym: k.sym, periodLabel: periodLabel(k.period, locale), year: String(k.year), isAnnual: k.period === 'ANNUAL',
-        net: money(now, r), netYoY: c } as Parameters<typeof r.feedHeadline>[0]
-      return [{
-        id: `r${k.sym}${resultsSlug(k)}`, kind: 'results' as const, at: k.addedAt || `${k.year}-12-31T00:00:00Z`,
-        headline: r.feedHeadline(v), excerpt: null,
-        symbol: k.sym, name: full, sector: meta.sec ?? null, source: r.sourceName, doc: null,
-        href: `/c/${k.sym}/results/${resultsSlug(k)}`, external: false, foreignLang: locale !== 'ar',
-      }]
-    })
-  } catch { return [] }
-}
-
-/* The aggregator feed: headlines the GitHub job collected from the press
-   and the institutions (news_feed). Each links out; nothing is rewritten. */
-async function loadExternal(locale: Locale): Promise<NewsItem[]> {
-  try {
-    const t = messages(locale)
-    const sb = createPublicClient()
-    const since = new Date(Date.now() - 14 * 86400_000).toISOString()
-    const { data, error } = await sb.from('news_feed').select('url,source,title,summary,lang,ticker,published_at')
-      .gte('published_at', since).order('published_at', { ascending: false }).limit(300)
-    if (error || !data) return []
-    const names = t.news.sources as Record<string, string>
-    return (data as { url: string; source: string; title: string; summary: string | null; lang: string; ticker: string | null; published_at: string }[]).map((r) => ({
-      id: `x${r.url}`, kind: 'external' as const, at: r.published_at,
-      headline: r.title, excerpt: r.summary, symbol: r.ticker, name: null, sector: null,
-      source: names[r.source] ?? r.source, doc: null, href: r.url, external: true,
-      foreignLang: r.lang !== locale,
-    }))
-  } catch { return [] }
-}
-
 export async function loadNews(locale: Locale): Promise<NewsInitial> {
-  const [articles, filings, wraps, results, external] = await Promise.all([loadArticles(locale), loadFilings(locale), loadWraps(locale), loadResultRows(locale), loadExternal(locale)])
-  const items = [...articles.items, ...filings.items, ...wraps, ...results, ...external]
-    .sort((a, b) => (a.at < b.at ? 1 : a.at > b.at ? -1 : 0))
-  return {
-    items,
-    sectors: Array.from(new Set(filings.items.map(i => i.sector).filter(Boolean) as string[]))
-      .map(id => ({ id, label: sectorLabel(id, locale) }))
-      .sort((a, b) => a.label.localeCompare(b.label, 'ar')),
-    articlesOk: articles.ok,
-    filingsOk: filings.ok,
-    filingCoverage: filings.oldest && filings.newest
-      ? { count: filings.items.length, oldest: filings.oldest, newest: filings.newest }
-      : null,
-  }
+  const articles = await loadArticles(locale)
+  return { items: articles.items, articlesOk: articles.ok }
 }

@@ -55,7 +55,7 @@ export function FlowRing({ rows, session, compact }: { rows: FlowRow[]; session:
   useEffect(() => { setDrawn(false); const id = requestAnimationFrame(() => requestAnimationFrame(() => setDrawn(true))); return () => cancelAnimationFrame(id) }, [period, flow?.total])
 
   if (!flow || !flow.total) {
-    return <section className="fr id-panel"><h2 className="id-h3">{c.title}</h2><p className="id-note">{c.empty}</p></section>
+    return <section className="fr id-print is-calm"><h2 className="id-h3">{c.title}</h2><p className="id-note">{c.empty}</p></section>
   }
   const gap = 0.012 * C
   const buyLen = drawn ? Math.max(0, flow.buyShare * C - gap) : 0
@@ -71,17 +71,26 @@ export function FlowRing({ rows, session, compact }: { rows: FlowRow[]; session:
   const bar = (v: number) => v > 0 ? `${Math.max(6, Math.min(100, ((Math.log10(Math.max(v, 1e5)) - FLOOR) / (Math.log10(maxSide) - FLOOR)) * 100))}%` : '0'
   const shownDate = peek ?? (period === 'session' ? (days.find((d) => d.date === session)?.date ?? days[days.length - 1].date) : null)
 
+  const sign = flow.net > 0 ? '+' : flow.net < 0 ? '−' : ''
+  /* Number and magnitude word apart, or bidi carries the sign to the far end. */
+  const [, netNum = '', netUnit = ''] = compact(Math.abs(flow.net)).match(/^([\d.,]+)\s*(.*)$/) ?? [null, compact(Math.abs(flow.net)), '']
   return (
-    <section className={`fr id-panel ${side ? `is-${side}` : ''}`.trim()} aria-label={c.title}>
+    <section className={`fr id-print is-calm ${side ? `is-${side}` : ''}`.trim()} aria-label={c.title}>
       <header className="fr-head">
         <h2 className="id-h3 fr-title">{c.title}</h2>
-        <div className="id-pills" role="group">
+        <div className="fx-quick" role="group">
           {(['session', 'month'] as Period[]).map((p) => (
-            <button key={p} type="button" className="id-pill is-sm" aria-pressed={period === p} onClick={() => setPeriod(p)}>{c.periods[p]}</button>
+            <button key={p} type="button" className="fx-qbtn" aria-pressed={period === p} onClick={() => setPeriod(p)}>{c.periods[p]}</button>
           ))}
         </div>
       </header>
-      <div className="fr-body">
+
+      {/* The answer first: the net, big and coloured, with the ring beside it. */}
+      <div className="fr-top">
+        <div className="fr-answer">
+          <p className={`fr-big id-num is-${mood}`}><bdi dir="ltr">{sign}{netNum}</bdi>{netUnit ? <span className="fr-unit"> {netUnit}</span> : null}</p>
+          <p className="fr-sub">{mood === 'even' ? c.even : mood === 'buy' ? c.netBuy : c.netSell}{shownDate ? <> · <span className="id-num">{shortDate(shownDate, locale)}</span></> : <> · {c.periods.month}</>}</p>
+        </div>
         <svg className="fr-ring" viewBox="0 0 180 180" role="img" aria-label={c.label(compact(flow.buy), compact(flow.sell))}>
           <circle cx="90" cy="90" r={R} className="fr-track" strokeWidth={SW} />
           <circle cx="90" cy="90" r={R} className="fr-buy" strokeWidth={SW}
@@ -90,36 +99,43 @@ export function FlowRing({ rows, session, compact }: { rows: FlowRow[]; session:
           <circle cx="90" cy="90" r={R} className="fr-sell" strokeWidth={SW}
             strokeDasharray={`${sellLen} ${C - sellLen}`} strokeDashoffset={C / 4 - gap / 2 - (drawn ? flow.buyShare * C : 0)}
             onPointerEnter={() => setSide('sell')} onPointerLeave={() => setSide(null)} />
-          <text x="90" y="84" className={`fr-net id-num is-${mood}`}>{flow.net > 0 ? '+' : flow.net < 0 ? '−' : ''}{compact(Math.abs(flow.net))}</text>
-          <text x="90" y="104" className="fr-netlabel">{mood === 'even' ? c.even : mood === 'buy' ? c.netBuy : c.netSell}</text>
+          <text x="90" y="98" className="fr-ringpct id-num">{Math.round(flow.buyShare * 100)}%</text>
         </svg>
-        <div className="fr-side">
-          <dl className="fr-legend id-num">
-            {(['buy', 'sell'] as const).map((k) => (
-              <div key={k} className={`is-${k}`} onPointerEnter={() => setSide(k)} onPointerLeave={() => setSide(null)}>
-                <dt><i />{c[k]}</dt>
-                <dd>{compact(flow[k])}<span>{Math.round((k === 'buy' ? flow.buyShare : flow.sellShare) * 100)}%</span></dd>
-              </div>
-            ))}
-          </dl>
-          {/* Twenty sessions, to scale: buying up from the line, selling down. */}
-          <div className="fr-strip" onPointerLeave={() => setPeek(null)}>
-            {days.map((d) => (
-              <button type="button" key={d.date} className={`fr-bar ${d.date === shownDate ? 'is-on' : ''}`.trim()}
-                onPointerEnter={() => setPeek(d.date)} onFocus={() => setPeek(d.date)} onBlur={() => setPeek(null)}
-                aria-label={`${shortDate(d.date, locale)} · ${c.buy} ${compact(d.buy)} · ${c.sell} ${compact(d.sell)}`}>
-                <i className="is-buy" style={{ height: bar(d.buy) }} />
-                <i className="is-sell" style={{ height: bar(d.sell) }} />
-              </button>
-            ))}
-          </div>
-          <p className="id-cap fr-note id-num">
-            {peek
-              ? <>{shortDate(peek, locale)} · {c.buy} {compact(days.find((d) => d.date === peek)!.buy)} · {c.sell} {compact(days.find((d) => d.date === peek)!.sell)}</>
-              : <>{c.periods.month} · {c.strip}</>}
-          </p>
-        </div>
       </div>
+
+      {/* Buy against sell: one split bar, the two figures under its ends. */}
+      <div className="fr-split id-num">
+        <span className="fr-splitbar" aria-hidden="true">
+          <i className="is-buy" style={{ flex: Math.max(flow.buyShare, 0.02) }} onPointerEnter={() => setSide('buy')} onPointerLeave={() => setSide(null)} />
+          <i className="is-sell" style={{ flex: Math.max(flow.sellShare, 0.02) }} onPointerEnter={() => setSide('sell')} onPointerLeave={() => setSide(null)} />
+        </span>
+        <dl className="fr-pair">
+          {(['buy', 'sell'] as const).map((k) => (
+            <div key={k} className={`is-${k}`} onPointerEnter={() => setSide(k)} onPointerLeave={() => setSide(null)}>
+              <dt><i />{c[k]} <span>{Math.round((k === 'buy' ? flow.buyShare : flow.sellShare) * 100)}%</span></dt>
+              <dd>{compact(flow[k])}</dd>
+            </div>
+          ))}
+        </dl>
+      </div>
+
+      {/* Twenty sessions, to scale: buying up from the line, selling down. */}
+      <div className="fr-strip" onPointerLeave={() => setPeek(null)}>
+        {days.map((d) => (
+          <button type="button" key={d.date} className={`fr-bar ${d.date === shownDate ? 'is-on' : ''}`.trim()}
+            onPointerEnter={() => setPeek(d.date)} onFocus={() => setPeek(d.date)} onBlur={() => setPeek(null)}
+            aria-label={`${shortDate(d.date, locale)} · ${c.buy} ${compact(d.buy)} · ${c.sell} ${compact(d.sell)}`}>
+            <i className="is-buy" style={{ height: bar(d.buy) }} />
+            <i className="is-sell" style={{ height: bar(d.sell) }} />
+          </button>
+        ))}
+      </div>
+      <p className="id-cap fr-note id-num">
+        {peek
+          ? <>{shortDate(peek, locale)} · {c.buy} {compact(days.find((d) => d.date === peek)!.buy)} · {c.sell} {compact(days.find((d) => d.date === peek)!.sell)}</>
+          : <>{c.periods.month} · {c.strip}</>}
+      </p>
+
       <footer className="fr-foot">
         <span className="fr-mark" aria-hidden="true">IRAQSM.COM</span>
         <Link href={L('/statistics/foreign-flow')} className="id-btn is-sm">{c.full} →</Link>

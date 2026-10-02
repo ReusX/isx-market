@@ -33,7 +33,7 @@ const BLOCK = /<p>\{\{([a-z0-9-]+)\}\}<\/p>/g
 /* `matchAll` inherits a global regex's lastIndex, so the presence test must not touch it. */
 const HAS_BLOCK = /<p>\{\{[a-z0-9-]+\}\}<\/p>/
 
-function Body({ html, blocks, cls }: { html: string; blocks?: Record<string, ReactNode>; cls: string }) {
+export function ArticleBody({ html, blocks, cls }: { html: string; blocks?: Record<string, ReactNode>; cls: string }) {
   if (!blocks || !HAS_BLOCK.test(html)) return <div className={cls} dangerouslySetInnerHTML={{ __html: html }} />
   const parts: ReactNode[] = []
   let last = 0, i = 0
@@ -107,7 +107,7 @@ export function ArticlePage({ eyebrow, backHref, backLabel, title, standfirst, a
           ) : null}
 
           {/* The written body: its own headings, links, images and tables, with live blocks spliced in. */}
-          <Body html={bodyHtml} blocks={blocks} cls={`art-body id-body${layout === 'guide' ? ' art-guide' : ''}`} />
+          <ArticleBody html={bodyHtml} blocks={blocks} cls={`art-body id-body${layout === 'guide' ? ' art-guide' : ''}`} />
 
           {prev || next ? (
             <nav className="art-nav" aria-label={a.articleNav}>

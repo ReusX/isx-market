@@ -8,11 +8,14 @@ import { useApp } from '@/context/AppContext'
 import { LOCALES, LOCALE_NAME } from '@/lib/i18n/locale'
 import { switchPath } from '@/lib/i18n/paths'
 import { localeDateOrDash } from '@/lib/date'
-import { usePortfolio } from '@/lib/portfolio'
+import { usePortfolio, useAlerts } from '@/lib/portfolio'
+import { AuthShell } from './AuthKit'
 import { SiteShell } from './SiteShell'
 import { PageTitle } from './PageTitle'
 import { ToolsRail } from './tools'
 import { useCaptcha } from './Captcha'
+import '@/styles/econ-page.css'
+import '@/styles/tools-page.css'
 import '@/styles/auth-page.css'
 
 /**
@@ -46,6 +49,7 @@ export function ProfilePage() {
     }
   }
   const { lots } = usePortfolio()
+  const { alerts } = useAlerts()
   const email = user?.email ?? ''
   /* A phone account has no address: the identity row shows the number and
      the emailed reset is not offered (there is nowhere to send it). */
@@ -83,120 +87,132 @@ export function ProfilePage() {
     setResetSent(true)
   }
 
-  const body = authLoading ? null : !user ? (
-    <div className="ath-outcome">
-      <h2 className="id-h3">{ac.signInTitle}</h2>
-      <p className="id-body">{ac.signInNote}</p>
-      <div className="ath-outcome-acts"><button type="button" className="id-btn is-primary" onClick={() => openAuth('signin')}>{ac.signIn}</button></div>
-    </div>
-  ) : (
-    <>
-      <section className="ath-sec" aria-label={ac.tabAccount}>
-        <h2 className="id-h3">{ac.tabAccount}</h2>
-        <dl className="ath-rows">
-          <div className="ath-row">
-            <dt>{ac.username}</dt>
-            {editing ? (
-              <dd>
-                <input className="id-input" value={name} autoFocus autoComplete="username" onChange={(e) => setName(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') saveName(); if (e.key === 'Escape') { setEditing(false); setName(profile?.username ?? '') } }} aria-label={ac.username} />
-                {nameError ? <p className="ath-err id-cap">{nameError}</p> : <p className="ath-hint id-cap">{ac.nameHint}</p>}
-              </dd>
-            ) : <dd>{profile?.username || <span className="id-cap">{ac.noName}</span>}{saved ? <span className="id-cap"> · {ac.saved}</span> : null}</dd>}
-            <div>
-              {editing ? (
-                <>
-                  <button type="button" className="id-btn is-sm is-primary" onClick={saveName} disabled={saving}>{saving ? ac.saving : ac.save}</button>{' '}
-                  <button type="button" className="id-btn is-sm" onClick={() => { setEditing(false); setName(profile?.username ?? ''); setNameError(null) }}>{ac.cancel}</button>
-                </>
-              ) : <button type="button" className="id-btn is-sm" onClick={() => setEditing(true)}>{ac.edit}</button>}
-            </div>
-          </div>
-          <div className="ath-row">
-            <dt>{email ? ac.email : ac.phone}</dt>
-            <dd><bdi dir="ltr">{email || phone}</bdi><span className="id-sub id-cap">{ac.emailNotEditable}</span></dd>
-            <span className="id-cap">{ac.notEditable}</span>
-          </div>
-          {email ? (
-            <div className="ath-row">
-              <dt>{ac.password}</dt>
-              <dd>{resetSent ? ac.resetSentTo(email) : ac.passwordViaEmail}<span className="id-sub id-cap">{ac.noCurrentPassword}</span></dd>
-              <button type="button" className="id-btn is-sm" onClick={sendReset} disabled={resetSent}>{resetSent ? ac.resetSent : ac.sendResetLink}</button>
-              {captcha.el}
-            </div>
-          ) : null}
-        </dl>
-      </section>
-
-      <section className="ath-sec" aria-label={ac.tabPrefs}>
-        <h2 className="id-h3">{ac.tabPrefs}</h2>
-        <dl className="ath-rows">
-          <div className="ath-row">
-            <dt>{ac.language}</dt>
-            <dd>{LOCALE_NAME[locale]}<span className="id-sub id-cap">{ac.languageNote}</span></dd>
-            <div className="id-pills">
-              {LOCALES.map((id) => <Link key={id} href={switchPath(pathname, id)} hrefLang={id} lang={id} className="id-pill is-sm" aria-pressed={locale === id}>{LOCALE_NAME[id]}</Link>)}
-            </div>
-          </div>
-          <div className="ath-row">
-            <dt>{ac.appearance}</dt>
-            <dd>{theme === 'dark' ? ac.themeDark : ac.themeLight}<span className="id-sub id-cap">{ac.themeHint}</span></dd>
-            <div className="id-pills">
-              <button type="button" className="id-pill is-sm" aria-pressed={theme !== 'dark'} onClick={() => { if (theme === 'dark') toggleTheme() }}>{ac.themeLight}</button>
-              <button type="button" className="id-pill is-sm" aria-pressed={theme === 'dark'} onClick={() => { if (theme !== 'dark') toggleTheme() }}>{ac.themeDark}</button>
-            </div>
-          </div>
-        </dl>
-      </section>
-
-      <section className="ath-sec" aria-label={ac.tabData}>
-        <h2 className="id-h3">{ac.myData}</h2>
-        <p className="id-cap">{ac.localFirst}</p>
-        <dl className="ath-rows">
-          <div className="ath-row"><dt>{t.personal.watchlist.title}</dt><dd className="id-num">{ac.watchlistCount(String(watchlist?.length ?? 0))}</dd><Link className="id-btn is-sm" href={L('/watchlist')}>{ac.view}</Link></div>
-          <div className="ath-row"><dt>{t.personal.portfolio.title}</dt><dd className="id-num">{ac.portfolioCount(String(positions))}</dd><Link className="id-btn is-sm" href={L('/portfolio')}>{ac.view}</Link></div>
-          {profile?.referral_code ? (
-            <div className="ath-row"><dt>{ac.inviteCode}</dt><dd><bdi dir="ltr">{profile.referral_code}</bdi></dd>
-              <button type="button" className="id-btn is-sm" onClick={() => { navigator.clipboard?.writeText(profile.referral_code as string); setCopied(true); setTimeout(() => setCopied(false), 2000) }}>{copied ? ac.copied : ac.copy}</button></div>
-          ) : null}
-        </dl>
-      </section>
-
-      <p className="id-cap ath-sec">{ac.notSupported}</p>
-      <p className="ath-sec"><button type="button" className="id-btn is-sm" onClick={signOut}>{ac.signOut}</button></p>
-
-      {/* Account deletion, as Google Play and the privacy policy require: two taps, immediate. */}
-      <section className="ath-sec ath-delete" id="delete" aria-label={ac.deleteTitle}>
-        <h2 className="id-h3">{ac.deleteTitle}</h2>
-        <p className="id-cap">{ac.deleteNote}</p>
-        {delState === 'idle' ? (
-          <button type="button" className="id-btn is-sm ath-danger" onClick={() => setDelState('confirm')}>{ac.deleteBtn}</button>
-        ) : delState === 'done' ? (
-          <p className="id-body">{ac.deleted}</p>
-        ) : (
-          <div className="ath-confirm" role="alertdialog" aria-label={ac.deleteConfirm}>
-            <p className="id-body">{ac.deleteConfirm}</p>
-            <div className="id-pills">
-              <button type="button" className="id-btn is-sm ath-danger" disabled={delState === 'busy'} onClick={deleteAccount}>{ac.deleteYes}</button>
-              <button type="button" className="id-btn is-sm" disabled={delState === 'busy'} onClick={() => setDelState('idle')}>{ac.cancel}</button>
-            </div>
-            {delErr ? <p className="id-cap ath-err" role="alert">{ac.deleteFailed}</p> : null}
-          </div>
-        )}
-      </section>
-    </>
-  )
+  if (!authLoading && !user) {
+    return (
+      <AuthShell title={ac.signInTitle} lede={ac.signInNote}>
+        <button type="button" className="id-btn is-primary ath-submit" onClick={() => openAuth('signin')}>{ac.signIn}</button>
+      </AuthShell>
+    )
+  }
+  const initial = (profile?.username || email || phone || '?').trim().charAt(0).toUpperCase()
 
   return (
     <SiteShell>
       <main className="tl id-full iq-door" data-world="lapis" data-level="accent">
         <ToolsRail />
-        <div className="tl-body ath-profile">
-          <header className="tl-head">
-            <p className="id-eyebrow">{t.personal.tools.eyebrow}</p>
-            <PageTitle title={profile?.username || ac.myAccount} />
-            {profile?.created_at ? <p className="id-cap id-num">{ac.memberSince(localeDateOrDash(profile.created_at.slice(0, 10), locale))}</p> : null}
-          </header>
-          {body}
+        <div className="tl-body">
+          <p className="id-eyebrow fx-crumb">{t.personal.tools.eyebrow}</p>
+          {authLoading ? null : (
+            <>
+              <div className="fx-frame">
+                <div className="fx-board">
+                  <div className="fx-lead">
+                    <header className="fx-head"><PageTitle title={ac.myAccount} className="fx-title" /></header>
+                    <div className="pr-who">
+                      <span className="pr-avatar" aria-hidden="true">{initial}</span>
+                      <div>
+                        <p className="pr-name">{profile?.username || ac.noName}</p>
+                        {profile?.created_at ? <p className="id-cap id-num">{ac.memberSince(localeDateOrDash(profile.created_at.slice(0, 10), locale))}</p> : null}
+                      </div>
+                    </div>
+                    <div className="fx-pair pf-pair id-num">
+                      <div><small>{t.personal.watchlist.title}</small><b><bdi>{watchlist?.length ?? 0}</bdi></b><Link className="pr-go" href={L('/watchlist')}>{ac.view}</Link></div>
+                      <div><small>{t.personal.portfolio.title}</small><b><bdi>{positions}</bdi></b><Link className="pr-go" href={L('/portfolio')}>{ac.view}</Link></div>
+                      <div><small>{t.personal.tools.alerts.title}</small><b><bdi>{alerts.length}</bdi></b><Link className="pr-go" href="/alerts" hrefLang="ar">{ac.view}</Link></div>
+                    </div>
+                    <p><button type="button" className="id-btn is-sm" onClick={signOut}>{ac.signOut}</button></p>
+                  </div>
+                  <section className="id-print is-key fx-calc pr-key" aria-label={ac.tabAccount}>
+                    <h2 className="fx-calc-title">{ac.tabAccount}</h2>
+                    <dl className="ath-rows">
+                      <div className="ath-row">
+                        <dt>{ac.username}</dt>
+                        {editing ? (
+                          <dd>
+                            <input className="id-input" value={name} autoFocus autoComplete="username" onChange={(e) => setName(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') saveName(); if (e.key === 'Escape') { setEditing(false); setName(profile?.username ?? '') } }} aria-label={ac.username} />
+                            {nameError ? <p className="ath-err id-cap">{nameError}</p> : <p className="ath-hint id-cap">{ac.nameHint}</p>}
+                          </dd>
+                        ) : <dd>{profile?.username || <span className="id-cap">{ac.noName}</span>}{saved ? <span className="id-cap"> · {ac.saved}</span> : null}</dd>}
+                        <div>
+                          {editing ? (
+                            <>
+                              <button type="button" className="id-btn is-sm is-primary" onClick={saveName} disabled={saving}>{saving ? ac.saving : ac.save}</button>{' '}
+                              <button type="button" className="id-btn is-sm" onClick={() => { setEditing(false); setName(profile?.username ?? ''); setNameError(null) }}>{ac.cancel}</button>
+                            </>
+                          ) : <button type="button" className="id-btn is-sm" onClick={() => setEditing(true)}>{ac.edit}</button>}
+                        </div>
+                      </div>
+                      <div className="ath-row">
+                        <dt>{email ? ac.email : ac.phone}</dt>
+                        <dd><bdi dir="ltr">{email || phone}</bdi></dd>
+                      </div>
+                      {email ? (
+                        <div className="ath-row">
+                          <dt>{ac.password}</dt>
+                          <dd>{resetSent ? ac.resetSentTo(email) : ac.passwordViaEmail}</dd>
+                          <button type="button" className="id-btn is-sm" onClick={sendReset} disabled={resetSent}>{resetSent ? ac.resetSent : ac.sendResetLink}</button>
+                          {captcha.el}
+                        </div>
+                      ) : null}
+                    </dl>
+                  </section>
+                </div>
+              </div>
+              <div className="pr-grid">
+              <section className="id-print is-calm ath-panel" aria-label={ac.tabPrefs}>
+                <h2 className="id-h3">{ac.tabPrefs}</h2>
+                <dl className="ath-rows">
+                  <div className="ath-row">
+                    <dt>{ac.language}</dt>
+                    <dd>{LOCALE_NAME[locale]}<span className="id-sub id-cap">{ac.languageNote}</span></dd>
+                    <div className="fx-quick">
+                      {LOCALES.map((id) => <Link key={id} href={switchPath(pathname, id)} hrefLang={id} lang={id} className="fx-qbtn" aria-pressed={locale === id}>{LOCALE_NAME[id]}</Link>)}
+                    </div>
+                  </div>
+                  <div className="ath-row">
+                    <dt>{ac.appearance}</dt>
+                    <dd>{theme === 'dark' ? ac.themeDark : ac.themeLight}<span className="id-sub id-cap">{ac.themeHint}</span></dd>
+                    <div className="fx-quick">
+                      <button type="button" className="fx-qbtn" aria-pressed={theme !== 'dark'} onClick={() => { if (theme === 'dark') toggleTheme() }}>{ac.themeLight}</button>
+                      <button type="button" className="fx-qbtn" aria-pressed={theme === 'dark'} onClick={() => { if (theme !== 'dark') toggleTheme() }}>{ac.themeDark}</button>
+                    </div>
+                  </div>
+                </dl>
+              </section>
+              <section className="id-print is-calm ath-panel" aria-label={ac.tabData}>
+                <h2 className="id-h3">{ac.myData}</h2>
+                <p className="id-cap">{ac.localFirst}</p>
+                <dl className="ath-rows">
+                  <div className="ath-row"><dt>{t.personal.watchlist.title}</dt><dd className="id-num">{ac.watchlistCount(String(watchlist?.length ?? 0))}</dd><Link className="id-btn is-sm" href={L('/watchlist')}>{ac.view}</Link></div>
+                  <div className="ath-row"><dt>{t.personal.portfolio.title}</dt><dd className="id-num">{ac.portfolioCount(String(positions))}</dd><Link className="id-btn is-sm" href={L('/portfolio')}>{ac.view}</Link></div>
+                  {profile?.referral_code ? (
+                    <div className="ath-row"><dt>{ac.inviteCode}</dt><dd><bdi dir="ltr">{profile.referral_code}</bdi></dd>
+                      <button type="button" className="id-btn is-sm" onClick={() => { navigator.clipboard?.writeText(profile.referral_code as string); setCopied(true); setTimeout(() => setCopied(false), 2000) }}>{copied ? ac.copied : ac.copy}</button></div>
+                  ) : null}
+                </dl>
+              </section>
+              </div>
+              {/* Account deletion, as Google Play and the privacy policy require: two taps, immediate. */}
+              <section className="id-print is-calm ath-panel ath-delete" id="delete" aria-label={ac.deleteTitle}>
+                <h2 className="id-h3">{ac.deleteTitle}</h2>
+                <p className="id-cap">{ac.deleteNote}</p>
+                {delState === 'idle' ? (
+                  <button type="button" className="id-btn is-sm ath-danger" onClick={() => setDelState('confirm')}>{ac.deleteBtn}</button>
+                ) : delState === 'done' ? (
+                  <p className="id-body">{ac.deleted}</p>
+                ) : (
+                  <div className="ath-confirm" role="alertdialog" aria-label={ac.deleteConfirm}>
+                    <p className="id-body">{ac.deleteConfirm}</p>
+                    <div className="id-pills">
+                      <button type="button" className="id-btn is-sm ath-danger" disabled={delState === 'busy'} onClick={deleteAccount}>{ac.deleteYes}</button>
+                      <button type="button" className="id-btn is-sm" disabled={delState === 'busy'} onClick={() => setDelState('idle')}>{ac.cancel}</button>
+                    </div>
+                    {delErr ? <p className="id-cap ath-err" role="alert">{ac.deleteFailed}</p> : null}
+                  </div>
+                )}
+              </section>
+            </>
+          )}
         </div>
       </main>
     </SiteShell>

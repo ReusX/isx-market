@@ -7,6 +7,7 @@ import { SiteShell } from './SiteShell'
 import { PageTitle } from './PageTitle'
 import { EMAIL, PHONE_DISPLAY, PHONE_INTL, SOCIAL, TOPIC_IDS, FAMILY, mailto } from '@/lib/infoData'
 import type { LegalSection } from '@/lib/legalContent'
+import '@/styles/econ-page.css'
 import '@/styles/info-page.css'
 
 /**
@@ -27,7 +28,7 @@ function Family({ current }: { current: string }) {
 function Frame({ current, eyebrow, title, standfirst, children }: { current: string; eyebrow: string; title: string; standfirst?: string; children: React.ReactNode }) {
   return (
     <SiteShell>
-      <main className="inf id-full">
+      <main className="inf id-full" data-world="lapis" data-level="accent">
         <article className="inf-body id-read">
           <p className="id-eyebrow">{eyebrow}</p>
           <PageTitle title={title} note={standfirst} />
@@ -45,17 +46,17 @@ export function AboutPage() {
   const a = t.info.about
   return (
     <Frame current="/about" eyebrow={a.eyebrow} title={a.title} standfirst={a.standfirst}>
-      <div className="inf-letter id-body">
+      <div className="id-print is-key inf-letter id-body">
         <p>{a.letter1} <strong>{a.letterAuthor}</strong>{a.letter1b}</p>
         <p>{a.letter2}</p>
         <p className="inf-sign">{a.signOff}<br /><strong>{a.signName}</strong></p>
       </div>
       <section className="inf-sec" aria-labelledby="inf-claims">
         <h2 id="inf-claims" className="id-h3">{a.claimsHeading}</h2>
-        <dl className="inf-claims">
-          <div><dt>{a.claimFreeTerm}</dt><dd>{a.claimFreeDesc}</dd></div>
-          <div><dt>{a.claimDailyTerm}</dt><dd>{a.claimDailyDesc}</dd></div>
-          <div><dt>{a.claimBuildingTerm}</dt><dd>{a.claimBuildingDesc}</dd></div>
+        <dl className="inf-cards">
+          <div className="id-print is-calm"><dt>{a.claimFreeTerm}</dt><dd>{a.claimFreeDesc}</dd></div>
+          <div className="id-print is-calm"><dt>{a.claimDailyTerm}</dt><dd>{a.claimDailyDesc}</dd></div>
+          <div className="id-print is-calm"><dt>{a.claimBuildingTerm}</dt><dd>{a.claimBuildingDesc}</dd></div>
         </dl>
       </section>
       <section className="inf-sec" aria-labelledby="inf-sources">
@@ -79,7 +80,7 @@ export function ContactPage() {
   const copy = async () => { try { await navigator.clipboard.writeText(EMAIL); setCopied(true); setTimeout(() => setCopied(false), 2000) } catch { /* no clipboard */ } }
   return (
     <Frame current="/contact" eyebrow={c.eyebrow} title={c.title} standfirst={c.standfirst}>
-      <section className="inf-sec" aria-labelledby="inf-mail">
+      <section className="inf-sec id-print is-key inf-key" aria-labelledby="inf-mail">
         <h2 id="inf-mail" className="id-h3">{c.emailHeading}</h2>
         <p className="inf-rows"><a className="id-link inf-mail" href={mailto()} dir="ltr">{EMAIL}</a><button type="button" className="id-btn is-sm" onClick={copy}>{copied ? c.copied : c.copy}</button></p>
         <p className="id-cap">{c.replyTime}</p>
@@ -87,15 +88,15 @@ export function ContactPage() {
       <section className="inf-sec" aria-labelledby="inf-topics">
         <h2 id="inf-topics" className="id-h3">{c.topicsHeading}</h2>
         <p className="id-cap">{c.topicsNote}</p>
-        <div className="id-pills inf-topics">
-          {TOPIC_IDS.map((id) => <a key={id} className="id-pill is-sm" href={mailto(c.topics[id].subject)}>{c.topics[id].label}</a>)}
+        <div className="fx-quick inf-topics">
+          {TOPIC_IDS.map((id) => <a key={id} className="fx-qbtn" href={mailto(c.topics[id].subject)}>{c.topics[id].label}</a>)}
         </div>
       </section>
       <section className="inf-sec" aria-labelledby="inf-channels">
         <h2 id="inf-channels" className="id-h3">{c.channelsHeading}</h2>
-        <dl className="inf-claims">
-          <div><dt>{c.phone}</dt><dd><a className="id-link" href={`tel:${PHONE_INTL}`}><bdi dir="ltr">{PHONE_DISPLAY}</bdi></a></dd></div>
-          {SOCIAL.map((s) => <div key={s.id}><dt>{s.label}</dt><dd><a className="id-link" href={s.href} target="_blank" rel="noopener" aria-label={`${s.label} · ${c.newWindow}`}><bdi dir="ltr">{s.handle}</bdi> ↗</a></dd></div>)}
+        <dl className="inf-cards is-tight">
+          <div className="id-print is-calm"><dt>{c.phone}</dt><dd><a className="id-link" href={`tel:${PHONE_INTL}`}><bdi dir="ltr">{PHONE_DISPLAY}</bdi></a></dd></div>
+          {SOCIAL.map((s) => <div key={s.id} className="id-print is-calm"><dt>{s.label}</dt><dd><a className="id-link" href={s.href} target="_blank" rel="noopener" aria-label={`${s.label} · ${c.newWindow}`}><bdi dir="ltr">{s.handle}</bdi> ↗</a></dd></div>)}
         </dl>
       </section>
     </Frame>
@@ -112,7 +113,7 @@ export function LegalPage({ route, eyebrow, title, sections, banner, updated }: 
     <Frame current={route} eyebrow={eyebrow} title={title}>
       <p className="id-cap">{lg.updated}: {updated}</p>
       {banner ? <p className="id-note inf-banner"><b>{lg.notice}</b> · {banner}</p> : null}
-      <nav className="inf-toc" aria-label={lg.onThisPage}>
+      <nav className="id-print is-calm inf-toc" aria-label={lg.onThisPage}>
         <p className="id-cap">{lg.onThisPage}</p>
         <ol>{sections.map((s) => <li key={s.id}><a href={`#${s.id}`}>{s.title}</a></li>)}</ol>
       </nav>

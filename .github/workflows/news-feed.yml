@@ -3,10 +3,9 @@ name: News feed
 # Headlines from Iraq's economy sources into `news_feed`, every 30 minutes
 # through the trading day and hourly overnight. No AI, no bodies, no cost:
 # scripts/news_feed.py reads each source's own list and writes the new URLs.
+# Turned off 2026-10-02: the news page lists our own articles only, so nothing
+# on the site shows these reposts any more. Manual runs still work.
 on:
-  schedule:
-    - cron: '*/30 4-18 * * *'
-    - cron: '0 19-23,0-3 * * *'
   workflow_dispatch:
 
 concurrency:

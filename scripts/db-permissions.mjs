@@ -28,7 +28,7 @@ const ok = (name, pass, detail = '') => {
 const WRITE_TABLES = [
   'banks', 'bank_products', 'product_facts', 'product_conditions', 'bank_services',
   'daily_prices', 'financial_facts', 'fx_observations', 'data_sources', 'fact_policy',
-  'major_shareholders', 'rates_cache', 'company_analysis', 'chat_messages', 'profiles',
+  'major_shareholders', 'rates_cache', 'chat_messages', 'profiles',
 ]
 /* Tables holding somebody's personal data. Anon reading zero rows here is the
    RLS policy working, not the table being empty — scripts/../banking gates

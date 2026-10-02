@@ -61,3 +61,63 @@
 .ath-captcha:empty { display: none; }
 .ath-captcha { justify-self: center; min-height: 0; }
 .ath-row > .ath-captcha { grid-column: 1 / -1; }
+
+/* ── Identity v3: sections as print cards ── */
+.ath-profile { max-width: 760px; }
+.ath-panel { padding: 20px 24px; }
+.ath-panel.ath-outcome { border-radius: var(--r-lg, 18px); }
+.ath-panel .ath-row:last-child { border-bottom: 0; }
+.ath-panel.ath-delete { border-top: 1.5px solid var(--border); padding-top: 20px; }
+
+/* ── Identity v3: auth on the board — reasons beside the key-card form ── */
+.ath { padding-block: clamp(20px, 4vw, 40px) 32px; display: block; }
+.ath-frame { max-width: 1080px; margin-inline: auto; }
+.ath-board { align-items: stretch; }
+.ath-card.id-print { width: auto; max-width: none; padding: clamp(22px, 3vw, 32px); background: var(--page); }
+.ath-title { margin: 0; font-family: var(--font-display); font-weight: 700; font-size: clamp(24px, 2.6vw, 30px); line-height: 1.35; }
+.ath-card .id-input { font: 500 16px/1.3 var(--font-sans); padding: 11px 14px; border-radius: 12px; border: 2px solid var(--line-strong); background: var(--surface-2); color: var(--ink); }
+.ath-card .id-input:focus-visible { outline: 3px solid var(--world); outline-offset: 2px; }
+.ath-card .ath-submit { padding-block: 12px; }
+.ath-lead { align-content: start; gap: 18px; }
+.ath-pitch { margin: 0; font-family: var(--font-display); font-weight: 700; font-size: clamp(22px, 2.4vw, 30px); line-height: 1.45; text-wrap: balance; }
+.ath-perks { list-style: none; margin: 0; padding: 0; display: grid; gap: 14px; }
+.ath-perks li { display: grid; grid-template-columns: 44px minmax(0, 1fr); gap: 12px; align-items: center; }
+.ath-ill { width: 44px; height: 44px; color: var(--world); }
+.ath-perks strong { display: block; font-weight: 700; color: var(--ink); }
+.ath-perks small { font-size: 13px; color: var(--secondary); line-height: 1.6; }
+.ath-sample { position: relative; display: grid; gap: 4px; justify-items: start; padding: 16px 18px; max-width: 320px; margin-top: 6px; }
+.ath-sample small { font-size: 12px; font-weight: 600; color: var(--muted); }
+.ath-sample b { font: 600 28px/1.15 var(--font-numeric); }
+.ath-sample b span { font-size: .5em; font-family: var(--font-body); color: var(--secondary); }
+.ath-sample-tag { position: absolute; top: 12px; inset-inline-end: 12px; font-size: 11px; font-weight: 600; padding: 4px 8px; border-radius: 999px; border: 1.5px dashed var(--w-ochre, var(--border)); color: var(--w-ochre, var(--muted)); }
+@media (max-width: 1000px) {
+  .ath-board { grid-template-columns: minmax(0, 1fr); }
+  .ath-card { order: -1; }
+  .ath-sample { display: none; }
+}
+
+/* ── Profile (signed in) ── */
+.ath-reason { display: block; margin-top: 8px; }
+.pr-who { display: flex; align-items: center; gap: 16px; }
+.pr-avatar { width: 64px; height: 64px; flex: 0 0 64px; border-radius: 50%; display: grid; place-items: center; font: 700 28px/1 var(--font-display); color: var(--page); background: var(--world); box-shadow: -4px 4px 0 0 var(--line-strong); }
+.pr-name { margin: 0; font-family: var(--font-display); font-weight: 700; font-size: clamp(24px, 2.6vw, 32px); line-height: 1.3; overflow-wrap: anywhere; }
+.pr-who .id-cap { margin: 2px 0 0; }
+.pr-go { font-size: 12px; color: var(--blue); text-decoration: none; }
+.pr-go:hover { text-decoration: underline; }
+.pr-key .ath-rows .ath-row { grid-template-columns: minmax(0, 1fr); gap: 6px; }
+.pr-key .ath-row:last-child { border-bottom: 0; }
+.pr-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 22px; margin-top: 20px; align-items: start; }
+.pr-grid > .ath-panel > .id-h3 { margin: 0 0 8px; }
+.pr-note { margin: 18px 4px; }
+.ath-delete.id-print { margin-top: 4px; }
+@media (max-width: 900px) { .pr-grid { grid-template-columns: minmax(0, 1fr); } }
+/* Continue with Google / Facebook — each provider's own button colours, per their branding rules */
+.ath-oauth { display: grid; gap: 12px; margin-bottom: 4px; }
+.ath-oauth-btn { display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%; padding: 12px 16px; border-radius: 999px; border: 1.5px solid #dadce0; background: #fff; color: #1f1f1f; font: 600 15px/1.2 var(--font-sans); cursor: pointer; }
+.ath-oauth-btn.is-google:hover { background: #f8f9fa; }
+.ath-oauth-btn:focus-visible { outline: 3px solid var(--world); outline-offset: 2px; }
+.ath-oauth-btn:disabled { opacity: .7; cursor: default; }
+.ath-or { display: flex; align-items: center; gap: 12px; margin: 0; font-size: 12px; color: var(--muted); }
+.ath-or::before, .ath-or::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+.ath-oauth-btn.is-facebook { background: #1877F2; border-color: #1877F2; color: #fff; }
+.ath-oauth-btn.is-facebook:hover { background: #166FE5; }

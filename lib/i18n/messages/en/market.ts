@@ -92,6 +92,13 @@ export const market: typeof ar = {
     reset:  'Clear all filters',
   },
   page: {
+    dollar: {
+      label: 'US dollar · Baghdad',
+      unit: 'dinars per dollar',
+      vsYesterday: 'vs yesterday',
+      stale: 'last known price',
+      more: 'Dollar rate',
+    },
     eyebrow:   'Markets',
     lede:      'Every company listed on the Iraq Stock Exchange: last price, change and traded value — one session, most active first.',
     index:     'ISX60 index',

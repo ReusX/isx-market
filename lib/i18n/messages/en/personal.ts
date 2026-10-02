@@ -2,6 +2,16 @@ import type { personal as ar } from '../ar/personal'
 
 export const personal: typeof ar = {
   portfolio: {
+    board: {
+      unit: 'dinars',
+      today: 'today',
+      addTitle: 'Add a trade',
+      myAlerts: 'My alerts',
+      allAlerts: 'All alerts',
+      noAlerts: 'No alerts yet.',
+      newAlert: 'New alert',
+      positions: 'Your positions',
+    },
     privateTitle: 'Your own data',
     private: 'Yours',
     pricedAtClose: 'Priced at the latest official close',
@@ -97,6 +107,12 @@ export const personal: typeof ar = {
   },
 
   watchlist: {
+    board: {
+      unit: (n: number): string => (n === 1 ? 'company you follow' : 'companies you follow'),
+      moves: (u: string, d: string): string => `${u} up · ${d} down today`,
+      addTitle: 'Add a company',
+      list: 'Your list',
+    },
     sectorFilter: 'Filter by sector',
     colPrice: 'Price',
     colChange: 'Change',
@@ -163,17 +179,15 @@ export const personal: typeof ar = {
     /* ⚠ States what the account does NOT have, by name. The brief forbids
        advertising unsupported 2FA, session management or exports; saying so
        outright is stronger than staying silent about them. */
-    notSupported: 'The account does not currently support: signing in with external accounts, two-factor authentication, session management, or data export. None of them is shown here, because none of them exists in the product.',
     settingsSections: 'Settings sections',
     allSettings: 'All settings',
     cancel: 'Cancel',
-    emailNotEditable: 'Changing your email is not available in the product yet — there is no interface for updating sign-in details.',
     resetSentTo: (email: string) => `A link was sent to ${email}. Check your inbox, and your spam folder if it is not there.`,
-    localFirst: 'Your portfolio and watchlist are saved on your device first, and synced with your account when you sign in.',
+    localFirst: 'Your portfolio and watchlist are saved with your account, on every device.',
     rtl: 'Right to left',
     ltr: 'Left to right',
     signInTitle: 'Sign in to see your account',
-    signInNote: 'This section needs an account. Your portfolio and watchlist work without one; an account syncs them across your devices.',
+    signInNote: 'Sign in to see your account and keep your portfolio and watchlist on every device.',
     signIn: 'Sign in',
     tabAccount: 'Account',
     tabAccountHint: 'Name, email and password',
@@ -189,17 +203,15 @@ export const personal: typeof ar = {
     nameTooShort: 'That name is too short.',
     nameTaken: 'That name is already taken — choose another.',
     nameSaveFailed: 'The name couldn’t be saved. Please try again.',
-    nameHint: 'The name appears in your account only, and must not already be taken.',
-    notEditable: 'Not editable',
+    nameHint: 'Pick a name nobody else uses.',
     password: 'Password',
-    passwordViaEmail: 'Changed via a link sent to your email',
+    passwordViaEmail: 'We email you a link to change it',
     resetSent: 'Link sent',
     sendResetLink: 'Send a change link',
-    noCurrentPassword: 'This product never asks for your current password: a reset happens by email alone.',
-    themeHint: 'The choice is saved on this device and applied before the page paints.',
+    themeHint: 'Stays as you set it on this device.',
     themeLight: 'Light',
     themeDark: 'Dark',
-    languageNote: 'The language is part of the page’s address: switching takes you to the other version of this same page.',
+    languageNote: 'Takes you to this same page in the other language.',
     myData: 'My data',
     watchlistCount: (n: string) => `${n} companies`,
     portfolioCount: (n: string) => `${n} positions`,
@@ -280,6 +292,14 @@ export const personal: typeof ar = {
       hitOn: (d: string) => `Triggered ${d}`,
       remove: 'Remove',
       invalid: 'Enter a company and a valid target price.',
+      board: {
+        unit: (n: number): string => (n === 1 ? 'alert' : 'alerts'),
+        hitLine: (n: string): string => `${n} of them hit`,
+        noneHit: 'None has hit yet',
+        now: (p: string): string => `now ${p}`,
+        hitAt: (d: string, p: string): string => `hit ${d} · now ${p}`,
+        list: 'Your alerts',
+      },
     },
   },
 }

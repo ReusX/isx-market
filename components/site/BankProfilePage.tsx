@@ -9,8 +9,10 @@ import { PageTitle } from './PageTitle'
 import { AboutSection } from './AboutSection'
 import type { BankProfileInitial, ProfileProduct } from '@/lib/banksServer'
 import { isCurrentEnough, type FactRow } from '@/lib/banks'
-import { CATEGORY_KEYS, ratedCategoryCount, storeRatingText, type CategoryKey } from '@/lib/bankEditorial'
+import { CATEGORY_KEYS } from '@/lib/bankEditorial'
 import { describeCondition, factText, factNote, introSentence, basisLabel } from '@/lib/bankFacts'
+import '@/styles/econ-page.css'
+import '@/styles/company-page.css'
 import '@/styles/banks-page.css'
 
 /**
@@ -32,13 +34,13 @@ import '@/styles/banks-page.css'
 
 const nf = new Intl.NumberFormat('en-US')
 type Units = { tn: string; bn: string; mn: string; k: string }
-function compact(v: number | null | undefined, u: Units): string {
-  if (v == null || !Number.isFinite(v)) return '—'
+function compact(v: number | null | undefined, u: Units): { n: string; unit: string } {
+  if (v == null || !Number.isFinite(v)) return { n: '—', unit: '' }
   const a = Math.abs(v), s = v < 0 ? '−' : ''
-  if (a >= 1e12) return `${s}${(a / 1e12).toFixed(2)} ${u.tn}`
-  if (a >= 1e9) return `${s}${(a / 1e9).toFixed(1)} ${u.bn}`
-  if (a >= 1e6) return `${s}${(a / 1e6).toFixed(0)} ${u.mn}`
-  return `${s}${nf.format(a)}`
+  if (a >= 1e12) return { n: `${s}${(a / 1e12).toFixed(2)}`, unit: u.tn }
+  if (a >= 1e9) return { n: `${s}${(a / 1e9).toFixed(1)}`, unit: u.bn }
+  if (a >= 1e6) return { n: `${s}${(a / 1e6).toFixed(0)}`, unit: u.mn }
+  return { n: `${s}${nf.format(a)}`, unit: '' }
 }
 
 export function BankProfilePage({ initial }: { initial: BankProfileInitial }) {
@@ -51,7 +53,6 @@ export function BankProfilePage({ initial }: { initial: BankProfileInitial }) {
   const { bank, products, services, fin, editorial: ed } = initial
   const name = ar ? bank.name_ar : bank.name_en || bank.name_ar
   const city = bank.hq_city ? (ar ? bank.hq_city : (B.city[bank.hq_city] ?? bank.hq_city)) : null
-  const rated = ed ? ratedCategoryCount(ed) : 0
   const svcKeys = ['mobile_banking', 'internet_banking', 'cards', 'usd_account', 'international_transfer', 'salary_domiciliation', 'atm'] as const
 
   const sources = (() => {
@@ -72,75 +73,110 @@ export function BankProfilePage({ initial }: { initial: BankProfileInitial }) {
     ...(bank.swift ? [{ k: P.identity.swift, v: <bdi>{bank.swift}</bdi> }] : []),
   ]
 
+  /* The frame's figure: the best current published rate (a deposit's
+     highest, else a loan's lowest), else the latest filed total assets. */
+  const found = ed ? CATEGORY_KEYS.flatMap((k) => { const c = ed.ratings.categories[k]; return c?.rationale ? [[k, c.rationale] as const] : [] }) : []
+  const lead = (() => {
+    const current = products.flatMap((p) => {
+      const f = p.facts.find((x) => x.field_key === 'rate')
+      return f && f.state === 'KNOWN' && f.value_num != null && isCurrentEnough(f) ? [{ p, rate: f.value_num }] : []
+    })
+    const dep = current.filter((x) => x.p.kind.startsWith('deposit')).sort((a, b) => b.rate - a.rate)[0]
+    const loan = current.filter((x) => !x.p.kind.startsWith('deposit')).sort((a, b) => a.rate - b.rate)[0]
+    const pick = dep ?? loan
+    if (pick) return { figure: `${pick.rate}%`, chip: P.board.bestRate, line: ar ? pick.p.name_ar : pick.p.name_en }
+    const ta = fin?.values.total_assets
+    if (ta != null) { const c = compact(ta, u); return { figure: c.n, chip: P.board.assets, line: `${c.unit} · ${B.financialsNote(String(fin!.fiscalYear), fin!.period === 'ANNUAL' ? '' : fin!.period)}` } }
+    return null
+  })()
+
   return (
     <SiteShell>
       <main className="bnk id-full iq-door" data-world="tile" data-level="accent">
         <DoorRail door="banking" />
-        <div className="bnk-body bnk-read">
-          <header className="bnk-head">
-            <p className="id-eyebrow"><Link href={L('/banks')}>{P.back}</Link> · {B.type[bank.bank_type]} · {B.ownership[bank.ownership]}</p>
-            <div className="bnk-id">
-              {initial.logo ? <img className="bnk-logo is-lg" src={initial.logo} alt="" width={48} height={48} /> : null}
-              <PageTitle title={name} note={introSentence(bank, B, city)} />
+        <div className="bnk-body">
+          <p className="id-eyebrow fx-crumb"><Link href={L('/banks')}>{P.back}</Link> · {B.type[bank.bank_type]} · {B.ownership[bank.ownership]}</p>
+          <div className="fx-frame">
+            <div className="fx-board">
+              <div className="fx-lead">
+                <header className="fx-head bp-id">
+                  {initial.logo ? <img className="bnk-logo is-lg" src={initial.logo} alt="" width={48} height={48} /> : null}
+                  <PageTitle title={name} note={introSentence(bank, B, city)} className="fx-title" />
+                </header>
+                {lead ? (
+                  <>
+                    <p className="fx-huge id-num">
+                      <span className="fx-huge-num">
+                        <bdi>{lead.figure}</bdi>
+                        <svg className="fx-swoosh" viewBox="0 0 200 40" preserveAspectRatio="none" aria-hidden="true">
+                          <path d="M4 30 C 50 10, 110 4, 196 20" pathLength={1} fill="none" stroke="currentColor" strokeWidth={5} strokeLinecap="round" vectorEffect="non-scaling-stroke" />
+                        </svg>
+                      </span>
+                    </p>
+                    <p className="fx-line"><span className="id-chg is-flat">{lead.chip}</span><span>{lead.line}</span></p>
+                  </>
+                ) : null}
+                {ed && ar && ed.h1 ? <p className="bp-verdict">{ed.h1}</p> : null}
+                {bank.operating_status !== 'operating' ? (
+                  <p className="id-note bnk-notice">
+                    <b>{B.status[bank.operating_status]}</b> · {B.statusNote[bank.operating_status as keyof typeof B.statusNote]}
+                    {(ar ? bank.status_note_ar : bank.status_note_en) ? ` ${ar ? bank.status_note_ar : bank.status_note_en}` : ''}
+                  </p>
+                ) : null}
+                {bank.usd_restricted ? <p className="id-note bnk-notice"><b>{B.usdRestricted}</b> · {B.usdRestrictedNote}</p> : null}
+                {bank.research_state === 'source_unreachable' ? <p className="id-note bnk-notice">{B.unreachableNote}</p> : null}
+                {bank.research_state === 'not_researched' ? <p className="id-note bnk-notice">{B.notResearchedNote}</p> : null}
+              </div>
+              <section className="id-print is-key fx-calc" aria-label={P.board.keyTitle}>
+                <h2 className="fx-calc-title">{P.board.keyTitle}</h2>
+                <dl className="bp-keys id-num">
+                  {identity.map((r) => <div key={r.k}><dt>{r.k}</dt><dd>{r.v}</dd></div>)}
+                  {ed?.app && ed.app.storeRating != null ? (
+                    <div><dt>{E.app}</dt><dd><a className="id-link" href={ed.app.url} target="_blank" rel="noopener"><bdi dir="ltr">★ {ed.app.storeRating}{ed.app.ratingCount ? ` · ${ed.app.ratingCount}` : ''}</bdi></a></dd></div>
+                  ) : null}
+                </dl>
+                {ed?.app && ed.app.storeRating != null ? <p className="fx-calc-note">{E.reportedFoot}</p> : null}
+              </section>
             </div>
-            <dl className="bnk-facts id-num">
-              {identity.map((r) => <div key={r.k}><dt>{r.k}</dt><dd>{r.v}</dd></div>)}
-            </dl>
-            {bank.operating_status !== 'operating' ? (
-              <p className="id-note bnk-notice">
-                <b>{B.status[bank.operating_status]}</b> · {B.statusNote[bank.operating_status as keyof typeof B.statusNote]}
-                {(ar ? bank.status_note_ar : bank.status_note_en) ? ` ${ar ? bank.status_note_ar : bank.status_note_en}` : ''}
-              </p>
-            ) : null}
-            {bank.usd_restricted ? <p className="id-note bnk-notice"><b>{B.usdRestricted}</b> · {B.usdRestrictedNote}</p> : null}
-            {bank.research_state === 'source_unreachable' ? <p className="id-note bnk-notice">{B.unreachableNote}</p> : null}
-            {bank.research_state === 'not_researched' ? <p className="id-note bnk-notice">{B.notResearchedNote}</p> : null}
-          </header>
+          </div>
 
           {ed && ar ? (
             <section className="bnk-sec" aria-label={P.editorialTitle}>
               <h2 className="id-h3">{P.editorialTitle}</h2>
-              {/* The editorial headline: the verdict in one line. */}
-              {ed.h1 ? <p className="bnk-verdict-line">{ed.h1}</p> : null}
-              <p className="id-body">{ed.intro}</p>
-              <dl className="bnk-verdict">
-                {ed.suitableFor ? <div><dt>{E.suitableFor}</dt><dd>{ed.suitableFor}</dd></div> : null}
-                {ed.watchOut ? <div><dt>{E.watchOut}</dt><dd>{ed.watchOut}</dd></div> : null}
-              </dl>
+              <p className="id-body bp-intro">{ed.intro}</p>
+              <div className="fx-facts bp-two">
+                {ed.suitableFor ? (
+                  <section className="id-print is-calm fx-fact">
+                    <svg className="fx-ill" viewBox="0 0 64 64" aria-hidden="true"><path d="M14 34l12 12 24-28" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
+                    <h3 className="fx-fact-head">{E.suitableFor}</h3>
+                    <p className="fx-pocket">{ed.suitableFor}</p>
+                  </section>
+                ) : null}
+                {ed.watchOut ? (
+                  <section className="id-print is-calm fx-fact">
+                    <svg className="fx-ill" viewBox="0 0 64 64" aria-hidden="true"><path d="M32 10l24 42H8zM32 28v10M32 45v1" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
+                    <h3 className="fx-fact-head">{E.watchOut}</h3>
+                    <p className="fx-pocket">{ed.watchOut}</p>
+                  </section>
+                ) : null}
+              </div>
               <p className="id-cap">{E.editorialNotice}</p>
             </section>
           ) : null}
 
-          {ed && rated ? (
-            <section className="bnk-sec" aria-label={P.ratingsTitle}>
-              <PageTitle as="h2" className="id-h3" title={P.ratingsTitle} note={E.ratingsWhat} />
-              <div className="bnk-overall id-num">
-                {ed.ratings.overall != null ? <strong><bdi>{ed.ratings.overall}</bdi><small>/{ed.ratings.outOf}</small></strong> : null}
-                <span className="id-cap">{ed.ratings.overall != null ? E.overallLine(String(rated)) : E.partialLine(String(rated))}</span>
+          {/* What we found, per topic — the editorial's sentences without
+              scores (most banks are only partly scored, so no number is shown). */}
+          {ed && ar && found.length ? (
+            <section className="bnk-sec" aria-label={P.board.foundTitle}>
+              <PageTitle as="h2" className="id-h3" title={P.board.foundTitle} note={E.ratingsWhat} />
+              <div className="fx-facts bp-found">
+                {found.map(([k, text]) => (
+                  <section key={k} className="id-print is-calm fx-fact">
+                    <h3 className="fx-fact-head">{E.category[k]}</h3>
+                    <p className="fx-pocket">{text}</p>
+                  </section>
+                ))}
               </div>
-              <table className="id-table bnk-rt id-num">
-                <tbody>
-                  {CATEGORY_KEYS.map((k: CategoryKey) => {
-                    const c = ed.ratings.categories[k]
-                    if (!c) return null
-                    return (
-                      <tr key={k}>
-                        <th scope="row">
-                          <span className="id-name">{E.category[k]}</span>
-                          {ar && c.rationale ? <span className="id-sub">{c.rationale}</span> : null}
-                        </th>
-                        <td className="is-end bnk-rt-score">
-                          {c.score != null ? <bdi>{c.score}<span className="id-cap">/{c.outOf}</span></bdi> : <span className="id-cap">{E.notRated}</span>}
-                          {c.confidence ? <span className="id-sub">{E.confidence[c.confidence]}</span> : null}
-                        </td>
-                      </tr>
-                    )
-                  })}
-                </tbody>
-              </table>
-              {ed.app && storeRatingText(ed.app) ? (
-                <p className="id-cap bnk-app">{E.app}: <a className="id-link" href={ed.app.url} target="_blank" rel="noopener">{ed.app.title}</a> · <bdi>{storeRatingText(ed.app)}</bdi> · {E.reportedFoot}</p>
-              ) : null}
             </section>
           ) : null}
 
@@ -155,14 +191,14 @@ export function BankProfilePage({ initial }: { initial: BankProfileInitial }) {
           ) : null}
 
           {ed && ar && ed.fees ? (
-            <section className="bnk-sec" aria-label={E.fees}>
+            <section className="bnk-sec id-print is-calm bp-panel" aria-label={E.fees}>
               <h2 className="id-h3">{E.fees}</h2>
               <p className="id-body">{ed.fees}</p>
             </section>
           ) : null}
 
           {services.length ? (
-            <section className="bnk-sec" aria-label={P.servicesTitle}>
+            <section className="bnk-sec id-print is-calm bp-panel" aria-label={P.servicesTitle}>
               <PageTitle as="h2" className="id-h3" title={P.servicesTitle} note={P.servicesNote} />
               <ul className="bnk-svc">
                 {svcKeys.map((k) => {
@@ -184,14 +220,14 @@ export function BankProfilePage({ initial }: { initial: BankProfileInitial }) {
           {fin && bank.ticker ? (
             <section className="bnk-sec" aria-label={P.finTitle}>
               <h2 className="id-h3">{P.finTitle}</h2>
-              <p className="id-cap">{B.financialsNote(String(fin.fiscalYear), fin.period === 'ANNUAL' ? '' : fin.period)}</p>
-              <div className="id-stats id-num bnk-fin">
-                {(['total_assets', 'customer_deposits', 'total_equity', 'net_income'] as const).filter((k) => fin.values[k] != null).map((k) => (
-                  <div className="id-stat" key={k}><small>{B.fin[k]}</small><b><bdi>{compact(fin.values[k], u)}</bdi></b></div>
-                ))}
+              <div className="cmp-figs id-num bnk-fin">
+                {(['total_assets', 'customer_deposits', 'total_equity', 'net_income'] as const).filter((k) => fin.values[k] != null).map((k) => {
+                  const c = compact(fin.values[k], u)
+                  return <div className="id-print is-calm cmp-fig" key={k}><small>{B.fin[k]}</small><strong><bdi dir="ltr">{c.n}</bdi> <span className="bp-unit">{c.unit}</span></strong><span>{B.financialsNote(String(fin.fiscalYear), fin.period === 'ANNUAL' ? '' : fin.period)}</span></div>
+                })}
                 {fin.values.capital_adequacy_ratio != null ? (
-                  <div className="id-stat"><small>{B.fin.capital_adequacy_ratio}</small>{/* Filed as a percentage figure already (52.97 = 52.97%). */}
-                  <b><bdi>{fin.values.capital_adequacy_ratio.toFixed(1)}%</bdi></b></div>
+                  <div className="id-print is-calm cmp-fig"><small>{B.fin.capital_adequacy_ratio}</small>{/* Filed as a percentage figure already (52.97 = 52.97%). */}
+                  <strong><bdi>{fin.values.capital_adequacy_ratio.toFixed(1)}%</bdi></strong><span>{B.financialsNote(String(fin.fiscalYear), fin.period === 'ANNUAL' ? '' : fin.period)}</span></div>
                 ) : null}
               </div>
               <p><Link className="id-btn is-sm" href={L(`/c/${bank.ticker}/financials`)}>{P.finLink} →</Link></p>
@@ -199,7 +235,7 @@ export function BankProfilePage({ initial }: { initial: BankProfileInitial }) {
           ) : null}
 
           {ed && ar && ed.faqs.length ? (
-            <section className="bnk-sec" aria-label={P.faqsTitle}>
+            <section className="bnk-sec id-print is-calm bp-panel" aria-label={P.faqsTitle}>
               <h2 className="id-h3">{P.faqsTitle}</h2>
               {/* Native <details>: the answers stay in the markup. */}
               {ed.faqs.map((f, i) => (
@@ -212,7 +248,7 @@ export function BankProfilePage({ initial }: { initial: BankProfileInitial }) {
           ) : null}
 
           {(ed?.links.length || sources.length) ? (
-            <section className="bnk-sec" aria-label={P.linksTitle}>
+            <section className="bnk-sec id-print is-calm bp-panel" aria-label={P.linksTitle}>
               {ed?.links.length ? (
                 <>
                   <h2 className="id-h3">{P.linksTitle}</h2>
@@ -261,7 +297,7 @@ function Product({ p }: { p: ProfileProduct }) {
   const condOf = (f: FactRow) => p.conditions.filter((x) => x.fact_id === f.id).map((x) => describeCondition(x, B)).join(' · ')
 
   return (
-    <article className="bnk-prod">
+    <article className="bnk-prod id-print is-calm">
       <header className="bnk-prod-head">
         <h3 className="bnk-prod-name">{name}{p.currency && p.currency !== 'IQD' ? <span className="bnk-chip"><bdi>{p.currency}</bdi></span> : null}{p.financing_type === 'islamic' ? <span className="bnk-chip">{B.type.islamic}</span> : null}</h3>
         <p className="bnk-prod-rate id-num">

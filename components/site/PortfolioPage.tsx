@@ -8,9 +8,12 @@ import { SiteShell } from './SiteShell'
 import { PageTitle } from './PageTitle'
 import { AboutSection } from './AboutSection'
 import { ToolsRail, CompanyPicker, nf0, nf2, pctStr, chgCls } from './tools'
-import { useMarketData, usePortfolio, aggregate, totals, type Holding } from '@/lib/portfolio'
+import { useMarketData, usePortfolio, useAlerts, aggregate, totals, type Holding } from '@/lib/portfolio'
+import { AlertCards } from './AlertCards'
 import { sectorLabel } from '@/lib/screener'
 import { localeDate } from '@/lib/date'
+import '@/styles/econ-page.css'
+import '@/styles/markets.css'
 import '@/styles/tools-page.css'
 
 /**
@@ -35,7 +38,10 @@ export function PortfolioPage() {
   const { user, openAuth } = useApp()
   const { meta, metaBy, prices, quotes, loading } = useMarketData()
   const { lots, ready, addLot, removeLot, removeSym } = usePortfolio()
-  const [draft, setDraft] = useState<Draft | null>(null)
+  const B = P.board
+  const [draft, setDraft] = useState<Draft>(blank)
+  const [pickKey, setPickKey] = useState(0)
+  const { alerts, ready: alertsReady } = useAlerts()
   const [open, setOpen] = useState<string | null>(null)
   const name = (sym: string) => { const m = metaBy.get(sym); return m ? ((locale === 'ar' ? m.ar || m.en : m.en || m.ar) || sym) : sym }
 
@@ -55,101 +61,126 @@ export function PortfolioPage() {
   }, [valued, metaBy, tot.value, locale, P.unclassified])
 
   const save = () => {
-    if (!draft) return
     const qty = parseFloat(draft.qty), price = parseFloat(draft.price)
     if (!draft.sym || !(qty > 0) || !(price > 0)) return
     addLot({ sym: draft.sym, qty, price, date: draft.date || undefined, note: draft.note || undefined })
-    setDraft(null)
+    setDraft(blank)
+    setPickKey((k) => k + 1)
   }
+  const cost = (parseFloat(draft.qty) || 0) * (parseFloat(draft.price) || 0)
+  const canAdd = !!draft.sym && parseFloat(draft.qty) > 0 && parseFloat(draft.price) > 0
+  const sideAlerts = useMemo(() => alerts.slice().sort((x, y) => (y.createdAt > x.createdAt ? 1 : -1)).slice(0, 5), [alerts])
+  const sign = (v: number) => (v > 0 ? '+' : '')
 
   return (
     <SiteShell>
       <main className="tl id-full iq-door" data-world="lapis" data-level="accent">
         <ToolsRail />
         <div className="tl-body">
-          <header className="tl-head">
-            <p className="id-eyebrow">{T.eyebrow} · {user ? P.syncedWithAccount : P.onThisDevice}</p>
-            <PageTitle title={P.title} note={T.portfolioNote} />
-            {!user ? <p className="id-cap">{P.localNote} <button type="button" className="id-link tl-linkbtn" onClick={() => openAuth('signin')}>{P.signIn}</button></p> : null}
-          </header>
-
-          <div className="id-stats id-num tl-stats">
-            <div className="id-stat"><small>{P.currentValue}</small><b><bdi>{nf0.format(tot.value)}</bdi></b>{dayChange ? <span className={`id-chg ${chgCls(dayChange.abs)}`}><bdi>{dayChange.abs > 0 ? '+' : ''}{nf0.format(dayChange.abs)} · {pctStr(dayChange.pct)}</bdi></span> : <span className="id-cap">{P.noPriorSession}</span>}</div>
-            <div className="id-stat"><small>{P.totalCost}</small><b><bdi>{nf0.format(tot.cost)}</bdi></b></div>
-            <div className="id-stat"><small>{P.unrealised}</small><b className={tot.pl > 0 ? 'id-up' : tot.pl < 0 ? 'id-down' : ''}><bdi>{tot.pl > 0 ? '+' : ''}{nf0.format(tot.pl)}</bdi></b></div>
-            <div className="id-stat"><small>{P.totalReturn}</small><b className={tot.plPct > 0 ? 'id-up' : tot.plPct < 0 ? 'id-down' : ''}><bdi>{pctStr(tot.cost ? tot.plPct : null)}</bdi></b></div>
-          </div>
-          {unvalued.length ? <p className="id-cap tl-note">{unvalued.length} {unvalued.length === 1 ? P.unvaluedOne : P.unvaluedMany} <bdi>{nf0.format(unvalued.reduce((s, h) => s + h.cost, 0))}</bdi> {P.iqd}.</p> : null}
-
-          <div className="tl-tools">
-            <button type="button" className="id-btn is-sm is-primary" onClick={() => setDraft(blank)}>{P.addPosition}</button>
-            {loading ? <span className="id-cap">{T.loadingPrices}…</span> : null}
-          </div>
-
-          {draft ? (
-            <form className="id-panel tl-form" onSubmit={(e) => { e.preventDefault(); save() }} aria-label={P.addPosition}>
-              <CompanyPicker meta={meta} value={draft.sym} onChange={(sym) => setDraft({ ...draft, sym, price: draft.price || (prices[sym] ? String(prices[sym]) : '') })} label={P.company} />
-              <label><span className="id-cap">{P.quantity}</span><input className="id-input" inputMode="decimal" value={draft.qty} onChange={(e) => setDraft({ ...draft, qty: e.target.value })} /></label>
-              <label><span className="id-cap">{P.buyPrice}</span><input className="id-input" inputMode="decimal" value={draft.price} onChange={(e) => setDraft({ ...draft, price: e.target.value })} /></label>
-              <label><span className="id-cap">{P.buyDate}</span><input className="id-input" type="date" value={draft.date} onChange={(e) => setDraft({ ...draft, date: e.target.value })} /></label>
-              <label className="tl-wide"><span className="id-cap">{P.note}</span><input className="id-input" value={draft.note} onChange={(e) => setDraft({ ...draft, note: e.target.value })} /></label>
-              <p className="id-cap tl-wide">{P.dateOptional}</p>
-              <div className="tl-form-actions tl-wide">
-                <button type="submit" className="id-btn is-sm is-primary" disabled={!draft.sym || !(parseFloat(draft.qty) > 0) || !(parseFloat(draft.price) > 0)}>{P.add}</button>
-                <button type="button" className="id-btn is-sm" onClick={() => setDraft(null)}>{P.cancel}</button>
-                {draft.qty && draft.price ? <span className="id-cap id-num">{P.cost}: <bdi>{nf0.format((parseFloat(draft.qty) || 0) * (parseFloat(draft.price) || 0))}</bdi></span> : null}
+          <p className="id-eyebrow fx-crumb">{T.eyebrow} · {user ? P.syncedWithAccount : P.onThisDevice}</p>
+          <div className="fx-frame">
+            <div className="fx-board">
+              <div className="fx-lead">
+                <header className="fx-head">
+                  <PageTitle title={P.title} note={T.portfolioNote} className="fx-title" />
+                </header>
+                <p className="fx-huge id-num">
+                  <span className="fx-huge-num">
+                    <bdi>{nf0.format(tot.value)}</bdi>
+                    <svg className="fx-swoosh" viewBox="0 0 200 40" preserveAspectRatio="none" aria-hidden="true">
+                      <path d="M4 30 C 50 10, 110 4, 196 20" pathLength={1} fill="none" stroke="currentColor" strokeWidth={5} strokeLinecap="round" vectorEffect="non-scaling-stroke" />
+                    </svg>
+                  </span>
+                </p>
+                <p className="fx-line">
+                  {dayChange ? <span className={`id-chg ${chgCls(dayChange.abs)}`}><bdi>{pctStr(dayChange.pct)}</bdi></span> : null}
+                  <span>{B.unit}{dayChange ? <> · <bdi dir="ltr">{sign(dayChange.abs)}{nf0.format(dayChange.abs)}</bdi> {B.today}</> : holdings.length ? ` · ${P.noPriorSession}` : ''}</span>
+                </p>
+                <div className="fx-pair pf-pair id-num">
+                  <div><small>{P.totalCost}</small><b><bdi>{nf0.format(tot.cost)}</bdi></b></div>
+                  <div><small>{P.unrealised}</small><b className={tot.pl > 0 ? 'id-up' : tot.pl < 0 ? 'id-down' : ''}><bdi dir="ltr">{sign(tot.pl)}{nf0.format(tot.pl)}</bdi></b></div>
+                  <div><small>{P.totalReturn}</small><b className={tot.plPct > 0 ? 'id-up' : tot.plPct < 0 ? 'id-down' : ''}><bdi>{pctStr(tot.cost ? tot.plPct : null)}</bdi></b></div>
+                </div>
+                {alloc.length ? (
+                  <figure className="fx-ladder pf-alloc">
+                    <figcaption>{P.allocation} · {P.bySector}</figcaption>
+                    <ol>
+                      {alloc.map((x, i) => (
+                        <li key={x.key}>
+                          <span>{x.label}</span>
+                          <i className={i === 0 ? 'is-best' : undefined} style={{ width: `${Math.max(3, x.pct)}%` }} />
+                          <b className="id-num"><bdi>{x.pct.toFixed(1)}%</bdi></b>
+                        </li>
+                      ))}
+                    </ol>
+                  </figure>
+                ) : null}
+                {unvalued.length ? <p className="id-cap">{unvalued.length} {unvalued.length === 1 ? P.unvaluedOne : P.unvaluedMany} <bdi>{nf0.format(unvalued.reduce((sum, h) => sum + h.cost, 0))}</bdi> {P.iqd}.</p> : null}
+                {!user ? <p className="id-cap">{P.localNote} <button type="button" className="id-link tl-linkbtn" onClick={() => openAuth('signin')}>{P.signIn}</button></p> : null}
               </div>
-            </form>
-          ) : null}
 
-          {!ready ? null : !holdings.length ? (
-            <p className="id-note"><b>{P.emptyTitle}</b> · {P.emptyLead}</p>
-          ) : (
-            <div className="id-table-scroll">
-              <table className="id-table tl-table id-num">
-                <thead>
-                  <tr>
-                    <th scope="col">{P.colCompany}</th>
-                    <th scope="col" className="is-end">{P.colQty}</th>
-                    <th scope="col" className="is-end">{P.colAvgCost}</th>
-                    <th scope="col" className="is-end">{P.colPriceVsPrev}</th>
-                    <th scope="col" className="is-end">{P.colValue}</th>
-                    <th scope="col" className="is-end">{P.unrealised}</th>
-                    <th scope="col" className="is-end">{P.colWeight}</th>
-                    <th scope="col" className="is-end">{P.colActions}</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {holdings.map((h: Holding) => {
-                    const q = quotes[h.sym]
-                    const day = q?.prev && h.price ? ((h.price - q.prev) / q.prev) * 100 : null
-                    const isOpen = open === h.sym
-                    return (
-                      <RowGroup key={h.sym} h={h} isOpen={isOpen} onToggle={() => setOpen(isOpen ? null : h.sym)}
-                        name={name(h.sym)} day={day} carried={q?.staleDays ?? null} weight={tot.value && h.price > 0 ? (h.value / tot.value) * 100 : null}
-                        onRemove={() => { if (window.confirm(`${P.willDelete(name(h.sym))} ${h.lots.length === 1 ? P.lotOne : h.lots.length === 2 ? P.lotTwo : `${h.lots.length} ${P.lotMany}`}. ${P.cannotUndo}`)) removeSym(h.sym) }}
-                        onRemoveLot={removeLot} L={L} P={P} locale={locale} removeLabel={t.personal.watchlist.remove} />
-                    )
-                  })}
-                </tbody>
-              </table>
+              <form className="id-print is-key fx-calc pf-add" onSubmit={(e) => { e.preventDefault(); save() }} aria-label={B.addTitle}>
+                <h2 className="fx-calc-title">{B.addTitle}</h2>
+                <CompanyPicker key={pickKey} meta={meta} value={draft.sym} onChange={(sym) => setDraft((d) => ({ ...d, sym, price: d.price || (prices[sym] ? String(prices[sym]) : '') }))} label={P.company} />
+                <div className="pf-two">
+                  <label className="fx-calc-in"><span>{P.quantity}</span><input className="id-num" inputMode="decimal" dir="ltr" value={draft.qty} onChange={(e) => setDraft({ ...draft, qty: e.target.value })} /></label>
+                  <label className="fx-calc-in"><span>{P.buyPrice}</span><input className="id-num" inputMode="decimal" dir="ltr" value={draft.price} onChange={(e) => setDraft({ ...draft, price: e.target.value })} /></label>
+                </div>
+                <div className="pf-two">
+                  <label className="fx-calc-in"><span>{P.buyDate}</span><input type="date" value={draft.date} onChange={(e) => setDraft({ ...draft, date: e.target.value })} /></label>
+                  <label className="fx-calc-in"><span>{P.note}</span><input value={draft.note} onChange={(e) => setDraft({ ...draft, note: e.target.value })} /></label>
+                </div>
+                <p className="fx-calc-out id-num"><bdi>{nf0.format(cost)}</bdi> <span>{P.iqd}</span></p>
+                <p className="fx-calc-note">{P.dateOptional}</p>
+                <button type="submit" className="id-btn is-primary pf-go" disabled={!canAdd}>{P.add}</button>
+                {loading ? <p className="fx-calc-prev">{T.loadingPrices}…</p> : null}
+              </form>
             </div>
-          )}
+          </div>
 
-          {alloc.length ? (
-            <section className="id-panel tl-panel" aria-label={P.allocation}>
-              <PageTitle as="h2" className="id-h3" title={`${P.allocation} · ${P.bySector}`} note={P.allocExcludes} />
-              <ul className="tl-alloc id-num">
-                {alloc.map((a) => (
-                  <li key={a.key}>
-                    <span className="tl-alloc-l">{a.label}</span>
-                    <span className="tl-alloc-bar"><i style={{ width: `${a.pct}%` }} /></span>
-                    <span className="tl-alloc-v"><bdi>{a.pct.toFixed(1)}%</bdi> <span className="id-cap">{nf0.format(a.value)}</span></span>
-                  </li>
-                ))}
-              </ul>
+          <div className="pf-split">
+            <section className="pf-main" aria-label={B.positions}>
+              <h2 className="id-h3 pf-h">{B.positions}</h2>
+              {!ready ? null : !holdings.length ? (
+                <p className="id-print is-calm pf-empty"><b>{P.emptyTitle}</b> · {P.emptyLead}</p>
+              ) : (
+                <div className="fx-scroll">
+                  <table className="mb-table tl-table pf-table id-num">
+                    <thead>
+                      <tr>
+                        <th scope="col">{P.colCompany}</th>
+                        <th scope="col" className="is-end">{P.colQty}</th>
+                        <th scope="col" className="is-end">{P.colAvgCost}</th>
+                        <th scope="col" className="is-end">{P.colPriceVsPrev}</th>
+                        <th scope="col" className="is-end">{P.colValue}</th>
+                        <th scope="col" className="is-end">{P.unrealised}</th>
+                        <th scope="col" className="is-end">{P.colWeight}</th>
+                        <th scope="col" className="is-end">{P.colActions}</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {holdings.map((h: Holding) => {
+                        const q = quotes[h.sym]
+                        const day = q?.prev && h.price ? ((h.price - q.prev) / q.prev) * 100 : null
+                        const isOpen = open === h.sym
+                        return (
+                          <RowGroup key={h.sym} h={h} isOpen={isOpen} onToggle={() => setOpen(isOpen ? null : h.sym)}
+                            name={name(h.sym)} day={day} carried={q?.staleDays ?? null} weight={tot.value && h.price > 0 ? (h.value / tot.value) * 100 : null}
+                            onRemove={() => { if (window.confirm(`${P.willDelete(name(h.sym))} ${h.lots.length === 1 ? P.lotOne : h.lots.length === 2 ? P.lotTwo : `${h.lots.length} ${P.lotMany}`}. ${P.cannotUndo}`)) removeSym(h.sym) }}
+                            onRemoveLot={removeLot} L={L} P={P} locale={locale} removeLabel={t.personal.watchlist.remove} />
+                        )
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              )}
             </section>
-          ) : null}
+            <aside className="pf-side" aria-label={B.myAlerts}>
+              <h2 className="id-h3 pf-h">{B.myAlerts}</h2>
+              {alertsReady && sideAlerts.length ? <AlertCards alerts={sideAlerts} prices={prices} name={name} /> : <p className="id-cap">{B.noAlerts}</p>}
+              <p className="id-cap pf-more"><Link href="/alerts" hrefLang="ar">{sideAlerts.length ? B.allAlerts : B.newAlert} ←</Link></p>
+            </aside>
+          </div>
 
           <AboutSection title={t.company.page.about.title} body={[P.formulaNote, P.unrealisedHelpLong, P.dateOptional]} />
         </div>

@@ -43,5 +43,9 @@ export const results = {
   kindLabel: 'Results',
   feedHeadline: (v: V) => `${v.company} ${when(v)} results: net profit ${v.net} IQD${v.netYoY ? ` (${v.netYoY.dir === 'up' ? '+' : v.netYoY.dir === 'down' ? '−' : ''}${v.netYoY.pct}%)` : ''}`,
   sourceName: 'IQWealth · from the financial statements',
+  board: {
+    netLine: (u: string, p: string, y: string): string => `${u} IQD · net profit · ${p} ${y}`,
+    vsYear: 'against the same period a year earlier',
+  },
   yoyNote: 'against the same period of the previous year',
 }

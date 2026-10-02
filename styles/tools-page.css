@@ -45,3 +45,57 @@
 .nt-row:first-child { border-top: 0; }
 .nt-switch { display: flex; align-items: flex-start; gap: 12px; cursor: pointer; line-height: 1.6; }
 .nt-switch input { width: 22px; height: 22px; margin-top: 2px; flex: 0 0 22px; accent-color: var(--primary-bg); }
+
+/* ── /portfolio on the board (pf-) ─────────────────────────────────────── */
+.pf-pair { grid-template-columns: repeat(3, minmax(0, 1fr)); margin-top: 4px; }
+.pf-add { gap: 12px; }
+.pf-add .tl-pick { min-width: 0; }
+.pf-add .tl-pick .id-input { font: 600 15px/1.2 var(--font-sans); padding: 11px 12px; border-radius: 12px; border: 2px solid var(--line-strong); background: var(--surface-2); color: var(--ink); }
+.pf-two { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.pf-add .fx-calc-in input { font-size: 18px; padding: 9px 12px; }
+.pf-add .fx-calc-in input[type='date'], .pf-add .fx-calc-in input:not(.id-num) { font: 500 14px/1.2 var(--font-sans); padding: 11px 12px; }
+.pf-go { justify-self: start; }
+.pf-split { display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 28px; align-items: start; margin-top: 20px; }
+.pf-h { margin: 0 4px 14px; }
+.pf-empty { margin: 0; padding: 20px 22px; }
+.pf-more { margin: 12px 4px 0; }
+.pf-more a { color: var(--blue); }
+@media (max-width: 1500px) {
+  .pf-split { grid-template-columns: minmax(0, 1fr); gap: 8px; }
+  .pf-side .ac-list { grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); }
+}
+@media (max-width: 560px) { .pf-pair { grid-template-columns: 1fr 1fr; } .pf-two { grid-template-columns: 1fr; } }
+
+/* ── Alert cards, /alerts + the portfolio side (ac-) ───────────────────── */
+.ac-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; }
+.ac-card { display: grid; grid-template-columns: auto minmax(0, 1fr) auto auto; gap: 12px; align-items: center; padding: 14px 16px; }
+.ac-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--world); }
+.ac-dot.is-below { background: var(--muted); }
+.ac-body { display: grid; gap: 3px; min-width: 0; }
+.ac-body b { font-weight: 600; font-size: 14px; line-height: 1.5; }
+.ac-body b a { color: var(--ink); text-decoration: none; }
+.ac-body b a:hover { text-decoration: underline; }
+.ac-body small { font-size: 12px; color: var(--muted); }
+.ac-pill { font-size: 11px; font-weight: 600; line-height: 1; padding: 5px 9px; border-radius: 999px; border: 1.5px solid var(--border); color: var(--muted); white-space: nowrap; }
+.ac-card.is-hit .ac-pill { border-color: var(--up); color: var(--up); }
+.ac-x { background: none; border: 0; color: var(--muted); font-size: 20px; line-height: 1; cursor: pointer; padding: 2px 4px; }
+.ac-x:hover { color: var(--ink); }
+.pf-table th:first-child { width: auto; }
+.pf-table td:first-child { white-space: normal; min-width: 150px; }
+.pf-table .tl-actions .id-btn { padding-inline: 10px; }
+.al-list .ac-list { grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); }
+
+/* ── /watchlist on the board (wl-) ─────────────────────────────────────── */
+.wl-tools { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; margin: 24px 4px 14px; }
+.wl-tools .id-h3 { margin: 0; }
+.wl-cards { list-style: none; margin: 0 0 20px; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 20px; }
+.wl-card { display: flex; flex-direction: column; gap: 6px; padding: 18px 20px; min-width: 0; }
+.wl-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; }
+.wl-name { color: var(--ink); text-decoration: none; font-weight: 700; line-height: 1.5; min-width: 0; }
+.wl-name:hover { text-decoration: underline; }
+.wl-sub { font-size: 12px; color: var(--muted); }
+.wl-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: auto; padding-top: 8px; }
+.wl-price { font: 600 28px/1.1 var(--font-numeric); }
+@media (max-width: 560px) { .wl-cards { grid-template-columns: minmax(0, 1fr); gap: 14px; } }
+.nt-card { padding: 20px 24px; margin-bottom: 20px; }
+.tl-form > .fx-quick { display: flex; }

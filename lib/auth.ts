@@ -166,6 +166,12 @@ export const BENEFITS = [
   { title: "تفضيلاتك محفوظة", note: "اللغة والمظهر يبقيان كما تركتهما." },
 ];
 
+/** The side of every auth screen: why an account is worth it. */
+export const AUTH_PITCH = {
+  ar: { eyebrow: "حسابك في IQWealth", title: "محفظتك وقوائمك وتنبيهاتك، في مكان واحد وعلى كل أجهزتك", sample: "مثال", sampleLabel: "محفظتك اليوم", sampleUnit: "دينار" },
+  en: { eyebrow: "Your IQWealth account", title: "Your portfolio, watchlist and alerts in one place, on every device", sample: "Example", sampleLabel: "Your portfolio today", sampleUnit: "dinars" },
+};
+
 export const SUPPORT_EMAIL = "support@iraqsm.com";
 
 /* ── Copy · both directions · §25 ─────────────────────────────────────────

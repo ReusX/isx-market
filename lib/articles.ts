@@ -130,6 +130,16 @@ function load(section: Section, file: string): Article | null {
 const cache = new Map<Section, Article[]>()
 const CACHED = process.env.NODE_ENV === 'production'
 
+/**
+ * Our own pieces: written by IQWealth (id 1000 and up) or kept current in
+ * place (evergreen). The ~50 stories imported from the old WordPress site
+ * stay live at their URLs and in the sitemap but are not listed in the news
+ * feed or offered as «more stories» (user, 2026-10-02).
+ */
+export function isOwnArticle(a: Pick<Article, 'id' | 'evergreen'>): boolean {
+  return a.id >= 1000 || a.evergreen
+}
+
 /** A section, newest first (by `modified` for evergreen pieces, `date` otherwise). */
 export function listArticles(section: Section): Article[] {
   const hit = CACHED ? cache.get(section) : undefined

@@ -15,6 +15,7 @@ export const learn = {
   research: { title: 'الأبحاث', note: 'تحليلات وتقارير السوق' },
   article: {
     crumbs: 'مسار التنقل',
+    figures: 'أرقام الخبر على IQWealth',
     articleNav: 'التنقل بين المقالات',
     prev: 'السابق',
     next: 'التالي',

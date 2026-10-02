@@ -72,6 +72,9 @@ export type NewsItem = {
   /** Where the row goes. Filings open a PDF; articles open a page here. */
   href: string
   external: boolean
+  /** Articles only: the featured image, and the topic its drawn cover
+   *  falls back to when there is none (a route, see lib/articleFigures). */
+  cover?: { image: string | null; topic: string }
 }
 
 export const kindMeta = (k: ItemKind) => KINDS.find(x => x.id === k)!

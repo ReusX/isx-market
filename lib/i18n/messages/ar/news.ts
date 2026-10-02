@@ -15,6 +15,7 @@
  */
 export const news = {
   title: 'الأخبار',
+  board: { latest: 'الأحدث', own: 'أدلة ومقارنات نكتبها ونحدّثها بأنفسنا، عن الأشياء اللي تخص فلوسك.', read: 'اقرأ', updated: 'محدّث', more: 'مقالات أخرى' },
   itemsSince: (n: string, day: string) => `${n} عنصراً منذ ${day}`,
   standfirst: 'إفصاحات الشركات وأخبار السوق',
   kindGroup: 'نوع العنصر',

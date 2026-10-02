@@ -1,6 +1,5 @@
 'use client'
 
-import Link from 'next/link'
 import { useEffect, useMemo, useState } from 'react'
 import { useLocale } from '@/context/LocaleContext'
 import { useApp } from '@/context/AppContext'
@@ -8,7 +7,8 @@ import { SiteShell } from './SiteShell'
 import { PageTitle } from './PageTitle'
 import { ToolsRail, CompanyPicker, nf2 } from './tools'
 import { useMarketData, useAlerts, alertHit, type Alert } from '@/lib/portfolio'
-import { localeDate } from '@/lib/date'
+import { AlertCards } from './AlertCards'
+import '@/styles/econ-page.css'
 import '@/styles/tools-page.css'
 
 /**
@@ -31,6 +31,7 @@ export function AlertsPage() {
   const [dir, setDir] = useState<'above' | 'below'>('above')
   const [target, setTarget] = useState('')
   const [err, setErr] = useState(false)
+  const [pickKey, setPickKey] = useState(0)
   const name = (s: string) => { const m = metaBy.get(s); return m ? ((locale === 'ar' ? m.ar || m.en : m.en || m.ar) || s) : s }
 
   /* Stamp triggeredAt the first time the condition holds; clear it when it
@@ -55,65 +56,62 @@ export function AlertsPage() {
     const tg = parseFloat(target)
     if (!sym || !(tg > 0)) { setErr(true); return }
     addAlert({ sym, dir, target: tg, basePrice: prices[sym] ?? 0 })
-    setSym(''); setTarget(''); setErr(false)
+    setSym(''); setTarget(''); setErr(false); setPickKey((k) => k + 1)
   }
+
+  const hits = list.filter((a) => a.triggeredAt).length
+  const AB = A.board
 
   return (
     <SiteShell>
       <main className="tl id-full iq-door" data-world="lapis" data-level="accent">
         <ToolsRail />
         <div className="tl-body">
-          <header className="tl-head">
-            <p className="id-eyebrow">{T.eyebrow} · {user ? W.syncedWithAccount : W.onThisDevice}</p>
-            <PageTitle title={A.title} note={A.note} />
-            {!user ? <p className="id-cap">{W.localNote} <button type="button" className="id-link tl-linkbtn" onClick={() => openAuth('signin')}>{W.signIn}</button></p> : null}
-          </header>
-
-          <form className="id-panel tl-form" onSubmit={(e) => { e.preventDefault(); submit() }} aria-label={A.add}>
-            <CompanyPicker meta={meta} value={sym} onChange={setSym} label={T.pick} />
-            <div><span className="id-cap">{A.when}</span>
-              <div className="id-pills" role="group" aria-label={A.when}>
-                <button type="button" className="id-pill is-sm" aria-pressed={dir === 'above'} onClick={() => setDir('above')}>{A.above}</button>
-                <button type="button" className="id-pill is-sm" aria-pressed={dir === 'below'} onClick={() => setDir('below')}>{A.below}</button>
+          <p className="id-eyebrow fx-crumb">{T.eyebrow} · {user ? W.syncedWithAccount : W.onThisDevice}</p>
+          <div className="fx-frame">
+            <div className="fx-board">
+              <div className="fx-lead">
+                <header className="fx-head">
+                  <PageTitle title={A.title} note={A.note} className="fx-title" />
+                </header>
+                <p className="fx-huge id-num">
+                  <span className="fx-huge-num">
+                    <bdi>{list.length}</bdi>
+                    <svg className="fx-swoosh" viewBox="0 0 200 40" preserveAspectRatio="none" aria-hidden="true">
+                      <path d="M4 30 C 50 10, 110 4, 196 20" pathLength={1} fill="none" stroke="currentColor" strokeWidth={5} strokeLinecap="round" vectorEffect="non-scaling-stroke" />
+                    </svg>
+                  </span>
+                </p>
+                <p className="fx-line">
+                  <span>{AB.unit(list.length)}{list.length ? ` · ${hits ? AB.hitLine(String(hits)) : AB.noneHit}` : ''}</span>
+                </p>
+                {!user ? <p className="id-cap">{W.localNote} <button type="button" className="id-link tl-linkbtn" onClick={() => openAuth('signin')}>{W.signIn}</button></p> : null}
               </div>
-            </div>
-            <label><span className="id-cap">{A.target}</span><input className="id-input" inputMode="decimal" value={target} onChange={(e) => setTarget(e.target.value)} /></label>
-            <div className="tl-form-actions tl-wide">
-              <button type="submit" className="id-btn is-sm is-primary">{A.save}</button>
-              {sym && prices[sym] ? <span className="id-cap id-num">{A.current(sym, nf2.format(prices[sym]))}</span> : null}
-              {err ? <span className="id-cap id-down">{A.invalid}</span> : null}
-              {loading ? <span className="id-cap">{T.loadingPrices}…</span> : null}
-            </div>
-          </form>
 
-          {!ready ? null : !list.length ? (
-            <p className="id-note"><b>{A.empty}</b> · {A.emptyNote}</p>
-          ) : (
-            <div className="id-table-scroll">
-              <table className="id-table tl-table id-num">
-                <thead>
-                  <tr>
-                    <th scope="col">{A.colCompany}</th>
-                    <th scope="col">{A.colCondition}</th>
-                    <th scope="col" className="is-end">{A.colNow}</th>
-                    <th scope="col">{A.colState}</th>
-                    <th scope="col" className="is-end">{W.colActions}</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {list.map((a) => (
-                    <tr key={a.id} className={a.triggeredAt ? 'is-hit' : ''}>
-                      <td><Link href={L(`/c/${a.sym}`)} className="id-name tl-name">{name(a.sym)}</Link><span className="id-sub"><bdi>{a.sym}</bdi> · {A.created(localeDate(a.createdAt.slice(0, 10), locale))}</span></td>
-                      <td>{a.dir === 'above' ? A.above : A.below} <bdi>{nf2.format(a.target)}</bdi></td>
-                      <td className="is-end">{prices[a.sym] ? <bdi>{nf2.format(prices[a.sym])}</bdi> : <span className="id-cap">{W.noPrice}</span>}</td>
-                      <td>{a.triggeredAt ? <span className="id-chg is-up">{A.hit} · {localeDate(a.triggeredAt.slice(0, 10), locale)}</span> : <span className="id-chg is-flat">{A.waiting}</span>}</td>
-                      <td className="is-end"><button type="button" className="id-btn is-sm" onClick={() => removeAlert(a.id)}>{A.remove}</button></td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+              <form className="id-print is-key fx-calc pf-add" onSubmit={(e) => { e.preventDefault(); submit() }} aria-label={A.add}>
+                <h2 className="fx-calc-title">{A.add}</h2>
+                <CompanyPicker key={pickKey} meta={meta} value={sym} onChange={setSym} label={T.pick} />
+                <div className="fx-quick" role="group" aria-label={A.when}>
+                  <button type="button" className="fx-qbtn" aria-pressed={dir === 'above'} onClick={() => setDir('above')}>{A.above}</button>
+                  <button type="button" className="fx-qbtn" aria-pressed={dir === 'below'} onClick={() => setDir('below')}>{A.below}</button>
+                </div>
+                <label className="fx-calc-in"><span>{A.target}</span><input className="id-num" inputMode="decimal" dir="ltr" value={target} onChange={(e) => setTarget(e.target.value)} /></label>
+                {sym && prices[sym] ? <p className="fx-calc-note id-num">{A.current(sym, nf2.format(prices[sym]))}</p> : null}
+                {err ? <p className="fx-calc-note id-down">{A.invalid}</p> : null}
+                <button type="submit" className="id-btn is-primary pf-go">{A.save}</button>
+                {loading ? <p className="fx-calc-prev">{T.loadingPrices}…</p> : null}
+              </form>
             </div>
-          )}
+          </div>
+
+          <section className="al-list" aria-label={AB.list}>
+            <h2 className="id-h3 pf-h">{AB.list}</h2>
+            {!ready ? null : !list.length ? (
+              <p className="id-print is-calm pf-empty"><b>{A.empty}</b> · {A.emptyNote}</p>
+            ) : (
+              <AlertCards alerts={list} prices={prices} name={name} onRemove={removeAlert} />
+            )}
+          </section>
         </div>
       </main>
     </SiteShell>

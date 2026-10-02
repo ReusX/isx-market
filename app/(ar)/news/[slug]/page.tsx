@@ -1,9 +1,8 @@
 import { notFound } from 'next/navigation'
 import type { Metadata } from 'next'
 import { getArticle, listArticles, stripHtml, articlePath } from '@/lib/articles'
-import { plainText } from '@/lib/article'
 import { loadArticle } from '@/lib/articleLoad'
-import { ArticlePage } from '@/components/site/ArticlePage'
+import { NewsArticlePage } from '@/components/site/NewsArticlePage'
 import { absUrl, seoAlternates } from '@/lib/seo'
 import { BankRankingBlock } from '@/components/site/BankRankingBlock'
 import { DeadlineBlock } from '@/components/site/DeadlineBlock'
@@ -73,7 +72,7 @@ export default async function NewsArticle(props: { params: Promise<{ slug: strin
   return (
     <>
     <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeLd(articleJsonLd(post, article.bodyHtml)) }} />
-    <ArticlePage
+    <NewsArticlePage
       eyebrow="أخبار السوق"
       backHref="/news"
       backLabel="الأخبار"
@@ -83,7 +82,7 @@ export default async function NewsArticle(props: { params: Promise<{ slug: strin
       dateLabel={article.dateLabel}
       dateTime={article.dateTime}
       image={article.image}
-      imageAlt={plainText(article.title)}
+      figures={article.figures}
       bodyHtml={article.bodyHtml}
       blocks={{ 'bank-ranking': <BankRankingBlock />, 'pension-deadline': <DeadlineBlock /> }}
       layout={article.layout}

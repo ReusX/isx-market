@@ -105,6 +105,13 @@ export const market = {
   },
   /** The rebuilt /market (redesign). */
   page: {
+    dollar: {
+      label: 'الدولار · بغداد',
+      unit: 'دينار للدولار',
+      vsYesterday: 'عن أمس',
+      stale: 'آخر سعر معروف',
+      more: 'سعر الدولار',
+    },
     eyebrow:   'الأسواق',
     lede:      'كل شركة مدرجة في بورصة العراق: آخر سعر، التغيّر، وقيمة التداول — لجلسة واحدة، مرتّبة حسب الأنشط.',
     index:     'مؤشر ISX60',

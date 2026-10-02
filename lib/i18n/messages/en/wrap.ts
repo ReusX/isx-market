@@ -52,6 +52,7 @@ export const wrap = {
   prevSession: 'Previous session',
   nextSession: 'Next session',
   board: 'This session\'s price table',
+  v3: { key: 'The session in figures', index: 'points · ISX60 index', latest: 'Latest session', read: 'Read the wrap', sessions: 'sessions in the archive', chart: 'ISX60 close, every session', colDay: 'Session', colClose: 'Close', colChg: 'Change' },
   archive: 'All wraps',
   archiveTitle: 'Iraq Stock Exchange session wraps',
   archiveSeoTitle: 'Iraq Stock Exchange daily session wraps · archive',

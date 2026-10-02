@@ -390,3 +390,17 @@
   /* /fx: the head is only the title; the figure has its own block. */
   html:not(.is-app) .eco-head.fx-head { background: none; border: 0; box-shadow: none; padding: 0; margin: 4px 0 12px; }
 }
+
+/* ── Shared board pieces: crumb, bar ladder, sideways-scroll table box ── */
+.fx-crumb { margin: 0 4px 12px; }
+.fx-ladder { margin: 6px 0 0; display: grid; gap: 8px; }
+.fx-ladder figcaption { font-size: 12px; font-weight: 600; color: var(--muted); }
+.fx-ladder ol { list-style: none; margin: 0; padding: 0; display: grid; gap: 7px; }
+.fx-ladder li { display: grid; grid-template-columns: minmax(0, 150px) minmax(0, 1fr) 56px; align-items: center; gap: 10px; font-size: 12px; color: var(--secondary); }
+.fx-ladder li span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.fx-ladder i { display: block; height: 8px; border-radius: 4px; background: var(--muted); opacity: .5; }
+.fx-ladder i.is-best { background: var(--world); opacity: 1; }
+.fx-ladder b { font-family: var(--font-numeric); font-weight: 600; color: var(--ink); text-align: end; }
+.fx-scroll { overflow-x: auto; margin-bottom: 28px; }
+.fx-scroll .mb-table th { position: static; }
+@media (max-width: 560px) { .fx-ladder li { grid-template-columns: minmax(0, 104px) minmax(0, 1fr) 48px; } }

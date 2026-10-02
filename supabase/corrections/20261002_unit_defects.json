@@ -1,0 +1,1472 @@
+[
+ {
+  "op": "scale",
+  "report_id": 5865,
+  "ticker": "AISP",
+  "line_key": "cash",
+  "statement": "balance",
+  "from": 1244832614000,
+  "to": 1244832614.0,
+  "factor": 0.001,
+  "unit_reported": [
+   "IQD_THOUSANDS",
+   "IQD"
+  ],
+  "why": "filing printed in dinars but read as thousands; neighbouring filings of the same company agree within a few percent after scaling"
+ },
+ {
+  "op": "scale",
+  "report_id": 5865,
+  "ticker": "AISP",
+  "line_key": "contracts_services",
+  "statement": "income",
+  "from": 498000000,
+  "to": 498000.0,
+  "factor": 0.001,
+  "unit_reported": [
+   "IQD_THOUSANDS",
+   "IQD"
+  ],
+  "why": "filing printed in dinars but read as thousands; neighbouring filings of the same company agree within a few percent after scaling"
+ },
+ {
+  "op": "scale",
+  "report_id": 5865,
+  "ticker": "AISP",
+  "line_key": "goods_supplies",
+  "statement": "income",
+  "from": 464403581000,
+  "to": 464403581.0,
+  "factor": 0.001,
+  "unit_reported": [
+   "IQD_THOUSANDS",
+   "IQD"
+  ],
+  "why": "filing printed in dinars but read as thousands; neighbouring filings of the same company agree within a few percent after scaling"
+ },
+ {
+  "op": "scale",
+  "report_id": 5865,
+  "ticker": "AISP",
+  "line_key": "inventory",
+  "statement": "balance",
+  "from": 8064249281000,
+  "to": 8064249281.0,
+  "factor": 0.001,
+  "unit_reported": [
+   "IQD_THOUSANDS",
+   "IQD"
+  ],
+  "why": "filing printed in dinars but read as thousands; neighbouring filings of the same company agree within a few percent after scaling"
+ },
+ {
+  "op": "scale",
+  "report_id": 5865,
+  "ticker": "AISP",
+  "line_key": "long_term_investments",
+  "statement": "balance",
+  "from": 1894046698000,
+  "to": 1894046698.0,
+  "factor": 0.001,
+  "unit_reported": [
+   "IQD_THOUSANDS",
+   "IQD"
+  ],
+  "why": "filing printed in dinars but read as thousands; neighbouring filings of the same company agree within a few percent after scaling"
+ },
+ {
+  "op": "scale",
+  "report_id": 5865,
+  "ticker": "AISP",
+  "line_key": "long_term_provisions",
+  "statement": "balance",
+  "from": 13456271324000,
+  "to": 13456271324.0,
+  "factor": 0.001,
+  "unit_reported": [
+   "IQD_THOUSANDS",
+   "IQD"
+  ],
+  "why": "filing printed in dinars but read as thousands; neighbouring filings of the same company agree within a few percent after scaling"
+ },
+ {
+  "op": "scale",
+  "report_id": 5865,
+  "ticker": "AISP",
+  "line_key": "net_fixed_assets",
+  "statement": "balance",
+  "from": 2008670670000,
+  "to": 2008670670.0,
+  "factor": 0.001,
+  "unit_reported": [
+   "IQD_THOUSANDS",
+   "IQD"
+  ],
+  "why": "filing printed in dinars but read as thousands; neighbouring filings of the same company agree within a few percent after scaling"
+ },
+ {
+  "op": "scale",
+  "report_id": 5865,
+  "ticker": "AISP",
+  "line_key": "operating_income",
+  "statement": "income",
+  "from": -6996943742000,
+  "to": -6996943742.0,
+  "factor": 0.001,
+  "unit_reported": [
+   "IQD_THOUSANDS",
+   "IQD"
+  ],
+  "why": "filing printed in dinars but read as thousands; neighbouring filings of the same company agree within a few percent after scaling"
+ },
+ {
+  "op": "scale",
+  "report_id": 5865,
+  "ticker": "AISP",
+  "line_key": "paid_capital",
+  "statement": "balance",
+  "from": 200000000000000,
+  "to": 200000000000.0,
+  "factor": 0.001,
+  "unit_reported": [
+   "IQD_THOUSANDS",
+   "IQD"
+  ],
+  "why": "filing printed in dinars but read as thousands; neighbouring filings of the same company agree within a few percent after scaling"
+ },
+ {
+  "op": "scale",
+  "report_id": 5865,
+  "ticker": "AISP",
+  "line_key": "projects_under_construction",
+  "statement": "balance",
+  "from": 1030985500000,
+  "to": 1030985500.0,
+  "factor": 0.001,
+  "unit_reported": [
+   "IQD_THOUSANDS",
+   "IQD"
+  ],
+  "why": "filing printed in dinars but read as thousands; neighbouring filings of the same company agree within a few percent after scaling"
+ },
+ {
+  "op": "scale",
+  "report_id": 5865,
+  "ticker": "AISP",
+  "line_key": "receivables",
+  "statement": "balance",
+  "from": 574819864189000,
+  "to": 574819864189.0,
+  "factor": 0.001,
+  "unit_reported": [
+   "IQD_THOUSANDS",
+   "IQD"
+  ],
+  "why": "filing printed in dinars but read as thousands; neighbouring filings of the same company agree within a few percent after scaling"
+ },
+ {
+  "op": "scale",
+  "report_id": 5865,
+  "ticker": "AISP",
+  "line_key": "reserves",
+  "statement": "balance",
+  "from": 2683882485000,
+  "to": 2683882485.0,
+  "factor": 0.001,
+  "unit_reported": [
+   "IQD_THOUSANDS",
+   "IQD"
+  ],
+  "why": "filing printed in dinars but read as thousands; neighbouring filings of the same company agree within a few percent after scaling"
+ },
+ {
+  "op": "scale",
+  "report_id": 5865,
+  "ticker": "AISP",
+  "line_key": "retained_earnings",
+  "statement": "balance",
+  "from": 5026815126000,
+  "to": 5026815126.0,
+  "factor": 0.001,
+  "unit_reported": [
+   "IQD_THOUSANDS",
+   "IQD"
+  ],
+  "why": "filing printed in dinars but read as thousands; neighbouring filings of the same company agree within a few percent after scaling"
+ },
+ {
+  "op": "scale",
+  "report_id": 5865,
+  "ticker": "AISP",
+  "line_key": "revenue",
+  "statement": "income",
+  "from": 949209014000,
+  "to": 949209014.0,
+  "factor": 0.001,
+  "unit_reported": [
+   "IQD_THOUSANDS",
+   "IQD"
+  ],
+  "why": "filing printed in dinars but read as thousands; neighbouring filings of the same company agree within a few percent after scaling"
+ },
+ {
+  "op": "scale",
+  "report_id": 5865,
+  "ticker": "AISP",
+  "line_key": "salaries_wages",
+  "statement": "income",
+  "from": 137027071000,
+  "to": 137027071.0,
+  "factor": 0.001,
+  "unit_reported": [
+   "IQD_THOUSANDS",
+   "IQD"
+  ],
+  "why": "filing printed in dinars but read as thousands; neighbouring filings of the same company agree within a few percent after scaling"
+ },
+ {
+  "op": "scale",
+  "report_id": 5865,
+  "ticker": "AISP",
+  "line_key": "service_supplies",
+  "statement": "income",
+  "from": 224296700000,
+  "to": 224296700.0,
+  "factor": 0.001,
+  "unit_reported": [
+   "IQD_THOUSANDS",
+   "IQD"
+  ],
+  "why": "filing printed in dinars but read as thousands; neighbouring filings of the same company agree within a few percent after scaling"
+ },
+ {
+  "op": "scale",
+  "report_id": 5865,
+  "ticker": "AISP",
+  "line_key": "short_term_investments",
+  "statement": "balance",
+  "from": 1011973544000,
+  "to": 1011973544.0,
+  "factor": 0.001,
+  "unit_reported": [
+   "IQD_THOUSANDS",
+   "IQD"
+  ],
+  "why": "filing printed in dinars but read as thousands; neighbouring filings of the same company agree within a few percent after scaling"
+ },
+ {
+  "op": "scale",
+  "report_id": 5865,
+  "ticker": "AISP",
+  "line_key": "short_term_payables",
+  "statement": "balance",
+  "from": 388032340311000,
+  "to": 388032340311.0,
+  "factor": 0.001,
+  "unit_reported": [
+   "IQD_THOUSANDS",
+   "IQD"
+  ],
+  "why": "filing printed in dinars but read as thousands; neighbouring filings of the same company agree within a few percent after scaling"
+ },
+ {
+  "op": "scale",
+  "report_id": 5865,
+  "ticker": "AISP",
+  "line_key": "total_assets",
+  "statement": "balance",
+  "from": 609199309246000,
+  "to": 609199309246.0,
+  "factor": 0.001,
+  "unit_reported": [
+   "IQD_THOUSANDS",
+   "IQD"
+  ],
+  "why": "filing printed in dinars but read as thousands; neighbouring filings of the same company agree within a few percent after scaling"
+ },
+ {
+  "op": "scale",
+  "report_id": 5865,
+  "ticker": "AISP",
+  "line_key": "total_current_assets",
+  "statement": "balance",
+  "from": 585949093578000,
+  "to": 585949093578.0,
+  "factor": 0.001,
+  "unit_reported": [
+   "IQD_THOUSANDS",
+   "IQD"
+  ],
+  "why": "filing printed in dinars but read as thousands; neighbouring filings of the same company agree within a few percent after scaling"
+ },
+ {
+  "op": "scale",
+  "report_id": 5865,
+  "ticker": "AISP",
+  "line_key": "total_equity",
+  "statement": "balance",
+  "from": 207710697611000,
+  "to": 207710697611.0,
+  "factor": 0.001,
+  "unit_reported": [
+   "IQD_THOUSANDS",
+   "IQD"
+  ],
+  "why": "filing printed in dinars but read as thousands; neighbouring filings of the same company agree within a few percent after scaling"
+ },
+ {
+  "op": "scale",
+  "report_id": 5865,
+  "ticker": "AISP",
+  "line_key": "total_equity_and_liabilities",
+  "statement": "balance",
+  "from": 609199309246000,
+  "to": 609199309246.0,
+  "factor": 0.001,
+  "unit_reported": [
+   "IQD_THOUSANDS",
+   "IQD"
+  ],
+  "why": "filing printed in dinars but read as thousands; neighbouring filings of the same company agree within a few percent after scaling"
+ },
+ {
+  "op": "scale",
+  "report_id": 5865,
+  "ticker": "AISP",
+  "line_key": "total_fixed_assets",
+  "statement": "balance",
+  "from": 23008370668000,
+  "to": 23008370668.0,
+  "factor": 0.001,
+  "unit_reported": [
+   "IQD_THOUSANDS",
+   "IQD"
+  ],
+  "why": "filing printed in dinars but read as thousands; neighbouring filings of the same company agree within a few percent after scaling"
+ },
+ {
+  "op": "scale",
+  "report_id": 5865,
+  "ticker": "AISP",
+  "line_key": "total_operating_expenses",
+  "statement": "income",
+  "from": 1321949352000,
+  "to": 1321949352.0,
+  "factor": 0.001,
+  "unit_reported": [
+   "IQD_THOUSANDS",
+   "IQD"
+  ],
+  "why": "filing printed in dinars but read as thousands; neighbouring filings of the same company agree within a few percent after scaling"
+ },
+ {
+  "op": "scale",
+  "report_id": 6403,
+  "ticker": "BGUC",
+  "line_key": "cash_and_cbi",
+  "statement": "balance",
+  "from": 140072303640000,
+  "to": 140072303640.0,
+  "factor": 0.001,
+  "unit_reported": [
+   "IQD_THOUSANDS",
+   "IQD"
+  ],
+  "why": "filing printed in dinars but read as thousands; neighbouring filings of the same company agree within a few percent after scaling"
+ },
+ {
+  "op": "scale",
+  "report_id": 6403,
+  "ticker": "BGUC",
+  "line_key": "customer_deposits",
+  "statement": "balance",
+  "from": 199994941163000,
+  "to": 199994941163.0,
+  "factor": 0.001,
+  "unit_reported": [
+   "IQD_THOUSANDS",
+   "IQD"
+  ],
+  "why": "filing printed in dinars but read as thousands; neighbouring filings of the same company agree within a few percent after scaling"
+ },
+ {
+  "op": "scale",
+  "report_id": 6403,
+  "ticker": "BGUC",
+  "line_key": "due_from_banks",
+  "statement": "balance",
+  "from": 49524352204000,
+  "to": 49524352204.0,
+  "factor": 0.001,
+  "unit_reported": [
+   "IQD_THOUSANDS",
+   "IQD"
+  ],
+  "why": "filing printed in dinars but read as thousands; neighbouring filings of the same company agree within a few percent after scaling"
+ },
+ {
+  "op": "scale",
+  "report_id": 6403,
+  "ticker": "BGUC",
+  "line_key": "due_to_banks",
+  "statement": "balance",
+  "from": 3213696709000,
+  "to": 3213696709.0,
+  "factor": 0.001,
+  "unit_reported": [
+   "IQD_THOUSANDS",
+   "IQD"
+  ],
+  "why": "filing printed in dinars but read as thousands; neighbouring filings of the same company agree within a few percent after scaling"
+ },
+ {
+  "op": "scale",
+  "report_id": 6403,
+  "ticker": "BGUC",
+  "line_key": "financing_income",
+  "statement": "income",
+  "from": 2559704240000,
+  "to": 2559704240.0,
+  "factor": 0.001,
+  "unit_reported": [
+   "IQD_THOUSANDS",
+   "IQD"
+  ],
+  "why": "filing printed in dinars but read as thousands; neighbouring filings of the same company agree within a few percent after scaling"
+ },
+ {
+  "op": "scale",
+  "report_id": 6403,
+  "ticker": "BGUC",
+  "line_key": "fixed_assets",
+  "statement": "balance",
+  "from": 337958941971000,
+  "to": 337958941971.0,
+  "factor": 0.001,
+  "unit_reported": [
+   "IQD_THOUSANDS",
+   "IQD"
+  ],
+  "why": "filing printed in dinars but read as thousands; neighbouring filings of the same company agree within a few percent after scaling"
+ },
+ {
+  "op": "scale",
+  "report_id": 6403,
+  "ticker": "BGUC",
+  "line_key": "ga_expenses",
+  "statement": "income",
+  "from": 9845050714000,
+  "to": 9845050714.0,
+  "factor": 0.001,
+  "unit_reported": [
+   "IQD_THOUSANDS",
+   "IQD"
+  ],
+  "why": "filing printed in dinars but read as thousands; neighbouring filings of the same company agree within a few percent after scaling"
+ },
+ {
+  "op": "scale",
+  "report_id": 6403,
+  "ticker": "BGUC",
+  "line_key": "investments",
+  "statement": "balance",
+  "from": 50994117344000,
+  "to": 50994117344.0,
+  "factor": 0.001,
+  "unit_reported": [
+   "IQD_THOUSANDS",
+   "IQD"
+  ],
+  "why": "filing printed in dinars but read as thousands; neighbouring filings of the same company agree within a few percent after scaling"
+ },
+ {
+  "op": "scale",
+  "report_id": 6403,
+  "ticker": "BGUC",
+  "line_key": "islamic_financing",
+  "statement": "balance",
+  "from": 555795700819000,
+  "to": 555795700819.0,
+  "factor": 0.001,
+  "unit_reported": [
+   "IQD_THOUSANDS",
+   "IQD"
+  ],
+  "why": "filing printed in dinars but read as thousands; neighbouring filings of the same company agree within a few percent after scaling"
+ },
+ {
+  "op": "scale",
+  "report_id": 6403,
+  "ticker": "BGUC",
+  "line_key": "net_income",
+  "statement": "income",
+  "from": 2559704240000,
+  "to": 2559704240.0,
+  "factor": 0.001,
+  "unit_reported": [
+   "IQD_THOUSANDS",
+   "IQD"
+  ],
+  "why": "filing printed in dinars but read as thousands; neighbouring filings of the same company agree within a few percent after scaling"
+ },
+ {
+  "op": "scale",
+  "report_id": 6403,
+  "ticker": "BGUC",
+  "line_key": "other_liabilities",
+  "statement": "balance",
+  "from": 12176776914000,
+  "to": 12176776914.0,
+  "factor": 0.001,
+  "unit_reported": [
+   "IQD_THOUSANDS",
+   "IQD"
+  ],
+  "why": "filing printed in dinars but read as thousands; neighbouring filings of the same company agree within a few percent after scaling"
+ },
+ {
+  "op": "scale",
+  "report_id": 6403,
+  "ticker": "BGUC",
+  "line_key": "paid_capital",
+  "statement": "balance",
+  "from": 300000000000000,
+  "to": 300000000000.0,
+  "factor": 0.001,
+  "unit_reported": [
+   "IQD_THOUSANDS",
+   "IQD"
+  ],
+  "why": "filing printed in dinars but read as thousands; neighbouring filings of the same company agree within a few percent after scaling"
+ },
+ {
+  "op": "scale",
+  "report_id": 6403,
+  "ticker": "BGUC",
+  "line_key": "pretax_income",
+  "statement": "income",
+  "from": 2559704240000,
+  "to": 2559704240.0,
+  "factor": 0.001,
+  "unit_reported": [
+   "IQD_THOUSANDS",
+   "IQD"
+  ],
+  "why": "filing printed in dinars but read as thousands; neighbouring filings of the same company agree within a few percent after scaling"
+ },
+ {
+  "op": "scale",
+  "report_id": 6403,
+  "ticker": "BGUC",
+  "line_key": "reserves",
+  "statement": "balance",
+  "from": 9782601160000,
+  "to": 9782601160.0,
+  "factor": 0.001,
+  "unit_reported": [
+   "IQD_THOUSANDS",
+   "IQD"
+  ],
+  "why": "filing printed in dinars but read as thousands; neighbouring filings of the same company agree within a few percent after scaling"
+ },
+ {
+  "op": "scale",
+  "report_id": 6403,
+  "ticker": "BGUC",
+  "line_key": "retained_earnings",
+  "statement": "balance",
+  "from": 21637684872000,
+  "to": 21637684872.0,
+  "factor": 0.001,
+  "unit_reported": [
+   "IQD_THOUSANDS",
+   "IQD"
+  ],
+  "why": "filing printed in dinars but read as thousands; neighbouring filings of the same company agree within a few percent after scaling"
+ },
+ {
+  "op": "scale",
+  "report_id": 6403,
+  "ticker": "BGUC",
+  "line_key": "revenue_and_commissions",
+  "statement": "income",
+  "from": 3965604562000,
+  "to": 3965604562.0,
+  "factor": 0.001,
+  "unit_reported": [
+   "IQD_THOUSANDS",
+   "IQD"
+  ],
+  "why": "filing printed in dinars but read as thousands; neighbouring filings of the same company agree within a few percent after scaling"
+ },
+ {
+  "op": "scale",
+  "report_id": 6403,
+  "ticker": "BGUC",
+  "line_key": "tax",
+  "statement": "income",
+  "from": 422085000000,
+  "to": 422085000.0,
+  "factor": 0.001,
+  "unit_reported": [
+   "IQD_THOUSANDS",
+   "IQD"
+  ],
+  "why": "filing printed in dinars but read as thousands; neighbouring filings of the same company agree within a few percent after scaling"
+ },
+ {
+  "op": "scale",
+  "report_id": 6403,
+  "ticker": "BGUC",
+  "line_key": "total_assets",
+  "statement": "balance",
+  "from": 555795700819000,
+  "to": 555795700819.0,
+  "factor": 0.001,
+  "unit_reported": [
+   "IQD_THOUSANDS",
+   "IQD"
+  ],
+  "why": "filing printed in dinars but read as thousands; neighbouring filings of the same company agree within a few percent after scaling"
+ },
+ {
+  "op": "scale",
+  "report_id": 6403,
+  "ticker": "BGUC",
+  "line_key": "total_equity",
+  "statement": "balance",
+  "from": 337958941971000,
+  "to": 337958941971.0,
+  "factor": 0.001,
+  "unit_reported": [
+   "IQD_THOUSANDS",
+   "IQD"
+  ],
+  "why": "filing printed in dinars but read as thousands; neighbouring filings of the same company agree within a few percent after scaling"
+ },
+ {
+  "op": "scale",
+  "report_id": 6403,
+  "ticker": "BGUC",
+  "line_key": "total_liabilities_and_equity",
+  "statement": "balance",
+  "from": 555795700819000,
+  "to": 555795700819.0,
+  "factor": 0.001,
+  "unit_reported": [
+   "IQD_THOUSANDS",
+   "IQD"
+  ],
+  "why": "filing printed in dinars but read as thousands; neighbouring filings of the same company agree within a few percent after scaling"
+ },
+ {
+  "op": "scale",
+  "report_id": 6444,
+  "ticker": "AISP",
+  "line_key": "capex",
+  "statement": "cashflow",
+  "from": -174410000000,
+  "to": -174410000.0,
+  "factor": 0.001,
+  "unit_reported": [
+   "IQD_THOUSANDS",
+   "IQD"
+  ],
+  "why": "filing printed in dinars but read as thousands; neighbouring filings of the same company agree within a few percent after scaling"
+ },
+ {
+  "op": "scale",
+  "report_id": 6444,
+  "ticker": "AISP",
+  "line_key": "cash",
+  "statement": "balance",
+  "from": 288620551167000,
+  "to": 288620551167.0,
+  "factor": 0.001,
+  "unit_reported": [
+   "IQD_THOUSANDS",
+   "IQD"
+  ],
+  "why": "filing printed in dinars but read as thousands; neighbouring filings of the same company agree within a few percent after scaling"
+ },
+ {
+  "op": "scale",
+  "report_id": 6444,
+  "ticker": "AISP",
+  "line_key": "cash_beginning",
+  "statement": "cashflow",
+  "from": 1081054592888000,
+  "to": 1081054592888.0,
+  "factor": 0.001,
+  "unit_reported": [
+   "IQD_THOUSANDS",
+   "IQD"
+  ],
+  "why": "filing printed in dinars but read as thousands; neighbouring filings of the same company agree within a few percent after scaling"
+ },
+ {
+  "op": "scale",
+  "report_id": 6444,
+  "ticker": "AISP",
+  "line_key": "cash_ending",
+  "statement": "cashflow",
+  "from": 284870512288000,
+  "to": 284870512288.0,
+  "factor": 0.001,
+  "unit_reported": [
+   "IQD_THOUSANDS",
+   "IQD"
+  ],
+  "why": "filing printed in dinars but read as thousands; neighbouring filings of the same company agree within a few percent after scaling"
+ },
+ {
+  "op": "scale",
+  "report_id": 6444,
+  "ticker": "AISP",
+  "line_key": "cff",
+  "statement": "cashflow",
+  "from": -4204692072000,
+  "to": -4204692072.0,
+  "factor": 0.001,
+  "unit_reported": [
+   "IQD_THOUSANDS",
+   "IQD"
+  ],
+  "why": "filing printed in dinars but read as thousands; neighbouring filings of the same company agree within a few percent after scaling"
+ },
+ {
+  "op": "scale",
+  "report_id": 6444,
+  "ticker": "AISP",
+  "line_key": "cfi",
+  "statement": "cashflow",
+  "from": -174410000000,
+  "to": -174410000.0,
+  "factor": 0.001,
+  "unit_reported": [
+   "IQD_THOUSANDS",
+   "IQD"
+  ],
+  "why": "filing printed in dinars but read as thousands; neighbouring filings of the same company agree within a few percent after scaling"
+ },
+ {
+  "op": "scale",
+  "report_id": 6444,
+  "ticker": "AISP",
+  "line_key": "cfo",
+  "statement": "cashflow",
+  "from": 964141260000,
+  "to": 964141260.0,
+  "factor": 0.001,
+  "unit_reported": [
+   "IQD_THOUSANDS",
+   "IQD"
+  ],
+  "why": "filing printed in dinars but read as thousands; neighbouring filings of the same company agree within a few percent after scaling"
+ },
+ {
+  "op": "scale",
+  "report_id": 6444,
+  "ticker": "AISP",
+  "line_key": "contracts_services",
+  "statement": "income",
+  "from": 141223000000,
+  "to": 141223000.0,
+  "factor": 0.001,
+  "unit_reported": [
+   "IQD_THOUSANDS",
+   "IQD"
+  ],
+  "why": "filing printed in dinars but read as thousands; neighbouring filings of the same company agree within a few percent after scaling"
+ },
+ {
+  "op": "scale",
+  "report_id": 6444,
+  "ticker": "AISP",
+  "line_key": "dividends_paid",
+  "statement": "cashflow",
+  "from": -4204692072000,
+  "to": -4204692072.0,
+  "factor": 0.001,
+  "unit_reported": [
+   "IQD_THOUSANDS",
+   "IQD"
+  ],
+  "why": "filing printed in dinars but read as thousands; neighbouring filings of the same company agree within a few percent after scaling"
+ },
+ {
+  "op": "scale",
+  "report_id": 6444,
+  "ticker": "AISP",
+  "line_key": "goods_supplies",
+  "statement": "income",
+  "from": 171747518000,
+  "to": 171747518.0,
+  "factor": 0.001,
+  "unit_reported": [
+   "IQD_THOUSANDS",
+   "IQD"
+  ],
+  "why": "filing printed in dinars but read as thousands; neighbouring filings of the same company agree within a few percent after scaling"
+ },
+ {
+  "op": "scale",
+  "report_id": 6444,
+  "ticker": "AISP",
+  "line_key": "inventory",
+  "statement": "balance",
+  "from": 8062495281000,
+  "to": 8062495281.0,
+  "factor": 0.001,
+  "unit_reported": [
+   "IQD_THOUSANDS",
+   "IQD"
+  ],
+  "why": "filing printed in dinars but read as thousands; neighbouring filings of the same company agree within a few percent after scaling"
+ },
+ {
+  "op": "scale",
+  "report_id": 6444,
+  "ticker": "AISP",
+  "line_key": "investments",
+  "statement": "balance",
+  "from": 10119732494000,
+  "to": 10119732494.0,
+  "factor": 0.001,
+  "unit_reported": [
+   "IQD_THOUSANDS",
+   "IQD"
+  ],
+  "why": "filing printed in dinars but read as thousands; neighbouring filings of the same company agree within a few percent after scaling"
+ },
+ {
+  "op": "scale",
+  "report_id": 6444,
+  "ticker": "AISP",
+  "line_key": "long_term_investments",
+  "statement": "balance",
+  "from": 1894046698000,
+  "to": 1894046698.0,
+  "factor": 0.001,
+  "unit_reported": [
+   "IQD_THOUSANDS",
+   "IQD"
+  ],
+  "why": "filing printed in dinars but read as thousands; neighbouring filings of the same company agree within a few percent after scaling"
+ },
+ {
+  "op": "scale",
+  "report_id": 6444,
+  "ticker": "AISP",
+  "line_key": "long_term_payables",
+  "statement": "balance",
+  "from": 559746238107000,
+  "to": 559746238107.0,
+  "factor": 0.001,
+  "unit_reported": [
+   "IQD_THOUSANDS",
+   "IQD"
+  ],
+  "why": "filing printed in dinars but read as thousands; neighbouring filings of the same company agree within a few percent after scaling"
+ },
+ {
+  "op": "scale",
+  "report_id": 6444,
+  "ticker": "AISP",
+  "line_key": "long_term_provisions",
+  "statement": "balance",
+  "from": 13456271244000,
+  "to": 13456271244.0,
+  "factor": 0.001,
+  "unit_reported": [
+   "IQD_THOUSANDS",
+   "IQD"
+  ],
+  "why": "filing printed in dinars but read as thousands; neighbouring filings of the same company agree within a few percent after scaling"
+ },
+ {
+  "op": "scale",
+  "report_id": 6444,
+  "ticker": "AISP",
+  "line_key": "net_change_in_cash",
+  "statement": "cashflow",
+  "from": -414960812000,
+  "to": -414960812.0,
+  "factor": 0.001,
+  "unit_reported": [
+   "IQD_THOUSANDS",
+   "IQD"
+  ],
+  "why": "filing printed in dinars but read as thousands; neighbouring filings of the same company agree within a few percent after scaling"
+ },
+ {
+  "op": "scale",
+  "report_id": 6444,
+  "ticker": "AISP",
+  "line_key": "net_fixed_assets",
+  "statement": "balance",
+  "from": 20102392028000,
+  "to": 20102392028.0,
+  "factor": 0.001,
+  "unit_reported": [
+   "IQD_THOUSANDS",
+   "IQD"
+  ],
+  "why": "filing printed in dinars but read as thousands; neighbouring filings of the same company agree within a few percent after scaling"
+ },
+ {
+  "op": "scale",
+  "report_id": 6444,
+  "ticker": "AISP",
+  "line_key": "operating_income",
+  "statement": "income",
+  "from": -454135268000,
+  "to": -454135268.0,
+  "factor": 0.001,
+  "unit_reported": [
+   "IQD_THOUSANDS",
+   "IQD"
+  ],
+  "why": "filing printed in dinars but read as thousands; neighbouring filings of the same company agree within a few percent after scaling"
+ },
+ {
+  "op": "scale",
+  "report_id": 6444,
+  "ticker": "AISP",
+  "line_key": "other_expenses",
+  "statement": "income",
+  "from": -128557202000,
+  "to": -128557202.0,
+  "factor": 0.001,
+  "unit_reported": [
+   "IQD_THOUSANDS",
+   "IQD"
+  ],
+  "why": "filing printed in dinars but read as thousands; neighbouring filings of the same company agree within a few percent after scaling"
+ },
+ {
+  "op": "scale",
+  "report_id": 6444,
+  "ticker": "AISP",
+  "line_key": "other_income",
+  "statement": "income",
+  "from": 130000,
+  "to": 130.0,
+  "factor": 0.001,
+  "unit_reported": [
+   "IQD_THOUSANDS",
+   "IQD"
+  ],
+  "why": "filing printed in dinars but read as thousands; neighbouring filings of the same company agree within a few percent after scaling"
+ },
+ {
+  "op": "scale",
+  "report_id": 6444,
+  "ticker": "AISP",
+  "line_key": "paid_capital",
+  "statement": "balance",
+  "from": 2000000000000,
+  "to": 2000000000.0,
+  "factor": 0.001,
+  "unit_reported": [
+   "IQD_THOUSANDS",
+   "IQD"
+  ],
+  "why": "filing printed in dinars but read as thousands; neighbouring filings of the same company agree within a few percent after scaling"
+ },
+ {
+  "op": "scale",
+  "report_id": 6444,
+  "ticker": "AISP",
+  "line_key": "pretax_income",
+  "statement": "income",
+  "from": -582692470000,
+  "to": -582692470.0,
+  "factor": 0.001,
+  "unit_reported": [
+   "IQD_THOUSANDS",
+   "IQD"
+  ],
+  "why": "filing printed in dinars but read as thousands; neighbouring filings of the same company agree within a few percent after scaling"
+ },
+ {
+  "op": "scale",
+  "report_id": 6444,
+  "ticker": "AISP",
+  "line_key": "projects_under_construction",
+  "statement": "balance",
+  "from": 2451313911264000,
+  "to": 2451313911264.0,
+  "factor": 0.001,
+  "unit_reported": [
+   "IQD_THOUSANDS",
+   "IQD"
+  ],
+  "why": "filing printed in dinars but read as thousands; neighbouring filings of the same company agree within a few percent after scaling"
+ },
+ {
+  "op": "scale",
+  "report_id": 6444,
+  "ticker": "AISP",
+  "line_key": "receivables",
+  "statement": "balance",
+  "from": 550380235114000,
+  "to": 550380235114.0,
+  "factor": 0.001,
+  "unit_reported": [
+   "IQD_THOUSANDS",
+   "IQD"
+  ],
+  "why": "filing printed in dinars but read as thousands; neighbouring filings of the same company agree within a few percent after scaling"
+ },
+ {
+  "op": "scale",
+  "report_id": 6444,
+  "ticker": "AISP",
+  "line_key": "reserves",
+  "statement": "balance",
+  "from": 42672612477000,
+  "to": 42672612477.0,
+  "factor": 0.001,
+  "unit_reported": [
+   "IQD_THOUSANDS",
+   "IQD"
+  ],
+  "why": "filing printed in dinars but read as thousands; neighbouring filings of the same company agree within a few percent after scaling"
+ },
+ {
+  "op": "scale",
+  "report_id": 6444,
+  "ticker": "AISP",
+  "line_key": "retained_earnings",
+  "statement": "balance",
+  "from": -13784241202000,
+  "to": -13784241202.0,
+  "factor": 0.001,
+  "unit_reported": [
+   "IQD_THOUSANDS",
+   "IQD"
+  ],
+  "why": "filing printed in dinars but read as thousands; neighbouring filings of the same company agree within a few percent after scaling"
+ },
+ {
+  "op": "scale",
+  "report_id": 6444,
+  "ticker": "AISP",
+  "line_key": "revenue",
+  "statement": "income",
+  "from": 546155900000,
+  "to": 546155900.0,
+  "factor": 0.001,
+  "unit_reported": [
+   "IQD_THOUSANDS",
+   "IQD"
+  ],
+  "why": "filing printed in dinars but read as thousands; neighbouring filings of the same company agree within a few percent after scaling"
+ },
+ {
+  "op": "scale",
+  "report_id": 6444,
+  "ticker": "AISP",
+  "line_key": "salaries_wages",
+  "statement": "income",
+  "from": 4051428000,
+  "to": 4051428.0,
+  "factor": 0.001,
+  "unit_reported": [
+   "IQD_THOUSANDS",
+   "IQD"
+  ],
+  "why": "filing printed in dinars but read as thousands; neighbouring filings of the same company agree within a few percent after scaling"
+ },
+ {
+  "op": "scale",
+  "report_id": 6444,
+  "ticker": "AISP",
+  "line_key": "service_supplies",
+  "statement": "income",
+  "from": 265262722000,
+  "to": 265262722.0,
+  "factor": 0.001,
+  "unit_reported": [
+   "IQD_THOUSANDS",
+   "IQD"
+  ],
+  "why": "filing printed in dinars but read as thousands; neighbouring filings of the same company agree within a few percent after scaling"
+ },
+ {
+  "op": "scale",
+  "report_id": 6444,
+  "ticker": "AISP",
+  "line_key": "short_term_investments",
+  "statement": "balance",
+  "from": 1011973544000,
+  "to": 1011973544.0,
+  "factor": 0.001,
+  "unit_reported": [
+   "IQD_THOUSANDS",
+   "IQD"
+  ],
+  "why": "filing printed in dinars but read as thousands; neighbouring filings of the same company agree within a few percent after scaling"
+ },
+ {
+  "op": "scale",
+  "report_id": 6444,
+  "ticker": "AISP",
+  "line_key": "short_term_payables",
+  "statement": "balance",
+  "from": 8329674898000,
+  "to": 8329674898.0,
+  "factor": 0.001,
+  "unit_reported": [
+   "IQD_THOUSANDS",
+   "IQD"
+  ],
+  "why": "filing printed in dinars but read as thousands; neighbouring filings of the same company agree within a few percent after scaling"
+ },
+ {
+  "op": "scale",
+  "report_id": 6444,
+  "ticker": "AISP",
+  "line_key": "total_assets",
+  "statement": "balance",
+  "from": 612420950584000,
+  "to": 612420950584.0,
+  "factor": 0.001,
+  "unit_reported": [
+   "IQD_THOUSANDS",
+   "IQD"
+  ],
+  "why": "filing printed in dinars but read as thousands; neighbouring filings of the same company agree within a few percent after scaling"
+ },
+ {
+  "op": "scale",
+  "report_id": 6444,
+  "ticker": "AISP",
+  "line_key": "total_current_assets",
+  "statement": "balance",
+  "from": 588842558556000,
+  "to": 588842558556.0,
+  "factor": 0.001,
+  "unit_reported": [
+   "IQD_THOUSANDS",
+   "IQD"
+  ],
+  "why": "filing printed in dinars but read as thousands; neighbouring filings of the same company agree within a few percent after scaling"
+ },
+ {
+  "op": "scale",
+  "report_id": 6444,
+  "ticker": "AISP",
+  "line_key": "total_equity",
+  "statement": "balance",
+  "from": 30888371275000,
+  "to": 30888371275.0,
+  "factor": 0.001,
+  "unit_reported": [
+   "IQD_THOUSANDS",
+   "IQD"
+  ],
+  "why": "filing printed in dinars but read as thousands; neighbouring filings of the same company agree within a few percent after scaling"
+ },
+ {
+  "op": "scale",
+  "report_id": 6444,
+  "ticker": "AISP",
+  "line_key": "total_equity_and_liabilities",
+  "statement": "balance",
+  "from": 612420950584000,
+  "to": 612420950584.0,
+  "factor": 0.001,
+  "unit_reported": [
+   "IQD_THOUSANDS",
+   "IQD"
+  ],
+  "why": "filing printed in dinars but read as thousands; neighbouring filings of the same company agree within a few percent after scaling"
+ },
+ {
+  "op": "scale",
+  "report_id": 6444,
+  "ticker": "AISP",
+  "line_key": "total_fixed_assets",
+  "statement": "balance",
+  "from": 24102392028000,
+  "to": 24102392028.0,
+  "factor": 0.001,
+  "unit_reported": [
+   "IQD_THOUSANDS",
+   "IQD"
+  ],
+  "why": "filing printed in dinars but read as thousands; neighbouring filings of the same company agree within a few percent after scaling"
+ },
+ {
+  "op": "scale",
+  "report_id": 6444,
+  "ticker": "AISP",
+  "line_key": "total_operating_expenses",
+  "statement": "income",
+  "from": 1000291168000,
+  "to": 1000291168.0,
+  "factor": 0.001,
+  "unit_reported": [
+   "IQD_THOUSANDS",
+   "IQD"
+  ],
+  "why": "filing printed in dinars but read as thousands; neighbouring filings of the same company agree within a few percent after scaling"
+ },
+ {
+  "op": "scale",
+  "report_id": 6742,
+  "ticker": "BZII",
+  "line_key": "cash_and_cbi",
+  "statement": "balance",
+  "from": 25915508265000,
+  "to": 25915508265.0,
+  "factor": 0.001,
+  "unit_reported": [
+   "IQD_THOUSANDS",
+   "IQD"
+  ],
+  "why": "filing printed in dinars but read as thousands; neighbouring filings of the same company agree within a few percent after scaling"
+ },
+ {
+  "op": "scale",
+  "report_id": 6742,
+  "ticker": "BZII",
+  "line_key": "customer_deposits",
+  "statement": "balance",
+  "from": 43343409088000,
+  "to": 43343409088.0,
+  "factor": 0.001,
+  "unit_reported": [
+   "IQD_THOUSANDS",
+   "IQD"
+  ],
+  "why": "filing printed in dinars but read as thousands; neighbouring filings of the same company agree within a few percent after scaling"
+ },
+ {
+  "op": "scale",
+  "report_id": 6742,
+  "ticker": "BZII",
+  "line_key": "financing_income",
+  "statement": "income",
+  "from": 1384540000,
+  "to": 1384540.0,
+  "factor": 0.001,
+  "unit_reported": [
+   "IQD_THOUSANDS",
+   "IQD"
+  ],
+  "why": "filing printed in dinars but read as thousands; neighbouring filings of the same company agree within a few percent after scaling"
+ },
+ {
+  "op": "scale",
+  "report_id": 6742,
+  "ticker": "BZII",
+  "line_key": "fixed_assets",
+  "statement": "balance",
+  "from": 86631990617000,
+  "to": 86631990617.0,
+  "factor": 0.001,
+  "unit_reported": [
+   "IQD_THOUSANDS",
+   "IQD"
+  ],
+  "why": "filing printed in dinars but read as thousands; neighbouring filings of the same company agree within a few percent after scaling"
+ },
+ {
+  "op": "scale",
+  "report_id": 6742,
+  "ticker": "BZII",
+  "line_key": "ga_expenses",
+  "statement": "income",
+  "from": 509598000,
+  "to": 509598.0,
+  "factor": 0.001,
+  "unit_reported": [
+   "IQD_THOUSANDS",
+   "IQD"
+  ],
+  "why": "filing printed in dinars but read as thousands; neighbouring filings of the same company agree within a few percent after scaling"
+ },
+ {
+  "op": "scale",
+  "report_id": 6742,
+  "ticker": "BZII",
+  "line_key": "investments",
+  "statement": "balance",
+  "from": 110507525000000,
+  "to": 110507525000.0,
+  "factor": 0.001,
+  "unit_reported": [
+   "IQD_THOUSANDS",
+   "IQD"
+  ],
+  "why": "filing printed in dinars but read as thousands; neighbouring filings of the same company agree within a few percent after scaling"
+ },
+ {
+  "op": "scale",
+  "report_id": 6742,
+  "ticker": "BZII",
+  "line_key": "islamic_financing",
+  "statement": "balance",
+  "from": 232344631955000,
+  "to": 232344631955.0,
+  "factor": 0.001,
+  "unit_reported": [
+   "IQD_THOUSANDS",
+   "IQD"
+  ],
+  "why": "filing printed in dinars but read as thousands; neighbouring filings of the same company agree within a few percent after scaling"
+ },
+ {
+  "op": "scale",
+  "report_id": 6742,
+  "ticker": "BZII",
+  "line_key": "net_income",
+  "statement": "income",
+  "from": 1006455000,
+  "to": 1006455.0,
+  "factor": 0.001,
+  "unit_reported": [
+   "IQD_THOUSANDS",
+   "IQD"
+  ],
+  "why": "filing printed in dinars but read as thousands; neighbouring filings of the same company agree within a few percent after scaling"
+ },
+ {
+  "op": "scale",
+  "report_id": 6742,
+  "ticker": "BZII",
+  "line_key": "paid_capital",
+  "statement": "balance",
+  "from": 250000000000000,
+  "to": 250000000000.0,
+  "factor": 0.001,
+  "unit_reported": [
+   "IQD_THOUSANDS",
+   "IQD"
+  ],
+  "why": "filing printed in dinars but read as thousands; neighbouring filings of the same company agree within a few percent after scaling"
+ },
+ {
+  "op": "scale",
+  "report_id": 6742,
+  "ticker": "BZII",
+  "line_key": "pretax_income",
+  "statement": "income",
+  "from": 1006455000,
+  "to": 1006455.0,
+  "factor": 0.001,
+  "unit_reported": [
+   "IQD_THOUSANDS",
+   "IQD"
+  ],
+  "why": "filing printed in dinars but read as thousands; neighbouring filings of the same company agree within a few percent after scaling"
+ },
+ {
+  "op": "scale",
+  "report_id": 6742,
+  "ticker": "BZII",
+  "line_key": "reserves",
+  "statement": "balance",
+  "from": 282507318000,
+  "to": 282507318.0,
+  "factor": 0.001,
+  "unit_reported": [
+   "IQD_THOUSANDS",
+   "IQD"
+  ],
+  "why": "filing printed in dinars but read as thousands; neighbouring filings of the same company agree within a few percent after scaling"
+ },
+ {
+  "op": "scale",
+  "report_id": 6742,
+  "ticker": "BZII",
+  "line_key": "retained_earnings",
+  "statement": "balance",
+  "from": -7197268532000,
+  "to": -7197268532.0,
+  "factor": 0.001,
+  "unit_reported": [
+   "IQD_THOUSANDS",
+   "IQD"
+  ],
+  "why": "filing printed in dinars but read as thousands; neighbouring filings of the same company agree within a few percent after scaling"
+ },
+ {
+  "op": "scale",
+  "report_id": 6742,
+  "ticker": "BZII",
+  "line_key": "revenue_and_commissions",
+  "statement": "income",
+  "from": 131512000,
+  "to": 131512.0,
+  "factor": 0.001,
+  "unit_reported": [
+   "IQD_THOUSANDS",
+   "IQD"
+  ],
+  "why": "filing printed in dinars but read as thousands; neighbouring filings of the same company agree within a few percent after scaling"
+ },
+ {
+  "op": "scale",
+  "report_id": 6742,
+  "ticker": "BZII",
+  "line_key": "tax",
+  "statement": "income",
+  "from": 0,
+  "to": 0.0,
+  "factor": 0.001,
+  "unit_reported": [
+   "IQD_THOUSANDS",
+   "IQD"
+  ],
+  "why": "filing printed in dinars but read as thousands; neighbouring filings of the same company agree within a few percent after scaling"
+ },
+ {
+  "op": "scale",
+  "report_id": 6742,
+  "ticker": "BZII",
+  "line_key": "total_assets",
+  "statement": "balance",
+  "from": 513924997765000,
+  "to": 513924997765.0,
+  "factor": 0.001,
+  "unit_reported": [
+   "IQD_THOUSANDS",
+   "IQD"
+  ],
+  "why": "filing printed in dinars but read as thousands; neighbouring filings of the same company agree within a few percent after scaling"
+ },
+ {
+  "op": "scale",
+  "report_id": 6742,
+  "ticker": "BZII",
+  "line_key": "total_equity",
+  "statement": "balance",
+  "from": 234817382311000,
+  "to": 234817382311.0,
+  "factor": 0.001,
+  "unit_reported": [
+   "IQD_THOUSANDS",
+   "IQD"
+  ],
+  "why": "filing printed in dinars but read as thousands; neighbouring filings of the same company agree within a few percent after scaling"
+ },
+ {
+  "op": "scale",
+  "report_id": 6742,
+  "ticker": "BZII",
+  "line_key": "total_liabilities_and_equity",
+  "statement": "balance",
+  "from": 513924997764000,
+  "to": 513924997764.0,
+  "factor": 0.001,
+  "unit_reported": [
+   "IQD_THOUSANDS",
+   "IQD"
+  ],
+  "why": "filing printed in dinars but read as thousands; neighbouring filings of the same company agree within a few percent after scaling"
+ }
+]

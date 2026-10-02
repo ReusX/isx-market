@@ -5,6 +5,7 @@ import { usePathname } from 'next/navigation'
 import { StarMark } from '@/components/brand/StarMark'
 import { LanguageSwitch } from './LanguageSwitch'
 import { ThemeToggle } from './ThemeToggle'
+import { InkIcon } from './InkIcon'
 import { useApp } from '@/context/AppContext'
 import { useLocale } from '@/context/LocaleContext'
 import { splitLocale } from '@/lib/i18n/paths'
@@ -19,7 +20,7 @@ import { splitLocale } from '@/lib/i18n/paths'
  * behind one of them, so there is no second row and no "more"; the pages of a door are its rail.
  */
 export const DOORS = [
-  { id: 'markets', route: '/',        owns: ['/', '/market', '/companies', '/c/', '/screener', '/heatmap', '/statistics', '/pulse', '/portfolio', '/watchlist', '/alerts'] },
+  { id: 'markets', route: '/',        owns: ['/', '/market', '/companies', '/c/', '/screener', '/heatmap', '/statistics', '/pulse', '/news/session', '/portfolio', '/watchlist', '/alerts'] },
   { id: 'banking', route: '/banks',   owns: ['/banks'] },
   { id: 'economy', route: '/fx',      owns: ['/fx', '/gold', '/oil', '/silver', '/currencies', '/cbi-window'] },
   /* Learn is «قريباً» for now: the pill stays so the four doors read as the
@@ -27,19 +28,9 @@ export const DOORS = [
   { id: 'learn',   route: '/learn',   owns: ['/learn', '/news', '/research'] },
 ] as const
 
-const ICON: Record<string, React.ReactNode> = {
-  markets: <path d="M3 17l5-6 4 4 5-7 4 3" />,
-  banking: <><path d="M3 10h18M5 10v8M9 10v8M15 10v8M19 10v8M3 18h18" /><path d="M12 3l9 7H3z" /></>,
-  economy: <><circle cx="12" cy="12" r="9" /><path d="M3 12h18M12 3c3 3 3 15 0 18M12 3c-3 3-3 15 0 18" /></>,
-  learn: <><path d="M4 5h6a3 3 0 0 1 3 3v12a2 2 0 0 0-2-2H4z" /><path d="M20 5h-6a3 3 0 0 0-3 3v12a2 2 0 0 1 2-2h7z" /></>,
-  login: <><circle cx="12" cy="8" r="4" /><path d="M4 21a8 8 0 0 1 16 0" /></>,
-}
+const ICON = { markets: 'door-markets', banking: 'door-banking', economy: 'door-economy', learn: 'door-learn', login: 'account' } as const
 export function NavIcon({ name }: { name: keyof typeof ICON }) {
-  return (
-    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      {ICON[name]}
-    </svg>
-  )
+  return <InkIcon name={ICON[name]} size={18} />
 }
 
 export function SiteNav({ on = 'page' }: { on?: 'page' }) {

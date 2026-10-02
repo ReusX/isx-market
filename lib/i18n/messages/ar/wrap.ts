@@ -103,6 +103,7 @@ export const wrap = {
   prevSession: 'الجلسة السابقة',
   nextSession: 'الجلسة التالية',
   board: 'جدول أسعار هذه الجلسة',
+  v3: { key: 'الجلسة بأرقام', index: 'نقطة · مؤشر ISX60', latest: 'آخر جلسة', read: 'اقرأ الملخص', sessions: 'جلسة بالأرشيف', chart: 'إغلاق ISX60 بكل جلسة', colDay: 'الجلسة', colClose: 'الإغلاق', colChg: 'التغيّر' },
   archive: 'كل الملخصات',
   archiveTitle: 'ملخصات جلسات بورصة العراق',
   archiveSeoTitle: 'ملخص جلسات بورصة العراق اليومية · الأرشيف',

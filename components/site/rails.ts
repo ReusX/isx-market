@@ -10,10 +10,10 @@ import { CURRENCY_FLAGS, type CurrencyCode } from '@/lib/currencies'
  */
 export type Door = 'markets' | 'banking' | 'economy' | 'learn'
 export type RailIcon =
-  | 'market' | 'board' | 'companies' | 'screener' | 'heatmap' | 'statistics' | 'pulse' | 'news'
+  | 'market' | 'board' | 'companies' | 'screener' | 'heatmap' | 'statistics' | 'pulse' | 'news' | 'session'
   | 'banks' | 'deposits' | 'loans' | 'cards'
   | 'fx' | 'currencies' | 'gold' | 'silver' | 'oil' | 'window' | 'inflation' | 'policyRate'
-  | 'learn' | 'zero' | 'research'
+  | 'learn' | 'street' | 'zero' | 'research'
   | 'portfolio' | 'watchlist' | 'alerts' | 'notify'
 
 export type RailDef = {
@@ -43,6 +43,7 @@ export const RAILS: Record<Door, RailDef[]> = {
     { route: '/heatmap', icon: 'heatmap', label: (t) => m(t).heatmap },
     { route: '/statistics', icon: 'statistics', label: (t) => m(t).statistics },
     { route: '/pulse', icon: 'pulse', label: (t) => m(t).pulse },
+    { route: '/news/session', icon: 'session', label: (t) => t.wrap.eyebrow },
     { route: '/news', icon: 'news', label: (t) => m(t).news },
     { route: '/portfolio', icon: 'portfolio', label: (t) => p(t).portfolio, group: 'tools' },
     { route: '/watchlist', icon: 'watchlist', label: (t) => p(t).watchlist, group: 'tools' },
@@ -81,7 +82,7 @@ export const RAILS: Record<Door, RailDef[]> = {
   learn: [
     { route: '/news', icon: 'news', label: (t) => l(t).news },
     { route: '/learn', icon: 'learn', label: (t) => l(t).learn },
-    { route: '/learn/invest', icon: 'gold', label: (t) => l(t).street },
+    { route: '/learn/invest', icon: 'street', label: (t) => l(t).street },
     { route: '/learn/trading-from-zero', icon: 'zero', label: (t) => l(t).zero },
     { route: '/research', icon: 'research', label: (t) => l(t).research },
   ],

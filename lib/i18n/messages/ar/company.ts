@@ -325,6 +325,11 @@ export const company = {
     noPdf: 'غير مفهرس',
     withheld: (name: string) => `أرقام ${name} محجوبة مؤقتاً: بعض تقاريرها استُخرجت بوحدة خاطئة (فارق ألف مرة)، وعرض بعض الأعمدة دون بعض يضلّل أكثر مما يفيد. روابط التقارير الأصلية متاحة أدناه.`,
     none: (name: string) => `لا تقارير مالية مستخرجة لشركة ${name} بعد.`,
+    board: {
+      netLine: (u: string, y: string): string => `${u} · صافي الربح · السنة المالية ${y}`,
+      keyTitle: (y: string): string => `سنة ${y} بأرقام`,
+      loss: 'خسارة',
+    },
     about: {
       title: 'عن هذه الأرقام',
       body: [

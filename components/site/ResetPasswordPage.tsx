@@ -7,6 +7,8 @@ import { useLocale } from '@/context/LocaleContext'
 import { useRouter } from 'next/navigation'
 import { useApp } from '@/context/AppContext'
 import { createClient } from '@/lib/supabase/client'
+import Link from 'next/link'
+import { AuthShell, PasswordField, Submit, Outcome } from './AuthKit'
 
 /*
  * Where a password-reset link lands.
@@ -24,9 +26,7 @@ import { createClient } from '@/lib/supabase/client'
  * `getSession()` read, because whichever fires first is a race we do not get to
  * decide. Only when a session exists is the form shown.
  *
- * Deliberately visual-minimum. It reuses the shell's existing classes and gets
- * its real design in the auth phase; shipping a page that works beats leaving
- * the flow broken until the redesign reaches it.
+ * Drawn with the auth family's own shell and fields (AuthKit), like /login.
  */
 
 type Phase = 'checking' | 'ready' | 'invalid' | 'saved'
@@ -34,7 +34,7 @@ type Phase = 'checking' | 'ready' | 'invalid' | 'saved'
 const MIN_LEN = 8
 
 export function ResetPassword() {
-  const { locale } = useLocale()
+  const { locale, href: L } = useLocale()
   const ar = locale === 'ar'
   const router = useRouter()
   const sb = createClient()
@@ -114,79 +114,36 @@ export function ResetPassword() {
     }
   }, [password, confirm, ar, sb, router])
 
+  const title = ar ? 'كلمة مرور جديدة' : 'New password'
   return (
-    <main className="terminal-shell app-page">
-      <h1 className="sr-only">{ar ? 'كلمة مرور جديدة' : 'New password'}</h1>
-
-      {phase === 'checking' ? (
-        <div className="app-card reset-card">
-          <div className="skeleton reset-skeleton" />
-        </div>
-      ) : null}
+    <AuthShell title={title} lede={phase === 'ready' ? (ar ? 'اختر كلمة مرور جديدة' : 'Choose a new password') : undefined}>
+      {phase === 'checking' ? <p className="id-cap" aria-busy="true">…</p> : null}
 
       {phase === 'invalid' ? (
-        <div className="empty-state">
-          <strong>{ar ? 'الرابط لم يعد صالحاً' : 'This link is no longer valid'}</strong>
-          <span>
-            {ar
-              ? 'روابط إعادة التعيين تنتهي صلاحيتها بعد فترة قصيرة، وتُستخدم مرة واحدة فقط. اطلب رابطاً جديداً وافتحه من نفس المتصفح.'
-              : 'Reset links expire after a short while and work only once. Request a new one and open it in the same browser.'}
-          </span>
+        <Outcome tone="bad" title={ar ? 'الرابط لم يعد صالحاً' : 'This link is no longer valid'}
+          actions={<Link href={L('/forgot-password')}>{ar ? 'اطلب رابطاً جديداً' : 'Request a new link'}</Link>}>
+          {ar
+            ? 'روابط إعادة التعيين تنتهي صلاحيتها بعد فترة قصيرة، وتُستخدم مرة واحدة فقط. اطلب رابطاً جديداً وافتحه من نفس المتصفح.'
+            : 'Reset links expire after a short while and work only once. Request a new one and open it in the same browser.'}
           {/* The reason, verbatim from Supabase, in an LTR island — it is
               English regardless of the interface language. */}
-          {linkError ? (
-            <span dir="ltr" className="reset-reason">{linkError}</span>
-          ) : null}
-        </div>
+          {linkError ? <span dir="ltr" className="id-cap ath-reason">{linkError}</span> : null}
+        </Outcome>
       ) : null}
 
       {phase === 'saved' ? (
-        <div className="empty-state">
-          <strong>{ar ? 'تم تغيير كلمة المرور' : 'Password changed'}</strong>
-          <span>{ar ? 'جارٍ نقلك إلى حسابك…' : 'Taking you to your account…'}</span>
-        </div>
+        <Outcome tone="good" title={ar ? 'تم تغيير كلمة المرور' : 'Password changed'}>
+          {ar ? 'جارٍ نقلك إلى حسابك…' : 'Taking you to your account…'}
+        </Outcome>
       ) : null}
 
       {phase === 'ready' ? (
-        <div className="app-card reset-card">
-          <strong>{ar ? 'اختر كلمة مرور جديدة' : 'Choose a new password'}</strong>
-          <form className="auth-form" onSubmit={submit}>
-            {/* Passwords are typed left-to-right in every language. */}
-            <label className="tool-field">
-              <span>{ar ? 'كلمة المرور الجديدة' : 'New password'}</span>
-              <input
-                type="password"
-                dir="ltr"
-                autoComplete="new-password"
-                autoFocus
-                value={password}
-                onChange={e => setPassword(e.target.value)}
-                minLength={MIN_LEN}
-                required
-              />
-            </label>
-
-            <label className="tool-field">
-              <span>{ar ? 'تأكيد كلمة المرور' : 'Confirm password'}</span>
-              <input
-                type="password"
-                dir="ltr"
-                autoComplete="new-password"
-                value={confirm}
-                onChange={e => setConfirm(e.target.value)}
-                minLength={MIN_LEN}
-                required
-              />
-            </label>
-
-            {error ? <div className="auth-error" role="alert">{error}</div> : null}
-
-            <button type="submit" className="auth-submit" disabled={saving}>
-              {saving ? '…' : (ar ? 'حفظ كلمة المرور' : 'Save password')}
-            </button>
-          </form>
-        </div>
+        <form className="ath-form" onSubmit={submit} noValidate>
+          <PasswordField id="reset-pw" label={ar ? 'كلمة المرور الجديدة' : 'New password'} value={password} onChange={setPassword} autoComplete="new-password" autoFocus locale={ar ? 'ar' : 'en'} />
+          <PasswordField id="reset-confirm" label={ar ? 'تأكيد كلمة المرور' : 'Confirm password'} value={confirm} onChange={setConfirm} autoComplete="new-password" locale={ar ? 'ar' : 'en'} error={error} />
+          <Submit busy={saving} busyLabel="…">{ar ? 'حفظ كلمة المرور' : 'Save password'}</Submit>
+        </form>
       ) : null}
-    </main>
+    </AuthShell>
   )
 }

@@ -304,6 +304,11 @@ export const company: typeof ar = {
     noPdf: 'Not indexed',
     withheld: (name: string) => `${name}\'s figures are withheld for now: some of its filings were extracted with the wrong unit (a factor of a thousand), and showing some columns without others misleads more than it helps. Links to the original reports are below.`,
     none: (name: string) => `No financial reports have been extracted for ${name} yet.`,
+    board: {
+      netLine: (u: string, y: string): string => `${u} · net profit · financial year ${y}`,
+      keyTitle: (y: string): string => `${y} in figures`,
+      loss: 'Loss',
+    },
     about: {
       title: 'About these figures',
       body: [

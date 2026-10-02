@@ -33,8 +33,8 @@
 .fin-bar-slot { position: relative; width: min(40px, 40%); height: 100%; display: flex; align-items: flex-end; }
 .fin-bar { position: relative; display: block; width: 100%; min-height: 2px; border-radius: 3px 3px 0 0; }
 .fin-bar.is-top { background: var(--muted); opacity: .55; }
-.fin-bar.is-ni { background: var(--moss-ink); }
-.fin-bar.is-ni.is-neg { background: var(--sand-ink); }
+.fin-bar.is-ni { background: var(--up); }
+.fin-bar.is-ni.is-neg { background: var(--down); }
 .fin-bar b {
   position: absolute; bottom: 100%; left: 50%; transform: translateX(-50%); margin-bottom: 4px;
   font-weight: 400; font-size: 11px; color: var(--secondary); white-space: nowrap;
@@ -44,7 +44,7 @@
 .fin-legend span { display: inline-flex; align-items: center; gap: 6px; }
 .fin-legend i { width: 12px; height: 6px; border-radius: 2px; display: inline-block; }
 .fin-legend .is-top { background: var(--muted); opacity: .55; }
-.fin-legend .is-ni { background: var(--moss-ink); }
+.fin-legend .is-ni { background: var(--up); }
 .fin-mark {
   position: absolute; inset-inline-end: 0; top: 0; font-weight: 600; font-size: 26px; letter-spacing: .08em;
   color: var(--ink); opacity: .12; pointer-events: none; direction: ltr;
@@ -89,3 +89,79 @@
   .fin-bar b { font-size: 10px; }
   .fin-mark { font-size: 18px; }
 }
+
+/* ── Identity v3 · the board ─────────────────────────────────────────────
+   Frame: net profit as the figure, the years as bars; key card: the year's
+   four headline lines and the filing. Tables below are board tables. */
+.fin-frame { margin-bottom: 18px; }
+.fin-frame .fx-board { align-items: start; }
+.fin-crumbs { margin: 0; }
+.fin-crumbs a { color: var(--secondary); }
+.fin-neg .fx-huge-num { color: var(--down); }
+.fin-chart { margin: 8px 0 0; display: grid; gap: 8px; }
+.fin-chart .fin-trend { height: 200px; }
+.fin-chart .fin-legend { margin: 0; flex-wrap: wrap; }
+.fin-bar.is-top { background: var(--muted); opacity: .45; }
+.fin-keys { list-style: none; margin: 0; padding: 0; display: grid; gap: 0; }
+.fin-keys li { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; align-items: center; gap: 10px; padding: 11px 0; border-bottom: 1px solid var(--border); }
+.fin-keys li:last-child { border-bottom: 0; }
+.fin-keys small { font-size: 13px; color: var(--secondary); }
+.fin-keys b { font: 600 20px/1 var(--font-numeric); }
+.fin-keys .id-chg { font-size: 12px; }
+.fin-frame .fin-meta { margin: 6px 0 0; font-size: 12px; }
+.fin-sec { margin: 8px 0 32px; }
+.fin-sec > .id-cap { margin: -8px 0 12px; }
+.fin-mode { margin: 8px 0 18px; }
+/* Statement tables in board dress: ink rule under the head, page ground. */
+.fin-sec .id-table thead th { font-size: 12px; font-weight: 600; color: var(--muted); padding-block: 10px; border-bottom: 1.5px solid var(--line-strong); }
+.fin-sec .fin-stmt thead .fin-line, .fin-sec .fin-stmt tbody .fin-line { background: var(--page); }
+.fin-sec .fin-stmt td, .fin-sec .fin-stmt tbody .fin-line { padding-block: 11px; font-size: 14px; }
+.fin-sec .fin-stmt tbody tr:hover td, .fin-sec .fin-stmt tbody tr:hover .fin-line { background: var(--surface); }
+.fin-sec .fin-stmt tr.is-sub .fin-line, .fin-sec .fin-stmt tr.is-sub td { border-top-color: var(--line-strong); }
+.fin-sec .fin-stmt tr.is-total .fin-line, .fin-sec .fin-stmt tr.is-total td { border-top-color: var(--line-strong); border-bottom-color: var(--line-strong); }
+.fin-sec .fin-stmt tr.is-total .id-name { font-weight: 700; }
+
+/* ── /c/[sym]/results/[period] · identity v3 (rs-) ──────────────────────── */
+.rs { min-width: 0; }
+.rs-title { margin: 0; font: 700 clamp(24px, 2.8vw, 34px)/1.4 var(--font-display); text-wrap: balance; }
+.rs-docs { margin-top: 6px; }
+.rs-docs .fx-qbtn { text-decoration: none; display: inline-flex; align-items: center; }
+.rs-body { margin-top: 8px; }
+.rs-table { margin: 4px 0 8px; }
+.mb-table.rs-table th { position: static; }
+.rs-body .wrp-siblings .fx-qbtn { text-decoration: none; }
+/* Statements, tightened: the year columns keep a fixed width beside the
+   line names instead of spreading over the page; every cell pads on the
+   same (start) side so a figure sits under its heading; the latest year
+   is a soft tinted column; totals are a tinted row, not a double rule. */
+.fin-sec .fin-stmt { width: min(100%, calc(320px + var(--cols, 4) * 150px)); min-width: calc(240px + var(--cols, 4) * 120px); }
+.fin-sec .fin-stmt .fin-line { width: auto; }
+.fin-sec .fin-stmt td, .fin-sec .fin-stmt th.is-end { padding-inline: 16px 14px; }
+.fin-sec .fin-stmt tbody .fin-line { padding-inline: 0 12px; }
+.fin-sec .fin-stmt .is-now { background: color-mix(in srgb, var(--world) 7%, transparent); }
+.fin-sec .fin-stmt td.is-now bdi { font-weight: 700; }
+.fin-sec .fin-stmt th.is-now { color: var(--ink); }
+.fin-sec .fin-colh { border-bottom-color: color-mix(in srgb, var(--muted) 45%, transparent); }
+.fin-sec .fin-stmt tr.is-sub .fin-line, .fin-sec .fin-stmt tr.is-sub td { border-top: 1px solid var(--line-strong); }
+.fin-sec .fin-stmt tr.is-sub .id-name { font-weight: 600; }
+.fin-sec .fin-stmt tr.is-total .fin-line, .fin-sec .fin-stmt tr.is-total td { background: var(--surface); border-top: 1.5px solid var(--line-strong); border-bottom: 1px solid var(--border); }
+.fin-sec .fin-stmt tr.is-total td.is-now { background: color-mix(in srgb, var(--world) 12%, var(--surface)); }
+.fin-sec .fin-stmt tr.is-total bdi { font-weight: 700; }
+.fin-sec .fin-stmt tr.is-total .fin-line { padding-inline-start: 12px; border-start-start-radius: 0; }
+.fin-sec .fin-stmt tr.is-d1 .fin-line { padding-inline-start: 18px; }
+/* Source filings as document cards. */
+.fin-docs { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; }
+.fin-doc {
+  display: grid; grid-template-columns: auto minmax(0, 1fr); grid-template-rows: auto auto auto; column-gap: 10px; row-gap: 2px; align-items: center;
+  padding: 14px; border: 1.5px solid var(--border); border-radius: 14px; background: var(--surface);
+  color: var(--ink); text-decoration: none; transition: border-color .15s, transform .15s;
+}
+a.fin-doc:hover { border-color: var(--line-strong); transform: translateY(-1px); }
+.fin-doc-ico { grid-row: 1 / 3; width: 26px; height: 26px; color: var(--secondary); }
+.fin-doc b { font: 600 15px/1.3 var(--font-numeric); }
+.fin-doc small { font-size: 12px; color: var(--muted); }
+.fin-doc-go { grid-column: 1 / -1; margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--border); font-size: 12px; font-weight: 600; color: var(--world); }
+.fin-doc.is-none { opacity: .6; }
+.fin-doc.is-none .fin-doc-go { color: var(--muted); }
+.fin-docs .is-annual .fin-doc-ico { color: var(--world); }
+.fin-keys b em { font-style: normal; font: 500 12px/1 var(--font-body); color: var(--muted); }

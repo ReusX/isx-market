@@ -8,6 +8,8 @@ import { DoorRail } from './DoorRail'
 import { PageTitle } from './PageTitle'
 import { AboutSection } from './AboutSection'
 import type { BanksInitial, HubRow } from '@/lib/banksServer'
+import '@/styles/econ-page.css'
+import '@/styles/markets.css'
 import '@/styles/banks-page.css'
 
 /**
@@ -37,13 +39,13 @@ const FIRST: Record<SortKey, Dir> = { name: 'asc', type: 'asc', ownership: 'asc'
 const STATUS_RANK = { operating: 0, establishment: 1, guardianship: 2, liquidation: 3 }
 
 type Units = { tn: string; bn: string; mn: string; k: string }
-function compact(v: number | null | undefined, u: Units): string {
-  if (v == null || !Number.isFinite(v)) return '—'
+function compact(v: number | null | undefined, u: Units): { n: string; unit: string } {
+  if (v == null || !Number.isFinite(v)) return { n: '—', unit: '' }
   const a = Math.abs(v)
-  if (a >= 1e12) return `${(a / 1e12).toFixed(2)} ${u.tn}`
-  if (a >= 1e9) return `${(a / 1e9).toFixed(0)} ${u.bn}`
-  if (a >= 1e6) return `${(a / 1e6).toFixed(0)} ${u.mn}`
-  return new Intl.NumberFormat('en-US').format(a)
+  if (a >= 1e12) return { n: (a / 1e12).toFixed(2), unit: u.tn }
+  if (a >= 1e9) return { n: (a / 1e9).toFixed(0), unit: u.bn }
+  if (a >= 1e6) return { n: (a / 1e6).toFixed(0), unit: u.mn }
+  return { n: new Intl.NumberFormat('en-US').format(a), unit: '' }
 }
 
 /* The evergreen guide; Arabic-only, so the English hub links to the Arabic URL. */
@@ -57,6 +59,7 @@ export function BanksPage({ initial }: { initial: BanksInitial }) {
   const { t, locale, href: L } = useLocale()
   const B = t.banks
   const H = B.hub
+  const W = H.board
   const u = t.site.units
   const ar = locale === 'ar'
   const name = (r: { ar: string; en: string }) => (ar ? r.ar : r.en || r.ar)
@@ -83,7 +86,6 @@ export function BanksPage({ initial }: { initial: BanksInitial }) {
     const qs = sp.toString()
     window.history.replaceState(null, '', `${window.location.pathname}${qs ? `?${qs}` : ''}`)
   }, [filter, sort, q])
-  const clickSort = (key: SortKey) => setSort((s) => s.key === key ? { key, dir: s.dir === 'asc' ? 'desc' : 'asc' } : { key, dir: FIRST[key] })
 
   const rows = useMemo(() => {
     const needle = q.trim().toLowerCase()
@@ -128,94 +130,112 @@ export function BanksPage({ initial }: { initial: BanksInitial }) {
       <main className="bnk id-full iq-door" data-world="tile" data-level="accent">
         <DoorRail door="banking" />
         <div className="bnk-body">
-          <header className="bnk-head">
-            <p className="id-eyebrow">{H.eyebrow}</p>
-            <PageTitle title={H.title} note={H.note} />
-            <div className="id-stats bnk-counts id-num">
-              <div className="id-stat"><b>{c.total}</b><small>{H.counts.total}</small></div>
-              <div className="id-stat"><b>{c.listed}</b><small>{H.counts.listed}</small></div>
-              <div className="id-stat"><b>{c.usd}</b><small>{H.counts.usd}</small></div>
-              <div className="id-stat"><b>{c.guardianship + c.liquidation}</b><small>{H.counts.guardianship}</small></div>
-              <div className="id-stat"><b>{c.publishing}</b><small>{H.counts.publishing}</small></div>
+          <p className="id-eyebrow fx-crumb">{H.eyebrow}</p>
+          <div className="fx-frame">
+            <div className="fx-board">
+              <div className="fx-lead">
+                <header className="fx-head">
+                  <PageTitle title={H.title} note={H.note} className="fx-title" />
+                </header>
+                <p className="fx-huge id-num">
+                  <span className="fx-huge-num">
+                    <bdi>{c.total}</bdi>
+                    <svg className="fx-swoosh" viewBox="0 0 200 40" preserveAspectRatio="none" aria-hidden="true">
+                      <path d="M4 30 C 50 10, 110 4, 196 20" pathLength={1} fill="none" stroke="currentColor" strokeWidth={5} strokeLinecap="round" vectorEffect="non-scaling-stroke" />
+                    </svg>
+                  </span>
+                </p>
+                <p className="fx-line"><span>{W.unit} · {W.line(String(c.listed))}</span></p>
+                <p className="bh-guides"><span className="id-cap">{H.guides}</span> <Link href={GUIDES.banks} hrefLang="ar">{H.guideBanks}</Link> · <Link href={GUIDES.cards} hrefLang="ar">{H.guideCards}</Link> · <Link href={GUIDES.pension} hrefLang="ar">{H.guidePension}</Link></p>
+              </div>
+              {initial.deposits.length ? (
+                <section className="id-print is-key fx-calc" aria-label={W.keyTitle}>
+                  <PageTitle as="h2" className="fx-calc-title" title={W.keyTitle} note={H.depositsNote} />
+                  <ol className="bh-keys id-num">
+                    {initial.deposits.slice(0, 5).map((d) => (
+                      <li key={`${d.slug}-${d.nameEn}`}>
+                        <span>
+                          <Link href={L(`/banks/${d.slug}`)}>{name(d)}</Link>
+                          <small>{d.islamic ? H.expected : H.perYear}{d.termMonths ? ` · ${H.months(String(d.termMonths))}` : ''}{d.currency !== 'IQD' ? ` · ${d.currency}` : ''}</small>
+                        </span>
+                        <b><bdi>{d.rate}{d.rateTo != null ? `–${d.rateTo}` : ''}%</bdi></b>
+                      </li>
+                    ))}
+                  </ol>
+                  <p className="fx-calc-prev"><Link href={L('/banks/deposits')}>{W.keyAll}</Link> · <Link href={L('/banks/loans')}>{W.keyLoans}</Link></p>
+                </section>
+              ) : null}
             </div>
-            <p className="bnk-guide"><span className="id-cap">{H.guides}</span> <Link href={GUIDES.banks} hrefLang="ar">{H.guideBanks}</Link> · <Link href={GUIDES.cards} hrefLang="ar">{H.guideCards}</Link> · <Link href={GUIDES.pension} hrefLang="ar">{H.guidePension}</Link></p>
-          </header>
+          </div>
 
-          {initial.deposits.length ? (
-            <section className="bnk-dep" aria-label={H.depositsTitle}>
-              <PageTitle as="h2" className="id-h3" title={H.depositsTitle} note={H.depositsNote} />
-              <ol className="bnk-dep-list id-num">
-                {initial.deposits.slice(0, 8).map((d) => (
-                  <li key={`${d.slug}-${d.nameEn}`}>
-                    <Link href={L(`/banks/${d.slug}`)} className="bnk-dep-bank">{name(d)}</Link>
-                    <span className="bnk-dep-name id-cap">{ar ? d.nameAr : d.nameEn}{d.currency !== 'IQD' ? ` · ${d.currency}` : ''}</span>
-                    <b className="bnk-dep-rate"><bdi>{d.rate}{d.rateTo != null ? `–${d.rateTo}` : ''}%</bdi></b>
-                    <span className="bnk-dep-basis id-cap">{d.islamic ? H.expected : H.perYear}{d.termMonths ? ` · ${H.months(String(d.termMonths))}` : ''}</span>
-                  </li>
-                ))}
-              </ol>
-            </section>
-          ) : null}
+          <div className="fx-facts id-num bh-facts">
+            {([
+              [W.usdHead(String(c.usd)), W.usdPocket, H.about.body[1], <path key="u" d="M32 10v44M42 18c-2-4-6-6-10-6-6 0-10 3-10 8 0 11 21 7 21 18 0 5-5 8-11 8-5 0-9-2-11-6M12 52L52 12" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />],
+              [W.guardHead(String(c.guardianship + c.liquidation)), W.guardPocket, H.about.body[0], <path key="g" d="M32 8l20 8v14c0 13-9 22-20 26-11-4-20-13-20-26V16zM24 32l6 6 11-12" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />],
+              [W.pubHead(String(c.publishing)), W.pubPocket, H.about.body[2], <path key="p" d="M16 8h24l10 10v38H16zM40 8v10h10M23 30h20M23 38h20M23 46h12" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />],
+            ] as const).map(([head, pocket, more, ill]) => (
+              <section key={head[1] + head[2]} className="id-print is-calm fx-fact">
+                <svg className="fx-ill" viewBox="0 0 64 64" aria-hidden="true">{ill}</svg>
+                <h3 className="fx-fact-head">{head[0]}<em><bdi>{head[1]}</bdi></em>{head[2]}</h3>
+                <p className="fx-pocket">{pocket}</p>
+                <details className="fx-more"><summary aria-label={W.more}>+</summary><p>{more}</p></details>
+              </section>
+            ))}
+          </div>
 
-          <div className="bnk-tools">
+          <h2 className="id-h3 bh-all">{W.all}</h2>
+          <div className="bh-tools">
             <input type="search" className="id-input bnk-q" value={q} onChange={(e) => setQ(e.target.value)} placeholder={H.search} aria-label={H.search} />
-            <div className="id-pills" role="group" aria-label={B.filterGroup}>
+            <div className="fx-quick" role="group" aria-label={B.filterGroup}>
               {FILTERS.map((f) => (
-                <button key={f} type="button" className="id-pill is-sm" aria-pressed={filter === f} onClick={() => setFilter(f)}>{H.filters[f]}</button>
+                <button key={f} type="button" className="fx-qbtn" aria-pressed={filter === f} onClick={() => setFilter(f)}>{H.filters[f]}</button>
               ))}
             </div>
           </div>
-          <p className="id-cap bnk-shown">{H.shown(nf.format(rows.length), nf.format(initial.rows.length))}</p>
-
-          <div className="id-table-scroll">
-            <table className="id-table bnk-table id-num">
-              <thead>
-                <tr>
-                  {([['name', H.cols.bank, ''], ['type', H.cols.type, ''], ['ownership', H.cols.ownership, ''], ['status', H.cols.status, '']] as const).map(([k, label, cls]) => (
-                    <th scope="col" key={k} className={cls} aria-sort={sort.key === k ? (sort.dir === 'asc' ? 'ascending' : 'descending') : undefined}>
-                      <button type="button" className="bnk-th" onClick={() => clickSort(k)}>{label}</button>
-                    </th>
-                  ))}
-                  <th scope="col">{H.cols.ticker}</th>
-                  <th scope="col">{H.cols.publishes}</th>
-                  {([['assets', H.cols.assets], ['rating', H.cols.rating]] as const).map(([k, label]) => (
-                    <th scope="col" key={k} className="is-end" aria-sort={sort.key === k ? (sort.dir === 'asc' ? 'ascending' : 'descending') : undefined}>
-                      <button type="button" className="bnk-th" onClick={() => clickSort(k)}>{label}</button>
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {!rows.length ? <tr><td colSpan={8} className="bnk-empty">{H.noMatch}</td></tr> : rows.map((r) => {
-                  const pub = r.research === 'source_unreachable' ? [H.pub.unreachable]
-                    : r.research === 'not_researched' ? [H.pub.unresearched]
-                    : [r.deposits ? H.pub.deposits : null, r.loans ? H.pub.loans : null, r.services.on ? H.pub.services : null].filter(Boolean) as string[]
-                  return (
-                    <tr key={r.slug}>
-                      <td>
-                        <Link href={L(`/banks/${r.slug}`)} className="bnk-name">
-                          {r.logo ? <img className="bnk-logo" src={r.logo} alt="" width={28} height={28} loading="lazy" /> : <span className="bnk-logo is-blank" aria-hidden="true" />}
-                          <span className="id-name">{name(r)}</span>
-                        </Link>
-                      </td>
-                      <td>{B.type[r.type]}</td>
-                      <td>{B.ownership[r.ownership]}</td>
-                      <td>
-                        <span className={`bnk-status is-${r.status}`}>{H.status[r.status]}</span>
-                        {r.usd ? <abbr className="bnk-usd" title={H.usdLong}>$</abbr> : null}
-                      </td>
-                      <td>{r.ticker ? <Link href={L(`/c/${r.ticker}`)} className="id-link"><bdi>{r.ticker}</bdi></Link> : <span className="id-cap">{H.notListed}</span>}</td>
-                      <td><div className="bnk-pub">{pub.length ? pub.map((p) => <span key={p} className="bnk-chip">{p}</span>) : <span className="id-cap">{H.pub.none}</span>}</div></td>
-                      <td className="is-end">
-                        {r.assets != null ? <><bdi>{compact(r.assets, u)}</bdi><span className="id-sub">{H.assetsNote(String(r.finYear))}</span></> : <span className="id-cap">{H.noAssets}</span>}
-                      </td>
-                      <td className="is-end">{r.rating ? <bdi>{r.rating.overall.toFixed(1)}<span className="id-cap">/{r.rating.outOf}</span></bdi> : <span className="id-cap">{H.notRated}</span>}</td>
-                    </tr>
-                  )
-                })}
-              </tbody>
-            </table>
+          <div className="bh-sortline">
+            <p className="id-cap">{H.shown(nf.format(rows.length), nf.format(initial.rows.length))}</p>
+            <div className="fx-quick" role="group" aria-label={H.sort}>
+              {(['assets', 'name'] as const).map((k) => (
+                <button key={k} type="button" className="fx-qbtn" aria-pressed={sort.key === k} onClick={() => setSort({ key: k, dir: FIRST[k] })}>{H.sorts[k]}</button>
+              ))}
+            </div>
           </div>
+
+          {!rows.length ? <p className="id-print is-calm pf-empty">{H.noMatch}</p> : (
+            <ul className="bh-cards">
+              {rows.map((r) => {
+                const pub = r.research === 'source_unreachable' ? [H.pub.unreachable]
+                  : r.research === 'not_researched' ? [H.pub.unresearched]
+                  : [r.deposits ? H.pub.deposits : null, r.loans ? H.pub.loans : null, r.services.on ? H.pub.services : null].filter(Boolean) as string[]
+                const a = r.assets != null ? compact(r.assets, u) : null
+                return (
+                  <li key={r.slug} className="id-print is-calm bh-card">
+                    <div className="bh-top">
+                      {r.logo ? <img className="bnk-logo" src={r.logo} alt="" width={36} height={36} loading="lazy" /> : <span className="bnk-logo is-blank" aria-hidden="true" />}
+                      <Link href={L(`/banks/${r.slug}`)} className="bh-name">{name(r)}</Link>
+                    </div>
+                    <p className="bh-meta">
+                      {B.type[r.type]} · {B.ownership[r.ownership]}
+                      {r.ticker ? <> · <Link href={L(`/c/${r.ticker}`)} className="id-link"><bdi>{r.ticker}</bdi></Link></> : null}
+                    </p>
+                    {r.status !== 'operating' || r.usd ? (
+                      <div className="bh-flags">
+                        {r.status !== 'operating' ? <span className={`bh-flag is-${r.status}`}>{H.status[r.status]}</span> : null}
+                        {r.usd ? <span className="bh-flag is-usd" title={H.usdLong}>{H.usdShort}</span> : null}
+                      </div>
+                    ) : null}
+                    <div className="bh-fig">
+                      {a ? <><b className="id-num"><bdi dir="ltr">{a.n}</bdi> <span>{a.unit}</span></b><small>{H.cols.assets} · {H.assetsNote(String(r.finYear))}</small></>
+                        : <small>{r.ticker ? H.noAssets : H.notListed}</small>}
+                    </div>
+                    <div className="br-meta">
+                      {pub.length ? pub.map((x) => <span key={x}>{x}</span>) : <span>{H.pub.none}</span>}
+                    </div>
+                  </li>
+                )
+              })}
+            </ul>
+          )}
 
           <AboutSection title={H.about.title} body={H.about.body} />
         </div>

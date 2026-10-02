@@ -8,11 +8,11 @@ import { useApp } from '@/context/AppContext'
 import { createClient } from '@/lib/supabase/client'
 import { useCaptcha } from './Captcha'
 import {
-  AuthShell, Field, PasswordField, AuthError, Submit, Outcome,
+  AuthShell, Field, PasswordField, AuthError, Submit, Outcome, OAuthButtons,
 } from './AuthKit'
 import {
   checkEmail, checkPassword, checkPasswordEntered, checkConfirm, checkPhone, checkCode, normalizePhone, identityKind,
-  authErrorId, RESEND_COOLDOWN, BENEFITS, BENEFITS_EN, type AuthErrorId, type FieldError,
+  authErrorId, RESEND_COOLDOWN, type AuthErrorId, type FieldError,
 } from '@/lib/auth'
 
 /**
@@ -165,6 +165,7 @@ export function LoginScreen() {
               : undefined} />
       ) : null}
 
+      <OAuthButtons locale={locale} />
       <form className="ath-form" onSubmit={submit} noValidate>
         <Field id="email" label={isAr ? 'البريد الإلكتروني أو رقم الهاتف' : 'Email or phone number'} type="text"
           value={email} onChange={setEmail} error={emailErr} ltr inputMode="email"
@@ -254,11 +255,12 @@ export function SignUpScreen() {
             : undefined} />
       ) : null}
 
+      <OAuthButtons locale={locale} />
       <div className="ath-wide">
         <form className="ath-form" onSubmit={submit} noValidate>
-          <div className="id-pills ath-method" role="group" aria-label={isAr ? 'طريقة التسجيل' : 'Sign-up method'}>
-            <button type="button" className="id-pill is-sm" aria-pressed={method === 'email'} onClick={() => setMethod('email')}>{isAr ? 'البريد الإلكتروني' : 'Email'}</button>
-            <button type="button" className="id-pill is-sm" aria-pressed={method === 'phone'} onClick={() => setMethod('phone')}>{isAr ? 'رقم الهاتف' : 'Phone number'}</button>
+          <div className="fx-quick ath-method" role="group" aria-label={isAr ? 'طريقة التسجيل' : 'Sign-up method'}>
+            <button type="button" className="fx-qbtn" aria-pressed={method === 'email'} onClick={() => setMethod('email')}>{isAr ? 'البريد الإلكتروني' : 'Email'}</button>
+            <button type="button" className="fx-qbtn" aria-pressed={method === 'phone'} onClick={() => setMethod('phone')}>{isAr ? 'رقم الهاتف' : 'Phone number'}</button>
           </div>
           {method === 'phone' ? (
             <Field id="phone" label={isAr ? 'رقم الهاتف' : 'Phone number'} type="tel"
@@ -285,11 +287,6 @@ export function SignUpScreen() {
           </Submit>
         </form>
 
-        <ul className="ath-benefits">
-          {(isAr ? BENEFITS : BENEFITS_EN).map(b => (
-            <li key={b.title}><strong>{b.title}</strong><span>{b.note}</span></li>
-          ))}
-        </ul>
       </div>
     </AuthShell>
   )

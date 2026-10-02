@@ -1,8 +1,9 @@
 import { MarketPage } from '@/components/site/MarketPage'
 import { loadMarketInitial } from '@/lib/marketServer'
+import { loadHomeFx } from '@/lib/homeFx'
 
 export const revalidate = 3600   // see the Arabic root for why; the two must agree
 
 export default async function Page() {
-  return <MarketPage initial={await loadMarketInitial()} />
+  return <MarketPage initial={await loadMarketInitial()} fx={await loadHomeFx()} />
 }

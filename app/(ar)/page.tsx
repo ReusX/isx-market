@@ -1,5 +1,6 @@
 import { MarketPage } from '@/components/site/MarketPage'
 import { loadMarketInitial } from '@/lib/marketServer'
+import { loadHomeFx } from '@/lib/homeFx'
 
 // Title/description are the ROOT layout's defaults — the homepage is the one
 // route whose metadata belongs there. The surface is shared with `/en`.
@@ -22,5 +23,5 @@ import { loadMarketInitial } from '@/lib/marketServer'
 export const revalidate = 3600
 
 export default async function Page() {
-  return <MarketPage initial={await loadMarketInitial()} />
+  return <MarketPage initial={await loadMarketInitial()} fx={await loadHomeFx()} />
 }

@@ -10,6 +10,7 @@ import {
   isNativeApp, permission, enablePush, pushApi, savedToken,
   type AlertKind, type Permission, type PushState, type Topic,
 } from '@/lib/nativePush'
+import '@/styles/econ-page.css'
 import '@/styles/tools-page.css'
 
 /**
@@ -109,10 +110,10 @@ export function NotificationsPage() {
             <PageTitle title={N.title} note={N.note} />
           </header>
 
-          {native === false ? <p className="id-panel id-body">{N.webOnly}</p> : null}
+          {native === false ? <p className="id-print is-calm nt-card id-body">{N.webOnly}</p> : null}
 
           {native && perm !== 'granted' ? (
-            <section className="id-panel tl-form" aria-label={N.enable}>
+            <section className="id-print is-calm nt-card tl-form" aria-label={N.enable}>
               {perm === 'denied' ? <p className="id-body tl-wide">{N.denied}</p> : (
                 <>
                   <p className="id-body tl-wide">{N.enableNote}</p>
@@ -126,7 +127,7 @@ export function NotificationsPage() {
 
           {native && perm === 'granted' && st ? (
             <>
-              <section className="id-panel" aria-label={N.topicsTitle}>
+              <section className="id-print is-calm nt-card" aria-label={N.topicsTitle}>
                 <h2 className="id-h3">{N.topicsTitle}</h2>
                 <ul className="nt-list">
                   {TOPICS.map((tp) => (
@@ -140,16 +141,16 @@ export function NotificationsPage() {
                 </ul>
               </section>
 
-              <form className="id-panel tl-form" aria-label={N.alertsTitle} onSubmit={(e) => { e.preventDefault(); add() }}>
+              <form className="id-print is-calm nt-card tl-form" aria-label={N.alertsTitle} onSubmit={(e) => { e.preventDefault(); add() }}>
                 <h2 className="id-h3 tl-wide">{N.alertsTitle}</h2>
                 <p className="id-cap tl-wide">{N.alertsNote}</p>
-                <div className="id-pills" role="group" aria-label={N.alertsTitle}>
-                  {KINDS.map((k) => <button key={k} type="button" className="id-pill is-sm" aria-pressed={kind === k} onClick={() => setKind(k)}>{N.kinds[k]}</button>)}
+                <div className="fx-quick" role="group" aria-label={N.alertsTitle}>
+                  {KINDS.map((k) => <button key={k} type="button" className="fx-qbtn" aria-pressed={kind === k} onClick={() => setKind(k)}>{N.kinds[k]}</button>)}
                 </div>
                 {kind === 'stock' ? <CompanyPicker meta={meta} value={sym} onChange={setSym} label={T.pick} /> : null}
-                <div className="id-pills" role="group">
-                  <button type="button" className="id-pill is-sm" aria-pressed={op === 'above'} onClick={() => setOp('above')}>{N.above}</button>
-                  <button type="button" className="id-pill is-sm" aria-pressed={op === 'below'} onClick={() => setOp('below')}>{N.below}</button>
+                <div className="fx-quick" role="group">
+                  <button type="button" className="fx-qbtn" aria-pressed={op === 'above'} onClick={() => setOp('above')}>{N.above}</button>
+                  <button type="button" className="fx-qbtn" aria-pressed={op === 'below'} onClick={() => setOp('below')}>{N.below}</button>
                 </div>
                 <label>
                   <span className="id-cap">{N.target} · {N.units[kind]}</span>
@@ -159,7 +160,7 @@ export function NotificationsPage() {
                 <button type="submit" className="id-btn is-primary" disabled={busy}>{N.add}</button>
               </form>
 
-              <section className="id-panel" aria-label={N.alertsTitle}>
+              <section className="id-print is-calm nt-card" aria-label={N.alertsTitle}>
                 {st.alerts.length === 0 ? <p className="id-cap">{N.empty}</p> : (
                   <ul className="nt-list">
                     {st.alerts.map((a) => (

@@ -132,6 +132,6 @@
 .plz-key .plz-rule { margin-top: 4px; }
 .plz-secs { margin-top: 28px; }
 .plz-sec-table { min-width: 640px; }
-.plz-sec-table th { position: static; }
+.mb-table.plz-sec-table th { position: static; }
 .plz-sec-col { width: 28%; }
 .plz-sec-col .plz-sec-bar { min-width: 120px; }

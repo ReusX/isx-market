@@ -7,6 +7,7 @@ import { useLocale } from '@/context/LocaleContext'
 import { splitLocale } from '@/lib/i18n/paths'
 import { existsIn } from '@/lib/i18n/routes'
 import { EMPTY, arrange, readPrefs, writePrefs, type RailPrefs } from '@/lib/railPrefs'
+import { InkIcon } from './InkIcon'
 import { RailIcon } from './RailIcon'
 import { RAILS, allPages, type Door, type RailDef } from './rails'
 
@@ -145,9 +146,9 @@ export function DoorRail({ door, items: _legacy }: { door: Door; items?: RailIte
 
   const editBtn = (
     <button type="button" className={`iqr-customise ${editing ? 'is-on' : ''}`.trim()} aria-pressed={editing} onClick={() => { setEditing((e) => !e); setPicking(false) }}>
-      <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-        {editing ? <path d="M5 12l5 5L19 7" /> : <><path d="M4 7h10M18 7h2M4 17h4M12 17h8" /><circle cx="16" cy="7" r="2" /><circle cx="10" cy="17" r="2" /></>}
-      </svg>
+      {editing
+        ? <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M5 12l5 5L19 7" /></svg>
+        : <InkIcon name="customize" size={15} />}
       <span>{editing ? S.done : S.customise}</span>
     </button>
   )

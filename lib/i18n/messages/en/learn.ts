@@ -4,6 +4,7 @@ export const learn: typeof ar = {
   research: { title: 'Research', note: 'Market analysis & research reports' },
   article: {
     crumbs: 'Breadcrumb',
+    figures: 'The story’s figures on IQWealth',
     articleNav: 'Article navigation',
     prev: 'Previous',
     next: 'Next',

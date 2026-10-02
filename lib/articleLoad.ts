@@ -1,7 +1,8 @@
-import { getArticle, listArticles, stripHtml, articlePath, type Section } from '@/lib/articles'
+import { getArticle, listArticles, stripHtml, articlePath, isOwnArticle, type Section } from '@/lib/articles'
 import { outlineBody, plainText } from '@/lib/article'
 import { arDate } from '@/lib/date'
-type ArticleNeighbour = { slug: string; title: string; href: string }
+import { articleFigures, coverTopic } from '@/lib/articleFigures'
+type ArticleNeighbour = { slug: string; title: string; href: string; cover?: { image: string | null; topic: string } }
 
 /**
  * The shared loader behind /news/[slug], /research/[slug] and /learn/[slug].
@@ -21,6 +22,9 @@ export type LoadedArticle = {
   dateLabel: string | null
   dateTime: string | null
   image: string | null
+  /** The routes of the site's own figures the story talks about; the first
+   *  is also the topic its drawn cover falls back to (lib/articleFigures). */
+  figures: string[]
   bodyHtml: string
   layout: 'article' | 'guide'
   headings: ReturnType<typeof outlineBody>['headings']
@@ -44,12 +48,17 @@ export async function loadArticle(
   if (!post) return null
 
   const { html, headings } = outlineBody(post.html)
-  const list = listArticles(section)
+  /* News offers only our own pieces as neighbours and «more stories»; an
+     imported story still renders, but points readers to what we write. */
+  const all = listArticles(section)
+  const list = section === 'news' ? all.filter((p) => isOwnArticle(p) || p.id === post.id) : all
 
-  const asNeighbour = (p: { slug: string; title: string }): ArticleNeighbour => ({
+  const figuresOf = (p: { title: string; excerpt: string; tags: string[]; tickers: string[] }) => articleFigures(`${p.title} ${p.excerpt} ${p.tags.join(' ')}`, p.tickers)
+  const asNeighbour = (p: { slug: string; title: string; excerpt: string; tags: string[]; tickers: string[]; image: string | null }): ArticleNeighbour => ({
     slug: p.slug,
     title: plainText(p.title),
     href: articlePath(section, p.slug),
+    cover: { image: p.image || null, topic: coverTopic(figuresOf(p)) },
   })
 
   const at = list.findIndex((p) => p.id === post.id)
@@ -72,6 +81,7 @@ export async function loadArticle(
     dateLabel: post.date ? dateLine(post.date) : null,
     dateTime: post.date || null,
     image: post.image,
+    figures: figuresOf(post),
     bodyHtml: html,
     layout: post.layout,
     headings,

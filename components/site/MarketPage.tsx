@@ -7,6 +7,7 @@ import { useRouter } from 'next/navigation'
 import { shortDate } from '@/lib/date'
 import { CompanyLogo } from '@/components/CompanyLogo'
 import { sessionDate, type IndexRow } from '@/lib/homeData'
+import type { HomeFx } from '@/lib/homeFx'
 import { useLocale } from '@/context/LocaleContext'
 import { SiteShell } from './SiteShell'
 import { DoorRail } from './DoorRail'
@@ -14,6 +15,7 @@ import { PageTitle } from './PageTitle'
 import { IndexChart, type IndexPoint, type IndexSeries } from './IndexChart'
 import { FlowRing, type FlowRow } from './FlowRing'
 import { DayChip } from './DayChip'
+import '@/styles/econ-page.css'
 import '@/styles/markets.css'
 import type { Company } from '@/types'
 import type { MarketInitial } from '@/lib/marketServer'
@@ -61,9 +63,10 @@ function compact(v: number | null | undefined, u: Units): string {
 }
 
 /* A percentage as coloured text: mint up, coral down, muted flat. */
+/* The board's move chip: outlined, percent only, green up / red down. */
 function Pct({ v }: { v: number }) {
-  const cls = v > 0 ? 'id-up' : v < 0 ? 'id-down' : 'id-cap'
-  return <bdi className={`iqm-pct ${cls}`}>{v > 0 ? '+' : ''}{v.toFixed(2)}%</bdi>
+  const cls = v > 0 ? 'is-up' : v < 0 ? 'is-down' : 'is-flat'
+  return <span className={`id-chg mb-chg ${cls}`}><bdi>{v > 0 ? '+' : ''}{v.toFixed(2)}%</bdi></span>
 }
 
 
@@ -72,7 +75,7 @@ function Pct({ v }: { v: number }) {
  * link to /market for the rest. `full`: /market — every company, every
  * column, no card.
  */
-export function MarketPage({ variant = 'root', initial }: { variant?: 'root' | 'full'; initial?: MarketInitial }) {
+export function MarketPage({ variant = 'root', initial, fx }: { variant?: 'root' | 'full'; initial?: MarketInitial; fx?: HomeFx | null }) {
   const full = variant === 'full'
   const { t, locale, href: L } = useLocale()
   const m = t.market
@@ -207,6 +210,18 @@ export function MarketPage({ variant = 'root', initial }: { variant?: 'root' | '
     if (!prev.length || now == null) return null
     return (now / (prev.reduce((a, b) => a + b, 0) / prev.length) - 1) * 100
   }
+  /* The last 21 sessions of one figure as small bars, today's bar inked —
+     fills the stat card with the context its «vs 20-session average» names. */
+  const Bars = ({ k }: { k: 'total_value' | 'total_trades' | 'traded_companies' }) => {
+    const vals = recent.map((r) => (r[k] as number | null) ?? 0)
+    const max = Math.max(...vals, 0)
+    if (vals.length < 6 || !max) return null
+    return (
+      <span className="mb-bars" aria-hidden="true">
+        {vals.map((v, i) => <i key={i} className={i === vals.length - 1 ? 'is-now' : undefined} style={{ height: `${Math.max(4, (v / max) * 100)}%` }} />)}
+      </span>
+    )
+  }
   const Delta = ({ v }: { v: number | null }) => v == null ? null
     : <em className={`iqm-delta ${v > 0 ? 'is-up' : v < 0 ? 'is-down' : ''}`.trim()}><bdi className="iqm-pct">{v > 0 ? '+' : ''}{Math.round(v)}%</bdi> {p.vsAvg('').trim()}</em>
 
@@ -314,6 +329,18 @@ export function MarketPage({ variant = 'root', initial }: { variant?: 'root' | '
         <section className="mb-session id-num" aria-label={m.summaryLabel}>
           <p className="id-eyebrow mb-when">{session ? p.sessionOf(sessionDate(session, locale)) : ' '}</p>
           <div className="mb-strip">
+            {/* Home: the dollar leads (the ISX60 already has its own chart
+                card right below); /market keeps the index as its key card. */}
+            {!full && fx ? (
+              <Link href={L('/fx')} className="id-print is-key mb-key mb-dollar" data-world="dinar">
+                <small>{p.dollar.label}</small>
+                <strong><bdi>{int.format(fx.rate)}</bdi></strong>
+                <em>{fx.stale ? p.dollar.stale : p.dollar.unit}</em>
+                {fx.prev ? (
+                  <DayChip pct={((fx.rate - fx.prev) / fx.prev) * 100} abs={fx.rate - fx.prev} fmt={(v) => int.format(v)} label={p.dollar.vsYesterday} />
+                ) : null}
+              </Link>
+            ) : (
             <div className="id-print is-key mb-key">
               <small>ISX60</small>
               <strong><bdi>{index?.latest.isx60 != null ? price.format(index.latest.isx60) : '—'}</bdi></strong>
@@ -322,6 +349,7 @@ export function MarketPage({ variant = 'root', initial }: { variant?: 'root' | '
                   label={t.rates.tools.vsPrev(sessionDate(index.prev.date, locale))} />
               ) : null}
             </div>
+            )}
             <div className="id-print mb-stat mb-breadth">
               <small>{p.breadth.label}</small>
               <strong>
@@ -336,11 +364,12 @@ export function MarketPage({ variant = 'root', initial }: { variant?: 'root' | '
               ) : null}
               <em>{p.breadth.flat(int.format(breadth.flat))}</em>
             </div>
-            <div className="id-print mb-stat"><small>{m.tradedValue}</small><strong>{compact(index?.latest.total_value, u)}</strong><em>{u.iqd}</em><Delta v={vsAvg('total_value')} /></div>
-            <div className="id-print mb-stat"><small>{m.trades}</small><strong>{index?.latest.total_trades != null ? int.format(index.latest.total_trades) : '—'}</strong><Delta v={vsAvg('total_trades')} /></div>
+            <div className="id-print mb-stat"><small>{m.tradedValue}</small><strong>{compact(index?.latest.total_value, u)} <em>{u.iqd}</em></strong><Bars k="total_value" /><Delta v={vsAvg('total_value')} /></div>
+            <div className="id-print mb-stat"><small>{m.trades}</small><strong>{index?.latest.total_trades != null ? int.format(index.latest.total_trades) : '—'}</strong><Bars k="total_trades" /><Delta v={vsAvg('total_trades')} /></div>
             <div className="id-print mb-stat">
               <small>{p.board.traded}</small>
               <strong>{index?.latest.traded_companies != null && index.latest.listed_companies != null ? `${int.format(index.latest.traded_companies)} / ${int.format(index.latest.listed_companies)}` : '—'}</strong>
+              <Bars k="traded_companies" />
               {index?.latest.traded_companies != null && index.latest.listed_companies ? (
                 <span className="mb-part" aria-hidden="true"><i style={{ width: `${(index.latest.traded_companies / index.latest.listed_companies) * 100}%` }} /></span>
               ) : null}
@@ -360,15 +389,15 @@ export function MarketPage({ variant = 'root', initial }: { variant?: 'root' | '
             <input id="iqm-q" className="id-input" type="search" value={q} onChange={(e) => setQ(e.target.value)}
               placeholder={m.searchPlaceholder} aria-label={m.searchLabel} />
             {full ? (
-              <div className="id-pills" role="group" aria-label={m.listingLabel}>
+              <div className="fx-quick" role="group" aria-label={m.listingLabel}>
                 {(['all', 'traded', 'untraded', 'suspended'] as Listing[]).map((k) => (
-                  <button key={k} type="button" className="id-pill is-sm" aria-pressed={listing === k} onClick={() => setListing(k)}>{p.full.listing[k]}</button>
+                  <button key={k} type="button" className="fx-qbtn" aria-pressed={listing === k} onClick={() => setListing(k)}>{p.full.listing[k]}</button>
                 ))}
               </div>
             ) : null}
-            <div className="id-pills" role="group" aria-label={m.sectorLabel}>
+            <div className="fx-quick" role="group" aria-label={m.sectorLabel}>
               {SECTORS.map((s) => (
-                <button key={s.id} type="button" className="id-pill is-sm" aria-pressed={sector === s.id} onClick={() => setSector(s.id)}>
+                <button key={s.id} type="button" className="fx-qbtn" aria-pressed={sector === s.id} onClick={() => setSector(s.id)}>
                   {ar ? s.ar : s.en}
                 </button>
               ))}
@@ -381,8 +410,8 @@ export function MarketPage({ variant = 'root', initial }: { variant?: 'root' | '
               move as coloured text, value, trades and each company's share of
               the session's traded value. One or two giant trades are flagged
               «صفقة خاصة» so they do not read as the market. */}
-          <div className="mb-scroll">
-            <table className="mb-table id-num" aria-label={p.board.title}>
+          <div className="mb-scroll id-print is-calm mb-panel">
+            <table className="mb-table mb-board id-num" aria-label={p.board.title}>
               <thead>
                 <tr>
                   {([
@@ -438,7 +467,7 @@ export function MarketPage({ variant = 'root', initial }: { variant?: 'root' | '
                       {full ? <td className="mb-hide-md">{liveMcap(c) ? compact(liveMcap(c), u) : '—'}</td> : null}
                       <td className="mb-col-bar mb-hide-sm">
                         {share != null ? (
-                          <span className="mb-bar" title={p.board.shareOf(`${share.toFixed(1)}%`)}><i style={{ width: `${Math.max(1.5, Math.min(100, share))}%` }} /></span>
+                          <span className="mb-share" title={p.board.shareOf(`${share.toFixed(1)}%`)}><span className="mb-bar"><i style={{ width: `${Math.max(1.5, Math.min(100, share))}%` }} /></span><bdi>{share < 1 ? share.toFixed(1) : Math.round(share)}%</bdi></span>
                         ) : null}
                       </td>
                     </tr>

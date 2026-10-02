@@ -2,6 +2,7 @@ import type { news as ar } from '../ar/news'
 
 export const news: typeof ar = {
   title: 'News',
+  board: { latest: 'Latest', own: 'Guides and comparisons we write and keep current, on what touches your money.', read: 'Read', updated: 'Updated', more: 'More articles' },
   itemsSince: (n: string, day: string) => `${n} items since ${day}`,
   standfirst: 'Company filings and market news',
   kindGroup: 'Item type',

@@ -76,5 +76,9 @@ export const results = {
   kindLabel: 'نتائج',
   feedHeadline: (v: ResultsVars) => `نتائج ${v.company} ${v.isAnnual ? v.year : `${v.periodLabel} ${v.year}`}: صافي ربح ${v.net} دينار${v.netYoY ? ` (${v.netYoY.dir === 'up' ? '+' : v.netYoY.dir === 'down' ? '−' : ''}${v.netYoY.pct}%)` : ''}`,
   sourceName: 'IQWealth · من القوائم المالية',
+  board: {
+    netLine: (u: string, p: string, y: string): string => `${u} دينار · صافي الربح · ${p} ${y}`,
+    vsYear: 'مقابل نفس الفترة من السنة السابقة',
+  },
   yoyNote: 'مقارنة بالفترة نفسها من العام السابق',
 }
