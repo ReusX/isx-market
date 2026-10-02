@@ -165,6 +165,15 @@ export const market = {
       sectorPart: (n: string, s: string) => `${n} في ${s}`,
       order:   { sector: 'حسب القطاع', capital: 'الأكبر رأس مال', name: 'أبجدياً' },
       all:     'كل الشركات',
+      v3: {
+        unit:    (s: string): string => `شركة مدرجة · ${s} قطاعات`,
+        barsNote: 'عدد الشركات بكل قطاع · اضغط القطاع حتى تنزل له',
+        find:    'دوّر على شركة',
+        shown:   'شركة بالنتيجة',
+        statusT: 'حالة التداول',
+        orderT:  'الترتيب',
+        active:  (a: string, n: string): string => `${a} من ${n} تداولت بآخر جلسة`,
+      },
       jump:    'القطاعات',
       empty:   'لا شركة بهذا الاسم.',
       about: {

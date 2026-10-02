@@ -28,71 +28,73 @@
   .site :where(td)::before { content: none; }
 }
 
-/* ── Nav ────────────────────────────────────────────────────────────────── */
+/* ── Nav · identity v3 ──────────────────────────────────────────────────
+   The wordmark, the four doors as one segmented control (the board's
+   dark/light switch: an ink outline, the current door filled), and the
+   tools as hairline chips. Under 960px the doors move to a tab bar at the
+   bottom of the screen (board 2, page 8). */
 .iqn {
-  display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 12px;
-  padding: 16px clamp(16px, 4vw, 56px);
+  display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 16px;
+  padding: 12px clamp(16px, 4vw, 56px); border-bottom: 1px solid var(--border);
 }
-.iqn.is-page { position: sticky; top: 0; z-index: 20; background: color-mix(in srgb, var(--page) 88%, transparent); backdrop-filter: blur(12px); }
+.iqn.is-page { position: sticky; top: 0; z-index: 20; background: color-mix(in srgb, var(--page) 90%, transparent); backdrop-filter: blur(12px); }
 .iqn-logo {
-  display: inline-flex; align-items: center; gap: 10px; min-height: 48px; padding: 0 22px 0 18px;
-  border-radius: var(--r-pill); font-size: 19px; font-weight: 500; text-decoration: none;
-  background: transparent; color: var(--ink); border: 1px solid var(--border);
+  justify-self: start; display: inline-flex; align-items: center; gap: 10px; min-height: 44px;
+  font: 600 19px/1 var(--font-numeric); letter-spacing: .01em; color: var(--ink); text-decoration: none;
 }
-.iqn-logo svg { color: var(--nav-active); }
-.iqn-logo:hover { border-color: var(--ink); }
-[dir='ltr'] .iqn-logo { padding: 0 18px 0 22px; }
-.iqn.is-hero .iqn-logo { background: transparent; color: var(--white); border-color: var(--white-22); }
-.iqn.is-hero .iqn-logo svg { color: var(--white); }
-.iqn-doors { display: flex; justify-content: center; gap: 8px; flex-wrap: wrap; }
-.iqn-tools { display: flex; gap: 8px; align-items: center; justify-content: flex-end; }
+.iqn-logo:hover { color: var(--secondary); }
+.iqn-doors {
+  display: inline-flex; gap: 2px; padding: 3px;
+  border: 1.5px solid var(--line-strong); border-radius: var(--r-pill);
+}
+.iqn-door {
+  display: inline-flex; align-items: center; gap: 8px; min-height: 38px; padding: 0 16px;
+  border-radius: var(--r-pill); color: var(--ink); text-decoration: none; white-space: nowrap;
+  font: 600 14px/1 var(--font-body); transition: background .15s, color .15s;
+}
+.iqn-door svg { color: var(--secondary); transition: color .15s; }
+.iqn-door:hover { background: var(--surface-2); }
+.iqn-door[aria-current='page'] { background: var(--ink); color: var(--page); }
+.iqn-door[aria-current='page'] svg { color: var(--page); }
+.iqn-door:focus-visible, .iqn-pill:focus-visible, .iqn .gh-lang:focus-visible, .iqn-tab:focus-visible { outline: 3px solid var(--w-ochre); outline-offset: 2px; }
+.iqn-tools { justify-self: end; display: flex; gap: 8px; align-items: center; }
+.iqn-pill, .iqn .gh-lang {
+  display: inline-flex; align-items: center; gap: 8px; min-height: 40px; padding: 0 14px;
+  border-radius: var(--r-pill); border: 1.5px solid var(--border); background: transparent; color: var(--ink);
+  font: 600 13px/1 var(--font-body); text-decoration: none; white-space: nowrap; cursor: pointer;
+  transition: border-color .15s;
+}
+.iqn-pill svg { color: var(--secondary); }
+.iqn-pill:hover, .iqn .gh-lang:hover { border-color: var(--line-strong); }
+.iqn-pill.is-icon { padding: 0; width: 40px; justify-content: center; }
+.iqn-tabs { display: none; }
 
-.iqn-pill {
-  display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 18px 0 16px;
-  border-radius: var(--r-pill); border: 1px solid var(--border); background: var(--surface); color: var(--ink);
-  font: inherit; font-size: 14px; font-weight: 500; text-decoration: none; white-space: nowrap; cursor: pointer;
-  transition: background .15s, border-color .15s, transform .15s;
+/* Between 960 and 1240 the doors keep their place, the labels of the tools go. */
+@media (max-width: 1240px) {
+  .iqn-me span { display: none; }
+  .iqn-me { padding: 0; width: 40px; justify-content: center; }
+  .iqn-door { padding: 0 13px; }
 }
-[dir='ltr'] .iqn-pill { padding: 0 16px 0 18px; }
-.iqn-pill svg { color: var(--nav-active); }
-.iqn-pill:hover { border-color: var(--ink); transform: translateY(-1px); }
-.iqn-pill.is-soon { color: var(--muted); cursor: default; }
-.iqn-pill.is-soon:hover { border-color: var(--border); transform: none; }
-.iqn-pill.is-soon svg { color: var(--muted); }
-.iqn-pill.is-soon small { font-size: 11px; border: 1px solid var(--border); border-radius: var(--r-pill); padding: 1px 7px; margin-inline-start: 8px; }
-.iqn-pill[aria-current='page'] { background: var(--sel-bg); color: var(--sel-ink); border-color: transparent; box-shadow: inset 0 0 0 1px var(--sel-edge); }
-.iqn-pill[aria-current='page'] svg { color: var(--nav-active); }
-/* Sign-in is an outlined pill like the rest; only its icon carries the blue. */
-.iqn-pill.is-strong { background: var(--surface); color: var(--ink); border-color: var(--border); }
-.iqn-pill.is-strong svg { color: var(--nav-active); }
-.iqn-pill.is-icon { padding: 0; width: 44px; justify-content: center; }
-.iqn .gh-lang {
-  display: inline-flex; align-items: center; min-height: 44px; padding: 0 18px; border-radius: var(--r-pill);
-  border: 1px solid var(--border); background: var(--surface); color: var(--ink); font: inherit; font-size: 14px; font-weight: 500;
-  text-decoration: none; opacity: 1;
+@media (max-width: 959px) {
+  .iqn { grid-template-columns: 1fr auto; padding-block: 8px; }
+  .iqn-doors, .iqn-me { display: none; }
+  .iqn-tabs {
+    position: fixed; z-index: 30; inset-inline: 0; bottom: 0;
+    display: grid; grid-template-columns: repeat(5, minmax(0, 1fr));
+    padding: 6px 4px calc(6px + env(safe-area-inset-bottom, 0px));
+    background: color-mix(in srgb, var(--page) 94%, transparent); backdrop-filter: blur(12px);
+    border-top: 1px solid var(--border);
+  }
+  .iqn-tab {
+    display: flex; flex-direction: column; align-items: center; gap: 3px; min-width: 0; padding: 2px 0;
+    color: var(--muted); text-decoration: none; font: 500 11px/1.3 var(--font-body);
+  }
+  .iqn-tab svg { width: 46px; height: 28px; padding: 5px 14px; border-radius: var(--r-pill); transition: background .15s; }
+  .iqn-tab span { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .iqn-tab[aria-current='page'] { color: var(--ink); font-weight: 600; }
+  .iqn-tab[aria-current='page'] svg { background: var(--surface-2); }
+  .site { padding-bottom: calc(66px + env(safe-area-inset-bottom, 0px)); }
 }
-/* On the hero every pill is solid white with navy ink, whatever the theme. */
-.iqn.is-hero .iqn-pill, .iqn.is-hero .gh-lang { background: #fff; color: var(--navy); border-color: #fff; }
-.iqn.is-hero .iqn-pill svg { color: var(--blue); }
-.iqn.is-hero .iqn-pill:hover, .iqn.is-hero .gh-lang:hover { background: #eef4ff; }
-.iqn.is-hero .iqn-pill.is-strong { background: #fff; color: var(--navy); border-color: #fff; }
-.iqn.is-hero .iqn-pill.is-strong svg { color: var(--blue); }
-.iqn-burger { display: none; }
-
-/* The four doors need ~1180px beside the logo and tools; below that the
-   doors fold behind the burger rather than wrap into a second row. */
-@media (max-width: 1180px) {
-  .iqn { grid-template-columns: auto 1fr; }
-  .iqn-logo { grid-row: 1; justify-self: start; }
-  .iqn-tools { grid-row: 1; grid-column: 2; }
-  .iqn-doors { display: none; grid-row: 2; grid-column: 1 / -1; flex-direction: column; align-items: stretch; padding-top: 8px; }
-  .iqn-doors .iqn-pill { min-height: 48px; font-size: 15px; }
-  .iqn.is-open .iqn-doors { display: flex; }
-  .iqn-burger { display: inline-flex; }
-  .iqn-hide-sm { display: none; }
-  .iqn-pill.is-strong { padding: 0; width: 44px; justify-content: center; }
-}
-@media (max-width: 480px) { .iqn-logo span { display: none; } .iqn-logo { padding: 0 14px; } }
 
 /* ── Foot ───────────────────────────────────────────────────────────────── */
 .iqf { padding-block: 56px 40px; border-top: 1px solid var(--border); margin-top: 72px; font-size: 14px; color: var(--secondary); }
@@ -129,15 +131,18 @@
    Icon + label rows, 44px tall, one group heading for the personal tools,
    and an edit mode (see DoorRail) where the same rows grow their controls. */
 .iqr { position: sticky; top: calc(var(--iqn-h) + 12px); padding-inline-end: 8px; }
-.iqr-door { display: flex; align-items: center; gap: 8px; margin: 10px 0 14px; padding-inline-start: 16px; font-size: 12px; color: var(--secondary); }
-.iqr-door svg { color: var(--nav-active); }
+.iqr-door { display: flex; align-items: center; gap: 10px; margin: 6px 0 14px; padding-inline-start: 14px; font: 700 16px/1.4 var(--font-display); color: var(--ink); }
+.iqr-door svg { display: none; }
+/* The section's ink as the board's tag square. */
+.iqr-door::before { content: ''; width: 10px; height: 10px; border-radius: 3px; background: var(--world, var(--nav-active)); flex: 0 0 auto; }
 .iqr-list { display: flex; flex-direction: column; gap: 3px; }
 .iqr-slot { display: contents; }
 .iqr-group { margin: 14px 0 6px; padding-inline-start: 16px; font-size: 11px; color: var(--muted); }
 .iqr-item {
   position: relative; display: flex; align-items: center; gap: 12px; min-height: 44px; padding: 0 14px; border-radius: 12px;
+  border: 1.5px solid transparent;
   color: var(--ink); font-size: 15px; font-weight: 400; text-decoration: none; white-space: nowrap;
-  transition: background .12s, color .12s;
+  transition: background .12s, color .12s, border-color .12s;
 }
 .iqr-ico { flex: 0 0 18px; color: var(--secondary); transition: color .12s; }
 .iqr-label { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
@@ -147,11 +152,11 @@
 .iqr-item.is-soon .iqr-ico { color: var(--muted); }
 .iqr-item.is-soon:hover { background: transparent; }
 .iqr-item.is-soon small { font-size: 11px; border: 1px solid var(--border); border-radius: var(--r-pill); padding: 1px 8px; }
-/* Active: a quiet surface and a thin blue edge on the start side — not a
-   large fill. */
-.iqr-item[aria-current='page'] { background: var(--rail-on-bg); color: var(--rail-on-ink); font-weight: 500; }
-.iqr-item[aria-current='page'] .iqr-ico { color: var(--nav-active); }
-.iqr-item[aria-current='page']::before { content: ''; position: absolute; inset-inline-start: 0; top: 12px; bottom: 12px; width: 3px; border-radius: 2px; background: var(--nav-active); }
+/* Active: a small print card, the board's one loud thing in a list: the
+   ink outline and the section's ink offset behind it. */
+.iqr-item[aria-current='page'] { background: var(--surface); border-color: var(--line-strong); color: var(--ink); font-weight: 600; box-shadow: -3px 3px 0 0 var(--world, var(--nav-active)); }
+[dir='ltr'] .iqr-item[aria-current='page'] { box-shadow: 3px 3px 0 0 var(--world, var(--nav-active)); }
+.iqr-item[aria-current='page'] .iqr-ico { color: var(--world, var(--nav-active)); }
 
 /* Edit mode */
 .iqr-foot { margin-top: 12px; padding-inline-start: 6px; }
@@ -188,8 +193,11 @@
   .iqr-list { flex: 1 1 auto; min-width: 0; flex-direction: row; gap: 6px; overflow-x: auto; padding-bottom: 6px; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
   .iqr-list::-webkit-scrollbar { display: none; }
   .iqr-group { display: none; }
-  .iqr-item { min-height: 40px; padding: 0 14px; font-size: 14px; flex: 0 0 auto; gap: 8px; }
-  .iqr-item[aria-current='page']::before { display: none; }
+  .iqr-item { min-height: 38px; padding: 0 14px; font-size: 14px; flex: 0 0 auto; gap: 8px; border-radius: var(--r-pill); border-color: var(--border); }
+  .iqr-item:hover { background: transparent; border-color: var(--line-strong); }
+  .iqr-list { padding: 2px 2px 6px; }
+  .iqr-item[aria-current='page'], [dir='ltr'] .iqr-item[aria-current='page'] { background: var(--ink); border-color: var(--ink); color: var(--page); box-shadow: none; }
+  .iqr-item[aria-current='page'] .iqr-ico { color: var(--page); }
   .iqr-foot { margin: 0 0 6px; padding: 0; flex: 0 0 auto; }
   .iqr-customise span { display: none; }
   /* Editing in a row: the list wraps so every control stays reachable. */
@@ -203,19 +211,21 @@
   .iqr-sheet { display: block; position: relative; }
   .iqr-toggle {
     list-style: none; display: inline-flex; align-items: center; gap: 10px; min-height: 44px; padding: 0 16px 0 14px;
-    border-radius: var(--r-pill); border: 1px solid var(--border); background: var(--surface); color: var(--ink);
+    border-radius: var(--r-pill); border: 1.5px solid var(--line-strong); background: transparent; color: var(--ink);
     font-size: 14px; cursor: pointer; user-select: none;
   }
   .iqr-toggle::-webkit-details-marker { display: none; }
   .iqr-toggle-k { color: var(--secondary); }
-  .iqr-toggle-v { font-weight: 500; }
+  .iqr-toggle-v { font: 700 14px/1 var(--font-display); }
   .iqr-sheet[open] .iqr-toggle svg { transform: rotate(180deg); }
   .iqr-sheet-body {
     position: absolute; z-index: 15; inset-inline-start: 0; top: calc(100% + 8px); min-width: 260px; max-width: calc(100vw - 32px);
     padding: 8px; background: var(--surface-popover); border: 1px solid var(--border); border-radius: var(--r-md);
   }
   .iqr-sheet .iqr-list { flex-direction: column; gap: 2px; overflow: visible; }
-  .iqr-sheet .iqr-item { min-height: 44px; font-size: 15px; }
+  .iqr-sheet .iqr-item { min-height: 44px; font-size: 15px; border-radius: 12px; border-color: transparent; }
+  .iqr-sheet .iqr-item[aria-current='page'] { background: var(--surface-2); border-color: var(--line-strong); color: var(--ink); }
+  .iqr-sheet .iqr-item[aria-current='page'] .iqr-ico { color: var(--world, var(--nav-active)); }
   .iqr-sheet .iqr-foot { margin-top: 8px; padding: 0; }
   .iqr-sheet .iqr-group { display: block; }
   .iqr-sheet .iqr-customise span { display: inline; }
@@ -332,3 +342,8 @@
 .tsi-step small { font-size: 12px; color: var(--muted); }
 @keyframes tsi-in { from { transform: translateY(16px); opacity: 0; } }
 @media (prefers-reduced-motion: reduce) { .tsi { animation: none; } }
+
+/* The phone tab bar sits at the bottom: the invite rides above it. */
+@media (max-width: 959px) {
+  .tsi { bottom: calc(env(safe-area-inset-bottom, 0px) + 78px); }
+}

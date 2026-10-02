@@ -7,6 +7,7 @@ export const site = {
   brandHome: 'IQWealth · الرئيسية',
   menu:      'القائمة',
   section:   'القسم',
+  tabs:      { markets: 'الأسواق', banking: 'البنوك', economy: 'الاقتصاد', learn: 'تعلّم' },
   widget: {
     eyebrow: 'أدوات للمواقع',
     footLink: 'ودجت لموقعك',

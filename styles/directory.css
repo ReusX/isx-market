@@ -28,3 +28,24 @@
 .dr-about { margin-top: 48px; padding-inline: 0; margin-inline: 0; }
 .dr-about .id-h2 { margin-bottom: 12px; }
 .dr-about .id-body { color: var(--secondary); margin: 0 0 12px; }
+
+/* ── Identity v3 · the board ─────────────────────────────────────────────
+   The frame (econ-page.css) holds the count, the sector bars and the key
+   card; the cards below are calm prints. */
+.dr-frame { margin-bottom: 12px; }
+.dr-frame .dr-head { margin: 0; }
+.dr-bars { margin-top: 8px; }
+.dr-bars.is-wide > a { display: grid; grid-template-columns: 96px minmax(0, 1fr) 40px; align-items: center; gap: 10px; font-size: 13px; color: var(--secondary); text-decoration: none; padding: 3px 0; border-radius: 6px; }
+.dr-bars > a:hover { color: var(--ink); }
+.dr-bars > a:hover i { opacity: .9; }
+.dr-bars > a span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.dr-shown { font-size: clamp(24px, 2.4vw, 30px); }
+.dr-sectors { margin: 0; max-width: none; }
+.dr-sec-h { font-size: clamp(20px, 2.2vw, 26px); }
+.dr-sec-h .id-cap { font-family: var(--font-body); font-size: 13px; }
+.dr-grid { grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); gap: 18px; }
+.dr-card.id-print { padding: 18px; gap: 12px; border-radius: var(--r-md); }
+.dr-card .dr-name { font-weight: 700; }
+.dr-card:hover { border-color: var(--line-strong); }
+.dr-frame .fx-calc-in input { font: 500 17px/1.3 var(--font-body); }
+.dr-shown span { font-family: var(--font-body); font-size: 16px; font-weight: 600; color: var(--secondary); }

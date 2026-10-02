@@ -69,7 +69,7 @@ export const learn: typeof ar = {
         { id: 'ready', name: 'Ready to start', tag: 'First investment', blurb: 'Gold, deposits and a first share: how to begin in small, measured steps.',
           lessons: [{ label: 'Trading from zero', href: '/learn/trading-from-zero' }, { label: 'Opening a brokerage account', href: null }, { label: 'Mithqal and karat, explained', href: null }] },
         { id: 'investor', name: 'Investor', tag: 'Reading the market', blurb: 'Read companies, compare shares, and build a balanced portfolio.',
-          lessons: [{ label: 'Stock screener', href: '/screener' }, { label: 'Company analysis', href: '/analysis' }, { label: 'Reading a bank’s balance sheet', href: null }] },
+          lessons: [{ label: 'Stock screener', href: '/screener' }, { label: 'Reading a bank’s balance sheet', href: null }] },
       ],
     },
     strip: {

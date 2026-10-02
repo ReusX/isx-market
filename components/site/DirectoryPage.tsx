@@ -11,10 +11,14 @@ import { SECTORS, companyName } from '@/lib/market'
 import { localeDate } from '@/lib/date'
 import type { DirectoryRow } from '@/lib/marketServer'
 import '@/styles/markets.css'
+import '@/styles/econ-page.css'
 import '@/styles/directory.css'
 
 /**
  * /companies · the directory of listed companies.
+ *
+ * On the board (identity v3): the count as the figure, the sectors as bars
+ * that jump to their group, and the search and filters as the key card.
  *
  * Who is listed, not what the prices are: every company as a compact card —
  * logo, both names, ticker, sector, paid-in capital, trading status, and the
@@ -66,6 +70,13 @@ export function DirectoryPage({ rows, session }: { rows: DirectoryRow[]; session
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [rows, locale])
   const shown = groups.reduce((n, [, l]) => n + l.length, 0)
+  const V = d.v3
+  const bySector = useMemo(() => {
+    const by = new Map<string, number>()
+    for (const r of rows) by.set(r.sec, (by.get(r.sec) ?? 0) + 1)
+    return Array.from(by.entries()).sort((a, b) => b[1] - a[1])
+  }, [rows])
+  const activeN = rows.filter((r) => r.status === 'active').length
   const sectorCount = new Set(rows.map((r) => r.sec)).size
 
   return (
@@ -73,38 +84,67 @@ export function DirectoryPage({ rows, session }: { rows: DirectoryRow[]; session
       <main className="dr id-full iq-door" data-world="lapis" data-level="calm">
         <DoorRail door="markets" />
         <div className="dr-body">
-          <header className="dr-head">
-            <p className="id-eyebrow">{d.eyebrow}</p>
-            <PageTitle title={t.company.directory.h1(int.format(rows.length))} note={d.intro(int.format(rows.length), int.format(sectorCount))} />
-            <p className="id-body dr-sectors id-num">{sectorSentence}</p>
-          </header>
+          {/* Identity v3, as /fx and /statistics: the count as the figure with
+              the swoosh and the sectors drawn as bars, beside the search and
+              the filters as the key card. */}
+          <div className="fx-frame dr-frame">
+            <div className="fx-board">
+              <div className="fx-lead">
+                <header className="dr-head">
+                  <PageTitle title={t.company.directory.h1(int.format(rows.length))} note={d.intro(int.format(rows.length), int.format(sectorCount))} className="fx-title" />
+                </header>
+                <p className="fx-huge id-num">
+                  <span className="fx-huge-num">
+                    <bdi>{int.format(rows.length)}</bdi>
+                    <svg className="fx-swoosh" viewBox="0 0 200 40" preserveAspectRatio="none" aria-hidden="true">
+                      <path d="M4 30 C 50 10, 110 4, 196 20" pathLength={1} fill="none" stroke="currentColor" strokeWidth={5} strokeLinecap="round" vectorEffect="non-scaling-stroke" />
+                    </svg>
+                  </span>
+                </p>
+                <p className="fx-line"><span>{V.unit(int.format(sectorCount))}</span></p>
+                <nav className="fx-bars is-wide dr-bars id-num" aria-label={d.jump}>
+                  {bySector.map(([sec, n], i) => (
+                    <a key={sec} href={`#sec-${sec}`} onClick={() => setOrder('sector')}>
+                      <span>{sectorName(sec)}</span><i style={{ width: `${(n / bySector[0][1]) * 100}%` }} className={i === 0 ? 'is-market' : ''} /><b>{int.format(n)}</b>
+                    </a>
+                  ))}
+                </nav>
+                <p className="fx-chart-note">{V.barsNote}</p>
+              </div>
 
-          <div className="dr-controls">
-            <input id="dr-q" type="search" className="id-input" value={q} onChange={(e) => setQ(e.target.value)} placeholder={d.search} aria-label={d.search} />
-            <div className="id-pills" role="group" aria-label={d.status.all}>
-              {(['all', 'active', 'untraded', 'suspended'] as const).map((k) => (
-                <button key={k} type="button" className="id-pill is-sm" aria-pressed={status === k} onClick={() => setStatus(k)}>{d.status[k]}</button>
-              ))}
-            </div>
-            <div className="id-pills" role="group" aria-label={d.order.sector}>
-              {(['sector', 'capital', 'name'] as const).map((k) => (
-                <button key={k} type="button" className="id-pill is-sm" aria-pressed={order === k} onClick={() => setOrder(k)}>{d.order[k]}</button>
-              ))}
+              <section className="id-print is-key fx-calc" aria-label={V.find}>
+                <h2 className="fx-calc-title">{V.find}</h2>
+                <label className="fx-calc-in" htmlFor="dr-q">
+                  <span className="sr-only">{d.search}</span>
+                  <input id="dr-q" type="search" value={q} onChange={(e) => setQ(e.target.value)} placeholder={d.search} />
+                </label>
+                <p className="fx-calc-note">{V.statusT}</p>
+                <div className="fx-quick" role="group" aria-label={V.statusT}>
+                  {(['all', 'active', 'untraded', 'suspended'] as const).map((k) => (
+                    <button key={k} type="button" className="fx-qbtn" aria-pressed={status === k} onClick={() => setStatus(k)}>{d.status[k]}</button>
+                  ))}
+                </div>
+                <p className="fx-calc-note">{V.orderT}</p>
+                <div className="fx-quick" role="group" aria-label={V.orderT}>
+                  {(['sector', 'capital', 'name'] as const).map((k) => (
+                    <button key={k} type="button" className="fx-qbtn" aria-pressed={order === k} onClick={() => setOrder(k)}>{d.order[k]}</button>
+                  ))}
+                </div>
+                <p className="fx-calc-out id-num dr-shown"><bdi>{int.format(shown)}</bdi> <span>{V.shown}</span></p>
+                <p className="fx-calc-note">{V.active(int.format(activeN), int.format(rows.length))}</p>
+              </section>
             </div>
           </div>
-
-          <nav className="dr-jump id-pills" aria-label={d.jump} hidden={order !== 'sector'}>
-            {groups.map(([sec, list]) => <a key={sec} href={`#sec-${sec}`} className="id-pill is-sm">{sectorName(sec)} <span className="id-cap">{list.length}</span></a>)}
-          </nav>
+          <div className="fx-captions"><p className="id-cap dr-sectors id-num">{sectorSentence}</p></div>
 
           {shown === 0 ? <p className="id-note">{d.empty}</p> : null}
 
           {groups.map(([sec, list]) => (
             <section key={sec} id={`sec-${sec}`} className="dr-sector">
-              <h2 className="id-h2">{sec === 'all' ? d.all : sectorName(sec)} <span className="id-cap id-num">{d.count(int.format(list.length))}</span></h2>
+              <h2 className="id-h2 dr-sec-h">{sec === 'all' ? d.all : sectorName(sec)} <span className="id-cap id-num">{d.count(int.format(list.length))}</span></h2>
               <ul className="dr-grid">
                 {list.map((r) => (
-                  <li key={r.sym} className={`dr-card is-${r.status}`}>
+                  <li key={r.sym} className={`dr-card id-print is-calm is-${r.status}`}>
                     <Link href={L(`/c/${r.sym}`)} className="dr-card-link">
                       <CompanyLogo sym={r.sym} logo={r.logo} color={r.color} className="dr-logo" />
                       <span className="dr-names">

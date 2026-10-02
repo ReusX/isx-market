@@ -72,7 +72,11 @@ const nextConfig = {
       { source: '/rewards/:path*', destination: '/', permanent: true },
       { source: '/news/altdaol-fy-alaarak-dlyl-albdaa-fy-sok-alashm-alaaraky', destination: '/news', permanent: true },
       { source: '/news/isx-strong-opening-rsisx-rise', destination: '/news', permanent: true },
-      { source: '/research/isx-banking-sector-analysis-q1-2026', destination: '/analysis', permanent: true },
+      { source: '/research/isx-banking-sector-analysis-q1-2026', destination: '/companies', permanent: true },
+      /* The machine-written /analysis pages were retired (2026-10): each
+         company's analysis now lands on its company page. */
+      { source: '/analysis', destination: '/companies', permanent: true },
+      { source: '/analysis/:sym', destination: '/c/:sym', permanent: true },
     ]
   },
 

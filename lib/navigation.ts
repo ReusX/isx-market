@@ -25,9 +25,8 @@
  *   /charts                    cancelled. Its job splits between the company
  *                              chart and the expanded index chart, both
  *                              reached from where the data already is.
- *   /analysis                  its removal is still OPEN under the route
- *                              migration matrix, so it is not exposed here
- *                              either way.
+ *   /analysis                  deleted (2026-10); 301 to /companies and
+ *                              /c/[sym].
  *
  * Privacy and Legal are footer destinations by design, not sidebar items.
  *

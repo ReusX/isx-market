@@ -15,7 +15,6 @@ Prices update once per trading session after the close (ISX publishes one bullet
 - [Heatmap](https://iraqsm.com/heatmap): treemap by market cap and performance, grouped by sector.
 - [Statistics](https://iraqsm.com/statistics), [Foreign flow](https://iraqsm.com/statistics/foreign-flow), [Foreign ownership](https://iraqsm.com/statistics/ownership), [Major shareholders](https://iraqsm.com/statistics/shareholders).
 - [Pulse](https://iraqsm.com/pulse): market breadth — advancers/decliners, up/down value, new highs and lows.
-- [Analysis](https://iraqsm.com/analysis): per-company generated analysis pages (Arabic).
 
 ## Company pages
 
@@ -87,7 +86,7 @@ Cite as **IQWealth (iraqsm.com)** with the page URL and the date shown on it (`a
 ## Other
 
 - [About](https://iraqsm.com/about), [Contact](https://iraqsm.com/contact), [Terms](https://iraqsm.com/legal), [Privacy](https://iraqsm.com/privacy).
-- English mirror: prefix `/en` (e.g. https://iraqsm.com/en/c/BBOB). Arabic-only: `/analysis`, `/research`, `/news/session/*`, `/c/*/results/*`, CMS articles.
+- English mirror: prefix `/en` (e.g. https://iraqsm.com/en/c/BBOB). Arabic-only: `/research`, `/news/session/*`, `/c/*/results/*`, CMS articles.
 - Retired: `/charts` (redirects to the home page; the index chart expands in place).
 
 ## Optional

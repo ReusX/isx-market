@@ -194,7 +194,7 @@ export function companyMarketCap(
 
 /**
  * ⚠ LEGACY display helper, kept for the pre-redesign routes that still call it
- * (`/market`, `/companies`, `/analysis`).
+ * (`/market`, `/companies`).
  *
  * It differs from `companyMarketCap` in two ways that matter: it takes the
  * LIVE-session close, which is 0 for any company that did not trade today, and

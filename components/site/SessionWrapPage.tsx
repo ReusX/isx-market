@@ -23,7 +23,7 @@ import '@/styles/wrap-page.css'
 const n2 = new Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
 const n0 = new Intl.NumberFormat('en-US', { maximumFractionDigits: 0 })
 /* The wrap exists in Arabic only; resolved per locale so the static link
-   gate sees the guard (same pattern as the analysis index). */
+   gate sees the guard. */
 const ARCHIVE_HOME: Record<string, string | null> = { ar: '/news/session', en: null }
 
 export function SessionWrapPage({ initial }: { initial: SessionWrap }) {

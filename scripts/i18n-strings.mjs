@@ -67,16 +67,6 @@ const ALLOW_FILES = [
   'lib/moneyStreetCopy.ts',     // «شارع المال» (/learn/invest), an ar-only route (lib/i18n/routes.ts)
 ]
 
-/*
- * `app/api/analysis/[sym]/route.ts` deserves its own note.
- *
- * Its Arabic is an LLM PROMPT — a schema and instructions telling the model to
- * write Arabic analysis for `/analysis/[sym]`, which is an Arabic-only route
- * with no English twin (lib/i18n/routes.ts). No reader ever sees these
- * strings; they are the shape of a request, not interface copy. Translating
- * them would change what the model produces, not what anyone reads.
- */
-
 const strip = (src) => src
   .replace(/\/\*[\s\S]*?\*\//g, '')   // block comments
   .replace(/^\s*\/\/.*$/gm, '')       // line comments

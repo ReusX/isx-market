@@ -42,7 +42,7 @@ export const INTERESTS: { id: Interest; tab: string; pages: string[]; owns: stri
   {
     id: 'market', tab: '/app/market',
     pages: ['/app/market', '/app/companies', '/watchlist', '/portfolio', '/heatmap', '/screener', '/statistics', '/pulse'],
-    owns: ['/app/market', '/app/companies', '/market', '/companies', '/c', '/screener', '/heatmap', '/statistics', '/pulse', '/portfolio', '/watchlist', '/alerts', '/analysis'],
+    owns: ['/app/market', '/app/companies', '/market', '/companies', '/c', '/screener', '/heatmap', '/statistics', '/pulse', '/portfolio', '/watchlist', '/alerts'],
   },
   { id: 'banks', tab: '/app/banks', pages: ['/app/banks', '/banks/deposits', '/banks/loans'], owns: ['/app/banks', '/banks'] },
   { id: 'economy', tab: '/oil', pages: ['/oil', '/cbi-window', '/inflation', '/policy-rate'], owns: ['/oil', '/cbi-window', '/inflation', '/policy-rate'] },

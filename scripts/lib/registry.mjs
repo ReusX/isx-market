@@ -27,7 +27,7 @@ export function readRegistry(file = 'lib/i18n/routes.ts') {
     if (!byClass[m[2]]?.includes(m[1])) byClass[m[2]]?.push(m[1])
   }
   /* The bulk `ar-only` spread. Its closing bracket must be anchored to the
-     `.map` that follows: a naive `[^\]]+` stops dead on `/analysis/[sym]`. */
+     `.map` that follows: a naive `[^\]]+` stops dead on `/research/[slug]`. */
   for (const m of src.matchAll(/\.\.\.\(\[([\s\S]*?)\]\s*\n\s*\.map/g)) {
     for (const r of m[1].matchAll(/'([^']+)'/g)) {
       if (!byClass['ar-only'].includes(r[1])) byClass['ar-only'].push(r[1])
@@ -35,14 +35,14 @@ export function readRegistry(file = 'lib/i18n/routes.ts') {
   }
 
   /* Self-check. These three are structural: the site root is mirrored, the
-     portfolio is private, and /analysis is Arabic-only. If any is missing the
+     portfolio is private, and /research is Arabic-only. If any is missing the
      parse is wrong, and a blind gate is worse than no gate. */
   const problems = []
   if (!byClass.mirror.includes('/')) problems.push("registry parse: '/' should be mirror")
   if (!byClass.private.includes('/portfolio')) problems.push("registry parse: '/portfolio' should be private")
-  /* `/analysis`: /banks became a bilingual pair and /charts was deleted
-     (301 → /), so neither is a valid ar-only anchor any more. */
-  if (!byClass['ar-only'].includes('/analysis')) problems.push("registry parse: '/analysis' should be ar-only")
+  /* `/research`: /banks became a bilingual pair, and /charts and /analysis
+     were deleted (301), so none is a valid ar-only anchor any more. */
+  if (!byClass['ar-only'].includes('/research')) problems.push("registry parse: '/research' should be ar-only")
   if (problems.length) {
     console.error('✗ cannot read lib/i18n/routes.ts')
     problems.forEach(p => console.error('  ·', p))

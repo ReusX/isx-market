@@ -2,6 +2,7 @@ export const site = {
   brandHome: 'IQWealth · Home',
   menu:      'Menu',
   section:   'Section',
+  tabs:      { markets: 'Markets', banking: 'Banks', economy: 'Economy', learn: 'Learn' },
   widget: {
     eyebrow: 'Tools for websites', footLink: 'Widget for your site', title: 'Dollar & gold widget for your site',
     note: 'A small card with the Baghdad dollar rate, gold and the ISX60 for your site, blog or channel, refreshed automatically from IQWealth open data. Free as long as the source link stays.',

@@ -45,8 +45,8 @@
 .plz-share bdi { flex: 0 0 auto; min-width: 52px; text-align: end; }
 .plz-track { display: block; flex: 1 1 auto; max-width: 120px; height: 8px; border-radius: 4px; background: var(--surface-2); overflow: hidden; }
 .plz-track i { display: block; height: 100%; border-radius: 4px; }
-.plz-track i.is-up { background: var(--moss-ink); opacity: .85; }
-.plz-track i.is-down { background: var(--sand-ink); opacity: .85; }
+.plz-track i.is-up { background: var(--up); opacity: .85; }
+.plz-track i.is-down { background: var(--down); opacity: .85; }
 .plz-track i.is-neutral { background: var(--nav-active); opacity: .8; }
 
 /* ── History ────────────────────────────────────────────────────────────── */
@@ -66,8 +66,8 @@
 .plz-chart { width: 100%; height: auto; display: block; margin-top: 16px; min-height: 200px; }
 .plz-zero { stroke: var(--border); stroke-width: 1; }
 .plz-bar { opacity: .75; }
-.plz-bar.is-up { fill: var(--moss-ink); }
-.plz-bar.is-down { fill: var(--sand-ink); }
+.plz-bar.is-up { fill: var(--up); }
+.plz-bar.is-down { fill: var(--down); }
 .plz-tick { fill: var(--muted); font-size: 11px; dominant-baseline: middle; }
 [dir='rtl'] .plz-chart text { direction: ltr; }
 
@@ -75,8 +75,8 @@
 .plz-sec-table { min-width: 620px; }
 .plz-sec-bar { display: flex; gap: 2px; height: 8px; border-radius: 4px; overflow: hidden; min-width: 90px; }
 .plz-sec-bar i { display: block; }
-.plz-sec-bar .is-up { background: var(--moss-ink); opacity: .85; }
-.plz-sec-bar .is-down { background: var(--sand-ink); opacity: .85; }
+.plz-sec-bar .is-up { background: var(--up); opacity: .85; }
+.plz-sec-bar .is-down { background: var(--down); opacity: .85; }
 .plz-sec-bar .is-flat { background: var(--surface-2); }
 .plz-sec-bar .is-none { background: var(--border); }
 
@@ -104,3 +104,34 @@
   .plz-share bdi { min-width: 0; text-align: start; }
   .plz-track { max-width: 160px; }
 }
+
+/* ── Identity v3 · the board ─────────────────────────────────────────────
+   The verdict word as the figure (coloured by its tone, as a price), the
+   net-breadth history under it, and the readings as the key card. */
+.plz-frame { margin-bottom: 12px; }
+.plz-frame .fx-board { align-items: start; }
+.plz-word .fx-huge-num { font-size: clamp(40px, 11cqi, 76px); line-height: 1.25; }
+.plz-word.is-up .fx-huge-num { color: var(--up); }
+.plz-word.is-down .fx-huge-num { color: var(--down); }
+.plz-word .fx-swoosh { color: currentColor; }
+.plz-hist { display: grid; gap: 10px; margin-top: 12px; }
+.plz-hist-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
+.plz-hist .plz-readout { margin: 0; }
+.plz-hist .plz-chart { margin-top: 0; min-height: 0; }
+.plz-hist .plz-legend { margin: 0; align-items: center; }
+.plz-key { align-self: start; }
+.plz-reads { list-style: none; margin: 4px 0 0; padding: 0; display: grid; gap: 14px; }
+.plz-reads li { display: grid; gap: 6px; padding-bottom: 12px; border-bottom: 1px solid var(--border); }
+.plz-reads li:last-child { border-bottom: 0; padding-bottom: 0; }
+.plz-read-top { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; }
+.plz-read-top b { font-family: var(--font-display); font-size: 15px; }
+.plz-read-top bdi { font: 600 20px/1 var(--font-numeric); }
+.plz-reads .plz-track { max-width: none; flex: none; }
+.plz-read-pair { margin: 0; font-size: 13px; color: var(--secondary); line-height: 1.55; }
+.plz-read-pair small { display: block; color: var(--muted); font-size: 12px; }
+.plz-key .plz-rule { margin-top: 4px; }
+.plz-secs { margin-top: 28px; }
+.plz-sec-table { min-width: 640px; }
+.plz-sec-table th { position: static; }
+.plz-sec-col { width: 28%; }
+.plz-sec-col .plz-sec-bar { min-width: 120px; }

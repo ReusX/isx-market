@@ -7,7 +7,6 @@ import { useLocale } from '@/context/LocaleContext'
 import { splitLocale } from '@/lib/i18n/paths'
 import { existsIn } from '@/lib/i18n/routes'
 import { EMPTY, arrange, readPrefs, writePrefs, type RailPrefs } from '@/lib/railPrefs'
-import { NavIcon } from './SiteNav'
 import { RailIcon } from './RailIcon'
 import { RAILS, allPages, type Door, type RailDef } from './rails'
 
@@ -156,7 +155,7 @@ export function DoorRail({ door, items: _legacy }: { door: Door; items?: RailIte
   return (
     <>
       <aside className="iqr" aria-label={name}>
-        <p className="iqr-door"><NavIcon name={door} />{name}</p>
+        <p className="iqr-door">{name}</p>
         {list}
         <div className="iqr-foot">{editBtn}</div>
       </aside>

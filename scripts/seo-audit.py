@@ -9,7 +9,7 @@ ROUTES = [
     '/', '/market', '/companies', '/screener', '/heatmap', '/statistics',
     '/statistics/foreign-flow', '/statistics/ownership', '/statistics/shareholders',
     '/pulse', '/c/TASC', '/c/BBOB', '/c/TASC/financials', '/banks', '/banks/mansour',
-    '/fx', '/gold', '/oil', '/news', '/about', '/contact', '/legal', '/privacy', '/portfolio', '/watchlist', '/alerts', '/login', '/analysis', '/analysis/TASC', '/learn', '/learn/trading-from-zero', '/research', '/en/learn', '/en/learn/trading-from-zero',
+    '/fx', '/gold', '/oil', '/news', '/about', '/contact', '/legal', '/privacy', '/portfolio', '/watchlist', '/alerts', '/login', '/learn', '/learn/trading-from-zero', '/research', '/en/learn', '/en/learn/trading-from-zero',
     '/en', '/en/market', '/en/companies', '/en/c/TASC', '/en/banks', '/en/fx', '/en/gold', '/en/news', '/en/about', '/en/legal', '/en/login',
 ]
 

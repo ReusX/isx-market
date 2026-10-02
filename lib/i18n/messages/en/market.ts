@@ -150,6 +150,15 @@ export const market: typeof ar = {
       sectorPart: (n: string, s: string) => `${n} in ${s}`,
       order:   { sector: 'By sector', capital: 'Largest capital', name: 'A to Z' },
       all:     'All companies',
+      v3: {
+        unit:    (s: string): string => `listed companies · ${s} sectors`,
+        barsNote: 'Companies per sector · tap a sector to jump to it',
+        find:    'Find a company',
+        shown:   'companies shown',
+        statusT: 'Trading status',
+        orderT:  'Order',
+        active:  (a: string, n: string): string => `${a} of ${n} traded in the last session`,
+      },
       jump:    'Sectors',
       empty:   'No company by that name.',
       about: {

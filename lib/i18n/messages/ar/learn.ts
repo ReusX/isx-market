@@ -79,7 +79,7 @@ export const learn = {
         { id: 'ready', name: 'جاهز أبدأ بس كلّي وين', tag: 'أول استثمار', blurb: 'الذهب والودائع وأول سهم: شلون تبدي بخطوات صغيرة ومحسوبة.',
           lessons: [{ label: 'التداول من الصفر', href: '/learn/trading-from-zero' }, { label: 'شلون أفتح حساب وساطة', href: null }, { label: 'المثقال والعيار بالتفصيل', href: null }] },
         { id: 'investor', name: 'مستثمر كدها وكدود', tag: 'أقرأ السوق', blurb: 'تقرأ الشركات، تقارن الأسهم، وتبني محفظة متوازنة.',
-          lessons: [{ label: 'رادار الأسهم', href: '/screener' }, { label: 'تحليلات الشركات', href: '/analysis' }, { label: 'شلون تقرأ ميزانية مصرف', href: null }] },
+          lessons: [{ label: 'رادار الأسهم', href: '/screener' }, { label: 'شلون تقرأ ميزانية مصرف', href: null }] },
       ],
     },
     strip: {

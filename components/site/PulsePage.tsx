@@ -15,6 +15,8 @@ import type { PulseInitial } from '@/lib/marketServer'
 import { sectorLabel } from '@/lib/screener'
 import { localeDate } from '@/lib/date'
 import '@/styles/statistics-page.css'
+import '@/styles/markets.css'
+import '@/styles/econ-page.css'
 import '@/styles/pulse-page.css'
 
 /**
@@ -132,122 +134,114 @@ export function PulsePage({ initial }: { initial: PulseInitial }) {
       <main className="plz id-full iq-door" data-world="lapis" data-level="calm">
         <DoorRail door="markets" />
         <div className="plz-body">
-          <header className="stx-head">
-            <p className="id-eyebrow">{P.eyebrow}</p>
-            <PageTitle title={t.pulse.title} note={P.lede} />
-          </header>
-
           {!live || !v ? (
-            <p className="id-note">{P.noSession}</p>
+            <>
+              <header className="stx-head"><PageTitle title={t.pulse.title} note={P.lede} /></header>
+              <p className="id-note">{P.noSession}</p>
+            </>
           ) : (
             <>
-              {/* The reading. The page's thesis, not a strip above a grid. */}
-              <section className={`id-panel plz-lead is-${v.tone}`} aria-label={t.pulse.verdictLabel}>
-                <p className="id-cap">{P.session(localeDate(live.date, locale))}</p>
-                <h2 className="plz-verdict">{V[v.id].headline}</h2>
-                <p className="plz-qual">{V[v.id].qualifier}</p>
-                <p className="plz-because id-num">{P.because(pct(upShare(live)), pct(upVolumeShare(live)))}</p>
-                {/* The rule that produced it, behind a click — and built from
-                    the same constants the branch tested, so copy and
-                    calculation cannot drift apart. */}
-                <details className="plz-rule">
-                  <summary>{P.showRule}</summary>
-                  <p>{V[v.id].rule(pct(BROAD), pct(WEAK), `${(SKEW * 100).toFixed(0)}`)}</p>
-                </details>
-              </section>
+              {/* Identity v3, as /fx and /statistics: the session's verdict is
+                  the figure (a word, as /cbi-window), its history the chart,
+                  and the four readings behind it the key card. */}
+              <div className="fx-frame plz-frame">
+                <div className="fx-board">
+                  <div className="fx-lead">
+                    <header className="eco-head fx-head">
+                      <PageTitle title={t.pulse.title} note={P.lede} className="fx-title" />
+                    </header>
+                    <p className={`fx-huge win-status plz-word is-${v.tone}`} aria-label={t.pulse.verdictLabel}>
+                      <span className="fx-huge-num">
+                        <bdi>{V[v.id].headline}</bdi>
+                        <svg className="fx-swoosh" viewBox="0 0 200 40" preserveAspectRatio="none" aria-hidden="true">
+                          <path d="M4 30 C 50 10, 110 4, 196 20" pathLength={1} fill="none" stroke="currentColor" strokeWidth={5} strokeLinecap="round" vectorEffect="non-scaling-stroke" />
+                        </svg>
+                      </span>
+                    </p>
+                    <p className="fx-line"><span>{V[v.id].qualifier} · {P.session(localeDate(live.date, locale))}</span></p>
 
-              {/* The evidence: one row, one reading, two numbers each. */}
-              <section className="id-panel plz-panel" aria-label={P.readings}>
-                <h2 className="id-h3">{P.readings}</h2>
-                <div className="plz-scroll id-table-scroll">
-                  <table className="id-table plz-table id-num">
-                    <thead>
-                      <tr>
-                        <th scope="col" className="plz-col-name">{P.cols.reading}</th>
-                        <th scope="col" colSpan={2}>{P.cols.pair}</th>
-                        <th scope="col" className="is-end plz-col-share">{P.cols.share}</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {readings.map((r) => (
-                        <tr key={r.key}>
-                          <td className="plz-col-name"><span className="id-name">{r.name}</span></td>
-                          <td><span className="plz-side"><b>{r.a}</b></span>{r.sub ? <span className="id-sub">{r.sub}</span> : null}</td>
-                          <td><span className="plz-side"><b>{r.b}</b></span></td>
-                          <td className="is-end plz-col-share">
-                            <div className="plz-share">
-                              <bdi>{pct(r.share)}</bdi>
-                              <span className="plz-track" aria-hidden="true"><i className={r.tone} style={{ inlineSize: `${Math.max(0, Math.min(100, (r.share ?? 0) * 100))}%` }} /></span>
-                            </div>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-                {live.noPrior ? <p className="id-cap plz-note">{P.noPriorWhy}</p> : null}
-                {initial.tradedGap ? <p className="id-cap plz-note">{P.gap(int.format(initial.tradedGap.index), int.format(initial.tradedGap.rows))}</p> : null}
-              </section>
-
-              {/* History. */}
-              {history.length > 1 ? (
-                <section className="id-panel plz-panel" aria-label={P.history}>
-                  <div className="plz-head">
-                    <PageTitle as="h2" className="id-h3" title={P.history} note={P.historyNote} />
-                    <div className="id-pills" role="group" aria-label={P.timeframe}>
-                      {TIMEFRAMES.map((x) => (
-                        <button key={x.id} type="button" className="id-pill is-sm" aria-pressed={tf === x.id} onClick={() => { setTf(x.id); setHover(null) }}>{locale === 'ar' ? x.ar : x.en}</button>
-                      ))}
-                    </div>
+                    {history.length > 1 ? (
+                      <section className="plz-hist" aria-label={P.history}>
+                        <div className="plz-hist-head">
+                          <p className="plz-readout id-num">
+                            <strong className={shownNet > 0 ? 'id-up' : shownNet < 0 ? 'id-down' : ''}>
+                              <bdi dir="ltr">{shownNet > 0 ? '+' : ''}{int.format(shownNet)}</bdi>
+                            </strong>
+                            <span className="id-cap">
+                              {shownSession ? `${localeDate(shownSession.date, locale)} · ${P.breadthA(int.format(shownSession.advancers))} · ${P.breadthB(int.format(shownSession.decliners))}` : P.latest}
+                            </span>
+                          </p>
+                          <div className="fx-quick" role="group" aria-label={P.timeframe}>
+                            {TIMEFRAMES.map((x) => (
+                              <button key={x.id} type="button" className="fx-qbtn" aria-pressed={tf === x.id} onClick={() => { setTf(x.id); setHover(null) }}>{locale === 'ar' ? x.ar : x.en}</button>
+                            ))}
+                          </div>
+                        </div>
+                        <svg viewBox={`0 0 ${W} ${H}`} className="plz-chart id-num" role="img" aria-label={P.history}
+                          onPointerLeave={() => setHover(null)}>
+                          <line x1={0} x2={W - PR} y1={y0} y2={y0} className="plz-zero" />
+                          <text x={W - PR + 8} y={y0 - half} className="plz-tick">+{int.format(maxAbs)}</text>
+                          <text x={W - PR + 8} y={y0 + half} className="plz-tick">−{int.format(maxAbs)}</text>
+                          {history.map((row, i) => {
+                            const val = netBreadth(row)
+                            const h = Math.max(1, (Math.abs(val) / maxAbs) * half)
+                            return (
+                              <g key={row.date} onPointerEnter={() => setHover(i)}>
+                                <rect x={i * bw} y={0} width={bw} height={H - PB} fill="transparent" />
+                                {hover === i ? <rect x={i * bw} y={0} width={bw} height={H - PB} className="plz-hl" /> : null}
+                                <rect x={i * bw + bw * 0.15} y={val >= 0 ? y0 - h : y0} width={Math.max(1, bw * 0.7)} height={h}
+                                  className={`plz-bar ${val >= 0 ? 'is-up' : 'is-down'} ${hover === i ? 'is-on' : ''}`.trim()} />
+                              </g>
+                            )
+                          })}
+                          {/* The advance–decline line: net breadth accumulated
+                              over the period, on its own scale. */}
+                          <path d={cumPath} className="plz-cum" />
+                          {hover != null ? <circle cx={(hover + 0.5) * bw} cy={yCum(cum[hover])} r="3.5" className="plz-cum-dot" /> : null}
+                        </svg>
+                        <p className="fx-chart-note plz-legend"><i className="plz-swatch" aria-hidden="true" />{P.history} · {P.adLine} · {P.adLineNote}</p>
+                      </section>
+                    ) : null}
                   </div>
-                  {/* Reads the hovered session, or the latest when nothing is
-                      hovered — so the panel says something before you touch it. */}
-                  <p className="plz-readout id-num">
-                    <strong className={shownNet > 0 ? 'id-up' : shownNet < 0 ? 'id-down' : ''}>
-                      <bdi>{shownNet > 0 ? '+' : ''}{int.format(shownNet)}</bdi>
-                    </strong>
-                    <span className="id-cap">
-                      {shownSession ? `${localeDate(shownSession.date, locale)} · ${P.breadthA(int.format(shownSession.advancers))} · ${P.breadthB(int.format(shownSession.decliners))}` : P.latest}
-                    </span>
-                  </p>
-                  <svg viewBox={`0 0 ${W} ${H}`} className="plz-chart id-num" role="img" aria-label={P.history}
-                    onPointerLeave={() => setHover(null)}>
-                    <line x1={0} x2={W - PR} y1={y0} y2={y0} className="plz-zero" />
-                    <text x={W - PR + 8} y={y0 - half} className="plz-tick">+{int.format(maxAbs)}</text>
-                    <text x={W - PR + 8} y={y0 + half} className="plz-tick">−{int.format(maxAbs)}</text>
-                    {history.map((row, i) => {
-                      const val = netBreadth(row)
-                      const h = Math.max(1, (Math.abs(val) / maxAbs) * half)
-                      return (
-                        <g key={row.date} onPointerEnter={() => setHover(i)}>
-                          <rect x={i * bw} y={0} width={bw} height={H - PB} fill="transparent" />
-                          {hover === i ? <rect x={i * bw} y={0} width={bw} height={H - PB} className="plz-hl" /> : null}
-                          <rect x={i * bw + bw * 0.15} y={val >= 0 ? y0 - h : y0} width={Math.max(1, bw * 0.7)} height={h}
-                            className={`plz-bar ${val >= 0 ? 'is-up' : 'is-down'} ${hover === i ? 'is-on' : ''}`.trim()} />
-                        </g>
-                      )
-                    })}
-                    {/* The advance–decline line: net breadth accumulated over the
-                        period. It rises while the market broadens and falls while
-                        it narrows, which is the question the bars alone cannot
-                        answer. Its own scale, so it never pretends to share the
-                        bars' axis. */}
-                    <path d={cumPath} className="plz-cum" />
-                    {hover != null ? <circle cx={(hover + 0.5) * bw} cy={yCum(cum[hover])} r="3.5" className="plz-cum-dot" /> : null}
-                  </svg>
-                  <p className="id-cap plz-legend"><i className="plz-swatch" aria-hidden="true" />{P.adLine} · {P.adLineNote}</p>
-                </section>
-              ) : null}
 
-              {/* Sectors. */}
+                  {/* The evidence: four readings, each two numbers compared. */}
+                  <section className="id-print is-key fx-calc plz-key" aria-label={P.readings}>
+                    <h2 className="fx-calc-title">{P.readings}</h2>
+                    <p className="fx-calc-note id-num">{P.because(pct(upShare(live)), pct(upVolumeShare(live)))}</p>
+                    <ul className="plz-reads id-num">
+                      {readings.map((r) => (
+                        <li key={r.key}>
+                          <div className="plz-read-top"><b>{r.name}</b><bdi className={r.tone === 'is-up' ? 'id-up' : r.tone === 'is-down' ? 'id-down' : ''}>{pct(r.share)}</bdi></div>
+                          <span className="plz-track" aria-hidden="true"><i className={r.tone} style={{ inlineSize: `${Math.max(0, Math.min(100, (r.share ?? 0) * 100))}%` }} /></span>
+                          <p className="plz-read-pair">{r.a} · {r.b}{r.sub ? <small>{r.sub}</small> : null}</p>
+                        </li>
+                      ))}
+                    </ul>
+                    {/* The rule that produced the verdict, from the same
+                        constants the branch tested, so copy and calculation
+                        cannot drift apart. */}
+                    <details className="plz-rule">
+                      <summary>{P.showRule}</summary>
+                      <p>{V[v.id].rule(pct(BROAD), pct(WEAK), `${(SKEW * 100).toFixed(0)}`)}</p>
+                    </details>
+                  </section>
+                </div>
+              </div>
+              <div className="fx-captions">
+                {live.noPrior ? <p className="id-cap">{P.noPriorWhy}</p> : null}
+                {initial.tradedGap ? <p className="id-cap">{P.gap(int.format(initial.tradedGap.index), int.format(initial.tradedGap.rows))}</p> : null}
+              </div>
+
+              {/* Sectors, as a board table. */}
               {initial.sectors.length ? (
-                <section className="id-panel plz-panel" aria-label={P.sectors}>
+                <section className="cur-all plz-secs" aria-label={P.sectors}>
                   <PageTitle as="h2" className="id-h3" title={P.sectors} note={P.sectorsNote} />
-                  <div className="plz-scroll id-table-scroll">
-                    <table className="id-table plz-sec-table id-num">
+                  <div className="mb-scroll id-table-scroll">
+                    <table className="mb-table plz-sec-table id-num">
                       <thead>
                         <tr>
                           <th scope="col">{P.sectorCols.sector}</th>
+                          <th scope="col" className="plz-sec-col" aria-hidden="true"></th>
                           <th scope="col" className="is-end">{P.sectorCols.up}</th>
                           <th scope="col" className="is-end">{P.sectorCols.down}</th>
                           <th scope="col" className="is-end">{P.sectorCols.flat}</th>
@@ -258,8 +252,8 @@ export function PulsePage({ initial }: { initial: PulseInitial }) {
                       <tbody>
                         {initial.sectors.map((s) => (
                           <tr key={s.id}>
-                            <td>
-                              <span className="id-name">{sectorLabel(s.id, locale)}</span>
+                            <td><b>{sectorLabel(s.id, locale)}</b></td>
+                            <td className="plz-sec-col">
                               <span className="plz-sec-bar" aria-hidden="true">
                                 {(['up', 'down', 'flat', 'none'] as const).map((k) => {
                                   const val = k === 'up' ? s.up : k === 'down' ? s.down : k === 'flat' ? s.flat : s.noPrior
