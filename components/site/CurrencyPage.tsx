@@ -96,7 +96,7 @@ export function CurrencyPage({ code, peg, toman, cur, fx, history, others, moves
                 </p>
                 {month.length > 1 ? (
                   <>
-                    <MiniArea points={month} format={(v) => fmtIqd(v)} label={P.chart(name)} tone={dir === 0 ? 'world' : dir > 0 ? 'up' : 'down'} />
+                    <MiniArea points={month} now={iqdUnit != null && fx?.date ? { date: fx.date, value: iqdUnit } : null} format={(v) => fmtIqd(v)} label={P.chart(name)} tone={dir === 0 ? 'world' : dir > 0 ? 'up' : 'down'} />
                     <p className="fx-chart-note">{B.chartNote}</p>
                   </>
                 ) : <p className="fx-chart-note">{B.noChart}</p>}

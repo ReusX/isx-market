@@ -238,7 +238,7 @@ export function BanksPage({ initial }: { initial: BanksInitial }) {
                         </Link>
                       </td>
                       <td className="bh-score">
-                        <GradeChip s={r.ticker ? r.score : undefined} compact />
+                        <GradeChip s={r.score} why={r.why} compact />
                         {r.score?.score != null ? <ScoreBar v={r.score.score} /> : null}
                       </td>
                       <td className="mb-hide-sm">{a ? <><span className="bh-fig2"><bdi dir="ltr">{a.n}</bdi> {a.unit}</span><span className="id-sub bh-sub">{H.assetsNote(String(r.finYear))}</span></> : <span className="id-cap">—</span>}</td>

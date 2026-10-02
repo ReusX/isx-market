@@ -62,7 +62,18 @@ const T: Record<Metric, [number, number][]> = {
 }
 
 export type Grade = 'excellent' | 'veryGood' | 'good' | 'fair' | 'weak'
-export const gradeOf = (s: number): Grade => (s >= 85 ? 'excellent' : s >= 70 ? 'veryGood' : s >= 55 ? 'good' : s >= 40 ? 'fair' : 'weak')
+/* Cut-offs (owner, 2026-10-02, option b): ممتاز from 78 and ضعيف below 45, so
+   the top and bottom grades are reachable by real banks. */
+export const gradeOf = (s: number): Grade => (s >= 78 ? 'excellent' : s >= 70 ? 'veryGood' : s >= 55 ? 'good' : s >= 45 ? 'fair' : 'weak')
+
+/**
+ * Why a bank has no grade, when the reason is the bank and not the data:
+ * state banks publish no statements, foreign banks file abroad, a bank
+ * under guardianship or in liquidation is not run on its statements, one
+ * still being set up has none, a listed bank suspended from trading has
+ * stopped filing, and an unlisted private bank files nowhere we read.
+ */
+export type Ungraded = 'state' | 'foreign' | 'guardianship' | 'liquidation' | 'establishment' | 'suspended' | 'unlisted'
 
 export type BankScore = {
   ticker: string

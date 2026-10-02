@@ -10,6 +10,8 @@ export async function GET() {
     unit: 'IQD and USD',
     gramByCarat: (g?.grams ?? []).map((k) => ({ karat: k.karat, iqd: k.iqd, usd: k.usd, mithqalIqd: Math.round(k.iqd * 4.608) })),
     ounce: { sell: g?.ounceSell ?? null, buy: g?.ounceBuy ?? null },
+    /* The previous day's prices from the same source, for the day's change. */
+    previous: g?.prev ? { date: g.prev.date, gramByCarat: g.prev.grams.map((k) => ({ karat: k.karat, iqd: k.iqd, mithqalIqd: Math.round(k.iqd * 4.608) })) } : null,
   })
   return NextResponse.json(body, { headers: JSON_HEADERS })
 }

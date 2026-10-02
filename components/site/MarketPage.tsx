@@ -15,6 +15,8 @@ import { PageTitle } from './PageTitle'
 import { IndexChart, type IndexPoint, type IndexSeries } from './IndexChart'
 import { FlowRing, type FlowRow } from './FlowRing'
 import { DayChip } from './DayChip'
+import { WelcomeCard } from './WelcomeCard'
+import '@/styles/landing.css'
 import '@/styles/econ-page.css'
 import '@/styles/markets.css'
 import type { Company } from '@/types'
@@ -302,6 +304,8 @@ export function MarketPage({ variant = 'root', initial, fx }: { variant?: 'root'
 
   return (
     <SiteShell>
+      {/* First visits only: the globe welcome, dismissed for good with its ×. */}
+      {full ? null : <WelcomeCard />}
       <main className="iqm id-full iq-door" id="market" data-world="lapis" data-level="calm">
         <DoorRail door="markets" />
         <div className="iqm-body">

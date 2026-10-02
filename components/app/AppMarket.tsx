@@ -7,6 +7,7 @@ import { useApp } from '@/context/AppContext'
 import { localeDate } from '@/lib/date'
 import { haptic } from '@/lib/appMode'
 import { RateHero, Tiles, nf0, nf2, nfQ } from './RateKit'
+import '@/styles/econ-page.css'
 import '@/styles/app.css'
 
 /**
@@ -19,7 +20,7 @@ export interface Quote {
   close: number | null; chg: number | null; traded: boolean; value: number
 }
 export interface Session { date: string; isx60: number; isx15: number | null; value: number; trades: number; traded: number; listed: number }
-export interface MarketScreenData { sessions: Session[]; quotes: Quote[] }
+export interface MarketScreenData { sessions: Session[]; quotes: Quote[]; history: { date: string; value: number }[] }
 
 export function Logo({ q }: { q: Pick<Quote, 't' | 'logo'> }) {
   return q.logo
@@ -30,7 +31,8 @@ export function Logo({ q }: { q: Pick<Quote, 't' | 'logo'> }) {
 
 function Chg({ v }: { v: number | null }) {
   if (v == null) return null
-  return <bdi className={`rk-chg ${v > 0 ? 'is-up' : v < 0 ? 'is-down' : ''}`}>{v > 0 ? '+' : ''}{nf2.format(v)}%</bdi>
+  /* The board's chip: percent only, up green, down red. */
+  return <span className={`id-chg ${v > 0 ? 'is-up' : v < 0 ? 'is-down' : 'is-flat'}`}><bdi dir="ltr">{v > 0 ? '+' : v < 0 ? '−' : ''}{nf2.format(Math.abs(v))}%</bdi></span>
 }
 
 function QuoteRow({ q, right, extra }: { q: Quote; right?: React.ReactNode; extra?: React.ReactNode }) {
@@ -70,12 +72,12 @@ export function AppMarket({ d }: { d: MarketScreenData }) {
   const mine = watchlist.map((w) => d.quotes.find((q) => q.t === w)).filter(Boolean) as Quote[]
 
   return (
-    <main className="rk-screen">
+    <main className="rk-screen" data-world="lapis">
       <RateHero
         label={M.title} value={s?.isx60 ?? null} unit={s ? `${M.isx60} · ${M.session(localeDate(s.date, locale))}` : M.isx60}
-        delta={s && p ? ((s.isx60 - p.isx60) / p.isx60) * 100 : null} deltaLabel={M.vsPrev}
+        delta={s && p ? ((s.isx60 - p.isx60) / p.isx60) * 100 : null} pct={s && p ? ((s.isx60 - p.isx60) / p.isx60) * 100 : null} deltaLabel={M.vsPrev}
         format={(v) => nf2.format(v)} deltaFormat={(v) => `${nf2.format(v)}%`}
-        spark={[...d.sessions].reverse().map((x) => x.isx60)} sparkLabel={M.sessions30}
+        spark={d.history.length ? d.history : [...d.sessions].reverse().map((x) => ({ date: x.date, value: x.isx60 }))} asOf={s?.date ?? null} sparkLabel={M.sessions30}
       />
       {s ? (
         <Tiles items={[
@@ -84,20 +86,24 @@ export function AppMarket({ d }: { d: MarketScreenData }) {
         ]} />
       ) : null}
       {traded.length ? (
-        <section className="rk-breadth" aria-label={`${up} ${M.up} · ${down} ${M.down}`}>
+        <section className="rk-breadth id-print is-calm" aria-label={`${up} ${M.up} · ${down} ${M.down}`}>
           <div className="rk-breadth-bar">
             <span className="is-up" style={{ flexGrow: up }} />
             <span className="is-flat" style={{ flexGrow: flat }} />
             <span className="is-down" style={{ flexGrow: down }} />
           </div>
-          <p className="id-num"><span className="is-up">{up} {M.up}</span> · <span>{flat} {M.flat}</span> · <span className="is-down">{down} {M.down}</span></p>
+          <dl className="rk3-breadth id-num">
+            <div className="is-up"><dt>{M.up}</dt><dd>{up}</dd></div>
+            <div><dt>{M.flat}</dt><dd>{flat}</dd></div>
+            <div className="is-down"><dt>{M.down}</dt><dd>{down}</dd></div>
+          </dl>
         </section>
       ) : null}
 
       {mine.length ? (
         <>
           <div className="rk-h-row"><h2 className="rk-h is-sub">{M.watchlist}</h2><Link href={L('/watchlist')} className="rk-more">{M.seeAll}</Link></div>
-          <ul className="rk-list">{mine.slice(0, 6).map((q) => <QuoteRow key={q.t} q={q} />)}</ul>
+          <ul className="rk-list rk3-list">{mine.slice(0, 6).map((q) => <QuoteRow key={q.t} q={q} />)}</ul>
         </>
       ) : null}
 
@@ -107,11 +113,11 @@ export function AppMarket({ d }: { d: MarketScreenData }) {
         ))}
       </div>
       {list.length ? (
-        <ul className="rk-list">
+        <ul className="rk-list rk3-list">
           {list.map((q) => <QuoteRow key={q.t} q={q} right={tab === 'active' ? <small><bdi>{nf2.format(q.value / 1e6)}M</bdi></small> : undefined} />)}
         </ul>
       ) : <p className="rk-empty">{M.none}</p>}
-      <Link href={L('/app/companies')} className="id-btn rk-wide" onClick={haptic}>{M.companies} · <bdi>{d.quotes.length}</bdi></Link>
+      <Link href={L('/app/companies')} className="fx-qbtn rk-wide" onClick={haptic}>{M.companies} · <bdi>{d.quotes.length}</bdi></Link>
     </main>
   )
 }
@@ -135,7 +141,7 @@ export function AppCompanies({ d }: { d: MarketScreenData }) {
   }, [q, sec, sort, d.quotes, locale])
 
   return (
-    <main className="rk-screen">
+    <main className="rk-screen" data-world="lapis">
       <div className="rk-search">
         <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7" /><path d="M20 20l-3.5-3.5" /></svg>
         <input id="rk-co-search" type="search" placeholder={M.search} aria-label={M.search} value={q} onChange={(e) => setQ(e.target.value)} />
@@ -153,7 +159,7 @@ export function AppCompanies({ d }: { d: MarketScreenData }) {
         <button type="button" aria-pressed={sort === 'name'} onClick={() => setSort('name')}>{M.sortName}</button>
       </div>
       {rows.length ? (
-        <ul className="rk-list">
+        <ul className="rk-list rk3-list">
           {rows.map((x) => {
             const on = watchlist.includes(x.t)
             return (

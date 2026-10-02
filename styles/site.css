@@ -347,3 +347,25 @@
 @media (max-width: 959px) {
   .tsi { bottom: calc(env(safe-area-inset-bottom, 0px) + 78px); }
 }
+
+/* Closed-test invite · identity v3: a print card in the lapis world (ink
+   outline, offset behind it), the Kufi headline, the board's solid pill to
+   join, steps numbered in the world's ink with chips to open each. */
+.tsi.tsi3 {
+  border: 1.5px solid var(--line-strong); border-radius: 18px; background: var(--surface);
+  box-shadow: -6px 6px 0 0 var(--world); inset-inline-start: 18px; inset-inline-end: 12px;
+}
+[dir='ltr'] .tsi.tsi3 { box-shadow: 6px 6px 0 0 var(--world); inset-inline-start: 12px; inset-inline-end: 18px; }
+.tsi3 .tsi-mark { background: var(--world); border-radius: 12px; }
+.tsi3 .tsi-txt strong { font: 700 16px/1.45 var(--font-display); }
+.tsi3 .tsi-txt span { color: var(--secondary); }
+.tsi3-go {
+  flex: 0 0 auto; min-height: 40px; padding: 0 18px; border-radius: var(--r-pill); border: 0;
+  background: var(--ink); color: var(--page); font: 700 14px/1 var(--font-body); cursor: pointer;
+}
+.tsi3 .tsi-x { color: var(--secondary); border: 1.5px solid var(--border); border-radius: 50%; width: 30px; height: 30px; top: 10px; inset-inline-end: 10px; }
+.tsi3 .tsi-n { background: var(--world); color: var(--page); font-family: var(--font-numeric); }
+.tsi3 .tsi-steps li { padding-bottom: 10px; border-bottom: 1px solid var(--border); }
+.tsi3 .tsi-steps li:last-child { border-bottom: 0; padding-bottom: 0; }
+.tsi3 .tsi-step b { font-weight: 700; }
+.tsi3-open { flex: 0 0 auto; text-decoration: none; padding: 8px 14px; font-family: var(--font-body); }

@@ -31,6 +31,11 @@ const TAB_ICON: Record<string, IconName | 'home' | 'more'> = {
   home: 'home', fx: 'fx', gold: 'gold', market: 'market', banks: 'banks', economy: 'oil',
   learn: 'learn', news: 'news', notify: 'notify', more: 'more',
 }
+/* Each interest in its world's ink (board 1 «الألوان»): money green, gold
+   ochre, the exchange lapis, oil/economy/banks/news tile, learning brick. */
+const INTEREST_WORLD: Record<Interest, 'dinar' | 'ochre' | 'lapis' | 'tile' | 'brick'> = {
+  fx: 'dinar', gold: 'ochre', market: 'lapis', banks: 'tile', economy: 'tile', learn: 'brick', news: 'tile',
+}
 const INTEREST_ICON: Record<Interest, IconName> = {
   fx: 'fx', gold: 'gold', market: 'market', banks: 'banks', economy: 'oil', learn: 'learn', news: 'news',
 }
@@ -159,7 +164,7 @@ export function AppChrome() {
 
   return (
     <>
-      <header className="app-top">
+      <header className="app-top" data-world={here ? INTEREST_WORLD[here] : undefined}>
         {/* One row: the section's pages as chips when it has them, else the title. */}
         <div className="app-top-row">
           {chips.length > 1 ? (
@@ -190,6 +195,7 @@ export function AppChrome() {
       <nav className="app-tabs" aria-label={A.brand}>
         {tabs.map((tab) => {
           const cur = tab.id === active
+          const world = tab.id in INTEREST_WORLD ? INTEREST_WORLD[tab.id as Interest] : undefined
           const inner = (
             <>
               <span className="app-tab-ico"><Icon name={TAB_ICON[tab.id] as IconName} /></span>
@@ -197,7 +203,7 @@ export function AppChrome() {
             </>
           )
           return tab.route ? (
-            <Link key={tab.id} href={L(tab.route)} className="app-tab" aria-current={cur ? 'page' : undefined} onClick={haptic}>{inner}</Link>
+            <Link key={tab.id} href={L(tab.route)} className="app-tab" data-world={world} aria-current={cur ? 'page' : undefined} onClick={haptic}>{inner}</Link>
           ) : (
             <button key={tab.id} type="button" className="app-tab" aria-expanded={more} aria-current={cur ? 'page' : undefined} onClick={() => { haptic(); setMore((m) => !m) }}>{inner}</button>
           )
@@ -219,8 +225,8 @@ function MoreSheet({ prefs, onClose }: { prefs: AppPrefs; onClose: () => void })
       <div className="app-sheet" role="dialog" aria-label={A.more.title} onClick={(e) => e.stopPropagation()}>
         <div className="app-sheet-grip" aria-hidden="true" />
         {INTERESTS.filter((i) => prefs.interests.includes(i.id)).map((i) => (
-          <section key={i.id} className="app-sheet-sec">
-            <h2 className="app-sheet-h">{A.interests[i.id].name}</h2>
+          <section key={i.id} className="app-sheet-sec" data-world={INTEREST_WORLD[i.id]}>
+            <h2 className="app-sheet-h"><i aria-hidden="true" />{A.interests[i.id].name}</h2>
             <ul className="app-sheet-list">
               {i.pages.filter((p) => existsIn(p, locale)).map((p) => (
                 <li key={p}><Link href={L(p)} onClick={haptic}><RailIcon name={railDef(p)?.icon ?? INTEREST_ICON[i.id]} />{A.pages[p] ?? pageLabel(p, t) ?? p}</Link></li>
@@ -228,7 +234,7 @@ function MoreSheet({ prefs, onClose }: { prefs: AppPrefs; onClose: () => void })
             </ul>
           </section>
         ))}
-        <section className="app-sheet-sec">
+        <section className="app-sheet-sec is-app">
           <ul className="app-sheet-list">
             <li><Link href={L('/profile')} onClick={haptic}><RailIcon name="portfolio" />{A.more.account}</Link></li>
             <li><Link href={L('/notifications')} onClick={haptic}><RailIcon name="notify" />{A.tabs.notify}</Link></li>
@@ -331,7 +337,7 @@ function Onboarding({ onDone }: { onDone: (p: AppPrefs, go: string) => void }) {
               return (
                 <li key={i.id}>
                   <button
-                    type="button" className="app-onb-opt" aria-pressed={sel}
+                    type="button" className="app-onb-opt" aria-pressed={sel} data-world={INTEREST_WORLD[i.id]}
                     onClick={() => { haptic(); setPicked((p) => (sel ? p.filter((x) => x !== i.id) : [...p, i.id])) }}
                   >
                     <RailIcon name={INTEREST_ICON[i.id]} />

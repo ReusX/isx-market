@@ -145,7 +145,7 @@ export function CurrenciesPage({ cur, fx, moves, eurHistory = [] }: { cur: Curre
                 </p>
                 {month.length > 1 ? (
                   <>
-                    <MiniArea points={month} format={(v) => fmtIqd(v)} label={B.lead} tone={dir === 0 ? 'world' : dir > 0 ? 'up' : 'down'} />
+                    <MiniArea points={month} now={eur != null && fx?.date ? { date: fx.date, value: eur } : null} format={(v) => fmtIqd(v)} label={B.lead} tone={dir === 0 ? 'world' : dir > 0 ? 'up' : 'down'} />
                     <p className="fx-chart-note">{R.page.currency.board.chartNote}</p>
                   </>
                 ) : null}

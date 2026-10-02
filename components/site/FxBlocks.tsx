@@ -115,7 +115,7 @@ export function FxBlocks({ fx, parallel, officialRate, officialDate, title, titl
           {move && vsPrev ? <DayChip pct={move.pct} label={vsPrev} /> : null}
           <span>{unitLabel}{move ? ` · ${R.tools.vsPrev(shortDate(move.prevDate, locale))}` : ''}</span>
         </p>
-        {month.length > 1 ? <MiniArea points={mult === 1 ? month : month.map((p) => ({ ...p, value: p.value * mult }))} format={(v) => nf0.format(v)} label={C.chartLabel} tone={!move || Math.round(move.pct * 100) === 0 ? 'world' : move.pct > 0 ? 'up' : 'down'} /> : null}
+        {month.length > 1 ? <MiniArea points={mult === 1 ? month : month.map((p) => ({ ...p, value: p.value * mult }))} now={market != null && fx?.date ? { date: fx.date, value: market * mult } : null} format={(v) => nf0.format(v)} label={C.chartLabel} tone={!move || Math.round(move.pct * 100) === 0 ? 'world' : move.pct > 0 ? 'up' : 'down'} /> : null}
       </div>
 
       <section className="id-print is-key fx-calc" aria-label={P.converter}>

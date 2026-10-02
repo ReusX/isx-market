@@ -165,3 +165,6 @@ a.fin-doc:hover { border-color: var(--line-strong); transform: translateY(-1px);
 .fin-doc.is-none .fin-doc-go { color: var(--muted); }
 .fin-docs .is-annual .fin-doc-ico { color: var(--world); }
 .fin-keys b em { font-style: normal; font: 500 12px/1 var(--font-body); color: var(--muted); }
+/* Time runs left to right on every chart (owner, 2026-10-02): oldest year on the left. */
+.fin-trend { direction: ltr; }
+.fin-trend .fin-yr-label, .fin-trend .fin-bar b { direction: rtl; unicode-bidi: isolate; }

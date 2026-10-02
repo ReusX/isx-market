@@ -21,6 +21,10 @@ const ICON: Record<Interest, 'fx' | 'gold' | 'market' | 'banks' | 'oil' | 'learn
   fx: 'fx', gold: 'gold', market: 'market', banks: 'banks', economy: 'oil', learn: 'learn', news: 'news',
 }
 
+const WORLD: Record<Interest, 'dinar' | 'ochre' | 'lapis' | 'tile' | 'brick'> = {
+  fx: 'dinar', gold: 'ochre', market: 'lapis', banks: 'tile', economy: 'tile', learn: 'brick', news: 'tile',
+}
+
 export function AppSettings() {
   const { t, href: L } = useLocale()
   const S = t.app.settings
@@ -53,10 +57,10 @@ export function AppSettings() {
   ]
 
   return (
-    <main className="app-set">
+    <main className="app-set app-set3">
       <h1 className="app-home-h">{S.title}</h1>
 
-      <section className="app-card">
+      <section className="app-card id-print is-calm">
         <h2 className="app-card-h">{S.interests}</h2>
         <p className="id-cap">{S.interestsNote}</p>
         <ul className="app-set-list">
@@ -64,7 +68,7 @@ export function AppSettings() {
             const on = p.interests.includes(i.id)
             return (
               <li key={i.id}>
-                <label className="app-set-row">
+                <label className="app-set-row" data-world={WORLD[i.id]}>
                   <RailIcon name={ICON[i.id]} />
                   <span className="app-set-txt"><b>{t.app.interests[i.id].name}</b><small>{t.app.interests[i.id].note}</small></span>
                   <input type="checkbox" className="app-switch" checked={on} onChange={() => toggle(i.id)} disabled={on && p.interests.length === 1} />
@@ -75,7 +79,7 @@ export function AppSettings() {
         </ul>
       </section>
 
-      <section className="app-card">
+      <section className="app-card id-print is-calm">
         <h2 className="app-card-h">{S.start}</h2>
         <ul className="app-set-list" role="radiogroup" aria-label={S.start}>
           {starts.map((s) => (
@@ -89,7 +93,7 @@ export function AppSettings() {
         </ul>
       </section>
 
-      <section className="app-card">
+      <section className="app-card id-print is-calm">
         <h2 className="app-card-h">{S.cards}</h2>
         <p className="id-cap">{S.cardsNote}</p>
         <ul className="app-set-list">
@@ -116,7 +120,7 @@ export function AppSettings() {
         </ul>
       </section>
 
-      <section className="app-card">
+      <section className="app-card id-print is-calm">
         <Link href={L('/notifications')} className="app-set-row is-link">
           <RailIcon name="notify" />
           <span className="app-set-txt"><b>{S.notify}</b><small>{S.notifyNote}</small></span>
@@ -127,7 +131,7 @@ export function AppSettings() {
         </Link>
       </section>
 
-      <section className="app-card">
+      <section className="app-card id-print is-calm">
         <h2 className="app-card-h">{S.look}</h2>
         <div className="app-sheet-row">
           <ThemeToggle />
@@ -136,7 +140,7 @@ export function AppSettings() {
       </section>
 
       <button
-        type="button" className="id-btn app-set-replay"
+        type="button" className="fx-qbtn app-set-replay"
         onClick={() => { try { localStorage.removeItem(PREFS_KEY) } catch { /* ignore */ } window.dispatchEvent(new Event('iq:prefs')); location.reload() }}
       >
         {S.replay}

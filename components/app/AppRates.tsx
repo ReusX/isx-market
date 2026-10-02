@@ -22,7 +22,8 @@ export interface FxScreenData {
   kifah: boolean
   official: number
   prev: number | null
-  spark: number[]
+  movePct: number | null
+  spark: { date: string; value: number }[]
 }
 
 export function AppFx({ d }: { d: FxScreenData }) {
@@ -31,12 +32,12 @@ export function AppFx({ d }: { d: FxScreenData }) {
   const rate = d.sell ?? d.buy
   const gap = rate ? rate - d.official : null
   return (
-    <main className="rk-screen">
+    <main className="rk-screen" data-world="dinar">
       <RateHero
         label={R.dollar} flag="🇺🇸" value={rate} unit={R.perDollar}
-        delta={rate && d.prev ? rate - d.prev : null} invert deltaLabel={R.vsYesterday}
+        delta={rate && d.prev ? rate - d.prev : null} pct={d.movePct} deltaLabel={R.vsYesterday}
         updatedAt={d.publishedAt ?? (d.date ? `${d.date}T12:00:00+03:00` : null)} stale={d.stale}
-        source={d.kifah ? R.kifah : undefined} spark={d.spark} sparkLabel={R.days30}
+        source={d.kifah ? R.kifah : undefined} spark={d.spark} asOf={d.date} sparkLabel={R.days30}
         shareTitle={t.app.share.fxTitle}
         shareLines={rate ? t.app.share.fxLines(d.buy == null ? '—' : nfQ.format(d.buy), d.sell == null ? '—' : nfQ.format(d.sell), nf0.format(rate * 100)) : undefined}
       />
@@ -95,13 +96,13 @@ export function AppCurrencies({ d }: { d: CurrenciesScreenData }) {
     )
   }
   return (
-    <main className="rk-screen">
+    <main className="rk-screen" data-world="dinar">
       <div className="rk-search">
         <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7" /><path d="M20 20l-3.5-3.5" /></svg>
         <input id="rk-cur-search" type="search" placeholder={R.search} aria-label={R.search} value={q} onChange={(e) => setQ(e.target.value)} />
       </div>
       {list.usd ? (
-        <ul className="rk-list">
+        <ul className="rk-list rk3-list">
           <li>
             <Link href={L('/app/fx')} className="rk-row is-lead" onClick={haptic}>
               <span className="rk-row-flag" aria-hidden="true">🇺🇸</span>
@@ -111,8 +112,8 @@ export function AppCurrencies({ d }: { d: CurrenciesScreenData }) {
           </li>
         </ul>
       ) : null}
-      {list.pop.length ? <><h2 className="rk-h is-sub">{R.popular}</h2><ul className="rk-list">{list.pop.map(row)}</ul></> : null}
-      {list.rest.length ? <><h2 className="rk-h is-sub">{R.others}</h2><ul className="rk-list">{list.rest.map(row)}</ul></> : null}
+      {list.pop.length ? <><h2 className="rk-h is-sub">{R.popular}</h2><ul className="rk-list rk3-list">{list.pop.map(row)}</ul></> : null}
+      {list.rest.length ? <><h2 className="rk-h is-sub">{R.others}</h2><ul className="rk-list rk3-list">{list.rest.map(row)}</ul></> : null}
       {!list.usd && !list.pop.length && !list.rest.length ? <p className="rk-empty">{R.noMatch}</p> : null}
       <p className="rk-foot">{R.derived}</p>
     </main>
@@ -125,7 +126,8 @@ export interface CurrencyScreenData {
   market: number | null
   official: number
   prevMarket: number | null
-  spark: number[]
+  movePct: number | null
+  spark: { date: string; value: number }[]
   updatedAt: string | null
   stale: boolean
 }
@@ -140,11 +142,11 @@ export function AppCurrency({ d }: { d: CurrencyScreenData }) {
   const prev = d.prevMarket && d.perUsd ? d.prevMarket / d.perUsd : null
   const unitLabel = d.code === 'IRR' ? R.toman : u.mult > 1 ? R.thousand(name) : name
   return (
-    <main className="rk-screen">
+    <main className="rk-screen" data-world="dinar">
       <RateHero
         label={name} flag={CURRENCY_FLAGS[d.code]} value={iqd == null ? null : iqd * u.mult} unit={R.perUnit(unitLabel)}
-        delta={iqd != null && prev != null ? (iqd - prev) * u.mult : null} invert deltaLabel={R.vsYesterday}
-        updatedAt={d.updatedAt} stale={d.stale} spark={d.spark.map((v) => v * u.mult)} sparkLabel={R.days30}
+        delta={iqd != null && prev != null ? (iqd - prev) * u.mult : null} pct={d.movePct} deltaLabel={R.vsYesterday}
+        updatedAt={d.updatedAt} stale={d.stale} spark={d.spark.map((x) => ({ date: x.date, value: x.value * u.mult }))} asOf={d.updatedAt?.slice(0, 10) ?? null} sparkLabel={R.days30}
         foot={d.perUsd ? R.oneUsd(`${fmtAny(d.code === 'IRR' ? d.perUsd / 10 : d.perUsd)} ${d.code === 'IRR' ? t.rates.page.currency.tomanUnit : d.code}`) : undefined}
       />
       <Converter

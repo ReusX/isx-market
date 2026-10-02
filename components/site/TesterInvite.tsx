@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useLocale } from '@/context/LocaleContext'
 import { StarMark } from '@/components/brand/StarMark'
+import '@/styles/econ-page.css'
 
 /**
  * Closed-test recruitment · a small card at the bottom of the page, for
@@ -54,8 +55,19 @@ export function TesterInvite() {
   useEffect(() => {
     const d = document.documentElement
     if (d.classList.contains('is-app') || !/Android/i.test(navigator.userAgent) || /IQWealthApp/.test(navigator.userAgent) || !shouldShow()) return
-    const id = setTimeout(() => setShow(true), 4000)
-    return () => clearTimeout(id)
+    /* One card at a time: while the globe welcome is on screen the invite
+       waits, and shows once the welcome is closed or scrolled away. */
+    const card = d.getAttribute('data-welcome') === 'off' ? null : document.querySelector('.ld-card')
+    let ready = false, clear = !card, io: IntersectionObserver | null = null
+    const tryShow = () => { if (ready && clear) setShow(true) }
+    if (card) {
+      io = new IntersectionObserver(([e]) => { clear = !e.isIntersecting; tryShow() })
+      io.observe(card)
+    }
+    const off = () => { clear = true; tryShow() }
+    window.addEventListener('iq:welcome-off', off)
+    const id = setTimeout(() => { ready = true; tryShow() }, 4000)
+    return () => { clearTimeout(id); io?.disconnect(); window.removeEventListener('iq:welcome-off', off) }
   }, [])
 
   if (!show) return null
@@ -67,7 +79,7 @@ export function TesterInvite() {
   ]
 
   return (
-    <aside className={`tsi ${open ? 'is-open' : ''}`} aria-label={T.title}>
+    <aside className={`tsi tsi3 ${open ? 'is-open' : ''}`} data-world="lapis" aria-label={T.title}>
       <button type="button" className="tsi-x" aria-label={T.close} onClick={close}>
         <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" /></svg>
       </button>
@@ -77,7 +89,7 @@ export function TesterInvite() {
           <strong>{T.title}</strong>
           {open ? <span>{T.stepsTitle}</span> : <span>{T.lead}</span>}
         </div>
-        {open ? null : <button type="button" className="id-btn is-primary is-sm tsi-go" onClick={() => setOpen(true)}>{T.join}</button>}
+        {open ? null : <button type="button" className="tsi-go tsi3-go" onClick={() => setOpen(true)}>{T.join}</button>}
       </div>
       {open ? (
         <ol className="tsi-steps">
@@ -85,7 +97,7 @@ export function TesterInvite() {
             <li key={s.n}>
               <span className="tsi-n id-num" aria-hidden="true">{s.n}</span>
               <span className="tsi-step"><b>{s.title}</b><small>{s.note}</small></span>
-              <a className="id-btn is-sm" href={s.href} target="_blank" rel="noopener noreferrer">{T.open}</a>
+              <a className="fx-qbtn tsi3-open" href={s.href} target="_blank" rel="noopener noreferrer">{T.open}</a>
             </li>
           ))}
         </ol>

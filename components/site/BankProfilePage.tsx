@@ -52,7 +52,7 @@ export function BankProfilePage({ initial }: { initial: BankProfileInitial }) {
   const E = B.ed
   const u = t.site.units
   const ar = locale === 'ar'
-  const { bank, products, services, fin, score, editorial: ed } = initial
+  const { bank, products, services, fin, score, why, editorial: ed } = initial
   const name = ar ? bank.name_ar : bank.name_en || bank.name_ar
   const city = bank.hq_city ? (ar ? bank.hq_city : (B.city[bank.hq_city] ?? bank.hq_city)) : null
   const svcKeys = ['mobile_banking', 'internet_banking', 'cards', 'usd_account', 'international_transfer', 'salary_domiciliation', 'atm'] as const
@@ -169,6 +169,8 @@ export function BankProfilePage({ initial }: { initial: BankProfileInitial }) {
 
           {score && score.score != null ? (
             <ScoreCard s={score} financialsHref={bank.ticker ? L(`/c/${bank.ticker}/financials`) : null} />
+          ) : why ? (
+            <p className="id-cap bs-why"><span className={`bs-chip is-none is-why is-${why}`}>{B.score.why[why]}</span> {B.score.whyLong[why]}</p>
           ) : null}
 
           {/* What we found, per topic — the editorial's sentences without

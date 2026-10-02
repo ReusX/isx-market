@@ -1,4 +1,5 @@
 import 'server-only'
+import { fxDayMove } from '@/lib/fxHistory'
 import { createClient } from '@supabase/supabase-js'
 import companiesData from '@/public/data/companies.json'
 import type { MarketScreenData, Quote, Session } from '@/components/app/AppMarket'
@@ -18,19 +19,21 @@ import type { FxScreenData, CurrenciesScreenData, CurrencyScreenData } from '@/c
 const daysAgo = (n: number) => new Date(Date.now() - n * 86_400_000).toISOString().slice(0, 10)
 
 async function dollar() {
-  const [fx, days, off] = await Promise.all([fetchFx(), fxSeries('parallel', { from: daysAgo(45) }), fxLatest('official_cbi').catch(() => null)])
+  const [fx, days, off] = await Promise.all([fetchFx(), fxSeries('parallel', { from: daysAgo(1100) }), fxLatest('official_cbi').catch(() => null)])
   const closes = days.filter((d) => d.close != null) as { date: string; close: number }[]
   const today = fx?.date ?? null
   const prev = closes.filter((d) => (today ? d.date < today : true)).pop()?.close ?? null
-  return { fx, closes, prev, official: off?.close ?? CBI_OFFICIAL_RATE }
+  return { fx, days, closes, prev, official: off?.close ?? CBI_OFFICIAL_RATE }
 }
 
 export async function fxScreen(): Promise<FxScreenData> {
-  const { fx, closes, prev, official } = await dollar()
+  const { fx, days, closes, prev, official } = await dollar()
   return {
     buy: fx?.buy ?? null, sell: fx?.sell ?? null, publishedAt: fx?.publishedAt ?? null, date: fx?.date ?? null,
     stale: !!fx?.stale, kifah: fx?.sourceKey === 'kifah-tg', official, prev,
-    spark: closes.slice(-30).map((d) => d.close),
+    /* The day's move on the website's one rule (mid-price vs the previous close), so the app, home and /fx agree. */
+    movePct: fx ? fxDayMove({ buy: fx.buy ?? null, sell: fx.sell ?? null, date: fx.date ?? null }, days)?.pct ?? null : null,
+    spark: closes.map((d) => ({ date: d.date, value: d.close })),
   }
 }
 
@@ -48,10 +51,12 @@ export async function currencyScreen(slug: string): Promise<CurrencyScreenData |
   const code = slug.toUpperCase() as CurrencyCode
   if (!CURRENCY_CODES.includes(code)) return null
   const def = currencyPage(slug)
-  const [cur, { fx, prev, official }, hist] = await Promise.all([fetchCurrencies(), dollar(), def ? currencyHistory(def, 45) : Promise.resolve([])])
+  const [cur, { fx, days, prev, official }, hist] = await Promise.all([fetchCurrencies(), dollar(), def ? currencyHistory(def, 1100) : Promise.resolve([])])
   return {
     code, perUsd: cur?.perUsd[code] ?? null, market: fx?.sell ?? fx?.buy ?? null, official, prevMarket: prev,
-    spark: hist.slice(-30).map((p) => p.value), updatedAt: fx?.publishedAt ?? cur?.updatedAt ?? null, stale: !!fx?.stale,
+    /* Priced through the dollar, so it moves with the dollar's day move. */
+    movePct: fx ? fxDayMove({ buy: fx.buy ?? null, sell: fx.sell ?? null, date: fx.date ?? null }, days)?.pct ?? null : null,
+    spark: hist.map((p) => ({ date: p.date, value: p.value })), updatedAt: fx?.publishedAt ?? cur?.updatedAt ?? null, stale: !!fx?.stale,
   }
 }
 
@@ -60,6 +65,8 @@ export async function goldScreen(): Promise<import('@/components/app/AppGold').G
   return {
     date: g?.date ?? null, fetchedAt: g?.fetchedAt ?? null,
     grams: (g?.grams ?? []).map((x) => ({ karat: x.karat, iqd: x.iqd })),
+    prev: g?.prev ? { date: g.prev.date, grams: g.prev.grams } : null,
+    history: (g?.history ?? []).slice(-30),
     ounceUsd: g?.ounceSell?.usd ?? null, ounceIqd: g?.ounceSell?.iqd ?? null,
   }
 }
@@ -77,11 +84,14 @@ export async function marketScreen(): Promise<MarketScreenData> {
     .gt('isx60', 0).order('date', { ascending: false }).limit(30)
   const sessions: Session[] = ((idx ?? []) as { date: string; isx60: number; isx15: number | null; total_value: number; total_trades: number; traded_companies: number; listed_companies: number }[])
     .map((r) => ({ date: r.date, isx60: r.isx60, isx15: r.isx15, value: r.total_value, trades: r.total_trades, traded: r.traded_companies, listed: r.listed_companies }))
-  if (!sessions.length) return { sessions, quotes: [] }
-  const [pxRes, cmRes] = await Promise.all([
+  if (!sessions.length) return { sessions, quotes: [], history: [] }
+  const [pxRes, cmRes, histRes] = await Promise.all([
     sb.from('daily_prices').select('ticker,close,value,trades').eq('date', sessions[0].date).range(0, 1999),
     sb.from('company_metrics').select('ticker,last_close,prev_close').range(0, 999),
+    /* The index chart's history (about four years), oldest first after the reverse. */
+    sb.from('daily_index').select('date,isx60').gt('isx60', 0).order('date', { ascending: false }).range(0, 999),
   ])
+  const history = ((histRes.data ?? []) as { date: string; isx60: number }[]).map((r) => ({ date: r.date, value: r.isx60 })).reverse()
   const px = new Map(((pxRes.data ?? []) as { ticker: string; close: number | null; value: number | null; trades: number | null }[]).map((r) => [r.ticker, r]))
   const cm = new Map(((cmRes.data ?? []) as { ticker: string; last_close: number | null; prev_close: number | null }[]).map((r) => [r.ticker, r]))
   const quotes: Quote[] = COS.map((m) => {
@@ -93,7 +103,7 @@ export async function marketScreen(): Promise<MarketScreenData> {
       chg: traded && close && p ? +(((close - p) / p) * 100).toFixed(2) : null,
     }
   })
-  return { sessions, quotes }
+  return { sessions, quotes, history }
 }
 
 export async function banksScreen(): Promise<BanksScreenData> {
@@ -104,6 +114,8 @@ export async function banksScreen(): Promise<BanksScreenData> {
     banks: hub.rows.filter((r) => r.type !== 'central').map((r) => ({
       slug: r.slug, ar: r.ar, en: r.en, logo: r.logo, type: r.type, ownership: r.ownership, status: r.status, usd: r.usd,
       listed: !!r.ticker, best: best.get(r.slug) ?? null,
+      score: r.score?.score != null && r.score.grade ? { score: r.score.score, grade: r.score.grade } : null,
+      why: r.why, reason: r.score && r.score.score == null ? r.score.reason ?? null : null,
     })),
     deposits: hub.deposits.map((d) => ({
       slug: d.slug, ar: d.ar, en: d.en, logo: hub.rows.find((r) => r.slug === d.slug)?.logo ?? null,

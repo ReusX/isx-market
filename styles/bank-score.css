@@ -33,3 +33,4 @@
 .bh-score { min-width: 150px; }
 .bh-score .bs-bar { margin-top: 6px; max-width: 140px; }
 .bnk-body > .bs-card { margin: 8px 0 28px; }
+.bs-why { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 10px; margin: 0 0 24px; }

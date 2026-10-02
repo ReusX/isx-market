@@ -2,9 +2,11 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import { useLocale } from '@/context/LocaleContext'
-import { StarMark } from '@/components/brand/StarMark'
 import { haptic } from '@/lib/appMode'
 import { setShareCard } from '@/lib/shareCard'
+import { MiniArea } from '@/components/site/MiniArea'
+import { localeDate } from '@/lib/date'
+import '@/styles/econ-page.css'
 
 /**
  * The app's rate screens are built from these three pieces: the hero price
@@ -27,28 +29,6 @@ function ago(iso: string | null | undefined, locale: 'ar' | 'en'): string | null
   return rtf.format(-Math.round(mins / 1440), 'day')
 }
 
-function Spark({ points }: { points: number[] }) {
-  if (points.length < 2) return null
-  const W = 300, H = 64, pad = 3
-  const lo = Math.min(...points), hi = Math.max(...points), span = hi - lo || 1
-  const xy = points.map((v, i) => [pad + (i / (points.length - 1)) * (W - 2 * pad), pad + (1 - (v - lo) / span) * (H - 2 * pad)])
-  const line = xy.map(([x, y], i) => `${i ? 'L' : 'M'}${x.toFixed(1)} ${y.toFixed(1)}`).join(' ')
-  const [ex, ey] = xy[xy.length - 1]
-  return (
-    <svg className="rk-spark" viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" aria-hidden="true">
-      <defs>
-        <linearGradient id="rk-fill" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0" stopColor="#fff" stopOpacity=".28" />
-          <stop offset="1" stopColor="#fff" stopOpacity="0" />
-        </linearGradient>
-      </defs>
-      <path d={`${line} L${W - pad} ${H} L${pad} ${H} Z`} fill="url(#rk-fill)" />
-      <path d={line} fill="none" stroke="#fff" strokeWidth="2" strokeLinejoin="round" strokeLinecap="round" vectorEffect="non-scaling-stroke" />
-      <circle cx={ex} cy={ey} r="3.5" fill="#fff" />
-    </svg>
-  )
-}
-
 export interface HeroProps {
   label: string
   flag?: string
@@ -59,10 +39,15 @@ export interface HeroProps {
   /** A rising dollar is a falling dinar: colour the change the way /fx does. */
   invert?: boolean
   deltaLabel?: string
+  /** The day's move in percent when the screen has its own rule for it (the dollar). */
+  pct?: number | null
   updatedAt?: string | null
   stale?: boolean
   source?: string
-  spark?: number[]
+  /** The chart under the figure: dated points, oldest first (interactive, as on the website). */
+  spark?: { date: string; value: number }[]
+  /** The date the headline figure is for: the chart's last point is pinned to it. */
+  asOf?: string | null
   sparkLabel?: string
   foot?: string
   tone?: 'gold'
@@ -104,36 +89,107 @@ export function RateHero(p: HeroProps) {
     })
     return () => setShareCard(null)
   }, [p.value, p.unit, p.label, d, p.updatedAt, locale]) // eslint-disable-line react-hooks/exhaustive-deps
+  /* The board's chip: percent only, up green and down red for every price. */
+  const pct = p.pct !== undefined ? p.pct : d != null && isFinite(d) && p.value != null && p.value - d !== 0 ? (d / (p.value - d)) * 100 : null
   return (
-    <section className={`rk-hero ${p.tone ? `is-${p.tone}` : ''}`} aria-label={p.label}>
-      <StarMark size={180} color="currentColor" />
-      <div className="rk-hero-top">
-        <span className="rk-hero-label">{p.flag ? <span className="rk-flag" aria-hidden="true">{p.flag}</span> : null}{p.label}</span>
-        {p.source ? <span className="rk-chip">{p.source}</span> : null}
+    <section className="rk-hero rk3-hero" aria-label={p.label}>
+      <div className="rk3-tag">
+        <i aria-hidden="true" />
+        <span className="rk3-label">{p.flag ? <span className="rk-flag" aria-hidden="true">{p.flag}</span> : null}{p.label}</span>
+        {p.source ? <span className="rk3-src">{p.source}</span> : null}
       </div>
-      <p className="rk-hero-num id-num"><bdi>{p.value == null ? '—' : fmt(p.value)}</bdi></p>
-      <p className="rk-hero-unit">{p.unit}</p>
-      <div className="rk-hero-meta">
-        {d != null && isFinite(d) ? (
-          <span className={`rk-delta ${d === 0 ? '' : good ? 'is-good' : 'is-bad'}`}>
-            <bdi>{d > 0 ? '▲' : d < 0 ? '▼' : '•'} {dfmt(Math.abs(d))}</bdi>{p.deltaLabel ? ` ${p.deltaLabel}` : ''}
-          </span>
-        ) : null}
-        {p.updatedAt || p.stale ? (
-          <span className="rk-live">
-            <span className={`rk-dot ${p.stale ? 'is-stale' : ''}`} aria-hidden="true" />
-            {p.stale ? R.stale : when ? R.ago(when) : ''}
-          </span>
-        ) : null}
+      <p className="rk3-num id-num">
+        <span className="rk3-num-in">
+          <bdi>{p.value == null ? '—' : fmt(p.value)}</bdi>
+          <svg className="rk3-swoosh" viewBox="0 0 200 40" preserveAspectRatio="none" aria-hidden="true">
+            <path d="M4 30 C 50 10, 110 4, 196 20" fill="none" stroke="currentColor" strokeWidth={5} strokeLinecap="round" vectorEffect="non-scaling-stroke" />
+          </svg>
+        </span>
+      </p>
+      <div className="rk3-line">
+        {pct != null ? <span className={`id-chg ${Math.abs(pct) < 0.005 ? 'is-flat' : pct > 0 ? 'is-up' : 'is-down'}`}><bdi dir="ltr">{pct > 0 ? '+' : pct < 0 ? '−' : ''}{Math.abs(pct).toFixed(2)}%</bdi></span> : null}
+        <span>{p.unit}{pct != null && p.deltaLabel ? ` · ${p.deltaLabel}` : ''}</span>
       </div>
-      {p.spark && p.spark.length > 1 ? (
-        <figure className="rk-spark-wrap">
-          <Spark points={p.spark} />
-          {p.sparkLabel ? <figcaption>{p.sparkLabel}</figcaption> : null}
-        </figure>
+      {p.updatedAt || p.stale ? (
+        <p className="rk3-live">
+          <span className={`rk-dot ${p.stale ? 'is-stale' : ''}`} aria-hidden="true" />
+          {p.stale ? R.stale : when ? R.ago(when) : ''}
+        </p>
       ) : null}
-      {p.foot ? <p className="rk-hero-foot">{p.foot}</p> : null}
+      {p.spark && p.spark.length > 1 ? (
+        <RateChart series={p.spark} now={p.asOf && p.value != null ? { date: p.asOf, value: p.value } : null} format={fmt} label={p.label} />
+      ) : null}
+      {p.foot ? <p className="rk3-foot">{p.foot}</p> : null}
     </section>
+  )
+}
+
+/* Timeframes in days; a chip shows only when the history reaches past the
+   frame before it, so a short series (gold's week) offers no empty choices. */
+const FRAMES = [['w', 7], ['m', 31], ['q', 92], ['y', 366], ['all', Infinity]] as const
+type Frame = (typeof FRAMES)[number][0]
+const daysBetween = (a: string, b: string) => (Date.parse(b) - Date.parse(a)) / 86_400_000
+
+/**
+ * The chart under a rate: the website's interactive chart (tap a day for its
+ * value), timeframe chips, and a full-screen view with the same chips.
+ */
+export function RateChart({ series, now, format, label }: {
+  series: { date: string; value: number }[]
+  now: { date: string; value: number } | null
+  format: (v: number) => string
+  label: string
+}) {
+  const { t, locale } = useLocale()
+  const C = t.app.chart
+  const latest = now?.date ?? series[series.length - 1]?.date ?? ''
+  const span = series.length ? daysBetween(series[0].date, latest) : 0
+  const frames = FRAMES.filter((_, i) => i === 0 || span > FRAMES[i - 1][1]).filter(([k]) => k !== 'all' || span > 31)
+  const [frame, setFrame] = useState<Frame>(frames.some(([k]) => k === 'm') ? 'm' : frames[frames.length - 1]?.[0] ?? 'all')
+  const [full, setFull] = useState(false)
+  const days = FRAMES.find(([k]) => k === frame)![1]
+  const pts = days === Infinity ? series : series.filter((x) => daysBetween(x.date, latest) <= days)
+  /* Over a year, a date needs its year («23 يونيو 2022»). */
+  const dl = days > 92 ? (d: string) => localeDate(d, locale) : undefined
+  useEffect(() => {
+    if (!full) return
+    const prev = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    const esc = (e: KeyboardEvent) => { if (e.key === 'Escape') setFull(false) }
+    window.addEventListener('keydown', esc)
+    return () => { document.body.style.overflow = prev; window.removeEventListener('keydown', esc) }
+  }, [full])
+
+  const chips = frames.length > 1 ? (
+    <div className="fx-quick rk3-frames" role="group" aria-label={C.range}>
+      {frames.map(([k]) => <button key={k} type="button" className="fx-qbtn" aria-pressed={frame === k} onClick={() => { haptic(); setFrame(k) }}>{C.frames[k]}</button>)}
+    </div>
+  ) : null
+
+  return (
+    <>
+      <figure className="rk-spark-wrap rk3-spark">
+        <div className="rk3-chart-bar">
+          {chips}
+          <button type="button" className="rk3-full-btn" aria-label={C.full} title={C.full} onClick={() => { haptic(); setFull(true) }}>
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5" /></svg>
+          </button>
+        </div>
+        <MiniArea points={pts} now={now} format={format} label={label} tone="world" dateLabel={dl} />
+      </figure>
+      {full ? (
+        <div className="rk3-full" role="dialog" aria-modal="true" aria-label={label}>
+          <div className="rk3-full-head">
+            <b>{label}</b>
+            <button type="button" className="rk3-full-btn" aria-label={C.close} onClick={() => { haptic(); setFull(false) }}>
+              <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" /></svg>
+            </button>
+          </div>
+          {chips}
+          <div className="rk3-full-chart"><MiniArea points={pts} now={now} height={420} format={format} label={label} tone="world" dateLabel={dl} /></div>
+        </div>
+      ) : null}
+    </>
   )
 }
 
@@ -167,7 +223,7 @@ export function Converter({ market, official, code, name, flag, quick, factor = 
   const quickHere = toIqd ? quick : [100_000, 250_000, 1_000_000]
 
   return (
-    <section className="rk-conv" aria-label={R.converter}>
+    <section className="rk-conv id-print is-key rk3-conv" aria-label={R.converter}>
       <h2 className="rk-h">{R.converter}</h2>
       <label className="rk-conv-field">
         <span className="rk-conv-cur"><span aria-hidden="true">{from.flag}</span>{from.name}</span>
@@ -187,9 +243,9 @@ export function Converter({ market, official, code, name, flag, quick, factor = 
         <span className="rk-conv-cur"><span aria-hidden="true">{to.flag}</span>{to.name}</span>
         <output className="rk-conv-out id-num" htmlFor={`rk-amount-${code}`}><bdi>{out == null ? '—' : toIqd ? nf0.format(out) : fmtAny(out)}</bdi></output>
       </div>
-      <div className="rk-quick" role="group" aria-label={R.amount}>
+      <div className="rk-quick fx-quick" role="group" aria-label={R.amount}>
         {quickHere.map((q) => (
-          <button key={q} type="button" className="rk-pill" aria-pressed={num === q} onClick={() => { haptic(); setAmount(String(q)) }}>
+          <button key={q} type="button" className="fx-qbtn" aria-pressed={num === q} onClick={() => { haptic(); setAmount(String(q)) }}>
             <bdi>{nf0.format(q)}</bdi>
           </button>
         ))}
@@ -206,7 +262,7 @@ export function Converter({ market, official, code, name, flag, quick, factor = 
 
 export function Tiles({ items }: { items: { label: string; value: string; note?: string; tone?: 'good' | 'bad' }[] }) {
   return (
-    <dl className="rk-tiles id-num">
+    <dl className="rk-tiles rk3-tiles id-num">
       {items.map((i) => (
         <div key={i.label} className="rk-tile">
           <dt>{i.label}</dt>

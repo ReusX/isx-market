@@ -1,7 +1,7 @@
 'use client'
 
 import { useLocale } from '@/context/LocaleContext'
-import { PILLARS, type BankScore, type Grade, type Metric, type Pillar } from '@/lib/bankScore'
+import { PILLARS, type BankScore, type Grade, type Metric, type Pillar, type Ungraded } from '@/lib/bankScore'
 
 /**
  * The bank health score on the page: a grade chip (table, key card) and the
@@ -10,11 +10,16 @@ import { PILLARS, type BankScore, type Grade, type Metric, type Pillar } from '@
  * grade is a reading of statements, not a price move.
  */
 
-export function GradeChip({ s, compact }: { s: BankScore | null | undefined; compact?: boolean }) {
+export function GradeChip({ s, why, compact }: { s: BankScore | null | undefined; why?: Ungraded | null; compact?: boolean }) {
   const { t } = useLocale()
   const G = t.banks.score
-  if (!s) return <span className="bs-chip is-none">{G.notListed}</span>
-  if (s.score == null || !s.grade) return <span className="bs-chip is-none">{s.reason === 'stale' ? G.stale : G.thin}</span>
+  /* The bank's own situation first (state, foreign, guardianship…), then a
+     data reason (old or thin statements). */
+  if (!s?.grade || s.score == null) {
+    if (why) return <span className={`bs-chip is-none is-why is-${why}`} title={G.whyLong[why]}>{G.why[why]}</span>
+    if (!s) return <span className="bs-chip is-none">{G.notListed}</span>
+    return <span className="bs-chip is-none">{s.reason === 'stale' ? G.stale : G.thin}</span>
+  }
   return (
     <span className={`bs-chip is-${s.grade}`}>
       <b className="id-num">{s.score}</b>{compact ? null : <span>{G.grades[s.grade]}</span>}

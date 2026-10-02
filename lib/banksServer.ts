@@ -5,7 +5,8 @@ import {
   type Bank, type ProductRow, type Coverage, type ServiceRow, type FactRow, type ConditionRow, type BankFinancials,
 } from '@/lib/banks'
 import { editorialFor, type EditorialProfile } from '@/lib/bankEditorial'
-import { scoreBanks, type BankScore } from '@/lib/bankScore'
+import { scoreBanks, type BankScore, type Ungraded } from '@/lib/bankScore'
+import { loadDirectory } from '@/lib/marketServer'
 
 /**
  * The banking hub's rows, built on the server and flat enough for the wire.
@@ -39,6 +40,10 @@ export type HubRow = {
   finYear: number | null
   /** Editorial rating where one exists. */
   rating: { overall: number; outOf: number } | null
+  /** Why there is no grade, when it is the bank's situation (null when graded or when the data is the reason). */
+  why: Ungraded | null
+  /** Listed but suspended from trading (no trade for over 60 days). */
+  suspended: boolean
   /** The health score (lib/bankScore.ts); null for an unlisted bank. */
   score: BankScore | null
 }
@@ -59,6 +64,30 @@ export type BanksInitial = {
   counts: { total: number; listed: number; usd: number; guardianship: number; liquidation: number; publishing: number }
 }
 
+/**
+ * Private banks that are not on the exchange but file their statements with
+ * the Securities Commission (ISC) — scored on those filings under their ISC
+ * codes (financial_facts.ticker), never shown as a listed ticker.
+ */
+export const UNLISTED_ISC: Record<string, string> = {
+  'warka-bank-for-investment-and-finance': 'BWAI',
+  'hammurabi-commercial-bank': 'BHAN',
+  'al-sanam-islamic-bank': 'BSAN',
+}
+export const scoreKey = (b: { slug: string; ticker: string | null }): string | null => b.ticker ?? UNLISTED_ISC[b.slug] ?? null
+
+function whyUngraded(b: Bank, score: BankScore | null, suspended: boolean): Ungraded | null {
+  if (score?.score != null) return null
+  if (b.ownership === 'state') return b.operating_status === 'establishment' ? 'establishment' : 'state'
+  if (b.operating_status === 'liquidation') return 'liquidation'
+  if (b.operating_status === 'guardianship') return 'guardianship'
+  if (b.operating_status === 'establishment') return 'establishment'
+  if (b.ownership === 'foreign') return 'foreign'
+  if (suspended) return 'suspended'
+  if (!scoreKey(b)) return 'unlisted'
+  return null
+}
+
 const LOGO = new Map((companiesData as { sym: string; logo?: string }[]).map((c) => [c.sym, c.logo && !/placeholder/.test(c.logo) ? c.logo : null]))
 
 const isDeposit = (p: ProductRow) => p.kind.startsWith('deposit') || p.kind === 'account_current'
@@ -66,19 +95,24 @@ const isDeposit = (p: ProductRow) => p.kind.startsWith('deposit') || p.kind === 
 /** Every listed bank scored against the others (lib/bankScore.ts). */
 export const loadBankScores = cache(async (): Promise<Map<string, BankScore>> => {
   const banks = await listBanks()
-  const tickers = banks.map((b) => b.ticker).filter(Boolean) as string[]
+  const tickers = banks.map(scoreKey).filter(Boolean) as string[]
   const now = new Date()
   return scoreBanks(await bankScoreRows(tickers), now.getFullYear() * 12 + now.getMonth() + 1)
 })
 
 export const loadBanksHub = cache(async (): Promise<BanksInitial> => {
   const [banks, products, services] = await Promise.all([listBanks(), listProducts(), listServices()])
-  const [fin, scores] = await Promise.all([bankFinancials(banks.map((b) => b.ticker).filter(Boolean) as string[]), loadBankScores()])
+  const [fin, scores, dir] = await Promise.all([
+    bankFinancials(banks.map(scoreKey).filter(Boolean) as string[]),
+    loadBankScores(),
+    loadDirectory('ar').catch(() => ({ session: null, rows: [] as { sym: string; status: string }[] })),
+  ])
+  const suspendedSyms = new Set(dir.rows.filter((r) => r.status === 'suspended').map((r) => r.sym))
 
   const rows: HubRow[] = banks.map((b) => {
     const p = products.filter((x) => x.bank_slug === b.slug)
     const s = services.filter((x) => x.bank_slug === b.slug)
-    const f = b.ticker ? fin.get(b.ticker) : undefined
+    const f = scoreKey(b) ? fin.get(scoreKey(b)!) : undefined
     const ed = editorialFor(b.slug)
     return {
       slug: b.slug, ar: b.name_ar, en: b.name_en,
@@ -91,7 +125,9 @@ export const loadBanksHub = cache(async (): Promise<BanksInitial> => {
       services: { on: s.filter((x) => x.availability === 'available').length, checked: s.length },
       assets: f?.values.total_assets ?? null, finYear: f?.fiscalYear ?? null,
       rating: ed?.ratings.overall != null ? { overall: ed.ratings.overall, outOf: ed.ratings.outOf } : null,
-      score: b.ticker ? scores.get(b.ticker) ?? null : null,
+      score: scoreKey(b) ? scores.get(scoreKey(b)!) ?? null : null,
+      why: whyUngraded(b, scoreKey(b) ? scores.get(scoreKey(b)!) ?? null : null, !!b.ticker && suspendedSyms.has(b.ticker)),
+      suspended: !!b.ticker && suspendedSyms.has(b.ticker),
     }
   })
 
@@ -137,6 +173,7 @@ export type BankProfileInitial = {
   services: ServiceRow[]
   fin: BankFinancials | null
   score: BankScore | null
+  why: Ungraded | null
   editorial: EditorialProfile | null
   coverage: Coverage
   indexable: boolean
@@ -148,8 +185,11 @@ export const loadBankProfile = cache(async (slug: string): Promise<BankProfileIn
   if (!bank) return null
   const [products, services] = await Promise.all([listProducts(slug), listServices(slug)])
   const { facts, conditions } = await productDetail(products.map((p) => p.id))
-  const fin = bank.ticker ? (await bankFinancials([bank.ticker])).get(bank.ticker) ?? null : null
-  const score = bank.ticker ? (await loadBankScores()).get(bank.ticker) ?? null : null
+  const fin = scoreKey(bank) ? (await bankFinancials([scoreKey(bank)!])).get(scoreKey(bank)!) ?? null : null
+  const score = scoreKey(bank) ? (await loadBankScores()).get(scoreKey(bank)!) ?? null : null
+  const dir = bank.ticker ? await loadDirectory('ar').catch(() => null) : null
+  const suspended = !!bank.ticker && !!dir?.rows.some((r) => r.sym === bank.ticker && r.status === 'suspended')
+  const why = whyUngraded(bank, score, suspended)
   const editorial = editorialFor(bank.slug)
   const withFacts: ProfileProduct[] = products.map((p) => {
     const f = facts.filter((x) => x.product_id === p.id)
@@ -158,7 +198,7 @@ export const loadBankProfile = cache(async (slug: string): Promise<BankProfileIn
   })
   return {
     bank, logo: bank.ticker ? LOGO.get(bank.ticker) ?? null : null,
-    products: withFacts, services, fin, score, editorial,
+    products: withFacts, services, fin, score, why, editorial,
     coverage: coverageOf(bank, products),
     indexable: indexability(bank, products, services, Boolean(fin), editorial).indexable,
   }

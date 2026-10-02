@@ -352,3 +352,204 @@ button.app-chip[aria-pressed='true'] { background: var(--nav-active-bg); border-
 .rk-seg.is-5 { grid-template-columns: repeat(5, 1fr); }
 .rk-seg.is-5 button { font-size: 12px; }
 .wg-select { width: 100%; min-height: 46px; padding: 0 12px; border-radius: 14px; border: 1px solid var(--border); background: var(--surface-2); color: var(--ink); font: inherit; font-size: 15px; }
+
+/* ═══ App home · identity v3 (board 2, page 8 «على الموبايل») ═══════════
+   The date, the day's headline as a manchette, then one print card per
+   topic in its world's ink: tag, the big figure with its percent chip, a
+   unit line, and a hairline row of small figures. */
+.ap3 { display: grid; gap: 22px; padding-bottom: 8px; }
+.ap3-head { display: grid; gap: 10px; }
+.ap3-date { margin: 0; font-size: 13px; font-weight: 600; color: var(--muted); }
+.ap3-mast { display: grid; gap: 4px; padding-block: 12px; border-block: 1.5px solid var(--line-strong); }
+.ap3-mast-k { font-size: 12px; font-weight: 600; color: var(--muted); }
+.ap3-mast p { margin: 0; font: 700 clamp(19px, 5.2vw, 24px)/1.5 var(--font-display); text-wrap: balance; }
+.ap3-custom { justify-self: start; text-decoration: none; }
+.ap3-card { display: grid; gap: 8px; padding: 16px 18px; margin-inline-start: 6px; }
+.ap3-card.is-calm { margin-inline-start: 4px; }
+.ap3-tag { display: flex; align-items: center; gap: 8px; color: var(--ink); text-decoration: none; }
+.ap3-tag i { width: 10px; height: 10px; border-radius: 3px; background: var(--world); flex: 0 0 auto; }
+.ap3-tag h2 { margin: 0; flex: 1; font: 600 14px/1.4 var(--font-body); color: var(--secondary); }
+.ap3-open { font-size: 12px; font-weight: 600; color: var(--world); }
+.ap3-row { margin: 2px 0 0; display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+.ap3-big { font: 600 clamp(34px, 10vw, 44px)/1.05 var(--font-numeric); }
+.ap3-unit { margin: 0; font-size: 13px; color: var(--muted); }
+.ap3-stats { margin: 6px 0 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(90px, 1fr)); gap: 10px; }
+.ap3-stats > div { border-top: 1.5px solid var(--border); padding-top: 8px; display: grid; gap: 2px; }
+.ap3-stats dt { font-size: 12px; color: var(--muted); }
+.ap3-stats dd { margin: 0; font: 600 17px/1.25 var(--font-numeric); }
+.ap3-stats dd small { font: 500 12px/1 var(--font-body); color: var(--muted); }
+.ap3-when { margin: 0; font-size: 12px; color: var(--muted); }
+.ap3-card .app-rows .id-chg { font-size: 12px; padding: 2px 8px; }
+.ap3-card .app-row-val { display: inline-flex; align-items: center; gap: 8px; }
+.ap3-sec-h { margin: 4px 0 10px; font: 700 16px/1.4 var(--font-display); }
+.ap3-links { list-style: none; margin: 0; padding: 0; }
+.ap3-links .fx-qbtn { display: inline-flex; align-items: center; gap: 8px; text-decoration: none; font-family: var(--font-body); font-size: 14px; padding: 10px 14px; }
+.ap3-links .iqr-ico { color: var(--secondary); }
+
+/* ── Onboarding · identity v3 ─────────────────────────────────────────── */
+.app-onb-h { font-family: var(--font-display); font-weight: 700; }
+.app-onb-kicker { font-weight: 600; color: var(--muted); }
+.app-onb-opt { border: 1.5px solid var(--border); border-radius: 16px; background: var(--surface); transition: border-color .15s, box-shadow .15s, transform .15s; }
+.app-onb-opt .iqr-ico { color: var(--world); }
+.app-onb-name { font-family: var(--font-display); font-weight: 700; }
+.app-onb-opt[aria-pressed='true'] {
+  border-color: var(--line-strong); box-shadow: -5px 5px 0 0 var(--world);
+  background: color-mix(in srgb, var(--world) 8%, var(--surface)); transform: translate(2px, -2px);
+}
+[dir='ltr'] .app-onb-opt[aria-pressed='true'] { box-shadow: 5px 5px 0 0 var(--world); transform: translate(-2px, -2px); }
+.app-onb-next { background: var(--ink); color: var(--page); border-color: var(--ink); border-radius: var(--r-pill); font-weight: 700; }
+.app-onb-next:disabled { background: transparent; color: var(--muted); border: 1.5px dashed var(--border); }
+/* The headline joins the page: date and «تخصيص» on one line, the sentence
+   right above the first card, no rules boxing it off. */
+.ap3 { gap: 18px; }
+.ap3-head { gap: 6px; margin-bottom: 2px; }
+.ap3-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.ap3-custom { font-size: 13px; font-weight: 600; color: var(--secondary); text-decoration: none; }
+.ap3-custom:active { color: var(--ink); }
+.ap3-mast { margin: 0; padding: 0; border: 0; font: 700 clamp(21px, 5.8vw, 26px)/1.45 var(--font-display); text-wrap: balance; }
+
+/* ═══ Rate screens · identity v3 (components/app/RateKit) ════════════════
+   The board's figure with the swoosh and a percent chip, the 30-day line in
+   the section's ink, the converter as the key card, tiles as hairline
+   stats. The section's ink comes from data-world on the screen. */
+.rk3-hero { position: static; background: none; color: var(--ink); border: 0; box-shadow: none; padding: 4px 2px 0; border-radius: 0; overflow: visible; display: grid; gap: 8px; isolation: auto; }
+.rk3-tag { display: flex; align-items: center; gap: 8px; }
+.rk3-tag i { width: 10px; height: 10px; border-radius: 3px; background: var(--world); flex: 0 0 auto; }
+.rk3-label { flex: 1; display: inline-flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 600; color: var(--secondary); }
+.rk3-src { font-size: 12px; font-weight: 600; color: var(--muted); border: 1.5px solid var(--border); border-radius: var(--r-pill); padding: 3px 10px; }
+.rk3-num { margin: 4px 0 0; font: 600 clamp(52px, 17vw, 76px)/1 var(--font-numeric); }
+.rk3-num-in { position: relative; display: inline-block; padding-bottom: .12em; }
+.rk3-swoosh { position: absolute; inset-inline: 0; bottom: -.06em; width: 100%; height: .22em; color: var(--world); overflow: visible; }
+.rk3-line { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; color: var(--secondary); font-size: 14px; }
+.rk3-live { margin: 0; display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: var(--muted); }
+.rk3-spark { color: var(--world); margin-top: 4px; }
+.rk3-spark .rk-spark { height: 84px; }
+.rk3-spark figcaption { color: var(--muted); font-size: 11px; }
+.rk3-foot { margin: 0; font-size: 12.5px; color: var(--muted); }
+.rk3-conv { display: grid; gap: 12px; padding: 18px; border-radius: var(--r-md); margin-inline-start: 6px; }
+.rk3-conv .rk-h { font: 700 18px/1.4 var(--font-display); }
+.rk3-conv .rk-conv-field { border: 2px solid var(--line-strong); background: var(--surface-2); border-radius: 12px; }
+.rk3-conv .rk-conv-field.is-out { border-color: var(--border); background: transparent; }
+.rk3-conv .rk-conv-out { color: var(--ink); font-weight: 600; }
+.rk3-conv .rk-conv-in { font-weight: 600; }
+.rk3-conv .rk-swap { border-color: var(--line-strong); color: var(--world); }
+.rk3-conv .rk-seg { background: transparent; border: 1.5px solid var(--border); border-radius: var(--r-pill); }
+.rk3-conv .rk-seg button { border-radius: var(--r-pill); font-weight: 600; }
+.rk3-conv .rk-seg button[aria-pressed='true'] { background: var(--world); color: var(--page); box-shadow: none; }
+.rk3-tiles { gap: 12px 16px; }
+.rk3-tiles .rk-tile { background: none; border: 0; border-top: 1.5px solid var(--border); border-radius: 0; padding: 10px 2px 0; }
+.rk3-tiles .rk-tile dt { font-size: 12px; color: var(--muted); }
+.rk3-tiles .rk-tile dd { font: 600 22px/1.25 var(--font-numeric); }
+.rk3-tiles .rk-tile small { font-size: 11px; color: var(--muted); }
+/* Lists (karats, currencies, movers) as a calm print card; the selected
+   row tinted in the section's ink. */
+.rk-list { background: var(--surface); border: 1.5px solid var(--border); border-radius: 16px; }
+.rk-list .rk-row[aria-pressed='true'] { background: color-mix(in srgb, var(--world) 9%, transparent); }
+.rk-karat { background: color-mix(in srgb, var(--world) 16%, transparent); color: var(--world); font-weight: 700; }
+.rk-row-name b { font-weight: 700; }
+.rk-row-val bdi { font-weight: 600; }
+/* Segmented switches (market tabs, rate choices) as the board's chips. */
+.rk-seg { background: transparent; padding: 0; gap: 6px; }
+.rk-seg button { border: 1.5px solid var(--border); border-radius: var(--r-pill); min-height: 38px; font-weight: 600; color: var(--ink); }
+.rk-seg button[aria-pressed='true'] { background: var(--world); border-color: var(--world); color: var(--page); box-shadow: none; }
+.rk3-conv .fx-quick .fx-qbtn { font-family: var(--font-body); }
+/* ── Market & companies · identity v3 ─────────────────────────────────── */
+.rk-h.is-sub { margin: 8px 2px 0; font: 700 16px/1.4 var(--font-display); color: var(--ink); }
+.rk-breadth.id-print { padding: 14px 16px; border-radius: 16px; gap: 10px; margin-inline-start: 4px; }
+.rk-breadth-bar { height: 10px; }
+.rk3-breadth { margin: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.rk3-breadth div { display: grid; gap: 2px; }
+.rk3-breadth dt { font-size: 12px; color: var(--muted); }
+.rk3-breadth dd { margin: 0; font: 600 22px/1.1 var(--font-numeric); }
+.rk3-breadth .is-up dd { color: var(--up); } .rk3-breadth .is-down dd { color: var(--down); }
+.rk3-list .id-chg { font-size: 12px; padding: 2px 8px; }
+.rk3-list .rk-row-val { gap: 4px; }
+.rk-wide.fx-qbtn { display: flex; justify-content: center; text-decoration: none; padding: 13px 16px; font-family: var(--font-body); font-size: 14px; border-color: var(--line-strong); }
+.rk-search { border: 2px solid var(--line-strong); background: var(--surface-2); border-radius: 12px; }
+.app-chip { border: 1.5px solid var(--border); background: transparent; font-weight: 600; }
+.app-chip[aria-current='page'], .app-chip[aria-pressed='true'] { background: var(--world, var(--ink)); border-color: var(--world, var(--ink)); color: var(--page); }
+.rk-star.is-on { color: var(--w-ochre); }
+.rk-screen .app-chip[aria-pressed='true'], .rk-screen .app-chip[aria-current='page'] { background: var(--world); border-color: var(--world); color: var(--page); }
+/* Chart: timeframe chips + full-screen (components/app/RateKit · RateChart). */
+.rk3-chart-bar { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 4px; }
+.rk3-frames { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; }
+.rk3-frames::-webkit-scrollbar { display: none; }
+.rk3-frames .fx-qbtn { padding: 7px 11px; font-size: 12px; font-family: var(--font-body); flex: 0 0 auto; }
+.rk3-full-btn { flex: 0 0 auto; display: inline-grid; place-items: center; width: 36px; height: 36px; border-radius: 10px; border: 1.5px solid var(--border); background: transparent; color: var(--ink); cursor: pointer; }
+.rk3-full-btn:active { background: var(--surface-2); }
+.rk3-full {
+  position: fixed; inset: 0; z-index: 1200; display: flex; flex-direction: column; gap: 14px;
+  padding: calc(env(safe-area-inset-top, 0px) + 14px) 16px calc(env(safe-area-inset-bottom, 0px) + 16px);
+  background: var(--page); color: var(--ink);
+}
+.rk3-full-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.rk3-full-head b { font: 700 18px/1.4 var(--font-display); }
+.rk3-full-chart { flex: 1; min-height: 0; display: grid; align-items: center; }
+.rk3-full-chart .mna svg { width: 100%; height: auto; max-height: 100%; }
+
+/* ═══ App frame · identity v3: top bar, tab bar, «المزيد», settings, banks ═══
+   The frame stays neutral (ink and hairlines); only the active tab and the
+   section's chips take the section's world ink. */
+.app-top { border-bottom: 1.5px solid var(--line-strong); }
+.app-title { font: 700 18px/1.4 var(--font-display); }
+.app-tabs { background: var(--page); border-top: 1.5px solid var(--line-strong); }
+.app-tab { color: var(--muted); font-weight: 600; }
+.app-tab-ico { position: relative; border-radius: 10px; }
+.app-tab[aria-current='page'] { color: var(--ink); font-weight: 700; }
+.app-tab[aria-current='page'] .app-tab-ico { background: color-mix(in srgb, var(--world, var(--ink)) 14%, transparent); color: var(--world, var(--ink)); }
+.app-tab[aria-current='page'] .app-tab-ico::after {
+  content: ''; position: absolute; inset-inline: 16px; bottom: -3px; height: 3px; border-radius: 2px; background: var(--world, var(--ink));
+}
+.app-sheet { background: var(--page); border-top: 1.5px solid var(--line-strong); border-radius: 20px 20px 0 0; gap: 20px; }
+.app-sheet-grip { background: var(--line-strong); opacity: .4; }
+.app-sheet-h { display: flex; align-items: center; gap: 8px; font: 700 15px/1.4 var(--font-display); color: var(--ink); }
+.app-sheet-h i { width: 10px; height: 10px; border-radius: 3px; background: var(--world, var(--muted)); flex: 0 0 auto; }
+.app-sheet-list { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; }
+.app-sheet-list a { min-height: 48px; padding: 0 12px; border: 1.5px solid var(--border); border-radius: 12px; font-size: 14px; font-weight: 600; }
+.app-sheet-list a:active { border-color: var(--world, var(--line-strong)); background: color-mix(in srgb, var(--world, var(--ink)) 8%, transparent); }
+.app-sheet-list svg { color: var(--world, var(--secondary)); }
+.app-sheet-sec.is-app { border-top: 1.5px solid var(--border); padding-top: 16px; }
+.app-sheet-close { border-radius: var(--r-pill); border: 1.5px solid var(--line-strong); background: transparent; color: var(--ink); font-weight: 700; min-height: 48px; justify-content: center; }
+
+.app-set3 { gap: 18px; }
+.app-set3 .app-home-h { font: 700 26px/1.3 var(--font-display); }
+.app-set3 .app-card.id-print { padding: 16px 18px; gap: 6px; margin-inline-start: 4px; }
+.app-set3 .app-card-h { font: 700 16px/1.4 var(--font-display); }
+.app-set3 .id-cap { margin: 0; font-size: 12.5px; color: var(--muted); }
+.app-set3 .app-set-txt b { font-weight: 600; }
+.app-set3 .app-set-row > svg { color: var(--world, var(--secondary)); }
+.app-set3 .app-set-row.is-link { border-top: 1.5px solid var(--border); }
+.app-set3 .app-set-row.is-link:first-child { border-top: 0; }
+.app-set3 .app-icon-btn { border: 1.5px solid var(--border); width: 34px; height: 34px; flex-basis: 34px; border-radius: 10px; }
+/* Switches as the board's pill: hairline track, ink knob, the row's world ink when on. */
+.app-set3 .app-switch {
+  appearance: none; -webkit-appearance: none; position: relative; width: 44px; height: 26px; flex: 0 0 44px; margin: 0;
+  border: 1.5px solid var(--line-strong); border-radius: 999px; background: transparent; cursor: pointer; transition: background .15s;
+}
+.app-set3 .app-switch::after {
+  content: ''; position: absolute; top: 3px; inset-inline-start: 3px; width: 17px; height: 17px; border-radius: 50%;
+  background: var(--line-strong); transition: inset-inline-start .15s, background .15s;
+}
+.app-set3 .app-switch:checked { background: var(--world, var(--ink)); border-color: var(--world, var(--ink)); }
+.app-set3 .app-switch:checked::after { inset-inline-start: 21px; background: var(--page); }
+.app-set3 .app-switch:disabled { opacity: .4; cursor: default; }
+.app-set3 .app-switch:focus-visible, .app-set3 .app-radio:focus-visible { outline: 2px solid var(--world, var(--ink)); outline-offset: 2px; }
+.app-set3 .app-radio { accent-color: var(--ink); }
+.app-set3 .app-set-replay { justify-self: center; font-family: var(--font-body); }
+
+/* Banks: the best rate as the board figure, every bank with its grade. */
+.rk3-hero-link { text-decoration: none; }
+.rk3-hero-link .rk3-src { max-width: 48%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.rk3-hero-link .rk3-num { color: var(--ink); }
+.rk3-list .rk-rate { color: var(--up); font: 700 18px/1.2 var(--font-numeric); }
+.rk3-banks .rk-row { align-items: flex-start; padding-block: 12px; }
+.rk3-banks .rk-row-val { padding-top: 2px; }
+.rk3-grade { display: flex; margin-top: 6px; }
+.rk3-grade .bs-chip { font-size: 11.5px; padding: 3px 9px; }
+.rk3-grade .bs-chip b { font-size: 12px; }
+.rk-badge.is-warn { background: color-mix(in srgb, var(--w-ochre) 16%, transparent); color: var(--w-ochre); }
+.rk-badge { font-weight: 600; }
+/* The top bar already names the screen; the h1 stays for readers and search. */
+.app-set3 .app-home-h { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+.rk3-conv .rk-swap { background: var(--page); }
+.rk3-list .rk-row.is-lead { background: color-mix(in srgb, var(--world) 10%, transparent); }
