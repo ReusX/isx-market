@@ -21,8 +21,16 @@ export const PLANS = {
 export type Plan = keyof typeof PLANS
 
 const BASE = 'https://api.thewayl.com/api/v1'
-/* Tolerant of how the value was typed in Vercel («live», «Live», «live » or quoted). */
-export const waylEnv = (): 'test' | 'live' => ((process.env.WAYL_ENV ?? '').trim().replace(/^["']|["']$/g, '').toLowerCase() === 'live' ? 'live' : 'test')
+/*
+ * WAYL_ENV when set (any case, spacing or quotes). Without it, the live site
+ * goes live on a live key (sk_live_…); anywhere else stays in test, so a
+ * local or preview purchase never charges real money.
+ */
+export const waylEnv = (): 'test' | 'live' => {
+  const set = (process.env.WAYL_ENV ?? '').trim().replace(/^["']|["']$/g, '').toLowerCase()
+  if (set) return set === 'live' ? 'live' : 'test'
+  return process.env.VERCEL_ENV === 'production' && /^sk_live_/.test(process.env.WAYL_API_KEY?.trim() ?? '') ? 'live' : 'test'
+}
 /**
  * Test payments grant nothing on the live site (a test card would otherwise
  * buy real Pro), unless WAYL_ALLOW_TEST=1 is set there on purpose.
