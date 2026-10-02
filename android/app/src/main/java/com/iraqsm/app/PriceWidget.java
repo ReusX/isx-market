@@ -105,7 +105,7 @@ public class PriceWidget extends AppWidgetProvider {
                 for (int i = 0; items != null && i < items.length(); i++) kinds.add(items.optJSONObject(i).optString("k"));
             }
         }
-        if (kinds.isEmpty()) kinds.add("fx");
+        if (kinds.isEmpty() || kinds.contains("cur")) kinds.add("fx");
         return kinds;
     }
 
@@ -147,9 +147,29 @@ public class PriceWidget extends AppWidgetProvider {
         try { String s = sp.getString("feed." + name, null); return s == null ? null : new JSONObject(s); } catch (Exception e) { return null; }
     }
 
-    /* ── One item → label, value, sub-line, change tone, route ───────────── */
+    /* ── One item → label, value, unit, the day's percent change, route ─── */
 
-    static final class Cell { String label = "", value = "—", sub = ""; int tone = 0; String route = "/app"; }
+    static final int DINAR = 0, OCHRE = 1, LAPIS = 2;
+    static final class Cell { String label = "", value = "—", unit = ""; double pct = Double.NaN; int world = DINAR; String route = "/app"; }
+
+    /** The dollar's day move on the website's one rule (lib/fxHistory fxDayMove): mid-price vs the previous close. */
+    static double fxPct(SharedPreferences sp) {
+        try {
+            JSONObject fx = feed(sp, "fx.json"), h = feed(sp, "fx-history.json");
+            if (fx == null || h == null) return Double.NaN;
+            JSONObject p = fx.getJSONObject("parallel");
+            double buy = p.optDouble("buy", Double.NaN), sell = p.optDouble("sell", Double.NaN);
+            double now = !Double.isNaN(buy) && !Double.isNaN(sell) ? (buy + sell) / 2 : !Double.isNaN(sell) ? sell : buy;
+            String asOf = fx.optString("asOf", "");
+            JSONArray rows = h.getJSONObject("parallel").getJSONArray("rows");
+            double prev = Double.NaN;
+            for (int i = 0; i < rows.length(); i++) {
+                JSONObject r = rows.getJSONObject(i);
+                if (r.optString("date").compareTo(asOf) < 0 && !r.isNull("close")) prev = r.optDouble("close", Double.NaN);
+            }
+            return Double.isNaN(now) || Double.isNaN(prev) || prev == 0 ? Double.NaN : (now - prev) / prev * 100;
+        } catch (Exception e) { return Double.NaN; }
+    }
 
     Cell cell(Context ctx, SharedPreferences sp, JSONObject it) {
         Cell c = new Cell();
@@ -158,6 +178,7 @@ public class PriceWidget extends AppWidgetProvider {
             switch (k) {
                 case "fx": {
                     c.label = ctx.getString(R.string.w_dollar_short);
+                    c.unit = ctx.getString(R.string.w_per_dollar);
                     c.route = "/app/fx";
                     JSONObject fx = feed(sp, "fx.json");
                     if (fx == null) break;
@@ -165,54 +186,41 @@ public class PriceWidget extends AppWidgetProvider {
                     double sell = p.optDouble("sell", p.optDouble("buy", Double.NaN));
                     if (Double.isNaN(sell)) break;
                     c.value = NF0.format(Math.round(sell));
-                    c.sub = ctx.getString(R.string.w_hundred, NF0.format(Math.round(sell * 100)));
-                    JSONObject h = feed(sp, "fx-history.json");
-                    if (h != null) {
-                        String asOf = fx.optString("asOf", "");
-                        JSONArray rows = h.getJSONObject("parallel").getJSONArray("rows");
-                        double prev = Double.NaN;
-                        for (int i = 0; i < rows.length(); i++) {
-                            JSONObject r = rows.getJSONObject(i);
-                            if (r.optString("date").compareTo(asOf) < 0) prev = r.optDouble("sell", r.optDouble("close", Double.NaN));
-                        }
-                        if (!Double.isNaN(prev)) {
-                            double d = sell - prev;
-                            String amt = Math.abs(d) >= 1 ? NF0.format(Math.round(Math.abs(d))) : NF2.format(Math.abs(d));
-                            c.sub = ctx.getString(R.string.w_vs_yesterday, arrow(d) + amt);
-                            c.tone = d > 0 ? -1 : d < 0 ? 1 : 0;   // a rising dollar is a falling dinar
-                        }
-                    }
+                    c.pct = fxPct(sp);
                     break;
                 }
                 case "cur": {
                     c.label = it.optString("l", code);
                     c.route = "/app/currencies/" + code.toLowerCase(Locale.US);
-                    c.sub = it.optString("u", "");
+                    c.unit = it.optString("u", "");
                     JSONObject cur = feed(sp, "currencies.json");
                     if (cur == null) break;
                     double usd = cur.optDouble("parallelUsd", Double.NaN);
                     double per = cur.getJSONObject("perUsd").optDouble(code, Double.NaN);
                     double v = usd / per * it.optDouble("m", 1);
                     if (!Double.isNaN(v) && !Double.isInfinite(v)) c.value = v >= 100 ? NF0.format(Math.round(v)) : NF2.format(v);
+                    c.pct = fxPct(sp);   // priced through the dollar, so it moves with it
                     break;
                 }
                 case "gold": {
                     int karat = code.isEmpty() ? 21 : Integer.parseInt(code);
+                    c.world = OCHRE;
                     c.label = ctx.getString(R.string.w_gold);
-                    c.sub = ctx.getString(R.string.w_mithqal_karat, karat);
+                    c.unit = ctx.getString(R.string.w_mithqal_karat, karat);
                     c.route = "/app/gold";
                     JSONObject g = feed(sp, "gold.json");
                     if (g == null) break;
-                    JSONArray ks = g.getJSONArray("gramByCarat");
-                    for (int i = 0; i < ks.length(); i++) {
-                        JSONObject o = ks.getJSONObject(i);
-                        if (o.optInt("karat") == karat) c.value = NF0.format(Math.round(o.optDouble("mithqalIqd")));
-                    }
+                    double now = mithqal(g.optJSONArray("gramByCarat"), karat);
+                    if (!Double.isNaN(now)) c.value = NF0.format(Math.round(now));
+                    JSONObject prev = g.optJSONObject("previous");
+                    double was = prev == null ? Double.NaN : mithqal(prev.optJSONArray("gramByCarat"), karat);
+                    if (!Double.isNaN(now) && !Double.isNaN(was) && was > 0) c.pct = (now - was) / was * 100;
                     break;
                 }
                 case "isx": {
+                    c.world = LAPIS;
                     c.label = ctx.getString(R.string.w_isx);
-                    c.sub = "ISX60";
+                    c.unit = "ISX60";
                     c.route = "/app/market";
                     JSONObject x = feed(sp, "index.json");
                     if (x == null) break;
@@ -220,17 +228,14 @@ public class PriceWidget extends AppWidgetProvider {
                     if (s.length() == 0) break;
                     double a = s.getJSONObject(0).getDouble("isx60");
                     c.value = NF2.format(a);
-                    if (s.length() > 1) {
-                        double b = s.getJSONObject(1).getDouble("isx60"), pct = (a - b) / b * 100;
-                        c.sub = "ISX60 · " + arrow(pct) + NF2.format(Math.abs(pct)) + "%";
-                        c.tone = pct > 0 ? 1 : pct < 0 ? -1 : 0;
-                    }
+                    if (s.length() > 1) { double b = s.getJSONObject(1).getDouble("isx60"); c.pct = (a - b) / b * 100; }
                     break;
                 }
                 case "stock": {
+                    c.world = LAPIS;
                     c.label = it.optString("l", code);
                     c.route = "/c/" + code;
-                    c.sub = code;
+                    c.unit = code;
                     JSONObject q = feed(sp, "quotes.json");
                     if (q == null) break;
                     JSONArray cs = q.getJSONArray("companies");
@@ -239,13 +244,8 @@ public class PriceWidget extends AppWidgetProvider {
                         if (!code.equals(o.optString("ticker"))) continue;
                         double close = o.optDouble("close", Double.NaN);
                         if (!Double.isNaN(close)) c.value = close >= 100 ? NF0.format(close) : NF2.format(close);
-                        if (o.optBoolean("traded") && !o.isNull("changePct")) {
-                            double pct = o.optDouble("changePct");
-                            c.sub = code + " · " + arrow(pct) + NF2.format(Math.abs(pct)) + "%";
-                            c.tone = pct > 0 ? 1 : pct < 0 ? -1 : 0;
-                        } else {
-                            c.sub = code + " · " + ctx.getString(R.string.w_not_traded);
-                        }
+                        if (o.optBoolean("traded") && !o.isNull("changePct")) c.pct = o.optDouble("changePct");
+                        else c.unit = code + " · " + ctx.getString(R.string.w_not_traded);
                     }
                     break;
                 }
@@ -254,26 +254,53 @@ public class PriceWidget extends AppWidgetProvider {
         return c;
     }
 
-    static String arrow(double v) { return v > 0 ? "▲ " : v < 0 ? "▼ " : ""; }
+    static double mithqal(JSONArray ks, int karat) {
+        for (int i = 0; ks != null && i < ks.length(); i++) {
+            JSONObject o = ks.optJSONObject(i);
+            if (o != null && o.optInt("karat") == karat) return o.optDouble("mithqalIqd", Double.NaN);
+        }
+        return Double.NaN;
+    }
 
-    /* ── Themes ──────────────────────────────────────────────────────────── */
+    /** The board's chip: percent only, signed, a real minus. */
+    static String pct(double v) {
+        String sign = Math.abs(v) < 0.005 ? "" : v > 0 ? "+" : "−";
+        return sign + NF2.format(Math.abs(v)) + "%";
+    }
+
+    /* ── Themes (identity v3) ────────────────────────────────────────────────
+       The frame is neutral; the section's world ink marks only the square tag
+       and the swoosh. Up is green and down is red for every price. Colours
+       are app/globals.css: dark page, newsprint, and the lapis/ochre fills. */
 
     static final class Theme {
-        int bg, cell, ink, soft, faint, good, bad;
-        Theme(int bg, int cell, int ink, int soft, int faint, int good, int bad) {
-            this.bg = bg; this.cell = cell; this.ink = ink; this.soft = soft; this.faint = faint; this.good = good; this.bad = bad;
+        int bg, cell, chip, ink, soft, faint, up, down, flat;
+        int[] worlds;   // dinar, ochre, lapis
+        Theme(int bg, int cell, int chip, int ink, int soft, int faint, int up, int down, int[] worlds) {
+            this.bg = bg; this.cell = cell; this.chip = chip; this.ink = ink; this.soft = soft; this.faint = faint;
+            this.up = up; this.down = down; this.flat = soft; this.worlds = worlds;
         }
     }
+
+    static final int[] WORLDS_DARK = {0xFF3F9A66, 0xFFD4A43C, 0xFF4A6CC4};
+    static final int[] WORLDS_LIGHT = {0xFF2F7D4F, 0xFFA87A14, 0xFF2F4F9E};
 
     static Theme theme(String name) {
         switch (name) {
-            case "blue":  return new Theme(R.drawable.widget_bg_blue, R.drawable.widget_cell, 0xFFFFFFFF, 0xCCFFFFFF, 0x99FFFFFF, 0xFF9CF5C4, 0xFFFFC2C2);
-            case "black": return new Theme(R.drawable.widget_bg_black, R.drawable.widget_cell, 0xFFFFFFFF, 0xB3FFFFFF, 0x80FFFFFF, 0xFF4ADE80, 0xFFFF7A7A);
-            case "light": return new Theme(R.drawable.widget_bg_light, R.drawable.widget_cell_light, 0xFF1A2035, 0xFF5B6475, 0xFF8A92A3, 0xFF0A8F4E, 0xFFC62828);
-            case "gold":  return new Theme(R.drawable.widget_bg_gold, R.drawable.widget_cell_gold, 0xFF2B1D02, 0xCC2B1D02, 0x992B1D02, 0xFF0A6B3B, 0xFFA11B1B);
-            default:      return new Theme(R.drawable.widget_bg, R.drawable.widget_cell, 0xFFFFFFFF, 0xB3FFFFFF, 0x8CFFFFFF, 0xFF7CEBB0, 0xFFFFA3A3);
+            case "black": return new Theme(R.drawable.widget_bg_black, R.drawable.widget_cell, R.drawable.widget_chip,
+                0xFFE9E7E3, 0xFFB9BEC6, 0xFF9BA1AB, 0xFF5CC488, 0xFFE2775C, WORLDS_DARK);
+            case "light": return new Theme(R.drawable.widget_bg_light, R.drawable.widget_cell_light, R.drawable.widget_chip_light,
+                0xFF1C1A17, 0xFF4F483E, 0xFF6F6556, 0xFF2A6F46, 0xFFB23E26, WORLDS_LIGHT);
+            case "blue":  return new Theme(R.drawable.widget_bg_blue, R.drawable.widget_cell_blue, R.drawable.widget_chip,
+                0xFFFFFFFF, 0xD9FFFFFF, 0xB3FFFFFF, 0xFFA8EBC2, 0xFFFFB9A6, new int[]{0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF});
+            case "gold":  return new Theme(R.drawable.widget_bg_gold, R.drawable.widget_cell_gold, R.drawable.widget_chip_light,
+                0xFF1C1A17, 0xD91C1A17, 0xB31C1A17, 0xFF1D5A37, 0xFF8A2A17, new int[]{0xFF1C1A17, 0xFF1C1A17, 0xFF1C1A17});
+            default:      return new Theme(R.drawable.widget_bg, R.drawable.widget_cell, R.drawable.widget_chip,
+                0xFFE9E7E3, 0xFFB9BEC6, 0xFF9BA1AB, 0xFF5CC488, 0xFFE2775C, WORLDS_DARK);
         }
     }
+
+    int tone(Theme th, double v) { return Double.isNaN(v) || Math.abs(v) < 0.005 ? th.flat : v > 0 ? th.up : th.down; }
 
     /* ── Drawing ─────────────────────────────────────────────────────────── */
 
@@ -308,36 +335,41 @@ public class PriceWidget extends AppWidgetProvider {
         if (!wide()) {
             JSONObject it = items != null && items.length() > 0 ? items.optJSONObject(0) : null;
             Cell c = cell(ctx, sp, it != null ? it : new JSONObject());
+            v.setInt(R.id.w_tag, "setColorFilter", th.worlds[c.world]);
+            v.setInt(R.id.w_swoosh, "setColorFilter", th.worlds[c.world]);
             v.setTextViewText(R.id.w_title, c.label);
             v.setTextColor(R.id.w_title, th.ink);
             v.setTextViewText(R.id.w_value, c.value);
             v.setTextColor(R.id.w_value, th.ink);
-            String unit = it != null && "fx".equals(it.optString("k")) ? ctx.getString(R.string.w_per_dollar)
-                : it != null && "cur".equals(it.optString("k")) ? it.optString("u", "") : "";
-            v.setTextViewText(R.id.w_unit, unit);
-            v.setTextColor(R.id.w_unit, th.soft);
-            v.setTextViewText(R.id.w_chg, c.sub.equals(unit) ? "" : c.sub);
-            v.setTextColor(R.id.w_chg, c.tone > 0 ? th.good : c.tone < 0 ? th.bad : th.soft);
+            v.setTextViewText(R.id.w_unit, c.unit);
+            v.setTextColor(R.id.w_unit, th.faint);
+            boolean has = !Double.isNaN(c.pct);
+            v.setViewVisibility(R.id.w_chg, has ? android.view.View.VISIBLE : android.view.View.GONE);
+            v.setTextViewText(R.id.w_chg, has ? pct(c.pct) : "");
+            v.setTextColor(R.id.w_chg, tone(th, c.pct));
+            v.setInt(R.id.w_chg, "setBackgroundResource", th.chip);
             v.setOnClickPendingIntent(R.id.w_root, open(ctx, id, 0, c.route));
         } else {
             v.setInt(R.id.w_star, "setColorFilter", th.ink);
             v.setTextColor(R.id.w_brand, th.ink);
             v.setOnClickPendingIntent(R.id.w_root, open(ctx, id, 0, "/app"));
             int[][] slots = {
-                {R.id.w_c1, R.id.w_l1, R.id.w_v1, R.id.w_s1},
-                {R.id.w_c2, R.id.w_l2, R.id.w_v2, R.id.w_s2},
-                {R.id.w_c3, R.id.w_l3, R.id.w_v3, R.id.w_s3},
+                {R.id.w_c1, R.id.w_l1, R.id.w_v1, R.id.w_s1, R.id.w_t1},
+                {R.id.w_c2, R.id.w_l2, R.id.w_v2, R.id.w_s2, R.id.w_t2},
+                {R.id.w_c3, R.id.w_l3, R.id.w_v3, R.id.w_s3, R.id.w_t3},
             };
             for (int s = 0; s < 3; s++) {
                 JSONObject it = items != null && s < items.length() ? items.optJSONObject(s) : null;
                 Cell c = cell(ctx, sp, it != null ? it : new JSONObject());
                 v.setInt(slots[s][0], "setBackgroundResource", th.cell);
+                v.setInt(slots[s][4], "setColorFilter", th.worlds[c.world]);
                 v.setTextViewText(slots[s][1], c.label);
-                v.setTextColor(slots[s][1], "gold".equals(it != null ? it.optString("k") : "") && !"light".equals(cfg.optString("theme")) && !"gold".equals(cfg.optString("theme")) ? 0xFFF0CD6E : th.ink);
+                v.setTextColor(slots[s][1], th.soft);
                 v.setTextViewText(slots[s][2], c.value);
                 v.setTextColor(slots[s][2], th.ink);
-                v.setTextViewText(slots[s][3], c.sub);
-                v.setTextColor(slots[s][3], c.tone > 0 ? th.good : c.tone < 0 ? th.bad : th.soft);
+                boolean has = !Double.isNaN(c.pct);
+                v.setTextViewText(slots[s][3], has ? pct(c.pct) : c.unit);
+                v.setTextColor(slots[s][3], has ? tone(th, c.pct) : th.faint);
                 v.setOnClickPendingIntent(slots[s][0], open(ctx, id, s + 1, c.route));
             }
         }

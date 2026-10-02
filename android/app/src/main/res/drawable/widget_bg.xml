@@ -1,17 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- The app's hero card: deep navy with a brand-blue glow from the top corner. -->
-<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
-    <item>
-        <shape android:shape="rectangle">
-            <solid android:color="#111A33" />
-            <corners android:radius="24dp" />
-        </shape>
-    </item>
-    <item>
-        <shape android:shape="rectangle">
-            <gradient android:type="radial" android:centerX="0.85" android:centerY="0.0" android:gradientRadius="160%"
-                android:startColor="#FF1F6BFF" android:centerColor="#991450D6" android:endColor="#00111A33" />
-            <corners android:radius="24dp" />
-        </shape>
-    </item>
-</layer-list>
+<!-- Identity v3: the site's dark page with a hairline frame (default). -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle">
+    <solid android:color="#101215" />
+    <stroke android:width="1dp" android:color="#2B3038" />
+    <corners android:radius="22dp" />
+</shape>

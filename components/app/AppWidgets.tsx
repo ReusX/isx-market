@@ -36,7 +36,8 @@ function plugin(): Plugin | null {
 interface Feeds {
   fx?: { asOf: string; parallel: { sell: number | null; buy: number | null } }
   cur?: { parallelUsd: number | null; perUsd: Record<string, number> }
-  gold?: { gramByCarat: { karat: number; mithqalIqd: number }[] }
+  hist?: { parallel: { rows: { date: string; close: number | null }[] } }
+  gold?: { gramByCarat: { karat: number; mithqalIqd: number }[]; previous?: { gramByCarat: { karat: number; mithqalIqd: number }[] } | null }
   idx?: { sessions: { isx60: number }[] }
   q?: { companies: { ticker: string; close: number | null; changePct: number | null; traded: boolean }[] }
 }
@@ -72,41 +73,53 @@ export function AppWidgets() {
   useEffect(() => {
     load()
     const get = (u: string) => fetch(u).then((r) => (r.ok ? r.json() : null)).catch(() => null)
-    Promise.all([get('/data/fx.json'), get('/data/currencies.json'), get('/data/gold.json'), get('/data/index.json'), get('/data/quotes.json')])
-      .then(([fx, cur, gold, idx, q]) => setFeeds({ fx, cur, gold, idx, q }))
+    Promise.all([get('/data/fx.json'), get('/data/currencies.json'), get('/data/gold.json'), get('/data/index.json'), get('/data/quotes.json'), get('/data/fx-history.json')])
+      .then(([fx, cur, gold, idx, q, hist]) => setFeeds({ fx, cur, gold, idx, q, hist }))
   }, [load])
 
   const name = (c: { ar: string; en: string; sym: string }) => (locale === 'ar' ? c.ar || c.en : c.en || c.ar) || c.sym
 
-  /** What a slot shows, as the widget will show it. */
-  const cell = (it: Item) => {
+  /** The dollar's day move as the widget computes it (PriceWidget.fxPct): mid vs the previous close. */
+  const fxPct = useMemo(() => {
+    const p = feeds.fx?.parallel, rows = feeds.hist?.parallel.rows
+    if (!p || !rows || !feeds.fx) return null
+    const now = p.buy != null && p.sell != null ? (p.buy + p.sell) / 2 : p.sell ?? p.buy
+    const prev = rows.filter((r) => r.close != null && r.date < feeds.fx!.asOf).pop()?.close
+    return now != null && prev ? ((now - prev) / prev) * 100 : null
+  }, [feeds.fx, feeds.hist])
+
+  /** What a slot shows, as the widget will show it (PriceWidget.cell). */
+  const cell = (it: Item): { label: string; value: string; unit: string; pct: number | null; world: 'dinar' | 'ochre' | 'lapis' } => {
     switch (it.k) {
       case 'fx': {
         const s = feeds.fx?.parallel.sell ?? feeds.fx?.parallel.buy
-        return { label: t.app.tabs.fx, value: s ? nf0.format(s) : '—', sub: s ? `100$ = ${nf0.format(s * 100)}` : '' }
+        return { label: t.app.tabs.fx, value: s ? nf0.format(s) : '—', unit: t.app.home.fx.perDollar, pct: fxPct, world: 'dinar' }
       }
       case 'cur': {
         const per = feeds.cur?.perUsd[it.c ?? ''], usd = feeds.cur?.parallelUsd
         const v = per && usd ? (usd / per) * (it.m ?? 1) : null
-        return { label: it.l ?? it.c ?? '', value: v == null ? '—' : fmtAny(v), sub: it.u ?? '' }
+        return { label: it.l ?? it.c ?? '', value: v == null ? '—' : fmtAny(v), unit: it.u ?? '', pct: fxPct, world: 'dinar' }
       }
       case 'gold': {
         const k = Number(it.c ?? 21)
         const g = feeds.gold?.gramByCarat.find((x) => x.karat === k)
-        return { label: t.app.tabs.gold, value: g ? nf0.format(g.mithqalIqd) : '—', sub: t.app.gold.karat(k) }
+        const was = feeds.gold?.previous?.gramByCarat.find((x) => x.karat === k)
+        return { label: t.app.tabs.gold, value: g ? nf0.format(g.mithqalIqd) : '—', unit: t.app.gold.karat(k), pct: g && was ? ((g.mithqalIqd - was.mithqalIqd) / was.mithqalIqd) * 100 : null, world: 'ochre' }
       }
       case 'isx': {
         const [a, b] = feeds.idx?.sessions ?? []
-        const pct = a && b ? ((a.isx60 - b.isx60) / b.isx60) * 100 : null
-        return { label: t.app.tabs.market, value: a ? nf2.format(a.isx60) : '—', sub: pct == null ? 'ISX60' : `ISX60 · ${pct > 0 ? '▲' : pct < 0 ? '▼' : ''} ${nf2.format(Math.abs(pct))}%` }
+        return { label: t.app.tabs.market, value: a ? nf2.format(a.isx60) : '—', unit: 'ISX60', pct: a && b ? ((a.isx60 - b.isx60) / b.isx60) * 100 : null, world: 'lapis' }
       }
       case 'stock': {
         const q = feeds.q?.companies.find((x) => x.ticker === it.c)
-        const pct = q?.traded ? q.changePct : null
-        return { label: it.l ?? it.c ?? '', value: q?.close == null ? '—' : q.close >= 100 ? nf0.format(q.close) : nf2.format(q.close), sub: `${it.c ?? ''}${pct == null ? '' : ` · ${pct > 0 ? '▲' : pct < 0 ? '▼' : ''} ${nf2.format(Math.abs(pct))}%`}` }
+        return { label: it.l ?? it.c ?? '', value: q?.close == null ? '—' : q.close >= 100 ? nf0.format(q.close) : nf2.format(q.close), unit: it.c ?? '', pct: q?.traded ? q.changePct : null, world: 'lapis' }
       }
     }
   }
+  const clock = new Intl.DateTimeFormat('en-GB', { timeZone: 'Asia/Baghdad', hour: '2-digit', minute: '2-digit', hour12: false }).format(new Date())
+  const chip = (v: number | null) => v == null ? null : (
+    <span className={`wg-chg ${Math.abs(v) < 0.005 ? 'is-flat' : v > 0 ? 'is-up' : 'is-down'}`}><bdi dir="ltr">{Math.abs(v) < 0.005 ? '' : v > 0 ? '+' : '−'}{nf2.format(Math.abs(v))}%</bdi></span>
+  )
 
   const setItem = (w: Placed, i: number, it: Item) => {
     const items = [...w.config.items]
@@ -135,7 +148,7 @@ export function AppWidgets() {
   const curOrder = useMemo(() => [...POPULAR, ...CURRENCY_CODES.filter((c) => !POPULAR.includes(c))], [])
 
   return (
-    <main className="rk-screen">
+    <main className="rk-screen wg3">
       <p className="rk-lead">{W.lead}</p>
 
       {state === 'web' || state === 'old' ? <p className="rk-note">{state === 'web' ? W.webOnly : W.update}</p> : null}
@@ -150,7 +163,7 @@ export function AppWidgets() {
       ) : null}
 
       {list.map((w) => (
-        <section key={w.id} className="rk-conv wg-edit" aria-label={w.size === 'wide' ? W.wide : W.small}>
+        <section key={w.id} className="rk-conv wg-edit id-print is-calm" aria-label={w.size === 'wide' ? W.wide : W.small}>
           <h2 className="rk-h">{w.size === 'wide' ? W.wide : W.small}</h2>
 
           {/* Preview, in the widget's own layout and colours. */}
@@ -159,18 +172,19 @@ export function AppWidgets() {
               const c = cell(w.config.items[0] ?? { k: 'fx' })
               return (
                 <>
-                  <b className="wg-l">{c.label}</b>
-                  <span className="wg-v id-num">{c.value}</span>
-                  <small className="wg-s">{c.sub}</small>
+                  <b className="wg-l" data-world={c.world}><i />{c.label}</b>
+                  <span className="wg-v id-num" data-world={c.world}><span>{c.value}<svg viewBox="0 0 200 28" preserveAspectRatio="none"><path d="M6 22 C50 8 110 2 194 14" fill="none" stroke="currentColor" strokeWidth="9" strokeLinecap="round" /></svg></span></span>
+                  <small className="wg-s">{c.unit}</small>
+                  <span className="wg-foot">{chip(c.pct)}<small className="wg-s">{W.now(clock)}</small></span>
                 </>
               )
             })() : (
               <>
-                <div className="wg-head"><b>IQWealth</b></div>
+                <div className="wg-head"><b>IQWealth</b><small className="wg-s">{W.now(clock)}</small></div>
                 <div className="wg-cells">
                   {[0, 1, 2].map((i) => {
                     const c = cell(w.config.items[i] ?? { k: 'fx' })
-                    return <div key={i} className="wg-cell"><b className="wg-l">{c.label}</b><span className="wg-v id-num">{c.value}</span><small className="wg-s">{c.sub}</small></div>
+                    return <div key={i} className="wg-cell"><b className="wg-l" data-world={c.world}><i />{c.label}</b><span className="wg-v id-num">{c.value}</span>{chip(c.pct) ?? <small className="wg-s">{c.unit}</small>}</div>
                   })}
                 </div>
               </>
@@ -216,7 +230,7 @@ export function AppWidgets() {
             )
           })}
 
-          <button type="button" className="id-btn is-primary rk-wide" onClick={() => save(w)}>{W.save}</button>
+          <button type="button" className="id-btn is-primary rk-wide wg-save" onClick={() => save(w)}>{W.save}</button>
         </section>
       ))}
       {toast ? <p className="app-toast" role="status">{toast}</p> : null}

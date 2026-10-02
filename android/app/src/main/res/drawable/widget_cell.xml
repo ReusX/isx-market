@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
-<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle">
-    <solid android:color="#1AFFFFFF" />
-    <corners android:radius="16dp" />
-</shape>
+<!-- A figure in the wide widget: a hairline over it, as the board's stats. -->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:gravity="top|fill_horizontal" android:height="1.5dp">
+        <shape android:shape="rectangle"><solid android:color="#2B3038" /></shape>
+    </item>
+</layer-list>

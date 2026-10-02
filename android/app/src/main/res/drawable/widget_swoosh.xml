@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The board's swoosh under the headline figure; tinted to the world's ink. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="72dp" android:height="10dp" android:viewportWidth="200" android:viewportHeight="28">
+    <path android:pathData="M6,22 C50,8 110,2 194,14" android:strokeColor="#FFFFFFFF" android:strokeWidth="9" android:strokeLineCap="round" android:fillColor="#00000000" />
+</vector>

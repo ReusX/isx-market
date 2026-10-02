@@ -2,6 +2,6 @@
 <!-- A figure in the wide widget: a hairline over it, as the board's stats. -->
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
     <item android:gravity="top|fill_horizontal" android:height="1.5dp">
-        <shape android:shape="rectangle"><solid android:color="#D8CCB8" /></shape>
+        <shape android:shape="rectangle"><solid android:color="#4DFFFFFF" /></shape>
     </item>
 </layer-list>

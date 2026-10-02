@@ -553,3 +553,60 @@ button.app-chip[aria-pressed='true'] { background: var(--nav-active-bg); border-
 .app-set3 .app-home-h { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 .rk3-conv .rk-swap { background: var(--page); }
 .rk3-list .rk-row.is-lead { background: color-mix(in srgb, var(--world) 10%, transparent); }
+
+/* ═══ Widget settings · identity v3 ═══════════════════════════════════════
+   The preview mirrors android/…/widget_*.xml and PriceWidget.theme(): a
+   neutral frame, the item's world ink on the square tag and the swoosh, the
+   percent chip up green / down red. Fixed colours, as on the phone. */
+.wg3 .wg-edit.id-print { padding: 18px; margin-inline-start: 4px; border-radius: var(--r-md); }
+.wg3 .wg-edit .rk-h:first-child { font: 700 18px/1.4 var(--font-display); }
+.wg3 .wg-prev {
+  --ink: #e9e7e3; --soft: #b9bec6; --faint: #9ba1ab; --up: #5cc488; --down: #e2775c; --chip: rgb(255 255 255 / .12); --hair: #2b3038;
+  --dinar: #3f9a66; --ochre: #d4a43c; --lapis: #4a6cc4;
+  background: #101215; border: 1px solid #2b3038; border-radius: 22px; padding: 12px 14px 14px; gap: 4px; box-shadow: none;
+}
+.wg3 .wg-prev.th-black { background: #000; border-color: #2b3038; }
+.wg3 .wg-prev.th-light {
+  --ink: #1c1a17; --soft: #4f483e; --faint: #6f6556; --up: #2a6f46; --down: #b23e26; --chip: rgb(28 26 23 / .08); --hair: #d8ccb8;
+  --dinar: #2f7d4f; --ochre: #a87a14; --lapis: #2f4f9e; background: #f3ebdd; border: 1.5px solid #1c1a17;
+}
+.wg3 .wg-prev.th-blue {
+  --ink: #fff; --soft: rgb(255 255 255 / .85); --faint: rgb(255 255 255 / .7); --up: #a8ebc2; --down: #ffb9a6; --hair: rgb(255 255 255 / .3);
+  --dinar: #fff; --ochre: #fff; --lapis: #fff; background: #2f4f9e; border-color: transparent;
+}
+.wg3 .wg-prev.th-gold {
+  --ink: #1c1a17; --soft: rgb(28 26 23 / .85); --faint: rgb(28 26 23 / .7); --up: #1d5a37; --down: #8a2a17; --chip: rgb(28 26 23 / .08); --hair: rgb(28 26 23 / .3);
+  --dinar: #1c1a17; --ochre: #1c1a17; --lapis: #1c1a17; background: #d4a43c; border-color: transparent;
+}
+.wg3 .wg-prev [data-world='dinar'] { --w: var(--dinar); }
+.wg3 .wg-prev [data-world='ochre'] { --w: var(--ochre); }
+.wg3 .wg-prev [data-world='lapis'] { --w: var(--lapis); }
+.wg3 .wg-prev .wg-l { display: flex; align-items: center; gap: 7px; font-weight: 700; color: var(--ink); }
+.wg3 .wg-prev .wg-l i { width: 9px; height: 9px; border-radius: 3px; background: var(--w); flex: 0 0 auto; }
+.wg3 .wg-prev .wg-v { font: 700 38px/1.05 var(--font-numeric); color: var(--ink); }
+.wg3 .wg-prev .wg-v > span { position: relative; display: inline-block; padding-bottom: 8px; }
+.wg3 .wg-prev .wg-v svg { position: absolute; inset-inline-start: 0; bottom: 0; width: 72px; height: 10px; color: var(--w); }
+.wg3 .wg-prev .wg-s { color: var(--faint); }
+.wg3 .wg-foot { display: flex; align-items: center; gap: 8px; margin-top: 2px; }
+.wg3 .wg-chg { display: inline-block; padding: 1px 8px; border-radius: 999px; background: var(--chip); font: 700 12px/1.5 var(--font-numeric); color: var(--soft); }
+.wg3 .wg-chg.is-up { color: var(--up); } .wg3 .wg-chg.is-down { color: var(--down); }
+.wg3 .wg-cells .wg-chg { background: none; padding: 0; justify-self: start; }
+.wg3 .wg-prev.is-small { width: 180px; }
+.wg3 .wg-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; color: var(--ink); }
+.wg3 .wg-cells { gap: 12px; margin-top: 8px; }
+.wg3 .wg-cell { background: none; border-radius: 0; border-top: 1.5px solid var(--hair); padding: 8px 2px 0; gap: 2px; }
+.wg3 .wg-cell .wg-l { font-size: 12px; color: var(--soft); }
+.wg3 .wg-cell .wg-v { font-size: 20px; }
+/* Theme swatches show the fills above. */
+.wg3 .wg-swatch::before { border: 1.5px solid var(--border); background: #101215; }
+.wg3 .wg-swatch.th-black::before { background: #000; }
+.wg3 .wg-swatch.th-light::before { background: #f3ebdd; border-color: #1c1a17; }
+.wg3 .wg-swatch.th-blue::before { background: #2f4f9e; }
+.wg3 .wg-swatch.th-gold::before { background: #d4a43c; }
+.wg3 .wg-swatch[aria-checked='true'] { color: var(--ink); font-weight: 700; }
+.wg3 .wg-swatch[aria-checked='true']::before { border-color: var(--line-strong); box-shadow: 0 0 0 3px var(--surface), 0 0 0 4.5px var(--line-strong); }
+.wg3 .wg-select { border: 2px solid var(--line-strong); border-radius: 12px; }
+.wg3 .wg-save { background: var(--ink); color: var(--page); border-color: var(--ink); border-radius: var(--r-pill); font-weight: 700; justify-content: center; min-height: 48px; }
+.wg3 .rk-seg.is-5 { display: flex; flex-wrap: wrap; }
+.wg3 .rk-seg.is-5 button { flex: 1 1 auto; padding: 0 12px; }
+.wg3 { --world: var(--ink); }
