@@ -13,6 +13,8 @@
 
 import type { FactState } from '@/lib/banking'
 
+import { SCORE_KEYS, type FinRow } from './bankScore'
+
 const URL_BASE = process.env.NEXT_PUBLIC_SUPABASE_URL
 const ANON = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 
@@ -263,6 +265,24 @@ export async function bankFinancials(tickers: string[]): Promise<Map<string, Ban
     }
     if (r.fiscal_year !== cur.fiscalYear || r.period !== cur.period) continue
     cur.values[r.line_key] = r.value_iqd
+  }
+  return out
+}
+
+/** Every filed line the health score reads, for the given tickers, from
+ *  three years back — paged, since PostgREST caps a response at 1,000 rows. */
+export async function bankScoreRows(tickers: string[]): Promise<FinRow[]> {
+  if (!tickers.length) return []
+  const from = new Date().getFullYear() - 4
+  const out: FinRow[] = []
+  for (let offset = 0; offset < 20000; offset += 1000) {
+    const page = await q<FinRow>(
+      `financial_facts?select=ticker,fiscal_year,period,line_key,value_iqd` +
+      `&ticker=in.(${tickers.join(',')})&line_key=in.(${SCORE_KEYS.join(',')})&fiscal_year=gte.${from}` +
+      `&order=ticker.asc,fiscal_year.asc,period.asc,line_key.asc&limit=1000&offset=${offset}`,
+    )
+    out.push(...page)
+    if (page.length < 1000) break
   }
   return out
 }

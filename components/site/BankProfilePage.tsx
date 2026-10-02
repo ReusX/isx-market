@@ -6,6 +6,7 @@ import { localeDate } from '@/lib/date'
 import { SiteShell } from './SiteShell'
 import { DoorRail } from './DoorRail'
 import { PageTitle } from './PageTitle'
+import { ScoreCard } from './BankScore'
 import { AboutSection } from './AboutSection'
 import type { BankProfileInitial, ProfileProduct } from '@/lib/banksServer'
 import { isCurrentEnough, type FactRow } from '@/lib/banks'
@@ -14,6 +15,7 @@ import { describeCondition, factText, factNote, introSentence, basisLabel } from
 import '@/styles/econ-page.css'
 import '@/styles/company-page.css'
 import '@/styles/banks-page.css'
+import '@/styles/bank-score.css'
 
 /**
  * /banks/[slug] · one bank.
@@ -50,7 +52,7 @@ export function BankProfilePage({ initial }: { initial: BankProfileInitial }) {
   const E = B.ed
   const u = t.site.units
   const ar = locale === 'ar'
-  const { bank, products, services, fin, editorial: ed } = initial
+  const { bank, products, services, fin, score, editorial: ed } = initial
   const name = ar ? bank.name_ar : bank.name_en || bank.name_ar
   const city = bank.hq_city ? (ar ? bank.hq_city : (B.city[bank.hq_city] ?? bank.hq_city)) : null
   const svcKeys = ['mobile_banking', 'internet_banking', 'cards', 'usd_account', 'international_transfer', 'salary_domiciliation', 'atm'] as const
@@ -77,6 +79,7 @@ export function BankProfilePage({ initial }: { initial: BankProfileInitial }) {
      highest, else a loan's lowest), else the latest filed total assets. */
   const found = ed ? CATEGORY_KEYS.flatMap((k) => { const c = ed.ratings.categories[k]; return c?.rationale ? [[k, c.rationale] as const] : [] }) : []
   const lead = (() => {
+    if (score?.score != null && score.grade) return { figure: String(score.score), chip: B.score.grades[score.grade], line: `${B.score.title} · ${P.board.outOf('100')}`, grade: score.grade }
     const current = products.flatMap((p) => {
       const f = p.facts.find((x) => x.field_key === 'rate')
       return f && f.state === 'KNOWN' && f.value_num != null && isCurrentEnough(f) ? [{ p, rate: f.value_num }] : []
@@ -113,7 +116,7 @@ export function BankProfilePage({ initial }: { initial: BankProfileInitial }) {
                         </svg>
                       </span>
                     </p>
-                    <p className="fx-line"><span className="id-chg is-flat">{lead.chip}</span><span>{lead.line}</span></p>
+                    <p className="fx-line"><span className={'grade' in lead && lead.grade ? `bs-chip is-${lead.grade}` : 'id-chg is-flat'}>{lead.chip}</span><span>{lead.line}</span></p>
                   </>
                 ) : null}
                 {ed && ar && ed.h1 ? <p className="bp-verdict">{ed.h1}</p> : null}
@@ -162,6 +165,10 @@ export function BankProfilePage({ initial }: { initial: BankProfileInitial }) {
               </div>
               <p className="id-cap">{E.editorialNotice}</p>
             </section>
+          ) : null}
+
+          {score && score.score != null ? (
+            <ScoreCard s={score} financialsHref={bank.ticker ? L(`/c/${bank.ticker}/financials`) : null} />
           ) : null}
 
           {/* What we found, per topic — the editorial's sentences without

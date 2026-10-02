@@ -1,0 +1,35 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   The bank health score (site/BankScore) · grade chip, score bar, the
+   five-area card. Prefix `bs-`. A grade is a reading of statements, not a
+   price move: green for the top two grades, neutral for «good», sand and red
+   for the bottom two.
+   ═══════════════════════════════════════════════════════════════════════════ */
+.bs-chip { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 999px; border: 1.5px solid currentColor; font-size: 12px; font-weight: 600; line-height: 1.2; white-space: nowrap; color: var(--secondary); }
+.bs-chip b { font: 700 13px/1 var(--font-numeric); }
+.bs-chip.is-excellent, .bs-chip.is-veryGood { color: var(--up); }
+.bs-chip.is-good { color: var(--ink); border-color: var(--border); }
+.bs-chip.is-fair { color: var(--w-ochre, var(--secondary)); }
+.bs-chip.is-weak { color: var(--down); }
+.bs-chip.is-none { color: var(--muted); border-color: var(--border); border-style: dashed; font-weight: 500; }
+.bs-bar { display: block; height: 6px; border-radius: 3px; background: var(--surface-2); overflow: hidden; }
+.bs-bar i { display: block; height: 100%; border-radius: 3px; background: var(--world, var(--w-tile)); }
+
+.bs-card { padding: 22px 24px; display: grid; gap: 16px; }
+.bs-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; }
+.bs-head .id-h3 { margin: 0 0 4px; }
+.bs-head .id-cap { margin: 0; }
+.bs-head .bs-chip { font-size: 15px; padding: 7px 14px; }
+.bs-head .bs-chip b { font-size: 20px; }
+.bs-pillars { list-style: none; margin: 0; padding: 0; display: grid; gap: 14px; }
+.bs-pillars li { display: grid; grid-template-columns: 110px minmax(0, 1fr) 36px; gap: 6px 12px; align-items: center; }
+.bs-pillars li > p { grid-column: 1 / -1; margin: 0; font-size: 13px; line-height: 1.6; color: var(--secondary); }
+.bs-pillars li.is-none { opacity: .6; }
+.bs-p-name { font-weight: 600; font-size: 14px; }
+.bs-pillars b { font: 600 15px/1 var(--font-numeric); text-align: end; }
+.bs-pillars .bs-bar { height: 8px; }
+.bs-foot { margin: 0; }
+
+/* In the /banks table */
+.bh-score { min-width: 150px; }
+.bh-score .bs-bar { margin-top: 6px; max-width: 140px; }
+.bnk-body > .bs-card { margin: 8px 0 28px; }

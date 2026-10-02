@@ -382,6 +382,42 @@ export const banks: typeof ar = {
       'The rating is editorial, from published sources — the bank\'s site, the app store and what users write — and neither measures the bank\'s safety nor is endorsed by it.',
     ],
   },
+  /* ── The bank health score (lib/bankScore.ts, site/BankScore) ── */
+  score: {
+    title: 'Financial health',
+    col: 'Financial health',
+    notListed: 'Not listed',
+    stale: 'Old data',
+    thin: 'Not enough data',
+    noData: 'Not enough data',
+    grades: { excellent: 'Excellent', veryGood: 'Very good', good: 'Good', fair: 'Fair', weak: 'Weak' },
+    pillars: { capital: 'Capital', profit: 'Profitability', liquidity: 'Liquidity', efficiency: 'Efficiency', activity: 'Activity' },
+    annual: 'annual',
+    periods: { Q1: 'first-quarter', Q2: 'half-year', H1: 'half-year', Q3: 'nine-month', Q4: 'annual', ANNUAL: 'annual' } as Record<string, string>,
+    basis: (y: string, p: string): string => `From the ${y} ${p} statements`,
+    beats: (n: string): string => `Better than ${n}% of listed banks.`,
+    lines: {
+      car: (v: string, b: string): string => `Capital adequacy ${v}; the Central Bank minimum is 12.5%. ${b}`,
+      eq: (v: string, b: string): string => `Shareholders' equity is ${v} of assets. ${b}`,
+      roa: (a: string, e: string, b: string): string => `Return on assets ${a}, on equity ${e}. ${b}`,
+      loss: (v: string): string => `A loss equal to ${v} of assets.`,
+      lcr: (v: string): string => `Liquidity coverage ${v}; at least 100% is required.`,
+      liq: (v: string, b: string): string => `Cash and balances with banks cover ${v} of customer deposits. ${b}`,
+      ci: (v: string, b: string): string => `Costs take ${v} of operating income. ${b}`,
+      fin: (v: string, b: string): string => `Financing granted is ${v} of assets. ${b}`,
+      dg: (v: string): string => `Change in deposits over a year: ${v}.`,
+    },
+    disclaimer: 'An indicator built from statements filed on the exchange. Not a credit rating and not advice.',
+    toStatements: 'Full financial statements',
+    method: {
+      title: 'How the score is calculated',
+      body: [
+        'Five areas from the published statements: capital (equity and capital adequacy) 25%, profitability (return on assets and equity, loss years) 25%, liquidity (cash against deposits, liquidity ratios) 20%, efficiency (costs as a share of operating income) 15%, and activity (financing granted, deposit growth) 15%.',
+        'Each figure is scored on fixed thresholds and on the bank\'s rank among listed banks, half and half. Out of 100: excellent 85+, very good 70, good 55, fair 40, weak below that.',
+        'No score when a bank\'s latest statements are older than 18 months or three areas are missing. Implausible figures are dropped rather than scored. Unlisted banks file no statements on the exchange, so they have no score.',
+      ],
+    },
+  },
   /* ── /banks/deposits · /banks/loans · the compare pages (site/BankRatesPage) ── */
   rates: {
     deposits: {

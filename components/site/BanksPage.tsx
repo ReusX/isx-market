@@ -6,11 +6,13 @@ import { useLocale } from '@/context/LocaleContext'
 import { SiteShell } from './SiteShell'
 import { DoorRail } from './DoorRail'
 import { PageTitle } from './PageTitle'
+import { GradeChip, ScoreBar } from './BankScore'
 import { AboutSection } from './AboutSection'
 import type { BanksInitial, HubRow } from '@/lib/banksServer'
 import '@/styles/econ-page.css'
 import '@/styles/markets.css'
 import '@/styles/banks-page.css'
+import '@/styles/bank-score.css'
 
 /**
  * /banks · the banking door's hub.
@@ -30,12 +32,12 @@ import '@/styles/banks-page.css'
  */
 
 type Filter = 'all' | 'commercial' | 'islamic' | 'investment' | 'listed' | 'state' | 'foreign' | 'publishing'
-type SortKey = 'name' | 'type' | 'ownership' | 'status' | 'assets' | 'rating'
+type SortKey = 'name' | 'type' | 'ownership' | 'status' | 'assets' | 'score'
 type Dir = 'asc' | 'desc'
 const FILTERS: Filter[] = ['all', 'commercial', 'islamic', 'investment', 'listed', 'state', 'foreign', 'publishing']
-const SORTS: SortKey[] = ['name', 'type', 'ownership', 'status', 'assets', 'rating']
+const SORTS: SortKey[] = ['name', 'type', 'ownership', 'status', 'assets', 'score']
 /** The direction a column starts in when first clicked: figures descend, words ascend. */
-const FIRST: Record<SortKey, Dir> = { name: 'asc', type: 'asc', ownership: 'asc', status: 'asc', assets: 'desc', rating: 'desc' }
+const FIRST: Record<SortKey, Dir> = { name: 'asc', type: 'asc', ownership: 'asc', status: 'asc', assets: 'desc', score: 'desc' }
 const STATUS_RANK = { operating: 0, establishment: 1, guardianship: 2, liquidation: 3 }
 
 type Units = { tn: string; bn: string; mn: string; k: string }
@@ -60,12 +62,13 @@ export function BanksPage({ initial }: { initial: BanksInitial }) {
   const B = t.banks
   const H = B.hub
   const W = H.board
+  const S = B.score
   const u = t.site.units
   const ar = locale === 'ar'
   const name = (r: { ar: string; en: string }) => (ar ? r.ar : r.en || r.ar)
   const [q, setQ] = useState('')
   const [filter, setFilter] = useState<Filter>('all')
-  const [sort, setSort] = useState<{ key: SortKey; dir: Dir }>({ key: 'assets', dir: 'desc' })
+  const [sort, setSort] = useState<{ key: SortKey; dir: Dir }>({ key: 'score', dir: 'desc' })
 
   /* View state in the URL — read on mount, written on change — so a filtered
      list is a link. The route stays static: nothing here reaches the server. */
@@ -81,7 +84,7 @@ export function BanksPage({ initial }: { initial: BanksInitial }) {
   useEffect(() => {
     const sp = new URLSearchParams()
     if (filter !== 'all') sp.set('filter', filter)
-    if (sort.key !== 'assets' || sort.dir !== 'desc') { sp.set('sort', sort.key); if (sort.dir !== FIRST[sort.key]) sp.set('dir', sort.dir) }
+    if (sort.key !== 'score' || sort.dir !== 'desc') { sp.set('sort', sort.key); if (sort.dir !== FIRST[sort.key]) sp.set('dir', sort.dir) }
     if (q.trim()) sp.set('q', q.trim())
     const qs = sp.toString()
     window.history.replaceState(null, '', `${window.location.pathname}${qs ? `?${qs}` : ''}`)
@@ -117,8 +120,8 @@ export function BanksPage({ initial }: { initial: BanksInitial }) {
       case 'type': return list.sort(word((r) => B.type[r.type]))
       case 'ownership': return list.sort(word((r) => B.ownership[r.ownership]))
       case 'status': return list.sort((a, b) => (STATUS_RANK[a.status] - STATUS_RANK[b.status]) * m || byName(a, b))
-      case 'rating': return list.sort(num((r) => r.rating?.overall ?? null))
-      default: return list.sort(num((r) => r.assets))
+      case 'assets': return list.sort(num((r) => r.assets))
+      default: return list.sort(num((r) => r.score?.score ?? null))
     }
   }, [initial.rows, q, filter, sort, ar]) // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -194,49 +197,62 @@ export function BanksPage({ initial }: { initial: BanksInitial }) {
           </div>
           <div className="bh-sortline">
             <p className="id-cap">{H.shown(nf.format(rows.length), nf.format(initial.rows.length))}</p>
-            <div className="fx-quick" role="group" aria-label={H.sort}>
-              {(['assets', 'name'] as const).map((k) => (
-                <button key={k} type="button" className="fx-qbtn" aria-pressed={sort.key === k} onClick={() => setSort({ key: k, dir: FIRST[k] })}>{H.sorts[k]}</button>
-              ))}
-            </div>
           </div>
 
-          {!rows.length ? <p className="id-print is-calm pf-empty">{H.noMatch}</p> : (
-            <ul className="bh-cards">
-              {rows.map((r) => {
-                const pub = r.research === 'source_unreachable' ? [H.pub.unreachable]
-                  : r.research === 'not_researched' ? [H.pub.unresearched]
-                  : [r.deposits ? H.pub.deposits : null, r.loans ? H.pub.loans : null, r.services.on ? H.pub.services : null].filter(Boolean) as string[]
-                const a = r.assets != null ? compact(r.assets, u) : null
-                return (
-                  <li key={r.slug} className="id-print is-calm bh-card">
-                    <div className="bh-top">
-                      {r.logo ? <img className="bnk-logo" src={r.logo} alt="" width={36} height={36} loading="lazy" /> : <span className="bnk-logo is-blank" aria-hidden="true" />}
-                      <Link href={L(`/banks/${r.slug}`)} className="bh-name">{name(r)}</Link>
-                    </div>
-                    <p className="bh-meta">
-                      {B.type[r.type]} · {B.ownership[r.ownership]}
-                      {r.ticker ? <> · <Link href={L(`/c/${r.ticker}`)} className="id-link"><bdi>{r.ticker}</bdi></Link></> : null}
-                    </p>
-                    {r.status !== 'operating' || r.usd ? (
-                      <div className="bh-flags">
-                        {r.status !== 'operating' ? <span className={`bh-flag is-${r.status}`}>{H.status[r.status]}</span> : null}
-                        {r.usd ? <span className="bh-flag is-usd" title={H.usdLong}>{H.usdShort}</span> : null}
-                      </div>
-                    ) : null}
-                    <div className="bh-fig">
-                      {a ? <><b className="id-num"><bdi dir="ltr">{a.n}</bdi> <span>{a.unit}</span></b><small>{H.cols.assets} · {H.assetsNote(String(r.finYear))}</small></>
-                        : <small>{r.ticker ? H.noAssets : H.notListed}</small>}
-                    </div>
-                    <div className="br-meta">
-                      {pub.length ? pub.map((x) => <span key={x}>{x}</span>) : <span>{H.pub.none}</span>}
-                    </div>
-                  </li>
-                )
-              })}
-            </ul>
-          )}
+          <div className="mb-scroll id-print is-calm mb-panel">
+            <table className="mb-table mb-board bh-table id-num">
+              <thead>
+                <tr>
+                  {([['name', H.cols.bank, ''], ['score', S.col, ''], ['assets', H.cols.assets, 'mb-hide-sm']] as const).map(([k, label, cls]) => {
+                    const on = sort.key === k
+                    return (
+                      <th key={k} className={cls || undefined} aria-sort={on ? (sort.dir === 'asc' ? 'ascending' : 'descending') : 'none'}>
+                        <button type="button" className={`iqm-sort ${on ? 'is-on' : ''}`.trim()} onClick={() => setSort((x) => x.key === k ? { key: k, dir: x.dir === 'asc' ? 'desc' : 'asc' } : { key: k, dir: FIRST[k] })}>
+                          {label}<span className="iqm-sort-arrow" aria-hidden="true">{on ? (sort.dir === 'asc' ? '↑' : '↓') : '↕'}</span>
+                        </button>
+                      </th>
+                    )
+                  })}
+                  <th className="mb-hide-sm">{H.cols.ticker}</th>
+                  <th className="mb-hide-md">{H.cols.publishes}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {!rows.length ? <tr><td colSpan={5} className="bnk-empty">{H.noMatch}</td></tr> : rows.map((r) => {
+                  const pub = r.research === 'source_unreachable' ? [H.pub.unreachable]
+                    : r.research === 'not_researched' ? [H.pub.unresearched]
+                    : [r.deposits ? H.pub.deposits : null, r.loans ? H.pub.loans : null, r.services.on ? H.pub.services : null].filter(Boolean) as string[]
+                  const a = r.assets != null ? compact(r.assets, u) : null
+                  return (
+                    <tr key={r.slug}>
+                      <td>
+                        <Link href={L(`/banks/${r.slug}`)} className="mb-co">
+                          {r.logo ? <img className="iqm-logo bh-logo" src={r.logo} alt="" width={32} height={32} loading="lazy" /> : <span className="iqm-logo bh-logo is-blank" aria-hidden="true" />}
+                          <span className="mb-co-text">
+                            <span className="mb-name"><b>{name(r)}</b>
+                              {r.status !== 'operating' ? <span className={`bh-flag is-${r.status}`}>{H.status[r.status]}</span> : null}
+                              {r.usd ? <span className="bh-flag is-usd" title={H.usdLong}>{H.usdShort}</span> : null}
+                            </span>
+                            <small>{B.type[r.type]} · {B.ownership[r.ownership]}</small>
+                          </span>
+                        </Link>
+                      </td>
+                      <td className="bh-score">
+                        <GradeChip s={r.ticker ? r.score : undefined} compact />
+                        {r.score?.score != null ? <ScoreBar v={r.score.score} /> : null}
+                      </td>
+                      <td className="mb-hide-sm">{a ? <><span className="bh-fig2"><bdi dir="ltr">{a.n}</bdi> {a.unit}</span><span className="id-sub bh-sub">{H.assetsNote(String(r.finYear))}</span></> : <span className="id-cap">—</span>}</td>
+                      <td className="mb-hide-sm">{r.ticker ? <Link href={L(`/c/${r.ticker}`)} className="id-link"><bdi>{r.ticker}</bdi></Link> : <span className="id-cap">{H.notListed}</span>}</td>
+                      <td className="mb-hide-md"><div className="br-meta bh-pub">{pub.length ? pub.map((x) => <span key={x}>{x}</span>) : <span>{H.pub.none}</span>}</div></td>
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </table>
+          </div>
+          <p className="id-cap bh-note">{S.disclaimer}</p>
 
+          <AboutSection title={S.method.title} body={S.method.body} />
           <AboutSection title={H.about.title} body={H.about.body} />
         </div>
       </main>

@@ -1,10 +1,11 @@
 import { cache } from 'react'
 import companiesData from '@/public/data/companies.json'
 import {
-  listBanks, listProducts, listServices, bankFinancials, coverageOf, getBank, productDetail, indexability,
+  listBanks, listProducts, listServices, bankFinancials, bankScoreRows, coverageOf, getBank, productDetail, indexability,
   type Bank, type ProductRow, type Coverage, type ServiceRow, type FactRow, type ConditionRow, type BankFinancials,
 } from '@/lib/banks'
 import { editorialFor, type EditorialProfile } from '@/lib/bankEditorial'
+import { scoreBanks, type BankScore } from '@/lib/bankScore'
 
 /**
  * The banking hub's rows, built on the server and flat enough for the wire.
@@ -38,6 +39,8 @@ export type HubRow = {
   finYear: number | null
   /** Editorial rating where one exists. */
   rating: { overall: number; outOf: number } | null
+  /** The health score (lib/bankScore.ts); null for an unlisted bank. */
+  score: BankScore | null
 }
 
 /** A published term-deposit rate, for the hub's deposits strip. */
@@ -60,9 +63,17 @@ const LOGO = new Map((companiesData as { sym: string; logo?: string }[]).map((c)
 
 const isDeposit = (p: ProductRow) => p.kind.startsWith('deposit') || p.kind === 'account_current'
 
+/** Every listed bank scored against the others (lib/bankScore.ts). */
+export const loadBankScores = cache(async (): Promise<Map<string, BankScore>> => {
+  const banks = await listBanks()
+  const tickers = banks.map((b) => b.ticker).filter(Boolean) as string[]
+  const now = new Date()
+  return scoreBanks(await bankScoreRows(tickers), now.getFullYear() * 12 + now.getMonth() + 1)
+})
+
 export const loadBanksHub = cache(async (): Promise<BanksInitial> => {
   const [banks, products, services] = await Promise.all([listBanks(), listProducts(), listServices()])
-  const fin = await bankFinancials(banks.map((b) => b.ticker).filter(Boolean) as string[])
+  const [fin, scores] = await Promise.all([bankFinancials(banks.map((b) => b.ticker).filter(Boolean) as string[]), loadBankScores()])
 
   const rows: HubRow[] = banks.map((b) => {
     const p = products.filter((x) => x.bank_slug === b.slug)
@@ -80,6 +91,7 @@ export const loadBanksHub = cache(async (): Promise<BanksInitial> => {
       services: { on: s.filter((x) => x.availability === 'available').length, checked: s.length },
       assets: f?.values.total_assets ?? null, finYear: f?.fiscalYear ?? null,
       rating: ed?.ratings.overall != null ? { overall: ed.ratings.overall, outOf: ed.ratings.outOf } : null,
+      score: b.ticker ? scores.get(b.ticker) ?? null : null,
     }
   })
 
@@ -124,6 +136,7 @@ export type BankProfileInitial = {
   products: ProfileProduct[]
   services: ServiceRow[]
   fin: BankFinancials | null
+  score: BankScore | null
   editorial: EditorialProfile | null
   coverage: Coverage
   indexable: boolean
@@ -136,6 +149,7 @@ export const loadBankProfile = cache(async (slug: string): Promise<BankProfileIn
   const [products, services] = await Promise.all([listProducts(slug), listServices(slug)])
   const { facts, conditions } = await productDetail(products.map((p) => p.id))
   const fin = bank.ticker ? (await bankFinancials([bank.ticker])).get(bank.ticker) ?? null : null
+  const score = bank.ticker ? (await loadBankScores()).get(bank.ticker) ?? null : null
   const editorial = editorialFor(bank.slug)
   const withFacts: ProfileProduct[] = products.map((p) => {
     const f = facts.filter((x) => x.product_id === p.id)
@@ -144,7 +158,7 @@ export const loadBankProfile = cache(async (slug: string): Promise<BankProfileIn
   })
   return {
     bank, logo: bank.ticker ? LOGO.get(bank.ticker) ?? null : null,
-    products: withFacts, services, fin, editorial,
+    products: withFacts, services, fin, score, editorial,
     coverage: coverageOf(bank, products),
     indexable: indexability(bank, products, services, Boolean(fin), editorial).indexable,
   }
