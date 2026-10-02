@@ -68,6 +68,11 @@
 .iqn-pill:hover, .iqn .gh-lang:hover { border-color: var(--line-strong); }
 .iqn-pill.is-icon { padding: 0; width: 40px; justify-content: center; }
 .iqn-tabs { display: none; }
+/* «جرّب برو»: the one filled pill in the bar, in gold's ochre (styles/pro.css world). */
+.iqn-pro { background: var(--w-ochre); border-color: var(--w-ochre); color: var(--navy); font-weight: 700; }
+.iqn-pro:hover { border-color: var(--line-strong); }
+.iqn-pro[aria-current='page'] { box-shadow: 0 0 0 2px var(--page), 0 0 0 3.5px var(--w-ochre); }
+.iqn-pro.is-member { background: transparent; color: var(--w-ochre); }
 
 /* Between 960 and 1240 the doors keep their place, the labels of the tools go. */
 @media (max-width: 1240px) {

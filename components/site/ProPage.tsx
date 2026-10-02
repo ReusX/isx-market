@@ -56,8 +56,8 @@ export function ProPage() {
                 <h3 id={`pro-${k}`} className="pro-plan-h">{P[k]}</h3>
                 <p className="pro-price id-num"><bdi>{nf.format(PRICES[k])}</bdi> <small>{locale === 'ar' ? 'دينار' : 'IQD'}</small></p>
                 <p className="pro-note">{k === 'year' ? <>{P.perMonth(nf.format(Math.round(PRICES.year / 12)))} · <b>{P.save(nf.format(PRICES.month * 12 - PRICES.year))}</b></> : ' '}</p>
-                <button type="button" className="pro-buy" disabled={!!busy} onClick={() => buy(k)}>
-                  {busy === k ? P.busy : user ? P.buy[k] : P.signIn}
+                <button type="button" className="pro-buy" disabled={!!busy || !pro.open} onClick={() => buy(k)}>
+                  {!pro.open ? P.soon : busy === k ? P.busy : user ? P.buy[k] : P.signIn}
                 </button>
               </section>
             ))}

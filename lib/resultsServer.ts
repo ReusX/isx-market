@@ -57,15 +57,36 @@ type ReportRow = { ticker: string; fiscal_year: number; period: string; template
 type FactRow = { ticker: string; fiscal_year: number; period: string; statement: string; line_key: string; value_iqd: number | null }
 type RatioRow = { ratio_key: string; value: number | null }
 
-/** Every filing with trusted figures, newest first. */
+/**
+ * Every filing with trusted figures, newest first.
+ *
+ * ⚠ The same test as `loadResults`: a filing is listed only when it has a
+ * template AND a net-income figure. Listing filings the page then refuses
+ * put ~60 URLs that answer 404 into the sitemap and the period links (an
+ * Ahrefs crawl on 2 Oct 2026 caught it).
+ */
 export const loadResultsIndex = cache(async (): Promise<ResultsIndexRow[]> => {
-  const { data } = await client().from('financial_reports_public')
-    .select('ticker,fiscal_year,period,template,source_added_date').order('source_added_date', { ascending: false }).range(0, 999)
+  const sb = client()
+  const [{ data }, withNi] = await Promise.all([
+    sb.from('financial_reports_public')
+      .select('ticker,fiscal_year,period,template,source_added_date').order('source_added_date', { ascending: false }).range(0, 999),
+    (async () => {
+      const keys = new Set<string>()
+      for (let f = 0; f < 50_000; f += 1000) {
+        const { data: rows, error } = await sb.from('financial_facts_public').select('ticker,fiscal_year,period')
+          .eq('line_key', 'net_income').not('value_iqd', 'is', null).order('ticker').order('fiscal_year').order('period').range(f, f + 999)
+        if (error || !rows?.length) break
+        for (const r of rows as { ticker: string; fiscal_year: number; period: string }[]) keys.add(`${r.ticker}:${r.fiscal_year}:${r.period}`)
+        if (rows.length < 1000) break
+      }
+      return keys
+    })(),
+  ])
   const seen = new Set<string>()
   return ((data ?? []) as ReportRow[]).flatMap((r) => {
     const period = r.period as Period
     const k = `${r.ticker}:${r.fiscal_year}:${period}`
-    if (!PERIODS.includes(period) || !META.has(r.ticker) || !normalizedValuesTrusted(r.ticker) || seen.has(k)) return []
+    if (!PERIODS.includes(period) || !META.has(r.ticker) || !normalizedValuesTrusted(r.ticker) || seen.has(k) || !withNi.has(k)) return []
     if (r.template !== 'bank' && r.template !== 'industrial') return []
     seen.add(k)
     return [{ sym: r.ticker, year: r.fiscal_year, period, template: r.template, addedAt: r.source_added_date ?? '' }]
@@ -102,8 +123,10 @@ export const loadResults = cache(async (symRaw: string, slug: string): Promise<R
   const prior = priorFig.net_income != null ? priorFig : null
   const ratios: Results['ratios'] = {}
   for (const r of (ratioRes.data ?? []) as RatioRow[]) if (r.value != null && r.ratio_key in RKEYS) (ratios as Record<string, number>)[r.ratio_key] = r.value
+  /* Only periods that have a page of their own (the index's test), so the nav never links a 404. */
+  const listed = new Set((await loadResultsIndex()).filter((k) => k.sym === sym).map((k) => `${k.year}:${k.period}`))
   const siblings = reports
-    .filter((r) => PERIODS.includes(r.period as Period))
+    .filter((r) => PERIODS.includes(r.period as Period) && listed.has(`${r.fiscal_year}:${r.period}`))
     .map((r) => ({ sym, year: r.fiscal_year, period: r.period as Period, slug: resultsSlug({ year: r.fiscal_year, period: r.period as Period }) }))
     .sort((a, b) => (b.year - a.year) || (PERIODS.indexOf(b.period) - PERIODS.indexOf(a.period)))
   return {

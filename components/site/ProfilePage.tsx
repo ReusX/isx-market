@@ -12,6 +12,8 @@ import { usePortfolio, useAlerts } from '@/lib/portfolio'
 import { AuthShell } from './AuthKit'
 import { SiteShell } from './SiteShell'
 import { PageTitle } from './PageTitle'
+import { usePro } from '@/lib/proClient'
+import '@/styles/pro.css'
 import { ToolsRail } from './tools'
 import { useCaptcha } from './Captcha'
 import '@/styles/econ-page.css'
@@ -48,6 +50,7 @@ export function ProfilePage() {
       setDelErr(true); setDelState('confirm')
     }
   }
+  const pro = usePro({ signedInOnly: true })
   const { lots } = usePortfolio()
   const { alerts } = useAlerts()
   const email = user?.email ?? ''
@@ -113,6 +116,12 @@ export function ProfilePage() {
                       <div>
                         <p className="pr-name">{profile?.username || ac.noName}</p>
                         {profile?.created_at ? <p className="id-cap id-num">{ac.memberSince(localeDateOrDash(profile.created_at.slice(0, 10), locale))}</p> : null}
+                        {pro.until ? (
+                          <p className="pro-badge" title={t.pro.badgeNote(localeDateOrDash(pro.until.slice(0, 10), locale))}>
+                            <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path d="M12 2l2.9 6.6 7.1.6-5.4 4.7 1.6 7L12 17.3 5.8 20.9l1.6-7L2 9.2l7.1-.6z" fill="currentColor" /></svg>
+                            {t.pro.badge}
+                          </p>
+                        ) : null}
                       </div>
                     </div>
                     <div className="fx-pair pf-pair id-num">

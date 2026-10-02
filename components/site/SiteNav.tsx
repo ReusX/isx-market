@@ -9,6 +9,7 @@ import { InkIcon } from './InkIcon'
 import { useApp } from '@/context/AppContext'
 import { useLocale } from '@/context/LocaleContext'
 import { splitLocale } from '@/lib/i18n/paths'
+import { usePro } from '@/lib/proClient'
 
 /**
  * The site navigation (identity v3) · the four doors as one segmented
@@ -40,6 +41,8 @@ export function SiteNav({ on = 'page' }: { on?: 'page' }) {
   const doors = t.home.landing.doors
   const current = DOORS.find((d) => d.owns.some((o) => o === '/' ? route === '/' : route === o || route.startsWith(o.endsWith('/') ? o : `${o}/`)))?.id
   const me = route === '/profile' || route === '/login'
+  /* «جرّب برو» beside the account, until the reader holds a pass. */
+  const pro = usePro({ signedInOnly: true })
 
   return (
     <>
@@ -60,6 +63,11 @@ export function SiteNav({ on = 'page' }: { on?: 'page' }) {
         <div className="iqn-tools">
           <LanguageSwitch />
           <ThemeToggle className="iqn-pill is-icon" />
+          {pro.until ? (
+            <Link href={L('/pro')} className="iqn-pill iqn-pro is-member">{t.pro.navMember}</Link>
+          ) : (
+            <Link href={L('/pro')} className="iqn-pill iqn-pro" aria-current={route === '/pro' ? 'page' : undefined}>{t.pro.navTry}</Link>
+          )}
           {user
             ? <Link href={L('/profile')} className="iqn-pill iqn-me" aria-label={t.site.account}><NavIcon name="login" /><span>{t.site.account}</span></Link>
             : <Link href={L('/login')} className="iqn-pill iqn-me"><NavIcon name="login" /><span>{t.site.signIn}</span></Link>}

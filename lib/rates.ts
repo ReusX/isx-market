@@ -152,9 +152,11 @@ const jina = (url: string) => 'https://r.jina.ai/' + url
 const KIFAH_URL = 'https://t.me/s/borsat_alkfah'
 
 export type KifahMarket = 'kifah' | 'harthiya' | 'samawal' | 'basra' | 'erbil' | 'sulaymaniyah' | 'duhok'
+  | 'mosul' | 'najaf' | 'karbala' | 'kirkuk' | 'salahuddin'
 const KIFAH_LABELS: [RegExp, KifahMarket][] = [
   [/كفاح/, 'kifah'], [/حارثي/, 'harthiya'], [/سمو[أا]ل/, 'samawal'], [/بصرة/, 'basra'],
   [/[أا]ربيل/, 'erbil'], [/سليماني/, 'sulaymaniyah'], [/دهوك/, 'duhok'],
+  [/موصل/, 'mosul'], [/نجف/, 'najaf'], [/كربلاء/, 'karbala'], [/كركوك/, 'kirkuk'], [/صلاح الدين/, 'salahuddin'],
 ]
 
 /** Every well-formed quote on the page, oldest first. Exported for the parser test. */
@@ -174,9 +176,14 @@ export function parseKifahChannel(raw: string): MarketQuote[] {
        it can never cross a DIGIT, so a run cannot swallow the previous quote.
        «معروض» or «عروض»: the channel dropped the م on 30 September and the
        rate froze on the 28th's last quote until this matched both. */
-    for (const m of Array.from(text.matchAll(/([^\d]{1,60}?)مطلوب\s*:?\s*([\d.,]+)[^\d]{0,30}?م?عروض\s*:?\s*([\d.,]+)/g))) {
+    /* 1 October: the channel moved to «📍 الموصل / 🟢 سعر الطلب: 157,000 /
+       🔴 سعر العرض: 157,200» and «طلب: 1570.00 / عرض: 1570.00» — the same
+       bid/ask, now also quoted PER 100 DOLLARS. Any of مطلوب/طلب/سعر الطلب
+       and معروض/عروض/عرض/سعر العرض; a figure above 10,000 is per 100. */
+    for (const m of Array.from(text.matchAll(/([^\d]{1,60}?)(?:مطلوب|طلب)\s*:?\s*([\d.,]+)[^\d]{0,30}?(?:م?عروض|عرض)\s*:?\s*([\d.,]+)/g))) {
       const market = KIFAH_LABELS.find(([re]) => re.test(m[1]))?.[1]
-      const bid = parseFloat(m[2].replace(/,/g, '')), ask = parseFloat(m[3].replace(/,/g, ''))
+      const num = (x: string) => { const v = parseFloat(x.replace(/,/g, '').replace(/\.$/, '')); return v > 10_000 ? v / 100 : v }
+      const bid = num(m[2]), ask = num(m[3])
       if (!market || !(bid >= 1000 && bid <= 2500) || !(ask >= bid) || ask - bid > 25) continue
       out.push({ market, bid, ask, at, post })
     }

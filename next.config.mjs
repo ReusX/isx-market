@@ -77,6 +77,8 @@ const nextConfig = {
          company's analysis now lands on its company page. */
       { source: '/analysis', destination: '/companies', permanent: true },
       { source: '/analysis/:sym', destination: '/c/:sym', permanent: true },
+      /* An old news article links /financials; the statements live per company. */
+      { source: '/financials', destination: '/companies', permanent: true },
     ]
   },
 

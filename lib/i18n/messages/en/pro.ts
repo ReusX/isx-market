@@ -16,14 +16,22 @@ export const pro: typeof ar = {
   failed: 'Couldn’t open the payment page. Please try again.',
   paidWith: 'Paid through Wayl, the Iraqi payment gateway, in dinars. No auto-renewal: you buy a period and it ends; nothing is charged after it.',
   testMode: 'Test mode: no real money is taken.',
+  soon: 'Subscriptions open soon',
+  badge: 'Early Believer',
+  badgeNote: (d: string) => `Pro member until ${d}`,
+  navTry: 'Try Pro',
+  navMember: 'Pro ✓',
   active: (d: string) => `Your Pro pass runs until ${d}`,
   extend: 'Buying now adds the time to your current pass.',
   paidHeading: 'What does Pro give you?',
   paid: [
-    'The dollar on the Harthiya, Al-Samawal, Basra, Erbil, Sulaymaniyah and Duhok exchanges',
+    'The dollar on the Baghdad and provincial exchanges: Basra, Mosul, Erbil, Sulaymaniyah, Kirkuk, Najaf and more',
     'Every published year and quarter of financial statements, not just the latest year',
     'The full ratios: profitability, leverage, liquidity and returns',
     'Foreign investor flow for each company, over its whole history',
+    'No ads',
+    '50% off the upcoming investing courses (soon)',
+    'An «Early Believer» badge on your account',
   ],
   freeHeading: 'What stays free forever?',
   free: [
@@ -44,10 +52,10 @@ export const pro: typeof ar = {
   markets: {
     title: 'The dollar on the other exchanges',
     note: 'Buy and sell on each exchange as the Kifah exchange channel posts them, per one dollar.',
-    names: { harthiya: 'Harthiya', samawal: 'Al-Samawal', basra: 'Basra', erbil: 'Erbil', sulaymaniyah: 'Sulaymaniyah', duhok: 'Duhok' },
+    names: { harthiya: 'Harthiya · Baghdad', samawal: 'Al-Samawal · Baghdad', basra: 'Basra', mosul: 'Mosul', erbil: 'Erbil', sulaymaniyah: 'Sulaymaniyah', duhok: 'Duhok', kirkuk: 'Kirkuk', najaf: 'Najaf', karbala: 'Karbala', salahuddin: 'Salahuddin' },
     bid: 'Buy', ask: 'Sell', at: 'Updated',
     vsKifah: 'vs Kifah',
-    locked: 'The six exchanges\u2019 rates are for Pro members',
+    locked: 'The provincial exchanges\u2019 rates are for Pro members',
     none: 'No recent rates from these exchanges right now.',
   },
   flow: {
@@ -57,6 +65,6 @@ export const pro: typeof ar = {
   lock: {
     title: 'This part is for Pro members',
     body: 'The latest two years and two quarters are free. Older years and quarters are part of IQWealth Pro.',
-    cta: 'Pro from 5,000 IQD',
+    cta: 'Get Pro for just 5,000 IQD!',
   },
 }

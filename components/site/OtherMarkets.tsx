@@ -7,12 +7,12 @@ import { proFetch, usePro } from '@/lib/proClient'
 import '@/styles/pro.css'
 
 /**
- * The dollar on the six other exchanges the Kifah channel posts (Harthiya,
- * Al-Samawal, Basra, Erbil, Sulaymaniyah, Duhok) · an «IQWealth برو» block.
+ * The dollar on the other exchanges the Kifah channel posts (Baghdad's
+ * Harthiya and Al-Samawal, and the provinces) · an «IQWealth برو» block.
  * The page carries only the names; the numbers come from /api/pro/markets
  * for a reader with a running pass.
  */
-const ORDER = ['harthiya', 'samawal', 'basra', 'erbil', 'sulaymaniyah', 'duhok'] as const
+const ORDER = ['harthiya', 'samawal', 'basra', 'mosul', 'erbil', 'sulaymaniyah', 'duhok', 'kirkuk', 'najaf', 'karbala', 'salahuddin'] as const
 type Q = { market: string; bid: number; ask: number; at: string }
 const nf = new Intl.NumberFormat('en-US', { maximumFractionDigits: 2 })
 

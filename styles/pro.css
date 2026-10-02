@@ -58,3 +58,5 @@
 .pro-mk-lock { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; padding-top: 6px; }
 .pro-mk-lock p { margin: 0; font-weight: 700; }
 .pro-mk-lock .pro-buy { margin-top: 0; }
+/* «المؤمنين الأوائل» · the Pro member's badge on /profile. */
+.pro-badge { display: inline-flex; align-items: center; gap: 6px; margin: 6px 0 0; padding: 4px 12px; border-radius: 999px; background: var(--w-ochre); color: var(--navy); font: 700 12.5px/1.4 var(--font-body); }

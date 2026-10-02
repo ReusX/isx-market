@@ -107,6 +107,19 @@ const now = Date.parse('2026-09-28T09:00:00+00:00')
   // 30 Sep layout: «عروض» without the م
   const noMeem = parseKifahChannel(tgPost(108, '2026-09-30T12:08:00+00:00', '🔴 كفاح 🔹 مطلوب: 1569.00 عروض: 1569.50'))
   if (noMeem.length !== 1 || noMeem[0].market !== 'kifah' || noMeem[0].ask !== 1569.5) bad.push('kifah: missed the «عروض» spelling')
+  /* 1 October: «🔹 كفاح / 🟢 سعر الطلب: 157,100 / 🔴 سعر العرض: 157,100» per 100
+     dollars, «🕌 الموصل / 🔻 طلب: 157,150 / 🔺 عرض: 157,350», and per-one
+     «🌴 البصرة / 🔻 طلب: 1570.00 / 🔺 عرض: 1570.00» — the rate froze on
+     Alsumaria until these matched. */
+  const oct = parseKifahChannel(
+    tgPost(201, '2026-10-01T10:29:37+00:00', '🔹 كفاح<br>🟢 سعر الطلب: 157,100<br>🔴 سعر العرض: 157,100')
+    + tgPost(202, '2026-10-01T09:09:00+00:00', '🕌 الموصل<br>🔻 طلب: 157,150<br>🔺 عرض: 157,350')
+    + tgPost(203, '2026-10-01T09:09:00+00:00', '🌴 البصرة<br>🔻 طلب: 1570.00<br>🔺 عرض: 1570.00')
+    + tgPost(204, '2026-10-01T10:29:00+00:00', '🔹 سموأل<br>🟢 سعر الطلب: 157,200.<br>🔴 سعر العرض: 157,200')
+    + tgPost(205, '2026-10-01T10:29:59+00:00', '📍 صلاح الدين<br>🟢 سعر الطلب: 156,950<br>🔴 سعر العرض: 157,200'))
+  const got = Object.fromEntries(oct.map((x) => [x.market, `${x.bid}/${x.ask}`]))
+  const want = { kifah: '1571/1571', mosul: '1571.5/1573.5', basra: '1570/1570', samawal: '1572/1572', salahuddin: '1569.5/1572' }
+  if (JSON.stringify(got, Object.keys(want)) !== JSON.stringify(want)) bad.push(`kifah: October formats parsed as ${JSON.stringify(got)}`)
 }
 
 if (bad.length) {

@@ -9,11 +9,16 @@ import { AboutSection } from './AboutSection'
 import { PageTitle } from './PageTitle'
 import type { HoldersInitial } from '@/lib/marketServer'
 import { monthLabel } from '@/lib/statistics'
+import companiesData from '@/public/data/companies.json'
 import '@/styles/statistics-page.css'
 import '@/styles/ownership-page.css'
 import '@/styles/markets.css'
 import '@/styles/econ-page.css'
 import '@/styles/company-page.css'
+
+/* Only listed tickers have a /c page; a holder row for a delisted one (IKFP) linked to a 404. */
+const LISTED = new Set((companiesData as { sym: string }[]).map((c) => c.sym))
+
 
 /**
  * /statistics/shareholders · كبار المساهمين — the largest disclosed stakes.
@@ -151,10 +156,17 @@ export function ShareholdersPage({ initial }: { initial: HoldersInitial }) {
                                   table. */}
                               <td className="own-holder"><bdi>{r.holder}</bdi></td>
                               <td>
-                                <Link href={L(`/c/${r.sym}`)}>
-                                  <span className="id-name" dir="auto">{r.company}</span>
-                                  <span className="id-sub"><bdi>{r.sym}</bdi></span>
-                                </Link>
+                                {LISTED.has(r.sym) ? (
+                                  <Link href={L(`/c/${r.sym}`)}>
+                                    <span className="id-name" dir="auto">{r.company}</span>
+                                    <span className="id-sub"><bdi>{r.sym}</bdi></span>
+                                  </Link>
+                                ) : (
+                                  <span>
+                                    <span className="id-name" dir="auto">{r.company}</span>
+                                    <span className="id-sub"><bdi>{r.sym}</bdi></span>
+                                  </span>
+                                )}
                               </td>
                               <td className="is-end own-col-pct">
                                 <div className="own-pct">
