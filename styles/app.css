@@ -610,3 +610,9 @@ button.app-chip[aria-pressed='true'] { background: var(--nav-active-bg); border-
 .wg3 .rk-seg.is-5 { display: flex; flex-wrap: wrap; }
 .wg3 .rk-seg.is-5 button { flex: 1 1 auto; padding: 0 12px; }
 .wg3 { --world: var(--ink); }
+
+/* «برو» stays on the website: inside the app no lock, price or way to buy
+   shows (Google Play requires its own billing for in-app digital goods). A
+   member who bought on the website still sees their data. */
+html.is-app :is(.pro-lock, .pro-more, .pro-mk-lock, .iqn-pro, .pro-tag, .pro-badge) { display: none !important; }
+html.is-app .pro-mk:has(.pro-blur) { display: none !important; }

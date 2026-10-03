@@ -92,6 +92,9 @@ export function appRoute(route: string): string | null {
   if (route === '/market') return '/app/market'
   if (route === '/companies') return '/app/companies'
   if (route === '/banks') return '/app/banks'
+  /* «برو» is sold on the website only, never inside the app (Google Play
+     requires its own billing for in-app digital purchases). */
+  if (route === '/pro' || route.startsWith('/pro/')) return '/app'
   const m = /^\/currencies\/([a-z]{3})$/.exec(route)
   return m ? `/app/currencies/${m[1]}` : null
 }
