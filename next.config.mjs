@@ -1,4 +1,29 @@
 /** @type {import('next').NextConfig} */
+/*
+ * Content-Security-Policy (2026-10 audit). Scripts only from this origin,
+ * Cloudflare's captcha and Vercel's analytics; network calls only to this
+ * origin, Supabase (auth, realtime) and the captcha; frames only the captcha.
+ * 'unsafe-inline' stays for scripts because the pre-paint bootstrap and the
+ * JSON-LD are inline and Next has no nonce here; what this blocks is any
+ * script or connection to a host not listed. Dev adds 'unsafe-eval' (React
+ * refresh). Images may come from any https host (company logos, news art).
+ */
+const CSP = [
+  "default-src 'self'",
+  `script-src 'self' 'unsafe-inline'${process.env.NODE_ENV === 'development' ? " 'unsafe-eval'" : ''} https://challenges.cloudflare.com https://va.vercel-scripts.com`,
+  "style-src 'self' 'unsafe-inline'",
+  "img-src 'self' data: blob: https:",
+  "font-src 'self' data:",
+  "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://challenges.cloudflare.com https://vitals.vercel-insights.com https://va.vercel-scripts.com",
+  "frame-src https://challenges.cloudflare.com",
+  "worker-src 'self' blob:",
+  "media-src 'self' https:",
+  "object-src 'none'",
+  "base-uri 'self'",
+  "form-action 'self'",
+  "frame-ancestors 'none'",
+].join('; ')
+
 const nextConfig = {
   /*
    * `next dev` and `next build` both write to .next by default, so running a
@@ -94,20 +119,15 @@ const nextConfig = {
        * Baseline response headers. Vercel already sends HSTS; these are the
        * ones it does not.
        *
-       * `frame-ancestors 'none'` rather than a full CSP: this site has a login,
-       * a portfolio and a watchlist, so being framed is a clickjacking route,
-       * but a script-src policy on a Next app with inline bootstrapping needs
-       * nonces to avoid breaking the page, and a CSP that has to be loosened
-       * later is worse than one added deliberately. Capacitor loads the app
-       * from its own bundle, not by framing this origin, so nothing in the
-       * mobile builds depends on being embedded.
+       * The CSP (const CSP above) also carries `frame-ancestors 'none'`:
+       * a site with a login and a portfolio must not be framed.
        */
       {
         source: '/:path*',
         headers: [
           { key: 'X-Content-Type-Options', value: 'nosniff' },
           { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
-          { key: 'Content-Security-Policy', value: "frame-ancestors 'none'" },
+          { key: 'Content-Security-Policy', value: CSP },
           { key: 'X-Frame-Options', value: 'DENY' },
           { key: 'Permissions-Policy', value: 'camera=(), microphone=(), geolocation=(), payment=(), usb=()' },
           { key: 'Cross-Origin-Opener-Policy', value: 'same-origin' },

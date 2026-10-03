@@ -102,17 +102,28 @@ const PAID = new Set(['complete', 'delivered'])
  * Ask Wayl whether the order is paid, and if it is (for the full amount),
  * grant the pass. Safe to call any number of times, from anywhere.
  */
-export async function confirmPaid(ref: string): Promise<{ paid: boolean; status: string; userId: string | null }> {
+const REVERSED = new Set(['returned', 'refunded', 'reversed', 'chargeback'])
+
+/**
+ * `recheck` (the webhook): a paid order is read from Wayl again, and a
+ * refund or reversal takes its days back (pro_revoke, once per order).
+ */
+export async function confirmPaid(ref: string, recheck = false): Promise<{ paid: boolean; status: string; userId: string | null }> {
   const db = createAdminClient()
-  const { data: o } = await db.from('pro_orders').select('user_id,amount_iqd,env,paid_at').eq('reference_id', ref).maybeSingle()
-  const order = o as { user_id: string; amount_iqd: number; env: string; paid_at: string | null } | null
+  const { data: o } = await db.from('pro_orders').select('user_id,amount_iqd,env,paid_at,revoked_at').eq('reference_id', ref).maybeSingle()
+  const order = o as { user_id: string; amount_iqd: number; env: string; paid_at: string | null; revoked_at: string | null } | null
   if (!order) return { paid: false, status: 'unknown', userId: null }
-  if (order.paid_at) return { paid: true, status: 'complete', userId: order.user_id }
+  if (order.revoked_at) return { paid: false, status: 'returned', userId: order.user_id }
+  if (order.paid_at && !recheck) return { paid: true, status: 'complete', userId: order.user_id }
   if (order.env === 'test' && !testAllowed()) return { paid: false, status: 'test', userId: order.user_id }
   const r = await fetch(`${BASE}/links/${encodeURIComponent(ref)}`, { headers: { 'X-WAYL-AUTHENTICATION': key() }, cache: 'no-store' })
   const j = (await r.json().catch(() => null)) as { data?: { status?: string; total?: string | number } } | null
   const status = String(j?.data?.status ?? 'unknown').toLowerCase()
-  if (!r.ok) return { paid: false, status, userId: order.user_id }
+  if (!r.ok) return { paid: !!order.paid_at, status, userId: order.user_id }
+  if (order.paid_at) {
+    if (REVERSED.has(status)) { await db.rpc('pro_revoke', { ref }); return { paid: false, status, userId: order.user_id } }
+    return { paid: true, status, userId: order.user_id }
+  }
   const full = Number(j?.data?.total) >= order.amount_iqd
   if (PAID.has(status) && full) {
     await db.rpc('pro_mark_paid', { ref })

@@ -16,6 +16,6 @@ export async function POST(req: Request) {
   let ref: string | undefined
   try { ref = (JSON.parse(raw) as { referenceId?: string; data?: { referenceId?: string } }).referenceId ?? JSON.parse(raw).data?.referenceId } catch { /* below */ }
   if (!ref || !/^pro-(month|year)-[a-z0-9]+-[a-f0-9]{12}$/.test(ref)) return NextResponse.json({ error: 'bad reference' }, { status: 400 })
-  const r = await confirmPaid(ref)
+  const r = await confirmPaid(ref, true)
   return NextResponse.json({ ok: true, paid: r.paid })
 }
