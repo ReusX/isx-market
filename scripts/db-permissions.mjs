@@ -36,6 +36,10 @@ const WRITE_TABLES = [
 const PRIVATE_TABLES = [
   'profiles', 'holdings', 'transactions', 'wallet_requests',
   'quest_completions', 'snake_scores', 'penalty_shots', 'referrals',
+  /* «IQWealth برو» data: read only by the server (20261003_lock_paid_tables.sql). */
+  'financial_facts', 'financial_ratios', 'financial_reports',
+  'financial_facts_public', 'financial_ratios_public', 'financial_reports_public',
+  'foreign_flow_company_daily', 'pro_orders', 'pro_entitlements',
 ]
 
 console.log('database permissions · what the publishable key can do')
