@@ -18,7 +18,7 @@
  * fixtures are the real published sentences, so the next drift breaks a test
  * here instead of quietly freezing the page.
  */
-import { parseAlsumaria, pickDollarArticle, parseKifahChannel, pickKifahQuote } from '../lib/rates'
+import { parseAlsumaria, pickDollarArticle, parseKifahChannel, pickKifahQuote, combineChannels } from '../lib/rates'
 
 const HEADLINES = [
   // slug, should be picked
@@ -122,9 +122,29 @@ const now = Date.parse('2026-09-28T09:00:00+00:00')
   if (JSON.stringify(got, Object.keys(want)) !== JSON.stringify(want)) bad.push(`kifah: October formats parsed as ${JSON.stringify(got)}`)
 }
 
+/* «سعر IQWealth» (3 October): the two other channels' layouts, and the median.
+   dollariraqi: «🏛️ كفاح / 157,400 | 157,450»; dollar_price: «▣ بغداد / 157,150 / 157,200». */
+{
+  const di = parseKifahChannel(tgPost(301, '2026-10-03T12:44:36+00:00',
+    '🟢 آخر أسعار الدولار في البورصات المحلية 🕰 🔺 ⚡️ :<br><br>🏛️ سموأل<br>157,400 | 157,400<br>🏛️ كفاح<br>157,400 | 157,450<br>🏛️ البصرة<br>157,200 | 157,200'))
+  const dp = parseKifahChannel(tgPost(302, '2026-10-03T09:53:14+00:00', '🔴 سعر الدولار اليوم<br><br>▣  بغداد <br>157,150 <br>157,200<br><br>https://t.me/dollar_price'))
+  const kf = parseKifahChannel(tgPost(303, '2026-10-03T11:55:33+00:00', '🔹 كفاح<br>🟢 سعر الطلب: 157,400<br>🔴 سعر العرض: 157,450'))
+  const weekly = parseKifahChannel(tgPost(304, '2026-10-01T21:00:00+00:00', 'الاقفال الاسبوعي:<br>▣بغداد:   157,350 عرض<br>▣اربيل:     157,400 عرض'))
+  if (di.map((x) => `${x.market}:${x.bid}/${x.ask}`).join(' ') !== 'samawal:1574/1574 kifah:1574/1574.5 basra:1572/1572') bad.push(`iqwealth: dollariraqi layout parsed as ${JSON.stringify(di)}`)
+  if (dp.length !== 1 || dp[0].market !== 'baghdad' || dp[0].ask !== 1572) bad.push(`iqwealth: dollar_price layout parsed as ${JSON.stringify(dp)}`)
+  if (weekly.length) bad.push('iqwealth: the weekly-close post (one figure per city) was read as quotes')
+  const t = Date.parse('2026-10-03T13:00:00+00:00')
+  const all = combineChannels([{ key: 'a', name: 'a', url: 'u', quotes: di }, { key: 'b', name: 'b', url: 'u', quotes: dp }, { key: 'c', name: 'c', url: 'u', quotes: kf }], t)
+  if (all?.buy !== 1574 || all?.sell !== 1574.5 || all?.sources?.length !== 3) bad.push(`iqwealth: median of three gave ${all?.buy}/${all?.sell} from ${all?.sources?.length}`)
+  /* A channel 6 hours behind the newest is left out of the median. */
+  const old = parseKifahChannel(tgPost(305, '2026-10-03T06:00:00+00:00', '▣ بغداد<br>155,000<br>155,500'))
+  const two = combineChannels([{ key: 'a', name: 'a', url: 'u', quotes: di }, { key: 'd', name: 'd', url: 'u', quotes: old }], t)
+  if (two?.sources?.length !== 1 || two?.sell !== 1574.5) bad.push('iqwealth: a stale channel was averaged in')
+}
+
 if (bad.length) {
   console.error(`✗ fx parser: ${bad.length} failure(s)`)
   bad.forEach(b => console.error('  ·', b))
   process.exit(1)
 }
-console.log(`✓ fx parser: ${HEADLINES.length} headline shapes + ${BODIES.length} body shapes + the spread guard + 5 Kifah channel checks`)
+console.log(`✓ fx parser: ${HEADLINES.length} headline shapes + ${BODIES.length} body shapes + the spread guard + 5 Kifah channel checks + the IQWealth median`)

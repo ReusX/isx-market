@@ -141,7 +141,7 @@ export function FxBlocks({ fx, parallel, officialRate, officialDate, title, titl
       {/* «سعر الورق» — the $100 note is how the street quotes the rate. */}
       {market != null && mult === 1 ? <p className="eco-hundred id-num">{P.hundred(nf0.format(market * 100))}{locale === 'ar' ? <> · <Link href="/fx/100-dollar">{R.page.hundred.h1}</Link></> : null}</p> : null}
       <p className="id-cap eco-when">
-        {fx?.stale ? `${C.staleNotice} · ` : ''}{fx?.date ? (fx.publishedAt && fx.sourceKey === 'kifah-tg'
+        {fx?.stale ? `${C.staleNotice} · ` : ''}{fx?.date ? (fx.publishedAt && (fx.sourceKey === 'kifah-tg' || fx.sourceKey === 'iqwealth')
           ? R.tools.updatedAt(baghdadTime(fx.publishedAt, locale), localeDate(fx.date, locale))
           : R.tools.observedOn(localeDate(fx.date, locale))) : R.tools.noObserved}
       </p>

@@ -118,10 +118,12 @@ export interface FxData {
   excerpt?: string | null
   publishedAt?: string | null   // the source's own timestamp, where it states one
   /** data_sources.key of where this came from, and the event id the record dedupes on. */
-  sourceKey?: 'kifah-tg' | 'alsumaria'
+  sourceKey?: 'iqwealth' | 'kifah-tg' | 'alsumaria'
   event?: string
-  /** Kifah only: the latest bid/ask of every market the channel posts (Erbil, Basra…). */
+  /** The latest bid/ask of every market the channels post (Erbil, Basra…); for «سعر IQWealth», the median across channels. */
   markets?: MarketQuote[]
+  /** «سعر IQWealth» only: each channel's Baghdad quote that went into the median. */
+  sources?: { key: string; name: string; bid: number; ask: number; at: string; url: string }[]
 }
 
 export interface MarketQuote {
@@ -152,11 +154,12 @@ const jina = (url: string) => 'https://r.jina.ai/' + url
 const KIFAH_URL = 'https://t.me/s/borsat_alkfah'
 
 export type KifahMarket = 'kifah' | 'harthiya' | 'samawal' | 'basra' | 'erbil' | 'sulaymaniyah' | 'duhok'
-  | 'mosul' | 'najaf' | 'karbala' | 'kirkuk' | 'salahuddin'
+  | 'mosul' | 'najaf' | 'karbala' | 'kirkuk' | 'salahuddin' | 'baghdad'
 const KIFAH_LABELS: [RegExp, KifahMarket][] = [
   [/كفاح/, 'kifah'], [/حارثي/, 'harthiya'], [/سمو[أا]ل/, 'samawal'], [/بصرة/, 'basra'],
   [/[أا]ربيل/, 'erbil'], [/سليماني/, 'sulaymaniyah'], [/دهوك/, 'duhok'],
   [/موصل/, 'mosul'], [/نجف/, 'najaf'], [/كربلاء/, 'karbala'], [/كركوك/, 'kirkuk'], [/صلاح الدين/, 'salahuddin'],
+  [/بغداد/, 'baghdad'],
 ]
 
 /** Every well-formed quote on the page, oldest first. Exported for the parser test. */
@@ -187,6 +190,18 @@ export function parseKifahChannel(raw: string): MarketQuote[] {
       if (!market || !(bid >= 1000 && bid <= 2500) || !(ask >= bid) || ask - bid > 25) continue
       out.push({ market, bid, ask, at, post })
     }
+    /* Unlabelled layout (the «سعر الدولار في العراق» and «سعر الدولار اليوم»
+       channels): «🏛️ كفاح / 157,400 | 157,450» — a market on its own line,
+       then bid and ask, on one line or two. Only when the labelled pass found nothing. */
+    if (!out.some((x) => x.post === post)) {
+      for (const m of Array.from(text.matchAll(/([^\d\n|]{2,40})\n\s*([\d.,]+)\s*[\n|]\s*([\d.,]+)/g))) {
+        const market = KIFAH_LABELS.find(([re]) => re.test(m[1]))?.[1]
+        const num = (x: string) => { const v = parseFloat(x.replace(/,/g, '').replace(/\.$/, '')); return v > 10_000 ? v / 100 : v }
+        const bid = num(m[2]), ask = num(m[3])
+        if (!market || !(bid >= 1000 && bid <= 2500) || !(ask >= bid) || ask - bid > 25) continue
+        out.push({ market, bid, ask, at, post })
+      }
+    }
   }
   return out.sort((x, y) => x.at.localeCompare(y.at) || x.post - y.post)
 }
@@ -195,7 +210,8 @@ const KIFAH_MAX_AGE_DAYS = 4       // a long weekend or holiday, and no more
 const KIFAH_MAX_JUMP = 0.03
 
 export function pickKifahQuote(quotes: MarketQuote[], now = Date.now()): MarketQuote | null {
-  const k = quotes.filter((q) => q.market === 'kifah')
+  /* The Baghdad benchmark: the Kifah floor, or a channel's «بغداد» line. */
+  const k = quotes.filter((q) => q.market === 'kifah' || q.market === 'baghdad')
   for (let i = k.length - 1; i >= 0; i -= 1) {
     const q = k[i], prev = k[i - 1]
     if (now - Date.parse(q.at) > KIFAH_MAX_AGE_DAYS * 86_400_000) return null
@@ -207,26 +223,72 @@ export function pickKifahQuote(quotes: MarketQuote[], now = Date.now()): MarketQ
 
 const baghdadDay = (iso: string) => new Date(Date.parse(iso) + 3 * 3_600_000).toISOString().slice(0, 10)
 
-async function fetchKifah(): Promise<FxData | null> {
-  const raw = await fetchText(KIFAH_URL)
-  if (!raw) return null
-  const quotes = parseKifahChannel(raw)
-  const q = pickKifahQuote(quotes)
-  if (!q) return null
-  // The latest quote per market, for the city pages.
-  const latest = new Map<KifahMarket, MarketQuote>()
-  for (const x of quotes) latest.set(x.market, x)
+// ── «سعر IQWealth» · our own rate, the median of the Baghdad channels ───────
+// Three public Telegram channels post the Baghdad floor (Kifah) and the
+// provinces several times a trading day. Each one's latest Baghdad quote is
+// checked on its own (age, a 3% jump against its previous quote); the ones
+// posted within 3 hours of the newest go into the median. One channel going
+// quiet or changing its layout (1 October) no longer freezes the rate — and
+// the figure is ours, with every input shown on /fx.
+export const RATE_CHANNELS = [
+  { key: 'kifah-tg', name: 'بورصة الكفاح', url: 'https://t.me/s/borsat_alkfah' },
+  { key: 'dollariraqi-tg', name: 'سعر الدولار في العراق', url: 'https://t.me/s/dollariraqi' },
+  { key: 'dollarprice-tg', name: 'سعر الدولار اليوم', url: 'https://t.me/s/dollar_price' },
+] as const
+const FRESH_MS = 3 * 3_600_000
+
+export function median(xs: number[]): number {
+  const a = [...xs].sort((x, y) => x - y), m = a.length >> 1
+  return a.length % 2 ? a[m] : (a[m - 1] + a[m]) / 2
+}
+
+/** The median of the channels' Baghdad quotes, and of each province across channels. Exported for the parser test. */
+export function combineChannels(per: { key: string; name: string; url: string; quotes: MarketQuote[] }[], now = Date.now()): FxData | null {
+  const picks = per.flatMap((c) => {
+    const q = pickKifahQuote(c.quotes, now)
+    return q ? [{ c, q }] : []
+  })
+  if (!picks.length) return null
+  const newest = Math.max(...picks.map((p) => Date.parse(p.q.at)))
+  const used = picks.filter((p) => newest - Date.parse(p.q.at) <= FRESH_MS)
+  const bid = median(used.map((p) => p.q.bid)), ask = Math.max(bid, median(used.map((p) => p.q.ask)))
+  const at = new Date(newest).toISOString()
+  /* Every other market: each channel's latest quote for it, the fresh ones' median. */
+  const byMarket = new Map<KifahMarket, MarketQuote[]>()
+  for (const c of per) {
+    const latest = new Map<KifahMarket, MarketQuote>()
+    for (const x of c.quotes) if (x.market !== 'baghdad' && now - Date.parse(x.at) <= KIFAH_MAX_AGE_DAYS * 86_400_000) latest.set(x.market, x)
+    for (const [m, x] of latest) byMarket.set(m, [...(byMarket.get(m) ?? []), x])
+  }
+  const markets: MarketQuote[] = []
+  for (const [m, qs] of byMarket) {
+    const top = Math.max(...qs.map((x) => Date.parse(x.at)))
+    const fresh = qs.filter((x) => top - Date.parse(x.at) <= FRESH_MS)
+    const b = median(fresh.map((x) => x.bid))
+    markets.push({ market: m, bid: b, ask: Math.max(b, median(fresh.map((x) => x.ask))), at: new Date(top).toISOString(), post: 0 })
+  }
   return {
-    buy: q.bid, sell: q.ask, change: null,
-    date: baghdadDay(q.at),
-    source: 't.me/borsat_alkfah', sourceUrl: `https://t.me/borsat_alkfah/${q.post}`,
+    buy: bid, sell: ask, change: null,
+    date: baghdadDay(at),
+    source: 'IQWealth', sourceUrl: 'https://iraqsm.com/fx',
     fetchedAt: new Date().toISOString(),
-    excerpt: `كفاح · مطلوب ${q.bid} · معروض ${q.ask}`,
-    publishedAt: q.at,
-    sourceKey: 'kifah-tg', event: `kifah-tg:${q.post}`,
-    markets: Array.from(latest.values()),
+    excerpt: used.map((p) => `${p.c.key} ${p.q.bid}/${p.q.ask} @${p.q.at}`).join(' · '),
+    publishedAt: at,
+    sourceKey: 'iqwealth',
+    event: `iqwealth:${used.map((p) => `${p.c.key}/${p.q.post}`).sort().join(',')}`,
+    markets,
+    sources: used.map((p) => ({ key: p.c.key, name: p.c.name, bid: p.q.bid, ask: p.q.ask, at: p.q.at, url: `${p.c.url.replace('/s/', '/')}/${p.q.post}` })),
   }
 }
+
+async function fetchChannels(): Promise<FxData | null> {
+  const per = await Promise.all(RATE_CHANNELS.map(async (c) => {
+    const raw = await fetchText(c.url)
+    return { ...c, quotes: raw ? parseKifahChannel(raw) : [] }
+  }))
+  return combineChannels(per)
+}
+
 
 // ── Primary source: Alsumaria daily dollar article ──────────────────────────
 // Alsumaria posts a "أسعار الدولار مع إغلاق التداولات" article every day. The
@@ -417,8 +479,8 @@ async function writeFxCache(fx: FxData): Promise<void> {
 export async function fetchFx(): Promise<FxData | null> {
   /* Kifah channel first (live floor quotes); Alsumaria only when the channel
      can't be read or has nothing usable. */
-  const kifah = await fetchKifah()
-  if (kifah) { await writeFxCache(kifah); return kifah }
+  const ours = await fetchChannels()
+  if (ours) { await writeFxCache(ours); return ours }
   const article = await discoverDollarArticle()
   if (article) {
     // NOT encodeURI(article): the listing already hands us a percent-encoded

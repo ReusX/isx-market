@@ -30,7 +30,7 @@ export async function fxScreen(): Promise<FxScreenData> {
   const { fx, days, closes, prev, official } = await dollar()
   return {
     buy: fx?.buy ?? null, sell: fx?.sell ?? null, publishedAt: fx?.publishedAt ?? null, date: fx?.date ?? null,
-    stale: !!fx?.stale, kifah: fx?.sourceKey === 'kifah-tg', official, prev,
+    stale: !!fx?.stale, kifah: fx?.sourceKey === 'kifah-tg' || fx?.sourceKey === 'iqwealth', official, prev,
     /* The day's move on the website's one rule (mid-price vs the previous close), so the app, home and /fx agree. */
     movePct: fx ? fxDayMove({ buy: fx.buy ?? null, sell: fx.sell ?? null, date: fx.date ?? null }, days)?.pct ?? null : null,
     spark: closes.map((d) => ({ date: d.date, value: d.close })),
