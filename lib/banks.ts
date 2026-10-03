@@ -18,11 +18,14 @@ import { SCORE_KEYS, type FinRow } from './bankScore'
 const URL_BASE = process.env.NEXT_PUBLIC_SUPABASE_URL
 const ANON = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 
-async function q<T>(path: string, revalidate = 3600): Promise<T[]> {
-  if (!URL_BASE || !ANON) return []
+/* The filings (financial_facts_public) are «برو» data: not readable with the
+   public key, so those reads use the server's own key, which never leaves it. */
+async function q<T>(path: string, revalidate = 3600, paid = false): Promise<T[]> {
+  const key = paid ? process.env.SUPABASE_SERVICE_ROLE_KEY : ANON
+  if (!URL_BASE || !key) return []
   try {
     const res = await fetch(`${URL_BASE}/rest/v1/${path}`, {
-      headers: { apikey: ANON, Authorization: `Bearer ${ANON}` },
+      headers: { apikey: key, Authorization: `Bearer ${key}` },
       next: { revalidate },
     })
     /* An empty array degrades gracefully — a panel simply does not render —
@@ -249,9 +252,9 @@ export async function bankFinancials(tickers: string[]): Promise<Map<string, Ban
   const rows = await q<{
     ticker: string; fiscal_year: number; period: string; line_key: string; value_iqd: number
   }>(
-    `financial_facts?select=ticker,fiscal_year,period,line_key,value_iqd` +
+    `financial_facts_public?select=ticker,fiscal_year,period,line_key,value_iqd` +
     `&ticker=in.(${tickers.join(',')})&line_key=in.(${FIN_KEYS.join(',')})` +
-    `&order=fiscal_year.desc&limit=4000`,
+    `&order=fiscal_year.desc&limit=4000`, 3600, true,
   )
   const out = new Map<string, BankFinancials>()
   for (const r of rows) {
@@ -277,9 +280,9 @@ export async function bankScoreRows(tickers: string[]): Promise<FinRow[]> {
   const out: FinRow[] = []
   for (let offset = 0; offset < 20000; offset += 1000) {
     const page = await q<FinRow>(
-      `financial_facts?select=ticker,fiscal_year,period,line_key,value_iqd` +
+      `financial_facts_public?select=ticker,fiscal_year,period,line_key,value_iqd` +
       `&ticker=in.(${tickers.join(',')})&line_key=in.(${SCORE_KEYS.join(',')})&fiscal_year=gte.${from}` +
-      `&order=ticker.asc,fiscal_year.asc,period.asc,line_key.asc&limit=1000&offset=${offset}`,
+      `&order=ticker.asc,fiscal_year.asc,period.asc,line_key.asc&limit=1000&offset=${offset}`, 3600, true,
     )
     out.push(...page)
     if (page.length < 1000) break

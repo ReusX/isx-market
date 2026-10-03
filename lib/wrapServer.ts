@@ -28,12 +28,15 @@ type IndexRow = { date: string; isx60: number; isx15: number | null; total_value
 type PriceRow = { ticker: string; date: string; close: number | null; value: number | null; volume: number | null; trades: number | null }
 type FlowRow = { ticker: string; side: 'buy' | 'sell'; value: number; trades: number }
 
-function client() {
-  return createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!, {
+function client(key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!) {
+  return createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, key, {
     global: { fetch: (u, i) => fetch(u, { ...i, next: { revalidate: 300 } }) },
     auth: { persistSession: false },
   })
 }
+/* The paid tables (financials, per-company foreign flow) are not readable with the
+   public key: the server reads them with its own, which stays on the server. */
+const paid = () => client(process.env.SUPABASE_SERVICE_ROLE_KEY!)
 const META = new Map((companiesData as CompanyMeta[]).map((c) => [c.sym, c]))
 const nameOf = (sym: string) => ({ ar: META.get(sym)?.ar || sym, en: META.get(sym)?.en || sym })
 
@@ -46,6 +49,7 @@ export const loadSessions = cache(async (limit = 600): Promise<string[]> => {
 export const loadSessionWrap = cache(async (date: string): Promise<SessionWrap | null> => {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) return null
   const sb = client()
+  const psb = paid()
   const sessions = await loadSessions()
   const i = sessions.indexOf(date)
   if (i < 0) return null
@@ -58,7 +62,7 @@ export const loadSessionWrap = cache(async (date: string): Promise<SessionWrap |
     prev
       ? sb.from('daily_prices').select('ticker,date,close,value,volume,trades').in('date', [date, prev]).range(0, 1999)
       : sb.from('daily_prices').select('ticker,date,close,value,volume,trades').eq('date', date).range(0, 1999),
-    sb.from('foreign_flow_company_daily').select('ticker,side,value,trades').eq('date', date),
+    psb.from('foreign_flow_company_daily').select('ticker,side,value,trades').eq('date', date),
   ])
   const idx = (idxRes.data ?? []) as IndexRow[]
   const today = idx[0]

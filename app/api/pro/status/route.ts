@@ -7,8 +7,6 @@ export const dynamic = 'force-dynamic'
 /* «test» only where test payments really run (local, previews); «open» false on the live site until WAYL_ENV=live. */
 const flags = () => ({
   open: checkoutOpen(), test: checkoutOpen() && waylEnv() === 'test',
-  /* Setup readout, yes/no only (never a value): is each Wayl setting visible to this deployment? */
-  setup: { key: !!process.env.WAYL_API_KEY?.trim(), envSet: !!process.env.WAYL_ENV, live: waylEnv() === 'live', prod: process.env.VERCEL_ENV === 'production' },
 })
 
 /* Never cached: a stale «closed» answer kept the buy buttons disabled after payments opened. */

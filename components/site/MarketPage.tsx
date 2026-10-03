@@ -168,9 +168,8 @@ export function MarketPage({ variant = 'root', initial, fx }: { variant?: 'root'
           if (!alive || !Array.isArray(rows) || !rows.length) return
           setSeries((s) => ({ ...s, rsisx: rows.map((r) => ({ date: r.date, isx60: r.iqd })) }))
         }).catch(() => {}),
-        sb.from('foreign_flow_company_daily')
-          .select('date,side,value').order('date', { ascending: false }).limit(1200)
-          .then(({ data }) => { if (alive && data) setFlowRows(data as FlowRow[]) }),
+        /* Market totals summed on the server: the per-company table is «برو» data. */
+        fetch('/api/flow/market').then((r) => (r.ok ? r.json() : null)).then((j: { rows?: FlowRow[] } | null) => { if (alive && j?.rows) setFlowRows(j.rows) }).catch(() => {}),
       ])
       if (alive) setLoading(false)
     })()

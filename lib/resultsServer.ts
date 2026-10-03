@@ -46,12 +46,15 @@ export function parseResultsSlug(slug: string): { year: number; period: Period }
 /* Hourly by default: the index feeds the sitemap, news and company pages,
    where a new filing should appear within the hour. One filing's own page
    passes a day, since a published filing does not change. */
-function client(revalidate = 3600) {
-  return createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!, {
+function client(revalidate = 3600, key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!) {
+  return createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, key, {
     global: { fetch: (u, i) => fetch(u, { ...i, next: { revalidate } }) },
     auth: { persistSession: false },
   })
 }
+/* The paid tables (financials, per-company foreign flow) are not readable with the
+   public key: the server reads them with its own, which stays on the server. */
+const paid = (revalidate = 3600) => client(revalidate, process.env.SUPABASE_SERVICE_ROLE_KEY!)
 const META = new Map((companiesData as CompanyMeta[]).map((c) => [c.sym, c]))
 type ReportRow = { ticker: string; fiscal_year: number; period: string; template: string | null; pdf_url: string | null; source_added_date: string | null; unit_reported: string | null }
 type FactRow = { ticker: string; fiscal_year: number; period: string; statement: string; line_key: string; value_iqd: number | null }
@@ -67,13 +70,14 @@ type RatioRow = { ratio_key: string; value: number | null }
  */
 export const loadResultsIndex = cache(async (): Promise<ResultsIndexRow[]> => {
   const sb = client()
+  const psb = paid()
   const [{ data }, withNi] = await Promise.all([
-    sb.from('financial_reports_public')
+    psb.from('financial_reports_public')
       .select('ticker,fiscal_year,period,template,source_added_date').order('source_added_date', { ascending: false }).range(0, 999),
     (async () => {
       const keys = new Set<string>()
       for (let f = 0; f < 50_000; f += 1000) {
-        const { data: rows, error } = await sb.from('financial_facts_public').select('ticker,fiscal_year,period')
+        const { data: rows, error } = await psb.from('financial_facts_public').select('ticker,fiscal_year,period')
           .eq('line_key', 'net_income').not('value_iqd', 'is', null).order('ticker').order('fiscal_year').order('period').range(f, f + 999)
         if (error || !rows?.length) break
         for (const r of rows as { ticker: string; fiscal_year: number; period: string }[]) keys.add(`${r.ticker}:${r.fiscal_year}:${r.period}`)
@@ -99,10 +103,11 @@ export const loadResults = cache(async (symRaw: string, slug: string): Promise<R
   const key = parseResultsSlug(slug)
   if (!meta || !key || !normalizedValuesTrusted(sym)) return null
   const sb = client(86_400)
+  const psb = paid(86_400)
   const [repRes, factRes, ratioRes] = await Promise.all([
-    sb.from('financial_reports_public').select('ticker,fiscal_year,period,template,pdf_url,source_added_date,unit_reported').eq('ticker', sym),
-    sb.from('financial_facts_public').select('ticker,fiscal_year,period,statement,line_key,value_iqd').eq('ticker', sym).in('fiscal_year', [key.year, key.year - 1]).eq('period', key.period),
-    sb.from('financial_ratios_public').select('ratio_key,value').eq('ticker', sym).eq('fiscal_year', key.year).eq('period', key.period),
+    psb.from('financial_reports_public').select('ticker,fiscal_year,period,template,pdf_url,source_added_date,unit_reported').eq('ticker', sym),
+    psb.from('financial_facts_public').select('ticker,fiscal_year,period,statement,line_key,value_iqd').eq('ticker', sym).in('fiscal_year', [key.year, key.year - 1]).eq('period', key.period),
+    psb.from('financial_ratios_public').select('ratio_key,value').eq('ticker', sym).eq('fiscal_year', key.year).eq('period', key.period),
   ])
   const reports = (repRes.data ?? []) as ReportRow[]
   const report = reports.find((r) => r.fiscal_year === key.year && r.period === key.period)

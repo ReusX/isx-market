@@ -33,12 +33,15 @@ export type MarketInitial = {
 
 /* A route rebuilds at the shortest interval of anything it fetches, so a
    loader for slow data (filings) passes its own, longer one. */
-function client(revalidate = 60) {
-  return createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!, {
+function client(revalidate = 60, key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!) {
+  return createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, key, {
     global: { fetch: (u, i) => fetch(u, { ...i, next: { revalidate } }) },
     auth: { persistSession: false },
   })
 }
+/* The paid tables (financials, per-company foreign flow) are not readable with the
+   public key: the server reads them with its own, which stays on the server. */
+const paid = (revalidate = 60) => client(revalidate, process.env.SUPABASE_SERVICE_ROLE_KEY!)
 
 /**
  * `date`: a past session for the board; omitted → the latest. A date with no
@@ -146,6 +149,7 @@ export type ScreenerInitial = { metrics: Metric[]; meta: CompanyMeta[]; pe: Reco
 
 export const loadScreener = cache(async (): Promise<ScreenerInitial> => {
   const sb = client()
+  const psb = paid()
   const [{ data }, latest] = await Promise.all([
     sb.from('company_metrics').select('*'),
     sb.from('daily_prices').select('date').order('date', { ascending: false }).limit(1),
@@ -157,7 +161,7 @@ export const loadScreener = cache(async (): Promise<ScreenerInitial> => {
     const { fetchTtmPe } = await import('@/lib/fundamentals')
     const prices: Record<string, number> = {}
     for (const m of metrics) if (m.last_close > 0) prices[m.ticker] = m.last_close
-    const res = await fetchTtmPe(sb, prices)
+    const res = await fetchTtmPe(psb, prices)
     pe = Object.fromEntries(Object.entries(res).map(([t, v]) => [t, v.pe]))
   } catch { peFailed = true }
   return { metrics, meta: companiesData as CompanyMeta[], pe, peFailed, marketSession }
@@ -177,6 +181,7 @@ export type StatisticsInitial = {
 
 export const loadStatistics = cache(async (): Promise<StatisticsInitial> => {
   const sb = client()
+  const psb = paid()
   const out: StatisticsInitial = { sessions: [], sectorRows: [], flow: [], ownership: null }
   await Promise.allSettled([
     (async () => {
@@ -195,7 +200,7 @@ export const loadStatistics = cache(async (): Promise<StatisticsInitial> => {
     sb.from('sector_monthly').select('year,month,sector,volume,value,trades,traded_companies,listed_companies')
       .order('year', { ascending: false }).order('month', { ascending: false }).limit(40)
       .then(({ data }) => { const rows = (data ?? []) as SectorMonthRow[]; if (rows.length) out.sectorRows = rows.filter((r) => r.year === rows[0].year && r.month === rows[0].month) }),
-    sb.from('foreign_flow_company_daily').select('date,side,value').order('date', { ascending: false }).limit(2400)
+    psb.from('foreign_flow_company_daily').select('date,side,value').order('date', { ascending: false }).limit(2400)
       .then(({ data }) => { out.flow = (data ?? []) as StatisticsInitial['flow'] }),
     sb.from('ownership_monthly').select('year,month,iraqi_shares,foreign_shares').order('year', { ascending: false }).order('month', { ascending: false }).limit(400)
       .then(({ data }) => {
@@ -230,6 +235,7 @@ export type FlowInitial = {
 
 export const loadForeignFlow = cache(async (): Promise<FlowInitial> => {
   const sb = client()
+  const psb = paid()
   const since = new Date(Date.now() - 2 * 366 * 86400_000).toISOString().slice(0, 10)
   const out: FlowInitial = { daily: [], sessionValue: [], companies: [], accounts: depositoryAccounts as unknown as FlowInitial['accounts'] }
   await Promise.allSettled([
@@ -238,13 +244,13 @@ export const loadForeignFlow = cache(async (): Promise<FlowInitial> => {
     sb.from('daily_index').select('date,total_value').gte('date', since).gt('total_value', 0).order('date').limit(1000)
       .then(({ data }) => { out.sessionValue = ((data ?? []) as { date: string; total_value: number }[]).map((r) => ({ date: r.date, value: Number(r.total_value) })) }),
     (async () => {
-      const { data: dates } = await sb.from('foreign_flow_company_daily').select('date').order('date', { ascending: false }).limit(1)
+      const { data: dates } = await psb.from('foreign_flow_company_daily').select('date').order('date', { ascending: false }).limit(1)
       const last = dates?.[0]?.date as string | undefined
       if (!last) return
       const from = new Date(new Date(last).getTime() - 70 * 86400_000).toISOString().slice(0, 10)
       const rows: FlowInitial['companies'] = []
       for (let f = 0; ; f += 1000) {
-        const { data, error } = await sb.from('foreign_flow_company_daily').select('date,ticker,side,value').gte('date', from).order('date').range(f, f + 999)
+        const { data, error } = await psb.from('foreign_flow_company_daily').select('date,ticker,side,value').gte('date', from).order('date').range(f, f + 999)
         if (error || !data?.length) break
         for (const r of data as { date: string; ticker: string; side: string; value: number | null }[]) rows.push({ date: r.date, ticker: r.ticker, side: r.side, value: Number(r.value ?? 0) })
         if (data.length < 1000) break
@@ -634,9 +640,10 @@ export function freeFlow<T extends { date: string }>(rows: T[]): T[] {
 export async function companyFlowHistory(symRaw: string): Promise<{ date: string; side: string; value: number }[]> {
   const sym = symRaw.toUpperCase()
   const sb = client(3600)
+  const psb = paid(3600)
   const out: { date: string; side: string; value: number }[] = []
   for (let f = 0; f < 20_000; f += 1000) {
-    const { data, error } = await sb.from('foreign_flow_company_daily').select('date,side,value').eq('ticker', sym).order('date', { ascending: false }).range(f, f + 999)
+    const { data, error } = await psb.from('foreign_flow_company_daily').select('date,side,value').eq('ticker', sym).order('date', { ascending: false }).range(f, f + 999)
     if (error || !data?.length) break
     for (const r of data as { date: string; side: string; value: number | null }[]) out.push({ date: r.date, side: r.side, value: Number(r.value ?? 0) })
     if (data.length < 1000) break
@@ -671,6 +678,7 @@ export const loadCompany = cache(async (symRaw: string): Promise<CompanyInitial>
 
   try {
     const sb = client()
+    const psb = paid()
     const { buildReturns } = await import('@/lib/companyView')
     const since = new Date(Date.now() - 5 * 366 * 86400_000).toISOString().slice(0, 10)
 
@@ -719,10 +727,10 @@ export const loadCompany = cache(async (symRaw: string): Promise<CompanyInitial>
         }
         return rows
       })(),
-      sb.from('financial_facts_public').select('fiscal_year,period,line_key,value_iqd').eq('ticker', sym).eq('statement', 'income')
+      psb.from('financial_facts_public').select('fiscal_year,period,line_key,value_iqd').eq('ticker', sym).eq('statement', 'income')
         .in('line_key', ['revenue', 'net_income', 'financing_income', 'revenue_and_commissions']),
-      sb.from('financial_ratios_public').select('fiscal_year,period,ratio_key,value').eq('ticker', sym),
-      sb.from('foreign_flow_company_daily').select('date,side,value').eq('ticker', sym).order('date', { ascending: false }).limit(120),
+      psb.from('financial_ratios_public').select('fiscal_year,period,ratio_key,value').eq('ticker', sym),
+      psb.from('foreign_flow_company_daily').select('date,side,value').eq('ticker', sym).order('date', { ascending: false }).limit(120),
       period('ownership_monthly'),
       period('major_shareholders'),
     ])
@@ -813,7 +821,7 @@ export const loadCompany = cache(async (symRaw: string): Promise<CompanyInitial>
     try {
       const { fetchTtmPe } = await import('@/lib/fundamentals')
       if (out.last && out.last > 0) {
-        const res = await fetchTtmPe(sb, { [sym]: out.last })
+        const res = await fetchTtmPe(psb, { [sym]: out.last })
         out.pe = res[sym]?.pe ?? null
       }
     } catch { /* P/E is allowed to fail alone. */ }
@@ -903,11 +911,12 @@ export const loadFinancials = cache(async (symRaw: string): Promise<FinancialsIn
   if (!meta) return out
   try {
     const sb = client(86_400)
+    const psb = paid(86_400)
     const { buildFinancials } = await import('@/lib/financials')
     const [f, r, p] = await Promise.all([
-      sb.from('financial_facts_public').select('fiscal_year,period,statement,line_key,value_iqd,unit_reported,source_label_ar').eq('ticker', sym).limit(3000),
-      sb.from('financial_ratios_public').select('fiscal_year,period,ratio_key,value').eq('ticker', sym).limit(2000),
-      sb.from('financial_reports_public').select('fiscal_year,period,pdf_url,unit_reported,template').eq('ticker', sym).limit(200),
+      psb.from('financial_facts_public').select('fiscal_year,period,statement,line_key,value_iqd,unit_reported,source_label_ar').eq('ticker', sym).limit(3000),
+      psb.from('financial_ratios_public').select('fiscal_year,period,ratio_key,value').eq('ticker', sym).limit(2000),
+      psb.from('financial_reports_public').select('fiscal_year,period,pdf_url,unit_reported,template').eq('ticker', sym).limit(200),
     ])
     const fin = buildFinancials(sym,
       (f.data ?? []) as import('@/lib/financials').FactRow[],

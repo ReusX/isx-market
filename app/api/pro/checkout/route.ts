@@ -16,7 +16,9 @@ export async function POST(req: Request) {
   const plan = body?.plan as Plan
   if (!plan || !(plan in PLANS)) return NextResponse.json({ error: 'bad plan' }, { status: 400 })
   try {
-    const url = await createCheckout(user.id, plan, new URL(req.url).origin)
+    /* On the live site the return and webhook addresses are fixed, never taken from the request's Host. */
+    const origin = process.env.VERCEL_ENV === 'production' ? 'https://iraqsm.com' : new URL(req.url).origin
+    const url = await createCheckout(user.id, plan, origin)
     return NextResponse.json({ url })
   } catch (e) {
     if ((e as Error).message === 'rate') return NextResponse.json({ error: 'too many' }, { status: 429 })

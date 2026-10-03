@@ -29,7 +29,8 @@ export interface RankedBank {
 const KEYS = ['total_assets', 'customer_deposits', 'total_equity', 'net_income'] as const
 
 const URL_BASE = process.env.NEXT_PUBLIC_SUPABASE_URL
-const ANON = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+/* The filings are «برو» data, not readable with the public key: read with the server's own. */
+const ANON = process.env.SUPABASE_SERVICE_ROLE_KEY
 
 export async function loadBankRanking(): Promise<{ ranked: RankedBank[]; withheld: Bank[]; unfiled: Bank[] }> {
   const banks = (await listBanks()).filter((b) => b.ticker)
@@ -39,7 +40,7 @@ export async function loadBankRanking(): Promise<{ ranked: RankedBank[]; withhel
 
   const tickers = trusted.map((b) => b.ticker as string)
   const res = await fetch(
-    `${URL_BASE}/rest/v1/financial_facts?select=ticker,fiscal_year,line_key,value_iqd` +
+    `${URL_BASE}/rest/v1/financial_facts_public?select=ticker,fiscal_year,line_key,value_iqd` +
     `&ticker=in.(${tickers.join(',')})&period=eq.ANNUAL&line_key=in.(${KEYS.join(',')})` +
     `&order=fiscal_year.desc&limit=4000`,
     { headers: { apikey: ANON, Authorization: `Bearer ${ANON}` }, next: { revalidate: 3600 } },

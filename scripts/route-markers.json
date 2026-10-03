@@ -7,6 +7,7 @@
   "/api/account/delete": "ƒ",
   "/api/cron/daily-prices": "ƒ",
   "/api/cron/push": "ƒ",
+  "/api/flow/market": "○",
   "/api/index/rsisx": "○",
   "/api/pro/checkout": "ƒ",
   "/api/pro/financials/[sym]": "ƒ",
